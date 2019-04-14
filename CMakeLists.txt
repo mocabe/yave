@@ -86,5 +86,7 @@ endif()
 add_subdirectory(${YAVE_SOURCE_DIR})
 
 if(YAVE_BUILD_TESTS)
+  include (CTest)
+  enable_testing()
   add_subdirectory(${YAVE_TEST_DIR})
 endif()
