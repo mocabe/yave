@@ -75,10 +75,11 @@ namespace yave {
       if (descriptor == nullptr)
         return false;
 
-      for (auto &&i = c.begin(); i != c.end(); ++i) {
-        if (*i == descriptor)
-          return true;
-      }
+      auto found = std::find(c.begin(), c.end(), descriptor);
+
+      if (found != c.end())
+        return true;
+
       return false;
     }
 
@@ -90,22 +91,14 @@ namespace yave {
     static inline void
       destroy(container_type &c, const descriptor_type &descriptor)
     {
-      if (!exists(c, descriptor))
-        return;
+      auto tail = std::remove_if(c.begin(), c.end(), [&](descriptor_type dsc) {
+        return dsc == descriptor;
+      });
 
-      auto tmp {c};
-
-      for (auto iter = tmp.begin(); iter != tmp.end(); ++iter) {
-        if (*iter == descriptor)
-          iter = tmp.erase(iter);
-        if (iter == tmp.end())
-          break;
+      if (tail != c.end()) {
+        c.erase(tail, c.end());
+        delete (descriptor);
       }
-
-      c.swap(tmp);
-      delete (descriptor);
-
-      return;
     }
 
     /// Instance in a container and return descriptor.
@@ -137,8 +130,8 @@ namespace yave {
     static inline const value_type &
       access(const container_type &c, const descriptor_type &descriptor)
     {
-      const value_type &v = access(const_cast<container_type &>(c), descriptor);
-      return v;
+      (void)c;
+      return *descriptor;
     }
 
     /// Access function.
@@ -164,8 +157,9 @@ namespace yave {
     static inline const value_type &
       at(const container_type &c, const descriptor_type &descriptor)
     {
-      const value_type &v = at(const_cast<container_type &>(c), descriptor);
-      return v;
+      if (!exists(c, descriptor))
+        throw std::out_of_range("descriptor does not exist.");
+      return access(c, descriptor);
     }
 
     /// Access property.
@@ -923,19 +917,19 @@ namespace yave {
       return false;
     }
 
-    /// nodes getter
+    /// Get nodes.
     auto nodes() const
     {
       return m_nodes;
     }
 
-    /// node count
+    /// Get node count.
     auto n_nodes() const
     {
       return m_nodes.size();
     }
 
-    /// nodes getter
+    /// Get nodes connected to the socket.
     std::vector<node_descriptor_type>
       nodes(const socket_descriptor_type &descriptor) const
     {
@@ -943,26 +937,26 @@ namespace yave {
       return s.nodes();
     }
 
-    /// node count
+    /// Get number of connected nodes to the socket.
     auto n_nodes(const socket_descriptor_type &descriptor) const
     {
       const auto &s = _at(descriptor);
       return s.n_nodes();
     }
 
-    /// sockets getter
+    /// Get sockets.
     auto sockets() const
     {
       return m_sockets;
     }
 
-    /// socket count
+    /// Get socket count.
     auto n_sockets() const
     {
       return m_sockets.size();
     }
 
-    /// sockets getter
+    /// Get sockets connected to the node.
     std::vector<socket_descriptor_type>
       sockets(const node_descriptor_type &descriptor) const
     {
@@ -970,26 +964,26 @@ namespace yave {
       return n.sockets();
     }
 
-    /// socket count
+    /// Get number of connected sockets to the node.
     auto n_sockets(const node_descriptor_type &descriptor) const
     {
       const auto &n = _at(descriptor);
       return n.n_sockets();
     }
 
-    /// edges getter
+    /// Get edges.
     auto edges() const
     {
       return m_edges;
     }
 
-    /// edge count
+    /// Get edge count.
     auto n_edges() const
     {
       return m_edges.size();
     }
 
-    /// src edges getter
+    /// Get src edges.
     std::vector<edge_descriptor_type>
       src_edges(const socket_descriptor_type &descriptor) const
     {
@@ -997,14 +991,14 @@ namespace yave {
       return s.src_edges();
     }
 
-    /// src edges count
+    /// Get number of src edges.
     auto n_src_edges(const socket_descriptor_type &descriptor) const
     {
       const auto &s = _at(descriptor);
       return s.n_src_edges();
     }
 
-    /// dst edges getter
+    /// Get dst edges.
     std::vector<edge_descriptor_type>
       dst_edges(const socket_descriptor_type &descriptor) const
     {
@@ -1012,28 +1006,28 @@ namespace yave {
       return s.dst_edges();
     }
 
-    /// dst edges count
+    /// Get number of dst edges.
     auto n_dst_edges(const socket_descriptor_type &descriptor) const
     {
       const auto &s = _at(descriptor);
       return s.n_dst_edges();
     }
 
-    /// src getter
+    /// Get src socket.
     socket_descriptor_type src(const edge_descriptor_type &descriptor) const
     {
       auto &e = _at(descriptor);
       return e.src();
     }
 
-    /// dst getter
+    /// Get dst socket.
     socket_descriptor_type dst(const edge_descriptor_type &descriptor) const
     {
       auto &e = _at(descriptor);
       return e.dst();
     }
 
-    /// clone
+    /// Clone graph
     Graph<NodeProperty, SocketProperty, EdgeProperty> clone() const
     {
       Graph ng;
@@ -1089,7 +1083,7 @@ namespace yave {
       return ng;
     }
 
-    /// clear
+    /// Clear graph
     void clear()
     {
       for (auto &&e : edges()) _destroy(e);
@@ -1098,7 +1092,7 @@ namespace yave {
       assert(empty());
     }
 
-    /// empty
+    /// Empty
     bool empty()
     {
       return (m_nodes.empty() && m_edges.empty() && m_sockets.empty());
