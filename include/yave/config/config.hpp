@@ -15,6 +15,7 @@
 #include <yave/config/intrin.hpp>
 #include <yave/config/likely.hpp>
 #include <yave/config/unreachable.hpp>
+#include <yave/config/type_traits.hpp>
 
 namespace yave {
 
@@ -36,5 +37,7 @@ namespace yave {
   static_assert(sizeof(double) == 8);
   static_assert(std::numeric_limits<float>::is_iec559);
   static_assert(std::numeric_limits<double>::is_iec559);
+
+  using nullptr_t = std::nullptr_t;
 
 } // namespace yave
