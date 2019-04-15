@@ -78,6 +78,10 @@ namespace yave {
 
   namespace detail {
 
+    // fwd
+    template <class T>
+    constexpr auto object_type_impl(meta_type<T> term);
+
     // ------------------------------------------
     // value type
 

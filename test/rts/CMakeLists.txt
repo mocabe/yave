@@ -1,1 +1,4 @@
 YAVE_Test(object_ptr rts)
+YAVE_Test(dynamic_typing rts)
+YAVE_Test(function rts)
+YAVE_Test(static_typing rts)

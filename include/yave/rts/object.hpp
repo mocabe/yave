@@ -28,8 +28,6 @@ namespace yave {
   // object info table
   struct object_info_table;
 
-  // interface
-
   // heap-allocated object of type T
   template <class T>
   struct Box;

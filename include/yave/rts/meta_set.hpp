@@ -72,7 +72,7 @@ namespace yave {
   }
 
   template <class... Ts>
-  [[nodiscard]] static constexpr auto set_c = make_set(tuple_c<Ts...>);
+  static constexpr auto set_c = make_set(tuple_c<Ts...>);
 
   template <class... Ts1, class... Ts2>
   [[nodiscard]] constexpr auto
