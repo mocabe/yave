@@ -43,31 +43,24 @@ if(YAVE_BUILD_TESTS)
 endif()
 
 # ------------------------------------------
-# Include
-
-add_library(yave INTERFACE)
-target_include_directories(yave INTERFACE ${YAVE_INCLUDE_DIR})
-target_compile_features(yave INTERFACE cxx_std_17)
-
-# ------------------------------------------
 # Compiler Flags
 
 if(YAVE_COMPILER_MSVC)
-  set(YAVE_COMPILE_FLAGS /W4 /Zi /EHsc /std:c++17 /permissive- /w34716 /d2FH4)
+  set(YAVE_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4)
 else()
-  set(YAVE_COMPILE_FLAGS -O0 -Wall -Wextra -Wshadow -g -std=c++17 -pedantic)
+  set(YAVE_COMPILE_FLAGS -O0 -Wall -Wextra -Wshadow -g -pedantic)
 endif()
 
 if(UNIX AND YAVE_COMPILER_LLVM)
   message(STATUS "UB Sanitizer is enabled")
-  set(YAVE_COMPILE_FLAGS ${TORI_COMPILE_FLAGS} -fsanitize=undefined)
-  set(YAVE_LINK_FLAGS ${TORI_LINK_FLAGS} -fsanitize=undefined)
+  set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=undefined)
+  set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=undefined)
 endif()
 
 if(UNIX AND YAVE_COMPILER_GNU)
   message(STATUS "UB Sanitizer is enabled")
-  set(YAVE_COMPILE_FLAGS ${TORI_COMPILE_FLAGS} -fsanitize=undefined -fuse-ld=gold)
-  set(YAVE_LINK_FLAGS ${TORI_LINK_FLAGS} -fsanitize=undefined -fuse-ld=gold)
+  set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=undefined -fuse-ld=gold)
+  set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=undefined -fuse-ld=gold)
 endif()
 
 # ------------------------------------------
