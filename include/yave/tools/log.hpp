@@ -11,7 +11,7 @@
 namespace yave {
 
   /// Default logger named "yave".
-  std::shared_ptr<spdlog::logger> g_logger;
+  std::shared_ptr<spdlog::logger> get_default_logger();
 
   /// Add new logger.
   std::shared_ptr<spdlog::logger> add_logger(const char* name);
@@ -37,7 +37,7 @@ namespace yave {
     LogLevel level,
     Args&&... args)
   {
-    spdlog::level lvl = [&]() {
+    auto lvl = [&]() {
       switch (level) {
       case LogLevel::Warning:
         return spdlog::level::warn;
@@ -64,7 +64,7 @@ namespace yave {
   template <class... Args>
   void Info(Args&&... args)
   {
-    Info(g_logger, std::forward<Args>(args)...);
+    Log(get_default_logger(), LogLevel::Info, std::forward<Args>(args)...);
   }
 
   /// Log warning to a logger.
@@ -81,7 +81,7 @@ namespace yave {
   template <class... Args>
   void Warning(Args&&... args)
   {
-    Warning(g_logger, std::forward<Args>(args)...);
+    Log(get_default_logger(), LogLevel::Warning, std::forward<Args>(args)...);
   }
 
   /// Log error to a logger.
@@ -98,6 +98,6 @@ namespace yave {
   template <class... Args>
   void Error(Args&&... args)
   {
-    Error(g_logger, std::forward<Args>(args)...);
+    Log(get_default_logger(), LogLevel::Error, std::forward<Args>(args)...);
   }
 }

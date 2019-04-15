@@ -9,6 +9,11 @@ namespace yave {
 
   std::shared_ptr<spdlog::logger> g_logger = spdlog::stdout_color_mt("yave");
 
+  std::shared_ptr<spdlog::logger> get_default_logger()
+  {
+    return g_logger;
+  }
+
   std::shared_ptr<spdlog::logger> add_logger(const char* name)
   {
     return spdlog::stderr_color_mt(name);
