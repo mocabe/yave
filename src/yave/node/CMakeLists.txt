@@ -2,7 +2,7 @@ add_library(yave-node
   bind_info.cpp
   edge_property.cpp
   node_property.cpp
-  socket_property.cpp)
+  connection_info.cpp
 
   target_include_directories(yave-node PRIVATE ${YAVE_INCLUDE_DIR})
   target_compile_options(yave-node PRIVATE ${YAVE_COMPILE_FLAGS})
