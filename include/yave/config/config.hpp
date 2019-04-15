@@ -13,6 +13,8 @@
 
 #include <yave/config/debug.hpp>
 #include <yave/config/intrin.hpp>
+#include <yave/config/likely.hpp>
+#include <yave/config/unreachable.hpp>
 
 namespace yave {
 
