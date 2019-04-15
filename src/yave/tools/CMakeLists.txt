@@ -4,5 +4,4 @@ add_library(yave-tools
 target_include_directories(yave-tools PRIVATE ${YAVE_INCLUDE_DIR})
 target_link_libraries(yave-tools PRIVATE spdlog)
 target_compile_options(yave-tools PRIVATE ${YAVE_COMPILE_FLAGS})
-target_compile_features(yave-tools PRIVATE cxx_std_17)
 target_link_options(yave-tools PRIVATE ${YAVE_LINK_FLAGS})

@@ -2,7 +2,7 @@
 # Testing
 
 if(YAVE_COMPILER_MSVC)
-  set(YAVE_TEST_COMPILE_FLAGS /W4 /Zi /EHsc /std:c++17 /permissive- /w34716 /d2FH4)
+  set(YAVE_TEST_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4)
 else()
   set(YAVE_TEST_COMPILE_FLAGS -O0 -Wall -Wextra -Wshadow -g -pedantic)
 endif()
@@ -31,7 +31,6 @@ function (YAVE_Test NAME LABEL)
   set_tests_properties(${TARGET} PROPERTIES LABELS ${LABEL})
   target_include_directories(${TARGET} PRIVATE "${YAVE_INCLUDE_DIR}")
   target_compile_options(${TARGET} PRIVATE ${YAVE_TEST_COMPILE_FLAGS})
-  target_compile_features(${TARGET} PRIVATE cxx_std_17)
   target_link_options(${TARGET} PRIVATE ${YAVE_TEST_LINK_FLAGS})
   target_link_libraries(${TARGET} PRIVATE spdlog)
   target_link_libraries(${TARGET} PRIVATE Catch2::Catch2)

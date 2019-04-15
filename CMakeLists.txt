@@ -36,6 +36,11 @@ else()
 endif()
 
 # ------------------------------------------
+# Default C++ standard
+
+set(CMAKE_CXX_STANDARD 17)
+
+# ------------------------------------------
 # External
 
 if(YAVE_BUILD_TESTS)
