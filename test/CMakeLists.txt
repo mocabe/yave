@@ -8,7 +8,7 @@ target_link_libraries(yave_Catch2 PRIVATE Catch2::Catch2)
 # add test
 function (YAVE_Test NAME LABEL)
   set(TARGET test_${NAME})
-  add_executable(${TARGET} ${NAME}.cpp ${YAVE_TEST_DIR}/catch.cpp)
+  add_executable(${TARGET} ${NAME}.cpp)
   target_link_libraries(${TARGET} PRIVATE spdlog)
   target_link_libraries(${TARGET} PRIVATE Catch2::Catch2)
   target_link_libraries(${TARGET} PRIVATE yave_Catch2)
@@ -22,3 +22,4 @@ endfunction()
 # Tests
 
 add_subdirectory(graph)
+add_subdirectory(time)
