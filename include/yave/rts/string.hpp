@@ -11,9 +11,6 @@
 #include <cstring>
 #include <string>
 
-// utf8 macro
-#define utf8(Str) ::TORI_NS::detail::to_u8(u8##Str)
-
 namespace yave {
 
   class string_object_value
