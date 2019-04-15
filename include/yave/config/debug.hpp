@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <cassert>
+
 namespace yave {
 
 #if defined(NDEBUG)
