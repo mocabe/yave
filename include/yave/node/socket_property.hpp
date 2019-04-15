@@ -34,10 +34,10 @@ namespace yave {
     SocketProperty(const std::string& name, output_t);
 
     /// Check input.
-    bool is_input() const;
+    [[nodiscard]] bool is_input() const;
 
     /// Check output.
-    bool is_output() const;
+    [[nodiscard]] bool is_output() const;
 
     /// Get name of socket.
     [[nodiscard]] const std::string& name() const;

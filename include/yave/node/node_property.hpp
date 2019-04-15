@@ -30,7 +30,7 @@ namespace yave {
 
     /// Get primitive value.
     /// \requires is_prim() == true
-    primitive_t prim() const;
+    [[nodiscard]] primitive_t prim() const;
 
     /// Set primitive value.
     void set_prim(const primitive_t& prim);

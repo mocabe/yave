@@ -15,7 +15,7 @@ namespace yave {
   {
   public:
     /// Constructor
-    constexpr DescriptorHandle(std::nullptr_t) noexcept
+    constexpr DescriptorHandle(nullptr_t) noexcept
       : m_descriptor {nullptr}
     {
     }
@@ -34,25 +34,25 @@ namespace yave {
     constexpr DescriptorHandle& operator=(DescriptorHandle&&) = default;
 
     /// check if having valid value
-    constexpr bool_t has_value() const noexcept
+    [[nodiscard]] constexpr bool has_value() const noexcept
     {
       return static_cast<bool>(m_descriptor);
     }
 
     /// check if having valid value
-    constexpr explicit operator bool() const noexcept
+    [[nodiscard]] constexpr explicit operator bool() const noexcept
     {
       return has_value();
     }
 
     /// Get descriptor value.
-    constexpr Descriptor descriptor() const noexcept
+    [[nodiscard]] constexpr Descriptor descriptor() const noexcept
     {
       return m_descriptor;
     }
 
     /// Get descriptor id.
-    constexpr std::uintptr_t id() const noexcept
+    [[nodiscard]] constexpr std::uintptr_t id() const noexcept
     {
       static_assert(sizeof(Descriptor) <= sizeof(uintptr_t));
       return reinterpret_cast<std::uintptr_t>(m_descriptor);
@@ -65,7 +65,7 @@ namespace yave {
 
   /// operator==
   template <class D>
-  constexpr bool operator==(
+  [[nodiscard]] constexpr bool operator==(
     const DescriptorHandle<D>& lhs,
     const DescriptorHandle<D>& rhs) noexcept
   {
@@ -74,7 +74,7 @@ namespace yave {
 
   /// operator!=
   template <class D>
-  constexpr bool operator!=(
+  [[nodiscard]] constexpr bool operator!=(
     const DescriptorHandle<D>& lhs,
     const DescriptorHandle<D>& rhs) noexcept
   {
@@ -82,7 +82,7 @@ namespace yave {
   }
 
   template <class D>
-  constexpr bool operator<(
+  [[nodiscard]] constexpr bool operator<(
     const DescriptorHandle<D>& lhs,
     const DescriptorHandle<D>& rhs) noexcept
   {
