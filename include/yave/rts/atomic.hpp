@@ -42,7 +42,7 @@ namespace yave {
     }
 
     /// Atomic load.
-    T load() const noexcept
+    [[nodiscard]] T load() const noexcept
     {
       return atomic.load(std::memory_order_acquire);
     }

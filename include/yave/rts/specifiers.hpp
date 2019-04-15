@@ -57,7 +57,7 @@ namespace yave {
   } // namespace detail
 
   template <class T>
-  constexpr auto has_specifier()
+  [[nodiscard]] constexpr auto has_specifier()
   {
     return detail::has_specifier_impl<T>::value;
   }
@@ -66,7 +66,7 @@ namespace yave {
   // get_specifier
 
   template <class T>
-  constexpr auto get_specifier(meta_type<T> = {})
+  [[nodiscard]] constexpr auto get_specifier(meta_type<T> = {})
   {
     if constexpr (has_specifier<T>())
       return T::specifier;
@@ -79,25 +79,25 @@ namespace yave {
   // is_specifier
 
   template <class T>
-  constexpr auto is_specifier(meta_type<T>)
+  [[nodiscard]] constexpr auto is_specifier(meta_type<T>)
   {
     return false_c;
   }
 
   template <class... Ts>
-  constexpr auto is_specifier(meta_type<closure<Ts...>>)
+  [[nodiscard]] constexpr auto is_specifier(meta_type<closure<Ts...>>)
   {
     return true_c;
   }
 
   template <class Tag>
-  constexpr auto is_specifier(meta_type<forall<Tag>>)
+  [[nodiscard]] constexpr auto is_specifier(meta_type<forall<Tag>>)
   {
     return true_c;
   }
 
   template <class Tag>
-  constexpr auto is_specifier(meta_type<object<Tag>>)
+  [[nodiscard]] constexpr auto is_specifier(meta_type<object<Tag>>)
   {
     return true_c;
   }
@@ -107,7 +107,7 @@ namespace yave {
 
   /// lift all raw types to specifiers
   template <class T>
-  constexpr auto normalize_specifier(meta_type<T> t)
+  [[nodiscard]] constexpr auto normalize_specifier(meta_type<T> t)
   {
     if constexpr (is_specifier(t))
       return t;
@@ -120,7 +120,7 @@ namespace yave {
   }
 
   template <class... Ts>
-  constexpr auto normalize_specifier(meta_type<closure<Ts...>>)
+  [[nodiscard]] constexpr auto normalize_specifier(meta_type<closure<Ts...>>)
   {
     return type_c<
       closure<typename decltype(normalize_specifier(type_c<Ts>))::type...>>;
@@ -130,20 +130,20 @@ namespace yave {
   // get_proxy_type
 
   template <class... Ts>
-  constexpr auto get_proxy_type(meta_type<closure<Ts...>>)
+  [[nodiscard]] constexpr auto get_proxy_type(meta_type<closure<Ts...>>)
   {
     return type_c<
       ClosureProxy<typename decltype(get_proxy_type(type_c<Ts>))::type...>>;
   }
 
   template <class Tag>
-  constexpr auto get_proxy_type(meta_type<forall<Tag>>)
+  [[nodiscard]] constexpr auto get_proxy_type(meta_type<forall<Tag>>)
   {
     return type_c<VarValueProxy<Tag>>;
   }
 
   template <class T>
-  constexpr auto get_proxy_type(meta_type<object<T>>)
+  [[nodiscard]] constexpr auto get_proxy_type(meta_type<object<T>>)
   {
     return type_c<ObjectProxy<T>>;
   }
@@ -152,20 +152,21 @@ namespace yave {
   // get_argument_proxy_type
 
   template <class... Ts>
-  constexpr auto get_argument_proxy_type(meta_type<closure<Ts...>>)
+  [[nodiscard]] constexpr auto
+    get_argument_proxy_type(meta_type<closure<Ts...>>)
   {
     return type_c<ClosureArgumentProxy<typename decltype(
       get_argument_proxy_type(type_c<Ts>))::type...>>;
   }
 
   template <class Tag>
-  constexpr auto get_argument_proxy_type(meta_type<forall<Tag>> v)
+  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<forall<Tag>> v)
   {
     return get_proxy_type(v);
   }
 
   template <class T>
-  constexpr auto get_argument_proxy_type(meta_type<object<T>> o)
+  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<object<T>> o)
   {
     return get_proxy_type(o);
   }
@@ -174,13 +175,13 @@ namespace yave {
   // get_object_type
 
   template <class T>
-  constexpr auto get_object_type(meta_type<object<T>>)
+  [[nodiscard]] constexpr auto get_object_type(meta_type<object<T>>)
   {
     return type_c<T>;
   }
 
   template <class T>
-  constexpr auto get_object_type(meta_type<ObjectProxy<T>>)
+  [[nodiscard]] constexpr auto get_object_type(meta_type<ObjectProxy<T>>)
   {
     return type_c<T>;
   }
@@ -190,7 +191,8 @@ namespace yave {
 
   /// append to ClosureProxy
   template <class... Ts, class T>
-  constexpr auto append(meta_type<T>, meta_type<ClosureProxy<Ts...>>)
+  [[nodiscard]] constexpr auto
+    append(meta_type<T>, meta_type<ClosureProxy<Ts...>>)
   {
     return type_c<ClosureProxy<Ts..., T>>;
   }

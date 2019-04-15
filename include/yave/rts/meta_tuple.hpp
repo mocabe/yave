@@ -13,7 +13,7 @@ namespace yave {
   template <class... Ts>
   struct meta_tuple
   {
-    constexpr size_t size() const
+    [[nodiscard]] constexpr size_t size() const
     {
       return sizeof...(Ts);
     }
@@ -24,7 +24,8 @@ namespace yave {
   static constexpr meta_tuple<Ts...> tuple_c {};
 
   template <class... Ts1, class... Ts2>
-  constexpr auto equal(meta_tuple<Ts1...> t1, meta_tuple<Ts2...> t2)
+  [[nodiscard]] constexpr auto
+    equal(meta_tuple<Ts1...> t1, meta_tuple<Ts2...> t2)
   {
     if constexpr (std::is_same_v<decltype(t1), decltype(t2)>)
       return true_c;
@@ -34,14 +35,16 @@ namespace yave {
 
   /// operator==
   template <class... Ts1, class... Ts2>
-  constexpr auto operator==(meta_tuple<Ts1...> t1, meta_tuple<Ts2...> t2)
+  [[nodiscard]] constexpr auto
+    operator==(meta_tuple<Ts1...> t1, meta_tuple<Ts2...> t2)
   {
     return equal(t1, t2);
   }
 
   /// operaotr!=
   template <class... Ts1, class... Ts2>
-  constexpr auto operator!=(meta_tuple<Ts1...> t1, meta_tuple<Ts2...> t2)
+  [[nodiscard]] constexpr auto
+    operator!=(meta_tuple<Ts1...> t1, meta_tuple<Ts2...> t2)
   {
     return std::bool_constant<!(t1 == t2)> {};
   }
@@ -51,7 +54,7 @@ namespace yave {
 
   /// Make meta tuple from types.
   template <class... Ts>
-  constexpr auto make_tuple(meta_type<Ts>...)
+  [[nodiscard]] constexpr auto make_tuple(meta_type<Ts>...)
   {
     return tuple_c<Ts...>;
   }
@@ -74,7 +77,7 @@ namespace yave {
 
   /// Get element of tuple.
   template <size_t Idx, class... Ts>
-  constexpr auto get(meta_tuple<Ts...> tuple)
+  [[nodiscard]] constexpr auto get(meta_tuple<Ts...> tuple)
   {
     static_assert(Idx < tuple.size(), "Index out of range");
     return detail::tuple_get_impl<0, Idx>(tuple);
@@ -85,7 +88,7 @@ namespace yave {
 
   /// Get head of tuple.
   template <class H, class... Ts>
-  constexpr auto head(meta_tuple<H, Ts...>)
+  [[nodiscard]] constexpr auto head(meta_tuple<H, Ts...>)
   {
     return type_c<H>;
   }
@@ -95,12 +98,12 @@ namespace yave {
 
   /// Get tail of tuple.
   template <class H, class... Ts>
-  constexpr auto tail(meta_tuple<H, Ts...>)
+  [[nodiscard]] constexpr auto tail(meta_tuple<H, Ts...>)
   {
     return tuple_c<Ts...>;
   }
 
-  constexpr auto tail(meta_tuple<>)
+  [[nodiscard]] constexpr auto tail(meta_tuple<>)
   {
     return tuple_c<>;
   }
@@ -110,7 +113,7 @@ namespace yave {
 
   /// Get last element of tuple.
   template <class... Ts>
-  constexpr auto last(meta_tuple<Ts...> t)
+  [[nodiscard]] constexpr auto last(meta_tuple<Ts...> t)
   {
     if constexpr (empty(t))
       static_assert(false_v<Ts...>, "Empty tuple");
@@ -126,7 +129,7 @@ namespace yave {
 
   /// empty
   template <class... Ts>
-  constexpr auto empty(meta_tuple<Ts...>)
+  [[nodiscard]] constexpr auto empty(meta_tuple<Ts...>)
   {
     if constexpr (sizeof...(Ts) == 0)
       return true_c;
@@ -139,14 +142,14 @@ namespace yave {
 
   /// Append tuple.
   template <class E, class... Ts>
-  constexpr auto append(meta_type<E>, meta_tuple<Ts...>)
+  [[nodiscard]] constexpr auto append(meta_type<E>, meta_tuple<Ts...>)
   {
     return tuple_c<Ts..., E>;
   }
 
   /// Append tuple.
   template <class E>
-  constexpr auto append(meta_type<E>, meta_tuple<>)
+  [[nodiscard]] constexpr auto append(meta_type<E>, meta_tuple<>)
   {
     return tuple_c<E>;
   }
@@ -156,7 +159,7 @@ namespace yave {
 
   /// Concat tuple.
   template <class... Ts1, class... Ts2>
-  constexpr auto concat(meta_tuple<Ts1...>, meta_tuple<Ts2...>)
+  [[nodiscard]] constexpr auto concat(meta_tuple<Ts1...>, meta_tuple<Ts2...>)
   {
     return tuple_c<Ts1..., Ts2...>;
   }
@@ -166,7 +169,7 @@ namespace yave {
 
   /// Check if the tuple contains specific type.
   template <class E, class... Ts>
-  constexpr auto contains(meta_type<E> e, meta_tuple<Ts...> tuple)
+  [[nodiscard]] constexpr auto contains(meta_type<E> e, meta_tuple<Ts...> tuple)
   {
     (void)e;
     (void)tuple;
@@ -185,7 +188,7 @@ namespace yave {
 
   /// Remove last element from tuple.
   template <class... Ts>
-  constexpr auto remove_last(meta_tuple<Ts...> tuple)
+  [[nodiscard]] constexpr auto remove_last(meta_tuple<Ts...> tuple)
   {
     if constexpr (tuple.size() <= 1)
       return tuple_c<>;

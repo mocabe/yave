@@ -29,31 +29,31 @@ namespace yave {
     using duration = std::chrono::duration<value_type, ratio>;
 
     /// Unit per millisecond.
-    static constexpr value_type per_millisecond() noexcept
+    [[nodiscard]] static constexpr value_type per_millisecond() noexcept
     {
       return per_second() / 1000;
     }
 
     /// Unit per second.
-    static constexpr value_type per_second() noexcept
+    [[nodiscard]] static constexpr value_type per_second() noexcept
     {
       return ratio::den / ratio::num;
     }
 
     /// Unit per minute.
-    static constexpr value_type per_minute() noexcept
+    [[nodiscard]] static constexpr value_type per_minute() noexcept
     {
       return per_second() * 60;
     }
 
     /// Unit per hour.
-    static constexpr value_type per_hour() noexcept
+    [[nodiscard]] static constexpr value_type per_hour() noexcept
     {
       return per_minute() * 60;
     }
 
     /// Unit per day.
-    static constexpr value_type per_day() noexcept
+    [[nodiscard]] static constexpr value_type per_day() noexcept
     {
       return per_hour() * 24;
     }
@@ -62,7 +62,7 @@ namespace yave {
     /// \param rps_num numerator of rate per second
     /// \param rps_den denominator of rate per second
     /// \return (per_second() * rps_den) / rps_num
-    static constexpr value_type
+    [[nodiscard]] static constexpr value_type
       per_rate(int64_t rps_num, int64_t rps_den = 1) noexcept
     {
       return (per_second() * rps_den) / rps_num;
@@ -72,96 +72,96 @@ namespace yave {
     /// \param rps_num numerator of rate per second
     /// \param rps_den denominator of rate per second
     /// \return (per_second() * rps_den) % rps_num == 0
-    static constexpr bool
+    [[nodiscard]] static constexpr bool
       is_compatible_rate(int64_t rps_num, int64_t rps_den = 1) noexcept
     {
       return (per_second() * rps_den) % rps_num == 0;
     }
 
     /// Maximum milliseconds can be contained.
-    static constexpr double max_milliseconds() noexcept
+    [[nodiscard]] static constexpr double max_milliseconds() noexcept
     {
       return std::numeric_limits<value_type>::max() /
              static_cast<double>(per_millisecond());
     }
 
     /// Maximum seconds can be contained.
-    static constexpr double max_seconds() noexcept
+    [[nodiscard]] static constexpr double max_seconds() noexcept
     {
       return std::numeric_limits<value_type>::max() /
              static_cast<double>(per_second());
     }
 
     /// Maximum minutes can be contained.
-    static constexpr double max_minutes() noexcept
+    [[nodiscard]] static constexpr double max_minutes() noexcept
     {
       return std::numeric_limits<value_type>::max() /
              static_cast<double>(per_minute());
     }
 
     /// Maximum hours can be contained.
-    static constexpr double max_hours() noexcept
+    [[nodiscard]] static constexpr double max_hours() noexcept
     {
       return std::numeric_limits<value_type>::max() /
              static_cast<double>(per_hour());
     }
 
     /// Maximum days can be containd.
-    static constexpr double max_days() noexcept
+    [[nodiscard]] static constexpr double max_days() noexcept
     {
       return std::numeric_limits<value_type>::max() /
              static_cast<double>(per_day());
     }
 
     /// Minimum millisecond can be contained (ca be negative).
-    static constexpr double min_milliseconds() noexcept
+    [[nodiscard]] static constexpr double min_milliseconds() noexcept
     {
       return std::numeric_limits<value_type>::min() /
              static_cast<double>(per_millisecond());
     }
 
     /// Minimum seconds can be containd (can be negative).
-    static constexpr double min_seconds() noexcept
+    [[nodiscard]] static constexpr double min_seconds() noexcept
     {
       return std::numeric_limits<value_type>::min() /
              static_cast<double>(per_second());
     }
 
     /// Minimum minutes can be contained (can be negative).
-    static constexpr double min_minutes() noexcept
+    [[nodiscard]] static constexpr double min_minutes() noexcept
     {
       return std::numeric_limits<value_type>::min() /
              static_cast<double>(per_minute());
     }
 
     /// Minimum hours can be contained (can be negative).
-    static constexpr double min_hours() noexcept
+    [[nodiscard]] static constexpr double min_hours() noexcept
     {
       return std::numeric_limits<value_type>::min() /
              static_cast<double>(per_hour());
     }
 
     /// Minimum days can be contained (can be negative).
-    static constexpr double min_days() noexcept
+    [[nodiscard]] static constexpr double min_days() noexcept
     {
       return std::numeric_limits<value_type>::min() /
              static_cast<double>(per_day());
     }
 
     /// Max time.
-    static constexpr time max() noexcept
+    [[nodiscard]] static constexpr time max() noexcept
     {
       return time {std::numeric_limits<value_type>::max()};
     }
 
     /// Min time (possibly negative).
-    static constexpr time min() noexcept
+    [[nodiscard]] static constexpr time min() noexcept
     {
       return time {std::numeric_limits<value_type>::lowest()};
     }
 
     /// Zero time point.
-    static constexpr time zero() noexcept
+    [[nodiscard]] static constexpr time zero() noexcept
     {
       return time {0};
     }
@@ -169,7 +169,8 @@ namespace yave {
     /// Create time from milliseconds.
     /// When specified time is out of the range which can be
     /// represented by this class, returns clamped value.
-    static constexpr time milliseconds(double millisecond) noexcept
+    [[nodiscard]] static constexpr time
+      milliseconds(double millisecond) noexcept
     {
       if (millisecond >= max_milliseconds())
         return max();
@@ -181,7 +182,7 @@ namespace yave {
     /// Create time from seconds.
     /// When specified time is out of the range which can be
     /// represented by this class, returns clamped value.
-    static constexpr time seconds(double second) noexcept
+    [[nodiscard]] static constexpr time seconds(double second) noexcept
     {
       if (second >= max_seconds())
         return max();
@@ -193,7 +194,7 @@ namespace yave {
     /// Create time from minutes.
     /// When specified time is out of the range which can be
     /// represented by this class, returns clamped value.
-    static constexpr time minutes(double minute) noexcept
+    [[nodiscard]] static constexpr time minutes(double minute) noexcept
     {
       if (minute >= max_minutes())
         return max();
@@ -205,7 +206,7 @@ namespace yave {
     /// Create time from hours.
     /// When specified time is out of the range which can be
     /// represented by this class, returns clamped value.
-    static constexpr time hours(double hour) noexcept
+    [[nodiscard]] static constexpr time hours(double hour) noexcept
     {
       if (hour >= max_hours())
         return max();
@@ -217,7 +218,7 @@ namespace yave {
     /// Create time from days.
     /// When specified time is out of the range which can be
     /// represented by this class, returns clamped value.
-    static constexpr time days(double day) noexcept
+    [[nodiscard]] static constexpr time days(double day) noexcept
     {
       if (day >= max_days())
         return max();
@@ -227,31 +228,31 @@ namespace yave {
     }
 
     /// Convert to millisecond.
-    constexpr double to_millisecond() const noexcept
+    [[nodiscard]] constexpr double to_millisecond() const noexcept
     {
       return m_value / static_cast<double>(per_millisecond());
     }
 
     /// Convert to second.
-    constexpr double to_second() const noexcept
+    [[nodiscard]] constexpr double to_second() const noexcept
     {
       return m_value / static_cast<double>(per_second());
     }
 
     /// Convert to minute.
-    constexpr double to_minute() const noexcept
+    [[nodiscard]] constexpr double to_minute() const noexcept
     {
       return m_value / static_cast<double>(per_minute());
     }
 
     /// Convert to hour.
-    constexpr double to_hour() const noexcept
+    [[nodiscard]] constexpr double to_hour() const noexcept
     {
       return m_value / static_cast<double>(per_hour());
     }
 
     /// Convert to day.
-    constexpr double to_day() const noexcept
+    [[nodiscard]] constexpr double to_day() const noexcept
     {
       return m_value / static_cast<double>(per_day());
     }
@@ -297,12 +298,12 @@ namespace yave {
     /// operator/=
     constexpr time& operator/=(const time& rhs) noexcept;
     /// operator+
-    constexpr time operator+() const noexcept;
+    [[nodiscard]] constexpr time operator+() const noexcept;
     /// operator-
-    constexpr time operator-() const noexcept;
+    [[nodiscard]] constexpr time operator-() const noexcept;
 
     /// Get int value.
-    constexpr value_type int_value() const noexcept
+    [[nodiscard]] constexpr value_type int_value() const noexcept
     {
       return m_value;
     }
@@ -403,52 +404,62 @@ namespace yave {
     return time {-m_value};
   }
 
-  constexpr time operator+(const time& lhs, const time& rhs) noexcept
+  [[nodiscard]] constexpr time
+    operator+(const time& lhs, const time& rhs) noexcept
   {
     return time {lhs} += rhs;
   }
 
-  constexpr time operator-(const time& lhs, const time& rhs) noexcept
+  [[nodiscard]] constexpr time
+    operator-(const time& lhs, const time& rhs) noexcept
   {
     return time {lhs} -= rhs;
   }
 
-  constexpr time operator*(const time& lhs, const time& rhs) noexcept
+  [[nodiscard]] constexpr time
+    operator*(const time& lhs, const time& rhs) noexcept
   {
     return time {lhs} *= rhs;
   }
 
-  constexpr time operator/(const time& lhs, const time& rhs) noexcept
+  [[nodiscard]] constexpr time
+    operator/(const time& lhs, const time& rhs) noexcept
   {
     return time {lhs} /= rhs;
   }
 
-  constexpr bool operator==(const time& lhs, const time& rhs) noexcept
+  [[nodiscard]] constexpr bool
+    operator==(const time& lhs, const time& rhs) noexcept
   {
     return lhs.int_value() == rhs.int_value();
   }
 
-  constexpr bool operator!=(const time& lhs, const time& rhs) noexcept
+  [[nodiscard]] constexpr bool
+    operator!=(const time& lhs, const time& rhs) noexcept
   {
     return lhs.int_value() != rhs.int_value();
   }
 
-  constexpr bool operator<(const time& lhs, const time& rhs) noexcept
+  [[nodiscard]] constexpr bool
+    operator<(const time& lhs, const time& rhs) noexcept
   {
     return lhs.int_value() < rhs.int_value();
   }
 
-  constexpr bool operator<=(const time& lhs, const time& rhs) noexcept
+  [[nodiscard]] constexpr bool
+    operator<=(const time& lhs, const time& rhs) noexcept
   {
     return lhs.int_value() <= rhs.int_value();
   }
 
-  constexpr bool operator>(const time& lhs, const time& rhs) noexcept
+  [[nodiscard]] constexpr bool
+    operator>(const time& lhs, const time& rhs) noexcept
   {
     return lhs.int_value() > rhs.int_value();
   }
 
-  constexpr bool operator>=(const time& lhs, const time& rhs) noexcept
+  [[nodiscard]] constexpr bool
+    operator>=(const time& lhs, const time& rhs) noexcept
   {
     return lhs.int_value() >= rhs.int_value();
   }

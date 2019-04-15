@@ -22,7 +22,7 @@ namespace yave {
 
   /// operator==
   template <class T1, class T2>
-  constexpr auto operator==(meta_type<T1>, meta_type<T2>)
+  [[nodiscard]] constexpr auto operator==(meta_type<T1>, meta_type<T2>)
   {
     if constexpr (std::is_same_v<T1, T2>)
       return std::true_type {};
@@ -32,7 +32,7 @@ namespace yave {
 
   /// operator!=
   template <class T1, class T2>
-  constexpr auto operator!=(meta_type<T1> lhs, meta_type<T2> rhs)
+  [[nodiscard]] constexpr auto operator!=(meta_type<T1> lhs, meta_type<T2> rhs)
   {
     return !(lhs == rhs);
   }

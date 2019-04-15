@@ -37,7 +37,7 @@ namespace yave {
     };
 
     /// extract pointer tag flag
-    pointer_tags get_pointer_tag() const noexcept
+    [[nodiscard]] pointer_tags get_pointer_tag() const noexcept
     {
       uint64_t tag;
       std::memcpy(&tag, &m_tag, sizeof(tag));
@@ -66,7 +66,7 @@ namespace yave {
 
     /// get pointer
     /// Ideally, optimized into single AND instruction.
-    const Object* get() const noexcept
+    [[nodiscard]] const Object* get() const noexcept
     {
       // load as non-pointer
       uint64_t tag;
@@ -80,40 +80,40 @@ namespace yave {
     }
 
     /// get address of header
-    const Object* head() const noexcept
+    [[nodiscard]] const Object* head() const noexcept
     {
       assert(get());
       return get();
     }
 
     /// get info table pointer
-    const object_info_table* info_table() const noexcept
+    [[nodiscard]] const object_info_table* info_table() const noexcept
     {
       assert(get());
       return head()->info_table;
     }
 
     /// apply? (optional)
-    bool is_cache() const noexcept
+    [[nodiscard]] bool is_cache() const noexcept
     {
       return get_pointer_tag() == pointer_tags::cache;
     }
 
     /// exception? (optional)
-    bool is_exception() const noexcept
+    [[nodiscard]] bool is_exception() const noexcept
     {
       return get_pointer_tag() == pointer_tags::exception;
     }
 
     /// static?
-    bool is_static() const noexcept
+    [[nodiscard]] bool is_static() const noexcept
     {
       assert(get());
       return head()->refcount.load() == 0;
     }
 
     /// use_count
-    uint64_t use_count() const noexcept
+    [[nodiscard]] uint64_t use_count() const noexcept
     {
       assert(get());
       return head()->refcount.load();

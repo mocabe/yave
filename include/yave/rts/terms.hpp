@@ -64,7 +64,7 @@ namespace yave {
   } // namespace detail
 
   template <class T>
-  constexpr auto has_term()
+  [[nodiscard]] constexpr auto has_term()
   {
     return detail::has_term_impl<T>::value;
   }
@@ -73,7 +73,7 @@ namespace yave {
   // get_term
 
   template <class T>
-  constexpr auto get_term(meta_type<T> = {})
+  [[nodiscard]] constexpr auto get_term(meta_type<T> = {})
   {
     if constexpr (has_specifier<T>()) {
       return get_term(get_proxy_type(normalize_specifier(get_specifier<T>())));
@@ -161,14 +161,14 @@ namespace yave {
 
   /// is_apply_v
   template <class T>
-  constexpr auto is_tm_apply(meta_type<T>)
+  [[nodiscard]] constexpr auto is_tm_apply(meta_type<T>)
   {
     return detail::is_tm_apply_impl<T>::value;
   }
 
   /// has_apply_v
   template <class T>
-  constexpr auto has_tm_apply()
+  [[nodiscard]] constexpr auto has_tm_apply()
   {
     return is_tm_apply(get_term<T>());
   }
@@ -194,14 +194,14 @@ namespace yave {
 
   /// is_value_v
   template <class T>
-  constexpr auto is_tm_value(meta_type<T>)
+  [[nodiscard]] constexpr auto is_tm_value(meta_type<T>)
   {
     return detail::is_tm_value_impl<T>::value;
   }
 
   /// has_value_v
   template <class T>
-  constexpr auto has_tm_value()
+  [[nodiscard]] constexpr auto has_tm_value()
   {
     return is_tm_value(get_term<T>());
   }
@@ -227,14 +227,14 @@ namespace yave {
 
   /// is_closure_v
   template <class T>
-  constexpr auto is_tm_closure(meta_type<T>)
+  [[nodiscard]] constexpr auto is_tm_closure(meta_type<T>)
   {
     return detail::is_tm_closure_impl<T>::value;
   }
 
   /// has_closure_v
   template <class T>
-  constexpr auto has_tm_closure()
+  [[nodiscard]] constexpr auto has_tm_closure()
   {
     return is_tm_closure(get_term<T>());
   }
@@ -260,14 +260,14 @@ namespace yave {
 
   /// is_var_v
   template <class T>
-  constexpr auto is_tm_var(meta_type<T>)
+  [[nodiscard]] constexpr auto is_tm_var(meta_type<T>)
   {
     return detail::is_tm_var_impl<T>::value;
   }
 
   /// has_var_v
   template <class T>
-  constexpr auto has_tm_var()
+  [[nodiscard]] constexpr auto has_tm_var()
   {
     return is_tm_var(get_term<T>());
   }
@@ -293,14 +293,14 @@ namespace yave {
 
   /// is_varvalue_v
   template <class T>
-  constexpr auto is_tm_varvalue(meta_type<T>)
+  [[nodiscard]] constexpr auto is_tm_varvalue(meta_type<T>)
   {
     return detail::is_tm_varvalue_impl<T>::value;
   }
 
   /// has_varvalue_v
   template <class T>
-  constexpr auto has_tm_varvalue()
+  [[nodiscard]] constexpr auto has_tm_varvalue()
   {
     return is_varvalue(get_term<T>());
   }
@@ -309,7 +309,7 @@ namespace yave {
   // to_tuple
 
   template <class... Ts>
-  constexpr auto to_tuple(meta_type<tm_closure<Ts...>>)
+  [[nodiscard]] constexpr auto to_tuple(meta_type<tm_closure<Ts...>>)
   {
     return tuple_c<Ts...>;
   }
@@ -318,7 +318,7 @@ namespace yave {
   // to_tm_closure
 
   template <class... Ts>
-  constexpr auto to_tm_closure(meta_tuple<Ts...>)
+  [[nodiscard]] constexpr auto to_tm_closure(meta_tuple<Ts...>)
   {
     return type_c<tm_closure<Ts...>>;
   }
@@ -327,7 +327,7 @@ namespace yave {
   // make_tm_closure
 
   template <class... Ts>
-  constexpr auto make_tm_closure(meta_type<Ts>...)
+  [[nodiscard]] constexpr auto make_tm_closure(meta_type<Ts>...)
   {
     return type_c<tm_closure<Ts...>>;
   }
@@ -336,7 +336,7 @@ namespace yave {
   // make_tm_apply
 
   template <class T1, class T2>
-  constexpr auto make_tm_apply(meta_type<T1>, meta_type<T2>)
+  [[nodiscard]] constexpr auto make_tm_apply(meta_type<T1>, meta_type<T2>)
   {
     return type_c<tm_apply<T1, T2>>;
   }
@@ -345,7 +345,7 @@ namespace yave {
   // make_tm_var
 
   template <class Tag>
-  constexpr auto make_tm_var(meta_type<Tag>)
+  [[nodiscard]] constexpr auto make_tm_var(meta_type<Tag>)
   {
     return type_c<tm_var<Tag>>;
   }
@@ -354,7 +354,7 @@ namespace yave {
   // head
 
   template <class T, class... Ts>
-  constexpr auto head(meta_type<tm_closure<T, Ts...>>)
+  [[nodiscard]] constexpr auto head(meta_type<tm_closure<T, Ts...>>)
   {
     return type_c<T>;
   }
@@ -363,12 +363,12 @@ namespace yave {
   // tail
 
   template <class T, class... Ts>
-  constexpr auto tail(meta_type<tm_closure<T, Ts...>>)
+  [[nodiscard]] constexpr auto tail(meta_type<tm_closure<T, Ts...>>)
   {
     return type_c<tm_closure<Ts...>>;
   }
 
-  constexpr auto tail(meta_type<tm_closure<>> term)
+  [[nodiscard]] constexpr auto tail(meta_type<tm_closure<>> term)
   {
     return term;
   }
@@ -402,12 +402,12 @@ namespace yave {
 
   /// convert varvalue to var
   template <class Term>
-  constexpr auto closure_term_export(meta_type<Term> term)
+  [[nodiscard]] constexpr auto closure_term_export(meta_type<Term> term)
   {
     return detail::closure_term_export_impl(term, term);
   }
 
-  constexpr auto closure_term_export(meta_type<tm_closure<>> c)
+  [[nodiscard]] constexpr auto closure_term_export(meta_type<tm_closure<>> c)
   {
     return c;
   }

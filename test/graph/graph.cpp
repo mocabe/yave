@@ -140,8 +140,8 @@ TEST_CASE("Graph control")
     {
       auto n0 = g.add_node();
       auto n1 = g.add_node();
-      g.attach_socket(n0, s0);
-      g.attach_socket(n1, s1);
+      REQUIRE(g.attach_socket(n0, s0));
+      REQUIRE(g.attach_socket(n1, s1));
 
       g.remove_socket(s0);
       REQUIRE_FALSE(g.exists(s0));
@@ -168,11 +168,11 @@ TEST_CASE("Graph control")
     REQUIRE(g.attach_socket(n0, s2));
     REQUIRE(g.attach_socket(n1, s2));
 
-    auto e0 = g.add_edge(s0, s1);
-    auto e1 = g.add_edge(s1, s0);
-    auto e2 = g.add_edge(s0, s2);
-    auto e3 = g.add_edge(s2, s0);
-    auto e4 = g.add_edge(s2, s2);
+    auto e0 [[maybe_unused]] = g.add_edge(s0, s1);
+    auto e1 [[maybe_unused]] = g.add_edge(s1, s0);
+    auto e2 [[maybe_unused]] = g.add_edge(s0, s2);
+    auto e3 [[maybe_unused]] = g.add_edge(s2, s0);
+    auto e4 [[maybe_unused]] = g.add_edge(s2, s2);
 
     // test
     g.clear();
@@ -200,11 +200,13 @@ TEST_CASE("Graph clone")
   auto n  = g.add_node("test");
   auto s1 = g.add_socket(1);
   auto s2 = g.add_socket(2);
-  auto e1 = g.add_edge(s1, s2, 1);
-  auto e2 = g.add_edge(s2, s1, 2);
-  auto e3 = g.add_edge(s1, s1, 3);
-  g.attach_socket(n, s1);
-  g.attach_socket(n, s2);
+
+  auto e1 [[maybe_unused]] = g.add_edge(s1, s2, 1);
+  auto e2 [[maybe_unused]] = g.add_edge(s2, s1, 2);
+  auto e3 [[maybe_unused]] = g.add_edge(s1, s1, 3);
+
+  REQUIRE(g.attach_socket(n, s1));
+  REQUIRE(g.attach_socket(n, s2));
 
   REQUIRE(g.sockets(g.nodes()[0]).size() == 2);
 

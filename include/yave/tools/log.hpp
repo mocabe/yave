@@ -11,13 +11,13 @@
 namespace yave {
 
   /// Default logger named "yave".
-  std::shared_ptr<spdlog::logger> get_default_logger();
+  [[nodiscard]] std::shared_ptr<spdlog::logger> get_default_logger();
 
   /// Add new logger.
-  std::shared_ptr<spdlog::logger> add_logger(const char* name);
+  [[nodiscard]] std::shared_ptr<spdlog::logger> add_logger(const char* name);
 
   /// Get logger from name.
-  std::shared_ptr<spdlog::logger> get_logger(const char* name);
+  [[nodiscard]] std::shared_ptr<spdlog::logger> get_logger(const char* name);
 
   /// Log level
   enum class LogLevel
