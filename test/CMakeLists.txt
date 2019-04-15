@@ -42,3 +42,4 @@ endfunction()
 
 add_subdirectory(graph)
 add_subdirectory(time)
+add_subdirectory(rts)
