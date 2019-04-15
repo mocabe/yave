@@ -24,7 +24,7 @@ namespace yave {
     return !std::holds_alternative<std::monostate>(m_prim);
   }
 
-  std::string NodeProperty::name() const
+  const std::string& NodeProperty::name() const
   {
     return m_name;
   }

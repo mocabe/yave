@@ -26,7 +26,7 @@ namespace yave {
     bool is_prim() const;
 
     /// Get node name.
-    std::string name() const;
+    [[nodiscard]] const std::string& name() const;
 
     /// Get primitive value.
     /// \requires is_prim() == true
