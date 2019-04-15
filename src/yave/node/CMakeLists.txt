@@ -5,6 +5,7 @@ add_library(yave-node
   socket_property.cpp
   connection_info.cpp
   node_info.cpp
+  exception.cpp
 )
 
   target_include_directories(yave-node PRIVATE ${YAVE_INCLUDE_DIR})
