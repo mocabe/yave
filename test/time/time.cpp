@@ -1,5 +1,9 @@
-#include <catch2/catch.hpp>
+//
+// Copyright (c) 2019 mocabe (https://github.com/mocabe)
+// Distributed under LGPLv3 License. See LICENSE for more details.
+//
 
+#include <catch2/catch.hpp>
 #include <yave/time/time.hpp>
 
 TEST_CASE("time")
