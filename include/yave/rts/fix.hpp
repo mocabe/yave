@@ -43,7 +43,7 @@ namespace yave {
 
         // eval
         if (unlikely(arity == 0))
-          return eval_impl(cc->code());
+          return detail::eval_obj(cc->code());
 
         return pap;
       }();
