@@ -45,7 +45,7 @@ namespace yave {
   // helper
 
   template <class T>
-  [[nodiscard]] inline object_ptr<T> add_exception_tag(object_ptr<T> e)
+  [[nodiscard]] object_ptr<T> add_exception_tag(object_ptr<T> e)
   {
     _get_storage(e).set_pointer_tag(
       object_ptr_storage::pointer_tags::exception);
