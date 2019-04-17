@@ -13,7 +13,7 @@ namespace yave {
   struct frame
   {
     /// Time point of frame
-    time time;
+    yave::time time;
   };
 
 } // namespace yave
