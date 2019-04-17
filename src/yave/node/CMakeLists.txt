@@ -1,5 +1,6 @@
 add_library(yave-node 
   bind_info.cpp
+  bind_info_manager.cpp
   edge_property.cpp
   node_property.cpp
   socket_property.cpp
