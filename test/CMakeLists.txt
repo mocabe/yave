@@ -35,6 +35,7 @@ function (YAVE_Test NAME LABEL)
   target_link_libraries(${TARGET} PRIVATE spdlog)
   target_link_libraries(${TARGET} PRIVATE Catch2::Catch2)
   target_link_libraries(${TARGET} PRIVATE yave-Catch2)
+  target_link_libraries(${TARGET} PRIVATE yave-all)
 endfunction()
 
 # ------------------------------------------
