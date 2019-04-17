@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/rts/type_gen.hpp>
+#include <yave/rts/box.hpp>
 
 namespace yave {
 
@@ -16,8 +16,4 @@ namespace yave {
 
 } // namespace yave
 
-template <>
-struct yave::object_type_traits<yave::Undefined>
-{
-  static constexpr const char name[] = "_Undefined(NULL)";
-};
+YAVE_DECL_TYPE(yave::Undefined, _Undefined(NULL));

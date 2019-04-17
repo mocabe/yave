@@ -15,8 +15,8 @@ namespace yave {
   using Double = yave::Box<double>;
 } // namespace yave
 
-YAVE_DECL_TYPE(Int);
-YAVE_DECL_TYPE(Double);
+YAVE_DECL_TYPE(Int, Int);
+YAVE_DECL_TYPE(Double, Double);
 
 TEST_CASE("pointer construct")
 {

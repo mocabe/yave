@@ -77,4 +77,4 @@ namespace yave {
 } // namespace yave
 
 // Exception
-YAVE_DECL_TYPE(Exception);
+YAVE_DECL_TYPE(yave::Exception, _Exception);

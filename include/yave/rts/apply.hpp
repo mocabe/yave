@@ -6,7 +6,6 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/rts/type_gen.hpp>
 
 namespace yave {
 
@@ -179,4 +178,4 @@ namespace yave {
 } // namespace yave
 
 // Apply
-YAVE_DECL_TYPE(Apply);
+YAVE_DECL_TYPE(yave::Apply, _Apply);

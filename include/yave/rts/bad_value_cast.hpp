@@ -65,4 +65,4 @@ namespace yave {
 } // namespace yave
 
 // BadValueCast
-YAVE_DECL_TYPE(BadValueCast);
+YAVE_DECL_TYPE(yave::BadValueCast, _BadValueCast);

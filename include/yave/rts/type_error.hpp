@@ -206,4 +206,4 @@ namespace yave {
 } // namespace yave
 
 // TypeError
-YAVE_DECL_TYPE(TypeError);
+YAVE_DECL_TYPE(yave::TypeError, _TypeError);

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/rts/type_gen.hpp>
+#include <yave/rts/box.hpp>
 
 namespace yave {
 
@@ -20,4 +20,4 @@ namespace yave {
 } // namespace yave
 
 // Unit
-YAVE_DECL_TYPE(Unit);
+YAVE_DECL_TYPE(yave::Unit, _Unit);

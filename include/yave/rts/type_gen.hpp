@@ -17,26 +17,10 @@
 #include <exception>
 #include <array>
 
-namespace yave {
-
-  /// object type traits
-  template <class T>
-  struct object_type_traits;
-
-} // namespace yave
-
-// define system type names
-#define YAVE_DECL_TYPE(TYPE)                  \
-  template <>                                 \
-  struct yave::object_type_traits<yave::TYPE> \
-  {                                           \
-    static constexpr char name[] = "_" #TYPE; \
-  }
-
 /// type
-YAVE_DECL_TYPE(Type);
+YAVE_DECL_TYPE(yave::Type, _Type);
 /// Object
-YAVE_DECL_TYPE(Object);
+YAVE_DECL_TYPE(yave::Object, _Object);
 
 namespace yave {
 

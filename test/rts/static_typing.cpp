@@ -16,10 +16,10 @@ namespace yave {
   using Bool = yave::Box<bool>;
 } // namespace yave
 
-YAVE_DECL_TYPE(Int);
-YAVE_DECL_TYPE(Double);
-YAVE_DECL_TYPE(Float);
-YAVE_DECL_TYPE(Bool);
+YAVE_DECL_TYPE(Int, Int);
+YAVE_DECL_TYPE(Double, Double);
+YAVE_DECL_TYPE(Float, Float);
+YAVE_DECL_TYPE(Bool, Bool);
 
 void test_tuple_eq()
 {

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/rts/type_gen.hpp>
+#include <yave/rts/box.hpp>
 
 #include <string>
 #include <cstring>
@@ -87,4 +87,4 @@ namespace yave {
 } // namespace yave
 
 // String
-YAVE_DECL_TYPE(String);
+YAVE_DECL_TYPE(yave::String, _String);

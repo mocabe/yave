@@ -14,6 +14,22 @@
 
 namespace yave {
 
+  /// object type traits
+  template <class T>
+  struct object_type_traits;
+
+} // namespace yave
+
+// define system type names
+#define YAVE_DECL_TYPE(TYPE, NAME)        \
+  template <>                             \
+  struct yave::object_type_traits<TYPE>   \
+  {                                       \
+    static constexpr char name[] = #NAME; \
+  }
+
+namespace yave {
+
   /// tag type to initialize object with 0 reference count
   struct static_construct_t
   {
