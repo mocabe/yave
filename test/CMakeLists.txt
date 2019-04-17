@@ -25,7 +25,7 @@ target_link_libraries(yave-Catch2 PRIVATE Catch2::Catch2)
 
 # add test
 function (YAVE_Test NAME LABEL)
-  set(TARGET test_${NAME})
+  set(TARGET test-${LABEL}-${NAME})
   add_executable(${TARGET} ${NAME}.cpp)
   add_test(NAME ${TARGET} COMMAND ${TARGET})
   set_tests_properties(${TARGET} PROPERTIES LABELS ${LABEL})
