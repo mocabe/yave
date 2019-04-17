@@ -24,8 +24,8 @@ namespace yave {
     typename UnaryFunction::return_type code() const
     {
       auto v0 = eval(this->template arg<0>() << this->template arg<1>());
-      return make_object<TR>(e(*v0));
       E e;
+      return make_object<TR>(e(*v0));
     }
   };
 

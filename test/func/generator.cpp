@@ -42,8 +42,8 @@ TEST_CASE("generators")
           return 42;
         }
       };
-      using Func = BinaryFunction<Int, Float, Float, func>;
-      auto v     = make_object<Func>();
+      using Func              = BinaryFunction<Int, Float, Float, func>;
+      [[maybe_unused]] auto v = make_object<Func>();
     }
   }
   SECTION("Ternary")
@@ -56,8 +56,8 @@ TEST_CASE("generators")
           return 42;
         }
       };
-      using Max = TernaryFunction<Int, Float, Double, Float, func>;
-      auto v    = make_object<Max>();
+      using Func = TernaryFunction<Int, Float, Double, Float, func>;
+      [[maybe_unused]] auto v = make_object<Func>();
     }
   }
   SECTION("Quaternary")
@@ -71,7 +71,7 @@ TEST_CASE("generators")
         }
       };
       using Func = QuaternaryFunction<Int, Float, Double, Int, Float, func>;
-      auto v     = make_object<Func>;
+      [[maybe_unused]] auto v = make_object<Func>;
     }
   }
 }
