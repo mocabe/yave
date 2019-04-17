@@ -60,7 +60,7 @@ namespace yave {
     to_Exception(const result_error::result_error& e)
   {
     return make_object<Exception>(
-      make_object<String>(e.what()), make_object<String>(""));
+      make_object<String::String>(e.what()), make_object<String::String>(""));
   }
 
 } // namespace yave

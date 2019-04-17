@@ -145,7 +145,8 @@ namespace yave {
         // unknown
       } catch (...) {
         return add_exception_tag(make_object<Exception>(
-          make_object<String>("Unknown exception thrown while evaluation"),
+          make_object<String::String>(
+            "Unknown exception thrown while evaluation"),
           object_ptr(nullptr)));
       }
     }();
