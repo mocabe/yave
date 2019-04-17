@@ -1,4 +1,6 @@
 add_library(yave-node 
+  exception.cpp
+  primitive.cpp
   bind_info.cpp
   bind_info_manager.cpp
   node_info.cpp
@@ -7,7 +9,6 @@ add_library(yave-node
   node_property.cpp
   socket_property.cpp
   connection_info.cpp
-  exception.cpp
 )
 
   target_include_directories(yave-node PRIVATE ${YAVE_INCLUDE_DIR})
