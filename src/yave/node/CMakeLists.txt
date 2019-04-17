@@ -1,11 +1,12 @@
 add_library(yave-node 
   bind_info.cpp
   bind_info_manager.cpp
+  node_info.cpp
+  node_info_manager.cpp
   edge_property.cpp
   node_property.cpp
   socket_property.cpp
   connection_info.cpp
-  node_info.cpp
   exception.cpp
 )
 
