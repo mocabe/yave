@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/rts/box.hpp>
+#include <yave/rts/box_fwd.hpp>
 #include <yave/rts/type_value.hpp>
 #include <yave/rts/specifiers.hpp>
 
