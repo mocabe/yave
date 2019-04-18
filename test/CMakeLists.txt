@@ -21,7 +21,7 @@ endif()
 
 # Catch2 lib
 add_library(yave-Catch2 catch.cpp)
-target_link_libraries(yave-Catch2 PRIVATE Catch2::Catch2)
+target_link_libraries(yave-Catch2 PUBLIC Catch2::Catch2)
 
 # add test
 function (YAVE_Test NAME LABEL)
@@ -32,8 +32,6 @@ function (YAVE_Test NAME LABEL)
   target_include_directories(${TARGET} PRIVATE "${YAVE_INCLUDE_DIR}")
   target_compile_options(${TARGET} PRIVATE ${YAVE_TEST_COMPILE_FLAGS})
   target_link_options(${TARGET} PRIVATE ${YAVE_TEST_LINK_FLAGS})
-  target_link_libraries(${TARGET} PRIVATE spdlog)
-  target_link_libraries(${TARGET} PRIVATE Catch2::Catch2)
   target_link_libraries(${TARGET} PRIVATE yave-Catch2)
   target_link_libraries(${TARGET} PRIVATE yave-all)
 endfunction()
