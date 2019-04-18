@@ -1,0 +1,1 @@
+YAVE_Test(node_graph node)

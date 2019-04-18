@@ -10,6 +10,7 @@ add_library(yave-node
   node_property.cpp
   socket_property.cpp
   connection_info.cpp
+  node_graph.cpp
 )
 
   target_include_directories(yave-node PRIVATE ${YAVE_INCLUDE_DIR})
