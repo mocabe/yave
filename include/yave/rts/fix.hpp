@@ -12,11 +12,14 @@
 
 namespace yave {
 
-  class Fix_X;
+  namespace detail {
+    class Fix_X;
+  }
 
-  // fix: (a -> a) -> a
+  // fix: (a -> a) -> a.
   // fix f = let x = f x in x
-  struct Fix : Function<Fix, closure<Fix_X, Fix_X>, Fix_X>
+  struct Fix
+    : Function<Fix, closure<detail::Fix_X, detail::Fix_X>, detail::Fix_X>
   {
     return_type code() const
     {
@@ -49,7 +52,8 @@ namespace yave {
       }();
 
       // return
-      return static_object_cast<const VarValueProxy<Fix_X>>(std::move(ret));
+      return static_object_cast<const VarValueProxy<detail::Fix_X>>(
+        std::move(ret));
     }
   };
 

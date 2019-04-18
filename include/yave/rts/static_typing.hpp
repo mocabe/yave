@@ -246,7 +246,7 @@ namespace yave {
       static_assert(false_v<T>, "Unification error: Type missmatch");
       // print error info
       using left  = typename decltype(tag)::type::left::_print_lhs;
-      using right = typename decltype(tag)::type::right::_print__rhs;
+      using right = typename decltype(tag)::type::right::_print_rhs;
       using other = typename decltype(tag)::type::other::_print_other;
       static_assert(false_v<left, right, other>, "Unification failed.");
     } else if constexpr (is_unsolvable_constraints(tag)) {

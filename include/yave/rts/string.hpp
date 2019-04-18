@@ -70,7 +70,7 @@ namespace yave {
 
   namespace String {
     /// UTF-8 String object.
-    /// Does not guarantee anything about encoding. User must ensure
+    /// Does not handle anything about other encodings. User must ensure
     /// input byte sequence is null(`0x00`)-terminated UTF-8 string.
     using String = Box<string_object_value>;
   } // namespace String
