@@ -1,6 +1,7 @@
 add_library(yave-rts 
   dynamic_typing.cpp
   eval.cpp
+  generalize.cpp
 )
 
 target_include_directories(yave-rts PRIVATE ${YAVE_INCLUDE_DIR})
