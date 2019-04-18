@@ -118,7 +118,7 @@ namespace yave {
     /// \param descriptor A valid descriptor.
     /// \returns reference of value type in the container.
     static inline value_type &
-      access(container_type &c, const descriptor_type &descriptor)
+      access(container_type &c, const descriptor_type &descriptor) noexcept
     {
       (void)c;
       return *descriptor;
@@ -128,8 +128,9 @@ namespace yave {
     /// \param c Container.
     /// \param descriptor A valid descriptor.
     /// \returns reference of value type in the container.
-    static inline const value_type &
-      access(const container_type &c, const descriptor_type &descriptor)
+    static inline const value_type &access(
+      const container_type &c,
+      const descriptor_type &descriptor) noexcept
     {
       (void)c;
       return *descriptor;
@@ -724,7 +725,6 @@ namespace yave {
 
     /// Remove node.
     /// \param descriptor descriptor of node
-    /// \returns true if success.
     void remove_node(const node_descriptor_type &descriptor)
     {
       if (!exists(descriptor))
@@ -740,7 +740,6 @@ namespace yave {
 
     /// \brief Remove edge.
     /// \param descriptor descriptor of edge
-    /// \returns true if sccess.
     void remove_edge(const edge_descriptor_type &descriptor)
     {
       if (!exists(descriptor))
@@ -760,7 +759,6 @@ namespace yave {
     /// Remove socket
     /// Removes all of edges connected from the socket.
     /// \param descriptor descriptor of socket
-    /// \returns true if success
     void remove_socket(const socket_descriptor_type &descriptor)
     {
       if (!exists(descriptor))
