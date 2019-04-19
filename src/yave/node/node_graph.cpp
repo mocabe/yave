@@ -4,6 +4,7 @@
 //
 
 #include <yave/node/node_graph.hpp>
+#include <yave/tools/log.hpp>
 
 namespace yave {
 
@@ -11,6 +12,9 @@ namespace yave {
     : m_g {}
     , m_mtx {}
   {
+    [[maybe_unused]] static auto init_logger = []() {
+      return add_logger("NodeGraph");
+    }();
   }
 
   NodeGraph::~NodeGraph()
@@ -49,6 +53,10 @@ namespace yave {
         return m_g.add_node(info.name(), std::monostate {});
     }();
 
+    if (!node)
+      throw std::runtime_error(
+        "Failed to add node to NodeGraph: Failed to create new node.");
+
     // attach sockets
     auto _attach_sockets = [&](auto&& names, auto io) {
       // attach sockets
@@ -57,7 +65,8 @@ namespace yave {
         if (!m_g.attach_socket(node, socket)) {
           if (node)
             m_g.remove_node(node);
-          throw std::runtime_error("Failed to add node to NodeGraph");
+          throw std::runtime_error(
+            "Failed to add node to NodeGraph: Failed to attach sockets.");
         }
       }
     };
@@ -65,13 +74,28 @@ namespace yave {
     _attach_sockets(info.input_sockets(), SocketProperty::input);
     _attach_sockets(info.output_sockets(), SocketProperty::output);
 
-    return NodeHandle(node);
+    auto handle = NodeHandle(node);
+
+    Info(
+      get_logger("NodeGraph"),
+      "Created Node: name=\"{}\", id={}",
+      info.name(),
+      handle.id());
+
+    return handle;
   }
 
   void NodeGraph::remove_node(const NodeHandle& h)
   {
     if (!exists(h))
       return;
+
+    Info(
+      get_logger("NodeGraph"),
+      "Removing Node: name=\"{}\", id={}",
+      m_g[h.descriptor()].name(),
+      h.id());
+
     for (auto&& s : m_g.sockets(h.descriptor())) {
       m_g.remove_socket(s);
     }
@@ -90,11 +114,18 @@ namespace yave {
   ConnectionHandle NodeGraph::connect(const ConnectionInfo& info)
   {
     // check handler
-    if (!exists(info.src_node()) || !exists(info.dst_node()))
+    if (!exists(info.src_node()) || !exists(info.dst_node())) {
+      Error(
+        get_logger("NodeGraph"),
+        "Failed to connect sockets: Invalid node descriptor");
       return nullptr;
+    }
     // should not connect itself
-    if (info.src_node() == info.dst_node())
+    if (info.src_node() == info.dst_node()) {
+      Error(
+        get_logger("NodeGraph"), "Failed to connect sockets: Self connect.");
       return nullptr;
+    }
     // check socket name
     for (auto&& s : m_g.sockets(info.src_node().descriptor())) {
       if (m_g[s].name() == info.src_socket() && m_g[s].is_output()) {
@@ -102,11 +133,29 @@ namespace yave {
           if (m_g[d].name() == info.dst_socket() && m_g[d].is_input()) {
             // already exists
             for (auto&& e : m_g.dst_edges(d))
-              if (m_g.src(e) == s)
+              if (m_g.src(e) == s) {
+                Warning(
+                  get_logger("NodeGraph"),
+                  "Connection already exists. Return existing connection "
+                  "handle.");
                 return ConnectionHandle(e);
+              }
             // input edge cannot have multiple inputs
-            if (m_g.n_dst_edges(d) != 0)
+            if (m_g.n_dst_edges(d) != 0) {
+              Error(
+                get_logger("NodeGraph"),
+                "Failed to connect sockets: Multiple input.");
               return nullptr;
+            }
+            Info(
+              get_logger("NodeGraph"),
+              "Connected socket: src=\"{}\"({})::{}, dst=\"{}\"({})::{}",
+              m_g[info.src_node().descriptor()].name(),
+              info.src_node().id(),
+              info.src_socket(),
+              m_g[info.dst_node().descriptor()].name(),
+              info.dst_node().id(),
+              info.dst_socket());
             // add
             return m_g.add_edge(s, d);
           }
@@ -122,6 +171,16 @@ namespace yave {
     // check handler
     if (!exists(h))
       return;
+
+    auto info = connection_info(h);
+    Info(
+      get_logger("NodeGraph"),
+      "Disconnecting: src={}::{} dst={}::{}",
+      info->src_node().id(),
+      info->src_socket(),
+      info->dst_node().id(),
+      info->dst_socket());
+
     // remove edge
     m_g.remove_edge(h.descriptor());
   }
@@ -331,6 +390,7 @@ namespace yave {
     }
     return ret;
   }
+
   std::optional<ConnectionInfo>
     NodeGraph::connection_info(const ConnectionHandle& h) const
   {
@@ -393,7 +453,12 @@ namespace yave {
 
   void NodeGraph::set_primitive(const NodeHandle& h, const primitive_t& prim)
   {
-    assert(is_primitive(h));
+    if (!is_primitive(h)) {
+      Error(
+        get_logger("NodeGraph"),
+        "Cannot set primitive value to non-primitive node. Ignored.");
+      return;
+    }
     m_g[h.descriptor()].set_prim(prim);
   }
 
