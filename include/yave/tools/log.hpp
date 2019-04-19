@@ -26,6 +26,9 @@ namespace yave {
     Error,
   };
 
+  /// Set loglevel
+  void set_level(const std::shared_ptr<spdlog::logger>& logger, LogLevel level);
+
   /// Log formatted text on a logger.
   /// \param logger a logger
   /// \param level log level
@@ -39,12 +42,12 @@ namespace yave {
   {
     auto lvl = [&]() {
       switch (level) {
-      case LogLevel::Warning:
-        return spdlog::level::warn;
-      case LogLevel::Error:
-        return spdlog::level::err;
-      default:
-        return spdlog::level::info;
+        case LogLevel::Warning:
+          return spdlog::level::warn;
+        case LogLevel::Error:
+          return spdlog::level::err;
+        default:
+          return spdlog::level::info;
       }
     }();
     logger->log(lvl, msg, std::forward<Args>(args)...);

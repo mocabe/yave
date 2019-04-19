@@ -10,6 +10,20 @@ namespace yave {
 
   std::shared_ptr<spdlog::logger> g_logger = spdlog::stdout_logger_mt("yave");
 
+  constexpr const char* get_loglevel_name(LogLevel level)
+  {
+    switch (level) {
+      case LogLevel::Info:
+        return "info";
+      case LogLevel::Warning:
+        return "warning";
+      case LogLevel::Error:
+        return "error";
+      default:
+        return "(unrecognized log level)";
+    }
+  }
+
   std::shared_ptr<spdlog::logger> get_default_logger()
   {
     return g_logger;
@@ -26,4 +40,31 @@ namespace yave {
     return spdlog::get(name);
   }
 
-}
+  void set_level(const std::shared_ptr<spdlog::logger>& logger, LogLevel level)
+  {
+    if (!logger) {
+      Error(g_logger, "Could not set loglevel");
+      return;
+    }
+
+    auto lvl = [&]() {
+      switch (level) {
+        case LogLevel::Warning:
+          return spdlog::level::warn;
+        case LogLevel::Error:
+          return spdlog::level::err;
+        default:
+          return spdlog::level::info;
+      }
+    }();
+
+    if (lvl != logger->level()) {
+      Info(
+        g_logger,
+        "New log level for logger {}: {}",
+        logger->name(),
+        get_loglevel_name(level));
+      logger->set_level(lvl);
+    }
+  }
+} // namespace yave
