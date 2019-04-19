@@ -45,7 +45,7 @@ Cpp11BracedListStyle: true
 DerivePointerAlignment: true
 ExperimentalAutoDetectBinPacking: true
 FixNamespaceComments: true
-IndentCaseLabels: false
+IndentCaseLabels: true
 IndentWidth: 2
 IndentPPDirectives: AfterHash
 IndentWrappedFunctionNames: true
