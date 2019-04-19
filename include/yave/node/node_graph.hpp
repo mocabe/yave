@@ -137,6 +137,7 @@ namespace yave {
     /// Get list of input sockets attached to the node.
     [[nodiscard]] std::vector<std::string>
       input_sockets(const NodeHandle& node) const;
+
     /// Get list of output sockets attached to the node.
     [[nodiscard]] std::vector<std::string>
       output_sockets(const NodeHandle& node) const;
@@ -150,7 +151,7 @@ namespace yave {
       get_primitive(const NodeHandle& node) const;
 
     /// Set primitive value.
-    /// Requires `is_primitive(prim_node)`.
+    /// When `is_primitive(prim_node) == false`, no effect.
     void set_primitive(const NodeHandle& prim_node, const primitive_t& prim);
 
     /// Lock

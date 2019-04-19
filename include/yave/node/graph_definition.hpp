@@ -12,6 +12,8 @@
 #include <yave/node/edge_property.hpp>
 
 namespace yave {
+
   /// Graph type used in node tree
   using graph_t = Graph<NodeProperty, SocketProperty, EdgeProperty>;
+
 }

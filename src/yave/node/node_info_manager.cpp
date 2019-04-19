@@ -91,7 +91,7 @@ namespace yave {
   [[nodiscard]] bool NodeInfoManager::exists(const std::string& name) const
   {
     return m_info.find(name) != m_info.end();
-  };
+  }
 
   [[nodiscard]] const NodeInfoManager::info_type*
     NodeInfoManager::find(const std::string& name) const
@@ -100,7 +100,7 @@ namespace yave {
     if (iter == m_info.end())
       return nullptr;
     return &iter->second;
-  };
+  }
 
   [[nodiscard]] NodeInfoManager::const_iterator NodeInfoManager::cbegin() const
   {
