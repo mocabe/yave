@@ -99,4 +99,9 @@ namespace yave {
            lhs.is_prim() == rhs.is_prim();
   }
 
+  bool operator!=(const NodeInfo& lhs, const NodeInfo& rhs)
+  {
+    return !(lhs == rhs);
+  }
+
 } // namespace yave

@@ -90,4 +90,13 @@ namespace yave {
     return lhs.descriptor() < rhs.descriptor();
   }
 
+  /// operator>
+  template <class D>
+  [[nodiscard]] constexpr bool operator>(
+    const DescriptorHandle<D>& lhs,
+    const DescriptorHandle<D>& rhs) noexcept
+  {
+    return lhs.descriptor() > rhs.descriptor();
+  }
+
 } // namespace yave

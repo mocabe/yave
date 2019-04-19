@@ -66,4 +66,7 @@ namespace yave {
   /// operator==
   [[nodiscard]] bool operator==(const NodeInfo& lhs, const NodeInfo& rhs);
 
+  /// operator!=
+  [[nodiscard]] bool operator!=(const NodeInfo& lhs, const NodeInfo& rhs);
+
 } // namespace yave
