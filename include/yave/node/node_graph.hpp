@@ -79,9 +79,14 @@ namespace yave {
     [[nodiscard]] std::vector<NodeHandle> nodes() const;
 
     /// Get node info from handle.
-    /// \returns std::nullopt when the node does not exist.
+    /// \returns std::nullopt when the node did not exist.
     [[nodiscard]] std::optional<NodeInfo>
       node_info(const NodeHandle& node) const;
+
+    /// Get node name from handle.
+    /// \returns std::nullopt when the node did not exist.
+    [[nodiscard]] std::optional<std::string>
+      node_name(const NodeHandle& node) const;
 
     /// Check if the node has a socket with the name.
     [[nodiscard]] bool

@@ -223,6 +223,13 @@ namespace yave {
     return NodeInfo {n.name(), input_sockets, output_sockets, n.is_prim()};
   }
 
+  std::optional<std::string> NodeGraph::node_name(const NodeHandle& node) const
+  {
+    if (!exists(node))
+      return std::nullopt;
+    return m_g[node.descriptor()].name();
+  }
+
   bool
     NodeGraph::has_socket(const NodeHandle& h, const std::string& socket) const
   {
