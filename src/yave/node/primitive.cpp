@@ -43,17 +43,19 @@ namespace yave {
                      true};
   }
 
-  template <size_t N, class P, class R, class F>
-  void primitive_list_gen(R& result, F& func)
-  {
-    result.emplace_back(
-      func(make_primitive<std::variant_alternative_t<N, P>>()));
-    if constexpr (N == 0) {
-      return;
-    } else {
-      return primitive_list_gen<N - 1, P>(result, func);
+  namespace {
+    template <size_t N, class P, class R, class F>
+    void primitive_list_gen(R& result, F& func)
+    {
+      result.emplace_back(
+        func(make_primitive<std::variant_alternative_t<N, P>>()));
+      if constexpr (N == 0) {
+        return;
+      } else {
+        return primitive_list_gen<N - 1, P>(result, func);
+      }
     }
-  }
+  } // namespace
 
   std::vector<std::string> get_primitive_name_list()
   {

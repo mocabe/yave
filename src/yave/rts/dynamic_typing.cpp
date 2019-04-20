@@ -4,20 +4,22 @@
 
 namespace yave {
 
-  [[nodiscard]] object_ptr<const Type>
-    copy_type_impl(const object_ptr<const Type>& ptp)
-  {
-    if (auto value = get_if<value_type>(ptp.value()))
-      return make_object<Type>(value_type {value->name});
-    if (auto var = get_if<var_type>(ptp.value()))
-      return make_object<Type>(var_type {var->id});
-    if (auto arrow = get_if<arrow_type>(ptp.value())) {
-      return make_object<Type>(arrow_type {copy_type_impl(arrow->captured),
-                                           copy_type_impl(arrow->returns)});
-    }
+  namespace {
+    [[nodiscard]] object_ptr<const Type>
+      copy_type_impl(const object_ptr<const Type>& ptp)
+    {
+      if (auto value = get_if<value_type>(ptp.value()))
+        return make_object<Type>(value_type {value->name});
+      if (auto var = get_if<var_type>(ptp.value()))
+        return make_object<Type>(var_type {var->id});
+      if (auto arrow = get_if<arrow_type>(ptp.value())) {
+        return make_object<Type>(arrow_type {copy_type_impl(arrow->captured),
+                                             copy_type_impl(arrow->returns)});
+      }
 
-    unreachable();
-  }
+      unreachable();
+    }
+  } // namespace
 
   [[nodiscard]] object_ptr<const Type>
     copy_type(const object_ptr<const Type>& tp)
@@ -28,41 +30,43 @@ namespace yave {
       return tp;
   }
 
-  [[nodiscard]] bool same_type_impl(
-    const object_ptr<const Type>& lhs,
-    const object_ptr<const Type>& rhs)
-  {
-    if (lhs.get() == rhs.get())
-      return true;
+  namespace {
+    [[nodiscard]] bool same_type_impl(
+      const object_ptr<const Type>& lhs,
+      const object_ptr<const Type>& rhs)
+    {
+      if (lhs.get() == rhs.get())
+        return true;
 
-    if (!lhs || !rhs)
-      return false;
-
-    const auto& left  = *lhs;
-    const auto& right = *rhs;
-
-    if (auto lvar = get_if<value_type>(&left)) {
-      if (auto rvar = get_if<value_type>(&right))
-        return value_type::compare(*lvar, *rvar);
-      else
+      if (!lhs || !rhs)
         return false;
-    }
-    if (auto larr = get_if<arrow_type>(&left)) {
-      if (auto rarr = get_if<arrow_type>(&right))
-        return same_type_impl(larr->captured, rarr->captured) &&
-               same_type_impl(larr->returns, rarr->returns);
-      else
-        return false;
-    }
-    if (auto lany = get_if<var_type>(&left)) {
-      if (auto rany = get_if<var_type>(&right))
-        return lany->id == rany->id;
-      else
-        return false;
-    }
 
-    unreachable();
-  }
+      const auto& left  = *lhs;
+      const auto& right = *rhs;
+
+      if (auto lvar = get_if<value_type>(&left)) {
+        if (auto rvar = get_if<value_type>(&right))
+          return value_type::compare(*lvar, *rvar);
+        else
+          return false;
+      }
+      if (auto larr = get_if<arrow_type>(&left)) {
+        if (auto rarr = get_if<arrow_type>(&right))
+          return same_type_impl(larr->captured, rarr->captured) &&
+                 same_type_impl(larr->returns, rarr->returns);
+        else
+          return false;
+      }
+      if (auto lany = get_if<var_type>(&left)) {
+        if (auto rany = get_if<var_type>(&right))
+          return lany->id == rany->id;
+        else
+          return false;
+      }
+
+      unreachable();
+    }
+  } // namespace
 
   [[nodiscard]] bool same_type(
     const object_ptr<const Type>& lhs,
@@ -71,31 +75,33 @@ namespace yave {
     return same_type_impl(lhs, rhs);
   }
 
-  [[nodiscard]] object_ptr<const Type>
-    subst_type_impl(const TyArrow& ta, const object_ptr<const Type>& in)
-  {
-    auto& from = ta.from;
-    auto& to   = ta.to;
-    if (get_if<value_type>(in.value())) {
-      if (same_type(in, from))
-        return to;
-      return in;
-    }
-    if (get_if<var_type>(in.value())) {
-      if (same_type(in, from))
-        return to;
-      return in;
-    }
-    if (auto arrow = get_if<arrow_type>(in.value())) {
-      if (same_type(in, from))
-        return to;
-      return make_object<Type>(
-        arrow_type {subst_type_impl(ta, arrow->captured),
-                    subst_type_impl(ta, arrow->returns)});
-    }
+  namespace {
+    [[nodiscard]] object_ptr<const Type>
+      subst_type_impl(const TyArrow& ta, const object_ptr<const Type>& in)
+    {
+      auto& from = ta.from;
+      auto& to   = ta.to;
+      if (get_if<value_type>(in.value())) {
+        if (same_type(in, from))
+          return to;
+        return in;
+      }
+      if (get_if<var_type>(in.value())) {
+        if (same_type(in, from))
+          return to;
+        return in;
+      }
+      if (auto arrow = get_if<arrow_type>(in.value())) {
+        if (same_type(in, from))
+          return to;
+        return make_object<Type>(
+          arrow_type {subst_type_impl(ta, arrow->captured),
+                      subst_type_impl(ta, arrow->returns)});
+      }
 
-    unreachable();
-  }
+      unreachable();
+    }
+  } // namespace
 
   [[nodiscard]] object_ptr<const Type>
     subst_type(const TyArrow& ta, const object_ptr<const Type>& in)
@@ -156,44 +162,46 @@ namespace yave {
     unreachable();
   }
 
-  void unify_func_impl(
-    std::vector<Constr>& cs,
-    std::vector<TyArrow>& ta,
-    const object_ptr<const Object>& src)
-  {
-    while (!cs.empty()) {
-      auto c = cs.back();
-      cs.pop_back();
-      if (same_type(c.t1, c.t2))
-        continue;
-      if (is_var_type(c.t2)) {
-        if (likely(!occurs(c.t2, c.t1))) {
-          auto arr = TyArrow {c.t2, c.t1};
-          cs       = subst_constr_all(arr, cs);
-          compose_subst(ta, arr);
+  namespace {
+    void unify_func_impl(
+      std::vector<Constr>& cs,
+      std::vector<TyArrow>& ta,
+      const object_ptr<const Object>& src)
+    {
+      while (!cs.empty()) {
+        auto c = cs.back();
+        cs.pop_back();
+        if (same_type(c.t1, c.t2))
           continue;
+        if (is_var_type(c.t2)) {
+          if (likely(!occurs(c.t2, c.t1))) {
+            auto arr = TyArrow {c.t2, c.t1};
+            cs       = subst_constr_all(arr, cs);
+            compose_subst(ta, arr);
+            continue;
+          }
+          throw type_error::circular_constraint(src, c.t1);
         }
-        throw type_error::circular_constraint(src, c.t1);
-      }
-      if (is_var_type(c.t1)) {
-        if (likely(!occurs(c.t1, c.t2))) {
-          auto arr = TyArrow {c.t1, c.t2};
-          cs       = subst_constr_all(arr, cs);
-          compose_subst(ta, arr);
-          continue;
+        if (is_var_type(c.t1)) {
+          if (likely(!occurs(c.t1, c.t2))) {
+            auto arr = TyArrow {c.t1, c.t2};
+            cs       = subst_constr_all(arr, cs);
+            compose_subst(ta, arr);
+            continue;
+          }
+          throw type_error::circular_constraint(src, c.t1);
         }
-        throw type_error::circular_constraint(src, c.t1);
-      }
-      if (auto arrow1 = get_if<arrow_type>(c.t1.value())) {
-        if (auto arrow2 = get_if<arrow_type>(c.t2.value())) {
-          cs.push_back({arrow1->captured, arrow2->captured});
-          cs.push_back({arrow1->returns, arrow2->returns});
-          continue;
+        if (auto arrow1 = get_if<arrow_type>(c.t1.value())) {
+          if (auto arrow2 = get_if<arrow_type>(c.t2.value())) {
+            cs.push_back({arrow1->captured, arrow2->captured});
+            cs.push_back({arrow1->returns, arrow2->returns});
+            continue;
+          }
         }
+        throw type_error::type_missmatch(src, c.t1, c.t2);
       }
-      throw type_error::type_missmatch(src, c.t1, c.t2);
     }
-  }
+  } // namespace
 
   [[nodiscard]] std::vector<TyArrow>
     unify(const std::vector<Constr>& cs, const object_ptr<const Object>& src)
@@ -211,29 +219,31 @@ namespace yave {
     return object_ptr<const Type>(var);
   }
 
-  void vars_impl(
-    const object_ptr<const Type>& tp,
-    std::vector<object_ptr<const Type>>& vars)
-  {
-    if (is_value_type(tp))
-      return;
-    if (is_var_type(tp)) {
-      return [&]() {
-        for (auto&& v : vars) {
-          if (same_type(v, tp))
-            return;
-        }
-        vars.push_back(tp);
-      }();
-    }
-    if (is_arrow_type(tp)) {
-      vars_impl(get_if<arrow_type>(tp.value())->captured, vars);
-      vars_impl(get_if<arrow_type>(tp.value())->returns, vars);
-      return;
-    }
+  namespace {
+    void vars_impl(
+      const object_ptr<const Type>& tp,
+      std::vector<object_ptr<const Type>>& vars)
+    {
+      if (is_value_type(tp))
+        return;
+      if (is_var_type(tp)) {
+        return [&]() {
+          for (auto&& v : vars) {
+            if (same_type(v, tp))
+              return;
+          }
+          vars.push_back(tp);
+        }();
+      }
+      if (is_arrow_type(tp)) {
+        vars_impl(get_if<arrow_type>(tp.value())->captured, vars);
+        vars_impl(get_if<arrow_type>(tp.value())->returns, vars);
+        return;
+      }
 
-    unreachable();
-  }
+      unreachable();
+    }
+  } // namespace
 
   [[nodiscard]] std::vector<object_ptr<const Type>>
     vars(const object_ptr<const Type>& tp)
@@ -256,32 +266,34 @@ namespace yave {
     return t;
   }
 
-  [[nodiscard]] const object_ptr<const Type>
-    type_of_func_impl(const object_ptr<const Object>& obj)
-  {
-    // Apply
-    if (auto apply = value_cast_if<const Apply>(obj)) {
-      auto& apply_storage = _get_storage(*apply);
-      auto _t1            = type_of_func_impl(apply_storage.app());
-      auto _t2            = type_of_func_impl(apply_storage.arg());
-      auto _t             = genvar();
-      auto c =
-        std::vector {Constr {_t1, make_object<Type>(arrow_type {_t2, _t})}};
-      auto s = unify(std::move(c), obj);
-      return subst_type_all(s, _t);
-    }
-    // value -> value
-    if (has_value_type(obj))
-      return get_type(obj);
-    // var -> var
-    if (has_var_type(obj))
-      return get_type(obj);
-    // arrow -> genpoly arrow
-    if (has_arrow_type(obj))
-      return genpoly(get_type(obj));
+  namespace {
+    [[nodiscard]] const object_ptr<const Type>
+      type_of_func_impl(const object_ptr<const Object>& obj)
+    {
+      // Apply
+      if (auto apply = value_cast_if<const Apply>(obj)) {
+        auto& apply_storage = _get_storage(*apply);
+        auto _t1            = type_of_func_impl(apply_storage.app());
+        auto _t2            = type_of_func_impl(apply_storage.arg());
+        auto _t             = genvar();
+        auto c =
+          std::vector {Constr {_t1, make_object<Type>(arrow_type {_t2, _t})}};
+        auto s = unify(std::move(c), obj);
+        return subst_type_all(s, _t);
+      }
+      // value -> value
+      if (has_value_type(obj))
+        return get_type(obj);
+      // var -> var
+      if (has_var_type(obj))
+        return get_type(obj);
+      // arrow -> genpoly arrow
+      if (has_arrow_type(obj))
+        return genpoly(get_type(obj));
 
-    unreachable();
-  }
+      unreachable();
+    }
+  } // namespace
 
   [[nodiscard]] object_ptr<const Type>
     type_of(const object_ptr<const Object>& obj)
