@@ -22,6 +22,11 @@ namespace yave {
       const NodeGraph& ng,
       const NodeHandle& node,
       Lambda&& lambda);
+
+    /// Find a closed loop in node graph.
+    std::vector<NodeHandle>
+      find_loop(const NodeGraph& ng, const NodeHandle& node);
+
   } // namespace
 
   NodeGraph::NodeGraph()
@@ -556,6 +561,60 @@ namespace yave {
         std::forward<Lambda>(lambda)(n);
         return false;
       });
+    }
+
+    std::vector<NodeHandle>
+      find_loop(const NodeGraph& ng, const NodeHandle& node)
+    {
+      std::vector<NodeHandle> visited_nodes;
+      std::vector<NodeHandle> stack;
+
+      auto visit = [&](const NodeHandle& node) {
+        visited_nodes.push_back(node);
+        stack.push_back(node);
+      };
+
+      auto visited = [&](const NodeHandle& node) {
+        for (auto&& n : visited_nodes)
+          if (n == node)
+            return true;
+        return false;
+      };
+
+      visit(node);
+
+      // loop
+      std::vector<NodeHandle> ret;
+
+      while (!stack.empty()) {
+
+        auto current = stack.back();
+
+        bool stop = [&] {
+          for (auto&& c : ng.input_connections(current)) {
+            auto next = ng.connection_info(c)->src_node();
+            if (visited(next)) {
+              // find closed loop
+              for (auto iter = stack.begin(); iter != stack.end(); ++iter) {
+                if (*iter == next) {
+                  ret = {iter, stack.end()};
+                  return true;
+                }
+              }
+            } else {
+              visit(next);
+              return false;
+            }
+          }
+          stack.pop_back();
+          return false;
+        }();
+
+        if (stop)
+          break;
+      }
+
+      return ret;
     }
   } // namespace
 } // namespace yave
