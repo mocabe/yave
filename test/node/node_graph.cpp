@@ -73,7 +73,7 @@ TEST_CASE("NodeGraph control")
 
     REQUIRE(ng.connect(n1, "output1", n2, "input1"));
     REQUIRE(ng.connect(n2, "output1", n3, "input1"));
-    REQUIRE(ng.connect(n3, "output1", n1, "input1"));
+    REQUIRE(!ng.connect(n3, "output1", n1, "input1"));
 
     REQUIRE(ng.nodes("test node").size() == 3);
 
@@ -81,9 +81,9 @@ TEST_CASE("NodeGraph control")
 
     REQUIRE(ng.nodes("test node").size() == 2);
     REQUIRE(ng.input_connections(n3, "intput1").empty());
-    REQUIRE_FALSE(ng.output_connections(n3, "output1").empty());
+    REQUIRE(ng.output_connections(n3, "output1").empty());
     REQUIRE(ng.output_connections(n1, "output1").empty());
-    REQUIRE_FALSE(ng.input_connections(n1, "input1").empty());
+    REQUIRE(ng.input_connections(n1, "input1").empty());
 
     ng.remove_node(n1);
     REQUIRE(ng.nodes("test node").size() == 1);
@@ -199,24 +199,30 @@ TEST_CASE("NodeGraph control")
   SECTION("connections")
   {
     NodeInfo info1 {"test node", {"input"}, {"output"}, false};
-    NodeInfo info2 {
-      "test node test node", {"input", "input2"}, {"output", "input2"}, false};
+    NodeInfo info2 {"test node test node",
+                    {"input1", "input2"},
+                    {"output1", "output2"},
+                    false};
 
     auto n1 = ng.add_node(info1);
     auto n2 = ng.add_node(info2);
 
-    auto c1 = ng.connect(n1, "output", n2, "input");
-    auto c2 = ng.connect(n2, "output", n1, "input");
-    auto c3 = ng.connect(n1, "output", n2, "input2");
+    auto c1 = ng.connect(n1, "output", n2, "input1"); // n1.out -> n2.in[0]
+    auto c2 = ng.connect(n2, "output1", n1, "input"); // loop
+    auto c3 = ng.connect(n1, "output", n2, "input2"); // n1.out -> n2.in[1]
+    auto c4 = ng.connect(n1, "input", n2, "input1");  // invalid
 
     REQUIRE(c1);
-    REQUIRE(c2);
+    REQUIRE(!c2);
     REQUIRE(c3);
+    REQUIRE(!c4);
 
+    REQUIRE(ng.connections(n1, "input").size() == 0);
     REQUIRE(ng.connections(n1, "output").size() == 2);
-    REQUIRE(ng.connections(n1, "input").size() == 1);
-    REQUIRE(ng.connections(n2, "output").size() == 1);
-    REQUIRE(ng.connections(n2, "input").size() == 1);
-    REQUIRE(ng.connections(n2, "output2").empty());
+
+    REQUIRE(ng.connections(n2, "input1").size() == 1);
+    REQUIRE(ng.connections(n2, "input2").size() == 1);
+    REQUIRE(ng.connections(n2, "output1").size() == 0);
+    REQUIRE(ng.connections(n2, "output2").size() == 0);
   }
 }

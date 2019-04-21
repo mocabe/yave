@@ -134,17 +134,12 @@ namespace yave {
 
   ConnectionHandle NodeGraph::connect(const ConnectionInfo& info)
   {
+    auto logger = get_logger("NodeGraph");
+    assert(logger);
+
     // check handler
     if (!exists(info.src_node()) || !exists(info.dst_node())) {
-      Error(
-        get_logger("NodeGraph"),
-        "Failed to connect sockets: Invalid node descriptor");
-      return nullptr;
-    }
-    // should not connect itself
-    if (info.src_node() == info.dst_node()) {
-      Error(
-        get_logger("NodeGraph"), "Failed to connect sockets: Self connect.");
+      Error(logger, "Failed to connect sockets: Invalid node descriptor");
       return nullptr;
     }
     // check socket name
@@ -156,7 +151,7 @@ namespace yave {
             for (auto&& e : m_g.dst_edges(d))
               if (m_g.src(e) == s) {
                 Warning(
-                  get_logger("NodeGraph"),
+                  logger,
                   "Connection already exists. Return existing connection "
                   "handle.");
                 return ConnectionHandle(e);
@@ -164,12 +159,26 @@ namespace yave {
             // input edge cannot have multiple inputs
             if (m_g.n_dst_edges(d) != 0) {
               Error(
-                get_logger("NodeGraph"),
-                "Failed to connect sockets: Multiple input.");
+                logger,
+                "Failed to connect sockets: Multiple input is not allowed");
               return nullptr;
             }
+
+            // add new edge to graph
+            auto new_edge = m_g.add_edge(s, d);
+            assert(new_edge);
+
+            // closed loop check
+            if (!find_loop(*this, info.src_node()).empty()) {
+              Error(
+                logger,
+                "Failed to connect sockets: Closed loop is not allowed.");
+              m_g.remove_edge(new_edge);
+              return nullptr;
+            }
+
             Info(
-              get_logger("NodeGraph"),
+              logger,
               "Connected socket: src=\"{}\"({})::{}, dst=\"{}\"({})::{}",
               m_g[info.src_node().descriptor()].name(),
               info.src_node().id(),
@@ -177,13 +186,15 @@ namespace yave {
               m_g[info.dst_node().descriptor()].name(),
               info.dst_node().id(),
               info.dst_socket());
-            // add
-            return m_g.add_edge(s, d);
+
+            return new_edge;
           }
         }
       }
     }
+
     // fail
+    Error(logger, "Failed to connect sockets: Invalid argument.");
     return nullptr;
   }
 
@@ -373,6 +384,9 @@ namespace yave {
         for (auto&& e : dst_edges) ret.emplace_back(e);
       }
     }
+    if (ret.empty())
+      Warning(
+        get_logger("NodeGraph"), "Call for connections() with invalid socket name.");
     return ret;
   }
 
@@ -390,6 +404,10 @@ namespace yave {
         ret.emplace_back(e);
       }
     }
+    if (ret.empty())
+      Warning(
+        get_logger("NodeGraph"),
+        "Call for input_connections() with invalid socket name.");
     return ret;
   }
 
@@ -405,6 +423,10 @@ namespace yave {
       assert((m_g[s].is_input() && src_edges.empty()) || m_g[s].is_output());
       for (auto&& e : src_edges) ret.emplace_back(e);
     }
+    if (ret.empty())
+      Warning(
+        get_logger("NodeGraph"),
+        "Call for output_connections() with invalid socket name.");
     return ret;
   }
 
