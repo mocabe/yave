@@ -53,13 +53,13 @@ namespace yave {
     void validate() const;
 
   private:
-    /// name of node
+    /// Unique name of node.
     std::string m_name;
-    /// list of input sockets
+    /// List of input sockets.
     std::vector<std::string> m_input_sockets;
-    /// list of output sockets
+    /// List of output sockets.
     std::vector<std::string> m_output_sockets;
-    /// primitive node flag
+    /// Primitive node flag.
     bool m_is_prim;
   };
 

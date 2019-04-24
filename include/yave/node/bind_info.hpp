@@ -35,12 +35,13 @@ namespace yave {
     void set_name(const std::string& name);
 
     /// Get input sockets.
+    /// Socket names are sorted.
     [[nodiscard]] const std::vector<std::string>& input_sockets() const;
 
     /// Set input sockets.
     void set_input_sockets(const std::vector<std::string>& sockets);
 
-    /// Get output sockets.
+    /// Get output socket.
     [[nodiscard]] const std::string& output_socket() const;
 
     /// Set output socket.
