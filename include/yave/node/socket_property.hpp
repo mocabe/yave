@@ -43,14 +43,10 @@ namespace yave {
     [[nodiscard]] const std::string& name() const;
 
   private:
-    /// input
-    static constexpr const bool input_v = true;
-    /// output
-    static constexpr const bool output_v = !input_v;
     /// name of socket
     const std::string m_name;
     /// input or output
-    const bool m_io;
+    const bool m_is_input;
   };
 
 } // namespace yave
