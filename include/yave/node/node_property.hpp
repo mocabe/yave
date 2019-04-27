@@ -39,9 +39,10 @@ namespace yave {
     void ser_prim(std::monostate);
 
   private:
-    /// name of name
+    /// Name of node.
     const std::string m_name;
-    /// primitive value
+    /// Primitive value.
+    /// If the node is not primitive node, stores std::monostate.
     std::variant<std::monostate, primitive_t> m_prim;
   };
 
