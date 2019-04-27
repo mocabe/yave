@@ -11,6 +11,7 @@
 #include <optional>
 #include <functional>
 #include <mutex>
+#include <memory>
 
 namespace yave {
 
@@ -18,15 +19,12 @@ namespace yave {
   /// This class manages unique NodeInfo instances.
   class NodeInfoManager
   {
+    /// map type
+    using map_type = std::map<std::string, std::shared_ptr<const NodeInfo>>;
+
   public:
     /// info type
     using info_type = NodeInfo;
-    /// map type
-    using map_type = std::map<std::string, info_type>;
-    /// iterator
-    using iterator = typename map_type::iterator;
-    /// const iterator
-    using const_iterator = typename map_type::const_iterator;
 
     /// Copy constructor
     NodeInfoManager(const NodeInfoManager& other);
@@ -55,14 +53,12 @@ namespace yave {
     /// Check if the info exists.
     [[nodiscard]] bool exists(const std::string& name) const;
 
+    /// Get list of info.
+    [[nodiscard]] std::vector<std::shared_ptr<const info_type>> enumerate();
+
     /// Find info.
-    [[nodiscard]] const info_type* find(const std::string& name) const;
-
-    /// cbegin
-    [[nodiscard]] const_iterator cbegin() const;
-
-    /// cend
-    [[nodiscard]] const_iterator cend() const;
+    [[nodiscard]] std::shared_ptr<const info_type>
+      find(const std::string& name) const;
 
     /// Lock
     [[nodiscard]] std::unique_lock<std::mutex> lock() const;
@@ -71,11 +67,8 @@ namespace yave {
     void clear();
 
   private:
-    void remove_iterator(map_type::const_iterator iter);
-
-  private:
     /// map
-    std::map<std::string, info_type> m_info;
+    map_type m_info;
     /// mutex
     mutable std::mutex m_mtx;
   };

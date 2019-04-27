@@ -5,6 +5,8 @@
 
 #include <yave/node/node_info_manager.hpp>
 
+#include <cassert>
+
 namespace yave {
 
   NodeInfoManager::NodeInfoManager(const NodeInfoManager& other)
@@ -39,15 +41,9 @@ namespace yave {
 
   [[nodiscard]] bool NodeInfoManager::add(const info_type& info)
   {
-
-    auto succ = m_info.emplace(info.name(), info).second;
+    auto succ =
+      m_info.emplace(info.name(), std::make_shared<info_type>(info)).second;
     return succ;
-  }
-
-  void NodeInfoManager::remove_iterator(map_type::const_iterator iter)
-  {
-    // erase
-    m_info.erase(iter);
   }
 
   void NodeInfoManager::remove(const std::string& name)
@@ -58,23 +54,7 @@ namespace yave {
     if (it == m_info.end())
       return;
     // remove
-    remove_iterator(it);
-  }
-
-  void NodeInfoManager::remove(map_type::const_iterator iter)
-  {
-    // validate iterator
-    iter = [&]() {
-      for (auto it = m_info.cbegin(); it != m_info.cend(); ++it) {
-        if (iter == it)
-          return iter;
-      }
-      return m_info.cend();
-    }();
-    if (iter == m_info.end())
-      return;
-    // remove
-    remove_iterator(iter);
+    m_info.erase(it);
   }
 
   void NodeInfoManager::remove(const NodeInfo& info)
@@ -82,7 +62,7 @@ namespace yave {
     auto iter = m_info.begin();
     auto end  = m_info.end();
     while (iter != end) {
-      if (iter->second == info) {
+      if (*iter->second == info) {
         m_info.erase(iter++);
       }
     }
@@ -93,23 +73,24 @@ namespace yave {
     return m_info.find(name) != m_info.end();
   }
 
-  [[nodiscard]] const NodeInfoManager::info_type*
+  [[nodiscard]] std::vector<std::shared_ptr<const NodeInfoManager::info_type>>
+    NodeInfoManager::enumerate()
+  {
+    std::vector<std::shared_ptr<const info_type>> ret;
+    for (auto&& [name, ptr] : m_info) {
+      assert(name == ptr->name());
+      ret.push_back(ptr);
+    }
+    return ret;
+  }
+
+  [[nodiscard]] std::shared_ptr<const NodeInfoManager::info_type>
     NodeInfoManager::find(const std::string& name) const
   {
     auto iter = m_info.find(name);
     if (iter == m_info.end())
       return nullptr;
-    return &iter->second;
-  }
-
-  [[nodiscard]] NodeInfoManager::const_iterator NodeInfoManager::cbegin() const
-  {
-    return m_info.cbegin();
-  }
-
-  [[nodiscard]] NodeInfoManager::const_iterator NodeInfoManager::cend() const
-  {
-    return m_info.cend();
+    return iter->second;
   }
 
   [[nodiscard]] std::unique_lock<std::mutex> NodeInfoManager::lock() const
