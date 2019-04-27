@@ -53,7 +53,7 @@ namespace yave {
 
     /// Connect sockets.
     /// When connection already exists, return handle of existing connection.
-    /// If the connection to establish is invalid (self-connect, etc.), return
+    /// If the connection to establish is invalid (loop, etc.), return
     /// null handle.
     /// \returns Handle of connection (can be null handle).
     /// \throws std::bad_alloc

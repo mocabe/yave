@@ -10,7 +10,10 @@
 
 namespace yave {
 
-  /// Node info
+  /// NodeInfo represents node interface for frontend.
+  /// Each node can have multiple input sockets and output sockets.
+  /// Sockets are represented by string name, and you cannot have duplicated
+  /// socket name for each of both input/output sockets.
   class NodeInfo
   {
   public:
