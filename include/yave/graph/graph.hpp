@@ -16,6 +16,17 @@
 
 namespace yave {
 
+  // Low-level Graph implementation.
+  // Graph is not like general graph representation. It has 2 different vertex
+  // type; Node and Socket.
+  // Each socket can be connected to nodes, and Edge represents connection
+  // between sockets. Also, Edge has direction.
+
+  // TODO: Possibly replace internal representation using Boost.Graph library.
+  // TODO: Use memory pool for allocation to improve data locality.
+  // TODO: Implement outline property types (property types its instances are
+  // allocated separately, instead of embedded into Node/Socket/Edge instances).
+
   template <typename Traits>
   class Node;
 
