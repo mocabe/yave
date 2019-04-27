@@ -343,7 +343,7 @@ namespace yave {
   }
 
   [[nodiscard]] bool
-    NodeGraph::is_connected(const NodeHandle& h, const std::string& s) const
+    NodeGraph::has_connection(const NodeHandle& h, const std::string& s) const
   {
     return !(
       input_connections(h, s).empty() && output_connections(h, s).empty());

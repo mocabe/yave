@@ -133,7 +133,7 @@ namespace yave {
 
     /// Check if connection exists.
     [[nodiscard]] bool
-      is_connected(const NodeHandle& node, const std::string& socket) const;
+      has_connection(const NodeHandle& node, const std::string& socket) const;
 
     /// Get connection info of all connections from/to the node.
     [[nodiscard]] std::optional<ConnectionInfo>

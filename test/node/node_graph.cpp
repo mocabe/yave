@@ -106,10 +106,10 @@ TEST_CASE("NodeGraph control")
     REQUIRE(ng.connect(ci));
     REQUIRE(ng.connect(ci) == ng.connect(ci));
 
-    REQUIRE(!ng.is_connected(n1, "input"));
-    REQUIRE(ng.is_connected(n1, "output"));
-    REQUIRE(!ng.is_connected(n2, "output"));
-    REQUIRE(ng.is_connected(n2, "input"));
+    REQUIRE(!ng.has_connection(n1, "input"));
+    REQUIRE(ng.has_connection(n1, "output"));
+    REQUIRE(!ng.has_connection(n2, "output"));
+    REQUIRE(ng.has_connection(n2, "input"));
 
     // multiple input
     auto n3 = ng.add_node(info);
@@ -133,8 +133,8 @@ TEST_CASE("NodeGraph control")
     REQUIRE(c);
 
     ng.disconnect(c);
-    REQUIRE(!ng.is_connected(n1, "output"));
-    REQUIRE(!ng.is_connected(n2, "input"));
+    REQUIRE(!ng.has_connection(n1, "output"));
+    REQUIRE(!ng.has_connection(n2, "input"));
 
     REQUIRE(ng.connect(cinfo));
   }
@@ -163,8 +163,8 @@ TEST_CASE("NodeGraph control")
       auto n2 = ng.add_node(info);
       REQUIRE(ng.connect(n1, "output", n2, "input"));
 
-      REQUIRE(ng.is_connected(n1, "output"));
-      REQUIRE(ng.is_connected(n2, "input"));
+      REQUIRE(ng.has_connection(n1, "output"));
+      REQUIRE(ng.has_connection(n2, "input"));
     }
     SECTION("2")
     {
@@ -175,10 +175,10 @@ TEST_CASE("NodeGraph control")
 
       REQUIRE(ng.connect(n1, "output", n2, "input"));
 
-      REQUIRE(ng.is_connected(n1, "output"));
-      REQUIRE(ng.is_connected(n2, "input"));
-      REQUIRE(!ng.is_connected(n2, "output"));
-      REQUIRE(!ng.is_connected(n1, "nonexist"));
+      REQUIRE(ng.has_connection(n1, "output"));
+      REQUIRE(ng.has_connection(n2, "input"));
+      REQUIRE(!ng.has_connection(n2, "output"));
+      REQUIRE(!ng.has_connection(n1, "nonexist"));
     }
   }
 
