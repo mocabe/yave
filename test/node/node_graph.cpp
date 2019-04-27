@@ -4,8 +4,6 @@
 //
 
 #include <catch2/catch.hpp>
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_sinks.h>
 
 #include <yave/node/node_graph.hpp>
 
@@ -13,10 +11,43 @@ using namespace yave;
 
 TEST_CASE("Init")
   {
-  // Runtime log levels
-  spdlog::set_level(spdlog::level::info);
-  // create logger
-  static auto console = spdlog::stderr_logger_mt("stderr");
+  NodeGraph ng;
+
+  REQUIRE(!ng.exists(NodeHandle()));
+  REQUIRE(!ng.exists(ConnectionHandle()));
+  REQUIRE_NOTHROW(ng.remove_node(NodeHandle()));
+
+  REQUIRE(ng.nodes().empty());
+  REQUIRE(ng.nodes("").empty());
+
+  REQUIRE(!ng.node_info(NodeHandle()));
+  REQUIRE(!ng.node_name(NodeHandle()));
+
+  REQUIRE(!ng.has_socket(NodeHandle(), ""));
+  REQUIRE(!ng.is_input_socket(NodeHandle(), ""));
+  REQUIRE(!ng.is_output_socket(NodeHandle(), ""));
+
+  REQUIRE(ng.input_connections(NodeHandle()).empty());
+  REQUIRE(ng.output_connections(NodeHandle()).empty());
+  REQUIRE(ng.input_connections(NodeHandle(), "").empty());
+  REQUIRE(ng.output_connections(NodeHandle(), "").empty());
+
+  REQUIRE(ng.connections().empty());
+  REQUIRE(ng.connections(NodeHandle()).empty());
+  REQUIRE(ng.connections(NodeHandle(), "").empty());
+
+  REQUIRE(!ng.has_connection(NodeHandle(), ""));
+  REQUIRE(!ng.connection_info(ConnectionHandle()));
+
+  REQUIRE(ng.input_sockets(NodeHandle()).empty());
+  REQUIRE(ng.output_sockets(NodeHandle()).empty());
+
+  REQUIRE(!ng.is_primitive(NodeHandle()));
+  REQUIRE(!ng.get_primitive(NodeHandle()));
+  REQUIRE_NOTHROW(ng.set_primitive(NodeHandle(), {}));
+
+  REQUIRE_NOTHROW(ng.clear());
+
 }
 
 TEST_CASE("NodeGraph control")
