@@ -15,7 +15,12 @@ namespace yave {
   {
   public:
     /// Constructor
-    constexpr DescriptorHandle(nullptr_t) noexcept
+    constexpr DescriptorHandle() noexcept
+      : m_descriptor {nullptr}
+    {
+    }
+    /// Constructor
+    explicit constexpr DescriptorHandle(nullptr_t) noexcept
       : m_descriptor {nullptr}
     {
     }
