@@ -65,6 +65,10 @@ namespace yave {
       const std::vector<std::string>& input,
       const std::string& output) const;
 
+    /// Find info
+    [[nodiscard]] std::vector<std::shared_ptr<const info_type>>
+      find(const BindInfo& info) const;
+
     /// Lock
     [[nodiscard]] std::unique_lock<std::mutex> lock() const;
 

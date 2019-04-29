@@ -120,6 +120,12 @@ namespace yave {
     return ret;
   }
 
+  [[nodiscard]] std::vector<std::shared_ptr<const BindInfoManager::info_type>>
+    BindInfoManager::find(const BindInfo& info) const
+  {
+    return find(info.name(), info.input_sockets(), info.output_socket());
+  }
+
   [[nodiscard]] std::unique_lock<std::mutex> BindInfoManager::lock() const
   {
     return std::unique_lock(m_mtx);
