@@ -4,10 +4,15 @@
 //
 
 #include <yave/rts/box.hpp>
+#include <yave/node/primitive_definition.hpp>
 
 namespace yave {
 
-  // primitive types
+  // primitive_t
+
+  using Primitive = Box<primitive_t>;
+
+  // primitive value types
 
   using Int8   = Box<int8_t>;
   using Int16  = Box<int16_t>;
@@ -64,6 +69,8 @@ namespace yave {
   using CStr = Box<const char *>;
 
 } // namespace yave
+
+YAVE_DECL_TYPE(yave::Primitive, _Primitive);
 
 YAVE_DECL_TYPE(yave::Int8, _Int8);
 YAVE_DECL_TYPE(yave::Int16, _Int16);
