@@ -7,6 +7,7 @@
 
 #include <yave/node/primitive_definition.hpp>
 #include <yave/rts/object_ptr.hpp>
+#include <yave/node/node_info.hpp>
 
 #include <vector>
 #include <functional>
@@ -93,6 +94,15 @@ namespace yave {
     /// Get instance by calling instance function.
     [[nodiscard]] object_ptr<const Object>
       get_instance(const primitive_t& prim) const;
+
+    /// Check if this bind matches to NodeInfo.
+    [[nodiscard]] bool matches(const NodeInfo& info) const;
+
+    /// Check if this bind matches to node info.
+    [[nodiscard]] bool matches(
+      const std::string& name,
+      const std::vector<std::string>& input_sockets,
+      const std::vector<std::string>& output_sockets) const;
 
   private:
     /// name of node
