@@ -126,6 +126,29 @@ namespace yave {
     return find(info.name(), info.input_sockets(), info.output_socket());
   }
 
+  [[nodiscard]] std::vector<std::shared_ptr<const BindInfoManager::info_type>>
+    BindInfoManager::find_matched(const NodeInfo& info) const
+  {
+    return find_matched(
+      info.name(), info.input_sockets(), info.output_sockets());
+  }
+
+  [[nodiscard]] std::vector<std::shared_ptr<const BindInfoManager::info_type>>
+    BindInfoManager::find_matched(
+      const std::string& name,
+      const std::vector<std::string>& input_sockets,
+      const std::vector<std::string>& output_sockets) const
+  {
+    auto [bgn, end] = m_info.equal_range(name);
+
+    std::vector<std::shared_ptr<const info_type>> ret;
+    for (auto iter = bgn; iter != end; ++iter) {
+      if (iter->second->matches(name, input_sockets, output_sockets))
+        ret.push_back(iter->second);
+    }
+    return ret;
+  }
+
   [[nodiscard]] std::unique_lock<std::mutex> BindInfoManager::lock() const
   {
     return std::unique_lock(m_mtx);
