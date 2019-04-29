@@ -4,16 +4,28 @@
 //
 
 #include <yave/node/bind_info.hpp>
+#include <yave/obj/primitive.hpp>
+#include <yave/rts/eval.hpp>
 
 #include <algorithm>
 
 namespace yave {
 
+  namespace {
+    auto has_unique_name = [](auto& names) {
+      // sort
+      std::sort(names.begin(), names.end());
+      // unique
+      auto end = std::unique(names.begin(), names.end());
+      return end == names.end();
+    };
+  }
+
   BindInfo::BindInfo(
     const std::string& name,
     const std::vector<std::string>& input_sockets,
     const std::string& output_socket,
-    const std::function<object_ptr<>(primitive_t)>& get_instance_func,
+    const object_ptr<const Object> get_instance_func,
     const std::string& description,
     bool is_const)
     : m_name {name}
@@ -23,10 +35,24 @@ namespace yave {
     , m_get_instance_func {get_instance_func}
     , m_description {description}
   {
-    // sort
-    std::sort(m_input_sockets.begin(), m_input_sockets.end());
-    // check
-    validate();
+    // check names
+    if (!has_unique_name(m_input_sockets)) {
+      throw std::invalid_argument("Input socket names should be unique");
+    }
+
+    // null
+    if (!get_instance_func) {
+      throw std::invalid_argument("get_instance_func is null");
+    }
+
+    // test primitive apply
+    try {
+      auto prim = make_object<Primitive>();
+      auto app  = m_get_instance_func << prim;
+      auto tp   = type_of(app);
+    } catch (type_error::type_error& e) {
+      throw std::invalid_argument("get_instance_func has invalid type");
+    }
   }
 
   const std::string& BindInfo::name() const
@@ -41,7 +67,11 @@ namespace yave {
 
   void BindInfo::set_input_sockets(const std::vector<std::string>& sockets)
   {
-    m_input_sockets = sockets;
+    auto tmp = sockets;
+    if (!has_unique_name(tmp)) {
+      throw std::invalid_argument("Input socket names should be unique");
+    }
+    std::swap(tmp, m_input_sockets);
   }
 
   const std::string& BindInfo::output_socket() const
@@ -54,15 +84,26 @@ namespace yave {
     m_output_socket = socket;
   }
 
-  const std::function<object_ptr<>(primitive_t)>&
-    BindInfo::get_instance_func() const
+  const object_ptr<const Object>& BindInfo::get_instance_func() const
   {
     return m_get_instance_func;
   }
 
-  void BindInfo::set_instance_func(
-    const std::function<object_ptr<>(primitive_t)>& func)
+  void BindInfo::set_instance_func(const object_ptr<const Object>& func)
   {
+    // null check
+    if (!func) {
+      throw std::invalid_argument("func is null");
+    }
+
+    // test primitive apply
+    try {
+      auto prim = make_object<Primitive>();
+      auto app  = func << prim;
+      auto tp   = type_of(app);
+    } catch (type_error::type_error& e) {
+      throw std::invalid_argument("get_instance_func has invalid type");
+    }
     m_get_instance_func = func;
   }
 
@@ -86,21 +127,9 @@ namespace yave {
     m_description = d;
   }
 
-  object_ptr<> BindInfo::get_instance(const primitive_t& prim) const
+  object_ptr<const Object> BindInfo::get_instance(const primitive_t& prim) const
   {
-    return m_get_instance_func(prim);
+    return eval(m_get_instance_func << make_object<Primitive>(prim));
   }
 
-  void BindInfo::validate()
-  {
-    auto _has_unique_names = [](auto& names) {
-      // unique
-      auto end = std::unique(names.begin(), names.end());
-      return end == names.end();
-    };
-    if (!_has_unique_names(m_input_sockets))
-      throw std::invalid_argument("Input sockets should be unique");
-    if (m_get_instance_func == nullptr)
-      throw std::invalid_argument("get_instance should not be null");
-  }
 } // namespace yave

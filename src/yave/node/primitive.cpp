@@ -5,6 +5,7 @@
 
 #include <yave/node/primitive.hpp>
 #include <yave/func/constructor.hpp>
+#include <yave/rts/eval.hpp>
 
 namespace yave {
 
@@ -31,6 +32,18 @@ namespace yave {
     return {{get_primitive_name(v)}, {}, {"value"}, true};
   }
 
+  namespace {
+    // Primitive -> closure<Frame, T>
+    struct PrimitiveGetterFunc
+      : Function<PrimitiveGetterFunc, Primitive, Object>
+    {
+      return_type code() const
+      {
+        return get_primitive_constructor(*eval_arg<0>());
+      }
+    };
+  } // namespace
+
   BindInfo get_primitive_bind_info(const primitive_t& v)
   {
     auto info = get_primitive_info(v);
@@ -38,7 +51,7 @@ namespace yave {
     return BindInfo {info.name(),
                      {},
                      {info.output_sockets().front()},
-                     [](auto prim) { return get_primitive_constructor(prim); },
+                     make_object<PrimitiveGetterFunc>(),
                      {info.name()},
                      true};
   }

@@ -7,6 +7,8 @@
 
 #include <yave/node/primitive_definition.hpp>
 #include <yave/rts/object_ptr.hpp>
+
+#include <vector>
 #include <functional>
 
 namespace yave {
@@ -15,16 +17,34 @@ namespace yave {
   class BindInfo
   {
   public:
-    BindInfo()                = delete;
+    /// Default ctor (deleted)
+    BindInfo() = delete;
+    /// Copy ctor.
     BindInfo(const BindInfo&) = default;
-    BindInfo(BindInfo&&)      = default;
+    /// Mode ctor.
+    BindInfo(BindInfo&&) = default;
+    /// operator=
     BindInfo& operator=(const BindInfo&) = default;
+    /// operator=
     BindInfo& operator=(BindInfo&&) = default;
+
+    /// Create new bind info.
+    /// \param Name name of bind (should match to target NodeInfo::name())
+    /// \param input_sockets List of input socket names. All names shoule be
+    /// unique and sorted. If not sorted, constructor will automatically sort
+    /// it.
+    /// \param output_socket Output socket name.
+    /// \param instance_func A non-null managed pointer to a closure object
+    /// which takes sintle Primitive object and returns instance of node object
+    /// (closure). Thus `type_of(instance_func
+    /// << make_object<Primitive>())` should not throw.
+    /// \param description Description of this bind.
+    /// \throws std::invalid_argument when arguments are invalid.
     BindInfo(
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::string& output_socket,
-      const std::function<object_ptr<>(primitive_t)>& get_instance_func,
+      const object_ptr<const Object> instance_func,
       const std::string& description,
       bool is_const = true);
 
@@ -39,6 +59,8 @@ namespace yave {
     [[nodiscard]] const std::vector<std::string>& input_sockets() const;
 
     /// Set input sockets.
+    /// \param sockets Should have unique and sorted names. When not sorted,
+    /// this function will automatically sort it.
     void set_input_sockets(const std::vector<std::string>& sockets);
 
     /// Get output socket.
@@ -48,12 +70,12 @@ namespace yave {
     void set_output_socket(const std::string& socket);
 
     /// Get instance function.
-    [[nodiscard]] const std::function<object_ptr<>(primitive_t)>&
-      get_instance_func() const;
+    [[nodiscard]] const object_ptr<const Object>& get_instance_func() const;
 
     /// Set instance function.
-    void
-      set_instance_func(const std::function<object_ptr<>(primitive_t)>& func);
+    /// \param func A non-null managed pointer to an object (closure) which has
+    /// type (Primitive -> T).
+    void set_instance_func(const object_ptr<const Object>& func);
 
     /// Check constness.
     /// \notes const attribute is currently not used
@@ -69,10 +91,8 @@ namespace yave {
     void set_description(const std::string& d);
 
     /// Get instance by calling instance function.
-    [[nodiscard]] object_ptr<> get_instance(const primitive_t& prim) const;
-
-  private:
-    void validate();
+    [[nodiscard]] object_ptr<const Object>
+      get_instance(const primitive_t& prim) const;
 
   private:
     /// name of node
@@ -84,7 +104,7 @@ namespace yave {
     /// constness
     bool m_is_const;
     /// callback to get closure object
-    std::function<object_ptr<>(primitive_t)> m_get_instance_func;
+    object_ptr<const Object> m_get_instance_func;
     /// description
     std::string m_description;
   };
