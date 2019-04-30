@@ -17,16 +17,21 @@ namespace yave {
     /// Constructor
     constexpr DescriptorHandle() noexcept
       : m_descriptor {nullptr}
+      , m_id {0}
     {
     }
     /// Constructor
-    explicit constexpr DescriptorHandle(nullptr_t) noexcept
+    constexpr DescriptorHandle(nullptr_t) noexcept
       : m_descriptor {nullptr}
+      , m_id {0}
     {
     }
     /// Constructor
-    constexpr DescriptorHandle(const Descriptor& d) noexcept
+    explicit constexpr DescriptorHandle(
+      const Descriptor& d,
+      uint64_t id) noexcept
       : m_descriptor {d}
+      , m_id {id}
     {
     }
     /// Copy Constructor
@@ -57,15 +62,16 @@ namespace yave {
     }
 
     /// Get descriptor id.
-    [[nodiscard]] constexpr std::uintptr_t id() const noexcept
+    [[nodiscard]] constexpr uint64_t id() const noexcept
     {
-      static_assert(sizeof(Descriptor) <= sizeof(uintptr_t));
-      return reinterpret_cast<std::uintptr_t>(m_descriptor);
+      return m_id;
     }
 
   private:
     /// discriptor pointer
     Descriptor m_descriptor;
+    /// id
+    uint64_t m_id;
   };
 
   /// operator==
