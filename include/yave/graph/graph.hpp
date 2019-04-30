@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <yave/tools/id.hpp>
+
 #include <cassert>
 #include <exception>
 #include <stdexcept>
@@ -174,42 +176,6 @@ namespace yave {
         throw std::out_of_range("descriptor does not exist.");
       return access(c, descriptor);
     }
-
-    /// Access property.
-    /// \param c Container
-    /// \param p Inline property
-    static inline property_type &
-      property_access(container_type &c, const descriptor_type &d)
-    {
-      return access(c, d).inline_property();
-    }
-
-    /// Access property.
-    /// \param c Container
-    /// \param p Inline property
-    static inline const property_type &
-      property_access(const container_type &c, const descriptor_type &d)
-    {
-      return access(c, d).inline_property();
-    }
-
-    /// Access property.
-    /// \param c Container
-    /// \param p Inline property
-    static inline property_type &
-      property_at(container_type &c, const descriptor_type &d)
-    {
-      return at(c, d).inline_property();
-    }
-
-    /// Access property.
-    /// \param c Container
-    /// \param p Inline property
-    static inline const property_type &
-      property_at(const container_type &c, const descriptor_type &d)
-    {
-      return at(c, d).inline_property();
-    }
   };
 
   /// \brief graph_traits provides all of typedefs used in Graph class.
@@ -308,14 +274,21 @@ namespace yave {
     /// \param args Arguments to initialize property class.
     template <class... Args>
     Node(Args &&... args)
-      : m_sockets {}
+      : m_id {get_next_id()}
+      , m_sockets {}
       , m_inline_property {std::forward<Args>(args)...}
     {
     }
 
     /// A destructor.
-    ~Node()
+    ~Node() noexcept
     {
+    }
+
+    /// Get id.
+    [[nodiscard]] uint64_t id() const
+    {
+      return m_id;
     }
 
     /// Get sockets.
@@ -378,6 +351,8 @@ namespace yave {
     }
 
   private:
+    /// Id of this node.
+    uint64_t m_id;
     /// Socket descriptors.
     /// Shouldn't contain 2 or more same descriptors.
     std::vector<typename Traits::socket_descriptor_type> m_sockets;
@@ -409,15 +384,22 @@ namespace yave {
       const typename Traits::socket_descriptor_type &src,
       const typename Traits::socket_descriptor_type &dst,
       Args &&... args)
-      : m_src {src}
+      : m_id {get_next_id()}
+      , m_src {src}
       , m_dst {dst}
       , m_inline_property {std::forward<Args>(args)...}
     {
     }
 
     /// A destructor.
-    ~NodeEdge()
+    ~NodeEdge() noexcept
     {
+    }
+
+    /// Get id.
+    [[nodiscard]] uint64_t id() const
+    {
+      return m_id;
     }
 
     /// Get source socket.
@@ -445,6 +427,8 @@ namespace yave {
     }
 
   private:
+    /// Id of this socket.
+    uint64_t m_id;
     /// socket descriptors
     typename Traits::socket_descriptor_type m_src, m_dst;
     /// inline property class instance
@@ -468,13 +452,23 @@ namespace yave {
     /// \param args Args for initialize property class
     template <class... Args>
     NodeEdgeSocket(Args &&... args)
-      : m_inline_property {std::forward<Args>(args)...}
+      : m_id {get_next_id()}
+      , m_nodes {}
+      , m_src_edges {}
+      , m_dst_edges {}
+      , m_inline_property {std::forward<Args>(args)...}
     {
     }
 
     /// A destructor
-    ~NodeEdgeSocket()
+    ~NodeEdgeSocket() noexcept
     {
+    }
+
+    /// Get id.
+    [[nodiscard]] uint64_t id() const
+    {
+      return m_id;
     }
 
     /// Get source edges.
@@ -625,6 +619,8 @@ namespace yave {
     }
 
   private:
+    /// Id of this edge.
+    uint64_t m_id;
     /// node descriptors
     std::vector<typename Traits::node_descriptor_type> m_nodes;
     /// edge descriptors
@@ -817,8 +813,7 @@ namespace yave {
     [[nodiscard]] NodeProperty &
       operator[](const node_descriptor_type &descriptor)
     {
-      return traits::node_container_traits::property_access(
-        m_nodes, descriptor);
+      return _access(descriptor).inline_property();
     }
     /// Descriptor access operator
     /// \param descriptor descriptor of node
@@ -826,8 +821,7 @@ namespace yave {
     [[nodiscard]] const NodeProperty &
       operator[](const node_descriptor_type &descriptor) const
     {
-      return traits::node_container_traits::property_access(
-        m_nodes, descriptor);
+      return _access(descriptor).inline_property();
     }
 
     /// Descriptor access operator.
@@ -836,8 +830,7 @@ namespace yave {
     [[nodiscard]] EdgeProperty &
       operator[](const edge_descriptor_type &descriptor)
     {
-      return traits::edge_container_traits::property_access(
-        m_edges, descriptor);
+      return _access(descriptor).inline_property();
     }
     /// Descriptor access operator.
     /// \param descriptor descriptor of edge
@@ -845,8 +838,7 @@ namespace yave {
     [[nodiscard]] const EdgeProperty &
       operator[](const edge_descriptor_type &descriptor) const
     {
-      return traits::edge_container_traits::property_access(
-        m_edges, descriptor);
+      return _access(descriptor).inline_property();
     }
 
     /// Descriptor access operator.
@@ -855,8 +847,7 @@ namespace yave {
     [[nodiscard]] SocketProperty &
       operator[](const socket_descriptor_type &descriptor)
     {
-      return traits::socket_container_traits::property_access(
-        m_sockets, descriptor);
+      return _access(descriptor).inline_property();
     }
 
     /// Descriptor access operator.
@@ -865,8 +856,7 @@ namespace yave {
     [[nodiscard]] const SocketProperty &
       operator[](const socket_descriptor_type &descriptor) const
     {
-      return traits::socket_container_traits::property_access(
-        m_sockets, descriptor);
+      return _access(descriptor).inline_property();
     }
 
     // Descriptor access operator.
@@ -874,15 +864,16 @@ namespace yave {
     // \returns if success
     [[nodiscard]] NodeProperty &at(const node_descriptor_type &descriptor)
     {
-      return traits::node_container_traits::property_at(m_nodes, descriptor);
+      return _at(descriptor).inline_property();
     }
+
     /// Descriptor access operator.
     /// \param descriptor descriptor of node
     /// \returns if descriptor is invalid, return value is undefined.
     [[nodiscard]] const NodeProperty &
       at(const node_descriptor_type &descriptor) const
     {
-      return traits::node_container_traits::property_at(m_nodes, descriptor);
+      return _at(descriptor).inline_property();
     }
 
     /// Descriptor access operator
@@ -890,15 +881,16 @@ namespace yave {
     /// \returns if success
     [[nodiscard]] EdgeProperty &at(const edge_descriptor_type &descriptor)
     {
-      return traits::edge_container_traits::property_at(m_edges, descriptor);
+      return _at(descriptor).inline_property();
     }
+
     /// Descriptor access operator.
     /// \param descriptor descriptor of edge
     /// \returns if success
     [[nodiscard]] const EdgeProperty &
       at(const edge_descriptor_type &descriptor) const
     {
-      return traits::edge_container_traits::property_at(m_edges, descriptor);
+      return _at(descriptor).inline_property();
     }
 
     /// Descriptor access operator.
@@ -906,8 +898,7 @@ namespace yave {
     /// \returns if success
     [[nodiscard]] SocketProperty &at(const socket_descriptor_type &descriptor)
     {
-      return traits::socket_container_traits::property_access(
-        m_sockets, descriptor);
+      return _at(descriptor).inline_property();
     }
 
     /// Descriptor access operator.
@@ -916,8 +907,7 @@ namespace yave {
     [[nodiscard]] const SocketProperty &
       at(const socket_descriptor_type &descriptor) const
     {
-      return traits::socket_container_traits::property_at(
-        m_sockets, descriptor);
+      return _at(descriptor).inline_property();
     }
 
     /// Attach socket.
@@ -1053,6 +1043,27 @@ namespace yave {
     {
       auto &e = _at(descriptor);
       return e.dst();
+    }
+
+    /// Get id of node.
+    [[nodiscard]] uint64_t id(const node_descriptor_type &descriptor) const
+    {
+      auto &n = _at(descriptor);
+      return n.id();
+    }
+
+    /// Get id of socket.
+    [[nodiscard]] uint64_t id(const socket_descriptor_type &descriptor) const
+    {
+      auto &s = _at(descriptor);
+      return s.id();
+    }
+
+    /// Get id of edge.
+    [[nodiscard]] uint64_t id(const edge_descriptor_type &descriptor) const
+    {
+      auto &e = _at(descriptor);
+      return e.id();
     }
 
     /// Clone graph
