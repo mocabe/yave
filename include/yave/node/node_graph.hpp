@@ -159,6 +159,9 @@ namespace yave {
     /// When `is_primitive(prim_node) == false`, no effect.
     void set_primitive(const NodeHandle& prim_node, const primitive_t& prim);
 
+    /// Get root of ancestor tree of specific node.
+    [[nodiscard]] std::vector<NodeHandle> root_of(const NodeHandle& node) const;
+
     /// Lock
     [[nodiscard]] std::unique_lock<std::mutex> lock() const;
 

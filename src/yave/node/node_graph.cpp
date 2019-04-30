@@ -514,6 +514,46 @@ namespace yave {
     m_g[h.descriptor()].set_prim(prim);
   }
 
+  std::vector<NodeHandle> NodeGraph::root_of(const NodeHandle& node) const
+  {
+    if (!exists(node))
+      return {};
+
+    std::vector<NodeHandle> ret;
+    std::vector<NodeHandle> stack;
+
+    stack.push_back(node);
+
+    while (!stack.empty()) {
+      // pop
+      auto n = stack.back();
+      stack.pop_back();
+      // current stack size
+      auto size = stack.size();
+      // push parent
+      for (auto&& s : m_g.sockets(n.descriptor())) {
+        for (auto&& e : m_g.src_edges(s)) {
+          auto dst_s = m_g.dst(e);
+          auto dst_n = m_g.nodes(dst_s);
+          assert(dst_n.size() == 1);
+          stack.emplace_back(dst_n[0], m_g.id(dst_n[0]));
+        }
+      }
+      // node is root
+      if (size == stack.size()) {
+        // avoid duplicate
+        [&] {
+          for (auto&& r : ret) {
+            if (r == n)
+              return;
+          }
+          ret.push_back(n);
+        }();
+      }
+    }
+    return ret;
+  }
+
   std::unique_lock<std::mutex> NodeGraph::lock() const
   {
     return std::unique_lock(m_mtx);

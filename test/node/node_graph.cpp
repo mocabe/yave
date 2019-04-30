@@ -9,8 +9,8 @@
 
 using namespace yave;
 
-TEST_CASE("Init")
-  {
+TEST_CASE("NodeGraph init")
+{
   NodeGraph ng;
 
   REQUIRE(!ng.exists(NodeHandle()));
@@ -47,13 +47,11 @@ TEST_CASE("Init")
   REQUIRE_NOTHROW(ng.set_primitive(NodeHandle(), {}));
 
   REQUIRE_NOTHROW(ng.clear());
-
 }
 
 TEST_CASE("NodeGraph control")
 {
   NodeGraph ng;
-
 
   SECTION("add")
   {
@@ -255,5 +253,48 @@ TEST_CASE("NodeGraph control")
     REQUIRE(ng.connections(n2, "input2").size() == 1);
     REQUIRE(ng.connections(n2, "output1").size() == 0);
     REQUIRE(ng.connections(n2, "output2").size() == 0);
+  }
+
+  SECTION("root_of")
+  {
+    NodeInfo info11 {"test11", {"input"}, {"output"}};
+
+    REQUIRE(ng.root_of(NodeHandle()).empty());
+
+    auto n1 = ng.add_node(info11);
+    // n1
+    REQUIRE(ng.root_of(n1).size() == 1);
+    REQUIRE(ng.root_of(n1)[0] == n1);
+
+    // n1 -> n2
+    auto n2 = ng.add_node(info11);
+    auto c1 = ng.connect(n1, "output", n2, "input");
+    REQUIRE(c1);
+    REQUIRE(ng.root_of(n1).size() == 1);
+    REQUIRE(ng.root_of(n1)[0] == n2);
+
+    NodeInfo info22 {"test22", {"input1", "input2"}, {"output1", "output2"}};
+
+    // n3 -> n4,n5
+    auto n3 = ng.add_node(info22);
+    auto n4 = ng.add_node(info11);
+    auto n5 = ng.add_node(info11);
+    auto c3 = ng.connect(n3, "output1", n4, "input");
+    auto c4 = ng.connect(n3, "output2", n5, "input");
+    REQUIRE(c3);
+    REQUIRE(c4);
+    REQUIRE(ng.root_of(n3).size() == 2);
+    REQUIRE(
+      (ng.root_of(n3) == std::vector {n4, n5} ||
+       ng.root_of(n3) == std::vector {n5, n4}));
+
+    // n3 -> n4,n5 -> n6
+    auto n6 = ng.add_node(info22);
+    auto c5 = ng.connect(n4, "output", n6, "input1");
+    auto c6 = ng.connect(n5, "output", n6, "input2");
+    REQUIRE(c5);
+    REQUIRE(c6);
+    REQUIRE(ng.root_of(n3).size() == 1);
+    REQUIRE(ng.root_of(n3)[0] == n6);
   }
 }
