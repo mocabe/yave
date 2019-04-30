@@ -1,5 +1,6 @@
 add_library(yave-tools
-  log.cpp)
+  log.cpp
+  id.cpp)
 
 target_include_directories(yave-tools PRIVATE ${YAVE_INCLUDE_DIR})
 target_compile_options(yave-tools PRIVATE ${YAVE_COMPILE_FLAGS})
