@@ -56,12 +56,14 @@ namespace yave {
 
   bool NodeGraph::exists(const NodeHandle& h) const
   {
-    return h.has_value() && m_g.exists(h.descriptor());
+    return h.has_value() && m_g.exists(h.descriptor()) &&
+           h.id() == m_g.id(h.descriptor());
   }
 
   bool NodeGraph::exists(const ConnectionHandle& h) const
   {
-    return h.has_value() && m_g.exists(h.descriptor());
+    return h.has_value() && m_g.exists(h.descriptor()) &&
+           h.id() == m_g.id(h.descriptor());
   }
 
   NodeHandle NodeGraph::add_node(const NodeInfo& info, const primitive_t& prim)
@@ -95,7 +97,7 @@ namespace yave {
     _attach_sockets(info.input_sockets(), SocketProperty::input);
     _attach_sockets(info.output_sockets(), SocketProperty::output);
 
-    auto handle = NodeHandle(node);
+    auto handle = NodeHandle(node, m_g.id(node));
 
     Info(
       get_logger("NodeGraph"),
@@ -154,7 +156,7 @@ namespace yave {
                   logger,
                   "Connection already exists. Return existing connection "
                   "handle.");
-                return ConnectionHandle(e);
+                return ConnectionHandle(e, m_g.id(e));
               }
             // input edge cannot have multiple inputs
             if (m_g.n_dst_edges(d) != 0) {
@@ -187,7 +189,7 @@ namespace yave {
               info.dst_node().id(),
               info.dst_socket());
 
-            return new_edge;
+            return ConnectionHandle(new_edge, m_g.id(new_edge));
           }
         }
       }
@@ -222,14 +224,14 @@ namespace yave {
     std::vector<NodeHandle> ret;
     for (auto&& n : m_g.nodes())
       if (m_g[n].name() == name)
-        ret.emplace_back(n);
+        ret.emplace_back(n, m_g.id(n));
     return ret;
   }
 
   std::vector<NodeHandle> NodeGraph::nodes() const
   {
     std::vector<NodeHandle> ret;
-    for (auto&& n : m_g.nodes()) ret.emplace_back(n);
+    for (auto&& n : m_g.nodes()) ret.emplace_back(n, m_g.id(n));
     return ret;
   }
 
@@ -316,7 +318,7 @@ namespace yave {
         auto dst_edges = m_g.dst_edges(s);
         if (m_g[s].is_output())
           assert(dst_edges.empty());
-        for (auto&& e : dst_edges) ret.emplace_back(e);
+        for (auto&& e : dst_edges) ret.emplace_back(e, m_g.id(e));
       }
     }
     return ret;
@@ -336,7 +338,7 @@ namespace yave {
         auto src_edges = m_g.src_edges(s);
         if (m_g[s].is_input())
           assert(src_edges.empty());
-        for (auto&& e : src_edges) ret.emplace_back(e);
+        for (auto&& e : src_edges) ret.emplace_back(e, m_g.id(e));
       }
     }
     return ret;
@@ -363,8 +365,8 @@ namespace yave {
       assert(
         (m_g[s].is_input() && src_edges.empty()) ||
         (m_g[s].is_output() && dst_edges.empty()));
-      for (auto&& e : src_edges) ret.emplace_back(e);
-      for (auto&& e : dst_edges) ret.emplace_back(e);
+      for (auto&& e : src_edges) ret.emplace_back(e, m_g.id(e));
+      for (auto&& e : dst_edges) ret.emplace_back(e, m_g.id(e));
     }
     return ret;
   }
@@ -380,8 +382,8 @@ namespace yave {
       if (m_g[s].name() == socket) {
         auto src_edges = m_g.src_edges(s);
         auto dst_edges = m_g.dst_edges(s);
-        for (auto&& e : src_edges) ret.emplace_back(e);
-        for (auto&& e : dst_edges) ret.emplace_back(e);
+        for (auto&& e : src_edges) ret.emplace_back(e, m_g.id(e));
+        for (auto&& e : dst_edges) ret.emplace_back(e, m_g.id(e));
       }
     }
     if (ret.empty())
@@ -401,7 +403,7 @@ namespace yave {
       auto dst_edges = m_g.dst_edges(s);
       assert(m_g[s].is_input() || (m_g[s].is_output() && dst_edges.empty()));
       for (auto&& e : dst_edges) {
-        ret.emplace_back(e);
+        ret.emplace_back(e, m_g.id(e));
       }
     }
     if (ret.empty())
@@ -421,7 +423,7 @@ namespace yave {
     for (auto&& s : sockets) {
       auto src_edges = m_g.src_edges(s);
       assert((m_g[s].is_input() && src_edges.empty()) || m_g[s].is_output());
-      for (auto&& e : src_edges) ret.emplace_back(e);
+      for (auto&& e : src_edges) ret.emplace_back(e, m_g.id(e));
     }
     if (ret.empty())
       Warning(
@@ -435,7 +437,7 @@ namespace yave {
     std::vector<ConnectionHandle> ret;
     for (auto&& n : m_g.nodes()) {
       for (auto&& s : m_g.sockets(n)) {
-        for (auto&& e : m_g.src_edges(s)) ret.emplace_back(e);
+        for (auto&& e : m_g.src_edges(s)) ret.emplace_back(e, m_g.id(e));
       }
     }
     return ret;
@@ -453,10 +455,10 @@ namespace yave {
     auto dst_nodes = m_g.nodes(dst);
     assert(src_nodes.size() == 1);
     assert(dst_nodes.size() == 1);
-    return ConnectionInfo {src_nodes[0],     //
-                           m_g[src].name(),  //
-                           dst_nodes[0],     //
-                           m_g[dst].name()}; //
+    return ConnectionInfo {NodeHandle(src_nodes[0], m_g.id(src_nodes[0])), //
+                           m_g[src].name(),                                //
+                           NodeHandle(dst_nodes[0], m_g.id(dst_nodes[0])), //
+                           m_g[dst].name()};                               //
   }
 
   std::vector<std::string> NodeGraph::input_sockets(const NodeHandle& h) const
