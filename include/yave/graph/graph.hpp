@@ -103,7 +103,7 @@ namespace yave {
     /// \param c Container
     /// \param descriptor Descriptor
     static inline void
-      destroy(container_type &c, const descriptor_type &descriptor)
+      destroy(container_type &c, const descriptor_type &descriptor) noexcept
     {
       auto tail = std::remove_if(c.begin(), c.end(), [&](descriptor_type dsc) {
         return dsc == descriptor;
@@ -269,6 +269,8 @@ namespace yave {
       typename Traits::node_container_traits::inline_property_type;
     /// Descriptor type
     using descriptor_type = typename Traits::node_descriptor_type;
+    /// Socket descriptor type
+    using socket_descriptor_type = typename Traits::socket_descriptor_type;
 
     /// A Constructor.
     /// \param args Arguments to initialize property class.
@@ -286,19 +288,19 @@ namespace yave {
     }
 
     /// Get id.
-    [[nodiscard]] uint64_t id() const
+    [[nodiscard]] uint64_t id() const noexcept
     {
       return m_id;
     }
 
     /// Get sockets.
-    [[nodiscard]] auto sockets() const
+    [[nodiscard]] std::vector<socket_descriptor_type> sockets() const
     {
       return m_sockets;
     }
 
     /// Get socket count.
-    [[nodiscard]] auto n_sockets() const
+    [[nodiscard]] size_t n_sockets() const
     {
       return m_sockets.size();
     }
@@ -320,8 +322,7 @@ namespace yave {
     /// \param descriptor descriptor of target socket
     /// \returns return true if success. false if invalid descriptor or it is
     /// already set.
-    [[nodiscard]] bool
-      set_socket(const typename Traits::socket_descriptor_type &descriptor)
+    [[nodiscard]] bool set_socket(const socket_descriptor_type &descriptor)
     {
       // error check
       for (auto &&d : m_sockets) {
@@ -336,7 +337,7 @@ namespace yave {
     /// Remove socket.
     /// \param descriptor descriptor of socket
     /// \returns true when succsess false if invalid descriptor
-    void unset_socket(const typename Traits::socket_descriptor_type &descriptor)
+    void unset_socket(const socket_descriptor_type &descriptor)
     {
       auto tmp {m_sockets};
       for (auto iter = tmp.begin(); iter != tmp.end(); ++iter) {
@@ -355,7 +356,7 @@ namespace yave {
     uint64_t m_id;
     /// Socket descriptors.
     /// Shouldn't contain 2 or more same descriptors.
-    std::vector<typename Traits::socket_descriptor_type> m_sockets;
+    std::vector<socket_descriptor_type> m_sockets;
     /// Inline property class instance
     inline_property_type m_inline_property;
   };
@@ -370,10 +371,15 @@ namespace yave {
   {
   public:
     friend typename Traits::graph_type;
+    /// Type
     using type = NodeEdge<Traits>;
+    /// Inline property type
     using inline_property_type =
       typename Traits::edge_container_traits::inline_property_type;
+    /// Descriptor type
     using descriptor_type = typename Traits::edge_descriptor_type;
+    /// Socket descriptor type
+    using socket_descriptor_type = typename Traits::socket_descriptor_type;
 
     /// A constructor.
     /// \param src descriptor of source socket
@@ -381,8 +387,8 @@ namespace yave {
     /// \param args args to initialize property class instance
     template <class... Args>
     NodeEdge(
-      const typename Traits::socket_descriptor_type &src,
-      const typename Traits::socket_descriptor_type &dst,
+      const socket_descriptor_type &src,
+      const socket_descriptor_type &dst,
       Args &&... args)
       : m_id {get_next_id()}
       , m_src {src}
@@ -397,19 +403,19 @@ namespace yave {
     }
 
     /// Get id.
-    [[nodiscard]] uint64_t id() const
+    [[nodiscard]] uint64_t id() const noexcept
     {
       return m_id;
     }
 
     /// Get source socket.
-    [[nodiscard]] auto src() const
+    [[nodiscard]] socket_descriptor_type src() const
     {
       return m_src;
     }
 
     /// Get destination socket.
-    [[nodiscard]] auto dst() const
+    [[nodiscard]] socket_descriptor_type dst() const
     {
       return m_dst;
     }
@@ -430,7 +436,7 @@ namespace yave {
     /// Id of this socket.
     uint64_t m_id;
     /// socket descriptors
-    typename Traits::socket_descriptor_type m_src, m_dst;
+    socket_descriptor_type m_src, m_dst;
     /// inline property class instance
     inline_property_type m_inline_property;
   };
@@ -443,10 +449,17 @@ namespace yave {
   {
   public:
     friend typename Traits::graph_type;
+    /// Type
     using type = NodeEdgeSocket<Traits>;
+    /// Inline property type
     using inline_property_type =
       typename Traits::socket_container_traits::inline_property_type;
-    using descriptor_type = typename Traits::edge_descriptor_type;
+    /// Descriptor type
+    using descriptor_type = typename Traits::socket_descriptor_type;
+    /// Node descriptor type
+    using node_descriptor_type = typename Traits::node_descriptor_type;
+    /// Edge descriptor type
+    using edge_descriptor_type = typename Traits::edge_descriptor_type;
 
     /// A constructor.
     /// \param args Args for initialize property class
@@ -466,42 +479,42 @@ namespace yave {
     }
 
     /// Get id.
-    [[nodiscard]] uint64_t id() const
+    [[nodiscard]] uint64_t id() const noexcept
     {
       return m_id;
     }
 
     /// Get source edges.
-    [[nodiscard]] auto src_edges() const
+    [[nodiscard]] std::vector<edge_descriptor_type> src_edges() const
     {
       return m_src_edges;
     }
     /// Get destination edges.
-    [[nodiscard]] auto dst_edges() const
+    [[nodiscard]] std::vector<edge_descriptor_type> dst_edges() const
     {
       return m_dst_edges;
     }
 
     /// Get srouce edge count.
-    [[nodiscard]] auto n_src_edges() const
+    [[nodiscard]] size_t n_src_edges() const
     {
       return m_src_edges.size();
     }
 
     /// Get destination edge count.
-    [[nodiscard]] auto n_dst_edges() const
+    [[nodiscard]] size_t n_dst_edges() const
     {
       return m_dst_edges.size();
     }
 
     /// Get nodes.
-    [[nodiscard]] auto nodes() const
+    [[nodiscard]] std::vector<node_descriptor_type> nodes() const
     {
       return m_nodes;
     }
 
     /// Get node count.
-    [[nodiscard]] auto n_nodes() const
+    [[nodiscard]] size_t n_nodes() const
     {
       return m_nodes.size();
     }
@@ -522,8 +535,7 @@ namespace yave {
     /// Set src edge.
     /// \param descriptor descriptor of edge
     /// \returns true when success
-    [[nodiscard]] bool
-      set_src_edge(const typename Traits::edge_descriptor_type &descriptor)
+    [[nodiscard]] bool set_src_edge(const edge_descriptor_type &descriptor)
     {
       // error check
       for (auto &&d : m_src_edges) {
@@ -537,8 +549,7 @@ namespace yave {
     /// Set dst edge.
     /// \param descriptor descriptor of edge
     /// \returns true when success
-    [[nodiscard]] bool
-      set_dst_edge(const typename Traits::edge_descriptor_type &descriptor)
+    [[nodiscard]] bool set_dst_edge(const edge_descriptor_type &descriptor)
     {
 
       // error check
@@ -554,8 +565,7 @@ namespace yave {
     /// Set node.
     /// \param descriptor descriptor of node
     /// \returns true when success
-    [[nodiscard]] bool
-      set_node(const typename Traits::node_descriptor_type &descriptor)
+    [[nodiscard]] bool set_node(const node_descriptor_type &descriptor)
     {
 
       // error check
@@ -571,7 +581,7 @@ namespace yave {
     /// Unset node.
     /// \param descriptor Descriptor of node
     /// \returns true if success
-    void unset_node(const typename Traits::node_descriptor_type &descriptor)
+    void unset_node(const node_descriptor_type &descriptor)
     {
       auto tmp {m_nodes};
       for (auto iter = tmp.begin(); iter != tmp.end(); ++iter) {
@@ -587,7 +597,7 @@ namespace yave {
     /// Unset edge.
     /// \param descriptor Descriptor of edge
     /// \returns true if success
-    void unset_src_edge(const typename Traits::edge_descriptor_type &descriptor)
+    void unset_src_edge(const edge_descriptor_type &descriptor)
     {
       // erase descriptor
       auto tmp {m_src_edges};
@@ -604,7 +614,7 @@ namespace yave {
     /// Unset edge
     /// \param descriptor descriptor of edge
     /// \returns true if success.
-    void unset_dst_edge(const typename Traits::edge_descriptor_type &descriptor)
+    void unset_dst_edge(const edge_descriptor_type &descriptor)
     {
       // erase descriptor
       auto tmp {m_dst_edges};
@@ -622,11 +632,11 @@ namespace yave {
     /// Id of this edge.
     uint64_t m_id;
     /// node descriptors
-    std::vector<typename Traits::node_descriptor_type> m_nodes;
+    std::vector<node_descriptor_type> m_nodes;
     /// edge descriptors
-    std::vector<typename Traits::edge_descriptor_type> m_src_edges;
+    std::vector<edge_descriptor_type> m_src_edges;
     /// edge descriptors
-    std::vector<typename Traits::edge_descriptor_type> m_dst_edges;
+    std::vector<edge_descriptor_type> m_dst_edges;
     /// inline property class instance
     inline_property_type m_inline_property;
   };
@@ -1170,36 +1180,36 @@ namespace yave {
 
     /// Node access.
     /// \param n if nonexist or invalid, behaviour of this function is undefined
-    inline node_type &_access(const node_descriptor_type &n)
+    inline node_type &_access(const node_descriptor_type &n) noexcept
     {
       return traits::node_container_traits::access(m_nodes, n);
     }
 
-    inline const node_type &_access(const node_descriptor_type &n) const
+    inline const node_type &_access(const node_descriptor_type &n) const noexcept
     {
       return traits::node_container_traits::access(m_nodes, n);
     }
 
     /// Edge access.
     /// \param n if nonexist or invalid, behaviour of this function is undefined
-    inline edge_type &_access(const edge_descriptor_type &e)
+    inline edge_type &_access(const edge_descriptor_type &e) noexcept
     {
       return traits::edge_container_traits::access(m_edges, e);
     }
 
-    inline const edge_type &_access(const edge_descriptor_type &e) const
+    inline const edge_type &_access(const edge_descriptor_type &e) const noexcept
     {
       return traits::edge_container_traits::access(m_edges, e);
     }
 
     /// Socket access.
     /// \param n if nonexist or invalid, behaviour of this function is undefined
-    inline socket_type &_access(const socket_descriptor_type &s)
+    inline socket_type &_access(const socket_descriptor_type &s) noexcept
     {
       return traits::socket_container_traits::access(m_sockets, s);
     }
 
-    inline const socket_type &_access(const socket_descriptor_type &s) const
+    inline const socket_type &_access(const socket_descriptor_type &s) const noexcept
     {
       return traits::socket_container_traits::access(m_sockets, s);
     }
@@ -1247,7 +1257,7 @@ namespace yave {
     /// Destroy node.
     /// \param descriptor descriptor of node
     /// \returns true if success
-    void _destroy(const node_descriptor_type &descriptor)
+    void _destroy(const node_descriptor_type &descriptor) noexcept
     {
       traits::node_container_traits::destroy(m_nodes, descriptor);
     }
@@ -1255,7 +1265,7 @@ namespace yave {
     /// Destroy edge.
     /// \param descriptor descriptor of edge
     /// \returns true if success
-    void _destroy(const edge_descriptor_type &descriptor)
+    void _destroy(const edge_descriptor_type &descriptor) noexcept
     {
       traits::edge_container_traits::destroy(m_edges, descriptor);
     }
@@ -1263,7 +1273,7 @@ namespace yave {
     /// Destroy edge.
     /// \param descriptor descriptor of socket
     /// \returns true if success
-    void _destroy(const socket_descriptor_type &descriptor)
+    void _destroy(const socket_descriptor_type &descriptor) noexcept
     {
       traits::socket_container_traits::destroy(m_sockets, descriptor);
     }
