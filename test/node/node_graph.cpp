@@ -9,6 +9,25 @@
 
 using namespace yave;
 
+template <class T>
+bool vector_eq(const std::vector<T>& lhs, const std::vector<T>& rhs)
+{
+  if (lhs.size() != rhs.size())
+    return false;
+
+  for (auto&& l : lhs) {
+    if (![&] {
+          for (auto&& r : rhs) {
+            if (l == r)
+              return true;
+          }
+          return false;
+        }())
+      return false;
+  }
+  return true;
+}
+
 TEST_CASE("NodeGraph init")
 {
   NodeGraph ng;
@@ -284,9 +303,7 @@ TEST_CASE("NodeGraph control")
     REQUIRE(c3);
     REQUIRE(c4);
     REQUIRE(ng.root_of(n3).size() == 2);
-    REQUIRE(
-      (ng.root_of(n3) == std::vector {n4, n5} ||
-       ng.root_of(n3) == std::vector {n5, n4}));
+    REQUIRE(vector_eq(ng.root_of(n3), std::vector {n4, n5}));
 
     // n3 -> n4,n5 -> n6
     auto n6 = ng.add_node(info22);
@@ -296,5 +313,37 @@ TEST_CASE("NodeGraph control")
     REQUIRE(c6);
     REQUIRE(ng.root_of(n3).size() == 1);
     REQUIRE(ng.root_of(n3)[0] == n6);
+  }
+
+  SECTION("roots")
+  {
+    auto info11 = NodeInfo {"test11", {"input"}, {"output"}};
+    auto info22 =
+      NodeInfo {"test22", {"input1", "input2"}, {"output1", "output2"}};
+
+    auto n1 = ng.add_node(info11);
+    auto n2 = ng.add_node(info11);
+    auto n3 = ng.add_node(info22);
+    auto n4 = ng.add_node(info22);
+
+    REQUIRE(vector_eq(ng.roots(), std::vector {n1, n2, n3, n4}));
+
+    auto c1 = ng.connect(n1, "output", n2, "input");
+    REQUIRE(c1);
+    REQUIRE(vector_eq(ng.roots(), std::vector {n2, n3, n4}));
+
+    auto c2 = ng.connect(n1, "output", n3, "input1");
+    REQUIRE(c2);
+    REQUIRE(vector_eq(ng.roots(), std::vector {n2, n3, n4}));
+
+    auto c3 = ng.connect(n1, "output", n3, "input2");
+    REQUIRE(c3);
+    REQUIRE(vector_eq(ng.roots(), std::vector {n2, n3, n4}));
+
+    auto c4 = ng.connect(n2, "output", n4, "input1");
+    auto c5 = ng.connect(n3, "output1", n4, "input2");
+    REQUIRE(c4);
+    REQUIRE(c5);
+    REQUIRE(vector_eq(ng.roots(), std::vector {n4}));
   }
 }
