@@ -528,6 +528,26 @@ namespace yave {
     m_g[h.descriptor()].set_prim(prim);
   }
 
+  std::vector<NodeHandle> NodeGraph::roots() const
+  {
+    std::vector<NodeHandle> ret;
+
+    // TODO: Improve performance.
+    for (auto&& n : nodes()) {
+      for (auto&& root : root_of(n)) {
+        [&] {
+          for (auto&& r : ret) {
+            if (root == r)
+              return;
+          }
+          ret.push_back(root);
+        }();
+      }
+    }
+
+    return ret;
+  }
+
   std::vector<NodeHandle> NodeGraph::root_of(const NodeHandle& node) const
   {
     if (!exists(node))
