@@ -108,21 +108,22 @@ namespace yave {
     return handle;
   }
 
-  void NodeGraph::remove_node(const NodeHandle& h)
+  void NodeGraph::remove_node(const NodeHandle& node)
   {
-    if (!exists(h))
+    if (!exists(node))
       return;
 
     Info(
       get_logger("NodeGraph"),
       "Removing Node: name=\"{}\", id={}",
-      m_g[h.descriptor()].name(),
-      h.id());
+      m_g[node.descriptor()].name(),
+      node.id());
 
-    for (auto&& s : m_g.sockets(h.descriptor())) {
+    for (auto&& s : m_g.sockets(node.descriptor())) {
       m_g.remove_socket(s);
     }
-    m_g.remove_node(h.descriptor());
+
+    m_g.remove_node(node.descriptor());
   }
 
   ConnectionHandle NodeGraph::connect(
@@ -663,10 +664,6 @@ namespace yave {
       }
     }
     return ret;
-  }
-
-  std::vector<NodeHandle> NodeGraph::modified_trees() const
-  {
   }
 
   std::unique_lock<std::mutex> NodeGraph::lock() const
