@@ -347,6 +347,9 @@ namespace yave {
   [[nodiscard]] bool
     NodeGraph::has_connection(const NodeHandle& h, const std::string& s) const
   {
+    if (!exists(h))
+      return false;
+
     return !(
       input_connections(h, s).empty() && output_connections(h, s).empty());
   }
@@ -376,6 +379,7 @@ namespace yave {
   {
     if (!exists(h))
       return {};
+
     std::vector<ConnectionHandle> ret;
     auto sockets = m_g.sockets(h.descriptor());
     for (auto&& s : sockets) {
@@ -397,6 +401,7 @@ namespace yave {
   {
     if (!exists(h))
       return {};
+
     std::vector<ConnectionHandle> ret;
     auto sockets = m_g.sockets(h.descriptor());
     for (auto&& s : sockets) {
@@ -418,6 +423,7 @@ namespace yave {
   {
     if (!exists(h))
       return {};
+
     std::vector<ConnectionHandle> ret;
     auto sockets = m_g.sockets(h.descriptor());
     for (auto&& s : sockets) {
@@ -448,6 +454,7 @@ namespace yave {
   {
     if (!exists(h))
       return std::nullopt;
+
     auto src = m_g.src(h.descriptor());
     auto dst = m_g.dst(h.descriptor());
 
@@ -465,6 +472,7 @@ namespace yave {
   {
     if (!exists(h))
       return {};
+
     auto&& sockets = m_g.sockets(h.descriptor());
     std::vector<std::string> ret;
     for (auto&& s : sockets) {
@@ -478,6 +486,7 @@ namespace yave {
   {
     if (!exists(h))
       return {};
+
     auto&& sockets = m_g.sockets(h.descriptor());
     std::vector<std::string> ret;
     for (auto&& s : sockets) {
@@ -491,6 +500,7 @@ namespace yave {
   {
     if (!exists(h))
       return false;
+
     return m_g[h.descriptor()].is_prim();
   }
 
@@ -498,6 +508,7 @@ namespace yave {
   {
     if (!exists(h))
       return std::nullopt;
+
     if (m_g[h.descriptor()].is_prim())
       return m_g[h.descriptor()].prim();
     return std::nullopt;
@@ -505,6 +516,9 @@ namespace yave {
 
   void NodeGraph::set_primitive(const NodeHandle& h, const primitive_t& prim)
   {
+    if(!exists(h))
+      return;
+
     if (!is_primitive(h)) {
       Error(
         get_logger("NodeGraph"),
