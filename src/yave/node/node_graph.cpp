@@ -677,6 +677,70 @@ namespace yave {
   }
 
   namespace {
+
+    template <class T, class Diff>
+    Diff diff_impl(const std::vector<T>& prev, const std::vector<T>& next)
+    {
+      auto l = prev;
+      auto r = next;
+
+      std::sort(l.begin(), l.end());
+      std::sort(r.begin(), r.end());
+
+      auto li = l.begin();
+      auto ri = r.begin();
+
+      auto le = l.end();
+      auto re = r.end();
+
+      Diff ret;
+
+      for (;;) {
+        if (li == le || ri == re) {
+          for (auto i = li; i != le; ++i) ret.removed.push_back(*i);
+          for (auto i = ri; i != re; ++i) ret.added.push_back(*i);
+          break;
+        }
+
+        if (*li == *ri) {
+          ret.not_changed.push_back(*ri);
+          ++li;
+          ++ri;
+          continue;
+        }
+
+        if (*li < *ri) {
+          ret.removed.push_back(*li);
+          ++li;
+          continue;
+        }
+
+        if (*li > *ri) {
+          ret.added.push_back(*ri);
+          ++ri;
+          continue;
+        }
+      }
+      return ret;
+    }
+  } // namespace
+
+  NodesDiff nodes_diff(
+    const std::vector<NodeHandle>& prev_nodes,
+    const std::vector<NodeHandle>& nodes)
+  {
+    return diff_impl<NodeHandle, NodesDiff>(prev_nodes, nodes);
+  }
+
+  ConnectionsDiff connections_diff(
+    const std::vector<ConnectionHandle>& prev_connections,
+    const std::vector<ConnectionHandle>& connections)
+  {
+    return diff_impl<ConnectionHandle, ConnectionsDiff>(
+      prev_connections, connections);
+  }
+
+  namespace {
     template <class Lambda>
     void depth_first_search_until(
       const NodeGraph& ng,

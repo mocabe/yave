@@ -346,4 +346,53 @@ TEST_CASE("NodeGraph control")
     REQUIRE(c5);
     REQUIRE(vector_eq(ng.roots(), std::vector {n4}));
   }
+
+  SECTION("diff")
+  {
+    auto info11 = NodeInfo {"test11", {"input"}, {"output"}};
+    auto info22 =
+      NodeInfo {"test22", {"input1", "input2"}, {"output1", "output2"}};
+
+    auto nodes       = ng.nodes();
+
+    auto n1 = ng.add_node(info11);
+
+    auto ndiff = nodes_diff(nodes, ng.nodes());
+
+    REQUIRE(ndiff.not_changed.empty());
+    REQUIRE(vector_eq(ndiff.added, std::vector {n1}));
+    REQUIRE(ndiff.removed.empty());
+
+    nodes       = ng.nodes();
+
+    ng.remove_node(n1);
+
+    ndiff = nodes_diff(nodes, ng.nodes());
+
+    REQUIRE(ndiff.not_changed.empty());
+    REQUIRE(ndiff.added.empty());
+    REQUIRE(vector_eq(ndiff.removed, std::vector {n1}));
+
+    auto n2 = ng.add_node(info11);
+    auto n3 = ng.add_node(info22);
+    auto n4 = ng.add_node(info11);
+    ng.remove_node(n3);
+
+    ndiff = nodes_diff(nodes, ng.nodes());
+
+    REQUIRE(ndiff.not_changed.empty());
+    REQUIRE(vector_eq(ndiff.added, std::vector {n2, n4}));
+    REQUIRE(vector_eq(ndiff.removed, std::vector {n1}));
+
+    nodes = ng.nodes();
+
+    ng.remove_node(n4);
+    auto n5 = ng.add_node(info11);
+
+    ndiff = nodes_diff(nodes, ng.nodes());
+
+    REQUIRE(vector_eq(ndiff.not_changed, std::vector {n2}));
+    REQUIRE(vector_eq(ndiff.added, std::vector {n5}));
+    REQUIRE(vector_eq(ndiff.removed, std::vector {n4}));
+  }
 }

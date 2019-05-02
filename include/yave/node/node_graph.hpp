@@ -177,4 +177,27 @@ namespace yave {
     /// mutex
     mutable std::mutex m_mtx;
   };
+
+  struct NodesDiff
+  {
+    std::vector<NodeHandle> not_changed;
+    std::vector<NodeHandle> removed;
+    std::vector<NodeHandle> added;
+  };
+
+  struct ConnectionsDiff
+  {
+    std::vector<ConnectionHandle> not_changed;
+    std::vector<ConnectionHandle> removed;
+    std::vector<ConnectionHandle> added;
+  };
+
+  [[nodiscard]] NodesDiff nodes_diff(
+    const std::vector<NodeHandle>& prev_nodes,
+    const std::vector<NodeHandle>& nodes);
+
+  [[nodiscard]] ConnectionsDiff connections_diff(
+    const std::vector<ConnectionHandle>& prev_connections,
+    const std::vector<ConnectionHandle>& connections);
+
 } // namespace yave
