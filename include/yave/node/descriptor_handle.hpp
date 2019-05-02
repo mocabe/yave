@@ -80,7 +80,7 @@ namespace yave {
     const DescriptorHandle<D>& lhs,
     const DescriptorHandle<D>& rhs) noexcept
   {
-    return lhs.descriptor() == rhs.descriptor();
+    return lhs.id() == rhs.id();
   }
 
   /// operator!=
@@ -89,7 +89,7 @@ namespace yave {
     const DescriptorHandle<D>& lhs,
     const DescriptorHandle<D>& rhs) noexcept
   {
-    return lhs.descriptor() != rhs.descriptor();
+    return lhs.id() != rhs.id();
   }
 
   /// operator<
@@ -98,7 +98,7 @@ namespace yave {
     const DescriptorHandle<D>& lhs,
     const DescriptorHandle<D>& rhs) noexcept
   {
-    return lhs.descriptor() < rhs.descriptor();
+    return lhs.id() < rhs.id();
   }
 
   /// operator>
@@ -107,7 +107,7 @@ namespace yave {
     const DescriptorHandle<D>& lhs,
     const DescriptorHandle<D>& rhs) noexcept
   {
-    return lhs.descriptor() > rhs.descriptor();
+    return lhs.id() > rhs.id();
   }
 
 } // namespace yave
