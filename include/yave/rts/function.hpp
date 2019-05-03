@@ -10,13 +10,14 @@
 #include <yave/rts/static_typing.hpp>
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/rts/apply.hpp>
-#include <yave/rts/string.hpp>
 #include <yave/rts/exception.hpp>
 #include <yave/rts/eval_error.hpp>
 #include <yave/rts/bad_value_cast.hpp>
 #include <yave/rts/result_error.hpp>
 #include <yave/rts/type_error.hpp>
 #include <yave/rts/value_cast.hpp>
+
+#include <yave/obj/string.hpp>
 
 namespace yave {
 

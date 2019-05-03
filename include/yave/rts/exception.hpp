@@ -6,8 +6,9 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/rts/string.hpp>
 #include <yave/rts/object_cast.hpp>
+
+#include <yave/obj/string.hpp>
 
 #include <exception>
 

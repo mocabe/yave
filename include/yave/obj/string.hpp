@@ -13,18 +13,20 @@
 
 namespace yave {
 
-  class string_object_value
+  class string
   {
     // TODO: support char8_t in C++20
   public:
-    string_object_value(nullptr_t) = delete;
+    string(nullptr_t) = delete;
 
-    string_object_value()
+    /// Construct empty string
+    string()
     {
       m_ptr = new char[1] {'\0'};
     }
 
-    string_object_value(const char* str)
+    /// Construct from char pointer
+    string(const char* str)
     {
       size_t s  = std::strlen(str);
       auto buff = new char[s + 1];
@@ -32,14 +34,16 @@ namespace yave {
       m_ptr = buff;
     }
 
-    string_object_value(const std::string& str)
+    /// Construct from std::string
+    string(const std::string& str)
     {
       auto buff = new char[str.size() + 1];
       std::copy(str.c_str(), str.c_str() + str.size() + 1, buff);
       m_ptr = buff;
     }
 
-    string_object_value(const string_object_value& other)
+    /// Copy constructor
+    string(const string& other)
     {
       auto len  = std::strlen(other.c_str());
       auto buff = new char[len + 1];
@@ -47,18 +51,20 @@ namespace yave {
       m_ptr = buff;
     }
 
-    string_object_value(string_object_value&& other)
+    /// Move constructor
+    string(string&& other)
     {
       m_ptr       = other.m_ptr;
       other.m_ptr = nullptr;
     }
 
-    ~string_object_value() noexcept
+    /// Destructor
+    ~string() noexcept
     {
       delete[] m_ptr;
     }
 
-    /// c_str
+    /// Get C style string
     [[nodiscard]] const char* c_str() const noexcept
     {
       return reinterpret_cast<const char*>(m_ptr);
@@ -72,7 +78,7 @@ namespace yave {
     /// UTF-8 String object.
     /// Does not handle anything about other encodings. User must ensure
     /// input byte sequence is null(`0x00`)-terminated UTF-8 string.
-    using String = Box<string_object_value>;
+    using String = Box<yave::string>;
   } // namespace String
 
   namespace literals {
