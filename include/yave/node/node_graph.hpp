@@ -180,22 +180,30 @@ namespace yave {
 
   struct NodesDiff
   {
+    /// not changed
     std::vector<NodeHandle> not_changed;
+    /// removed
     std::vector<NodeHandle> removed;
+    /// added
     std::vector<NodeHandle> added;
   };
 
   struct ConnectionsDiff
   {
+    /// not changed
     std::vector<ConnectionHandle> not_changed;
+    /// removed
     std::vector<ConnectionHandle> removed;
+    /// added
     std::vector<ConnectionHandle> added;
   };
 
+  /// Calculate diff
   [[nodiscard]] NodesDiff nodes_diff(
     const std::vector<NodeHandle>& prev_nodes,
     const std::vector<NodeHandle>& nodes);
 
+  /// Calculate diff
   [[nodiscard]] ConnectionsDiff connections_diff(
     const std::vector<ConnectionHandle>& prev_connections,
     const std::vector<ConnectionHandle>& connections);
