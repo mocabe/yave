@@ -9,41 +9,25 @@ namespace yave {
 
   image::image(
     uint8_t* data,
-    uint64_t width,
-    uint64_t height,
-    uint64_t stride,
-    uint16_t channels,
-    uint16_t byte_per_channel,
-    yave::pixel_format pixel_format,
-    yave::sample_format sample_format) noexcept
+    uint32_t width,
+    uint32_t height,
+    yave::image_format image_format) noexcept
     : m_data {data}
     , m_width {width}
     , m_height {height}
-    , m_stride {stride}
-    , m_channels {channels}
-    , m_byte_per_channel {byte_per_channel}
-    , m_pixel_format {pixel_format}
-    , m_sample_format {sample_format}
+    , m_format {image_format}
   {
     assert(is_valid());
   }
 
   image::image(
-    uint64_t width,
-    uint64_t height,
-    uint64_t stride,
-    uint16_t channels,
-    uint16_t byte_per_channel,
-    yave::pixel_format pixel_format,
-    yave::sample_format sample_format) noexcept
+    uint32_t width,
+    uint32_t height,
+    yave::image_format image_format) noexcept
     : m_data {nullptr}
     , m_width {width}
     , m_height {height}
-    , m_stride {stride}
-    , m_channels {channels}
-    , m_byte_per_channel {byte_per_channel}
-    , m_pixel_format {pixel_format}
-    , m_sample_format {sample_format}
+    , m_format {image_format}
   {
     allocate(byte_size());
 
@@ -55,24 +39,6 @@ namespace yave {
     assert(is_valid());
   }
 
-  image::image(
-    uint64_t width,
-    uint64_t height,
-    uint16_t channels,
-    uint16_t byte_per_channel,
-    yave::pixel_format pixel_format,
-    yave::sample_format sample_format) noexcept
-    : image(
-        width,
-        height,
-        width * byte_per_channel * channels,
-        channels,
-        byte_per_channel,
-        pixel_format,
-        sample_format)
-  {
-  }
-
   image::image(const image& other) noexcept
     : image()
   {
@@ -80,28 +46,16 @@ namespace yave {
       allocate(other.byte_size());
       if (m_data != nullptr) {
         copy_bytes(m_data, other.m_data, other.byte_size());
-        m_width            = other.m_width;
-        m_height           = other.m_height;
-        m_stride           = other.m_stride;
-        m_channels         = other.m_channels;
-        m_byte_per_channel = other.m_byte_per_channel;
-        m_pixel_format     = other.m_pixel_format;
-        m_sample_format    = other.m_sample_format;
+        m_width  = other.m_width;
+        m_height = other.m_height;
+        m_format = other.m_format;
       }
     }
     assert(is_valid());
   }
 
   image::image(image&& other) noexcept
-    : image(
-        other.m_data,
-        other.m_width,
-        other.m_height,
-        other.m_stride,
-        other.m_channels,
-        other.m_byte_per_channel,
-        other.m_pixel_format,
-        other.m_sample_format)
+    : image(other.m_data, other.m_width, other.m_height, other.m_format)
   {
     other.m_data = nullptr;
     // `clear()` is not called so `other` will become invalid, but destructor
@@ -117,13 +71,9 @@ namespace yave {
   void image::clear() noexcept
   {
     deallocate();
-    m_width            = 0;
-    m_height           = 0;
-    m_stride           = 0;
-    m_channels         = 0;
-    m_byte_per_channel = 0;
-    m_sample_format    = sample_format::Unknown;
-    m_pixel_format     = pixel_format::Unknown;
+    m_width  = 0;
+    m_height = 0;
+    m_format = image_format::Unknown;
     assert(is_valid());
   }
 
@@ -144,49 +94,29 @@ namespace yave {
     return m_data;
   }
 
-  uint64_t image::width() const noexcept
+  uint32_t image::channels() const noexcept
   {
-    return m_width;
+    return channel_size(m_format);
   }
 
-  uint64_t image::height() const noexcept
+  uint32_t image::byte_per_channel() const noexcept
   {
-    return m_height;
+    return yave::byte_per_channel(m_format);
   }
 
-  uint64_t image::stride() const noexcept
+  image_format image::image_format() const noexcept
   {
-    return m_stride;
+    return m_format;
   }
 
-  uint16_t image::channels() const noexcept
-  {
-    return m_channels;
-  }
-
-  uint16_t image::byte_per_channel() const noexcept
-  {
-    return m_byte_per_channel;
-  }
-
-  pixel_format image::pixel_format() const noexcept
-  {
-    return m_pixel_format;
-  }
-
-  sample_format image::sample_format() const noexcept
-  {
-    return m_sample_format;
-  }
-
-  uint64_t image::pixel_size() const noexcept
+  uint32_t image::pixel_size() const noexcept
   {
     return m_width * m_height;
   }
 
-  uint64_t image::byte_size() const noexcept
+  uint32_t image::byte_size() const noexcept
   {
-    return m_stride * m_height;
+    return m_width * m_height * byte_per_channel();
   }
 
   /** \brief Check if the instance is in valid state.
@@ -203,17 +133,12 @@ namespace yave {
   bool image::is_valid() const
   {
     if (m_data == nullptr) {
-      return                                       //
-        m_width == 0 &&                            //
-        m_height == 0 &&                           //
-        m_stride == 0 &&                           //
-        m_channels == 0 &&                         //
-        m_byte_per_channel == 0 &&                 //
-        m_pixel_format == pixel_format::Unknown && //
-        m_sample_format == sample_format::Unknown; //
-    } else {
-      return m_stride >= m_width * m_byte_per_channel * m_channels;
+      return                               //
+        m_width == 0 &&                    //
+        m_height == 0 &&                   //
+        m_format == image_format::Unknown; //
     }
+    return true;
   }
 
   /** \brief Allocate memory.
@@ -250,5 +175,4 @@ namespace yave {
   {
     std::memcpy(dst, src, size);
   }
-
 }

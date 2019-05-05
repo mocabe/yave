@@ -7,104 +7,78 @@
 
 #include <yave/config/config.hpp>
 
+#pragma once
+
 namespace yave {
 
-  // clang-format off
-
-  /// image pixel format
-  enum class pixel_format : uint8_t {
-    Unknown = 0U, ///< unknown pixel format.
-    R       = 1U, ///< 1-channel format: R
-    RG      = 2U, ///< 2-channel format: RG
-    RGB     = 3U, ///< 3-channel format: RGB
-    YCbCr   = 4U, ///< 3-channel format: YCbCr
-    CIELab  = 5U, ///< 3-channel format: CIELab
-    ICCLab  = 6U, ///< 3-channel format: ICCLab
-    RGBA    = 7U, ///< 4-channel format: RGBA
-    CMYK    = 8U, ///< 4-channel format: CMYK
-    YCCK    = 9U, ///< 4-channel format: YCCK
+  /// Image format supported for data transfar.
+  enum class image_format : uint32_t
+  {
+    Unknown = 0,
+    /// 8bit [0~255]
+    RGBA8UI = 1U,
+    /// 16bit [0~65535]
+    RGBA16UI = 2U,
+    /// 32bit [0.0 ~ 1.0]
+    RGBA32F = 3U,
   };
 
-  /// image sample format
-  enum class sample_format : uint8_t {
-    Unknown            = 0U, ///< Unknown sample format
-    UnsignedInteger    = 1U, ///< UInt
-    SignedInteger      = 2U, ///< SInt
-    FloatingPoint      = 3U, ///< Float
-    UnsignedNormalized = 4U, ///< UNorm
-    SignedNormalized   = 5U, ///< SNorm
-    UnsignedScaled     = 6U, ///< UScaled
-    SignedScaled       = 7U, ///< SScaled
-    SRGB               = 8U, ///< UNorm (SRGB nonlinear encoding)
-  };
-
-  /// Get number of channels
-  constexpr uint8_t get_channel_size(const pixel_format& fmt) noexcept {
+  /// Get string name of image format
+  constexpr const char* image_format_string(const image_format& fmt) noexcept
+  {
     switch (fmt) {
-      case pixel_format::Unknown: return 0;
-      case pixel_format::R:       return 1;
-      case pixel_format::RG:      return 2;
-      case pixel_format::RGB:     return 3;
-      case pixel_format::YCbCr:   return 3;
-      case pixel_format::CIELab:  return 3;
-      case pixel_format::ICCLab:  return 3;
-      case pixel_format::RGBA:    return 4;
-      case pixel_format::CMYK:    return 4;
-      case pixel_format::YCCK:    return 4;
-      default:                    return 0;
+      case image_format::RGBA8UI:
+        return "RGBA8UI";
+      case image_format::RGBA16UI:
+        return "RGBA16UI";
+      case image_format::RGBA32F:
+        return "RGBA32F";
+      default:
+        return "(unrecognized image format)";
     }
   }
 
-  /// Check if the format has alpha channel
-  constexpr bool has_alpha_channel(const pixel_format& fmt) noexcept {
+  /// Get channel size
+  constexpr uint32_t channel_size(const image_format& fmt) noexcept
+  {
     switch (fmt) {
-      case pixel_format::Unknown: return false;
-      case pixel_format::R:       return false;
-      case pixel_format::RG:      return false;
-      case pixel_format::RGB:     return false;
-      case pixel_format::YCbCr:   return false;
-      case pixel_format::CIELab:  return false;
-      case pixel_format::ICCLab:  return false;
-      case pixel_format::RGBA:    return true;
-      case pixel_format::CMYK:    return false;
-      case pixel_format::YCCK:    return false;
-      default:                    return false;
+      case image_format::RGBA8UI:
+      case image_format::RGBA16UI:
+      case image_format::RGBA32F:
+        return 4;
+      default:
+        return 0;
     }
   }
 
-  /// Get string representation of pixel format
-  constexpr const char* get_pixel_format_string(const pixel_format& fmt) {
+  /// Get byte per channel
+  constexpr uint32_t byte_per_channel(const image_format& fmt) noexcept
+  {
     switch (fmt) {
-      case pixel_format::Unknown: return "(unknown pixel format)";
-      case pixel_format::R:       return "R";
-      case pixel_format::RG:      return "RG";
-      case pixel_format::RGB:     return "RGB";
-      case pixel_format::YCbCr:   return "YCbCr";
-      case pixel_format::CIELab:  return "CIELab";
-      case pixel_format::ICCLab:  return "ICCLab";
-      case pixel_format::RGBA:    return "RGBA";
-      case pixel_format::CMYK:    return "CMYK";
-      case pixel_format::YCCK:    return "YCCK";
-      default:                    return "(unrecognized pixel format)";
+      case image_format::RGBA8UI:
+        return 1;
+      case image_format::RGBA16UI:
+        return 2;
+      case image_format::RGBA32F:
+        return 4;
+      default:
+        return 0;
     }
   }
 
-  /// Get string representation of sample format
-  constexpr const char* get_sample_format_string(const sample_format& fmt) {
+  /// Get byte per pixel
+  constexpr uint32_t byte_per_pixel(const image_format& fmt) noexcept
+  {
     switch (fmt) {
-      case sample_format::Unknown:            return "(unknown pixel format)";
-      case sample_format::UnsignedInteger:    return "UnsignedInteger";
-      case sample_format::SignedInteger:      return "SignedInteger";
-      case sample_format::FloatingPoint:      return "FloatingPoint";
-      case sample_format::UnsignedNormalized: return "UnsignedNormalized";
-      case sample_format::SignedNormalized:   return "SignedNormalized";
-      case sample_format::UnsignedScaled:     return "UnsignedScaled";
-      case sample_format::SignedScaled:       return "SignedScaled";
-      case sample_format::SRGB:               return "SRGB";
-      default:                                return "(unrecognized sample format)";
+      case image_format::RGBA8UI:
+        return 4;
+      case image_format::RGBA16UI:
+        return 8;
+      case image_format::RGBA32F:
+        return 16;
+      default:
+        return 0;
     }
   }
-
-  // clang-format on
 
 } // namespace yave

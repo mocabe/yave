@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/image/image_format.hpp>
+#include <yave/image/image_format2.hpp>
 
 #include <cstring>
 #include <cstdint>
@@ -29,15 +29,38 @@ namespace yave {
     /// construction.
     image(
       uint8_t* data,
-      uint32_t width,
-      uint32_t height,
-      image_format image_format) noexcept;
+      uint64_t width,
+      uint64_t height,
+      uint64_t stride,
+      uint16_t channels,
+      uint16_t byte_per_channel,
+      pixel_format pixel_format,
+      sample_format sample_format) noexcept;
 
     /// Construct image from parameters.
     /// \effects Memory of size of `byte_size()` will be allocated.
     /// \requires Arguments should be valid to success `is_valid()` after
     /// construction.
-    image(uint32_t width, uint32_t height, image_format image_format) noexcept;
+    image(
+      uint64_t width,
+      uint64_t height,
+      uint64_t stride,
+      uint16_t channels,
+      uint16_t byte_per_channel,
+      pixel_format pixel_format,
+      sample_format sample_format) noexcept;
+
+    /// Construct image from parameters.
+    /// \effects Memory of size of `byte_size()` will be allocated. `m_stride`
+    /// will be set to `width * byte_per_channel * channels`. \requires
+    /// Arguments should be valid to success `is_valid()` after construction.
+    image(
+      uint64_t width,
+      uint64_t height,
+      uint16_t channels,
+      uint16_t byte_per_channel,
+      pixel_format pixel_format,
+      sample_format sample_format) noexcept;
 
     /// Create copy of image instance.
     /// \effects Clone `other.m_data` then copy other members. If memory
@@ -75,20 +98,24 @@ namespace yave {
     /// get data pointer
     uint8_t* data() const noexcept;
     /// width
-    uint32_t width() const noexcept;
+    uint64_t width() const noexcept;
     /// height
-    uint32_t height() const noexcept;
-    /// number of channels
-    uint32_t channels() const noexcept;
-    /// format
-    yave::image_format image_format() const noexcept;
+    uint64_t height() const noexcept;
+    /// stride
+    uint64_t stride() const noexcept;
+    /// channels
+    uint16_t channels() const noexcept;
+    /// byte per channel
+    uint16_t byte_per_channel() const noexcept;
+    /// pixel fromat
+    pixel_format pixel_format() const noexcept;
+    /// sample format
+    sample_format sample_format() const noexcept;
 
-    /// bytes per channels
-    uint32_t byte_per_channel() const noexcept;
     /// pixel size
-    uint32_t pixel_size() const noexcept;
+    uint64_t pixel_size() const noexcept;
     /// size in byte
-    uint32_t byte_size() const noexcept;
+    uint64_t byte_size() const noexcept;
 
   private:
     void allocate(std::uint64_t size) noexcept;
@@ -97,14 +124,30 @@ namespace yave {
     bool is_valid() const;
 
   private:
+    /* 8byte */
+
     /// data ptr
     uint8_t* m_data = nullptr;
     /// width
-    uint32_t m_width = 0;
+    uint64_t m_width = 0;
     /// height
-    uint32_t m_height = 0;
-    /// image format
-    yave::image_format m_format;
+    uint64_t m_height = 0;
+    /// stride byte
+    uint64_t m_stride = 0;
+
+    /* 2byte */
+
+    /// size of channel
+    uint16_t m_channels = 0;
+    /// byte per channel
+    uint16_t m_byte_per_channel = 0;
+
+    /* 1byte */
+
+    /// pixel format
+    yave::pixel_format m_pixel_format = pixel_format::Unknown;
+    /// sample format
+    yave::sample_format m_sample_format = sample_format::Unknown;
   };
 
 } // namespace yave
