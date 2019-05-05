@@ -74,19 +74,31 @@ namespace yave {
 
     /// get data pointer
     [[nodiscard]] uint8_t* data() const noexcept;
-    /// width
-    [[nodiscard]] uint32_t width() const noexcept;
-    /// height
-    [[nodiscard]] uint32_t height() const noexcept;
-    /// number of channels
-    [[nodiscard]] uint32_t channels() const noexcept;
+
     /// format
     [[nodiscard]] yave::image_format image_format() const noexcept;
 
+    /// width
+    [[nodiscard]] uint32_t width() const noexcept;
+
+    /// height
+    [[nodiscard]] uint32_t height() const noexcept;
+
+    /// stride
+    [[nodiscard]] uint32_t stride() const noexcept;
+
+    /// number of channels
+    [[nodiscard]] uint32_t channels() const noexcept;
+
+    /// pixel size
+    [[nodiscard]] uint32_t pixels() const noexcept;
+
     /// bytes per channels
     [[nodiscard]] uint32_t byte_per_channel() const noexcept;
-    /// pixel size
-    [[nodiscard]] uint32_t pixel_size() const noexcept;
+
+    /// bytes per pixel
+    [[nodiscard]] uint32_t byte_per_pixel() const noexcept;
+
     /// size in byte
     [[nodiscard]] uint32_t byte_size() const noexcept;
 

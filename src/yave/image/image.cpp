@@ -99,9 +99,19 @@ namespace yave {
     return channel_size(m_format);
   }
 
+  uint32_t image::stride() const noexcept
+  {
+    return yave::byte_per_pixel(m_format) * m_width;
+  }
+
   uint32_t image::byte_per_channel() const noexcept
   {
     return yave::byte_per_channel(m_format);
+  }
+
+  uint32_t image::byte_per_pixel() const noexcept
+  {
+    return yave::byte_per_pixel(m_format);
   }
 
   image_format image::image_format() const noexcept
@@ -109,7 +119,7 @@ namespace yave {
     return m_format;
   }
 
-  uint32_t image::pixel_size() const noexcept
+  uint32_t image::pixels() const noexcept
   {
     return m_width * m_height;
   }

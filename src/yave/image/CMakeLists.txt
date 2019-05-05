@@ -1,5 +1,6 @@
 add_library(yave-image 
   image.cpp
+  image_view.cpp
 )
 
 target_include_directories(yave-image PRIVATE ${YAVE_INCLUDE_DIR})
