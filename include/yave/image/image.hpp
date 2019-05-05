@@ -70,25 +70,25 @@ namespace yave {
     /// Check if the instance has data.
     /// \effects None.
     /// \requires `is_valid()`
-    bool empty() const noexcept;
+    [[nodiscard]] bool empty() const noexcept;
 
     /// get data pointer
-    uint8_t* data() const noexcept;
+    [[nodiscard]] uint8_t* data() const noexcept;
     /// width
-    uint32_t width() const noexcept;
+    [[nodiscard]] uint32_t width() const noexcept;
     /// height
-    uint32_t height() const noexcept;
+    [[nodiscard]] uint32_t height() const noexcept;
     /// number of channels
-    uint32_t channels() const noexcept;
+    [[nodiscard]] uint32_t channels() const noexcept;
     /// format
-    yave::image_format image_format() const noexcept;
+    [[nodiscard]] yave::image_format image_format() const noexcept;
 
     /// bytes per channels
-    uint32_t byte_per_channel() const noexcept;
+    [[nodiscard]] uint32_t byte_per_channel() const noexcept;
     /// pixel size
-    uint32_t pixel_size() const noexcept;
+    [[nodiscard]] uint32_t pixel_size() const noexcept;
     /// size in byte
-    uint32_t byte_size() const noexcept;
+    [[nodiscard]] uint32_t byte_size() const noexcept;
 
   private:
     void allocate(std::uint64_t size) noexcept;

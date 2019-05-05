@@ -93,24 +93,24 @@ namespace yave {
     /// Check if the instance has data.
     /// \effects None.
     /// \requires `is_valid()`
-    bool empty() const noexcept;
+    [[nodiscard]] bool empty() const noexcept;
 
     /// get data pointer
-    uint8_t* data() const noexcept;
+    [[nodiscard]] uint8_t* data() const noexcept;
     /// width
-    uint64_t width() const noexcept;
+    [[nodiscard]] uint64_t width() const noexcept;
     /// height
-    uint64_t height() const noexcept;
+    [[nodiscard]] uint64_t height() const noexcept;
     /// stride
-    uint64_t stride() const noexcept;
+    [[nodiscard]] uint64_t stride() const noexcept;
     /// channels
-    uint16_t channels() const noexcept;
+    [[nodiscard]] uint16_t channels() const noexcept;
     /// byte per channel
-    uint16_t byte_per_channel() const noexcept;
+    [[nodiscard]] uint16_t byte_per_channel() const noexcept;
     /// pixel fromat
-    pixel_format pixel_format() const noexcept;
+    [[nodiscard]] pixel_format pixel_format() const noexcept;
     /// sample format
-    sample_format sample_format() const noexcept;
+    [[nodiscard]] sample_format sample_format() const noexcept;
 
     /// pixel size
     uint64_t pixel_size() const noexcept;
