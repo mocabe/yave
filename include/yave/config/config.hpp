@@ -16,6 +16,7 @@
 #include <yave/config/likely.hpp>
 #include <yave/config/unreachable.hpp>
 #include <yave/config/type_traits.hpp>
+#include <yave/config/os.hpp>
 
 namespace yave {
 
