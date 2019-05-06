@@ -10,3 +10,7 @@
 	path = external/Catch2
 	url = https://github.com/catchorg/Catch2.git
 	ignore = dirty
+[submodule "external/boost"]
+	path = external/boost
+	url = https://github.com/boostorg/boost.git
+	ignore = dirty
