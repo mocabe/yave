@@ -37,9 +37,9 @@ namespace yave {
     }
 
     if (is_var_type(type)) {
-      return "Var[" +                                             //
-             std::to_string(get_if<var_type>(type.value())->id) + //
-             "]";                                                 //
+      return "Var[" +                                        //
+             to_string(get_if<var_type>(type.value())->id) + //
+             "]";                                            //
     }
 
     unreachable();
