@@ -7,6 +7,8 @@
 
 #include <yave/rts/object_ptr.hpp>
 
+#include <yave/tools/id.hpp>
+
 #include <array>
 #include <cstring>
 
@@ -91,7 +93,7 @@ namespace yave {
   struct var_type
   {
     /// unique id for VarTpye object
-    uint64_t id;
+    uid id;
   };
 
   // ------------------------------------------

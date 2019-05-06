@@ -27,9 +27,7 @@ namespace yave {
     {
     }
     /// Constructor
-    explicit constexpr DescriptorHandle(
-      const Descriptor& d,
-      uint64_t id) noexcept
+    explicit constexpr DescriptorHandle(const Descriptor& d, uid id) noexcept
       : m_descriptor {d}
       , m_id {id}
     {
@@ -62,7 +60,7 @@ namespace yave {
     }
 
     /// Get descriptor id.
-    [[nodiscard]] constexpr uint64_t id() const noexcept
+    [[nodiscard]] constexpr uid id() const noexcept
     {
       return m_id;
     }
@@ -71,7 +69,7 @@ namespace yave {
     /// discriptor pointer
     Descriptor m_descriptor;
     /// id
-    uint64_t m_id;
+    uid m_id;
   };
 
   /// operator==

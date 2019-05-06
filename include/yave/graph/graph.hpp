@@ -276,7 +276,7 @@ namespace yave {
     /// \param args Arguments to initialize property class.
     template <class... Args>
     Node(Args &&... args)
-      : m_id {get_next_id()}
+      : m_id {uid::random_generate()}
       , m_sockets {}
       , m_inline_property {std::forward<Args>(args)...}
     {
@@ -288,7 +288,7 @@ namespace yave {
     }
 
     /// Get id.
-    [[nodiscard]] uint64_t id() const noexcept
+    [[nodiscard]] uid id() const noexcept
     {
       return m_id;
     }
@@ -353,7 +353,7 @@ namespace yave {
 
   private:
     /// Id of this node.
-    uint64_t m_id;
+    uid m_id;
     /// Socket descriptors.
     /// Shouldn't contain 2 or more same descriptors.
     std::vector<socket_descriptor_type> m_sockets;
@@ -390,7 +390,7 @@ namespace yave {
       const socket_descriptor_type &src,
       const socket_descriptor_type &dst,
       Args &&... args)
-      : m_id {get_next_id()}
+      : m_id {uid::random_generate()}
       , m_src {src}
       , m_dst {dst}
       , m_inline_property {std::forward<Args>(args)...}
@@ -403,7 +403,7 @@ namespace yave {
     }
 
     /// Get id.
-    [[nodiscard]] uint64_t id() const noexcept
+    [[nodiscard]] uid id() const noexcept
     {
       return m_id;
     }
@@ -434,7 +434,7 @@ namespace yave {
 
   private:
     /// Id of this socket.
-    uint64_t m_id;
+    uid m_id;
     /// socket descriptors
     socket_descriptor_type m_src, m_dst;
     /// inline property class instance
@@ -465,7 +465,7 @@ namespace yave {
     /// \param args Args for initialize property class
     template <class... Args>
     NodeEdgeSocket(Args &&... args)
-      : m_id {get_next_id()}
+      : m_id {uid::random_generate()}
       , m_nodes {}
       , m_src_edges {}
       , m_dst_edges {}
@@ -479,7 +479,7 @@ namespace yave {
     }
 
     /// Get id.
-    [[nodiscard]] uint64_t id() const noexcept
+    [[nodiscard]] uid id() const noexcept
     {
       return m_id;
     }
@@ -630,7 +630,7 @@ namespace yave {
 
   private:
     /// Id of this edge.
-    uint64_t m_id;
+    uid m_id;
     /// node descriptors
     std::vector<node_descriptor_type> m_nodes;
     /// edge descriptors
@@ -1056,21 +1056,21 @@ namespace yave {
     }
 
     /// Get id of node.
-    [[nodiscard]] uint64_t id(const node_descriptor_type &descriptor) const
+    [[nodiscard]] uid id(const node_descriptor_type &descriptor) const
     {
       auto &n = _at(descriptor);
       return n.id();
     }
 
     /// Get id of socket.
-    [[nodiscard]] uint64_t id(const socket_descriptor_type &descriptor) const
+    [[nodiscard]] uid id(const socket_descriptor_type &descriptor) const
     {
       auto &s = _at(descriptor);
       return s.id();
     }
 
     /// Get id of edge.
-    [[nodiscard]] uint64_t id(const edge_descriptor_type &descriptor) const
+    [[nodiscard]] uid id(const edge_descriptor_type &descriptor) const
     {
       auto &e = _at(descriptor);
       return e.id();

@@ -9,6 +9,8 @@
 #include <yave/rts/type_value.hpp>
 #include <yave/rts/specifiers.hpp>
 
+#include <yave/tools/id.hpp>
+
 #include <cstring>
 #include <string>
 #include <memory>
@@ -147,13 +149,11 @@ namespace yave {
     struct var_type_initializer
     {
       static const Type type;
-      // make distinct address for each tag
-      static constexpr const int id_gen = 0xdeadbeef;
 
       /// id
-      static constexpr uint64_t get_id()
+      static uid get_id()
       {
-        return uint64_t {uintptr_t(&id_gen)};
+        return uid::random_generate();
       }
     };
 

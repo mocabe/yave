@@ -214,8 +214,7 @@ namespace yave {
 
   [[nodiscard]] object_ptr<const Type> genvar()
   {
-    auto var                          = make_object<Type>(var_type {});
-    get_if<var_type>(var.value())->id = uintptr_t(var.get());
+    auto var = make_object<Type>(var_type {uid::random_generate()});
     return object_ptr<const Type>(var);
   }
 

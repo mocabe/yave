@@ -103,7 +103,7 @@ namespace yave {
       get_logger("NodeGraph"),
       "Created Node: name=\"{}\", id={}",
       info.name(),
-      handle.id());
+      to_string(handle.id()));
 
     return handle;
   }
@@ -117,7 +117,7 @@ namespace yave {
       get_logger("NodeGraph"),
       "Removing Node: name=\"{}\", id={}",
       m_g[node.descriptor()].name(),
-      node.id());
+      to_string(node.id()));
 
     for (auto&& s : m_g.sockets(node.descriptor())) {
       m_g.remove_socket(s);
@@ -184,10 +184,10 @@ namespace yave {
               logger,
               "Connected socket: src=\"{}\"({})::{}, dst=\"{}\"({})::{}",
               m_g[info.src_node().descriptor()].name(),
-              info.src_node().id(),
+              to_string(info.src_node().id()),
               info.src_socket(),
               m_g[info.dst_node().descriptor()].name(),
-              info.dst_node().id(),
+              to_string(info.dst_node().id()),
               info.dst_socket());
 
             return ConnectionHandle(new_edge, m_g.id(new_edge));
@@ -215,9 +215,9 @@ namespace yave {
     Info(
       get_logger("NodeGraph"),
       "Disconnecting: src={}::{} dst={}::{}",
-      info->src_node().id(),
+      to_string(info->src_node().id()),
       info->src_socket(),
-      info->dst_node().id(),
+      to_string(info->dst_node().id()),
       info->dst_socket());
 
     // remove edge
