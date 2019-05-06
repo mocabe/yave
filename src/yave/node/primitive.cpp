@@ -6,24 +6,33 @@
 #include <yave/node/primitive.hpp>
 #include <yave/func/constructor.hpp>
 #include <yave/rts/eval.hpp>
+#include <yave/obj/string.hpp>
 
 namespace yave {
 
   object_ptr<> get_primitive_constructor(const primitive_t& v)
   {
     return std::visit(
-      overloaded {[](const auto& a) -> object_ptr<> {
-        return make_object<Constructor<Box<std::decay_t<decltype(a)>>>>(a);
-      }},
+      overloaded {
+        [](const std::string& str) -> object_ptr<> {
+          return make_object<Constructor<String::String>>(str);
+        },
+        [](const auto& a) -> object_ptr<> {
+          return make_object<Constructor<Box<std::decay_t<decltype(a)>>>>(a);
+        }},
       v);
   }
 
   object_ptr<const Type> get_primitive_type(const primitive_t& v)
   {
     return std::visit(
-      overloaded {[](const auto& a) {
-        return object_type<Constructor<Box<std::decay_t<decltype(a)>>>>();
-      }},
+      overloaded {
+        [](const std::string&) {
+          return object_type<Constructor<String::String>>();
+        },
+        [](const auto& a) {
+          return object_type<Constructor<Box<std::decay_t<decltype(a)>>>>();
+        }},
       v);
   }
 

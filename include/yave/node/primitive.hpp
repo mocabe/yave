@@ -14,7 +14,7 @@ namespace yave {
 
   /// make primitive
   template <class T, class... Arg>
-  [[nodiscard]] constexpr primitive_t make_primitive(Arg&&... args)
+  [[nodiscard]] primitive_t make_primitive(Arg&&... args)
   {
     return primitive_t(T {std::forward<Arg>(args)...});
   }
