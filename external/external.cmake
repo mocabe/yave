@@ -26,7 +26,7 @@ execute_process(COMMAND git submodule update --init --recursive -- external/boos
 
 message(STATUS "Building boost library")
 execute_process(COMMAND ./bootstrap.sh WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
-execute_process(COMMAND ./b2 headers WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
+execute_process(COMMAND ./b2 -j 8 WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
 
 message(STATUS "Adding local package: boost")
 set(BOOST_ROOT "${YAVE_EXTERNAL_DIR}/boost" CACHE PATH "Boost submodule" FORCE)
