@@ -7,9 +7,30 @@
 
 #include <yave/config/config.hpp>
 
+#include <string>
+
 namespace yave {
 
-  /// Get next unique id.
-  uint64_t get_next_id() noexcept;
+  /// Unique ID for object/nodes
+  struct uid
+  {
+    uint64_t data;
+
+    [[nodiscard]] static uid random_generate();
+  };
+
+  /// operator<
+  [[nodiscard]] bool operator<(const uid& lhs, const uid& rhs) noexcept;
+  /// operator>
+  [[nodiscard]] bool operator>(const uid& lhs, const uid& rhs) noexcept;
+  /// operator<=
+  [[nodiscard]] bool operator<=(const uid& lhs, const uid& rhs) noexcept;
+  /// operator>=
+  [[nodiscard]] bool operator>=(const uid& lhs, const uid& rhs) noexcept;
+  /// operator==
+  [[nodiscard]] bool operator==(const uid& lhs, const uid& rhs) noexcept;
+
+  /// Convert ID to string
+  [[nodiscard]] std::string to_string(const uid& id);
 
 } // namespace yave
