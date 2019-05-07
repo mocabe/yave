@@ -27,7 +27,7 @@ execute_process(COMMAND git submodule update --init --recursive
 message(STATUS "Building boost library")
 
 # bootstrap
-execute_process(COMMAND ./bootstrap.sh WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
+execute_process(COMMAND sh bootstrap.sh WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
 
 # Build Boost library
 if(MINGW)
