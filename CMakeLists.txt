@@ -35,6 +35,8 @@ else()
   message(WARNING "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
 endif()
 
+message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+
 # ------------------------------------------
 # Default C++ standard
 
