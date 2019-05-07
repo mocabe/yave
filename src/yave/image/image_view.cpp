@@ -48,6 +48,11 @@ namespace yave {
 
   bool image_view::empty() const noexcept
   {
+    if (m_data == nullptr) {
+      assert(m_width == 0);
+      assert(m_height == 0);
+      assert(m_format == image_format::Unknown);
+    }
     return m_data == nullptr;
   }
 
