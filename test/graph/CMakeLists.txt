@@ -1,1 +1,1 @@
-YAVE_Test(graph graph)
+YAVE_Test(graph graph yave-tools)

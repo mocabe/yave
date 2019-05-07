@@ -33,7 +33,9 @@ function (YAVE_Test NAME LABEL)
   target_compile_options(${TARGET} PRIVATE ${YAVE_TEST_COMPILE_FLAGS})
   target_link_options(${TARGET} PRIVATE ${YAVE_TEST_LINK_FLAGS})
   target_link_libraries(${TARGET} PRIVATE yave-Catch2)
-  target_link_libraries(${TARGET} PRIVATE yave-all)
+  foreach(lib ${ARGN})
+    target_link_libraries(${TARGET} PRIVATE ${lib})
+  endforeach()
 endfunction()
 
 # ------------------------------------------
