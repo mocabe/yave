@@ -43,16 +43,18 @@ endif()
 # MinGW clang workaround
 if(MINGW)
   # get current gcc version
-  execute_process(COMMAND gcc -dumpversion OUTPUT_VARIABLE GCC_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND gcc -dumpversion 
+                  OUTPUT_VARIABLE YAVE_GCC_VERSION 
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 
   string(REGEX REPLACE "([0-9]+)\\.([0-9]+)(\\.[0-9]+)?" "\\1" 
-    GCC_VERSION_MAJOR "${GCC_VERSION}")
+    YAVE_GCC_VERSION_MAJOR "${YAVE_GCC_VERSION}")
   string(REGEX REPLACE "([0-9]+)\\.([0-9]+)(\\.[0-9]+)?" "\\2" 
-    GCC_VERSION_MINOR "${GCC_VERSION}")
+    YAVE_GCC_VERSION_MINOR "${YAVE_GCC_VERSION}")
 
   # set compiler version
-  set(GCC_VERSION_TAG "${GCC_VERSION_MAJOR}${GCC_VERSION_MINOR}")
-  set(Boost_COMPILER "-mgw${GCC_VERSION_TAG}")
+  set(YAVE_GCC_VERSION_TAG "${YAVE_GCC_VERSION_MAJOR}${YAVE_GCC_VERSION_MINOR}")
+  set(Boost_COMPILER "-mgw${YAVE_GCC_VERSION_TAG}")
 endif()
 
 message(STATUS "Adding local package: boost")
