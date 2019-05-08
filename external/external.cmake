@@ -27,17 +27,27 @@ execute_process(COMMAND git submodule update --init --recursive
 message(STATUS "Building boost library")
 
 # bootstrap
-execute_process(COMMAND sh bootstrap.sh WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
+if((NOT EXISTS ${YAVE_EXTERNAL_DIR}/boost/bjam.exe OR 
+    NOT EXISTS ${YAVE_EXTERNAL_DIR}/boost/b2.exe) 
+    AND
+   (NOT EXISTS ${YAVE_EXTERNAL_DIR}/boost/bjam OR
+    NOT EXISTS ${YAVE_EXTERNAL_DIR}/boost/b2))
+  execute_process(COMMAND sh bootstrap.sh 
+                  WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
+endif()
 
 # Build Boost library
 if(MINGW)
   # Use default "mgw" toolset. which uses gcc.
   # Use workaround for clang to link to gcc binary.
-  execute_process(COMMAND ./b2 -j 8 link=static address-model=64 WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
+  execute_process(COMMAND ./b2 -j 8 link=static address-model=64 
+                  WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
 elseif(YAVE_COMPILER_MSVC)
-  execute_process(COMMAND ./b2 -j 8 toolset=msvc link=static address-model=64 WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
+  execute_process(COMMAND ./b2 -j 8 toolset=msvc link=static address-model=64 
+                  WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
 else()
-  execute_process(COMMAND ./b2 -j 8 toolset=gcc link=static address-model=64 WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
+  execute_process(COMMAND ./b2 -j 8 toolset=gcc link=static address-model=64 
+                  WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
 endif()
 
 # MinGW clang workaround
@@ -57,9 +67,9 @@ if(MINGW)
   set(Boost_COMPILER "-mgw${YAVE_GCC_VERSION_TAG}")
 endif()
 
+# Let FindBoost create Boost targets
 message(STATUS "Adding local package: boost")
 set(BOOST_ROOT "${YAVE_EXTERNAL_DIR}/boost" CACHE PATH "" FORCE)
-set(BOOST_LIBRARYDIR "${BOOST_ROOT}/stage/lib" CACHE PATH "" FORCE)
 set (Boost_ARCHITECTURE "-x64")
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_NO_SYSTEM_PATHS TRUE)
