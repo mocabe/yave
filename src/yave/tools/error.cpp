@@ -128,6 +128,11 @@ namespace yave {
     return m_errors.size();
   }
 
+  bool ErrorList::empty() const
+  {
+    return m_errors.empty();
+  }
+
   const Error& ErrorList::operator[](size_t index) const
   {
     return m_errors[index];

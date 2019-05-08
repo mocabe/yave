@@ -141,6 +141,9 @@ namespace yave {
     /// Get size of list.
     size_t size() const;
 
+    /// Empty?
+    bool empty() const;
+
     /// operator[]
     const Error& operator[](size_t index) const;
 

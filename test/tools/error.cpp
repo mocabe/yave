@@ -80,3 +80,39 @@ TEST_CASE("ErrorInfo")
     REQUIRE(err.type() == typeid(MyError));
   }
 }
+
+TEST_CASE("ErrorInfoList")
+{
+  struct MyError : ErrorInfo<MyError>
+  {
+    MyError(const std::string& str)
+      : msg {str}
+    {
+    }
+    std::string message() const
+    {
+      return msg;
+    }
+
+  private:
+    std::string msg;
+  };
+
+  ErrorList list;
+
+  REQUIRE(list.size() == 0);
+  REQUIRE(list.empty());
+  REQUIRE(list.begin() == list.end());
+
+  list.push_back(make_error<MyError>("Error1\n"));
+  list.push_back(make_error<MyError>("Error2\n"));
+  list.push_back(make_error<MyError>("Error3\n"));
+  list.push_back(Success());
+
+  REQUIRE(list.size() == 3);
+  REQUIRE(!list.empty());
+
+  for (auto&& e : list) {
+    fmt::print(e.message());
+  }
+}
