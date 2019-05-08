@@ -17,6 +17,15 @@ set(YAVE_TEST_DIR ${YAVE_DIR}/test)
 option(YAVE_BUILD_TESTS "Build tests" ON)
 
 # ------------------------------------------
+# Build type
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
+endif()
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+# ------------------------------------------
 # Compilers
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
