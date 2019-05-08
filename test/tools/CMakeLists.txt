@@ -1,0 +1,1 @@
+YAVE_Test(error tools yave::tools::error)

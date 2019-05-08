@@ -1,11 +1,24 @@
-add_library(yave-tools
-  log.cpp
-  id.cpp)
+add_library(yave-tools-log log.cpp)
+add_library(yave::tools::log ALIAS yave-tools-log)
 
-target_include_directories(yave-tools PRIVATE ${YAVE_INCLUDE_DIR})
-target_compile_options(yave-tools PRIVATE ${YAVE_COMPILE_FLAGS})
-target_link_options(yave-tools PRIVATE ${YAVE_LINK_FLAGS})
-target_link_libraries(yave-tools PUBLIC spdlog)
-target_link_libraries(yave-tools PRIVATE Boost::boost)
-target_link_libraries(yave-tools PRIVATE Boost::random)
-target_link_libraries(yave-tools PRIVATE Boost::disable_autolinking)
+target_include_directories(yave-tools-log PRIVATE ${YAVE_INCLUDE_DIR})
+target_compile_options(yave-tools-log PRIVATE ${YAVE_COMPILE_FLAGS})
+target_link_options(yave-tools-log PRIVATE ${YAVE_LINK_FLAGS})
+target_link_libraries(yave-tools-log PUBLIC spdlog)
+
+add_library(yave-tools-id id.cpp)
+add_library(yave::tools::id ALIAS yave-tools-id)
+
+target_include_directories(yave-tools-id PRIVATE ${YAVE_INCLUDE_DIR})
+target_compile_options(yave-tools-id PRIVATE ${YAVE_COMPILE_FLAGS})
+target_link_options(yave-tools-id PRIVATE ${YAVE_LINK_FLAGS})
+target_link_libraries(yave-tools-id PRIVATE Boost::boost)
+target_link_libraries(yave-tools-id PRIVATE Boost::random)
+target_link_libraries(yave-tools-id PRIVATE Boost::disable_autolinking)
+
+add_library(yave-tools-error error.cpp)
+add_library(yave::tools::error ALIAS yave-tools-error)
+
+target_include_directories(yave-tools-error PRIVATE ${YAVE_INCLUDE_DIR})
+target_compile_options(yave-tools-error PRIVATE ${YAVE_COMPILE_FLAGS})
+target_link_options(yave-tools-error PRIVATE ${YAVE_LINK_FLAGS})

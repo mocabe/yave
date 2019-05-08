@@ -1,9 +1,11 @@
+add_subdirectory(graph)
 add_subdirectory(node)
 add_subdirectory(tools)
 add_subdirectory(rts)
 add_subdirectory(image)
 
 add_library(yave-all INTERFACE)
+add_library(yave::all ALIAS yave-all)
 target_link_libraries(yave-all INTERFACE yave-node)
 target_link_libraries(yave-all INTERFACE yave-tools)
 target_link_libraries(yave-all INTERFACE yave-rts)

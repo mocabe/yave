@@ -12,8 +12,10 @@ add_library(yave-node
   connection_info.cpp
   node_graph.cpp
 )
+add_library(yave::node ALIAS yave-node)
 
 target_include_directories(yave-node PRIVATE ${YAVE_INCLUDE_DIR})
 target_compile_options(yave-node PRIVATE ${YAVE_COMPILE_FLAGS})
 target_link_options(yave-node PRIVATE ${YAVE_LINK_FLAGS})
-target_link_libraries(yave-node PRIVATE yave-tools)
+target_link_libraries(yave-node PRIVATE yave::tools::log)
+target_link_libraries(yave-node PRIVATE yave::tools::id)

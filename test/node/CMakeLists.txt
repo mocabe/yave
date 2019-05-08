@@ -1,1 +1,1 @@
-YAVE_Test(node_graph node yave-node)
+YAVE_Test(node_graph node yave::node)

@@ -2,6 +2,7 @@ add_library(yave-image
   image.cpp
   image_view.cpp
 )
+add_library(yave::image ALIAS yave-image)
 
 target_include_directories(yave-image PRIVATE ${YAVE_INCLUDE_DIR})
 target_compile_options(yave-image PRIVATE ${YAVE_COMPILE_FLAGS})
