@@ -1,6 +1,6 @@
 function(init_lib_cmake NAME)
   message(STATUS "Initializing submodule: ${NAME}")
-  execute_process(COMMAND git submodule update --init -- external/${NAME}
+  execute_process(COMMAND git submodule update --init --jobs 4 -- external/${NAME}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endfunction()
 
@@ -21,7 +21,7 @@ init_and_add_lib_cmake(Catch2)
 
 # boost
 message(STATUS "Initializing submodule: boost")
-execute_process(COMMAND git submodule update --init --recursive
+execute_process(COMMAND git submodule update --init --recursive --jobs 8
                 WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
 
 message(STATUS "Building boost library")
