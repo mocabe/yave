@@ -81,11 +81,13 @@ namespace yave {
   }
 
   Success::Success([[maybe_unused]] const Success& other)
+    : Error(nullptr)
   {
     assert(other.is_success());
   }
 
   Success::Success([[maybe_unused]] const Success&& other)
+    : Error(nullptr)
   {
     assert(other.is_success());
   }
