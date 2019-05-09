@@ -68,9 +68,27 @@ if(MINGW)
 endif()
 
 # Let FindBoost create Boost targets
-message(STATUS "Adding local package: boost")
+message(STATUS "Find package: boost")
 set(BOOST_ROOT "${YAVE_EXTERNAL_DIR}/boost" CACHE PATH "" FORCE)
 set (Boost_ARCHITECTURE "-x64")
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_NO_SYSTEM_PATHS TRUE)
 find_package(Boost COMPONENTS random program_options REQUIRED)
+
+# Qt 5
+message(STATUS "Initializing submodule: Qt5")
+
+execute_process(COMMAND perl init-repository --module-subset=qtbase 
+                WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5)
+
+message(STATUS "Building Qt5 modules")
+execute_process(COMMAND sh configure -developer-build -opensource -nomake examples -nomake tests -confirm-license
+                WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5)
+execute_process(COMMAND make -j 8
+                WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5)
+
+set(Qt5_DIR ${YAVE_EXTERNAL_DIR}/qt5)
+
+message(STATUS "Find package: Qt5Core, Qt5Widgets")
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Widgets REQUIRED)

@@ -14,3 +14,7 @@
 	path = external/boost
 	url = https://github.com/boostorg/boost.git
 	ignore = dirty
+[submodule "external/qt5"]
+	path = external/qt5
+	url = https://github.com/qt/qt5.git
+	ignore = dirty
