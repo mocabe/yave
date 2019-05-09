@@ -10,6 +10,7 @@ set(YAVE_INCLUDE_DIR ${YAVE_DIR}/include)
 set(YAVE_SOURCE_DIR ${YAVE_DIR}/src)
 set(YAVE_EXTERNAL_DIR ${YAVE_DIR}/external)
 set(YAVE_TEST_DIR ${YAVE_DIR}/test)
+set(YAVE_TOOL_DIR ${YAVE_DIR}/tools)
 
 # ------------------------------------------
 # Options
@@ -93,6 +94,7 @@ endif()
 # Subdirectories
 
 add_subdirectory(${YAVE_SOURCE_DIR})
+add_subdirectory(${YAVE_TOOL_DIR})
 
 if(YAVE_BUILD_TESTS)
   include (CTest)
