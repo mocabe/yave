@@ -21,8 +21,8 @@ init_and_add_lib_cmake(Catch2)
 
 # boost
 message(STATUS "Initializing submodule: boost")
-execute_process(COMMAND git submodule update --init --recursive --jobs 8
-                WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
+execute_process(COMMAND git submodule update --init --recursive --jobs 8 external/boost
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 message(STATUS "Building boost library")
 
@@ -79,13 +79,13 @@ find_package(Boost COMPONENTS random program_options REQUIRED)
 message(STATUS "Initializing submodule: Qt5")
 
 set(YAVE_QT5_DIR ${YAVE_EXTERNAL_DIR}/qt5)
-set(YAVE_QT5_BUILD_DIR ${YAVE_QT5_DIR}/qt5-build)
+set(YAVE_QT5_BUILD_DIR ${YAVE_EXTERNAL_DIR}/qt5-build)
 set(YAVE_QT5_CMAKE_PREFIX_DIR ${YAVE_QT5_DIR}/qtbase/lib/cmake/Qt5)
 
 execute_process(COMMAND mkdir -p qt5-build 
                 WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR})
-execute_process(COMMAND git submodule update --init --depth=1
-                WORKING_DIRECTORY ${YAVE_QT5_DIR})
+execute_process(COMMAND git submodule update --init external/qt5
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 execute_process(COMMAND perl init-repository --module-subset=qtbase 
                 WORKING_DIRECTORY ${YAVE_QT5_DIR})
 
