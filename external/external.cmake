@@ -80,7 +80,6 @@ message(STATUS "Initializing submodule: Qt5")
 
 set(YAVE_QT5_DIR ${YAVE_EXTERNAL_DIR}/qt5)
 set(YAVE_QT5_BUILD_DIR ${YAVE_EXTERNAL_DIR}/qt5-build)
-set(YAVE_QT5_CMAKE_PREFIX_DIR ${YAVE_QT5_DIR}/qtbase/lib/cmake/Qt5)
 
 execute_process(COMMAND mkdir -p qt5-build 
                 WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR})
@@ -90,10 +89,33 @@ execute_process(COMMAND perl init-repository --module-subset=qtbase
                 WORKING_DIRECTORY ${YAVE_QT5_DIR})
 
 message(STATUS "Building Qt5 modules")
-execute_process(COMMAND sh ../qt5/configure -developer-build -opensource -nomake examples -nomake tests -confirm-license
-                WORKING_DIRECTORY ${YAVE_QT5_BUILD_DIR})
-execute_process(COMMAND make -s -j 8 module-qtbase
-                WORKING_DIRECTORY ${YAVE_QT5_BUILD_DIR})
+
+if(WIN32)
+  if(MINGW)
+    execute_process(COMMAND mkdir -p gcc
+                    WORKING_DIRECTORY ${YAVE_QT5_BUILD_DIR})
+    execute_process(COMMAND cmd /c "..\\..\\qt5\\configure.bat -developer-build -opensource -nomake examples -nomake tests -confirm-license -platform win32-g++"
+                    WORKING_DIRECTORY ${YAVE_QT5_BUILD_DIR}/gcc)
+    execute_process(COMMAND make -s -j 8 module-qtbase
+                    WORKING_DIRECTORY ${YAVE_QT5_BUILD_DIR}/gcc)
+    set(YAVE_QT5_CMAKE_PREFIX_DIR ${YAVE_QT5_BUILD_DIR}/gcc/qtbase/lib/cmake/Qt5)
+  elseif(MSVC)
+    message(STATUS ${CMAKE_MAKE_PROGRAM})
+    execute_process(COMMAND mkdir -p msvc
+                    WORKING_DIRECTORY ${YAVE_QT5_BUILD_DIR})
+    execute_process(COMMAND cmd /c "..\\..\\qt5\\configure.bat -developer-build -opensource -nomake examples -nomake tests -confirm-license -platform win32-msvc"
+                    WORKING_DIRECTORY ${YAVE_QT5_BUILD_DIR}/msvc)
+    execute_process(COMMAND make -s -j 8 module-qtbase
+                    WORKING_DIRECTORY ${YAVE_QT5_BUILD_DIR}/msvc)
+    set(YAVE_QT5_CMAKE_PREFIX_DIR ${YAVE_QT5_BUILD_DIR}/msvc/qtbase/lib/cmake/Qt5)
+  endif()
+else()
+  execute_process(COMMAND sh ../qt5/configure -developer-build -opensource -nomake examples -nomake tests -confirm-license
+                  WORKING_DIRECTORY ${YAVE_QT5_BUILD_DIR})
+  execute_process(COMMAND make -s -j 8 module-qtbase
+                  WORKING_DIRECTORY ${YAVE_QT5_BUILD_DIR})
+  set(YAVE_QT5_CMAKE_PREFIX_DIR ${YAVE_QT5_BUILD_DIR}/qtbase/lib/cmake/Qt5)
+endif()
 
 message(STATUS "Find package: Qt5")
 set(CMAKE_AUTOMOC ON)
