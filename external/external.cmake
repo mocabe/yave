@@ -77,18 +77,15 @@ find_package(Boost COMPONENTS random program_options REQUIRED)
 
 # Qt 5
 message(STATUS "Initializing submodule: Qt5")
-
+execute_process(COMMAND mkdir -p qt5-build WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR})
+set(CMAKE_AUTOMOC ON)
+execute_process(COMMAND git submodule update --init --depth=1
+                WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5)
 execute_process(COMMAND perl init-repository --module-subset=qtbase 
                 WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5)
 
 message(STATUS "Building Qt5 modules")
-execute_process(COMMAND sh configure -developer-build -opensource -nomake examples -nomake tests -confirm-license
-                WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5)
-execute_process(COMMAND make -j 8
-                WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5)
-
-set(Qt5_DIR ${YAVE_EXTERNAL_DIR}/qt5)
-
-message(STATUS "Find package: Qt5Core, Qt5Widgets")
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Widgets REQUIRED)
+execute_process(COMMAND sh ../qt5/configure -developer-build -opensource -nomake examples -nomake tests -confirm-license
+                WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5-build)
+execute_process(COMMAND make -s -j 8 module-qtbase
+                WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5-build)

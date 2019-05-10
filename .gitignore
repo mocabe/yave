@@ -3,3 +3,4 @@
 bin/
 build*/
 local/
+external/qt5-build/
