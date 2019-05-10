@@ -89,3 +89,7 @@ execute_process(COMMAND sh ../qt5/configure -developer-build -opensource -nomake
                 WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5-build)
 execute_process(COMMAND make -s -j 8 module-qtbase
                 WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/qt5-build)
+
+message(STATUS "Find package: Qt5")
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${YAVE_EXTERNAL_DIR}/qt5-build/qtbase/lib/cmake/Qt5)
+find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
