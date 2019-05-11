@@ -11,6 +11,7 @@
 #include <yave/rts/type_error.hpp>
 #include <yave/rts/utility.hpp>
 #include <yave/rts/undefined.hpp>
+#include <yave/rts/obj_util.hpp>
 
 #include <vector>
 
@@ -26,18 +27,6 @@ namespace yave {
 
   // ------------------------------------------
   // Utils
-
-  /// \brief get **RAW** type of the object
-  /// \notes return type of `Undefined` on null.
-  /// \notes use type_of() to get actual type of terms.
-  [[nodiscard]] inline object_ptr<const Type>
-    get_type(const object_ptr<const Object>& obj)
-  {
-    if (obj)
-      return _get_storage(obj).info_table()->obj_type;
-    else
-      return object_type<Undefined>();
-  }
 
   /// is_value_type
   [[nodiscard]] inline bool is_value_type(const object_ptr<const Type>& tp)
