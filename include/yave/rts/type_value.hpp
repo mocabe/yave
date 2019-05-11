@@ -20,6 +20,8 @@ namespace yave {
   /// Value type
   struct value_type
   {
+    // TODO: Use 128bit UUID for object type id.
+
     /// Max name length
     static constexpr uint64_t buffer_size = 32;
     /// buffer type

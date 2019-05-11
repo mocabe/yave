@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
-
 #include <string>
 
 namespace yave {
@@ -14,7 +12,7 @@ namespace yave {
   /// 128bit UUID
   struct uuid
   {
-    char data[16];
+    unsigned char data[16];
 
     /// Generate random UUID.
     [[nodiscard]] static uuid random_generate();

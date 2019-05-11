@@ -17,6 +17,7 @@
 #include <yave/config/unreachable.hpp>
 #include <yave/config/type_traits.hpp>
 #include <yave/config/os.hpp>
+#include <yave/config/uuid.hpp>
 
 namespace yave {
 
