@@ -14,3 +14,6 @@
 	path = external/boost
 	url = https://github.com/boostorg/boost.git
 	ignore = dirty
+[submodule "external/glm"]
+	path = external/glm
+	url = https://github.com/g-truc/glm.git

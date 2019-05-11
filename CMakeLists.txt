@@ -20,6 +20,8 @@ option(YAVE_BUILD_TESTS "Build tests" ON)
 # ------------------------------------------
 # Build type
 
+set(BUILD_SHARED_LIBS OFF)
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
 endif()

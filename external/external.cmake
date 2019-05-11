@@ -16,6 +16,9 @@ init_and_add_lib_cmake(fmt)
 # spdlog 
 init_and_add_lib_cmake(spdlog)
 
+# glm
+init_and_add_lib_cmake(glm)
+
 # Cathc2
 init_and_add_lib_cmake(Catch2)
 
