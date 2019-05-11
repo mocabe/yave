@@ -11,7 +11,7 @@
 #include <yave/rts/type_error.hpp>
 #include <yave/rts/utility.hpp>
 #include <yave/rts/undefined.hpp>
-#include <yave/rts/obj_util.hpp>
+#include <yave/rts/object_util.hpp>
 
 #include <vector>
 
