@@ -16,6 +16,13 @@ target_link_libraries(yave-tools-id PRIVATE Boost::boost)
 target_link_libraries(yave-tools-id PRIVATE Boost::random)
 target_link_libraries(yave-tools-id PRIVATE Boost::disable_autolinking)
 
+add_library(yave-tools-uuid uuid.cpp)
+add_library(yave::tools::uuid ALIAS yave-tools-uuid)
+target_include_directories(yave-tools-uuid PRIVATE ${YAVE_INCLUDE_DIR})
+target_compile_options(yave-tools-uuid PRIVATE ${YAVE_COMPILE_FLAGS})
+target_link_options(yave-tools-uuid PRIVATE ${YAVE_LINK_FLAGS})
+target_link_libraries(yave-tools-uuid PRIVATE Boost::boost)
+
 add_library(yave-tools-error error.cpp)
 add_library(yave::tools::error ALIAS yave-tools-error)
 

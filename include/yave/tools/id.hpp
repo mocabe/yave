@@ -11,23 +11,19 @@
 
 namespace yave {
 
-  /// Unique ID for object/nodes
+  /// Unique ID for object/nodes (64bit)
   struct uid
   {
     uint64_t data;
 
+    /// Generate random id.
     [[nodiscard]] static uid random_generate();
   };
 
-  /// operator<
   [[nodiscard]] bool operator<(const uid& lhs, const uid& rhs) noexcept;
-  /// operator>
   [[nodiscard]] bool operator>(const uid& lhs, const uid& rhs) noexcept;
-  /// operator<=
   [[nodiscard]] bool operator<=(const uid& lhs, const uid& rhs) noexcept;
-  /// operator>=
   [[nodiscard]] bool operator>=(const uid& lhs, const uid& rhs) noexcept;
-  /// operator==
   [[nodiscard]] bool operator==(const uid& lhs, const uid& rhs) noexcept;
 
   /// Convert ID to string
