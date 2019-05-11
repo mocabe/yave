@@ -197,6 +197,8 @@ namespace yave {
     object_ptr<const Type> obj_type;
     /// total size of object
     uint64_t obj_size;
+    /// friendly name of object
+    const char* obj_name;
     /// vtable of delete function
     void (*destroy)(const Object*) noexcept;
     /// vtable of clone function

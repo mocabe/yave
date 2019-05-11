@@ -180,6 +180,7 @@ namespace yave {
     object_info_table Box<T>::info_table_initializer::info_table = { //
       object_type<Box>(),                                            //
       sizeof(Box),                                                   //
+      object_type_traits<Box>::name,                                 //
       vtbl_destroy_func<Box>,                                        //
       vtbl_clone_func<Box>};                                         //
 
