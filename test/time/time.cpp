@@ -102,11 +102,24 @@ TEST_CASE("time")
     STATIC_REQUIRE(t.zero() - t.max() == t.min() + 1);
     STATIC_REQUIRE(t.min() - t.zero() == t.min());
 
+    STATIC_REQUIRE(t.max() * (t.zero() + 1) == t.max());
+    STATIC_REQUIRE(t.min() * (t.zero() + 1) == t.min());
+    STATIC_REQUIRE((t.zero() + 1) * t.max() == t.max());
+    STATIC_REQUIRE((t.zero() + 1) * t.min() == t.min());
     STATIC_REQUIRE(t.max() * (t.zero() - 1) == t.min() + 1);
     STATIC_REQUIRE(t.min() * (t.zero() - 1) == t.max());
+    STATIC_REQUIRE((t.zero() - 1) * t.max() == t.min() + 1);
+    STATIC_REQUIRE((t.zero() - 1) * t.min() == t.max());
+
+    STATIC_REQUIRE(t.max() * t.max() == t.max());
+    STATIC_REQUIRE(t.max() * t.min() == t.min());
+    STATIC_REQUIRE(t.min() * t.min() == t.max());
+    STATIC_REQUIRE(t.min() * t.max() == t.min());
 
     STATIC_REQUIRE(t.max() / (t.zero() - 1) == t.min() + 1);
     STATIC_REQUIRE(t.min() / (t.zero() - 1) == t.max());
+    STATIC_REQUIRE((t.zero() - 1) / t.max() == -(1 / t.max()));
+    STATIC_REQUIRE((t.zero() - 1) / t.min() == -(1 / t.max()));
 
     STATIC_REQUIRE(++t.max() == t.max());
     STATIC_REQUIRE(t.max()++ == t.max());
