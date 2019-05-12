@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/config/config.hpp>
+#include <yave/time/bounded_int.hpp>
 
 #include <chrono>
 
@@ -302,6 +303,16 @@ namespace yave {
     /// operator-
     [[nodiscard]] constexpr time operator-() const noexcept;
 
+    /// operator++
+    constexpr time operator++() noexcept;
+    /// operator+-
+    constexpr time operator--() noexcept;
+
+    /// operator++(int)
+    constexpr time operator++(int) noexcept;
+    /// operator--(int)
+    constexpr time operator--(int) noexcept;
+
     /// Get int value.
     [[nodiscard]] constexpr value_type int_value() const noexcept
     {
@@ -310,65 +321,8 @@ namespace yave {
 
   private:
     /// value
-    value_type m_value;
+    bounded_int<value_type> m_value;
   };
-
-  /* common video fps */
-
-  static_assert(time::is_compatible_rate(1));
-  static_assert(time::is_compatible_rate(2));
-  static_assert(time::is_compatible_rate(3));
-  static_assert(time::is_compatible_rate(5));
-  static_assert(time::is_compatible_rate(10));
-  static_assert(time::is_compatible_rate(15));
-  static_assert(time::is_compatible_rate(24));
-  static_assert(time::is_compatible_rate(25));
-  static_assert(time::is_compatible_rate(30));
-  static_assert(time::is_compatible_rate(32));
-  static_assert(time::is_compatible_rate(48));
-  static_assert(time::is_compatible_rate(50));
-  static_assert(time::is_compatible_rate(60));
-  static_assert(time::is_compatible_rate(64));
-  static_assert(time::is_compatible_rate(90));
-  static_assert(time::is_compatible_rate(96));
-
-  /* high-end video fps */
-
-  static_assert(time::is_compatible_rate(100));
-  static_assert(time::is_compatible_rate(120));
-  static_assert(time::is_compatible_rate(144));
-  static_assert(time::is_compatible_rate(180));
-  static_assert(time::is_compatible_rate(192));
-  static_assert(time::is_compatible_rate(240));
-
-  /* NTSC fps */
-
-  static_assert(time::is_compatible_rate(1000 * 24, 1001));
-  // static_assert(time::is_compatible_rate(1000 * 25, 1001));  Not supported!
-  static_assert(time::is_compatible_rate(1000 * 30, 1001));
-  static_assert(time::is_compatible_rate(1000 * 60, 1001));
-  static_assert(time::is_compatible_rate(1000 * 120, 1001));
-
-  /* common audio frequency */
-
-  static_assert(time::is_compatible_rate(1000));
-  static_assert(time::is_compatible_rate(4000));
-  static_assert(time::is_compatible_rate(8000));
-  static_assert(time::is_compatible_rate(16000));
-  static_assert(time::is_compatible_rate(22050));
-  static_assert(time::is_compatible_rate(24000));
-  static_assert(time::is_compatible_rate(32000));
-  static_assert(time::is_compatible_rate(44100));
-  static_assert(time::is_compatible_rate(48000));
-  static_assert(time::is_compatible_rate(88200));
-  static_assert(time::is_compatible_rate(96000));
-  static_assert(time::is_compatible_rate(192000));
-
-  /* high-end audio frequency */
-
-  static_assert(time::is_compatible_rate(352800));
-  static_assert(time::is_compatible_rate(384000));
-  static_assert(time::is_compatible_rate(768000));
 
   constexpr time& time::operator+=(const time& rhs) noexcept
   {
@@ -396,12 +350,32 @@ namespace yave {
 
   constexpr time time::operator+() const noexcept
   {
-    return time {+m_value};
+    return {+m_value};
   }
 
   constexpr time time::operator-() const noexcept
   {
-    return time {-m_value};
+    return {-m_value};
+  }
+
+  constexpr time time::operator++() noexcept
+  {
+    return {++m_value};
+  }
+
+  constexpr time time::operator--() noexcept
+  {
+    return {--m_value};
+  }
+
+  constexpr time time::operator++(int) noexcept
+  {
+    return {m_value++};
+  }
+
+  constexpr time time::operator--(int) noexcept
+  {
+    return {m_value--};
   }
 
   [[nodiscard]] constexpr time
