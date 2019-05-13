@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2019 mocabe (https://github.com/mocabe)
+// Distributed under LGPLv3 License. See LICENSE for more details.
+//
 
 #include <yave/frame_buffer/frame_buffer_manager.hpp>
 #include <yave/tools/id.hpp>
@@ -95,9 +99,11 @@ namespace yave {
           auto* buff = allocate_fb(byte_size(m_width, m_height, m_format), id);
           m_data.push_back(buff);
           m_id.push_back(id);
+          return id;
         }
       }
     }
+    // fallback
     return create();
   }
 
