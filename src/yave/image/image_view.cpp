@@ -56,7 +56,7 @@ namespace yave {
     return m_data == nullptr;
   }
 
-  uint8_t* image_view::data() const noexcept
+  const uint8_t* image_view::data() const noexcept
   {
     return m_data;
   }

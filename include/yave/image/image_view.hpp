@@ -46,7 +46,7 @@ namespace yave {
     [[nodiscard]] bool empty() const noexcept;
 
     /// Get data pointer.
-    [[nodiscard]] uint8_t* data() const noexcept;
+    [[nodiscard]] const uint8_t* data() const noexcept;
 
     /// Get image format.
     [[nodiscard]] yave::image_format image_format() const noexcept;
@@ -77,7 +77,7 @@ namespace yave {
 
   private:
     /// data pointer
-    uint8_t* m_data = nullptr;
+    const uint8_t* m_data = nullptr;
     /// width
     uint32_t m_width = 0;
     /// height
