@@ -25,6 +25,7 @@ namespace yave {
   [[nodiscard]] bool operator<=(const uid& lhs, const uid& rhs) noexcept;
   [[nodiscard]] bool operator>=(const uid& lhs, const uid& rhs) noexcept;
   [[nodiscard]] bool operator==(const uid& lhs, const uid& rhs) noexcept;
+  [[nodiscard]] bool operator!=(const uid& lhs, const uid& rhs) noexcept;
 
   /// Convert ID to string
   [[nodiscard]] std::string to_string(const uid& id);

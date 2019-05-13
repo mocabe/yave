@@ -38,6 +38,11 @@ namespace yave {
     return lhs.data == rhs.data;
   }
 
+  bool operator!=(const uid& lhs, const uid& rhs) noexcept
+  {
+    return lhs.data != rhs.data;
+  }
+
   std::string to_string(const uid& id)
   {
     return std::to_string(id.data);

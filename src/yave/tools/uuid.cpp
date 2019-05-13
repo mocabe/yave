@@ -61,6 +61,11 @@ namespace yave {
     return to_boost_uuid(lhs) == to_boost_uuid(rhs);
   }
 
+  [[nodiscard]] bool operator!=(const uuid& lhs, const uuid& rhs) noexcept
+  {
+    return to_boost_uuid(lhs) != to_boost_uuid(rhs);
+  }
+
   /// Convert UUID to string
   [[nodiscard]] std::string to_string(const uuid& id)
   {
