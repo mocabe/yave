@@ -1,0 +1,1 @@
+YAVE_Test(frame_buffer frame_buffer yave-frame_buffer yave-tools-uid)
