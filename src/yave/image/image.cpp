@@ -94,6 +94,16 @@ namespace yave {
     return m_data;
   }
 
+  uint32_t image::width() const noexcept
+  {
+    return m_width;
+  }
+
+  uint32_t image::height() const noexcept
+  {
+    return m_height;
+  }
+
   uint32_t image::channels() const noexcept
   {
     return channel_size(m_format);

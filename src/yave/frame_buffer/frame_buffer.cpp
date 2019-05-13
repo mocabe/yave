@@ -14,6 +14,12 @@ namespace yave {
     m_id = m_manager.create();
   }
 
+  frame_buffer::frame_buffer(frame_buffer_manager& mngr, uid id)
+    : m_manager {mngr}
+    , m_id {id}
+  {
+  }
+
   frame_buffer::frame_buffer(const frame_buffer& other)
     : m_manager {other.m_manager}
     , m_id {other.m_id}
