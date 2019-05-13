@@ -1,23 +1,8 @@
 # ------------------------------------------
 # Testing
 
-if(YAVE_COMPILER_MSVC)
-  set(YAVE_TEST_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4)
-else()
-  set(YAVE_TEST_COMPILE_FLAGS -O0 -Wall -Wextra -Wshadow -g -pedantic)
-endif()
-
-if(UNIX AND YAVE_COMPILER_LLVM)
-  message(STATUS "UB Sanitizer is enabled")
-  set(YAVE_TEST_COMPILE_FLAGS ${YAVE_TEST_COMPILE_FLAGS} -fsanitize=undefined)
-  set(YAVE_TEST_LINK_FLAGS ${YAVE_TEST_LINK_FLAGS} -fsanitize=undefined)
-endif()
-
-if(UNIX AND YAVE_COMPILER_GNU)
-  message(STATUS "UB Sanitizer is enabled")
-  set(YAVE_TEST_COMPILE_FLAGS ${YAVE_TEST_COMPILE_FLAGS} -fsanitize=undefined -fuse-ld=gold)
-  set(YAVE_TEST_LINK_FLAGS ${YAVE_TEST_LINK_FLAGS} -fsanitize=undefined -fuse-ld=gold)
-endif()
+set(YAVE_TEST_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS})
+set(YAVE_TEST_LINK_FLAGS ${YAVE_LINK_FLAGS})
 
 # Catch2 lib
 add_library(yave-Catch2 catch.cpp)
