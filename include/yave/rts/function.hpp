@@ -417,7 +417,7 @@ namespace yave {
     Function<T, Ts...>::info_table_initializer::info_table = { //
       {object_type<T>(),                                       //
        sizeof(T),                                              //
-       closure_type_traits<Function>::name,                    //
+       closure_type_traits<Function<T, Ts...>>::name,          //
        vtbl_destroy_func<T>,                                   //
        vtbl_clone_func<T>},                                    //
       sizeof...(Ts) - 1,                                       //

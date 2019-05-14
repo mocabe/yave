@@ -320,6 +320,12 @@ namespace yave {
     }
 
   private:
+    constexpr time(bounded_int<value_type> value)
+      : m_value {value}
+    {
+    }
+
+  private:
     /// value
     bounded_int<value_type> m_value;
   };
