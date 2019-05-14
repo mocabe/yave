@@ -21,11 +21,12 @@ namespace yave {
 } // namespace yave
 
 // define system type names
-#define YAVE_DECL_TYPE(TYPE, NAME)        \
+#define YAVE_DECL_TYPE(TYPE, UUID)        \
   template <>                             \
   struct yave::object_type_traits<TYPE>   \
   {                                       \
-    static constexpr char name[] = #NAME; \
+    static constexpr char name[] = #TYPE; \
+    static constexpr char uuid[] = UUID;  \
   }
 
 namespace yave {

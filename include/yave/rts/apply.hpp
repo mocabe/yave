@@ -178,4 +178,4 @@ namespace yave {
 } // namespace yave
 
 // Apply
-YAVE_DECL_TYPE(yave::Apply, _Apply);
+YAVE_DECL_TYPE(yave::Apply, "2db5ddcd-0d6d-4f2f-8fd5-7b30abfc68eb");

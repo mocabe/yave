@@ -80,4 +80,4 @@ namespace yave {
 } // namespace yave
 
 // Exception
-YAVE_DECL_TYPE(yave::Exception, _Exception);
+YAVE_DECL_TYPE(yave::Exception, "1a30465c-ee14-473e-bcb9-5ef2462d933f");

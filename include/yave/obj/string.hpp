@@ -95,4 +95,4 @@ namespace yave {
 } // namespace yave
 
 // String
-YAVE_DECL_TYPE(yave::String::String, _String);
+YAVE_DECL_TYPE(yave::String::String, "1198939c-c273-4875-a229-245abad7ef04");

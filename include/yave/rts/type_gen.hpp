@@ -20,9 +20,9 @@
 #include <array>
 
 /// type
-YAVE_DECL_TYPE(yave::Type, _Type);
+YAVE_DECL_TYPE(yave::Type, "7c6b944f-a5da-41f8-b51d-e39b6a615953");
 /// Object
-YAVE_DECL_TYPE(yave::Object, _Object);
+YAVE_DECL_TYPE(yave::Object, "8b0ab920-cedc-458d-987b-e654c643d217");
 
 namespace yave {
 
@@ -84,30 +84,59 @@ namespace yave {
       return &value_type_initializer<T>::type;
     }
 
-    /// convert constexpr char array to buffer type for value type
-    template <uint64_t N>
-    constexpr value_type::buffer_type
-      create_value_type_name(char const (&name)[N])
+    /// read UUID from constexpr char array
+    [[nodiscard]] constexpr std::array<char, 16>
+      read_from_constexpr_string(char const (&str)[37])
     {
-      auto tmp = value_type::buffer_type {};
-      static_assert(N <= tmp.size(), "Name of value type is too long.");
-      for (uint64_t i = 0; i < N; ++i) {
-        tmp[i] = name[i];
+      // ex) 707186a4-f043-4a08-8223-e03fe9c1b0ea\0
+
+      char hex[32] {};
+      size_t hex_idx = 0;
+
+      // read hex
+      for (auto&& c : str) {
+        if (c == '-' || c == '\0') {
+          continue;
+        }
+        if ('0' <= c && c <= '9') {
+          hex[hex_idx] = c - '0';
+          ++hex_idx;
+          continue;
+        }
+        if ('a' <= c && c <= 'f') {
+          hex[hex_idx] = c - 'a' + 10;
+          ++hex_idx;
+          continue;
+        }
+        if ('A' <= c && c <= 'F') {
+          hex[hex_idx] = c - 'A' + 10;
+          ++hex_idx;
+          continue;
+        }
+        throw; // failed to parse UUID
       }
-      tmp.back() = '\0';
-      return tmp;
+
+      std::array<char, 16> ret {};
+
+      // convert to value
+      for (size_t i = 0; i < 16; ++i) {
+        auto upper = 2 * i;
+        auto lower = 2 * i + 1;
+        ret[i]     = hex[upper] * 16 + hex[lower];
+      }
+      return ret;
     }
 
     /// aligned buffer
     template <class T>
-    alignas(32) inline constexpr const
-      auto value_type_name = create_value_type_name(
-        object_type_traits<typename decltype(type_c<T>.tag())::type>::name);
+    alignas(32) inline constexpr const std::array<char, 16> value_type_uuid =
+      read_from_constexpr_string(
+        object_type_traits<typename decltype(type_c<T>.tag())::type>::uuid);
 
     template <class T>
     const Type value_type_initializer<T>::type {
       static_construct,
-      value_type {&value_type_name<T>}};
+      value_type {value_type_uuid<T>}};
 
     // ------------------------------------------
     // arrow type

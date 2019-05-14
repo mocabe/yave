@@ -20,4 +20,4 @@ namespace yave {
 } // namespace yave
 
 // Unit
-YAVE_DECL_TYPE(yave::Unit, _Unit);
+YAVE_DECL_TYPE(yave::Unit, "916111ba-6012-4b48-af82-df329c4d7b7b");

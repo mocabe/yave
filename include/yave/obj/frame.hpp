@@ -14,4 +14,4 @@ namespace yave {
   }
 } // namespace yave
 
-YAVE_DECL_TYPE(yave::Frame::Frame, _Frame);
+YAVE_DECL_TYPE(yave::Frame::Frame, "510a0f3a-8c18-46f9-9cc6-514609e35c13");

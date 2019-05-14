@@ -16,4 +16,4 @@ namespace yave {
   } // namespace Time
 } // namespace yave
 
-YAVE_DECL_TYPE(yave::Time::Time, _Time);
+YAVE_DECL_TYPE(yave::Time::Time, "074d6cdc-82dc-4f42-99d7-5e556543038e");

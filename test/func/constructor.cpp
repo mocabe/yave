@@ -10,7 +10,8 @@
 using namespace yave;
 
 using Int = Box<int>;
-YAVE_DECL_TYPE(Int, Int);
+
+YAVE_DECL_TYPE(Int, "7d27665a-c56a-40d1-8e2e-844cb48de9e9");
 
 TEST_CASE("Constructor")
 {

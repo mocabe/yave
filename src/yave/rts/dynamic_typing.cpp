@@ -9,7 +9,7 @@ namespace yave {
       copy_type_impl(const object_ptr<const Type>& ptp)
     {
       if (auto value = get_if<value_type>(ptp.value()))
-        return make_object<Type>(value_type {value->name});
+        return make_object<Type>(value_type {*value});
       if (auto var = get_if<var_type>(ptp.value()))
         return make_object<Type>(var_type {var->id});
       if (auto arrow = get_if<arrow_type>(ptp.value())) {

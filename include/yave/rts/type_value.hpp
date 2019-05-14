@@ -20,66 +20,18 @@ namespace yave {
   /// Value type
   struct value_type
   {
-    // TODO: Use 128bit UUID for object type id.
-
-    /// Max name length
-    static constexpr uint64_t buffer_size = 32;
-    /// buffer type
-    using buffer_type = std::array<char, buffer_size>;
-    /// buffer
-    const buffer_type* name;
-
-    /// get C-style string
-    const char* c_str() const
-    {
-      return name->data();
-    }
+    /// 128bit UUID
+    std::array<char, 16> data;
 
     /// compare two value types
     [[nodiscard]] static bool
       compare(const value_type& lhs, const value_type& rhs)
     {
-      if constexpr (has_AVX2 && buffer_size == 32) {
-        // AVX2
-        // buffers should be aligned as 32byte
-        // load each buffers into 256-bit registers
-        auto ymm0 =
-          _mm256_load_si256(reinterpret_cast<const __m256i*>(lhs.name->data()));
-        auto ymm1 =
-          _mm256_load_si256(reinterpret_cast<const __m256i*>(rhs.name->data()));
-        // compare
-        auto cmpeq = _mm256_cmpeq_epi8(ymm0, ymm1);
-        // get mask
-        unsigned mask = _mm256_movemask_epi8(cmpeq);
-        // clear upper bits for other SIMD operations
-        _mm256_zeroupper();
-        return mask == 0xffffffffU;
-      } else if constexpr (has_AVX && buffer_size == 32) {
-        // AVX
-        // buffers should be aligned as 16byte
-        // load buffer into 2 xmm registers
-        auto xmm0 = _mm_load_si128(
-          reinterpret_cast<const __m128i*>(lhs.name->data() + 0));
-        auto xmm1 = _mm_load_si128(
-          reinterpret_cast<const __m128i*>(lhs.name->data() + 16));
-        // compare registers to another buffer on memory
-        auto cmp1 = _mm_cmpeq_epi8(
-          xmm0, *reinterpret_cast<const __m128i*>(rhs.name->data() + 0));
-        auto cmp2 = _mm_cmpeq_epi8(
-          xmm1, *reinterpret_cast<const __m128i*>(rhs.name->data() + 16));
-        // get cmp result
-        auto cmp = _mm_and_si128(cmp1, cmp2);
-        // get mask
-        auto mask = _mm_movemask_epi8(cmp);
-        return mask == 0xffffU;
-      } else {
-        // fallback to memcmp
-        return std::memcmp(        //
-                 lhs.name->data(), //
-                 rhs.name->data(), //
-                 buffer_size) == 0;
-      }
+      // TODO: Add SIMD compare
+      return lhs.data == rhs.data;
     }
+
+    [[nodiscard]] std::string to_string() const;
   };
 
   /// Arrow type

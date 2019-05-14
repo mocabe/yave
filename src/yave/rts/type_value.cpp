@@ -1,0 +1,17 @@
+//
+// Copyright (c) 2019 mocabe (https://github.com/mocabe)
+// Distributed under LGPLv3 License. See LICENSE for more details.
+//
+
+#include <yave/rts/type_value.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
+namespace yave {
+
+  std::string value_type::to_string() const
+  {
+    boost::uuids::uuid id {};
+    std::memcpy(id.data, data.data(), sizeof(data));
+    return boost::uuids::to_string(id);
+  }
+}

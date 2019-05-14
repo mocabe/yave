@@ -14,4 +14,6 @@ namespace yave {
   } // namespace FrameBuffer
 } // namespace yave
 
-YAVE_DECL_TYPE(yave::FrameBuffer::FrameBuffer, _FrameBuffer);
+YAVE_DECL_TYPE(
+  yave::FrameBuffer::FrameBuffer,
+  "cfad3b2d-4979-4cae-b63b-30be9b8d60eb");

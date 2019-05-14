@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/rts/type_gen.hpp>
+#include <yave/rts/object_util.hpp>
 
 #include <vector>
 #include <string>
@@ -23,7 +24,7 @@ namespace yave {
       return "[...]";
 
     if (is_value_type(type)) {
-      return get<value_type>(*type).c_str();
+      return "Value[" + get<value_type>(*type).to_string() + "]";
     }
 
     if (is_arrow_type(type)) {

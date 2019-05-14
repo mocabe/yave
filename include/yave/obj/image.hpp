@@ -15,4 +15,4 @@ namespace yave {
 
 } // namespace yave
 
-YAVE_DECL_TYPE(yave::Image::Image, _Image);
+YAVE_DECL_TYPE(yave::Image::Image, "98a416df-5373-4142-80af-6b064fe2b664");
