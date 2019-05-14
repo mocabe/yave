@@ -8,6 +8,7 @@
 #include <yave/rts/object_ptr.hpp>
 
 #include <yave/tools/id.hpp>
+#include <yave/tools/offset_of_member.hpp>
 
 #include <array>
 #include <cstring>
@@ -27,8 +28,16 @@ namespace yave {
     [[nodiscard]] static bool
       compare(const value_type& lhs, const value_type& rhs)
     {
-      // TODO: Add SIMD compare
-      return lhs.data == rhs.data;
+      if constexpr (has_SSE) {
+        // assume 16 byte alignment
+        auto xmm1 = _mm_load_si128((const __m128i*)lhs.data.data());
+        auto xmm2 = _mm_load_si128((const __m128i*)rhs.data.data());
+        auto cmp  = _mm_cmpeq_epi8(xmm1, xmm2);
+        auto mask = _mm_movemask_epi8(cmp);
+        return mask == 0xffffU;
+      } else if constexpr (has_SSE) {
+      } else
+        return lhs.data == rhs.data;
     }
 
     [[nodiscard]] std::string to_string() const;
@@ -136,6 +145,10 @@ namespace yave {
     // 8 byte index
     uint64_t index;
   };
+
+  static_assert(offset_of_member(&type_object_value_storage::value) == 0);
+  static_assert(offset_of_member(&type_object_value_storage::arrow) == 0);
+  static_assert(offset_of_member(&type_object_value_storage::var) == 0);
 
   /// Base class for TypeValue
   class type_object_value : type_object_value_storage

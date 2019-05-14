@@ -10,6 +10,7 @@
 #include <yave/rts/specifiers.hpp>
 
 #include <yave/tools/id.hpp>
+#include <yave/tools/offset_of_member.hpp>
 
 #include <cstring>
 #include <string>
@@ -75,7 +76,8 @@ namespace yave {
     template <class T>
     struct value_type_initializer
     {
-      static const Type type;
+      alignas(16) static const Type type;
+      static_assert(offset_of_member(&Type::value) == 16);
     };
 
     template <class T>
@@ -129,12 +131,12 @@ namespace yave {
 
     /// aligned buffer
     template <class T>
-    alignas(32) inline constexpr const std::array<char, 16> value_type_uuid =
-      read_from_constexpr_string(
+    inline constexpr const std::array<char, 16>
+      value_type_uuid = read_from_constexpr_string(
         object_type_traits<typename decltype(type_c<T>.tag())::type>::uuid);
 
     template <class T>
-    const Type value_type_initializer<T>::type {
+    alignas(16) const Type value_type_initializer<T>::type {
       static_construct,
       value_type {value_type_uuid<T>}};
 
