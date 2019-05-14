@@ -95,6 +95,9 @@ namespace yave {
       char hex[32] {};
       size_t hex_idx = 0;
 
+      // for gcc constexpr bug workaround
+      bool fail = false;
+
       // read hex
       for (auto&& c : str) {
         if (c == '-' || c == '\0') {
@@ -115,8 +118,12 @@ namespace yave {
           ++hex_idx;
           continue;
         }
-        throw; // failed to parse UUID
+        fail = true;
+        break; // failed to parse UUID
       }
+
+      if (fail)
+        throw;
 
       std::array<char, 16> ret {};
 
