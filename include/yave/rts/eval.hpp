@@ -39,9 +39,9 @@ namespace yave {
       // Currently object_ptr<T> MUST have type T which has compatible memory
       // layout with actual object pointing to.
       // Since it's impossible to decide memory layout of closure types,
-      // we convert it to closure<...> which is essentially equal to to
+      // we convert it to ClosureProxy<...> which is essentially equal to to
       // Object. Type variables are also undecidable so we just convert
-      // them to Object.
+      // them to proxy.
       using To =
         std::add_const_t<typename decltype(guess_object_type(type))::type>;
       // cast to resutn type
