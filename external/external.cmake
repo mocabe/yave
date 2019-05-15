@@ -23,6 +23,45 @@ init_and_add_lib_cmake(glm)
 # Cathc2
 init_and_add_lib_cmake(Catch2)
 
+# glfw
+init_and_add_lib_cmake(glfw)
+
+# Vulkan
+# ${Vulkan_INCLUDE_DIRS}
+# ${Vulkan_LIBRARIES}
+find_package(Vulkan REQUIRED)
+
+# imgui
+init_lib_cmake(imgui)
+
+add_library(imgui 
+  external/imgui/imgui.cpp
+  external/imgui/imgui_widgets.cpp
+  external/imgui/imgui_draw.cpp
+  external/imgui/imgui_demo.cpp
+)
+
+target_include_directories(imgui PUBLIC 
+  external/imgui
+)
+
+add_library(imgui_glfw_vulkan 
+  external/imgui/examples/imgui_impl_vulkan.cpp
+  external/imgui/examples/imgui_impl_glfw.cpp
+)
+target_include_directories(imgui_glfw_vulkan PUBLIC 
+  external/imgui/examples
+  ${Vulkan_INCLUDE_DIRS}
+)
+target_link_libraries(imgui_glfw_vulkan PUBLIC 
+  imgui
+  glfw
+  ${Vulkan_LIBRARIES}
+)
+
+add_executable(imgui_demo external/imgui/examples/example_glfw_vulkan/main.cpp)
+target_link_libraries(imgui_demo imgui_glfw_vulkan)
+
 # boost
 message(STATUS "Initializing submodule: boost")
 execute_process(COMMAND git submodule update --init --recursive --jobs 8 external/boost
