@@ -45,22 +45,23 @@ target_include_directories(imgui PUBLIC
   external/imgui
 )
 
-add_library(imgui_glfw_vulkan 
+add_library(imgui-glfw-vulkan 
   external/imgui/examples/imgui_impl_vulkan.cpp
   external/imgui/examples/imgui_impl_glfw.cpp
 )
-target_include_directories(imgui_glfw_vulkan PUBLIC 
+target_include_directories(imgui-glfw-vulkan PUBLIC 
   external/imgui/examples
   ${Vulkan_INCLUDE_DIRS}
 )
-target_link_libraries(imgui_glfw_vulkan PUBLIC 
+target_link_libraries(imgui-glfw-vulkan PUBLIC 
   imgui
   glfw
   ${Vulkan_LIBRARIES}
 )
+target_compile_definitions(imgui-glfw-vulkan PUBLIC IMGUI_VULKAN_DEBUG_REPORT)
 
 add_executable(imgui_demo external/imgui/examples/example_glfw_vulkan/main.cpp)
-target_link_libraries(imgui_demo imgui_glfw_vulkan)
+target_link_libraries(imgui_demo imgui-glfw-vulkan)
 
 # boost
 message(STATUS "Initializing submodule: boost")
