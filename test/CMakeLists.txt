@@ -26,11 +26,6 @@ endfunction()
 # ------------------------------------------
 # Tests
 
-add_subdirectory(graph)
-add_subdirectory(time)
-add_subdirectory(rts)
-add_subdirectory(obj)
-add_subdirectory(func)
+add_subdirectory(core)
 add_subdirectory(node)
-add_subdirectory(tools)
-add_subdirectory(frame_buffer)
+add_subdirectory(support)

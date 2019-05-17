@@ -1,1 +1,1 @@
-YAVE_Test(error tools yave::tools::error fmt::fmt)
+YAVE_Test(error tools yave::support::error fmt::fmt)

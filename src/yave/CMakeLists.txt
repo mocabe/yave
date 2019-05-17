@@ -1,14 +1,12 @@
-add_subdirectory(graph)
+add_subdirectory(core)
 add_subdirectory(node)
-add_subdirectory(tools)
-add_subdirectory(rts)
-add_subdirectory(image)
-add_subdirectory(frame_buffer)
+add_subdirectory(support)
+
+# yave::all
 
 add_library(yave-all INTERFACE)
 add_library(yave::all ALIAS yave-all)
+
+target_link_libraries(yave-all INTERFACE yave-core)
 target_link_libraries(yave-all INTERFACE yave-node)
-target_link_libraries(yave-all INTERFACE yave-tools)
-target_link_libraries(yave-all INTERFACE yave-rts)
-target_link_libraries(yave-all INTERFACE yave-image)
-target_link_libraries(yave-all INTERFACE yave-frame_buffer)
+target_link_libraries(yave-all INTERFACE yave-support)
