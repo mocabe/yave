@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include <yave/rts/box_fwd.hpp>
-#include <yave/rts/type_value.hpp>
-#include <yave/rts/specifiers.hpp>
+#include <yave/core/rts/box_fwd.hpp>
+#include <yave/core/rts/type_value.hpp>
+#include <yave/core/rts/specifiers.hpp>
 
-#include <yave/tools/id.hpp>
-#include <yave/tools/offset_of_member.hpp>
+#include <yave/support/id.hpp>
+#include <yave/support/offset_of_member.hpp>
 
 #include <cstring>
 #include <string>

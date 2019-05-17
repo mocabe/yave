@@ -5,11 +5,10 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
-#include <yave/image/image_view.hpp>
-#include <yave/frame_buffer/frame_buffer_manager.hpp>
-
-#include <yave/rts/object_ptr.hpp>
+#include <yave/core/config.hpp>
+#include <yave/core/data_types/frame_buffer/frame_buffer_manager.hpp>
+#include <yave/core/data_types/image_view.hpp>
+#include <yave/core/rts/object_ptr.hpp>
 
 namespace yave {
 

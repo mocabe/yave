@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
-#include <yave/node/primitive_definition.hpp>
+#include <yave/core/config.hpp>
+#include <yave/core/data_types/primitive.hpp>
 
 #include <string>
 #include <variant>

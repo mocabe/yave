@@ -6,7 +6,7 @@
 #include <yave/func/generator.hpp>
 #include <catch2/catch.hpp>
 
-#include <yave/obj/string.hpp>
+#include <yave/core/objects/string.hpp>
 
 using namespace yave;
 

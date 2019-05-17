@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/tools/id.hpp>
+#include <yave/support/id.hpp>
 
 #include <boost/random/random_device.hpp>
 #include <boost/random/mersenne_twister.hpp>

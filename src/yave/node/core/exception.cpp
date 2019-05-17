@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/exception.hpp>
+#include <yave/node/core/exception.hpp>
 
 namespace yave::parse_error {
 

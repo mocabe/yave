@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
-#include <yave/time/bounded_int.hpp>
+#include <yave/core/config.hpp>
+#include <yave/core/data_types/time/bounded_int.hpp>
 
 #include <chrono>
 

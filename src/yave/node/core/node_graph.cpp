@@ -3,8 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/node_graph.hpp>
-#include <yave/tools/log.hpp>
+#include <yave/node/core/node_graph.hpp>
+#include <yave/support/log.hpp>
 
 namespace yave {
   namespace {

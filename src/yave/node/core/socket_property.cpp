@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/socket_property.hpp>
+#include <yave/node/core/socket_property.hpp>
 
 namespace yave {
 

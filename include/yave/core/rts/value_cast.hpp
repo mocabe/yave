@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include <yave/rts/object_ptr.hpp>
-#include <yave/rts/object_cast.hpp>
-#include <yave/rts/dynamic_typing.hpp>
-#include <yave/rts/bad_value_cast.hpp>
+#include <yave/core/rts/object_ptr.hpp>
+#include <yave/core/rts/object_cast.hpp>
+#include <yave/core/rts/dynamic_typing.hpp>
+#include <yave/core/rts/bad_value_cast.hpp>
 
 #include <exception>
 

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/rts/meta_type.hpp>
+#include <yave/core/rts/meta_type.hpp>
 
 namespace yave {
 

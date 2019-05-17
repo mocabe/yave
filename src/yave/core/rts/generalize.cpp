@@ -3,8 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/rts/generalize.hpp>
-#include <yave/rts/dynamic_typing.hpp>
+#include <yave/core/rts/generalize.hpp>
+#include <yave/core/rts/dynamic_typing.hpp>
 
 namespace yave {
 

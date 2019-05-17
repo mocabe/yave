@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/rts/dynamic_typing.hpp>
+#include <yave/core/rts/dynamic_typing.hpp>
 
 namespace yave {
 

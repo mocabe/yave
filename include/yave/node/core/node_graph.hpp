@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include <yave/node/graph_definition.hpp>
-#include <yave/node/node_handle.hpp>
-#include <yave/node/connection_handle.hpp>
-#include <yave/node/node_info.hpp>
-#include <yave/node/connection_info.hpp>
+#include <yave/node/core/graph_definition.hpp>
+#include <yave/node/core/node_handle.hpp>
+#include <yave/node/core/connection_handle.hpp>
+#include <yave/node/core/node_info.hpp>
+#include <yave/node/core/connection_info.hpp>
 
 #include <optional>
 #include <mutex>

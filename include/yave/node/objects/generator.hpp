@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <yave/rts/function.hpp>
-#include <yave/rts/eval.hpp>
-#include <yave/obj/frame.hpp>
+#include <yave/core/rts/function.hpp>
+#include <yave/core/rts/eval.hpp>
+#include <yave/core/objects/frame.hpp>
 #include <functional>
 
 namespace yave {

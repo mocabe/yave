@@ -3,8 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/rts/box.hpp>
-#include <yave/node/primitive_definition.hpp>
+#include <yave/core/rts/box.hpp>
+#include <yave/core/data_types/primitive.hpp>
 
 namespace yave {
 

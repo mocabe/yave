@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
-#include <yave/image/image.hpp>
-#include <yave/tools/id.hpp>
+#include <yave/core/config.hpp>
+#include <yave/core/data_types/image.hpp>
+#include <yave/support/id.hpp>
 
 #include <vector>
 #include <mutex>

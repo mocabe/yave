@@ -4,7 +4,7 @@
 //
 
 #include <yave/frame_buffer/frame_buffer.hpp>
-#include <yave/obj/frame_buffer.hpp>
+#include <yave/core/objects/frame_buffer.hpp>
 
 namespace yave {
 

@@ -1,6 +1,6 @@
 
-#include <yave/rts/dynamic_typing.hpp>
-#include <yave/rts/value_cast.hpp>
+#include <yave/core/rts/dynamic_typing.hpp>
+#include <yave/core/rts/value_cast.hpp>
 
 namespace yave {
 

@@ -5,9 +5,9 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/rts/function.hpp>
-#include <yave/rts/eval.hpp>
-#include <yave/rts/unit.hpp>
+#include <yave/core/rts/function.hpp>
+#include <yave/core/rts/eval.hpp>
+#include <yave/core/rts/unit.hpp>
 
 #include <iostream>
 

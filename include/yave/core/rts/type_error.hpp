@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/rts/exception.hpp>
+#include <yave/core/rts/exception.hpp>
 
 namespace yave {
 

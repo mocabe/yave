@@ -4,9 +4,9 @@
 //
 
 #include <yave/frame_buffer/frame_buffer_manager.hpp>
-#include <yave/tools/id.hpp>
+#include <yave/support/id.hpp>
 
-#include <yave/rts/atomic.hpp>
+#include <yave/core/rts/atomic.hpp>
 
 namespace yave {
 

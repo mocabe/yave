@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/rts/object.hpp>
+#include <yave/core/rts/object.hpp>
 
 #include <cstring>
 

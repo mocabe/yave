@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/tools/error.hpp>
+#include <yave/support/error.hpp>
 
 namespace yave {
 

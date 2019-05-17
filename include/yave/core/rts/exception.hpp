@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include <yave/rts/box.hpp>
-#include <yave/rts/object_cast.hpp>
+#include <yave/core/rts/box.hpp>
+#include <yave/core/rts/object_cast.hpp>
 
-#include <yave/obj/string.hpp>
+#include <yave/core/objects/string.hpp>
 
 #include <exception>
 

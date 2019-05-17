@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include <yave/rts/meta_type.hpp>
-#include <yave/rts/meta_tuple.hpp>
-#include <yave/rts/meta_set.hpp>
-#include <yave/rts/meta_pair.hpp>
-#include <yave/rts/terms.hpp>
-#include <yave/rts/types.hpp>
+#include <yave/core/rts/meta_type.hpp>
+#include <yave/core/rts/meta_tuple.hpp>
+#include <yave/core/rts/meta_set.hpp>
+#include <yave/core/rts/meta_pair.hpp>
+#include <yave/core/rts/terms.hpp>
+#include <yave/core/rts/types.hpp>
 
 namespace yave {
 

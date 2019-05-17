@@ -5,5 +5,5 @@
 
 #pragma once
 
-#include <yave/rts/box_fwd.hpp>
-#include <yave/rts/type_gen.hpp>
+#include <yave/core/rts/box_fwd.hpp>
+#include <yave/core/rts/type_gen.hpp>

@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/node/node_handle.hpp>
-#include <yave/node/bind_info.hpp>
+#include <yave/node/core/node_handle.hpp>
+#include <yave/node/core/bind_info.hpp>
 
 #include <mutex>
 #include <map>

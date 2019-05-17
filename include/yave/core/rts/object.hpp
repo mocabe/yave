@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/rts/atomic.hpp>
-#include <yave/rts/terms.hpp>
+#include <yave/core/rts/atomic.hpp>
+#include <yave/core/rts/terms.hpp>
 
 #include <cstdint>
 #include <atomic>

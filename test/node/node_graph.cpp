@@ -5,7 +5,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/node/node_graph.hpp>
+#include <yave/node/core/node_graph.hpp>
 
 using namespace yave;
 

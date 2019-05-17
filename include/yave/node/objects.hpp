@@ -5,13 +5,5 @@
 
 #pragma once
 
-#include <yave/core/config.hpp>
-
-namespace yave {
-
-  /// Edge property class for node graph.
-  struct edge_property
-  {
-  };
-
-} // namespace yave
+#include <yave/node/objects/constructor.hpp>
+#include <yave/node/objects/generator.hpp>

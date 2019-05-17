@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/image/image_format2.hpp>
+#include <yave/core/data_types/image/image_format2.hpp>
 
 #include <cstring>
 #include <cstdint>

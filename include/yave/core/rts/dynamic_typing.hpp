@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include <yave/rts/type_gen.hpp>
-#include <yave/rts/apply.hpp>
-#include <yave/rts/exception.hpp>
-#include <yave/rts/type_error.hpp>
-#include <yave/rts/utility.hpp>
-#include <yave/rts/undefined.hpp>
-#include <yave/rts/object_util.hpp>
+#include <yave/core/rts/type_gen.hpp>
+#include <yave/core/rts/apply.hpp>
+#include <yave/core/rts/exception.hpp>
+#include <yave/core/rts/type_error.hpp>
+#include <yave/core/rts/utility.hpp>
+#include <yave/core/rts/undefined.hpp>
+#include <yave/core/rts/object_util.hpp>
 
 #include <vector>
 

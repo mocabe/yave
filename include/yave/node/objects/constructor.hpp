@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/rts/function.hpp>
-#include <yave/obj/frame.hpp>
+#include <yave/core/rts/function.hpp>
+#include <yave/core/objects/frame.hpp>
 
 namespace yave {
 

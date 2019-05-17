@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include <yave/rts/object_ptr.hpp>
-#include <yave/rts/type_value.hpp> // clang requires definition of TypeValue to compile.
-#include <yave/rts/specifiers.hpp>
-#include <yave/rts/terms.hpp>
+#include <yave/core/rts/object_ptr.hpp>
+#include <yave/core/rts/type_value.hpp> // clang requires definition of TypeValue to compile.
+#include <yave/core/rts/specifiers.hpp>
+#include <yave/core/rts/terms.hpp>
 
 #include <cassert>
 

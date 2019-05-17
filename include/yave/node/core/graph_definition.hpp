@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
-#include <yave/graph/graph.hpp>
-#include <yave/node/node_property.hpp>
-#include <yave/node/socket_property.hpp>
-#include <yave/node/edge_property.hpp>
+#include <yave/core/config.hpp>
+#include <yave/core/graph.hpp>
+#include <yave/node/core/node_property.hpp>
+#include <yave/node/core/socket_property.hpp>
+#include <yave/node/core/edge_property.hpp>
 
 namespace yave {
 

@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/connection_info.hpp>
+#include <yave/node/core/connection_info.hpp>
 
 namespace yave {
 

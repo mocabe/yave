@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include <yave/rts/object_ptr.hpp>
+#include <yave/core/rts/object_ptr.hpp>
 
-#include <yave/tools/id.hpp>
-#include <yave/tools/offset_of_member.hpp>
+#include <yave/support/id.hpp>
+#include <yave/support/offset_of_member.hpp>
 
 #include <array>
 #include <cstring>

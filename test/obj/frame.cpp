@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/obj/frame.hpp>
+#include <yave/core/objects/frame.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;

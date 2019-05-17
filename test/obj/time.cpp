@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/obj/time.hpp>
+#include <yave/core/objects/time.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;

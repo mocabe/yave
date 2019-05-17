@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/node/node_info.hpp>
+#include <yave/node/core/node_info.hpp>
 
 #include <map>
 #include <optional>

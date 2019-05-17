@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <yave/node/primitive_definition.hpp>
-#include <yave/rts/object_ptr.hpp>
-#include <yave/node/node_info.hpp>
+#include <yave/core/data_types/primitive.hpp>
+#include <yave/core/rts/object_ptr.hpp>
+#include <yave/node/core/node_info.hpp>
 
 #include <vector>
 #include <functional>

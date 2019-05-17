@@ -5,19 +5,19 @@
 
 #pragma once
 
-#include <yave/tools/offset_of_member.hpp>
+#include <yave/support/offset_of_member.hpp>
 
-#include <yave/rts/static_typing.hpp>
-#include <yave/rts/dynamic_typing.hpp>
-#include <yave/rts/apply.hpp>
-#include <yave/rts/exception.hpp>
-#include <yave/rts/eval_error.hpp>
-#include <yave/rts/bad_value_cast.hpp>
-#include <yave/rts/result_error.hpp>
-#include <yave/rts/type_error.hpp>
-#include <yave/rts/value_cast.hpp>
+#include <yave/core/rts/static_typing.hpp>
+#include <yave/core/rts/dynamic_typing.hpp>
+#include <yave/core/rts/apply.hpp>
+#include <yave/core/rts/exception.hpp>
+#include <yave/core/rts/eval_error.hpp>
+#include <yave/core/rts/bad_value_cast.hpp>
+#include <yave/core/rts/result_error.hpp>
+#include <yave/core/rts/type_error.hpp>
+#include <yave/core/rts/value_cast.hpp>
 
-#include <yave/obj/string.hpp>
+#include <yave/core/objects/string.hpp>
 
 namespace yave {
 

@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <yave/rts/type_gen.hpp>
-#include <yave/rts/object_ptr.hpp>
-#include <yave/rts/undefined.hpp>
+#include <yave/core/rts/type_gen.hpp>
+#include <yave/core/rts/object_ptr.hpp>
+#include <yave/core/rts/undefined.hpp>
 
 namespace yave {
 

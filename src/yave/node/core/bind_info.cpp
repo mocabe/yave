@@ -3,9 +3,9 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/bind_info.hpp>
-#include <yave/obj/primitive.hpp>
-#include <yave/rts/eval.hpp>
+#include <yave/node/core/bind_info.hpp>
+#include <yave/core/objects/primitive.hpp>
+#include <yave/core/rts/eval.hpp>
 
 #include <algorithm>
 

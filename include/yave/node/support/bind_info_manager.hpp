@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/node/bind_info.hpp>
+#include <yave/node/core/bind_info.hpp>
 
 #include <functional>
 #include <mutex>

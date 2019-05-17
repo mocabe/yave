@@ -3,8 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/bind_info_manager.hpp>
-#include <yave/tools/log.hpp>
+#include <yave/node/core/bind_info_manager.hpp>
+#include <yave/support/log.hpp>
 
 namespace yave {
 

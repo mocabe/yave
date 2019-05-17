@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/node/graph_definition.hpp>
-#include <yave/node/descriptor_handle.hpp>
+#include <yave/node/core/graph_definition.hpp>
+#include <yave/node/core/descriptor_handle.hpp>
 
 namespace yave {
 

@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/rts/meta_type.hpp>
-#include <yave/rts/meta_tuple.hpp>
+#include <yave/core/rts/meta_type.hpp>
+#include <yave/core/rts/meta_tuple.hpp>
 
 namespace yave {
 

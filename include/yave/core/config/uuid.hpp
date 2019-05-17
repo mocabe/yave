@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/tools/uuid.hpp>
+#include <yave/support/uuid.hpp>
 
 namespace yave {
 
@@ -14,7 +14,7 @@ namespace yave {
     "d8612c75-4af5-47ab-97a3-77ffce6d556b";
 
   /// namespace UUID data
-  static constexpr const uuid namespace_uuid_data = //
+  static constexpr const uuid namespace_uuid = //
     {0xd8,
      0x61,
      0x2c,

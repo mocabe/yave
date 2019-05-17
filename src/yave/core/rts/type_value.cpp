@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/rts/type_value.hpp>
+#include <yave/core/rts/type_value.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
 namespace yave {

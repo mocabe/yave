@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/rts/object.hpp>
-#include <yave/rts/object_ptr_storage.hpp>
+#include <yave/core/rts/object.hpp>
+#include <yave/core/rts/object_ptr_storage.hpp>
 
 namespace yave {
 

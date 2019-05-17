@@ -3,8 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/frame_buffer/frame_buffer.hpp>
-#include <yave/rts/box.hpp>
+#include <yave/core/data_types/frame_buffer.hpp>
+#include <yave/core/rts/box.hpp>
 
 namespace yave {
 
