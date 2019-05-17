@@ -22,7 +22,7 @@ namespace yave {
     /// socket type
     object_ptr<const Type> type;
     /// bind info
-    const bind_info* bind_info;
+    const yave::bind_info* bind_info;
   };
 
   /// Socket instance manager
