@@ -21,9 +21,7 @@ namespace yave {
   struct exception_object_value
   {
     template <class T>
-    exception_object_value(
-      object_ptr<const String::String> msg,
-      object_ptr<T> err)
+    exception_object_value(object_ptr<const String> msg, object_ptr<T> err)
       : message {std::move(msg)}
       , error_value {std::move(err)}
     {
@@ -31,12 +29,12 @@ namespace yave {
 
     template <class T>
     exception_object_value(const char* msg, object_ptr<T> err)
-      : exception_object_value(make_object<String::String>(msg), std::move(err))
+      : exception_object_value(make_object<String>(msg), std::move(err))
     {
     }
 
     /// message
-    object_ptr<const String::String> message;
+    object_ptr<const String> message;
     /// pointer to error value
     object_ptr<const Object> error_value;
   };

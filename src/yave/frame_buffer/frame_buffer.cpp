@@ -38,11 +38,10 @@ namespace yave {
     m_manager.unref(m_id);
   }
 
-  [[nodiscard]] object_ptr<FrameBuffer::FrameBuffer> frame_buffer::get() const
+  [[nodiscard]] object_ptr<FrameBuffer> frame_buffer::get() const
   {
     // copy to new buffer
-    return make_object<FrameBuffer::FrameBuffer>(
-      m_manager, m_manager.create(m_id));
+    return make_object<FrameBuffer>(m_manager, m_manager.create(m_id));
   }
 
   [[nodiscard]] image_view frame_buffer::get_image_view() const

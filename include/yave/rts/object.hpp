@@ -23,7 +23,7 @@ namespace yave {
   // type variable
   struct var_type;
   // TypeValue
-  class type_object_value;
+  class type_value;
 
   // object info table
   struct object_info_table;
@@ -37,7 +37,7 @@ namespace yave {
   class object_ptr;
 
   // heap-allocated runtime type infomation
-  using Type = Box<type_object_value>;
+  using Type = Box<type_value>;
 
   /// Base class of heap-allocated objects
   struct Object

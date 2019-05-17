@@ -8,11 +8,9 @@
 
 namespace yave {
 
-  namespace Image {
-    /// Image object
-    using Image = Box<image>;
-  } // namespace Image
+  /// Image object
+  using Image = Box<image>;
 
 } // namespace yave
 
-YAVE_DECL_TYPE(yave::Image::Image, "98a416df-5373-4142-80af-6b064fe2b664");
+YAVE_DECL_TYPE(yave::Image, "98a416df-5373-4142-80af-6b064fe2b664");

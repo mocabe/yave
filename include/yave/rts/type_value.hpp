@@ -62,33 +62,33 @@ namespace yave {
   // ------------------------------------------
   // TypeValue
 
-  struct type_object_value_storage
+  struct type_value_storage
   {
 
     /// default ctor is disabled
-    type_object_value_storage() = delete;
+    type_value_storage() = delete;
 
     // initializers
-    type_object_value_storage(value_type t)
+    type_value_storage(value_type t)
       : value {std::move(t)}
       , index {value_index}
     {
     }
 
-    type_object_value_storage(arrow_type t)
+    type_value_storage(arrow_type t)
       : arrow {std::move(t)}
       , index {arrow_index}
     {
     }
 
-    type_object_value_storage(var_type t)
+    type_value_storage(var_type t)
       : var {std::move(t)}
       , index {var_index}
     {
     }
 
     /// Copy constructor
-    type_object_value_storage(const type_object_value_storage& other)
+    type_value_storage(const type_value_storage& other)
       : index {other.index}
     {
       // copy union
@@ -104,7 +104,7 @@ namespace yave {
     }
 
     /// Destructor
-    ~type_object_value_storage() noexcept
+    ~type_value_storage() noexcept
     {
       // call destructor
       if (index == value_index)
@@ -146,47 +146,47 @@ namespace yave {
     uint64_t index;
   };
 
-  static_assert(offset_of_member(&type_object_value_storage::value) == 0);
-  static_assert(offset_of_member(&type_object_value_storage::arrow) == 0);
-  static_assert(offset_of_member(&type_object_value_storage::var) == 0);
+  static_assert(offset_of_member(&type_value_storage::value) == 0);
+  static_assert(offset_of_member(&type_value_storage::arrow) == 0);
+  static_assert(offset_of_member(&type_value_storage::var) == 0);
 
   /// Base class for TypeValue
-  class type_object_value : type_object_value_storage
+  class type_value : type_value_storage
   {
-    friend const type_object_value_storage&    //
-      _get_storage(const type_object_value&);  //
-                                               //
-    friend type_object_value_storage&          //
-      _get_storage(type_object_value&);        //
-                                               //
-    friend const type_object_value_storage&&   //
-      _get_storage(const type_object_value&&); //
-                                               //
-    friend type_object_value_storage&&         //
-      _get_storage(type_object_value&&);       //
+    friend const type_value_storage&    //
+      _get_storage(const type_value&);  //
+                                        //
+    friend type_value_storage&          //
+      _get_storage(type_value&);        //
+                                        //
+    friend const type_value_storage&&   //
+      _get_storage(const type_value&&); //
+                                        //
+    friend type_value_storage&&         //
+      _get_storage(type_value&&);       //
 
-    using base = type_object_value_storage;
+    using base = type_value_storage;
 
   public:
     /// default ctor is disabled
-    type_object_value() = delete;
+    type_value() = delete;
 
-    type_object_value(value_type t) noexcept
+    type_value(value_type t) noexcept
       : base {t}
     {
     }
 
-    type_object_value(arrow_type t) noexcept
+    type_value(arrow_type t) noexcept
       : base {t}
     {
     }
 
-    type_object_value(var_type t) noexcept
+    type_value(var_type t) noexcept
       : base {t}
     {
     }
 
-    type_object_value(const type_object_value& other) noexcept
+    type_value(const type_value& other) noexcept
       : base {other}
     {
     }
@@ -195,26 +195,24 @@ namespace yave {
   // ------------------------------------------
   // _get_storage
 
-  [[nodiscard]] inline const type_object_value_storage&
-    _get_storage(const type_object_value& v)
+  [[nodiscard]] inline const type_value_storage&
+    _get_storage(const type_value& v)
   {
     return v;
   }
 
-  [[nodiscard]] inline type_object_value_storage&
-    _get_storage(type_object_value& v)
+  [[nodiscard]] inline type_value_storage& _get_storage(type_value& v)
   {
     return v;
   }
 
-  [[nodiscard]] inline const type_object_value_storage&&
-    _get_storage(const type_object_value&& v)
+  [[nodiscard]] inline const type_value_storage&&
+    _get_storage(const type_value&& v)
   {
     return std::move(v);
   }
 
-  [[nodiscard]] inline type_object_value_storage&&
-    _get_storage(type_object_value&& v)
+  [[nodiscard]] inline type_value_storage&& _get_storage(type_value&& v)
   {
     return std::move(v);
   }
@@ -226,17 +224,17 @@ namespace yave {
     size_t Idx,
     class T,
     std::enable_if_t<
-      std::is_same_v<std::decay_t<T>, type_object_value_storage>,
+      std::is_same_v<std::decay_t<T>, type_value_storage>,
       nullptr_t>* = nullptr>
   [[nodiscard]] constexpr decltype(auto) _access(T&& v)
   {
-    if constexpr (Idx == type_object_value_storage::value_index) {
+    if constexpr (Idx == type_value_storage::value_index) {
       auto&& ref = std::forward<T>(v).value;
       return ref;
-    } else if constexpr (Idx == type_object_value_storage::arrow_index) {
+    } else if constexpr (Idx == type_value_storage::arrow_index) {
       auto&& ref = std::forward<T>(v).arrow;
       return ref;
-    } else if constexpr (Idx == type_object_value_storage::var_index) {
+    } else if constexpr (Idx == type_value_storage::var_index) {
       auto&& ref = std::forward<T>(v).var;
       return ref;
     } else {
@@ -248,7 +246,7 @@ namespace yave {
     size_t Idx,
     class T,
     std::enable_if_t<
-      std::is_same_v<std::decay_t<T>, type_object_value_storage>,
+      std::is_same_v<std::decay_t<T>, type_value_storage>,
       nullptr_t>* = nullptr>
   [[nodiscard]] constexpr decltype(auto) _get(T&& v)
   {
@@ -262,42 +260,42 @@ namespace yave {
 
   /// std::get() equivalent
   template <class T>
-  [[nodiscard]] decltype(auto) get(const type_object_value& val)
+  [[nodiscard]] decltype(auto) get(const type_value& val)
   {
     auto&& storage = _get_storage(val);
-    return _get<type_object_value_storage::type_index<T>()>(storage);
+    return _get<type_value_storage::type_index<T>()>(storage);
   }
 
   /// std::get() equivalent
   template <class T>
-  [[nodiscard]] decltype(auto) get(const type_object_value&& val)
+  [[nodiscard]] decltype(auto) get(const type_value&& val)
   {
     auto&& storage = _get_storage(std::move(val));
-    return _get<type_object_value_storage::type_index<T>()>(storage);
+    return _get<type_value_storage::type_index<T>()>(storage);
   }
 
   /// std::get() equivalent
   template <class T>
-  [[nodiscard]] decltype(auto) get(type_object_value& val)
+  [[nodiscard]] decltype(auto) get(type_value& val)
   {
     auto&& storage = _get_storage(val);
-    return _get<type_object_value_storage::type_index<T>()>(storage);
+    return _get<type_value_storage::type_index<T>()>(storage);
   }
 
   /// std::get() equivalent
   template <class T>
-  [[nodiscard]] decltype(auto) get(type_object_value&& val)
+  [[nodiscard]] decltype(auto) get(type_value&& val)
   {
     auto&& storage = _get_storage(std::move(val));
-    return _get<type_object_value_storage::type_index<T>()>(storage);
+    return _get<type_value_storage::type_index<T>()>(storage);
   }
 
   /// std::get_if() equivalent
   template <class T>
   [[nodiscard]] constexpr std::add_pointer_t<const T>
-    get_if(const type_object_value* val)
+    get_if(const type_value* val)
   {
-    constexpr auto Idx = type_object_value_storage::type_index<T>();
+    constexpr auto Idx = type_value_storage::type_index<T>();
     if (val && Idx == _get_storage(*val).index)
       return &get<T>(*val);
     return nullptr;
@@ -305,9 +303,9 @@ namespace yave {
 
   /// std::get_if() equivalent
   template <class T>
-  [[nodiscard]] constexpr std::add_pointer_t<T> get_if(type_object_value* val)
+  [[nodiscard]] constexpr std::add_pointer_t<T> get_if(type_value* val)
   {
-    constexpr auto Idx = type_object_value_storage::type_index<T>();
+    constexpr auto Idx = type_value_storage::type_index<T>();
     if (val && Idx == _get_storage(*val).index)
       return &get<T>(*val);
     return nullptr;

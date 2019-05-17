@@ -15,7 +15,7 @@ namespace yave {
     return std::visit(
       overloaded {
         [](const std::string& str) -> object_ptr<> {
-          return make_object<Constructor<String::String>>(str);
+          return make_object<Constructor<String>>(str);
         },
         [](const auto& a) -> object_ptr<> {
           return make_object<Constructor<Box<std::decay_t<decltype(a)>>>>(a);
@@ -27,9 +27,7 @@ namespace yave {
   {
     return std::visit(
       overloaded {
-        [](const std::string&) {
-          return object_type<Constructor<String::String>>();
-        },
+        [](const std::string&) { return object_type<Constructor<String>>(); },
         [](const auto& a) {
           return object_type<Constructor<Box<std::decay_t<decltype(a)>>>>();
         }},

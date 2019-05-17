@@ -15,11 +15,7 @@ namespace yave {
   /// UnaryFunction
   template <class T1, class TR, class E>
   struct UnaryFunction //
-    : Function<
-        UnaryFunction<T1, TR, E>,
-        closure<Frame::Frame, T1>,
-        Frame::Frame,
-        TR>
+    : Function<UnaryFunction<T1, TR, E>, closure<Frame, T1>, Frame, TR>
   {
     typename UnaryFunction::return_type code() const
     {
@@ -34,9 +30,9 @@ namespace yave {
   struct BinaryFunction //
     : Function<
         BinaryFunction<T1, T2, TR, E>,
-        closure<Frame::Frame, T1>,
-        closure<Frame::Frame, T2>,
-        Frame::Frame,
+        closure<Frame, T1>,
+        closure<Frame, T2>,
+        Frame,
         TR>
   {
     typename BinaryFunction::return_type code() const
@@ -53,10 +49,10 @@ namespace yave {
   struct TernaryFunction //
     : Function<
         TernaryFunction<T1, T2, T3, TR, E>,
-        closure<Frame::Frame, T1>,
-        closure<Frame::Frame, T2>,
-        closure<Frame::Frame, T3>,
-        Frame::Frame,
+        closure<Frame, T1>,
+        closure<Frame, T2>,
+        closure<Frame, T3>,
+        Frame,
         TR>
   {
     typename TernaryFunction::return_type code() const
@@ -74,11 +70,11 @@ namespace yave {
   struct QuaternaryFunction //
     : Function<
         QuaternaryFunction<T1, T2, T3, T4, TR, E>,
-        closure<Frame::Frame, T1>,
-        closure<Frame::Frame, T2>,
-        closure<Frame::Frame, T3>,
-        closure<Frame::Frame, T4>,
-        Frame::Frame,
+        closure<Frame, T1>,
+        closure<Frame, T2>,
+        closure<Frame, T3>,
+        closure<Frame, T4>,
+        Frame,
         TR>
   {
     typename QuaternaryFunction::return_type code() const

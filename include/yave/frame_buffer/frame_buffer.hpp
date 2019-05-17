@@ -18,9 +18,7 @@ namespace yave {
 
   class frame_buffer;
 
-  namespace FrameBuffer {
-    using FrameBuffer = Box<frame_buffer>; // obj/frame_buffer.hpp
-  }
+  using FrameBuffer = Box<frame_buffer>; // obj/frame_buffer.hpp
 
   /// Provides interface to acquire frame buffer.
   /// All frame buffers are allocated and managed by system.
@@ -39,7 +37,7 @@ namespace yave {
     ~frame_buffer() noexcept;
 
     /// Get frame buffer object.
-    [[nodiscard]] object_ptr<FrameBuffer::FrameBuffer> get() const;
+    [[nodiscard]] object_ptr<FrameBuffer> get() const;
     /// Get image view.
     [[nodiscard]] image_view get_image_view() const;
 

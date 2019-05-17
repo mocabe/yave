@@ -12,7 +12,7 @@ namespace yave {
 
   /// Constructor (factory) function for primitive data types
   template <class T>
-  struct Constructor : Function<Constructor<T>, Frame::Frame, T>
+  struct Constructor : Function<Constructor<T>, Frame, T>
   {
     /// Ctor
     Constructor()

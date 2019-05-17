@@ -9,11 +9,8 @@
 #include <yave/rts/box.hpp>
 
 namespace yave {
-  /// Namespace for Time object and functions.
-  namespace Time {
-    /// Time object
-    using Time = Box<time>;
-  } // namespace Time
+  /// Time object
+  using Time = Box<time>;
 } // namespace yave
 
-YAVE_DECL_TYPE(yave::Time::Time, "074d6cdc-82dc-4f42-99d7-5e556543038e");
+YAVE_DECL_TYPE(yave::Time, "074d6cdc-82dc-4f42-99d7-5e556543038e");

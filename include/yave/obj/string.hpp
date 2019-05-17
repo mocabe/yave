@@ -74,20 +74,18 @@ namespace yave {
     char* m_ptr;
   };
 
-  namespace String {
-    /// UTF-8 String object.
-    /// Does not handle anything about other encodings. User must ensure
-    /// input byte sequence is null(`0x00`)-terminated UTF-8 string.
-    using String = Box<yave::string>;
-  } // namespace String
+  /// UTF-8 String object.
+  /// Does not handle anything about other encodings. User must ensure
+  /// input byte sequence is null(`0x00`)-terminated UTF-8 string.
+  using String = Box<yave::string>;
 
   namespace literals {
 
     /// String object literal
-    [[nodiscard]] inline object_ptr<String::String>
+    [[nodiscard]] inline object_ptr<String>
       operator"" _S(const char* str, size_t)
     {
-      return make_object<String::String>(str);
+      return make_object<String>(str);
     }
 
   } // namespace literals
@@ -95,4 +93,4 @@ namespace yave {
 } // namespace yave
 
 // String
-YAVE_DECL_TYPE(yave::String::String, "1198939c-c273-4875-a229-245abad7ef04");
+YAVE_DECL_TYPE(yave::String, "1198939c-c273-4875-a229-245abad7ef04");

@@ -53,7 +53,7 @@ TEST_CASE("frame_buffer")
   SECTION("obj")
   {
     frame_buffer_manager mngr(image_format::RGBA8UI, 1920, 1080);
-    const auto f1 = make_object<FrameBuffer::FrameBuffer>(mngr);
+    const auto f1 = make_object<FrameBuffer>(mngr);
     REQUIRE(mngr.size() == 1);
     auto view = f1->get_image_view();
     REQUIRE(view.image_format() == mngr.format());

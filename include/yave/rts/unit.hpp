@@ -10,12 +10,12 @@
 namespace yave {
 
   /// UnitValue
-  struct UnitValue
+  struct unit_value
   {
   };
 
   /// Unit
-  using Unit = Box<UnitValue>;
+  using Unit = Box<unit_value>;
 
 } // namespace yave
 

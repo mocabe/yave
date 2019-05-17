@@ -12,12 +12,12 @@ TEST_CASE("time")
 {
   SECTION("make_object")
   {
-    [[maybe_unused]] auto v0 = make_object<const Time::Time>();
-    [[maybe_unused]] auto v1 = make_object<const Time::Time>(0);
-    [[maybe_unused]] auto v2 = make_object<const Time::Time>(time::zero());
+    [[maybe_unused]] auto v0 = make_object<const Time>();
+    [[maybe_unused]] auto v1 = make_object<const Time>(0);
+    [[maybe_unused]] auto v2 = make_object<const Time>(time::zero());
   }
   SECTION("access")
   {
-    [[maybe_unused]] auto v = make_object<const Time::Time>()->int_value();
+    [[maybe_unused]] auto v = make_object<const Time>()->int_value();
   }
 }

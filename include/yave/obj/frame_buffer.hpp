@@ -7,13 +7,10 @@
 #include <yave/rts/box.hpp>
 
 namespace yave {
-  /// namespace for FrameBuffer object and functions
-  namespace FrameBuffer {
-    /// Frame buffer object
-    using FrameBuffer = Box<frame_buffer>;
-  } // namespace FrameBuffer
+
+  /// Frame buffer object
+  using FrameBuffer = Box<frame_buffer>;
+
 } // namespace yave
 
-YAVE_DECL_TYPE(
-  yave::FrameBuffer::FrameBuffer,
-  "cfad3b2d-4979-4cae-b63b-30be9b8d60eb");
+YAVE_DECL_TYPE(yave::FrameBuffer, "cfad3b2d-4979-4cae-b63b-30be9b8d60eb");
