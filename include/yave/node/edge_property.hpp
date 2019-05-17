@@ -10,7 +10,7 @@
 namespace yave {
 
   /// Edge property class for node graph.
-  struct EdgeProperty
+  struct edge_property
   {
   };
 

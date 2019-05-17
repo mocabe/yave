@@ -14,13 +14,13 @@
 namespace yave {
 
   /// Node property class for node graph.
-  class NodeProperty
+  class node_property
   {
   public:
     /// Primitive ctor.
-    NodeProperty(const std::string& name, const primitive_t& prim);
+    node_property(const std::string& name, const primitive_t& prim);
     /// Non-primitive ctor.
-    NodeProperty(const std::string& name, std::monostate);
+    node_property(const std::string& name, std::monostate);
 
     /// Check primitive node.
     bool is_prim() const;

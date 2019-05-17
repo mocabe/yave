@@ -36,17 +36,17 @@ namespace yave {
   [[nodiscard]] object_ptr<const Type> get_primitive_type(const primitive_t& v);
 
   /// get primitive node info
-  [[nodiscard]] NodeInfo get_primitive_info(const primitive_t& v);
+  [[nodiscard]] node_info get_primitive_info(const primitive_t& v);
 
   /// get primitive bind info
-  [[nodiscard]] BindInfo get_primitive_bind_info(const primitive_t& v);
+  [[nodiscard]] bind_info get_primitive_bind_info(const primitive_t& v);
 
   /// get primitive name list
   [[nodiscard]] std::vector<std::string> get_primitive_name_list();
 
   /// get primitive info list
-  [[nodiscard]] std::vector<NodeInfo> get_primitive_info_list();
+  [[nodiscard]] std::vector<node_info> get_primitive_info_list();
 
   /// get primitive bind list
-  [[nodiscard]] std::vector<BindInfo> get_primitive_bind_info_list();
+  [[nodiscard]] std::vector<bind_info> get_primitive_bind_info_list();
 } // namespace yave

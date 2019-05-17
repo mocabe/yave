@@ -11,35 +11,35 @@ namespace yave {
 
   /// Simple wrapper for descriptor pointers.
   template <class Descriptor>
-  class DescriptorHandle
+  class descriptor_handle
   {
   public:
     /// Constructor
-    constexpr DescriptorHandle() noexcept
+    constexpr descriptor_handle() noexcept
       : m_descriptor {nullptr}
       , m_id {0}
     {
     }
     /// Constructor
-    constexpr DescriptorHandle(nullptr_t) noexcept
+    constexpr descriptor_handle(nullptr_t) noexcept
       : m_descriptor {nullptr}
       , m_id {0}
     {
     }
     /// Constructor
-    explicit constexpr DescriptorHandle(const Descriptor& d, uid id) noexcept
+    explicit constexpr descriptor_handle(const Descriptor& d, uid id) noexcept
       : m_descriptor {d}
       , m_id {id}
     {
     }
     /// Copy Constructor
-    constexpr DescriptorHandle(const DescriptorHandle&) = default;
+    constexpr descriptor_handle(const descriptor_handle&) = default;
     /// Move Constructor
-    constexpr DescriptorHandle(DescriptorHandle&&) = default;
+    constexpr descriptor_handle(descriptor_handle&&) = default;
     /// operator=
-    constexpr DescriptorHandle& operator=(const DescriptorHandle&) = default;
+    constexpr descriptor_handle& operator=(const descriptor_handle&) = default;
     /// operator=
-    constexpr DescriptorHandle& operator=(DescriptorHandle&&) = default;
+    constexpr descriptor_handle& operator=(descriptor_handle&&) = default;
 
     /// check if having valid value
     [[nodiscard]] constexpr bool has_value() const noexcept
@@ -75,8 +75,8 @@ namespace yave {
   /// operator==
   template <class D>
   [[nodiscard]] constexpr bool operator==(
-    const DescriptorHandle<D>& lhs,
-    const DescriptorHandle<D>& rhs) noexcept
+    const descriptor_handle<D>& lhs,
+    const descriptor_handle<D>& rhs) noexcept
   {
     return lhs.id() == rhs.id();
   }
@@ -84,8 +84,8 @@ namespace yave {
   /// operator!=
   template <class D>
   [[nodiscard]] constexpr bool operator!=(
-    const DescriptorHandle<D>& lhs,
-    const DescriptorHandle<D>& rhs) noexcept
+    const descriptor_handle<D>& lhs,
+    const descriptor_handle<D>& rhs) noexcept
   {
     return lhs.id() != rhs.id();
   }
@@ -93,8 +93,8 @@ namespace yave {
   /// operator<
   template <class D>
   [[nodiscard]] constexpr bool operator<(
-    const DescriptorHandle<D>& lhs,
-    const DescriptorHandle<D>& rhs) noexcept
+    const descriptor_handle<D>& lhs,
+    const descriptor_handle<D>& rhs) noexcept
   {
     return lhs.id() < rhs.id();
   }
@@ -102,8 +102,8 @@ namespace yave {
   /// operator>
   template <class D>
   [[nodiscard]] constexpr bool operator>(
-    const DescriptorHandle<D>& lhs,
-    const DescriptorHandle<D>& rhs) noexcept
+    const descriptor_handle<D>& lhs,
+    const descriptor_handle<D>& rhs) noexcept
   {
     return lhs.id() > rhs.id();
   }

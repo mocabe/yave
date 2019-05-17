@@ -11,6 +11,6 @@
 namespace yave {
 
   /// Handle of socket connection
-  using ConnectionHandle = DescriptorHandle<graph_t::edge_descriptor_type>;
+  using connection_handle = descriptor_handle<graph_t::edge_descriptor_type>;
 
 } // namespace yave

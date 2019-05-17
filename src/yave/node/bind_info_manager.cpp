@@ -8,43 +8,44 @@
 
 namespace yave {
 
-  BindInfoManager::BindInfoManager()
+  bind_info_manager::bind_info_manager()
     : m_info {}
     , m_mtx {}
   {
   }
 
-  BindInfoManager::BindInfoManager(const BindInfoManager& other)
+  bind_info_manager::bind_info_manager(const bind_info_manager& other)
     : m_info {other.m_info}
     , m_mtx {}
   {
   }
 
-  BindInfoManager::BindInfoManager(BindInfoManager&& other)
+  bind_info_manager::bind_info_manager(bind_info_manager&& other)
     : m_info {std::move(other.m_info)}
     , m_mtx {}
   {
   }
 
-  BindInfoManager& BindInfoManager::operator=(const BindInfoManager& other)
+  bind_info_manager& bind_info_manager::
+    operator=(const bind_info_manager& other)
   {
     m_info = other.m_info;
     return *this;
   }
 
-  BindInfoManager& BindInfoManager::operator=(BindInfoManager&& other)
+  bind_info_manager& bind_info_manager::operator=(bind_info_manager&& other)
   {
     m_info = std::move(other.m_info);
     return *this;
   }
 
-  [[nodiscard]] bool BindInfoManager::add(const BindInfo& info)
+  [[nodiscard]] bool bind_info_manager::add(const bind_info& info)
   {
     auto iter = m_info.emplace(info.name(), std::make_shared<info_type>(info));
     return iter != m_info.end();
   }
 
-  void BindInfoManager::remove(const std::string& name)
+  void bind_info_manager::remove(const std::string& name)
   {
     auto [bgn, end] = m_info.equal_range(name);
 
@@ -55,7 +56,7 @@ namespace yave {
     }
   }
 
-  void BindInfoManager::remove(
+  void bind_info_manager::remove(
     const std::string& name,
     const std::vector<std::string>& input,
     const std::string& output)
@@ -74,13 +75,13 @@ namespace yave {
     }
   }
 
-  [[nodiscard]] bool BindInfoManager::exists(const std::string& name) const
+  [[nodiscard]] bool bind_info_manager::exists(const std::string& name) const
   {
     return m_info.find(name) != m_info.end();
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const BindInfoManager::info_type>>
-    BindInfoManager::enumerate()
+  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+    bind_info_manager::enumerate()
   {
     std::vector<std::shared_ptr<const info_type>> ret;
     for (auto&& [name, ptr] : m_info) {
@@ -90,8 +91,8 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const BindInfoManager::info_type>>
-    BindInfoManager::find(const std::string& name) const
+  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+    bind_info_manager::find(const std::string& name) const
   {
     auto [bgn, end] = m_info.equal_range(name);
 
@@ -102,8 +103,8 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const BindInfoManager::info_type>>
-    BindInfoManager::find(
+  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+    bind_info_manager::find(
       const std::string& name,
       const std::vector<std::string>& input,
       const std::string& output) const
@@ -120,21 +121,21 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const BindInfoManager::info_type>>
-    BindInfoManager::find(const BindInfo& info) const
+  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+    bind_info_manager::find(const bind_info& info) const
   {
     return find(info.name(), info.input_sockets(), info.output_socket());
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const BindInfoManager::info_type>>
-    BindInfoManager::find_matched(const NodeInfo& info) const
+  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+    bind_info_manager::find_matched(const node_info& info) const
   {
     return find_matched(
       info.name(), info.input_sockets(), info.output_sockets());
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const BindInfoManager::info_type>>
-    BindInfoManager::find_matched(
+  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+    bind_info_manager::find_matched(
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets) const
@@ -149,12 +150,12 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] std::unique_lock<std::mutex> BindInfoManager::lock() const
+  [[nodiscard]] std::unique_lock<std::mutex> bind_info_manager::lock() const
   {
     return std::unique_lock(m_mtx);
   }
 
-  void BindInfoManager::clear()
+  void bind_info_manager::clear()
   {
     m_info.clear();
   }

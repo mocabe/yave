@@ -7,26 +7,26 @@
 
 namespace yave::parse_error {
 
-  parse_error::parse_error(const std::string& message, const NodeHandle& h)
+  parse_error::parse_error(const std::string& message, const node_handle& h)
     : std::logic_error("parse_error: " + message)
     , m_node {h}
   {
   }
 
-  parse_error::parse_error(const char* message, const NodeHandle& h)
+  parse_error::parse_error(const char* message, const node_handle& h)
     : std::logic_error("parse_error: " + std::string(message))
     , m_node {h}
   {
   }
 
-  NodeHandle parse_error::node() const noexcept
+  node_handle parse_error::node() const noexcept
   {
     return m_node;
   }
 
   no_overloading::no_overloading(
     const std::string& msg,
-    const NodeHandle& h,
+    const node_handle& h,
     const object_ptr<const Type>& tp)
     : parse_error(msg, h)
     , m_type {tp}
@@ -41,7 +41,7 @@ namespace yave::parse_error {
   ambiguous_overloading::ambiguous_overloading(
     const std::string& msg,
     const object_ptr<const Type>& tp,
-    const NodeHandle& h)
+    const node_handle& h)
     : parse_error(msg, h)
     , m_type {tp}
   {
@@ -54,7 +54,7 @@ namespace yave::parse_error {
 
   root_type_missmatch::root_type_missmatch(
     const std::string& msg,
-    const NodeHandle& h,
+    const node_handle& h,
     const object_ptr<const Type>& expected,
     const object_ptr<const Type>& provided)
     : parse_error(msg, h)

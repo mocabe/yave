@@ -15,46 +15,46 @@
 namespace yave {
 
   /// Socket instance cache
-  struct SocketInstance
+  struct socket_instance
   {
     /// socket object
     object_ptr<> object;
     /// socket type
     object_ptr<const Type> type;
     /// bind info
-    const BindInfo* bind_info;
+    const bind_info* bind_info;
   };
 
   /// Socket instance manager
-  class SocketInstanceManager
+  class socket_instance_manager
   {
   public:
     /// Constructor
-    SocketInstanceManager();
+    socket_instance_manager();
     /// Copy constructor
-    SocketInstanceManager(const SocketInstanceManager& other);
+    socket_instance_manager(const socket_instance_manager& other);
     /// Move constructor
-    SocketInstanceManager(SocketInstanceManager&& other);
+    socket_instance_manager(socket_instance_manager&& other);
     /// operator=
-    SocketInstanceManager& operator=(const SocketInstanceManager& other);
+    socket_instance_manager& operator=(const socket_instance_manager& other);
     /// operator=
-    SocketInstanceManager& operator=(SocketInstanceManager&& other);
+    socket_instance_manager& operator=(socket_instance_manager&& other);
 
     /// find instance
-    std::optional<SocketInstance>
-      find(const NodeHandle& h, const std::string& socket) const;
+    std::optional<socket_instance>
+      find(const node_handle& h, const std::string& socket) const;
 
     /// add instance
     void add(
-      const NodeHandle& h,
+      const node_handle& h,
       const std::string& socket,
-      const SocketInstance& instance);
+      const socket_instance& instance);
 
     /// remove instance
-    void remove(const NodeHandle& h, const std::string& socket);
+    void remove(const node_handle& h, const std::string& socket);
 
     /// remove instances
-    void remove(const NodeHandle& h);
+    void remove(const node_handle& h);
 
     /// lock
     [[nodiscard]] std::unique_lock<std::mutex> lock() const;
@@ -69,12 +69,12 @@ namespace yave {
     struct instanceTable
     {
       std::string socket;
-      SocketInstance instance;
+      socket_instance instance;
     };
 
   private:
     /// map
-    std::multimap<NodeHandle, instanceTable> m_map;
+    std::multimap<node_handle, instanceTable> m_map;
     /// mutex
     mutable std::mutex m_mtx;
   };

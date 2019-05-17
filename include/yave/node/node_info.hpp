@@ -10,19 +10,19 @@
 
 namespace yave {
 
-  /// NodeInfo represents node interface for frontend.
+  /// node_info represents node interface for frontend.
   /// Each node can have multiple input sockets and output sockets.
   /// Sockets are represented by string name, and you cannot have duplicated
   /// socket name for each of both input/output sockets.
-  class NodeInfo
+  class node_info
   {
   public:
-    NodeInfo()                = delete;
-    NodeInfo(const NodeInfo&) = default;
-    NodeInfo(NodeInfo&&)      = default;
-    NodeInfo& operator=(const NodeInfo&) = default;
-    NodeInfo& operator=(NodeInfo&&) = default;
-    NodeInfo(
+    node_info()                 = delete;
+    node_info(const node_info&) = default;
+    node_info(node_info&&)      = default;
+    node_info& operator=(const node_info&) = default;
+    node_info& operator=(node_info&&) = default;
+    node_info(
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets,
@@ -67,9 +67,9 @@ namespace yave {
   };
 
   /// operator==
-  [[nodiscard]] bool operator==(const NodeInfo& lhs, const NodeInfo& rhs);
+  [[nodiscard]] bool operator==(const node_info& lhs, const node_info& rhs);
 
   /// operator!=
-  [[nodiscard]] bool operator!=(const NodeInfo& lhs, const NodeInfo& rhs);
+  [[nodiscard]] bool operator!=(const node_info& lhs, const node_info& rhs);
 
 } // namespace yave

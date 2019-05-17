@@ -15,22 +15,22 @@
 namespace yave {
 
   /// typeless bind information
-  class BindInfo
+  class bind_info
   {
   public:
     /// Default ctor (deleted)
-    BindInfo() = delete;
+    bind_info() = delete;
     /// Copy ctor.
-    BindInfo(const BindInfo&) = default;
+    bind_info(const bind_info&) = default;
     /// Mode ctor.
-    BindInfo(BindInfo&&) = default;
+    bind_info(bind_info&&) = default;
     /// operator=
-    BindInfo& operator=(const BindInfo&) = default;
+    bind_info& operator=(const bind_info&) = default;
     /// operator=
-    BindInfo& operator=(BindInfo&&) = default;
+    bind_info& operator=(bind_info&&) = default;
 
     /// Create new bind info.
-    /// \param Name name of bind (should match to target NodeInfo::name())
+    /// \param Name name of bind (should match to target node_info::name())
     /// \param input_sockets List of input socket names. All names shoule be
     /// unique and sorted. If not sorted, constructor will automatically sort
     /// it.
@@ -41,7 +41,7 @@ namespace yave {
     /// << make_object<Primitive>())` should not throw.
     /// \param description Description of this bind.
     /// \throws std::invalid_argument when arguments are invalid.
-    BindInfo(
+    bind_info(
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::string& output_socket,
@@ -95,8 +95,8 @@ namespace yave {
     [[nodiscard]] object_ptr<const Object>
       get_instance(const primitive_t& prim) const;
 
-    /// Check if this bind matches to NodeInfo.
-    [[nodiscard]] bool matches(const NodeInfo& info) const;
+    /// Check if this bind matches to node_info.
+    [[nodiscard]] bool matches(const node_info& info) const;
 
     /// Check if this bind matches to node info.
     [[nodiscard]] bool matches(

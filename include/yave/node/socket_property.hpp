@@ -12,7 +12,7 @@
 namespace yave {
 
   /// Socket property class for node graph.
-  class SocketProperty
+  class socket_property
   {
   public:
     /// input tag
@@ -29,9 +29,9 @@ namespace yave {
     static constexpr output_t output = {};
 
     /// Input ctor.
-    SocketProperty(const std::string& name, input_t);
+    socket_property(const std::string& name, input_t);
     /// Output ctor.
-    SocketProperty(const std::string& name, output_t);
+    socket_property(const std::string& name, output_t);
 
     /// Check input.
     [[nodiscard]] bool is_input() const;

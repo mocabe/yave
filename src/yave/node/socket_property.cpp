@@ -7,29 +7,29 @@
 
 namespace yave {
 
-  SocketProperty::SocketProperty(const std::string& name, input_t)
+  socket_property::socket_property(const std::string& name, input_t)
     : m_name {name}
     , m_is_input {true}
   {
   }
 
-  SocketProperty::SocketProperty(const std::string& name, output_t)
+  socket_property::socket_property(const std::string& name, output_t)
     : m_name {name}
     , m_is_input {false}
   {
   }
 
-  bool SocketProperty::is_input() const
+  bool socket_property::is_input() const
   {
     return m_is_input;
   }
 
-  bool SocketProperty::is_output() const
+  bool socket_property::is_output() const
   {
     return !m_is_input;
   }
 
-  const std::string& SocketProperty::name() const
+  const std::string& socket_property::name() const
   {
     return m_name;
   }

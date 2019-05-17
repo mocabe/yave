@@ -34,7 +34,7 @@ namespace yave {
       v);
   }
 
-  NodeInfo get_primitive_info(const primitive_t& v)
+  node_info get_primitive_info(const primitive_t& v)
   {
     return {{get_primitive_name(v)}, {}, {"value"}, true};
   }
@@ -51,16 +51,16 @@ namespace yave {
     };
   } // namespace
 
-  BindInfo get_primitive_bind_info(const primitive_t& v)
+  bind_info get_primitive_bind_info(const primitive_t& v)
   {
     auto info = get_primitive_info(v);
     assert(info.output_sockets().size() == 1);
-    return BindInfo {info.name(),
-                     {},
-                     {info.output_sockets().front()},
-                     make_object<PrimitiveGetterFunc>(),
-                     {info.name()},
-                     true};
+    return bind_info {info.name(),
+                      {},
+                      {info.output_sockets().front()},
+                      make_object<PrimitiveGetterFunc>(),
+                      {info.name()},
+                      true};
   }
 
   namespace {
@@ -85,17 +85,17 @@ namespace yave {
     return ret;
   }
 
-  std::vector<NodeInfo> get_primitive_info_list()
+  std::vector<node_info> get_primitive_info_list()
   {
-    std::vector<NodeInfo> ret;
+    std::vector<node_info> ret;
     primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
       ret, get_primitive_info);
     return ret;
   }
 
-  std::vector<BindInfo> get_primitive_bind_info_list()
+  std::vector<bind_info> get_primitive_bind_info_list()
   {
-    std::vector<BindInfo> ret;
+    std::vector<bind_info> ret;
     primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
       ret, get_primitive_bind_info);
     return ret;

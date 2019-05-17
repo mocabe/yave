@@ -21,7 +21,7 @@ namespace yave {
     };
   }
 
-  BindInfo::BindInfo(
+  bind_info::bind_info(
     const std::string& name,
     const std::vector<std::string>& input_sockets,
     const std::string& output_socket,
@@ -55,17 +55,17 @@ namespace yave {
     }
   }
 
-  const std::string& BindInfo::name() const
+  const std::string& bind_info::name() const
   {
     return m_name;
   }
 
-  const std::vector<std::string>& BindInfo::input_sockets() const
+  const std::vector<std::string>& bind_info::input_sockets() const
   {
     return m_input_sockets;
   }
 
-  void BindInfo::set_input_sockets(const std::vector<std::string>& sockets)
+  void bind_info::set_input_sockets(const std::vector<std::string>& sockets)
   {
     auto tmp = sockets;
     if (!has_unique_name(tmp)) {
@@ -74,22 +74,22 @@ namespace yave {
     std::swap(tmp, m_input_sockets);
   }
 
-  const std::string& BindInfo::output_socket() const
+  const std::string& bind_info::output_socket() const
   {
     return m_output_socket;
   }
 
-  void BindInfo::set_output_socket(const std::string& socket)
+  void bind_info::set_output_socket(const std::string& socket)
   {
     m_output_socket = socket;
   }
 
-  const object_ptr<const Object>& BindInfo::get_instance_func() const
+  const object_ptr<const Object>& bind_info::get_instance_func() const
   {
     return m_get_instance_func;
   }
 
-  void BindInfo::set_instance_func(const object_ptr<const Object>& func)
+  void bind_info::set_instance_func(const object_ptr<const Object>& func)
   {
     // null check
     if (!func) {
@@ -107,37 +107,38 @@ namespace yave {
     m_get_instance_func = func;
   }
 
-  bool BindInfo::is_const() const
+  bool bind_info::is_const() const
   {
     return m_is_const;
   }
 
-  void BindInfo::set_const(bool b)
+  void bind_info::set_const(bool b)
   {
     m_is_const = b;
   }
 
-  const std::string& BindInfo::description() const
+  const std::string& bind_info::description() const
   {
     return m_description;
   }
 
-  void BindInfo::set_description(const std::string& d)
+  void bind_info::set_description(const std::string& d)
   {
     m_description = d;
   }
 
-  object_ptr<const Object> BindInfo::get_instance(const primitive_t& prim) const
+  object_ptr<const Object>
+    bind_info::get_instance(const primitive_t& prim) const
   {
     return eval(m_get_instance_func << make_object<Primitive>(prim));
   }
 
-  [[nodiscard]] bool BindInfo::matches(const NodeInfo& info) const
+  [[nodiscard]] bool bind_info::matches(const node_info& info) const
   {
     return matches(info.name(), info.input_sockets(), info.output_sockets());
   }
 
-  [[nodiscard]] bool BindInfo::matches(
+  [[nodiscard]] bool bind_info::matches(
     const std::string& name,
     const std::vector<std::string>& input_sockets,
     const std::vector<std::string>& output_sockets) const

@@ -17,39 +17,39 @@
 namespace yave {
 
   /// Node graph.
-  class NodeGraph
+  class node_graph
   {
   public:
     /// Constructor
-    NodeGraph();
+    node_graph();
 
     /// Copy
-    NodeGraph(const NodeGraph&);
+    node_graph(const node_graph&);
 
     /// Move constructor
-    NodeGraph(NodeGraph&&);
+    node_graph(node_graph&&);
 
     /// Destructor
-    ~NodeGraph();
+    ~node_graph();
 
     /// exists
-    [[nodiscard]] bool exists(const NodeHandle& node) const;
+    [[nodiscard]] bool exists(const node_handle& node) const;
 
     /// exists
-    [[nodiscard]] bool exists(const ConnectionHandle& connection) const;
+    [[nodiscard]] bool exists(const connection_handle& connection) const;
 
     /// Add new node.
     /// \returns Non-null handle of new node.
     /// \throws std::bad_alloc, std::runtime_error and other exceptions which
-    /// can be thrown from NodeProperty constructors.
-    [[nodiscard]] NodeHandle
-      add_node(const NodeInfo& info, const primitive_t& prim = {});
+    /// can be thrown from edge_property constructors.
+    [[nodiscard]] node_handle
+      add(const node_info& info, const primitive_t& prim = {});
 
     /// Remove node from graph.
     /// Destroy the node, all sockets connected to the node, and all edges
     /// connected to these sockets.
     /// \throws should not throw exception.
-    void remove_node(const NodeHandle& node);
+    void remove(const node_handle& node);
 
     /// Connect sockets.
     /// When connection already exists, return handle of existing connection.
@@ -57,113 +57,115 @@ namespace yave {
     /// null handle.
     /// \returns Handle of connection (can be null handle).
     /// \throws std::bad_alloc
-    [[nodiscard]] ConnectionHandle connect(const ConnectionInfo& info);
+    [[nodiscard]] connection_handle connect(const connection_info& info);
 
     /// Connect sockets.
-    /// See `connect(const ConnectionInfo&)`.
-    [[nodiscard]] ConnectionHandle connect(
-      const NodeHandle& src_node,
+    /// See `connect(const connection_info&)`.
+    [[nodiscard]] connection_handle connect(
+      const node_handle& src_node,
       const std::string& src_socket,
-      const NodeHandle& dst_node,
+      const node_handle& dst_node,
       const std::string& dst_socket);
 
     /// Disconnect sockets.
     /// \throws should not throw exception.
-    void disconnect(const ConnectionHandle& info);
+    void disconnect(const connection_handle& info);
 
     /// Find nodes from name.
     /// \returns Empty vector when not found.
-    [[nodiscard]] std::vector<NodeHandle> nodes(const std::string& name) const;
+    [[nodiscard]] std::vector<node_handle> nodes(const std::string& name) const;
 
     /// Get list of nodes.
-    [[nodiscard]] std::vector<NodeHandle> nodes() const;
+    [[nodiscard]] std::vector<node_handle> nodes() const;
 
     /// Get node info from handle.
     /// \returns std::nullopt when the node did not exist.
-    [[nodiscard]] std::optional<NodeInfo>
-      node_info(const NodeHandle& node) const;
+    [[nodiscard]] std::optional<node_info>
+      get_info(const node_handle& node) const;
 
     /// Get node name from handle.
     /// \returns std::nullopt when the node did not exist.
     [[nodiscard]] std::optional<std::string>
-      node_name(const NodeHandle& node) const;
+      get_name(const node_handle& node) const;
 
     /// Check if the node has a socket with the name.
     [[nodiscard]] bool
-      has_socket(const NodeHandle& node, const std::string& socket) const;
+      has_socket(const node_handle& node, const std::string& socket) const;
 
     /// Check if socket type is input.
     /// \returns false when the socket does not exist.
     [[nodiscard]] bool
-      is_input_socket(const NodeHandle& node, const std::string& socket) const;
+      is_input_socket(const node_handle& node, const std::string& socket) const;
 
     /// Check if socket type is output.
     /// \returns false when the socket does not exist.
-    [[nodiscard]] bool
-      is_output_socket(const NodeHandle& node, const std::string& socket) const;
+    [[nodiscard]] bool is_output_socket(
+      const node_handle& node,
+      const std::string& socket) const;
 
     /// Find input connection to the node.
-    [[nodiscard]] std::vector<ConnectionHandle> input_connections(
-      const NodeHandle& node,
+    [[nodiscard]] std::vector<connection_handle> input_connections(
+      const node_handle& node,
       const std::string& socket) const;
 
     /// Find output connection from the node.
-    [[nodiscard]] std::vector<ConnectionHandle> output_connections(
-      const NodeHandle& node,
+    [[nodiscard]] std::vector<connection_handle> output_connections(
+      const node_handle& node,
       const std::string& socket) const;
 
     /// Get list of input connections to the node.
-    [[nodiscard]] std::vector<ConnectionHandle>
-      input_connections(const NodeHandle& node) const;
+    [[nodiscard]] std::vector<connection_handle>
+      input_connections(const node_handle& node) const;
 
     /// Get list of output connections from the node.
-    [[nodiscard]] std::vector<ConnectionHandle>
-      output_connections(const NodeHandle& node) const;
+    [[nodiscard]] std::vector<connection_handle>
+      output_connections(const node_handle& node) const;
 
     /// Get all connections.
-    [[nodiscard]] std::vector<ConnectionHandle> connections() const;
+    [[nodiscard]] std::vector<connection_handle> connections() const;
 
     /// Get list of all connections from/to the node.
-    [[nodiscard]] std::vector<ConnectionHandle>
-      connections(const NodeHandle& node) const;
+    [[nodiscard]] std::vector<connection_handle>
+      connections(const node_handle& node) const;
 
     /// Get list of input/output connections from specific socket of the node.
-    [[nodiscard]] std::vector<ConnectionHandle>
-      connections(const NodeHandle& node, const std::string& socket) const;
+    [[nodiscard]] std::vector<connection_handle>
+      connections(const node_handle& node, const std::string& socket) const;
 
     /// Check if connection exists.
     [[nodiscard]] bool
-      has_connection(const NodeHandle& node, const std::string& socket) const;
+      has_connection(const node_handle& node, const std::string& socket) const;
 
     /// Get connection info of all connections from/to the node.
-    [[nodiscard]] std::optional<ConnectionInfo>
-      connection_info(const ConnectionHandle& node) const;
+    [[nodiscard]] std::optional<connection_info>
+      get_info(const connection_handle& node) const;
 
     /// Get list of input sockets attached to the node.
     [[nodiscard]] std::vector<std::string>
-      input_sockets(const NodeHandle& node) const;
+      input_sockets(const node_handle& node) const;
 
     /// Get list of output sockets attached to the node.
     [[nodiscard]] std::vector<std::string>
-      output_sockets(const NodeHandle& node) const;
+      output_sockets(const node_handle& node) const;
 
     /// Primitive node?
-    [[nodiscard]] bool is_primitive(const NodeHandle& node) const;
+    [[nodiscard]] bool is_primitive(const node_handle& node) const;
 
     /// Get primitive value.
     /// \returns std::nullopt when `node` is not primitive node.
     [[nodiscard]] std::optional<primitive_t>
-      get_primitive(const NodeHandle& node) const;
+      get_primitive(const node_handle& node) const;
 
     /// Set primitive value.
     /// When `is_primitive(prim_node) == false`, no effect.
-    void set_primitive(const NodeHandle& prim_node, const primitive_t& prim);
+    void set_primitive(const node_handle& prim_node, const primitive_t& prim);
 
     /// Get list of root nodes.
-    [[nodiscard]] std::vector<NodeHandle> roots() const;
+    [[nodiscard]] std::vector<node_handle> roots() const;
 
     /// Get root of ancestor tree of specific node.
-    [[nodiscard]] std::vector<NodeHandle> root_of(const NodeHandle& node) const;
+    [[nodiscard]] std::vector<node_handle>
+      root_of(const node_handle& node) const;
 
     /// Lock
     [[nodiscard]] std::unique_lock<std::mutex> lock() const;
@@ -181,31 +183,31 @@ namespace yave {
   struct NodesDiff
   {
     /// not changed
-    std::vector<NodeHandle> not_changed;
+    std::vector<node_handle> not_changed;
     /// removed
-    std::vector<NodeHandle> removed;
+    std::vector<node_handle> removed;
     /// added
-    std::vector<NodeHandle> added;
+    std::vector<node_handle> added;
   };
 
   struct ConnectionsDiff
   {
     /// not changed
-    std::vector<ConnectionHandle> not_changed;
+    std::vector<connection_handle> not_changed;
     /// removed
-    std::vector<ConnectionHandle> removed;
+    std::vector<connection_handle> removed;
     /// added
-    std::vector<ConnectionHandle> added;
+    std::vector<connection_handle> added;
   };
 
   /// Calculate diff
   [[nodiscard]] NodesDiff nodes_diff(
-    const std::vector<NodeHandle>& prev_nodes,
-    const std::vector<NodeHandle>& nodes);
+    const std::vector<node_handle>& prev_nodes,
+    const std::vector<node_handle>& nodes);
 
   /// Calculate diff
   [[nodiscard]] ConnectionsDiff connections_diff(
-    const std::vector<ConnectionHandle>& prev_connections,
-    const std::vector<ConnectionHandle>& connections);
+    const std::vector<connection_handle>& prev_connections,
+    const std::vector<connection_handle>& connections);
 
 } // namespace yave

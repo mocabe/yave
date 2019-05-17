@@ -14,34 +14,34 @@
 
 namespace yave {
 
-  /// Manager of BindInfo instances.
-  class BindInfoManager
+  /// Manager of bind_info instances.
+  class bind_info_manager
   {
     /// map type
     using map_type =
-      std::multimap<std::string, std::shared_ptr<const BindInfo>>;
+      std::multimap<std::string, std::shared_ptr<const bind_info>>;
 
   public:
     /// info type
-    using info_type = BindInfo;
+    using info_type = bind_info;
 
     /// Copy constructro
-    BindInfoManager(const BindInfoManager& other);
+    bind_info_manager(const bind_info_manager& other);
     /// Move constructor
-    BindInfoManager(BindInfoManager&& other);
+    bind_info_manager(bind_info_manager&& other);
     /// operator=
-    BindInfoManager& operator=(const BindInfoManager& other);
+    bind_info_manager& operator=(const bind_info_manager& other);
     /// operator=
-    BindInfoManager& operator=(BindInfoManager&& other);
+    bind_info_manager& operator=(bind_info_manager&& other);
 
     /// Constructor
-    BindInfoManager();
+    bind_info_manager();
 
     /// Check if the info exists
     [[nodiscard]] bool exists(const std::string& name) const;
 
     /// Add info
-    [[nodiscard]] bool add(const BindInfo& info);
+    [[nodiscard]] bool add(const bind_info& info);
 
     /// Remove info
     void remove(const std::string& name);
@@ -67,11 +67,11 @@ namespace yave {
 
     /// Find info
     [[nodiscard]] std::vector<std::shared_ptr<const info_type>>
-      find(const BindInfo& info) const;
+      find(const bind_info& info) const;
 
     /// Find matched info
     [[nodiscard]] std::vector<std::shared_ptr<const info_type>>
-      find_matched(const NodeInfo& info) const;
+      find_matched(const node_info& info) const;
 
     /// Find matched info
     [[nodiscard]] std::vector<std::shared_ptr<const info_type>> find_matched(

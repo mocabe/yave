@@ -10,7 +10,7 @@
 
 namespace yave {
 
-  NodeInfo::NodeInfo(
+  node_info::node_info(
     const std::string& name,
     const std::vector<std::string>& input_sockets,
     const std::vector<std::string>& output_sockets,
@@ -24,50 +24,50 @@ namespace yave {
     validate();
   }
 
-  const std::string& NodeInfo::name() const
+  const std::string& node_info::name() const
   {
     return m_name;
   }
 
-  void NodeInfo::set_name(const std::string& name)
+  void node_info::set_name(const std::string& name)
   {
     m_name = name;
   }
 
-  const std::vector<std::string>& NodeInfo::input_sockets() const
+  const std::vector<std::string>& node_info::input_sockets() const
   {
     return m_input_sockets;
   }
 
-  const std::vector<std::string>& NodeInfo::output_sockets() const
+  const std::vector<std::string>& node_info::output_sockets() const
   {
     return m_output_sockets;
   }
 
-  void NodeInfo::set_output_sockets(const std::vector<std::string>& sockets)
+  void node_info::set_output_sockets(const std::vector<std::string>& sockets)
   {
     m_input_sockets = sockets;
     validate();
   }
 
-  void NodeInfo::set_input_sockets(const std::vector<std::string>& sockets)
+  void node_info::set_input_sockets(const std::vector<std::string>& sockets)
   {
     m_output_sockets = sockets;
     validate();
   }
 
-  bool NodeInfo::is_prim() const
+  bool node_info::is_prim() const
   {
     return m_is_prim;
   }
 
-  void NodeInfo::set_prim(bool is_prim)
+  void node_info::set_prim(bool is_prim)
   {
     m_is_prim = is_prim;
     validate();
   }
 
-  void NodeInfo::validate() const
+  void node_info::validate() const
   {
     auto _has_unique_names = [](auto names) {
       // get unique names
@@ -91,7 +91,7 @@ namespace yave {
       throw std::invalid_argument("Socket names should be unique");
   }
 
-  bool operator==(const NodeInfo& lhs, const NodeInfo& rhs)
+  bool operator==(const node_info& lhs, const node_info& rhs)
   {
     return lhs.name() == rhs.name() &&
            lhs.input_sockets() == rhs.input_sockets() &&
@@ -99,7 +99,7 @@ namespace yave {
            lhs.is_prim() == rhs.is_prim();
   }
 
-  bool operator!=(const NodeInfo& lhs, const NodeInfo& rhs)
+  bool operator!=(const node_info& lhs, const node_info& rhs)
   {
     return !(lhs == rhs);
   }

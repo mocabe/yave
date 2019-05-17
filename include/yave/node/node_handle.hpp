@@ -11,6 +11,6 @@
 namespace yave {
 
   /// Node handle
-  using NodeHandle = DescriptorHandle<graph_t::node_descriptor_type>;
+  using node_handle = descriptor_handle<graph_t::node_descriptor_type>;
 
 } // namespace yave

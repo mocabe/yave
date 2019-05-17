@@ -12,61 +12,62 @@ namespace yave {
     /// Traverse nodes until return true.
     template <class Lambda>
     void depth_first_search_until(
-      const NodeGraph& ng,
-      const NodeHandle& node,
+      const node_graph& ng,
+      const node_handle& node,
       Lambda&& lambda);
 
     /// Traverse nodes.
     template <class Lambda>
     void depth_first_search(
-      const NodeGraph& ng,
-      const NodeHandle& node,
+      const node_graph& ng,
+      const node_handle& node,
       Lambda&& lambda);
 
     /// Find a closed loop in node graph.
-    std::vector<NodeHandle>
-      find_loop(const NodeGraph& ng, const NodeHandle& node);
+    std::vector<node_handle>
+      find_loop(const node_graph& ng, const node_handle& node);
 
   } // namespace
 
-  NodeGraph::NodeGraph()
+  node_graph::node_graph()
     : m_g {}
     , m_mtx {}
   {
     [[maybe_unused]] static auto init_logger = []() {
-      return add_logger("NodeGraph");
+      return add_logger("node_graph");
     }();
   }
 
-  NodeGraph::~NodeGraph()
+  node_graph::~node_graph()
   {
   }
 
-  NodeGraph::NodeGraph(const NodeGraph& other)
+  node_graph::node_graph(const node_graph& other)
     : m_g {other.m_g.clone()}
     , m_mtx {}
   {
   }
 
-  NodeGraph::NodeGraph(NodeGraph&& other)
+  node_graph::node_graph(node_graph&& other)
     : m_g {std::move(other.m_g)}
     , m_mtx {}
   {
   }
 
-  bool NodeGraph::exists(const NodeHandle& h) const
+  bool node_graph::exists(const node_handle& h) const
   {
     return h.has_value() && m_g.exists(h.descriptor()) &&
            h.id() == m_g.id(h.descriptor());
   }
 
-  bool NodeGraph::exists(const ConnectionHandle& h) const
+  bool node_graph::exists(const connection_handle& h) const
   {
     return h.has_value() && m_g.exists(h.descriptor()) &&
            h.id() == m_g.id(h.descriptor());
   }
 
-  NodeHandle NodeGraph::add_node(const NodeInfo& info, const primitive_t& prim)
+  node_handle
+    node_graph::add(const yave::node_info& info, const primitive_t& prim)
   {
     // add node
     auto node = [&]() {
@@ -78,7 +79,7 @@ namespace yave {
 
     if (!node)
       throw std::runtime_error(
-        "Failed to add node to NodeGraph: Failed to create new node.");
+        "Failed to add node to node_graph: Failed to create new node.");
 
     // attach sockets
     auto _attach_sockets = [&](auto&& names, auto io) {
@@ -89,18 +90,18 @@ namespace yave {
           if (node)
             m_g.remove_node(node);
           throw std::runtime_error(
-            "Failed to add node to NodeGraph: Failed to attach sockets.");
+            "Failed to add node to node_graph: Failed to attach sockets.");
         }
       }
     };
 
-    _attach_sockets(info.input_sockets(), SocketProperty::input);
-    _attach_sockets(info.output_sockets(), SocketProperty::output);
+    _attach_sockets(info.input_sockets(), socket_property::input);
+    _attach_sockets(info.output_sockets(), socket_property::output);
 
-    auto handle = NodeHandle(node, m_g.id(node));
+    auto handle = node_handle(node, m_g.id(node));
 
     Info(
-      get_logger("NodeGraph"),
+      get_logger("node_graph"),
       "Created Node: name=\"{}\", id={}",
       info.name(),
       to_string(handle.id()));
@@ -108,13 +109,13 @@ namespace yave {
     return handle;
   }
 
-  void NodeGraph::remove_node(const NodeHandle& node)
+  void node_graph::remove(const node_handle& node)
   {
     if (!exists(node))
       return;
 
     Info(
-      get_logger("NodeGraph"),
+      get_logger("node_graph"),
       "Removing Node: name=\"{}\", id={}",
       m_g[node.descriptor()].name(),
       to_string(node.id()));
@@ -126,18 +127,19 @@ namespace yave {
     m_g.remove_node(node.descriptor());
   }
 
-  ConnectionHandle NodeGraph::connect(
-    const NodeHandle& src_node,
+  connection_handle node_graph::connect(
+    const node_handle& src_node,
     const std::string& src_socket,
-    const NodeHandle& dst_node,
+    const node_handle& dst_node,
     const std::string& dst_socket)
   {
-    return connect(ConnectionInfo {src_node, src_socket, dst_node, dst_socket});
+    return connect(
+      yave::connection_info {src_node, src_socket, dst_node, dst_socket});
   }
 
-  ConnectionHandle NodeGraph::connect(const ConnectionInfo& info)
+  connection_handle node_graph::connect(const connection_info& info)
   {
-    auto logger = get_logger("NodeGraph");
+    auto logger = get_logger("node_graph");
     assert(logger);
 
     // check handler
@@ -157,7 +159,7 @@ namespace yave {
                   logger,
                   "Connection already exists. Return existing connection "
                   "handle.");
-                return ConnectionHandle(e, m_g.id(e));
+                return connection_handle(e, m_g.id(e));
               }
             // input edge cannot have multiple inputs
             if (m_g.n_dst_edges(d) != 0) {
@@ -190,7 +192,7 @@ namespace yave {
               to_string(info.dst_node().id()),
               info.dst_socket());
 
-            return ConnectionHandle(new_edge, m_g.id(new_edge));
+            return connection_handle(new_edge, m_g.id(new_edge));
           }
         }
       }
@@ -201,19 +203,19 @@ namespace yave {
     return nullptr;
   }
 
-  void NodeGraph::disconnect(const ConnectionHandle& h)
+  void node_graph::disconnect(const connection_handle& h)
   {
     // check handler
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::disconnect() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::disconnect() on invalid node handle.");
       return;
     }
 
-    auto info = connection_info(h);
+    auto info = get_info(h);
     Info(
-      get_logger("NodeGraph"),
+      get_logger("node_graph"),
       "Disconnecting: src={}::{} dst={}::{}",
       to_string(info->src_node().id()),
       info->src_socket(),
@@ -224,29 +226,29 @@ namespace yave {
     m_g.remove_edge(h.descriptor());
   }
 
-  std::vector<NodeHandle> NodeGraph::nodes(const std::string& name) const
+  std::vector<node_handle> node_graph::nodes(const std::string& name) const
   {
-    std::vector<NodeHandle> ret;
+    std::vector<node_handle> ret;
     for (auto&& n : m_g.nodes())
       if (m_g[n].name() == name)
         ret.emplace_back(n, m_g.id(n));
     return ret;
   }
 
-  std::vector<NodeHandle> NodeGraph::nodes() const
+  std::vector<node_handle> node_graph::nodes() const
   {
-    std::vector<NodeHandle> ret;
+    std::vector<node_handle> ret;
     for (auto&& n : m_g.nodes()) ret.emplace_back(n, m_g.id(n));
     return ret;
   }
 
-  std::optional<NodeInfo> NodeGraph::node_info(const NodeHandle& h) const
+  std::optional<node_info> node_graph::get_info(const node_handle& h) const
   {
     // check handler
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::node_info() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::node_info() on invalid node handle.");
       return std::nullopt;
     }
 
@@ -263,27 +265,27 @@ namespace yave {
         output_sockets.emplace_back(m_g[s].name());
     }
 
-    return NodeInfo {n.name(), input_sockets, output_sockets, n.is_prim()};
+    return node_info {n.name(), input_sockets, output_sockets, n.is_prim()};
   }
 
-  std::optional<std::string> NodeGraph::node_name(const NodeHandle& node) const
+  std::optional<std::string> node_graph::get_name(const node_handle& node) const
   {
     if (!exists(node)) {
       Warning(
-        get_logger("NodeGraph"),
+        get_logger("node_graph"),
         "NodeGrpah::node_name() on invalid node handle.");
       return std::nullopt;
     }
     return m_g[node.descriptor()].name();
   }
 
-  bool
-    NodeGraph::has_socket(const NodeHandle& h, const std::string& socket) const
+  bool node_graph::has_socket(const node_handle& h, const std::string& socket)
+    const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::has_socket() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::has_socket() on invalid node handle.");
       return false;
     }
     auto sockets = m_g.sockets(h.descriptor());
@@ -293,14 +295,14 @@ namespace yave {
     return false;
   }
 
-  bool NodeGraph::is_input_socket(
-    const NodeHandle& h,
+  bool node_graph::is_input_socket(
+    const node_handle& h,
     const std::string& socket) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::is_input_socket on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::is_input_socket on invalid node handle.");
       return false;
     }
     auto sockets = m_g.sockets(h.descriptor());
@@ -311,14 +313,14 @@ namespace yave {
     return false;
   }
 
-  bool NodeGraph::is_output_socket(
-    const NodeHandle& h,
+  bool node_graph::is_output_socket(
+    const node_handle& h,
     const std::string& socket) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::is_output_socket on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::is_output_socket on invalid node handle.");
       return false;
     }
     auto sockets = m_g.sockets(h.descriptor());
@@ -329,18 +331,18 @@ namespace yave {
     return false;
   }
 
-  std::vector<ConnectionHandle> NodeGraph::input_connections(
-    const NodeHandle& h,
+  std::vector<connection_handle> node_graph::input_connections(
+    const node_handle& h,
     const std::string& socket) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::input_connections on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::input_connections on invalid node handle.");
       return {};
     }
 
-    std::vector<ConnectionHandle> ret;
+    std::vector<connection_handle> ret;
     auto sockets = m_g.sockets(h.descriptor());
     for (auto&& s : sockets) {
       if (m_g[s].name() == socket) {
@@ -353,18 +355,18 @@ namespace yave {
     return ret;
   }
 
-  std::vector<ConnectionHandle> NodeGraph::output_connections(
-    const NodeHandle& h,
+  std::vector<connection_handle> node_graph::output_connections(
+    const node_handle& h,
     const std::string& socket) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::output_connections on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::output_connections on invalid node handle.");
       return {};
     }
 
-    std::vector<ConnectionHandle> ret;
+    std::vector<connection_handle> ret;
     auto sockets = m_g.sockets(h.descriptor());
     for (auto&& s : sockets) {
       if (m_g[s].name() == socket) {
@@ -378,12 +380,12 @@ namespace yave {
   }
 
   [[nodiscard]] bool
-    NodeGraph::has_connection(const NodeHandle& h, const std::string& s) const
+    node_graph::has_connection(const node_handle& h, const std::string& s) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::has_connection() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::has_connection() on invalid node handle.");
       return false;
     }
 
@@ -391,17 +393,17 @@ namespace yave {
       input_connections(h, s).empty() && output_connections(h, s).empty());
   }
 
-  std::vector<ConnectionHandle>
-    NodeGraph::connections(const NodeHandle& h) const
+  std::vector<connection_handle>
+    node_graph::connections(const node_handle& h) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::connections() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::connections() on invalid node handle.");
       return {};
     }
 
-    std::vector<ConnectionHandle> ret;
+    std::vector<connection_handle> ret;
     auto sockets = m_g.sockets(h.descriptor());
     for (auto&& s : sockets) {
       auto src_edges = m_g.src_edges(s);
@@ -415,17 +417,18 @@ namespace yave {
     return ret;
   }
 
-  std::vector<ConnectionHandle>
-    NodeGraph::connections(const NodeHandle& h, const std::string& socket) const
+  std::vector<connection_handle> node_graph::connections(
+    const node_handle& h,
+    const std::string& socket) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::connections() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::connections() on invalid node handle.");
       return {};
     }
 
-    std::vector<ConnectionHandle> ret;
+    std::vector<connection_handle> ret;
     auto sockets = m_g.sockets(h.descriptor());
     for (auto&& s : sockets) {
       if (m_g[s].name() == socket) {
@@ -437,22 +440,22 @@ namespace yave {
     }
     if (ret.empty())
       Warning(
-        get_logger("NodeGraph"),
+        get_logger("node_graph"),
         "Call for connections() with invalid socket name.");
     return ret;
   }
 
-  std::vector<ConnectionHandle>
-    NodeGraph::input_connections(const NodeHandle& h) const
+  std::vector<connection_handle>
+    node_graph::input_connections(const node_handle& h) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::input_connections() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::input_connections() on invalid node handle.");
       return {};
     }
 
-    std::vector<ConnectionHandle> ret;
+    std::vector<connection_handle> ret;
     auto sockets = m_g.sockets(h.descriptor());
     for (auto&& s : sockets) {
       auto dst_edges = m_g.dst_edges(s);
@@ -464,17 +467,17 @@ namespace yave {
     return ret;
   }
 
-  std::vector<ConnectionHandle>
-    NodeGraph::output_connections(const NodeHandle& h) const
+  std::vector<connection_handle>
+    node_graph::output_connections(const node_handle& h) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::outupt_connections() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::outupt_connections() on invalid node handle.");
       return {};
     }
 
-    std::vector<ConnectionHandle> ret;
+    std::vector<connection_handle> ret;
     auto sockets = m_g.sockets(h.descriptor());
     for (auto&& s : sockets) {
       auto src_edges = m_g.src_edges(s);
@@ -483,14 +486,14 @@ namespace yave {
     }
     if (ret.empty())
       Warning(
-        get_logger("NodeGraph"),
+        get_logger("node_graph"),
         "Call for output_connections() with invalid socket name.");
     return ret;
   }
 
-  std::vector<ConnectionHandle> NodeGraph::connections() const
+  std::vector<connection_handle> node_graph::connections() const
   {
-    std::vector<ConnectionHandle> ret;
+    std::vector<connection_handle> ret;
     for (auto&& n : m_g.nodes()) {
       for (auto&& s : m_g.sockets(n)) {
         for (auto&& e : m_g.src_edges(s)) ret.emplace_back(e, m_g.id(e));
@@ -499,13 +502,13 @@ namespace yave {
     return ret;
   }
 
-  std::optional<ConnectionInfo>
-    NodeGraph::connection_info(const ConnectionHandle& h) const
+  std::optional<connection_info>
+    node_graph::get_info(const connection_handle& h) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::connection_info() on invalid connection handle.");
+        get_logger("node_graph"),
+        "node_graph::connection_info() on invalid connection handle.");
       return std::nullopt;
     }
 
@@ -516,18 +519,18 @@ namespace yave {
     auto dst_nodes = m_g.nodes(dst);
     assert(src_nodes.size() == 1);
     assert(dst_nodes.size() == 1);
-    return ConnectionInfo {NodeHandle(src_nodes[0], m_g.id(src_nodes[0])), //
-                           m_g[src].name(),                                //
-                           NodeHandle(dst_nodes[0], m_g.id(dst_nodes[0])), //
-                           m_g[dst].name()};                               //
+    return connection_info {node_handle(src_nodes[0], m_g.id(src_nodes[0])), //
+                            m_g[src].name(),                                 //
+                            node_handle(dst_nodes[0], m_g.id(dst_nodes[0])), //
+                            m_g[dst].name()};                                //
   }
 
-  std::vector<std::string> NodeGraph::input_sockets(const NodeHandle& h) const
+  std::vector<std::string> node_graph::input_sockets(const node_handle& h) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::input_sockets() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::input_sockets() on invalid node handle.");
       return {};
     }
 
@@ -540,12 +543,13 @@ namespace yave {
     return ret;
   }
 
-  std::vector<std::string> NodeGraph::output_sockets(const NodeHandle& h) const
+  std::vector<std::string>
+    node_graph::output_sockets(const node_handle& h) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::outupt_sockets() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::outupt_sockets() on invalid node handle.");
       return {};
     }
 
@@ -558,24 +562,25 @@ namespace yave {
     return ret;
   }
 
-  bool NodeGraph::is_primitive(const NodeHandle& h) const
+  bool node_graph::is_primitive(const node_handle& h) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::is_primitive() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::is_primitive() on invalid node handle.");
       return false;
     }
 
     return m_g[h.descriptor()].is_prim();
   }
 
-  std::optional<primitive_t> NodeGraph::get_primitive(const NodeHandle& h) const
+  std::optional<primitive_t>
+    node_graph::get_primitive(const node_handle& h) const
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::get_primitive() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::get_primitive() on invalid node handle.");
       return std::nullopt;
     }
 
@@ -584,27 +589,27 @@ namespace yave {
     return std::nullopt;
   }
 
-  void NodeGraph::set_primitive(const NodeHandle& h, const primitive_t& prim)
+  void node_graph::set_primitive(const node_handle& h, const primitive_t& prim)
   {
     if (!exists(h)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::set_primitive() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::set_primitive() on invalid node handle.");
       return;
     }
 
     if (!is_primitive(h)) {
       Error(
-        get_logger("NodeGraph"),
+        get_logger("node_graph"),
         "Cannot set primitive value to non-primitive node. Ignored.");
       return;
     }
     m_g[h.descriptor()].set_prim(prim);
   }
 
-  std::vector<NodeHandle> NodeGraph::roots() const
+  std::vector<node_handle> node_graph::roots() const
   {
-    std::vector<NodeHandle> ret;
+    std::vector<node_handle> ret;
 
     // TODO: Improve performance.
     for (auto&& n : nodes()) {
@@ -622,17 +627,17 @@ namespace yave {
     return ret;
   }
 
-  std::vector<NodeHandle> NodeGraph::root_of(const NodeHandle& node) const
+  std::vector<node_handle> node_graph::root_of(const node_handle& node) const
   {
     if (!exists(node)) {
       Warning(
-        get_logger("NodeGraph"),
-        "NodeGraph::root_of() on invalid node handle.");
+        get_logger("node_graph"),
+        "node_graph::root_of() on invalid node handle.");
       return {};
     }
 
-    std::vector<NodeHandle> ret;
-    std::vector<NodeHandle> stack;
+    std::vector<node_handle> ret;
+    std::vector<node_handle> stack;
 
     stack.push_back(node);
 
@@ -666,12 +671,12 @@ namespace yave {
     return ret;
   }
 
-  std::unique_lock<std::mutex> NodeGraph::lock() const
+  std::unique_lock<std::mutex> node_graph::lock() const
   {
     return std::unique_lock(m_mtx);
   }
 
-  void NodeGraph::clear()
+  void node_graph::clear()
   {
     m_g.clear();
   }
@@ -726,36 +731,36 @@ namespace yave {
   } // namespace
 
   NodesDiff nodes_diff(
-    const std::vector<NodeHandle>& prev_nodes,
-    const std::vector<NodeHandle>& nodes)
+    const std::vector<node_handle>& prev_nodes,
+    const std::vector<node_handle>& nodes)
   {
-    return diff_impl<NodeHandle, NodesDiff>(prev_nodes, nodes);
+    return diff_impl<node_handle, NodesDiff>(prev_nodes, nodes);
   }
 
   ConnectionsDiff connections_diff(
-    const std::vector<ConnectionHandle>& prev_connections,
-    const std::vector<ConnectionHandle>& connections)
+    const std::vector<connection_handle>& prev_connections,
+    const std::vector<connection_handle>& connections)
   {
-    return diff_impl<ConnectionHandle, ConnectionsDiff>(
+    return diff_impl<connection_handle, ConnectionsDiff>(
       prev_connections, connections);
   }
 
   namespace {
     template <class Lambda>
     void depth_first_search_until(
-      const NodeGraph& ng,
-      const NodeHandle& node,
+      const node_graph& ng,
+      const node_handle& node,
       Lambda&& lambda)
     {
-      std::vector<NodeHandle> visited_nodes;
-      std::vector<NodeHandle> stack;
+      std::vector<node_handle> visited_nodes;
+      std::vector<node_handle> stack;
 
-      auto visit = [&](const NodeHandle& node) {
+      auto visit = [&](const node_handle& node) {
         visited_nodes.push_back(node);
         stack.push_back(node);
       };
 
-      auto visited = [&](const NodeHandle& node) {
+      auto visited = [&](const node_handle& node) {
         for (auto&& n : visited_nodes)
           if (n == node)
             return true;
@@ -776,7 +781,7 @@ namespace yave {
         /// pop when all childs have been visited.
         bool stop = [&] {
           for (auto&& c : ng.input_connections(current)) {
-            auto next = ng.connection_info(c)->src_node();
+            auto next = ng.get_info(c)->src_node();
             if (!visited(next)) {
               visit(next);
               return std::forward<Lambda>(lambda)(node);
@@ -793,8 +798,8 @@ namespace yave {
 
     template <class Lambda>
     void depth_first_search(
-      const NodeGraph& ng,
-      const NodeHandle& node,
+      const node_graph& ng,
+      const node_handle& node,
       Lambda&& lambda)
     {
       return depth_first_search_until(ng, node, [&](auto&& n) {
@@ -803,18 +808,18 @@ namespace yave {
       });
     }
 
-    std::vector<NodeHandle>
-      find_loop(const NodeGraph& ng, const NodeHandle& node)
+    std::vector<node_handle>
+      find_loop(const node_graph& ng, const node_handle& node)
     {
-      std::vector<NodeHandle> visited_nodes;
-      std::vector<NodeHandle> stack;
+      std::vector<node_handle> visited_nodes;
+      std::vector<node_handle> stack;
 
-      auto visit = [&](const NodeHandle& node) {
+      auto visit = [&](const node_handle& node) {
         visited_nodes.push_back(node);
         stack.push_back(node);
       };
 
-      auto visited = [&](const NodeHandle& node) {
+      auto visited = [&](const node_handle& node) {
         for (auto&& n : visited_nodes)
           if (n == node)
             return true;
@@ -824,7 +829,7 @@ namespace yave {
       visit(node);
 
       // loop
-      std::vector<NodeHandle> ret;
+      std::vector<node_handle> ret;
 
       while (!stack.empty()) {
 
@@ -832,7 +837,7 @@ namespace yave {
 
         bool stop = [&] {
           for (auto&& c : ng.input_connections(current)) {
-            auto next = ng.connection_info(c)->src_node();
+            auto next = ng.get_info(c)->src_node();
             if (visited(next)) {
               // find closed loop
               for (auto iter = stack.begin(); iter != stack.end(); ++iter) {

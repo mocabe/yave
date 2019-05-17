@@ -7,39 +7,39 @@
 
 namespace yave {
 
-  NodeProperty::NodeProperty(const std::string& name, const primitive_t& prim)
+  node_property::node_property(const std::string& name, const primitive_t& prim)
     : m_name {name}
     , m_prim {prim}
   {
   }
 
-  NodeProperty::NodeProperty(const std::string& name, std::monostate)
+  node_property::node_property(const std::string& name, std::monostate)
     : m_name {name}
     , m_prim {std::monostate {}}
   {
   }
 
-  bool NodeProperty::is_prim() const
+  bool node_property::is_prim() const
   {
     return !std::holds_alternative<std::monostate>(m_prim);
   }
 
-  const std::string& NodeProperty::name() const
+  const std::string& node_property::name() const
   {
     return m_name;
   }
 
-  primitive_t NodeProperty::prim() const
+  primitive_t node_property::prim() const
   {
     return std::get<primitive_t>(m_prim);
   }
 
-  void NodeProperty::set_prim(const primitive_t& prim)
+  void node_property::set_prim(const primitive_t& prim)
   {
     m_prim = prim;
   }
 
-  void NodeProperty::ser_prim(std::monostate)
+  void node_property::ser_prim(std::monostate)
   {
     m_prim = std::monostate {};
   }

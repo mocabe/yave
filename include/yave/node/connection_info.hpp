@@ -10,53 +10,53 @@
 namespace yave {
 
   /// Socket connect info
-  class ConnectionInfo
+  class connection_info
   {
   public:
-    ConnectionInfo()                      = delete;
-    ConnectionInfo(const ConnectionInfo&) = default;
-    ConnectionInfo(ConnectionInfo&&)      = default;
-    ConnectionInfo(
-      const NodeHandle& src_node,
+    connection_info()                       = delete;
+    connection_info(const connection_info&) = default;
+    connection_info(connection_info&&)      = default;
+    connection_info(
+      const node_handle& src_node,
       const std::string& src_socket,
-      const NodeHandle& dst_node,
+      const node_handle& dst_node,
       const std::string& dst_socket);
 
     /// Get source node.
-    [[nodiscard]] NodeHandle src_node() const;
+    [[nodiscard]] node_handle src_node() const;
 
     /// Get socket of source node.
     [[nodiscard]] const std::string& src_socket() const;
 
     /// Get dest node.
-    [[nodiscard]] NodeHandle dst_node() const;
+    [[nodiscard]] node_handle dst_node() const;
 
     /// Get socket of dest noed.
     [[nodiscard]] const std::string& dst_socket() const;
 
     friend bool
-      operator==(const ConnectionInfo& lhs, const ConnectionInfo& rhs);
+      operator==(const connection_info& lhs, const connection_info& rhs);
 
     friend bool
-      operator!=(const ConnectionInfo& lhs, const ConnectionInfo& rhs);
+      operator!=(const connection_info& lhs, const connection_info& rhs);
 
   private:
     /// source node
-    NodeHandle m_src_node;
+    node_handle m_src_node;
     /// source socket
     std::string m_src_socket;
     /// destination node
-    NodeHandle m_dst_node;
+    node_handle m_dst_node;
     /// destination socket
     std::string m_dst_socket;
   };
 
   /// operator==
   [[nodiscard]] bool
-    operator==(const ConnectionInfo& lhs, const ConnectionInfo& rhs);
+    operator==(const connection_info& lhs, const connection_info& rhs);
 
   /// operator!=
   [[nodiscard]] bool
-    operator!=(const ConnectionInfo& lhs, const ConnectionInfo& rhs);
+    operator!=(const connection_info& lhs, const connection_info& rhs);
 
 } // namespace yave

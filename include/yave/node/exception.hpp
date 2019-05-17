@@ -19,15 +19,15 @@ namespace yave {
     struct parse_error : std::logic_error
     {
       /// Ctor.
-      parse_error(const std::string& message, const NodeHandle& h);
+      parse_error(const std::string& message, const node_handle& h);
       /// Ctor.
-      parse_error(const char* message, const NodeHandle& h);
+      parse_error(const char* message, const node_handle& h);
       /// Get handle of node throwing this exception.
-      [[nodiscard]] NodeHandle node() const noexcept;
+      [[nodiscard]] node_handle node() const noexcept;
 
     protected:
       /// Node
-      NodeHandle m_node;
+      node_handle m_node;
     };
 
     /// Parser error: No Overloading.
@@ -36,7 +36,7 @@ namespace yave {
       /// Ctor.
       no_overloading(
         const std::string& msg,
-        const NodeHandle& h,
+        const node_handle& h,
         const object_ptr<const Type>& tp);
 
       /// Get type of node throwing this exception.
@@ -54,7 +54,7 @@ namespace yave {
       ambiguous_overloading(
         const std::string& msg,
         const object_ptr<const Type>& tp,
-        const NodeHandle& h);
+        const node_handle& h);
 
       /// Get type of node throwing this exception.
       [[nodiscard]] object_ptr<const Type> type() const;
@@ -75,7 +75,7 @@ namespace yave {
       /// Ctor.
       root_type_missmatch(
         const std::string& msg,
-        const NodeHandle& h,
+        const node_handle& h,
         const object_ptr<const Type>& expected,
         const object_ptr<const Type>& provided);
 

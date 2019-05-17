@@ -15,28 +15,28 @@
 
 namespace yave {
 
-  /// NodeInfo manager.
-  /// This class manages unique NodeInfo instances.
-  class NodeInfoManager
+  /// node_info manager.
+  /// This class manages unique node_info instances.
+  class node_info_manager
   {
     /// map type
-    using map_type = std::map<std::string, std::shared_ptr<const NodeInfo>>;
+    using map_type = std::map<std::string, std::shared_ptr<const node_info>>;
 
   public:
     /// info type
-    using info_type = NodeInfo;
+    using info_type = node_info;
 
     /// Copy constructor
-    NodeInfoManager(const NodeInfoManager& other);
+    node_info_manager(const node_info_manager& other);
     /// Move constructor
-    NodeInfoManager(NodeInfoManager&& other);
+    node_info_manager(node_info_manager&& other);
     /// operatpr=
-    NodeInfoManager& operator=(const NodeInfoManager& other);
+    node_info_manager& operator=(const node_info_manager& other);
     /// operator=
-    NodeInfoManager& operator=(NodeInfoManager&& other);
+    node_info_manager& operator=(node_info_manager&& other);
 
     /// Constructor
-    NodeInfoManager();
+    node_info_manager();
 
     /// Add info.
     [[nodiscard]] bool add(const info_type& info);
@@ -48,7 +48,7 @@ namespace yave {
     void remove(map_type::const_iterator iter);
 
     /// Remove info.
-    void remove(const NodeInfo& info);
+    void remove(const node_info& info);
 
     /// Check if the info exists.
     [[nodiscard]] bool exists(const std::string& name) const;
