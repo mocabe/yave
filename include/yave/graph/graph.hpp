@@ -16,7 +16,7 @@
 #include <utility>
 #include <algorithm>
 
-namespace yave {
+namespace yave::graph {
 
   // Low-level Graph implementation.
   // Graph is not like general graph representation. It has 2 different vertex
@@ -30,28 +30,28 @@ namespace yave {
   // allocated separately, instead of embedded into Node/Socket/Edge instances).
 
   template <typename Traits>
-  class Node;
+  class node;
 
   template <typename Traits>
-  class NodeEdge;
+  class edge;
 
   template <typename Traits>
-  class NodeEdgeSocket;
+  class socket;
 
   template <
     class NodeProperty,
     class SocketProperty,
     class EdgeProperty,
     class Tag>
-  class Graph;
+  class graph;
 
   /// empty class
-  struct EmptyProperty
+  struct empty_property
   {
   };
 
   /// default container_traits tag
-  struct DefaultTraitTag;
+  struct default_trait_tag;
 
   /// container_traits tells Graph how to manage Nodes,Edges,Sockets.
   /// Default implementation is specialized to std::vector as container, pointer
@@ -61,11 +61,11 @@ namespace yave {
     class ValueType,
     class GraphTraits,
     class Property,
-    class Tag = DefaultTraitTag>
+    class Tag = default_trait_tag>
   struct container_traits;
 
   template <template <class> class ValueType, class GraphTraits, class Property>
-  struct container_traits<ValueType, GraphTraits, Property, DefaultTraitTag>
+  struct container_traits<ValueType, GraphTraits, Property, default_trait_tag>
   {
 
     // value type
@@ -192,21 +192,24 @@ namespace yave {
     NodeProperty,
     SocketProperty,
     EdgeProperty,
-    DefaultTraitTag>
+    default_trait_tag>
   {
     /// type
-    using type =
-      graph_traits<NodeProperty, SocketProperty, EdgeProperty, DefaultTraitTag>;
+    using type = graph_traits<
+      NodeProperty,
+      SocketProperty,
+      EdgeProperty,
+      default_trait_tag>;
 
     /// graph type
     using graph_type =
-      Graph<NodeProperty, SocketProperty, EdgeProperty, DefaultTraitTag>;
+      graph<NodeProperty, SocketProperty, EdgeProperty, default_trait_tag>;
 
     /* primitive types */
 
-    using node_type   = Node<type>;
-    using edge_type   = NodeEdge<type>;
-    using socket_type = NodeEdgeSocket<type>;
+    using node_type   = node<type>;
+    using edge_type   = edge<type>;
+    using socket_type = socket<type>;
 
     /* property types */
 
@@ -218,19 +221,19 @@ namespace yave {
 
     using node_container_traits = //
       container_traits<           //
-        Node,                     //
+        node,                     //
         type,                     //
         NodeProperty>;            //
 
     using edge_container_traits = //
       container_traits<           //
-        NodeEdge,                 //
+        edge,                     //
         type,                     //
         EdgeProperty>;            //
 
     using socket_container_traits = //
       container_traits<             //
-        NodeEdgeSocket,             //
+        socket,                     //
         type,                       //
         SocketProperty>;            //
 
@@ -257,13 +260,13 @@ namespace yave {
   /// This class repsesents Node object in Graph contains descriptors of sockets
   /// which have link to this object.
   template <typename Traits>
-  class Node
+  class node
   {
   public:
     friend typename Traits::graph_type;
 
     /// Type of this class
-    using type = Node<Traits>;
+    using type = node<Traits>;
     /// Inline property type
     using inline_property_type =
       typename Traits::node_container_traits::inline_property_type;
@@ -275,7 +278,7 @@ namespace yave {
     /// A Constructor.
     /// \param args Arguments to initialize property class.
     template <class... Args>
-    Node(Args &&... args)
+    node(Args &&... args)
       : m_id {uid::random_generate()}
       , m_sockets {}
       , m_inline_property {std::forward<Args>(args)...}
@@ -283,7 +286,7 @@ namespace yave {
     }
 
     /// A destructor.
-    ~Node() noexcept
+    ~node() noexcept
     {
     }
 
@@ -367,12 +370,12 @@ namespace yave {
   /// constructed by 2 descriptors and should automatically be deleted when they
   /// deleted from Graph.
   template <typename Traits>
-  class NodeEdge
+  class edge
   {
   public:
     friend typename Traits::graph_type;
     /// Type
-    using type = NodeEdge<Traits>;
+    using type = edge<Traits>;
     /// Inline property type
     using inline_property_type =
       typename Traits::edge_container_traits::inline_property_type;
@@ -386,7 +389,7 @@ namespace yave {
     /// \param dst descriptor of destination socket
     /// \param args args to initialize property class instance
     template <class... Args>
-    NodeEdge(
+    edge(
       const socket_descriptor_type &src,
       const socket_descriptor_type &dst,
       Args &&... args)
@@ -398,7 +401,7 @@ namespace yave {
     }
 
     /// A destructor.
-    ~NodeEdge() noexcept
+    ~edge() noexcept
     {
     }
 
@@ -445,12 +448,12 @@ namespace yave {
   /// This class represents socket object in Graph.
   /// contains list of Node descriptors and list of Edge descriptors.
   template <typename Traits>
-  class NodeEdgeSocket
+  class socket
   {
   public:
     friend typename Traits::graph_type;
     /// Type
-    using type = NodeEdgeSocket<Traits>;
+    using type = socket<Traits>;
     /// Inline property type
     using inline_property_type =
       typename Traits::socket_container_traits::inline_property_type;
@@ -464,7 +467,7 @@ namespace yave {
     /// A constructor.
     /// \param args Args for initialize property class
     template <class... Args>
-    NodeEdgeSocket(Args &&... args)
+    socket(Args &&... args)
       : m_id {uid::random_generate()}
       , m_nodes {}
       , m_src_edges {}
@@ -474,7 +477,7 @@ namespace yave {
     }
 
     /// A destructor
-    ~NodeEdgeSocket() noexcept
+    ~socket() noexcept
     {
     }
 
@@ -644,11 +647,11 @@ namespace yave {
   /// \brief Node Graph class.
   /// This class represents Node Graph Object.
   template <
-    class NodeProperty   = EmptyProperty,
-    class SocketProperty = EmptyProperty,
-    class EdgeProperty   = EmptyProperty,
-    class Tag            = DefaultTraitTag>
-  class Graph
+    class NodeProperty   = empty_property,
+    class SocketProperty = empty_property,
+    class EdgeProperty   = empty_property,
+    class Tag            = default_trait_tag>
+  class graph
   {
   public:
     using traits =
@@ -663,15 +666,15 @@ namespace yave {
     using socket_descriptor_type = typename traits::socket_descriptor_type;
 
     /// A constructor
-    Graph()
+    graph()
     {
     }
 
     /// Use copy functions to copy instances of Graph
-    Graph(const Graph &) = delete;
+    graph(const graph &) = delete;
 
     /// Move constructor
-    Graph(Graph &&g)
+    graph(graph &&g)
     {
       m_nodes   = std::move(g.m_nodes);
       m_edges   = std::move(g.m_edges);
@@ -679,7 +682,7 @@ namespace yave {
     }
 
     /// A destructor
-    ~Graph()
+    ~graph()
     {
       clear();
       assert(empty());
@@ -1077,10 +1080,10 @@ namespace yave {
     }
 
     /// Clone graph
-    [[nodiscard]] Graph<NodeProperty, SocketProperty, EdgeProperty>
+    [[nodiscard]] graph<NodeProperty, SocketProperty, EdgeProperty>
       clone() const
     {
-      Graph ng;
+      graph ng;
       auto &n_src = m_nodes;
       auto &s_src = m_sockets;
       auto &e_src = m_edges;
@@ -1185,7 +1188,8 @@ namespace yave {
       return traits::node_container_traits::access(m_nodes, n);
     }
 
-    inline const node_type &_access(const node_descriptor_type &n) const noexcept
+    inline const node_type &_access(const node_descriptor_type &n) const
+      noexcept
     {
       return traits::node_container_traits::access(m_nodes, n);
     }
@@ -1197,7 +1201,8 @@ namespace yave {
       return traits::edge_container_traits::access(m_edges, e);
     }
 
-    inline const edge_type &_access(const edge_descriptor_type &e) const noexcept
+    inline const edge_type &_access(const edge_descriptor_type &e) const
+      noexcept
     {
       return traits::edge_container_traits::access(m_edges, e);
     }
@@ -1209,7 +1214,8 @@ namespace yave {
       return traits::socket_container_traits::access(m_sockets, s);
     }
 
-    inline const socket_type &_access(const socket_descriptor_type &s) const noexcept
+    inline const socket_type &_access(const socket_descriptor_type &s) const
+      noexcept
     {
       return traits::socket_container_traits::access(m_sockets, s);
     }

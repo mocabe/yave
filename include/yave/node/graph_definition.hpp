@@ -14,6 +14,5 @@
 namespace yave {
 
   /// Graph type used in node tree
-  using graph_t = Graph<NodeProperty, SocketProperty, EdgeProperty>;
-
+  using graph_t = graph::graph<NodeProperty, SocketProperty, EdgeProperty>;
 }

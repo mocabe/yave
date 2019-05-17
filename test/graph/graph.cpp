@@ -6,13 +6,13 @@
 #include <catch2/catch.hpp>
 #include <yave/graph/graph.hpp>
 
-using namespace yave;
+using namespace yave::graph;
 
 TEST_CASE("Graph init")
 {
   SECTION("Graph<>")
   {
-    using ng = Graph<>;
+    using ng = graph<>;
     ng g;
     REQUIRE(g.nodes().empty());
     REQUIRE(g.sockets().empty());
@@ -20,7 +20,7 @@ TEST_CASE("Graph init")
   }
   SECTION("Graph<int, int, int>")
   {
-    using ng = Graph<int, int, int>;
+    using ng = graph<int, int, int>;
     ng g;
     REQUIRE(g.nodes().empty());
     REQUIRE(g.sockets().empty());
@@ -28,7 +28,7 @@ TEST_CASE("Graph init")
   }
   SECTION("Graph<int, double, bool>")
   {
-    using ng = Graph<int, double, bool>;
+    using ng = graph<int, double, bool>;
     ng g;
     REQUIRE(g.nodes().empty());
     REQUIRE(g.sockets().empty());
@@ -39,7 +39,7 @@ TEST_CASE("Graph init")
 TEST_CASE("Graph control")
 {
 
-  Graph<> g;
+  graph<> g;
 
   SECTION("node")
   {
@@ -185,7 +185,7 @@ TEST_CASE("Graph control")
 
 TEST_CASE("Graph property")
 {
-  Graph<std::string, int, int> g;
+  graph<std::string, int, int> g;
   auto n = g.add_node("test");
   auto s = g.add_socket(42);
   auto e = g.add_edge(s, s, 123);
@@ -196,7 +196,7 @@ TEST_CASE("Graph property")
 
 TEST_CASE("Graph clone")
 {
-  Graph<std::string, int, int> g;
+  graph<std::string, int, int> g;
   auto n  = g.add_node("test");
   auto s1 = g.add_socket(1);
   auto s2 = g.add_socket(2);
