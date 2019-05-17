@@ -3,10 +3,10 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/func/generator.hpp>
 #include <catch2/catch.hpp>
 
 #include <yave/core/objects/string.hpp>
+#include <yave/node/objects/generator.hpp>
 
 using namespace yave;
 

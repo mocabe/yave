@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/core/node_info_manager.hpp>
+#include <yave/node/support/node_info_manager.hpp>
 
 #include <cassert>
 

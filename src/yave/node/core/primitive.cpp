@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/core/primitive.hpp>
-#include <yave/func/constructor.hpp>
+#include <yave/node/objects/constructor.hpp>
 #include <yave/core/rts/eval.hpp>
 #include <yave/core/objects/string.hpp>
 

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2019 mocabe (https://github.com/mocabe)
+// Distributed under LGPLv3 License. See LICENSE for more details.
+//
 
 #include <yave/core/rts/dynamic_typing.hpp>
 #include <yave/core/rts/value_cast.hpp>

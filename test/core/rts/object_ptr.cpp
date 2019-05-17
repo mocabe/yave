@@ -4,6 +4,7 @@
 //
 
 #include <catch2/catch.hpp>
+
 #include <yave/core/rts/object_ptr.hpp>
 #include <yave/core/rts/box.hpp>
 #include <yave/core/rts/value_cast.hpp>

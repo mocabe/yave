@@ -4,8 +4,8 @@
 //
 
 #include <catch2/catch.hpp>
-#include <yave/frame_buffer/frame_buffer.hpp>
-#include <yave/frame_buffer/frame_buffer_manager.hpp>
+
+#include <yave/core/data_types/frame_buffer.hpp>
 #include <yave/core/objects/frame_buffer.hpp>
 
 using namespace yave;

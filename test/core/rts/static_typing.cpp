@@ -4,6 +4,7 @@
 //
 
 #include <catch2/catch.hpp>
+
 #include <yave/core/rts/static_typing.hpp>
 #include <yave/core/rts/type_gen.hpp>
 

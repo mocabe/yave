@@ -3,8 +3,9 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/support/error.hpp>
 #include <catch2/catch.hpp>
+
+#include <yave/support/error.hpp>
 #include <fmt/format.h>
 
 using namespace yave;
