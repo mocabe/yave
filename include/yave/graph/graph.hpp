@@ -15,6 +15,7 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <string>
 
 namespace yave::graph {
 
@@ -299,7 +300,7 @@ namespace yave::graph {
     /// Get sockets.
     [[nodiscard]] std::vector<socket_descriptor_type> sockets() const
     {
-      return m_sockets;
+      return {m_sockets.begin(), m_sockets.end()};
     }
 
     /// Get socket count.
@@ -359,7 +360,7 @@ namespace yave::graph {
     uid m_id;
     /// Socket descriptors.
     /// Shouldn't contain 2 or more same descriptors.
-    std::vector<socket_descriptor_type> m_sockets;
+    std::basic_string<socket_descriptor_type> m_sockets;
     /// Inline property class instance
     inline_property_type m_inline_property;
   };
@@ -487,15 +488,27 @@ namespace yave::graph {
       return m_id;
     }
 
+    /// Get nodes.
+    [[nodiscard]] std::vector<node_descriptor_type> nodes() const
+    {
+      return {m_nodes.begin(), m_nodes.end()};
+    }
+
     /// Get source edges.
     [[nodiscard]] std::vector<edge_descriptor_type> src_edges() const
     {
-      return m_src_edges;
+      return {m_src_edges.begin(), m_src_edges.end()};
     }
     /// Get destination edges.
     [[nodiscard]] std::vector<edge_descriptor_type> dst_edges() const
     {
-      return m_dst_edges;
+      return {m_dst_edges.begin(), m_dst_edges.end()};
+    }
+
+    /// Get node count.
+    [[nodiscard]] size_t n_nodes() const
+    {
+      return m_nodes.size();
     }
 
     /// Get srouce edge count.
@@ -508,18 +521,6 @@ namespace yave::graph {
     [[nodiscard]] size_t n_dst_edges() const
     {
       return m_dst_edges.size();
-    }
-
-    /// Get nodes.
-    [[nodiscard]] std::vector<node_descriptor_type> nodes() const
-    {
-      return m_nodes;
-    }
-
-    /// Get node count.
-    [[nodiscard]] size_t n_nodes() const
-    {
-      return m_nodes.size();
     }
 
     /// Inline property accessor.
@@ -635,11 +636,11 @@ namespace yave::graph {
     /// Id of this edge.
     uid m_id;
     /// node descriptors
-    std::vector<node_descriptor_type> m_nodes;
+    std::basic_string<node_descriptor_type> m_nodes;
     /// edge descriptors
-    std::vector<edge_descriptor_type> m_src_edges;
+    std::basic_string<edge_descriptor_type> m_src_edges;
     /// edge descriptors
-    std::vector<edge_descriptor_type> m_dst_edges;
+    std::basic_string<edge_descriptor_type> m_dst_edges;
     /// inline property class instance
     inline_property_type m_inline_property;
   };
