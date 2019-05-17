@@ -5,13 +5,11 @@
 
 #pragma once
 
+#include <yave/core/data_types/string.hpp>
 #include <yave/core/data_types/primitive.hpp>
-
 #include <yave/core/data_types/time.hpp>
 #include <yave/core/data_types/frame.hpp>
-
 #include <yave/core/data_types/image_format.hpp>
 #include <yave/core/data_types/image.hpp>
 #include <yave/core/data_types/image_view.hpp>
-
 #include <yave/core/data_types/frame_buffer.hpp>

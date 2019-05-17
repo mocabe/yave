@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/core/config.hpp>
+#include <yave/core/data_types/string.hpp>
 
 #include <variant>
 #include <string>
@@ -26,7 +27,7 @@ namespace yave {
       double,
       float,
       bool,
-      std::string>;
+      yave::string>;
 
   /// Type trait for primitive types.
   template <class T>
@@ -52,7 +53,7 @@ namespace yave {
   YAVE_DECL_PRIMITIVE_TYPENAME(double, Double);
   YAVE_DECL_PRIMITIVE_TYPENAME(float, Float);
   YAVE_DECL_PRIMITIVE_TYPENAME(bool, Bool);
-  YAVE_DECL_PRIMITIVE_TYPENAME(std::string, String);
+  YAVE_DECL_PRIMITIVE_TYPENAME(yave::string, String);
 
 #undef YAVE_DECL_PRIMITIVE_TYPENAME
 
