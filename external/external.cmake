@@ -87,6 +87,7 @@ if(MINGW)
   execute_process(COMMAND ./b2 -j 8 link=static address-model=64 
                   WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
 elseif(YAVE_COMPILER_MSVC)
+  # Should link Boost::disable_autolinking on all targets to avoid link errors.
   execute_process(COMMAND ./b2 -j 8 toolset=msvc link=static address-model=64 
                   WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
 else()
