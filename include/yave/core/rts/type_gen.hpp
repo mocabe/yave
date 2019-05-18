@@ -72,12 +72,13 @@ namespace yave {
     // ------------------------------------------
     // value type
 
+    static_assert(offset_of_member(&Type::value) == 16);
+
     /// value type
     template <class T>
     struct value_type_initializer
     {
       alignas(16) static const Type type;
-      static_assert(offset_of_member(&Type::value) == 16);
     };
 
     template <class T>
