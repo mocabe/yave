@@ -82,7 +82,7 @@ TEST_CASE("error_info")
   }
 }
 
-TEST_CASE("error_infoList")
+TEST_CASE("error_list")
 {
   struct MyError : error_info<MyError>
   {

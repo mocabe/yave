@@ -32,7 +32,7 @@ namespace yave {
   {
     virtual std::string message() const override
     {
-      return "errorInfo";
+      return "error_info";
     }
 
     virtual const std::type_info& type() const override
