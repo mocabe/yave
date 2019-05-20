@@ -246,6 +246,14 @@ namespace yave {
             auto c         = unify({Constr {node_tp, t}}, nullptr);
             auto result_tp = subst_type_all(c, tmp_tp);
             hits.push_back({b.get(), o, t, result_tp});
+          } catch (type_error::type_missmatch& e) {
+            // TODO: handle other errors for single overloading too.
+            if (overloadings.size() == 1) {
+              errors.push_back(
+                make_error<parse_errors::type_missmatch>(node, e.t1(), e.t2()));
+              return genvar();
+            }
+            continue;
           } catch (type_error::type_error&) {
             continue;
           }
@@ -261,6 +269,7 @@ namespace yave {
         for (size_t i = 0; i < hits.size(); ++i) {
           if (specializable(ret.instance_tp, hits[i].instance_tp)) {
             if (specializable(hits[i].instance_tp, ret.instance_tp)) {
+              // TODO: better error info
               errors.push_back(make_error<parse_errors::ambiguous_overloading>(
                 node, overloadings));
               return genvar();
