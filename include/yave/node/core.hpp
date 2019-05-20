@@ -6,3 +6,4 @@
 #pragma once
 
 #include <yave/node/core/node_graph.hpp>
+#include <yave/node/core/bind_info.hpp>
