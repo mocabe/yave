@@ -25,6 +25,11 @@ init_and_add_lib_cmake(glm)
 init_and_add_lib_cmake(Catch2)
 
 # glfw
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+set(GLFW_VULKAN_STATIC ON CACHE BOOL "" FORCE)
 init_and_add_lib_cmake(glfw)
 
 # Vulkan
