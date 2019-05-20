@@ -6,35 +6,40 @@
 #include <yave/node/core/node_graph.hpp>
 #include <yave/support/log.hpp>
 
+namespace {
+
+  /// logger
+  std::shared_ptr<spdlog::logger> g_node_graph_logger;
+
+  /// Traverse nodes until return true.
+  template <class Lambda>
+  void depth_first_search_until(
+    const yave::node_graph& ng,
+    const yave::node_handle& node,
+    Lambda&& lambda);
+
+  /// Traverse nodes.
+  template <class Lambda>
+  void depth_first_search(
+    const yave::node_graph& ng,
+    const yave::node_handle& node,
+    Lambda&& lambda);
+
+  /// Find a closed loop in node graph.
+  std::vector<yave::node_handle>
+    find_loop(const yave::node_graph& ng, const yave::node_handle& node);
+
+} // namespace
+
 namespace yave {
-  namespace {
-
-    /// Traverse nodes until return true.
-    template <class Lambda>
-    void depth_first_search_until(
-      const node_graph& ng,
-      const node_handle& node,
-      Lambda&& lambda);
-
-    /// Traverse nodes.
-    template <class Lambda>
-    void depth_first_search(
-      const node_graph& ng,
-      const node_handle& node,
-      Lambda&& lambda);
-
-    /// Find a closed loop in node graph.
-    std::vector<node_handle>
-      find_loop(const node_graph& ng, const node_handle& node);
-
-  } // namespace
 
   node_graph::node_graph()
     : m_g {}
     , m_mtx {}
   {
     [[maybe_unused]] static auto init_logger = []() {
-      return add_logger("node_graph");
+      g_node_graph_logger = add_logger("node_graph");
+      return 1;
     }();
   }
 
@@ -101,7 +106,7 @@ namespace yave {
     auto handle = node_handle(node, m_g.id(node));
 
     Info(
-      get_logger("node_graph"),
+      g_node_graph_logger,
       "Created Node: name=\"{}\", id={}",
       info.name(),
       to_string(handle.id()));
@@ -115,7 +120,7 @@ namespace yave {
       return;
 
     Info(
-      get_logger("node_graph"),
+      g_node_graph_logger,
       "Removing Node: name=\"{}\", id={}",
       m_g[node.descriptor()].name(),
       to_string(node.id()));
@@ -139,12 +144,11 @@ namespace yave {
 
   connection_handle node_graph::connect(const connection_info& info)
   {
-    auto logger = get_logger("node_graph");
-    assert(logger);
-
     // check handler
     if (!exists(info.src_node()) || !exists(info.dst_node())) {
-      Error(logger, "Failed to connect sockets: Invalid node descriptor.");
+      Error(
+        g_node_graph_logger,
+        "Failed to connect sockets: Invalid node descriptor.");
       return nullptr;
     }
     // check socket name
@@ -156,7 +160,7 @@ namespace yave {
             for (auto&& e : m_g.dst_edges(d))
               if (m_g.src(e) == s) {
                 Warning(
-                  logger,
+                  g_node_graph_logger,
                   "Connection already exists. Return existing connection "
                   "handle.");
                 return connection_handle(e, m_g.id(e));
@@ -164,7 +168,7 @@ namespace yave {
             // input edge cannot have multiple inputs
             if (m_g.n_dst_edges(d) != 0) {
               Error(
-                logger,
+                g_node_graph_logger,
                 "Failed to connect sockets: Multiple input is not allowed.");
               return nullptr;
             }
@@ -176,14 +180,14 @@ namespace yave {
             // closed loop check
             if (!find_loop(*this, info.src_node()).empty()) {
               Error(
-                logger,
+                g_node_graph_logger,
                 "Failed to connect sockets: Closed loop is not allowed.");
               m_g.remove_edge(new_edge);
               return nullptr;
             }
 
             Info(
-              logger,
+              g_node_graph_logger,
               "Connected socket: src=\"{}\"({})::{}, dst=\"{}\"({})::{}",
               m_g[info.src_node().descriptor()].name(),
               to_string(info.src_node().id()),
@@ -199,7 +203,7 @@ namespace yave {
     }
 
     // fail
-    Error(logger, "Failed to connect sockets: Invalid argument.");
+    Error(g_node_graph_logger, "Failed to connect sockets: Invalid argument.");
     return nullptr;
   }
 
@@ -208,14 +212,14 @@ namespace yave {
     // check handler
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::disconnect() on invalid node handle.");
       return;
     }
 
     auto info = get_info(h);
     Info(
-      get_logger("node_graph"),
+      g_node_graph_logger,
       "Disconnecting: src={}::{} dst={}::{}",
       to_string(info->src_node().id()),
       info->src_socket(),
@@ -247,8 +251,7 @@ namespace yave {
     // check handler
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
-        "node_graph::node_info() on invalid node handle.");
+        g_node_graph_logger, "node_graph::node_info() on invalid node handle.");
       return std::nullopt;
     }
 
@@ -272,8 +275,7 @@ namespace yave {
   {
     if (!exists(node)) {
       Warning(
-        get_logger("node_graph"),
-        "NodeGrpah::node_name() on invalid node handle.");
+        g_node_graph_logger, "NodeGrpah::node_name() on invalid node handle.");
       return std::nullopt;
     }
     return m_g[node.descriptor()].name();
@@ -284,7 +286,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::has_socket() on invalid node handle.");
       return false;
     }
@@ -301,7 +303,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::is_input_socket on invalid node handle.");
       return false;
     }
@@ -319,7 +321,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::is_output_socket on invalid node handle.");
       return false;
     }
@@ -337,7 +339,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::input_connections on invalid node handle.");
       return {};
     }
@@ -361,7 +363,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::output_connections on invalid node handle.");
       return {};
     }
@@ -384,7 +386,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::has_connection() on invalid node handle.");
       return false;
     }
@@ -398,7 +400,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::connections() on invalid node handle.");
       return {};
     }
@@ -423,7 +425,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::connections() on invalid node handle.");
       return {};
     }
@@ -440,7 +442,7 @@ namespace yave {
     }
     if (ret.empty())
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "Call for connections() with invalid socket name.");
     return ret;
   }
@@ -450,7 +452,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::input_connections() on invalid node handle.");
       return {};
     }
@@ -472,7 +474,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::outupt_connections() on invalid node handle.");
       return {};
     }
@@ -486,7 +488,7 @@ namespace yave {
     }
     if (ret.empty())
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "Call for output_connections() with invalid socket name.");
     return ret;
   }
@@ -507,7 +509,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::connection_info() on invalid connection handle.");
       return std::nullopt;
     }
@@ -529,7 +531,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::input_sockets() on invalid node handle.");
       return {};
     }
@@ -548,7 +550,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::outupt_sockets() on invalid node handle.");
       return {};
     }
@@ -566,7 +568,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::is_primitive() on invalid node handle.");
       return false;
     }
@@ -579,7 +581,7 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::get_primitive() on invalid node handle.");
       return std::nullopt;
     }
@@ -593,14 +595,14 @@ namespace yave {
   {
     if (!exists(h)) {
       Warning(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "node_graph::set_primitive() on invalid node handle.");
       return;
     }
 
     if (!is_primitive(h)) {
       Error(
-        get_logger("node_graph"),
+        g_node_graph_logger,
         "Cannot set primitive value to non-primitive node. Ignored.");
       return;
     }
@@ -631,8 +633,7 @@ namespace yave {
   {
     if (!exists(node)) {
       Warning(
-        get_logger("node_graph"),
-        "node_graph::root_of() on invalid node handle.");
+        g_node_graph_logger, "node_graph::root_of() on invalid node handle.");
       return {};
     }
 
@@ -745,121 +746,127 @@ namespace yave {
       prev_connections, connections);
   }
 
-  namespace {
-    template <class Lambda>
-    void depth_first_search_until(
-      const node_graph& ng,
-      const node_handle& node,
-      Lambda&& lambda)
-    {
-      std::vector<node_handle> visited_nodes;
-      std::vector<node_handle> stack;
-
-      auto visit = [&](const node_handle& node) {
-        visited_nodes.push_back(node);
-        stack.push_back(node);
-      };
-
-      auto visited = [&](const node_handle& node) {
-        for (auto&& n : visited_nodes)
-          if (n == node)
-            return true;
-        return false;
-      };
-
-      // visit first node
-      visit(node);
-      if (std::forward<Lambda>(lambda)(node))
-        return;
-
-      // main loop
-      while (!stack.empty()) {
-
-        auto current = stack.back();
-
-        /// visit unvisited child node.
-        /// pop when all childs have been visited.
-        bool stop = [&] {
-          for (auto&& c : ng.input_connections(current)) {
-            auto next = ng.get_info(c)->src_node();
-            if (!visited(next)) {
-              visit(next);
-              return std::forward<Lambda>(lambda)(node);
-            }
-          }
-          stack.pop_back();
-          return false;
-        }();
-
-        if (stop)
-          break;
-      }
-    }
-
-    template <class Lambda>
-    void depth_first_search(
-      const node_graph& ng,
-      const node_handle& node,
-      Lambda&& lambda)
-    {
-      return depth_first_search_until(ng, node, [&](auto&& n) {
-        std::forward<Lambda>(lambda)(n);
-        return false;
-      });
-    }
-
-    std::vector<node_handle>
-      find_loop(const node_graph& ng, const node_handle& node)
-    {
-      std::vector<node_handle> visited_nodes;
-      std::vector<node_handle> stack;
-
-      auto visit = [&](const node_handle& node) {
-        visited_nodes.push_back(node);
-        stack.push_back(node);
-      };
-
-      auto visited = [&](const node_handle& node) {
-        for (auto&& n : visited_nodes)
-          if (n == node)
-            return true;
-        return false;
-      };
-
-      visit(node);
-
-      // loop
-      std::vector<node_handle> ret;
-
-      while (!stack.empty()) {
-
-        auto current = stack.back();
-
-        bool stop = [&] {
-          for (auto&& c : ng.input_connections(current)) {
-            auto next = ng.get_info(c)->src_node();
-            if (visited(next)) {
-              // find closed loop
-              for (auto iter = stack.begin(); iter != stack.end(); ++iter) {
-                if (*iter == next) {
-                  ret = {iter, stack.end()};
-                  return true;
-                }
-              }
-            } else {
-              visit(next);
-              return false;
-            }
-          }
-          stack.pop_back();
-          return false;
-        }();
-
-        if (stop)
-          break;
-      }
-
-      return ret;
-    }
-  } // namespace
 } // namespace yave
+
+namespace {
+
+  template <class Lambda>
+  void depth_first_search_until(
+    const yave::node_graph& ng,
+    const yave::node_handle& node,
+    Lambda&& lambda)
+  {
+    using namespace yave;
+
+    std::vector<node_handle> visited_nodes;
+    std::vector<node_handle> stack;
+
+    auto visit = [&](const node_handle& n) {
+      visited_nodes.push_back(n);
+      stack.push_back(n);
+    };
+
+    auto visited = [&](const node_handle& n) {
+      for (auto&& vn : visited_nodes)
+        if (vn == n)
+          return true;
+      return false;
+    };
+
+    // visit first node
+    visit(node);
+    if (std::forward<Lambda>(lambda)(node))
+      return;
+
+    // main loop
+    while (!stack.empty()) {
+
+      auto current = stack.back();
+
+      /// visit unvisited child node.
+      /// pop when all childs have been visited.
+      bool stop = [&] {
+        for (auto&& c : ng.input_connections(current)) {
+          auto next = ng.get_info(c)->src_node();
+          if (!visited(next)) {
+            visit(next);
+            return std::forward<Lambda>(lambda)(node);
+          }
+        }
+        stack.pop_back();
+        return false;
+      }();
+
+      if (stop)
+        break;
+    }
+  }
+
+  template <class Lambda>
+  void depth_first_search(
+    const yave::node_graph& ng,
+    const yave::node_handle& node,
+    Lambda&& lambda)
+  {
+    return depth_first_search_until(ng, node, [&](auto&& n) {
+      std::forward<Lambda>(lambda)(n);
+      return false;
+    });
+  }
+
+  std::vector<yave::node_handle>
+    find_loop(const yave::node_graph& ng, const yave::node_handle& node)
+  {
+    using namespace yave;
+
+    std::vector<node_handle> visited_nodes;
+    std::vector<node_handle> stack;
+
+    auto visit = [&](const node_handle& n) {
+      visited_nodes.push_back(n);
+      stack.push_back(n);
+    };
+
+    auto visited = [&](const node_handle& n) {
+      for (auto&& vn : visited_nodes)
+        if (vn == n)
+          return true;
+      return false;
+    };
+
+    visit(node);
+
+    // loop
+    std::vector<node_handle> ret;
+
+    while (!stack.empty()) {
+
+      auto current = stack.back();
+
+      bool stop = [&] {
+        for (auto&& c : ng.input_connections(current)) {
+          auto next = ng.get_info(c)->src_node();
+          if (visited(next)) {
+            // find closed loop
+            for (auto iter = stack.begin(); iter != stack.end(); ++iter) {
+              if (*iter == next) {
+                ret = {iter, stack.end()};
+                return true;
+              }
+            }
+          } else {
+            visit(next);
+            return false;
+          }
+        }
+        stack.pop_back();
+        return false;
+      }();
+
+      if (stop)
+        break;
+    }
+
+    return ret;
+  }
+} // namespace
