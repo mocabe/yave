@@ -14,6 +14,7 @@ endfunction()
 init_and_add_lib_cmake(fmt)
 
 # spdlog 
+set(SPDLOG_FMT_EXTERNAL ON)
 init_and_add_lib_cmake(spdlog)
 
 # glm
