@@ -96,10 +96,10 @@ namespace yave {
       get_instance(const primitive_t& prim) const;
 
     /// Check if this bind matches to node_info.
-    [[nodiscard]] bool matches(const node_info& info) const;
+    [[nodiscard]] bool is_bind_of(const node_info& info) const;
 
     /// Check if this bind matches to node info.
-    [[nodiscard]] bool matches(
+    [[nodiscard]] bool is_bind_of(
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets) const;

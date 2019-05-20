@@ -128,14 +128,13 @@ namespace yave {
   }
 
   [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
-    bind_info_manager::find_matched(const node_info& info) const
+    bind_info_manager::get_binds(const node_info& info) const
   {
-    return find_matched(
-      info.name(), info.input_sockets(), info.output_sockets());
+    return get_binds(info.name(), info.input_sockets(), info.output_sockets());
   }
 
   [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
-    bind_info_manager::find_matched(
+    bind_info_manager::get_binds(
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets) const
@@ -144,7 +143,7 @@ namespace yave {
 
     std::vector<std::shared_ptr<const info_type>> ret;
     for (auto iter = bgn; iter != end; ++iter) {
-      if (iter->second->matches(name, input_sockets, output_sockets))
+      if (iter->second->is_bind_of(name, input_sockets, output_sockets))
         ret.push_back(iter->second);
     }
     return ret;

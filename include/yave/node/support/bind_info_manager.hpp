@@ -71,11 +71,11 @@ namespace yave {
 
     /// Find matched info
     [[nodiscard]] std::vector<std::shared_ptr<const info_type>>
-      find_matched(const node_info& info) const;
+      get_binds(const node_info& info) const;
 
     /// Find matched info
-    [[nodiscard]] std::vector<std::shared_ptr<const info_type>> find_matched(
-      const std::string& info,
+    [[nodiscard]] std::vector<std::shared_ptr<const info_type>> get_binds(
+      const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets) const;
 

@@ -133,12 +133,12 @@ namespace yave {
     return eval(m_get_instance_func << make_object<Primitive>(prim));
   }
 
-  [[nodiscard]] bool bind_info::matches(const node_info& info) const
+  [[nodiscard]] bool bind_info::is_bind_of(const node_info& info) const
   {
-    return matches(info.name(), info.input_sockets(), info.output_sockets());
+    return is_bind_of(info.name(), info.input_sockets(), info.output_sockets());
   }
 
-  [[nodiscard]] bool bind_info::matches(
+  [[nodiscard]] bool bind_info::is_bind_of(
     const std::string& name,
     const std::vector<std::string>& input_sockets,
     const std::vector<std::string>& output_sockets) const
@@ -159,12 +159,15 @@ namespace yave {
     if (!match_output)
       return false;
 
-    // check input sockets
+    // check inupt sockets
+    size_t bgn = 0;
     for (auto&& s : m_input_sockets) {
       auto found = [&] {
-        for (auto&& t : input_sockets) {
-          if (s == t)
+        for (auto i = bgn; i < input_sockets.size(); ++i) {
+          if (s == input_sockets[i]) {
+            bgn = i + 1;
             return true;
+          }
         }
         return false;
       }();
@@ -173,5 +176,4 @@ namespace yave {
     }
     return true;
   }
-
 } // namespace yave
