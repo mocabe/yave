@@ -1,7 +1,6 @@
 # yave::node::core
 
 add_library(yave-node-core 
-  exception.cpp
   primitive.cpp
   bind_info.cpp
   node_info.cpp
