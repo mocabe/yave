@@ -9,23 +9,21 @@
 #include <yave/core/rts/to_string.hpp>
 #include <yave/support/log.hpp>
 
-#include <fmt/format.h>
-#include <fmt/ostream.h>
-
-#include <ostream>
-
 namespace {
-
-  /// logger
-  std::shared_ptr<spdlog::logger> g_parser_logger;
-
   /// operator<< for uid
   std::ostream& operator<<(std::ostream& os, const yave::uid& id)
   {
     os << id.data;
     return os;
   }
+} // namespace
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
+namespace {
+  /// logger
+  std::shared_ptr<spdlog::logger> g_parser_logger;
 } // namespace
 
 namespace yave {
