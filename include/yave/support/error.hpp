@@ -15,7 +15,7 @@
 namespace yave {
 
   /// Polymorphic error info interface.
-  class ErrorInfoBase
+  class error_info_base
   {
   public:
     /// Generate error message.
@@ -23,16 +23,16 @@ namespace yave {
     /// type info
     virtual const std::type_info& type() const = 0;
     /// dtor
-    virtual ~ErrorInfoBase() noexcept;
+    virtual ~error_info_base() noexcept;
   };
 
-  /// Base class of ErrorInfo objects.
+  /// Base class of errorInfo objects.
   template <class Derived>
-  struct ErrorInfo : ErrorInfoBase
+  struct error_info : error_info_base
   {
     virtual std::string message() const override
     {
-      return "ErrorInfo";
+      return "errorInfo";
     }
 
     virtual const std::type_info& type() const override
@@ -40,43 +40,43 @@ namespace yave {
       return typeid(Derived);
     }
 
-    virtual ~ErrorInfo() noexcept override
+    virtual ~error_info() noexcept override
     {
     }
   };
 
-  /// Error
-  class Error
+  /// error
+  class error
   {
   public:
-    /// Initialize Error with success.
-    Error();
+    /// Initialize error with success.
+    error();
 
-    /// Initialize Error with success.
-    Error(nullptr_t);
+    /// Initialize error with success.
+    error(nullptr_t);
 
-    /// Initialize Error with error info.
-    Error(std::unique_ptr<ErrorInfoBase>&& err);
+    /// Initialize error with error info.
+    error(std::unique_ptr<error_info_base>&& err);
 
     /// Move ctor.
-    Error(Error&& other);
+    error(error&& other);
 
     /// operator=
-    Error& operator=(Error&&);
+    error& operator=(error&&);
 
     /// Copy constructor (deleted)
-    Error(const Error&) = delete;
+    error(const error&) = delete;
     /// Copy assignment operator (deleted)
-    Error& operator=(const Error&) = delete;
+    error& operator=(const error&) = delete;
 
-    /// Initialize from Success
-    explicit Error(const class Success&);
+    /// Initialize from success
+    explicit error(const class success&);
 
-    /// Initialize from Success
-    Error& operator=(const class Success&);
+    /// Initialize from success
+    error& operator=(const class success&);
 
-    /// Get pointer to ErrorInfo.
-    const ErrorInfoBase* info() const;
+    /// Get pointer to errorInfo.
+    const error_info_base* info() const;
 
     /// success?
     bool is_success() const;
@@ -91,52 +91,52 @@ namespace yave {
     const std::type_info& type() const;
 
   private:
-    std::unique_ptr<const ErrorInfoBase> m_error_info;
+    std::unique_ptr<const error_info_base> m_error_info;
   };
 
-  /// Success
-  class Success : public Error
+  /// success
+  class success : public error
   {
   public:
     /// Ctor.
-    Success();
+    success();
     /// Copy ctor.
-    Success(const Success& other);
+    success(const success& other);
     /// Move ctor.
-    Success(const Success&& other);
+    success(const success&& other);
     /// Copy assignment operator.
-    Success& operator=(const Success& other);
+    success& operator=(const success& other);
     /// Move assignment operator.
-    Success& operator=(Success&& other);
+    success& operator=(success&& other);
 
   private:
-    using Error::Error;
+    using error::error;
   };
 
-  /// Simple list of Error objects.
-  class ErrorList
+  /// Simple list of error objects.
+  class error_list
   {
   public:
     /// const_iterator
-    using const_iterator = typename std::vector<Error>::const_iterator;
+    using const_iterator = typename std::vector<error>::const_iterator;
 
-    /// Initialize ErrorList with empty list.
-    ErrorList();
+    /// Initialize error_list with empty list.
+    error_list();
 
     /// Move constructor.
-    ErrorList(ErrorList&& other);
+    error_list(error_list&& other);
 
     /// Move assignment operator.
-    ErrorList& operator=(ErrorList&&);
+    error_list& operator=(error_list&&);
 
     /// Copy ctor (deleted)
-    ErrorList(const ErrorList&) = delete;
+    error_list(const error_list&) = delete;
 
     /// Copy assignment operator (deleted)
-    ErrorList& operator=(const ErrorList&) = delete;
+    error_list& operator=(const error_list&) = delete;
 
     /// Add error to the list.
-    void push_back(Error&& error);
+    void push_back(error&& error);
 
     /// Get size of list.
     size_t size() const;
@@ -145,10 +145,10 @@ namespace yave {
     bool empty() const;
 
     /// operator[]
-    const Error& operator[](size_t index) const;
+    const error& operator[](size_t index) const;
 
     /// at
-    const Error& at(size_t index) const;
+    const error& at(size_t index) const;
 
     /// begin
     const_iterator begin() const;
@@ -162,16 +162,15 @@ namespace yave {
     /// Erase range of elements.
     void erase(const_iterator fist, const_iterator last);
 
-
   private:
-    std::vector<Error> m_errors;
+    std::vector<error> m_errors;
   };
 
-  /// Make Error from new ErrorInfo instance.
+  /// Make error from new ErrorInfo instance.
   template <class ErrorInfoT, class... Args>
-  Error make_error(Args&&... args)
+  error make_error(Args&&... args)
   {
-    return Error(std::make_unique<ErrorInfoT>(std::forward<Args>(args)...));
+    return error(std::make_unique<ErrorInfoT>(std::forward<Args>(args)...));
   }
 
 } // namespace yave

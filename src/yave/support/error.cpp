@@ -7,160 +7,160 @@
 
 namespace yave {
 
-  ErrorInfoBase::~ErrorInfoBase() noexcept
+  error_info_base::~error_info_base() noexcept
   {
   }
 
-  Error::Error()
+  error::error()
     : m_error_info {nullptr}
   {
   }
 
-  Error::Error(nullptr_t)
+  error::error(nullptr_t)
     : m_error_info {nullptr}
   {
   }
 
-  Error::Error(std::unique_ptr<ErrorInfoBase>&& err)
+  error::error(std::unique_ptr<error_info_base>&& err)
     : m_error_info {std::move(err)}
   {
   }
 
-  Error::Error(const Success&)
+  error::error(const success&)
     : m_error_info {nullptr}
   {
   }
 
-  Error::Error(Error&& other)
+  error::error(error&& other)
     : m_error_info {std::move(other.m_error_info)}
   {
   }
 
-  Error& Error::operator=(const Success&)
+  error& error::operator=(const success&)
   {
     m_error_info = nullptr;
     return *this;
   }
 
-  Error& Error::operator=(Error&& other)
+  error& error::operator=(error&& other)
   {
     m_error_info = std::move(other.m_error_info);
     return *this;
   }
 
-  const ErrorInfoBase* Error::info() const
+  const error_info_base* error::info() const
   {
     return m_error_info.get();
   }
 
-  bool Error::is_success() const
+  bool error::is_success() const
   {
     return m_error_info.get() == nullptr;
   }
 
-  Error::operator bool() const
+  error::operator bool() const
   {
     return is_success();
   }
 
-  std::string Error::message() const
+  std::string error::message() const
   {
     assert(m_error_info);
     return m_error_info->message();
   }
 
-  const std::type_info& Error::type() const
+  const std::type_info& error::type() const
   {
     assert(m_error_info);
     return m_error_info->type();
   }
 
-  Success::Success()
-    : Error(nullptr)
+  success::success()
+    : error(nullptr)
   {
   }
 
-  Success::Success([[maybe_unused]] const Success& other)
-    : Error(nullptr)
-  {
-    assert(other.is_success());
-  }
-
-  Success::Success([[maybe_unused]] const Success&& other)
-    : Error(nullptr)
+  success::success([[maybe_unused]] const success& other)
+    : error(nullptr)
   {
     assert(other.is_success());
   }
 
-  Success& Success::operator=([[maybe_unused]] const Success& other)
+  success::success([[maybe_unused]] const success&& other)
+    : error(nullptr)
   {
     assert(other.is_success());
-    return *this;
   }
 
-  Success& Success::operator=([[maybe_unused]] Success&& other)
+  success& success::operator=([[maybe_unused]] const success& other)
   {
     assert(other.is_success());
     return *this;
   }
 
-  ErrorList::ErrorList()
+  success& success::operator=([[maybe_unused]] success&& other)
+  {
+    assert(other.is_success());
+    return *this;
+  }
+
+  error_list::error_list()
   {
   }
 
-  ErrorList::ErrorList(ErrorList&& other)
+  error_list::error_list(error_list&& other)
     : m_errors {std::move(other.m_errors)}
   {
   }
 
-  ErrorList& ErrorList::operator=(ErrorList&& other)
+  error_list& error_list::operator=(error_list&& other)
   {
     m_errors = std::move(other.m_errors);
     return *this;
   }
 
-  void ErrorList::push_back(Error&& error)
+  void error_list::push_back(error&& error)
   {
     if (!error)
       m_errors.push_back(std::move(error));
   }
 
-  size_t ErrorList::size() const
+  size_t error_list::size() const
   {
     return m_errors.size();
   }
 
-  bool ErrorList::empty() const
+  bool error_list::empty() const
   {
     return m_errors.empty();
   }
 
-  const Error& ErrorList::operator[](size_t index) const
+  const error& error_list::operator[](size_t index) const
   {
     return m_errors[index];
   }
 
-  const Error& ErrorList::at(size_t index) const
+  const error& error_list::at(size_t index) const
   {
     return m_errors.at(index);
   }
 
-  typename ErrorList::const_iterator ErrorList::begin() const
+  typename error_list::const_iterator error_list::begin() const
   {
     return m_errors.cbegin();
   }
 
-  typename ErrorList::const_iterator ErrorList::end() const
+  typename error_list::const_iterator error_list::end() const
   {
     return m_errors.cend();
   }
 
-  void ErrorList::erase(const_iterator position)
+  void error_list::erase(const_iterator position)
   {
     m_errors.erase(position);
   }
 
-  void ErrorList::erase(const_iterator first, const_iterator last)
+  void error_list::erase(const_iterator first, const_iterator last)
   {
     m_errors.erase(first, last);
   }

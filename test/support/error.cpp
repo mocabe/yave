@@ -16,7 +16,7 @@ TEST_CASE("Error")
   {
     SECTION("init")
     {
-      auto succ  = Success();
+      auto succ  = success();
       auto succ2 = succ;
       auto succ3 = std::move(succ2);
       succ2      = succ3;
@@ -28,8 +28,8 @@ TEST_CASE("Error")
     }
     SECTION("convert")
     {
-      auto succ = Success();
-      Error err = Success();
+      auto succ = success();
+      error err = success();
       err       = succ;
       err       = std::move(succ);
 
@@ -39,28 +39,28 @@ TEST_CASE("Error")
   }
 }
 
-TEST_CASE("ErrorInfo")
+TEST_CASE("error_info")
 {
   SECTION("default")
   {
-    struct MyError : ErrorInfo<MyError>
+    struct MyError : error_info<MyError>
     {
     };
 
     auto err = make_error<MyError>();
     REQUIRE(!err.is_success());
     REQUIRE(!err);
-    REQUIRE(err.message() == "ErrorInfo");
+    REQUIRE(err.message() == "error_info");
 
     auto err2 = std::move(err);
     REQUIRE(!err2.is_success());
     REQUIRE(!err2);
-    REQUIRE(err2.message() == "ErrorInfo");
+    REQUIRE(err2.message() == "error_info");
   }
 
   SECTION("custom")
   {
-    struct MyError : ErrorInfo<MyError>
+    struct MyError : error_info<MyError>
     {
       MyError(const std::string& str)
         : msg {str}
@@ -82,9 +82,9 @@ TEST_CASE("ErrorInfo")
   }
 }
 
-TEST_CASE("ErrorInfoList")
+TEST_CASE("error_infoList")
 {
-  struct MyError : ErrorInfo<MyError>
+  struct MyError : error_info<MyError>
   {
     MyError(const std::string& str)
       : msg {str}
@@ -99,7 +99,7 @@ TEST_CASE("ErrorInfoList")
     std::string msg;
   };
 
-  ErrorList list;
+  error_list list;
 
   REQUIRE(list.size() == 0);
   REQUIRE(list.empty());
@@ -108,7 +108,7 @@ TEST_CASE("ErrorInfoList")
   list.push_back(make_error<MyError>("Error1\n"));
   list.push_back(make_error<MyError>("Error2\n"));
   list.push_back(make_error<MyError>("Error3\n"));
-  list.push_back(Success());
+  list.push_back(success());
 
   REQUIRE(list.size() == 3);
   REQUIRE(!list.empty());
