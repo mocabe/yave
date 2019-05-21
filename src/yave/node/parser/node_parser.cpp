@@ -242,7 +242,7 @@ namespace yave {
 
           } catch (type_error::type_missmatch& e) {
             errors.push_back(make_error<parse_errors::type_missmatch>(
-              node, inputs[i], e.t1(), e.t2()));
+              node, inputs[i], e.expected(), e.provided()));
             return genvar();
           } catch (type_error::type_error&) {
             errors.push_back(make_error<parse_errors::no_valid_overloading>(

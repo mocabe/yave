@@ -102,31 +102,31 @@ namespace yave {
     public:
       type_missmatch(
         object_ptr<const Object> src,
-        object_ptr<const Type> t1,
-        object_ptr<const Type> t2)
+        object_ptr<const Type> expected,
+        object_ptr<const Type> provided)
         : type_error("Type missmatch", std::move(src))
-        , m_t1 {std::move(t1)}
-        , m_t2 {std::move(t2)}
+        , m_expected {std::move(expected)}
+        , m_provided {std::move(provided)}
       {
       }
 
-      /// t1
-      [[nodiscard]] const object_ptr<const Type>& t1() const
+      /// expected
+      [[nodiscard]] const object_ptr<const Type>& expected() const
       {
-        return m_t1;
+        return m_expected;
       }
 
-      /// t2
-      [[nodiscard]] const object_ptr<const Type>& t2() const
+      /// provided
+      [[nodiscard]] const object_ptr<const Type>& provided() const
       {
-        return m_t2;
+        return m_provided;
       }
 
     private:
       /// t1
-      object_ptr<const Type> m_t1;
+      object_ptr<const Type> m_expected;
       /// t2
-      object_ptr<const Type> m_t2;
+      object_ptr<const Type> m_provided;
     };
 
     /// bad type check
@@ -191,7 +191,8 @@ namespace yave {
   {
     return make_object<Exception>(
       e.what(),
-      make_object<TypeError>(type_error_type::type_missmatch, e.t1(), e.t2()));
+      make_object<TypeError>(
+        type_error_type::type_missmatch, e.expected(), e.provided()));
   }
 
   [[nodiscard]] inline object_ptr<Exception>
