@@ -8,8 +8,17 @@
 
 namespace {
 
-  /// logger
+  // logger
   std::shared_ptr<spdlog::logger> g_node_graph_logger;
+
+  // init
+  void init_node_graph_logger()
+  {
+    [[maybe_unused]] static auto init_logger = []() {
+      g_node_graph_logger = yave::add_logger("node_graph");
+      return 1;
+    }();
+  }
 
   /// Traverse nodes until return true.
   template <class Lambda>
@@ -37,10 +46,7 @@ namespace yave {
     : m_g {}
     , m_mtx {}
   {
-    [[maybe_unused]] static auto init_logger = []() {
-      g_node_graph_logger = add_logger("node_graph");
-      return 1;
-    }();
+    init_node_graph_logger();
   }
 
   node_graph::~node_graph()
