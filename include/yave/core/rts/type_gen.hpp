@@ -240,7 +240,7 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // assume_object_type
+  // guess_object_type
 
   template <class T, class... Ts>
   constexpr auto guess_object_type_closure(

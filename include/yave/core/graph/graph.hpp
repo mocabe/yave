@@ -135,6 +135,7 @@ namespace yave::graph {
       access(container_type &c, const descriptor_type &descriptor) noexcept
     {
       (void)c;
+      assert(descriptor);
       return *descriptor;
     }
 
@@ -147,6 +148,7 @@ namespace yave::graph {
       const descriptor_type &descriptor) noexcept
     {
       (void)c;
+      assert(descriptor);
       return *descriptor;
     }
 
