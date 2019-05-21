@@ -50,7 +50,7 @@ namespace yave {
       auto prim = make_object<Primitive>();
       auto app  = m_get_instance_func << prim;
       auto tp   = type_of(app);
-    } catch (type_error::type_error& e) {
+    } catch (type_error::type_error&) {
       throw std::invalid_argument("get_instance_func has invalid type");
     }
   }
@@ -101,7 +101,7 @@ namespace yave {
       auto prim = make_object<Primitive>();
       auto app  = func << prim;
       auto tp   = type_of(app);
-    } catch (type_error::type_error& e) {
+    } catch (type_error::type_error&) {
       throw std::invalid_argument("get_instance_func has invalid type");
     }
     m_get_instance_func = func;
