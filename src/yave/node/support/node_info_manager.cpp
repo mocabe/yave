@@ -68,8 +68,17 @@ namespace yave {
 
   [[nodiscard]] bool node_info_manager::add(const info_type& info)
   {
-    auto succ =
-      m_info.emplace(info.name(), std::make_shared<info_type>(info)).second;
+    auto [it, succ] =
+      m_info.emplace(info.name(), std::make_shared<info_type>(info));
+
+    if (succ)
+      Info(
+        g_info_mngr_logger,
+        "Added new node_info: {}(in:{},out:{})",
+        it->first,
+        it->second->input_sockets().size(),
+        it->second->output_sockets().size());
+
     return succ;
   }
 
@@ -82,6 +91,8 @@ namespace yave {
       return;
     // remove
     m_info.erase(it);
+
+    Info(g_info_mngr_logger, "Removed node_info: {}", name);
   }
 
   void node_info_manager::remove(const node_info& info)
@@ -90,6 +101,7 @@ namespace yave {
     auto end  = m_info.end();
     while (iter != end) {
       if (*iter->second == info) {
+        Info(g_info_mngr_logger, "Removed node_info: {}", iter->second->name());
         m_info.erase(iter++);
       }
     }

@@ -67,7 +67,16 @@ namespace yave {
   [[nodiscard]] bool bind_info_manager::add(const bind_info& info)
   {
     auto iter = m_info.emplace(info.name(), std::make_shared<info_type>(info));
-    return iter != m_info.end();
+    if (iter == m_info.end())
+      return false;
+
+    Info(
+      g_bind_mngr_logger,
+      "Added bind_info: {}(in:{})",
+      iter->first,
+      iter->second->input_sockets().size());
+
+    return true;
   }
 
   void bind_info_manager::remove(const std::string& name)
@@ -77,6 +86,12 @@ namespace yave {
     auto iter = bgn;
     while (iter != end) {
       assert(iter->second->name() == name);
+      Info(
+        g_bind_mngr_logger,
+        "Removed bind_info: {}(in:{})",
+        iter->first,
+        iter->second->input_sockets().size());
+      // erase
       m_info.erase(iter++);
     }
   }
@@ -93,9 +108,15 @@ namespace yave {
       assert(iter->second->name() == name);
       if (
         iter->second->output_socket() == output &&
-        iter->second->input_sockets() == input)
+        iter->second->input_sockets() == input) {
+        Info(
+          g_bind_mngr_logger,
+          "Removed bind_info: {}(in:{})",
+          iter->first,
+          iter->second->input_sockets().size());
+        // erase
         m_info.erase(iter++);
-      else
+      } else
         ++iter;
     }
   }
