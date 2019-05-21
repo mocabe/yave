@@ -10,7 +10,7 @@
 #include <yave/support/log.hpp>
 
 namespace {
-  /// operator<< for uid
+  // operator<< for uid
   std::ostream& operator<<(std::ostream& os, const yave::uid& id)
   {
     os << id.data;
@@ -22,8 +22,17 @@ namespace {
 #include <fmt/ostream.h>
 
 namespace {
-  /// logger
+  // logger
   std::shared_ptr<spdlog::logger> g_parser_logger;
+
+  // init
+  void init_parser_logger()
+  {
+    [[maybe_unused]] static auto init_logger = []() {
+      g_parser_logger = yave::add_logger("node_parser");
+      return 1;
+    }();
+  }
 } // namespace
 
 namespace yave {
@@ -34,10 +43,7 @@ namespace yave {
     : m_graph {graph}
     , m_binds {binds}
   {
-    [[maybe_unused]] static auto init_logger = []() {
-      g_parser_logger = add_logger("node_parser");
-      return 1;
-    }();
+    init_parser_logger();
   }
 
   object_ptr<const Type> node_parser::type_prime_tree(
@@ -63,12 +69,14 @@ namespace yave {
 
     struct
     {
+      // Recursive implementation of node type checker.
+      // Returns type of node tree.
       object_ptr<const Type> rec(
-        error_list& errors,
-        const node_graph& graph,
-        const bind_info_manager& binds,
-        const node_handle& node,
-        const std::string& socket)
+        error_list& errors,             /* error list (ref) */
+        const node_graph& graph,        /* graph*/
+        const bind_info_manager& binds, /* bind info */
+        const node_handle& node,        /* target tree */
+        const std::string& socket)      /* target tree */
       {
         auto node_info      = graph.get_info(node);
         auto node_binds     = binds.get_binds(*node_info);
@@ -113,6 +121,8 @@ namespace yave {
         // log
         std::string inputs_str;
         for (auto&& i : inputs) inputs_str += fmt::format("{} ", i);
+        if (inputs.empty())
+          inputs_str = "(none)";
 
         Info(
           g_parser_logger,
@@ -155,7 +165,9 @@ namespace yave {
           overloadings_str += "| ";
           for (auto&& i : o->input_sockets())
             overloadings_str += fmt::format("{} ", i);
-          overloadings_str += "\n";
+          if (o->input_sockets().empty())
+            overloadings_str += "(no-input)";
+          overloadings_str += fmt::format("->{}\n", o->output_socket());
         }
 
         Info(
@@ -205,16 +217,38 @@ namespace yave {
           input_types_str,
           to_string(generalized_tp));
 
+        // type of target node tree.
         auto node_tp = generalized_tp;
-        auto tmp_tp  = generalized_tp;
+        // updated on each ufinication step
+        auto tmp_tp = generalized_tp;
 
-        // Infer type of node on generalized type
-        for (auto&& it : input_types) {
-          auto v = genvar();
-          auto c = std::vector {Constr {tmp_tp, new Type(arrow_type {it, v})}};
-          auto subst = unify(c, nullptr);
-          node_tp    = subst_type_all(subst, node_tp);
-          tmp_tp     = subst_type_all(subst, v);
+        // Infer type of node on generalized type.
+        for (size_t i = 0; i < inputs.size(); ++i) {
+
+          auto& it = input_types[i];
+
+          // Solve constrant for each input type.
+          try {
+
+            auto v = genvar();
+            // [tmp = it -> v]
+            auto c = Constr {tmp_tp, new Type(arrow_type {it, v})};
+            // solve constraint
+            auto subst = unify({c}, nullptr);
+            // update result by substitution.
+            node_tp = subst_type_all(subst, node_tp);
+            // v contains curried return type.
+            tmp_tp = subst_type_all(subst, v);
+
+          } catch (type_error::type_missmatch& e) {
+            errors.push_back(make_error<parse_errors::type_missmatch>(
+              node, inputs[i], e.t1(), e.t2()));
+            return genvar();
+          } catch (type_error::type_error&) {
+            errors.push_back(make_error<parse_errors::no_valid_overloading>(
+              node, overloadings));
+            return genvar();
+          }
         }
 
         Info(
@@ -246,18 +280,12 @@ namespace yave {
             auto c         = unify({Constr {node_tp, t}}, nullptr);
             auto result_tp = subst_type_all(c, tmp_tp);
             hits.push_back({b.get(), o, t, result_tp});
-          } catch (type_error::type_missmatch& e) {
-            // TODO: handle other errors for single overloading too.
-            if (overloadings.size() == 1) {
-              errors.push_back(
-                make_error<parse_errors::type_missmatch>(node, e.t1(), e.t2()));
-              return genvar();
-            }
-            continue;
           } catch (type_error::type_error&) {
             continue;
           }
         }
+
+        assert(hits.size() != 1);
 
         if (hits.empty()) {
           errors.push_back(
