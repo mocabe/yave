@@ -4,6 +4,21 @@
 //
 
 #include <yave/node/support/socket_instance_manager.hpp>
+#include <yave/support/log.hpp>
+
+namespace {
+  // logger
+  std::shared_ptr<spdlog::logger> g_inst_mngr_logger;
+
+  // init
+  void init_inst_mngr_logger()
+  {
+    [[maybe_unused]] static auto init_logger = [] {
+      g_inst_mngr_logger = yave::add_logger("socket_instance_manager");
+      return 1;
+    }();
+  }
+} // namespace
 
 namespace yave {
 
@@ -11,6 +26,7 @@ namespace yave {
     : m_map {}
     , m_mtx {}
   {
+    init_inst_mngr_logger();
   }
 
   socket_instance_manager::socket_instance_manager(

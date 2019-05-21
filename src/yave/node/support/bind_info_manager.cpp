@@ -6,12 +6,37 @@
 #include <yave/node/support/bind_info_manager.hpp>
 #include <yave/support/log.hpp>
 
+namespace {
+  // logger
+  std::shared_ptr<spdlog::logger> g_bind_mngr_logger;
+
+  // init
+  void init_bind_mngr_logger()
+  {
+    [[maybe_unused]] static auto init_logger = [] {
+      g_bind_mngr_logger = yave::add_logger("bind_info_manager");
+      return 1;
+    }();
+  }
+} // namespace
+
 namespace yave {
 
   bind_info_manager::bind_info_manager()
     : m_info {}
     , m_mtx {}
   {
+    init_bind_mngr_logger();
+  }
+
+  bind_info_manager::bind_info_manager(const std::vector<bind_info>& binds)
+  {
+    init_bind_mngr_logger();
+
+    for (auto&& b : binds) {
+      if (!add(b))
+        throw std::runtime_error("Failed to add bind_info on initialization");
+    }
   }
 
   bind_info_manager::bind_info_manager(const bind_info_manager& other)

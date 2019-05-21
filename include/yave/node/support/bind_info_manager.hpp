@@ -37,6 +37,9 @@ namespace yave {
     /// Constructor
     bind_info_manager();
 
+    /// Constructor
+    bind_info_manager(const std::vector<bind_info>& bind_list);
+
     /// Check if the info exists
     [[nodiscard]] bool exists(const std::string& name) const;
 

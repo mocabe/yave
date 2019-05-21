@@ -38,6 +38,9 @@ namespace yave {
     /// Constructor
     node_info_manager();
 
+    /// Constructor
+    node_info_manager(const std::vector<node_info>& info_list);
+
     /// Add info.
     [[nodiscard]] bool add(const info_type& info);
 

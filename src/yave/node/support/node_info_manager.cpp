@@ -4,10 +4,42 @@
 //
 
 #include <yave/node/support/node_info_manager.hpp>
+#include <yave/support/log.hpp>
 
 #include <cassert>
 
+namespace {
+  // logger
+  std::shared_ptr<spdlog::logger> g_info_mngr_logger;
+
+  // init
+  void init_info_mngr_logger()
+  {
+    [[maybe_unused]] static auto init_logger = [] {
+      g_info_mngr_logger = yave::add_logger("node_info_manager");
+      return 1;
+    }();
+  }
+} // namespace
+
 namespace yave {
+
+  node_info_manager::node_info_manager()
+    : m_info {}
+    , m_mtx {}
+  {
+    init_info_mngr_logger();
+  }
+
+  node_info_manager::node_info_manager(const std::vector<node_info>& info_list)
+  {
+    init_info_mngr_logger();
+
+    for (auto&& i : info_list) {
+      if (!add(i))
+        throw std::runtime_error("Failed to add node_info on initialization");
+    }
+  }
 
   node_info_manager::node_info_manager(const node_info_manager& other)
     : m_info {other.m_info}
@@ -32,12 +64,6 @@ namespace yave {
   {
     m_info = std::move(other.m_info);
     return *this;
-  }
-
-  node_info_manager::node_info_manager()
-    : m_info {}
-    , m_mtx {}
-  {
   }
 
   [[nodiscard]] bool node_info_manager::add(const info_type& info)
