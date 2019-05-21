@@ -84,9 +84,11 @@ namespace yave {
     {
       type_missmatch(
         const node_handle& node,
+        const std::string& socket,
         const object_ptr<const Type> expected,
         const object_ptr<const Type>& provided)
         : m_node {node}
+        , m_socket {socket}
         , m_expected {expected}
         , m_provided {provided}
       {
@@ -99,6 +101,12 @@ namespace yave {
       [[nodiscard]] const node_handle& node() const
       {
         return m_node;
+      }
+
+      /// Get socket.
+      [[nodiscard]] const std::string& socket() const
+      {
+        return m_socket;
       }
 
       /// Get expected type.
@@ -115,6 +123,7 @@ namespace yave {
 
     private:
       node_handle m_node;
+      std::string m_socket;
       object_ptr<const Type> m_expected;
       object_ptr<const Type> m_provided;
     };
