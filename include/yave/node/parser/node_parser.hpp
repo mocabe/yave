@@ -16,6 +16,7 @@ namespace yave {
   /// node_graph parser
   class node_parser
   {
+  public:
     /// Ctor
     node_parser(const node_graph& node, const bind_info_manager& binds);
 
