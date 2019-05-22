@@ -122,7 +122,7 @@ namespace yave {
         std::string inputs_str;
         for (auto&& i : inputs) inputs_str += fmt::format("{} ", i);
         if (inputs.empty())
-          inputs_str = "(none)";
+          inputs_str = "(no input)";
 
         Info(
           g_parser_logger,
@@ -159,16 +159,33 @@ namespace yave {
           }
         }
 
+        if (overloadings.empty()) {
+
+          errors.push_back(
+            make_error<parse_errors::no_valid_overloading>(node, overloadings));
+
+          Error(
+            g_parser_logger,
+            "Typing node {}({})#{} failed:\n"
+            "| (No overloading for current input connections)",
+            node_info->name(),
+            node.id(),
+            socket);
+
+          return genvar();
+        }
+
         // log
         std::string overloadings_str;
         for (auto&& o : overloadings) {
           overloadings_str += "| ";
           for (auto&& i : o->input_sockets())
-            overloadings_str += fmt::format("{} ", i);
+            overloadings_str += fmt::format("{}", i);
           if (o->input_sockets().empty())
-            overloadings_str += "(no-input)";
+            overloadings_str += "(no input)";
           overloadings_str += fmt::format("->{}\n", o->output_socket());
         }
+        overloadings_str.pop_back();
 
         Info(
           g_parser_logger,
@@ -205,6 +222,8 @@ namespace yave {
         for (auto&& it : input_types) {
           input_types_str += fmt::format("{}, ", to_string(it));
         }
+        if (input_types.empty())
+          input_types_str = "(no input type)";
 
         Info(
           g_parser_logger,
@@ -241,12 +260,44 @@ namespace yave {
             tmp_tp = subst_type_all(subst, v);
 
           } catch (type_error::type_missmatch& e) {
+
             errors.push_back(make_error<parse_errors::type_missmatch>(
               node, inputs[i], e.expected(), e.provided()));
+
+            Error(
+              g_parser_logger,
+              "Type check on prime tree failed at {}({})#{}:\n"
+              "| on socket: {}\n"
+              "| error type: type_missmatch\n"
+              "| socket type: {}\n"
+              "| expected: {}\n"
+              "| provided: {}",
+              node_info->name(),
+              node.id(),
+              socket,
+              inputs[i],
+              to_string(input_types[i]),
+              to_string(e.expected()),
+              to_string(e.provided()));
+
             return genvar();
           } catch (type_error::type_error&) {
+
             errors.push_back(make_error<parse_errors::no_valid_overloading>(
               node, overloadings));
+
+            Error(
+              g_parser_logger,
+              "Type check on prime tree failed at {}({})#{}:\n"
+              "| on socket: {}\n"
+              "| error type: unification failed\n"
+              "| socket type: {}",
+              node_info->name(),
+              node.id(),
+              socket,
+              inputs[i],
+              to_string(input_types[i]));
+
             return genvar();
           }
         }
@@ -285,26 +336,54 @@ namespace yave {
           }
         }
 
-        assert(hits.size() != 1);
-
         if (hits.empty()) {
+
           errors.push_back(
             make_error<parse_errors::no_valid_overloading>(node, overloadings));
+
+          Info(
+            g_parser_logger,
+            "Type check on prime tree failed at {}({})#{}:\n"
+            "| (No valid overloading found.)",
+            node_info->name(),
+            node.id(),
+            socket);
+
           return genvar();
         }
 
         auto ret = hits.front();
-        for (size_t i = 0; i < hits.size(); ++i) {
+        for (size_t i = 1; i < hits.size(); ++i) {
           if (specializable(ret.instance_tp, hits[i].instance_tp)) {
             if (specializable(hits[i].instance_tp, ret.instance_tp)) {
+
               // TODO: better error info
               errors.push_back(make_error<parse_errors::ambiguous_overloading>(
                 node, overloadings));
+
+              Error(
+                g_parser_logger,
+                "Overloading resolution failed at {}({})#{}:\n"
+                "| (Ambiguous overloadings)",
+                node_info->name(),
+                node.id(),
+                socket);
+
               return genvar();
             }
             ret = hits[i];
           }
         }
+
+        Info(
+          g_parser_logger,
+          "Type of node {}({})#{} successfully deduced:\n"
+          "| {}",
+          node_info->name(),
+          node.id(),
+          socket,
+          to_string(ret.result_tp));
+
         return ret.result_tp;
       }
 
