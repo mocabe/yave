@@ -10,23 +10,6 @@
 
 namespace yave {
 
-  primitive_container::primitive_container(const primitive_t& prim)
-    : m_prim {prim}
-  {
-  }
-
-  void primitive_container::set(const primitive_t& prim)
-  {
-    std::lock_guard lck {m_mtx};
-    m_prim = prim;
-  }
-
-  primitive_t primitive_container::get() const
-  {
-    std::lock_guard lck {m_mtx};
-    return m_prim;
-  }
-
     object_ptr<> get_primitive_constructor(const primitive_t& v)
   {
     return std::visit(

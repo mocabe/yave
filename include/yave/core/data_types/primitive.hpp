@@ -7,6 +7,7 @@
 
 #include <yave/core/config.hpp>
 #include <yave/core/data_types/string.hpp>
+#include <yave/core/rts/atomic.hpp>
 
 #include <variant>
 #include <string>
@@ -56,5 +57,23 @@ namespace yave {
   YAVE_DECL_PRIMITIVE_TYPENAME(yave::string, String);
 
 #undef YAVE_DECL_PRIMITIVE_TYPENAME
+
+  /// Container of primitive_t for multi-thread access.
+  class primitive_container
+  {
+  public:
+    /// Constructor
+    primitive_container(const primitive_t& prim);
+
+    /// Set primitive_t value
+    void set(const primitive_t& prim);
+
+    /// Get primitive_t value
+    [[nodiscard]] primitive_t get() const;
+
+  private:
+    primitive_t m_prim;
+    mutable atomic_spinlock<uint8_t> m_mtx;
+  };
 
 } // namespace yave

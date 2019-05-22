@@ -14,24 +14,6 @@
 
 namespace yave {
 
-  /// Container of primitive_t for multi-thread access.
-  class primitive_container
-  {
-  public:
-    /// Constructor
-    primitive_container(const primitive_t& prim);
-
-    /// Set primitive_t value
-    void set(const primitive_t& prim);
-
-    /// Get primitive_t value
-    [[nodiscard]] primitive_t get() const;
-
-  private:
-    primitive_t m_prim;
-    mutable atomic_spinlock<uint8_t> m_mtx;
-  };
-
   /// make primitive
   template <class T, class... Arg>
   [[nodiscard]] primitive_t make_primitive(Arg&&... args)
