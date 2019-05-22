@@ -10,7 +10,8 @@ namespace yave {
 
   // primitive_t
 
-  using Primitive = Box<primitive_t>;
+  using Primitive          = Box<primitive_t>;
+  using PrimitiveContainer = Box<primitive_container>;
 
   // primitive value types
 
@@ -71,6 +72,7 @@ namespace yave {
 } // namespace yave
 
 YAVE_DECL_TYPE(yave::Primitive, "081a420e-452a-4424-bb06-03df13301030");
+YAVE_DECL_TYPE(yave::PrimitiveContainer, "3f3fb6df-fb90-46d8-bab4-df77caee3001");
 
 YAVE_DECL_TYPE(yave::Int8, "50366ffd-5e1b-41a6-bd60-a9f67ca5dd59");
 YAVE_DECL_TYPE(yave::Int16, "5548b6f1-8400-45c7-a169-02478cae9235");

@@ -40,14 +40,14 @@ namespace yave {
     void ser_prim(std::nullopt_t);
 
     /// Get shared primitive container.
-    [[nodiscard]] std::shared_ptr<primitive_container> get_shared_prim() const;
+    [[nodiscard]] object_ptr<PrimitiveContainer> get_shared_prim() const;
 
   private:
     /// Name of node.
     const std::string m_name;
     /// Primitive value.
     /// If the node is not primitive node, stores std::monostate.
-    std::optional<std::shared_ptr<primitive_container>> m_prim;
+    std::optional<object_ptr<PrimitiveContainer>> m_prim;
   };
 
 } // namespace yave

@@ -11,6 +11,13 @@ namespace yave {
 
   primitive_container::primitive_container(const primitive_t& prim)
     : m_prim {prim}
+    , m_mtx {}
+  {
+  }
+
+  primitive_container::primitive_container(const primitive_container& other)
+    : m_prim {other.m_prim}
+    , m_mtx {}
   {
   }
 

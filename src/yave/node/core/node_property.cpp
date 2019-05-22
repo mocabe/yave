@@ -9,7 +9,7 @@ namespace yave {
 
   node_property::node_property(const std::string& name, const primitive_t& prim)
     : m_name {name}
-    , m_prim {std::make_shared<primitive_container>(prim)}
+    , m_prim {make_object<PrimitiveContainer>(prim)}
   {
   }
 
@@ -48,7 +48,7 @@ namespace yave {
     m_prim = std::nullopt;
   }
 
-  std::shared_ptr<primitive_container> node_property::get_shared_prim() const
+  object_ptr<PrimitiveContainer> node_property::get_shared_prim() const
   {
     if (is_prim())
       return m_prim.value();

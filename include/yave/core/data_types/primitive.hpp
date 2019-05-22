@@ -65,6 +65,9 @@ namespace yave {
     /// Constructor
     primitive_container(const primitive_t& prim);
 
+    /// Copy constructor
+    primitive_container(const primitive_container& other);
+
     /// Set primitive_t value
     void set(const primitive_t& prim);
 
