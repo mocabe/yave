@@ -7,6 +7,8 @@
 
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/core/rts.hpp>
+#include <yave/node/objects/function.hpp>
+#include <yave/node/objects/instance_getter.hpp>
 
 using namespace yave;
 
@@ -31,5 +33,95 @@ TEST_CASE("node_parser")
     // should be Frame->Int
     auto tp = parser.type_prime_tree(n, "value", errors);
     REQUIRE(same_type(tp, get_primitive_type(int(0))));
+  }
+
+  SECTION("Plus")
+  {
+    struct PlusInt : NodeFunction<PlusInt, Int, Int, Int>
+    {
+      return_type code() const
+      {
+        return new Int(*eval_arg<0>() + *eval_arg<1>());
+      }
+    };
+
+    node_info info {"PlusInt", {"x", "y"}, {"value"}};
+    bind_info bind {"PlusInt",
+                    {"x", "y"},
+                    "value",
+                    make_object<InstanceGetterFunction<PlusInt>>(),
+                    "x + y"};
+
+    REQUIRE(info_mngr.add(info));
+    REQUIRE(bind_mngr.add(bind));
+
+    auto Int_info = info_mngr.find("Int");
+    auto Int_bind = bind_mngr.find("Int");
+
+    REQUIRE(Int_info);
+
+    auto plus = graph.add(info);
+    auto i1   = graph.add(*Int_info);
+    auto i2   = graph.add(*Int_info);
+
+    auto c1 = graph.connect(i1, "value", plus, "x");
+    auto c2 = graph.connect(i2, "value", plus, "y");
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+
+    REQUIRE(graph.exists(c1));
+    REQUIRE(graph.exists(c2));
+
+    {
+      auto tp = parser.type_prime_tree(plus, "value", errors);
+      REQUIRE(same_type(tp, object_type<closure<Frame, Int>>()));
+    }
+
+    struct DoublePlus : NodeFunction<DoublePlus, Double, Double, Double>
+    {
+      return_type code() const
+      {
+        return new Double(*eval_arg<0>() + *eval_arg<1>());
+      }
+    };
+
+    bind_info double_bind {"PlusInt",
+                           {"x", "y"},
+                           "value",
+                           make_object<InstanceGetterFunction<DoublePlus>>(),
+                           "x + y"};
+
+    REQUIRE(bind_mngr.add(double_bind));
+
+    {
+      auto tp = parser.type_prime_tree(plus, "value", errors);
+      REQUIRE(same_type(tp, object_type<closure<Frame, Int>>()));
+    }
+
+    auto Double_info = info_mngr.find("Double");
+    auto Double_bind = bind_mngr.find("Double");
+
+    REQUIRE(Double_info);
+
+    auto d1 = graph.add(*Double_info);
+    auto d2 = graph.add(*Double_info);
+
+    graph.disconnect(c1);
+    graph.disconnect(c2);
+
+    c1 = graph.connect(d1, "value", plus, "x");
+    c2 = graph.connect(d2, "value", plus, "y");
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+
+    REQUIRE(graph.exists(c1));
+    REQUIRE(graph.exists(c2));
+
+    {
+      auto tp = parser.type_prime_tree(plus, "value", errors);
+      REQUIRE(same_type(tp, object_type<closure<Frame, Double>>()));
+    }
   }
 }
