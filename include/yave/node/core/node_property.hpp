@@ -7,9 +7,10 @@
 
 #include <yave/core/config.hpp>
 #include <yave/core/data_types/primitive.hpp>
+#include <yave/node/core/primitive.hpp>
 
 #include <string>
-#include <variant>
+#include <optional>
 
 namespace yave {
 
@@ -30,20 +31,23 @@ namespace yave {
 
     /// Get primitive value.
     /// \requires is_prim() == true
-    [[nodiscard]] primitive_t prim() const;
+    [[nodiscard]] std::optional<primitive_t> get_prim() const;
 
     /// Set primitive value.
     void set_prim(const primitive_t& prim);
 
     /// Unset primitive value.
-    void ser_prim(std::monostate);
+    void ser_prim(std::nullopt_t);
+
+    /// Get shared primitive container.
+    [[nodiscard]] std::shared_ptr<primitive_container> get_shared_prim() const;
 
   private:
     /// Name of node.
     const std::string m_name;
     /// Primitive value.
     /// If the node is not primitive node, stores std::monostate.
-    std::variant<std::monostate, primitive_t> m_prim;
+    std::optional<std::shared_ptr<primitive_container>> m_prim;
   };
 
 } // namespace yave

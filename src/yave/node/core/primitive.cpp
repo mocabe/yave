@@ -10,7 +10,24 @@
 
 namespace yave {
 
-  object_ptr<> get_primitive_constructor(const primitive_t& v)
+  primitive_container::primitive_container(const primitive_t& prim)
+    : m_prim {prim}
+  {
+  }
+
+  void primitive_container::set(const primitive_t& prim)
+  {
+    std::lock_guard lck {m_mtx};
+    m_prim = prim;
+  }
+
+  primitive_t primitive_container::get() const
+  {
+    std::lock_guard lck {m_mtx};
+    return m_prim;
+  }
+
+    object_ptr<> get_primitive_constructor(const primitive_t& v)
   {
     return std::visit(
       overloaded {[](const auto& a) -> object_ptr<> {
@@ -38,10 +55,21 @@ namespace yave {
     struct PrimitiveGetterFunc
       : Function<PrimitiveGetterFunc, Primitive, Object>
     {
+      PrimitiveGetterFunc(primitive_t refv)
+        : reference_value {refv}
+      {
+      }
+
       return_type code() const
       {
-        return get_primitive_constructor(*eval_arg<0>());
+        auto prim = *eval_arg<0>();
+        if (prim.index() == reference_value.index())
+          return get_primitive_constructor(*eval_arg<0>());
+        else
+          return get_primitive_constructor(reference_value);
       }
+
+      primitive_t reference_value;
     };
   } // namespace
 
@@ -52,7 +80,7 @@ namespace yave {
     return bind_info {info.name(),
                       {},
                       {info.output_sockets().front()},
-                      make_object<PrimitiveGetterFunc>(),
+                      make_object<PrimitiveGetterFunc>(v),
                       {info.name()},
                       true};
   }

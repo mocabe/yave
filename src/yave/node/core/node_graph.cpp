@@ -4,6 +4,7 @@
 //
 
 #include <yave/node/core/node_graph.hpp>
+#include <yave/node/core/primitive.hpp>
 #include <yave/support/log.hpp>
 
 namespace {
@@ -593,7 +594,7 @@ namespace yave {
     }
 
     if (m_g[h.descriptor()].is_prim())
-      return m_g[h.descriptor()].prim();
+      return m_g[h.descriptor()].get_prim();
     return std::nullopt;
   }
 

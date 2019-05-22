@@ -9,19 +9,19 @@ namespace yave {
 
   node_property::node_property(const std::string& name, const primitive_t& prim)
     : m_name {name}
-    , m_prim {prim}
+    , m_prim {std::make_shared<primitive_container>(prim)}
   {
   }
 
   node_property::node_property(const std::string& name, std::monostate)
     : m_name {name}
-    , m_prim {std::monostate {}}
+    , m_prim {std::nullopt}
   {
   }
 
   bool node_property::is_prim() const
   {
-    return !std::holds_alternative<std::monostate>(m_prim);
+    return m_prim.has_value();
   }
 
   const std::string& node_property::name() const
@@ -29,18 +29,30 @@ namespace yave {
     return m_name;
   }
 
-  primitive_t node_property::prim() const
+  std::optional<primitive_t> node_property::get_prim() const
   {
-    return std::get<primitive_t>(m_prim);
+    if (is_prim())
+      return m_prim.value()->get();
+    else
+      return std::nullopt;
   }
 
   void node_property::set_prim(const primitive_t& prim)
   {
-    m_prim = prim;
+    if (is_prim())
+      m_prim.value()->set(prim);
   }
 
-  void node_property::ser_prim(std::monostate)
+  void node_property::ser_prim(std::nullopt_t)
   {
-    m_prim = std::monostate {};
+    m_prim = std::nullopt;
   }
-}
+
+  std::shared_ptr<primitive_container> node_property::get_shared_prim() const
+  {
+    if (is_prim())
+      return m_prim.value();
+    else
+      return nullptr;
+  }
+} // namespace yave
