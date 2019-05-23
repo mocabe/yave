@@ -19,8 +19,6 @@ TEST_CASE("node_parser")
   bind_info_manager bind_mngr(get_primitive_bind_info_list());
   node_parser parser(graph, bind_mngr);
 
-  error_list errors;
-
   SECTION("Int")
   {
     auto Int_info = info_mngr.find("Int");
@@ -31,8 +29,21 @@ TEST_CASE("node_parser")
 
     auto n = graph.add(*Int_info);
     // should be Frame->Int
-    auto tp = parser.type_prime_tree(n, "value", errors);
+    auto [tp, errors] = parser.type_prime_tree(n, "value");
+    REQUIRE(errors.empty());
     REQUIRE(same_type(tp, get_primitive_type(int(0))));
+  }
+
+  SECTION("empty")
+  {
+    node_info info {"test", {"x"}, {"out"}};
+
+    auto i = graph.add(*info_mngr.find("Int"));
+    auto n = graph.add(info);
+
+    REQUIRE(graph.connect(i, "value", n, "x"));
+    auto [tp, errors] = parser.type_prime_tree(n, "out");
+    REQUIRE(!errors.empty());
   }
 
   SECTION("Plus")
@@ -74,7 +85,8 @@ TEST_CASE("node_parser")
     REQUIRE(graph.exists(c2));
 
     {
-      auto tp = parser.type_prime_tree(plus, "value", errors);
+      auto [tp, errors] = parser.type_prime_tree(plus, "value");
+      REQUIRE(errors.empty());
       REQUIRE(same_type(tp, object_type<closure<Frame, Int>>()));
     }
 
@@ -95,7 +107,8 @@ TEST_CASE("node_parser")
     REQUIRE(bind_mngr.add(double_bind));
 
     {
-      auto tp = parser.type_prime_tree(plus, "value", errors);
+      auto [tp, errors] = parser.type_prime_tree(plus, "value");
+      REQUIRE(errors.empty());
       REQUIRE(same_type(tp, object_type<closure<Frame, Int>>()));
     }
 
@@ -120,8 +133,29 @@ TEST_CASE("node_parser")
     REQUIRE(graph.exists(c2));
 
     {
-      auto tp = parser.type_prime_tree(plus, "value", errors);
+      auto [tp, errors] = parser.type_prime_tree(plus, "value");
+      REQUIRE(errors.empty());
       REQUIRE(same_type(tp, object_type<closure<Frame, Double>>()));
+    }
+
+    struct InclDouble : NodeFunction<InclDouble, Double, Double>
+    {
+      return_type code() const
+      {
+        return new Double((*eval_arg<0>()) + 1);
+      }
+    };
+
+    bind_info incl_bind {"PlusInt",
+                         {"x"},
+                         "value",
+                         make_object<InstanceGetterFunction<InclDouble>>(),
+                         ""};
+
+    REQUIRE(bind_mngr.add(incl_bind));
+
+    {
+      auto [tp, errors] = parser.type_prime_tree(plus, "value");
     }
   }
 }

@@ -22,31 +22,26 @@ namespace yave {
 
     /// Parse isoated tree.
     /// \returns true on success.
-    bool parse_isolated_tree(
+    std::pair<bool, error_list> parse_isolated_tree(
       const node_handle& node,
-      const std::string& socket,
-      error_list& errors) const;
+      const std::string& socket) const;
 
     /// Type check check isoated tree.
     /// \requires Tree is already parsed by parse_isolated_tree() successfully.
-    object_ptr<const Type> type_isolated_tree(
+    std::pair<object_ptr<const Type>, error_list> type_isolated_tree(
       const node_handle& node,
-      const std::string& socket,
-      error_list& errors) const;
+      const std::string& socket) const;
 
     /// Parse prime tree.
     /// \returns true on success.
-    bool parse_prime_tree(
+    std::pair<bool, error_list> parse_prime_tree(
       const node_handle& node,
-      const std::string& socket,
-      error_list& errors) const;
+      const std::string& socket) const;
 
     /// Parse prime tree.
     /// \required Tree is already parsed by parse_prime_tree() successfully.
-    object_ptr<const Type> type_prime_tree(
-      const node_handle& node,
-      const std::string& socket,
-      error_list& errors) const;
+    std::pair<object_ptr<const Type>, error_list>
+      type_prime_tree(const node_handle& node, const std::string& socket) const;
 
   private:
     /// reference to node graph

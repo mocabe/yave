@@ -46,11 +46,11 @@ namespace yave {
     init_parser_logger();
   }
 
-  object_ptr<const Type> node_parser::type_prime_tree(
+  std::pair<object_ptr<const Type>, error_list> node_parser::type_prime_tree(
     const node_handle& node,
-    const std::string& socket,
-    error_list& errors) const
+    const std::string& socket) const
   {
+
     if (!node)
       throw std::invalid_argument("Null node handle");
 
@@ -395,7 +395,9 @@ namespace yave {
 
     } parse_prime_node;
 
-    return parse_prime_node.rec(errors, m_graph, m_binds, node, socket);
+    error_list errors;
+    return {parse_prime_node.rec(errors, m_graph, m_binds, node, socket),
+            std::move(errors)};
   }
 
 } // namespace yave
