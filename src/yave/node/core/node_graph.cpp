@@ -21,20 +21,6 @@ namespace {
     }();
   }
 
-  /// Traverse nodes until return true.
-  template <class Lambda>
-  void depth_first_search_until(
-    const yave::node_graph& ng,
-    const yave::node_handle& node,
-    Lambda&& lambda);
-
-  /// Traverse nodes.
-  template <class Lambda>
-  void depth_first_search(
-    const yave::node_graph& ng,
-    const yave::node_handle& node,
-    Lambda&& lambda);
-
   /// Find a closed loop in node graph.
   std::vector<yave::node_handle>
     find_loop(const yave::node_graph& ng, const yave::node_handle& node);
@@ -771,70 +757,6 @@ namespace yave {
 } // namespace yave
 
 namespace {
-
-  template <class Lambda>
-  void depth_first_search_until(
-    const yave::node_graph& ng,
-    const yave::node_handle& node,
-    Lambda&& lambda)
-  {
-    using namespace yave;
-
-    std::vector<node_handle> visited_nodes;
-    std::vector<node_handle> stack;
-
-    auto visit = [&](const node_handle& n) {
-      visited_nodes.push_back(n);
-      stack.push_back(n);
-    };
-
-    auto visited = [&](const node_handle& n) {
-      for (auto&& vn : visited_nodes)
-        if (vn == n)
-          return true;
-      return false;
-    };
-
-    // visit first node
-    visit(node);
-    if (std::forward<Lambda>(lambda)(node))
-      return;
-
-    // main loop
-    while (!stack.empty()) {
-
-      auto current = stack.back();
-
-      /// visit unvisited child node.
-      /// pop when all childs have been visited.
-      bool stop = [&] {
-        for (auto&& c : ng.input_connections(current)) {
-          auto next = ng.get_info(c)->src_node();
-          if (!visited(next)) {
-            visit(next);
-            return std::forward<Lambda>(lambda)(node);
-          }
-        }
-        stack.pop_back();
-        return false;
-      }();
-
-      if (stop)
-        break;
-    }
-  }
-
-  template <class Lambda>
-  void depth_first_search(
-    const yave::node_graph& ng,
-    const yave::node_handle& node,
-    Lambda&& lambda)
-  {
-    return depth_first_search_until(ng, node, [&](auto&& n) {
-      std::forward<Lambda>(lambda)(n);
-      return false;
-    });
-  }
 
   std::vector<yave::node_handle>
     find_loop(const yave::node_graph& ng, const yave::node_handle& node)
