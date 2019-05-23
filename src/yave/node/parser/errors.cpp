@@ -11,6 +11,11 @@ namespace yave {
 
   // TODO: formatted error messages.
 
+  std::string parse_errors::no_sufficient_input::message() const
+  {
+    return "No sufficient input connections on non primitive node";
+  }
+
   std::string parse_errors::no_valid_overloading::message() const
   {
     return "No Valid Overloading";

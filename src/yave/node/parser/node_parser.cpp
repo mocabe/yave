@@ -46,13 +46,80 @@ namespace yave {
     init_parser_logger();
   }
 
+  std::pair<bool, error_list> node_parser::parse_prime_tree(
+    const node_handle& node,
+    const std::string& socket) const
+  {
+    if (!node)
+      throw std::invalid_argument("Null node handle");
+
+    auto lck = m_graph.lock();
+
+    if (!m_graph.exists(node))
+      throw std::invalid_argument("Invalid node handle");
+
+    Info(
+      g_parser_logger,
+      "Parse prime tree from node: {}({})#{}",
+      m_graph.get_info(node)->name(),
+      node.id(),
+      socket);
+
+    struct
+    {
+      void rec(
+        const node_graph& graph,
+        const node_handle& node,
+        error_list& errors)
+      {
+        auto inputs = graph.input_connections(node);
+
+        // non-primitive node without input connection
+        if (inputs.empty() && !graph.is_primitive(node)) {
+
+          errors.push_back(
+            make_error<parse_errors::no_sufficient_input>(node));
+
+          Error(
+            g_parser_logger,
+            "Parse error on prime tree at node {}({})\n"
+            "(No sufficient input for non-primitive tree)",
+            graph.get_info(node)->name(),
+            node.id());
+
+          return;
+        }
+
+        for (auto&& c : inputs) {
+          auto info = graph.get_info(c);
+          assert(info);
+          rec(graph, info->src_node(), errors);
+        }
+      }
+    } impl;
+
+    error_list errors;
+    impl.rec(m_graph, node, errors);
+
+    if (errors.empty())
+      Info(
+        "Successfully parsed prime tree from {}({})#{}",
+        m_graph.get_info(node)->name(),
+        node.id(),
+        socket);
+
+    return {errors.empty(), std::move(errors)};
+  }
+
   std::pair<object_ptr<const Type>, error_list> node_parser::type_prime_tree(
     const node_handle& node,
     const std::string& socket) const
   {
-
     if (!node)
       throw std::invalid_argument("Null node handle");
+
+    auto graph_lck = m_graph.lock();
+    auto binds_lck = m_binds.lock();
 
     if (!m_graph.exists(node))
       throw std::invalid_argument("Invalid node handle");

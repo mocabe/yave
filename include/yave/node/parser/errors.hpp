@@ -15,6 +15,26 @@ namespace yave {
 
   namespace parse_errors {
 
+    struct no_sufficient_input : error_info<no_sufficient_input>
+    {
+      no_sufficient_input(const node_handle& node)
+        : m_node {node}
+      {
+      }
+
+      /// Error message.
+      [[nodiscard]] virtual std::string message() const override;
+
+      /// Get node.
+      [[nodiscard]] const node_handle& node() const
+      {
+        return m_node;
+      }
+
+    private:
+      node_handle m_node;
+    };
+
     /// No valid overloading error.
     struct no_valid_overloading : error_info<no_valid_overloading>
     {
