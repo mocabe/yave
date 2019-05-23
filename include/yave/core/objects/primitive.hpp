@@ -3,6 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
+#pragma once
+
 #include <yave/core/rts/box.hpp>
 #include <yave/core/data_types/primitive.hpp>
 
