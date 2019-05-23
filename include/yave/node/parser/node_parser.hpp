@@ -10,6 +10,7 @@
 #include <yave/support/error.hpp>
 
 #include <yave/node/parser/errors.hpp>
+#include <yave/node/parser/parsed_node_tree.hpp>
 
 namespace yave {
 
