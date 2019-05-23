@@ -7,6 +7,7 @@
 
 #include <yave/core/rts/function.hpp>
 #include <yave/core/objects/frame.hpp>
+#include <yave/core/objects/primitive.hpp>
 
 namespace yave {
 
@@ -16,28 +17,32 @@ namespace yave {
   {
     /// Ctor
     Constructor()
-      : m_value {make_object<T>()}
+      : m_value {nullptr}
     {
     }
+
     /// Ctor
-    Constructor(typename T::value_type value)
-      : m_value {make_object<T>(value)}
-    {
-    }
-    /// Ctor
-    Constructor(object_ptr<const T> value)
+    Constructor(object_ptr<const PrimitiveContainer> value)
       : m_value {std::move(value)}
     {
     }
+
     /// code
     typename Constructor::return_type code() const
     {
-      return m_value;
+      if (m_value) {
+        auto prim = m_value->get();
+        if (auto v = std::get_if<typename T::value_type>(&prim)) {
+          return make_object<T>(*v);
+        }
+      }
+
+      return make_object<T>();
     }
 
   private:
     /// value
-    object_ptr<const T> m_value;
+    object_ptr<const PrimitiveContainer> m_value;
   };
 
 } // namespace yave

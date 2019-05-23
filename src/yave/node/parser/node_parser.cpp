@@ -139,7 +139,9 @@ namespace yave {
 
         // find bindings which are compatible with current input sockets.
         for (auto&& b : node_binds) {
-          if (b->output_socket() == socket) {
+          if (
+            b->output_socket() == socket &&
+            b->input_sockets().size() == inputs.size()) {
             bool supports_current_inputs = [&] {
               for (auto&& bi : b->input_sockets()) {
                 bool bi_in_inputs = [&] {
@@ -198,14 +200,18 @@ namespace yave {
 
         // get overloading instances
         std::vector<object_ptr<const Object>> overloading_instances;
+        // dummy container for non-primitive nodes
+        static object_ptr<PrimitiveContainer> dummy_container =
+          make_object<PrimitiveContainer>();
+
         for (auto&& o : overloadings) {
-          primitive_t prim = {};
           if (node_info->is_prim()) {
-            auto p = graph.get_primitive(node);
+            auto p = graph.get_primitive_container(node);
             assert(p);
-            prim = *p;
+            overloading_instances.push_back(o->get_instance(p));
+          } else {
+            overloading_instances.push_back(o->get_instance(dummy_container));
           }
-          overloading_instances.push_back(o->get_instance(prim));
         }
 
         // get overloading types

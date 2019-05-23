@@ -47,11 +47,12 @@ namespace yave {
 
     // test primitive apply
     try {
-      auto prim = make_object<Primitive>();
+      auto prim = make_object<PrimitiveContainer>();
       auto app  = m_get_instance_func << prim;
       auto tp   = type_of(app);
-    } catch (type_error::type_error&) {
-      throw std::invalid_argument("get_instance_func has invalid type");
+    } catch (type_error::type_error& e) {
+      throw std::invalid_argument(
+        std::string("get_instance_func has invalid type: ") + e.what());
     }
   }
 
@@ -98,11 +99,12 @@ namespace yave {
 
     // test primitive apply
     try {
-      auto prim = make_object<Primitive>();
+      auto prim = make_object<PrimitiveContainer>();
       auto app  = func << prim;
       auto tp   = type_of(app);
-    } catch (type_error::type_error&) {
-      throw std::invalid_argument("get_instance_func has invalid type");
+    } catch (type_error::type_error& e) {
+      throw std::invalid_argument(
+        std::string("get_instance_func has invalid type: ") + e.what());
     }
     m_get_instance_func = func;
   }
@@ -127,10 +129,12 @@ namespace yave {
     m_description = d;
   }
 
-  object_ptr<const Object>
-    bind_info::get_instance(const primitive_t& prim) const
+  object_ptr<const Object> bind_info::get_instance(
+    const object_ptr<const PrimitiveContainer>& prim) const
   {
-    return eval(m_get_instance_func << make_object<Primitive>(prim));
+    auto app = m_get_instance_func << prim;
+    assert(same_type(type_of(app), object_type<Object>()));
+    return eval(app);
   }
 
   [[nodiscard]] bool bind_info::is_bind_of(const node_info& info) const

@@ -10,15 +10,6 @@
 
 namespace yave {
 
-    object_ptr<> get_primitive_constructor(const primitive_t& v)
-  {
-    return std::visit(
-      overloaded {[](const auto& a) -> object_ptr<> {
-        return make_object<Constructor<Box<std::decay_t<decltype(a)>>>>(a);
-      }},
-      v);
-  }
-
   object_ptr<const Type> get_primitive_type(const primitive_t& v)
   {
     return std::visit(
@@ -34,38 +25,41 @@ namespace yave {
   }
 
   namespace {
-    // Primitive -> closure<Frame, T>
-    struct PrimitiveGetterFunc
-      : Function<PrimitiveGetterFunc, Primitive, Object>
+
+    template <class T>
+    struct PrimitiveGetter
+      : Function<PrimitiveGetter<T>, PrimitiveContainer, Object>
     {
-      PrimitiveGetterFunc(primitive_t refv)
-        : reference_value {refv}
+      typename PrimitiveGetter::return_type code() const
       {
+        auto container = PrimitiveGetter::template eval_arg<0>();
+        auto prim      = container->get();
+        if (auto v = std::get_if<T>(&prim)) {
+          return object_ptr<>(make_object<Constructor<Box<T>>>(container));
+        } else {
+          return object_ptr<>(make_object<Constructor<Box<T>>>());
+        }
       }
-
-      return_type code() const
-      {
-        auto prim = *eval_arg<0>();
-        if (prim.index() == reference_value.index())
-          return get_primitive_constructor(*eval_arg<0>());
-        else
-          return get_primitive_constructor(reference_value);
-      }
-
-      primitive_t reference_value;
     };
+
   } // namespace
 
   bind_info get_primitive_bind_info(const primitive_t& v)
   {
     auto info = get_primitive_info(v);
     assert(info.output_sockets().size() == 1);
-    return bind_info {info.name(),
-                      {},
-                      {info.output_sockets().front()},
-                      make_object<PrimitiveGetterFunc>(v),
-                      {info.name()},
-                      true};
+
+    return std::visit(
+      overloaded {[&](const auto& p) {
+        using prim_type = std::decay_t<decltype(p)>;
+        return bind_info {info.name(),
+                          {},
+                          {info.output_sockets().front()},
+                          make_object<PrimitiveGetter<prim_type>>(),
+                          {info.name()},
+                          true};
+      }},
+      v);
   }
 
   namespace {

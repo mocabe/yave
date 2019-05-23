@@ -13,7 +13,7 @@ namespace yave {
   /// Helper class template for bind_info's instance getter function.
   template <class T>
   struct InstanceGetterFunction
-    : Function<InstanceGetterFunction<T>, Primitive, Object>
+    : Function<InstanceGetterFunction<T>, PrimitiveContainer, Object>
   {
     typename InstanceGetterFunction::return_type code() const
     {

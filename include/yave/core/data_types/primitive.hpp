@@ -63,6 +63,9 @@ namespace yave {
   {
   public:
     /// Constructor
+    primitive_container();
+
+    /// Constructor
     primitive_container(const primitive_t& prim);
 
     /// Copy constructor

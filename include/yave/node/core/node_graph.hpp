@@ -160,6 +160,10 @@ namespace yave {
     /// When `is_primitive(prim_node) == false`, no effect.
     void set_primitive(const node_handle& prim_node, const primitive_t& prim);
 
+    /// Get shared primitive object
+    object_ptr<PrimitiveContainer>
+      get_primitive_container(const node_handle& node) const;
+
     /// Get list of root nodes.
     [[nodiscard]] std::vector<node_handle> roots() const;
 

@@ -616,6 +616,21 @@ namespace yave {
     m_g[h.descriptor()].set_prim(prim);
   }
 
+  object_ptr<PrimitiveContainer>
+    node_graph::get_primitive_container(const node_handle& node) const
+  {
+    if (!exists(node)) {
+      Warning(
+        g_node_graph_logger,
+        "node_graph::get_primitive_container() on invalid node handle.");
+      return nullptr;
+    }
+
+    if (m_g[node.descriptor()].is_prim())
+      return m_g[node.descriptor()].get_shared_prim();
+    return nullptr;
+  }
+
   std::vector<node_handle> node_graph::roots() const
   {
     std::vector<node_handle> ret;

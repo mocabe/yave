@@ -32,7 +32,8 @@ namespace yave {
   }
 
   /// get primitive object constructor
-  [[nodiscard]] object_ptr<> get_primitive_constructor(const primitive_t& v);
+  [[nodiscard]] object_ptr<>
+    get_primitive_constructor(const object_ptr<PrimitiveContainer>& v);
 
   /// get type of primitive object
   [[nodiscard]] object_ptr<const Type> get_primitive_type(const primitive_t& v);

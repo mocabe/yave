@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/core/data_types/primitive.hpp>
+#include <yave/core/objects/primitive.hpp>
 #include <yave/core/rts/object_ptr.hpp>
 #include <yave/node/core/node_info.hpp>
 
@@ -93,7 +94,7 @@ namespace yave {
 
     /// Get instance by calling instance function.
     [[nodiscard]] object_ptr<const Object>
-      get_instance(const primitive_t& prim) const;
+      get_instance(const object_ptr<const PrimitiveContainer>& prim) const;
 
     /// Check if this bind matches to node_info.
     [[nodiscard]] bool is_bind_of(const node_info& info) const;
