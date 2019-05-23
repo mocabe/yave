@@ -450,7 +450,7 @@ namespace yave {
 
         Info(
           g_parser_logger,
-          "Type of node {}({})#{} successfully deduced:\n"
+          "Type of node at {}({})#{} in prime tree successfully deduced:\n"
           "| {}",
           node_info->name(),
           node.id(),
@@ -463,8 +463,13 @@ namespace yave {
     } parse_prime_node;
 
     error_list errors;
-    return {parse_prime_node.rec(errors, m_graph, m_binds, node, socket),
-            std::move(errors)};
+    auto tp = parse_prime_node.rec(errors, m_graph, m_binds, node, socket);
+
+    if (!errors.empty()) {
+      tp = nullptr;
+    }
+
+    return {tp, std::move(errors)};
   }
 
 } // namespace yave
