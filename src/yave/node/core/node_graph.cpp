@@ -374,7 +374,7 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] bool
+  bool
     node_graph::has_connection(const node_handle& h, const std::string& s) const
   {
     if (!exists(h)) {

@@ -66,7 +66,7 @@ namespace yave {
     return *this;
   }
 
-  [[nodiscard]] bool node_info_manager::add(const info_type& info)
+  bool node_info_manager::add(const info_type& info)
   {
     auto [it, succ] =
       m_info.emplace(info.name(), std::make_shared<info_type>(info));
@@ -107,12 +107,12 @@ namespace yave {
     }
   }
 
-  [[nodiscard]] bool node_info_manager::exists(const std::string& name) const
+  bool node_info_manager::exists(const std::string& name) const
   {
     return m_info.find(name) != m_info.end();
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const node_info_manager::info_type>>
+  std::vector<std::shared_ptr<const node_info_manager::info_type>>
     node_info_manager::enumerate()
   {
     std::vector<std::shared_ptr<const info_type>> ret;
@@ -123,7 +123,7 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] std::shared_ptr<const node_info_manager::info_type>
+  std::shared_ptr<const node_info_manager::info_type>
     node_info_manager::find(const std::string& name) const
   {
     auto iter = m_info.find(name);
@@ -132,7 +132,7 @@ namespace yave {
     return iter->second;
   }
 
-  [[nodiscard]] std::unique_lock<std::mutex> node_info_manager::lock() const
+  std::unique_lock<std::mutex> node_info_manager::lock() const
   {
     return std::unique_lock(m_mtx);
   }

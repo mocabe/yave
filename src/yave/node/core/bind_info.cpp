@@ -137,12 +137,12 @@ namespace yave {
     return eval(app);
   }
 
-  [[nodiscard]] bool bind_info::is_bind_of(const node_info& info) const
+  bool bind_info::is_bind_of(const node_info& info) const
   {
     return is_bind_of(info.name(), info.input_sockets(), info.output_sockets());
   }
 
-  [[nodiscard]] bool bind_info::is_bind_of(
+  bool bind_info::is_bind_of(
     const std::string& name,
     const std::vector<std::string>& input_sockets,
     const std::vector<std::string>& output_sockets) const

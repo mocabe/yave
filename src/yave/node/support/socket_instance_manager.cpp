@@ -106,8 +106,7 @@ namespace yave {
     while (iter != end) m_map.erase(iter++);
   }
 
-  [[nodiscard]] std::unique_lock<std::mutex>
-    socket_instance_manager::lock() const
+  std::unique_lock<std::mutex> socket_instance_manager::lock() const
   {
     return std::unique_lock(m_mtx);
   }

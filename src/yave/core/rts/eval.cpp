@@ -8,8 +8,7 @@
 namespace yave {
 
   /// copy apply graph
-  [[nodiscard]] object_ptr<const Object>
-    copy_apply_graph(const object_ptr<const Object>& obj)
+  object_ptr<const Object> copy_apply_graph(const object_ptr<const Object>& obj)
   {
     if (auto apply = value_cast_if<Apply>(obj)) {
       auto& apply_storage = _get_storage(*apply);
@@ -28,8 +27,7 @@ namespace yave {
   namespace detail {
 
     /// eval implementation
-    [[nodiscard]] object_ptr<const Object>
-      eval_obj(const object_ptr<const Object>& obj)
+    object_ptr<const Object> eval_obj(const object_ptr<const Object>& obj)
     {
       // detect exception
       if (unlikely(has_exception_tag(obj)))

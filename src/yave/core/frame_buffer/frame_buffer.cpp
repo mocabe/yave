@@ -38,13 +38,13 @@ namespace yave {
     m_manager.unref(m_id);
   }
 
-  [[nodiscard]] object_ptr<FrameBuffer> frame_buffer::get() const
+  object_ptr<FrameBuffer> frame_buffer::get() const
   {
     // copy to new buffer
     return make_object<FrameBuffer>(m_manager, m_manager.create(m_id));
   }
 
-  [[nodiscard]] image_view frame_buffer::get_image_view() const
+  image_view frame_buffer::get_image_view() const
   {
     return image_view(
       m_manager.get_data(m_id),
@@ -53,28 +53,28 @@ namespace yave {
       m_manager.format());
   }
 
-  [[nodiscard]] uint32_t frame_buffer::width() const
+  uint32_t frame_buffer::width() const
   {
     return m_manager.width();
   }
 
-  [[nodiscard]] uint32_t frame_buffer::height() const
+  uint32_t frame_buffer::height() const
   {
     return m_manager.height();
   }
 
-  [[nodiscard]] image_format frame_buffer::format() const
+  image_format frame_buffer::format() const
   {
     return m_manager.format();
   }
 
-  [[nodiscard]] const uint8_t* frame_buffer::data() const
+  const uint8_t* frame_buffer::data() const
   {
     return m_manager.get_data(m_id);
   }
 
-  [[nodiscard]] uint8_t* frame_buffer::data()
+  uint8_t* frame_buffer::data()
   {
     return m_manager.get_data(m_id);
   }
-}
+} // namespace yave

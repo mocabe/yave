@@ -9,8 +9,7 @@
 namespace yave {
 
   namespace {
-    [[nodiscard]] object_ptr<const Type>
-      copy_type_impl(const object_ptr<const Type>& ptp)
+    object_ptr<const Type> copy_type_impl(const object_ptr<const Type>& ptp)
     {
       if (auto value = get_if<value_type>(ptp.value()))
         return make_object<Type>(value_type {*value});
@@ -25,8 +24,7 @@ namespace yave {
     }
   } // namespace
 
-  [[nodiscard]] object_ptr<const Type>
-    copy_type(const object_ptr<const Type>& tp)
+  object_ptr<const Type> copy_type(const object_ptr<const Type>& tp)
   {
     if (tp)
       return copy_type_impl(tp);
@@ -35,7 +33,7 @@ namespace yave {
   }
 
   namespace {
-    [[nodiscard]] bool same_type_impl(
+    bool same_type_impl(
       const object_ptr<const Type>& lhs,
       const object_ptr<const Type>& rhs)
     {
@@ -72,7 +70,7 @@ namespace yave {
     }
   } // namespace
 
-  [[nodiscard]] bool same_type(
+  bool same_type(
     const object_ptr<const Type>& lhs,
     const object_ptr<const Type>& rhs)
   {
@@ -80,7 +78,7 @@ namespace yave {
   }
 
   namespace {
-    [[nodiscard]] object_ptr<const Type>
+    object_ptr<const Type>
       subst_type_impl(const TyArrow& ta, const object_ptr<const Type>& in)
     {
       auto& from = ta.from;
@@ -107,13 +105,13 @@ namespace yave {
     }
   } // namespace
 
-  [[nodiscard]] object_ptr<const Type>
+  object_ptr<const Type>
     subst_type(const TyArrow& ta, const object_ptr<const Type>& in)
   {
     return subst_type_impl(ta, in);
   }
 
-  [[nodiscard]] object_ptr<const Type> subst_type_all(
+  object_ptr<const Type> subst_type_all(
     const std::vector<TyArrow>& tyarrows,
     const object_ptr<const Type>& ty)
   {
@@ -139,12 +137,12 @@ namespace yave {
     }();
   }
 
-  [[nodiscard]] Constr subst_constr(const TyArrow& ta, const Constr& constr)
+  Constr subst_constr(const TyArrow& ta, const Constr& constr)
   {
     return {subst_type(ta, constr.t1), subst_type(ta, constr.t2)};
   }
 
-  [[nodiscard]] std::vector<Constr>
+  std::vector<Constr>
     subst_constr_all(const TyArrow& ta, const std::vector<Constr>& cs)
   {
     auto ret = std::vector<Constr> {};
@@ -153,8 +151,7 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] bool
-    occurs(const object_ptr<const Type>& x, const object_ptr<const Type>& t)
+  bool occurs(const object_ptr<const Type>& x, const object_ptr<const Type>& t)
   {
     if (get_if<value_type>(t.value()))
       return false;
@@ -207,7 +204,7 @@ namespace yave {
     }
   } // namespace
 
-  [[nodiscard]] std::vector<TyArrow>
+  std::vector<TyArrow>
     unify(const std::vector<Constr>& cs, const object_ptr<const Object>& src)
   {
     auto _cs = cs;
@@ -216,7 +213,7 @@ namespace yave {
     return as;
   }
 
-  [[nodiscard]] object_ptr<const Type> genvar()
+  object_ptr<const Type> genvar()
   {
     auto var = make_object<Type>(var_type {uid::random_generate()});
     return object_ptr<const Type>(var);
@@ -248,15 +245,14 @@ namespace yave {
     }
   } // namespace
 
-  [[nodiscard]] std::vector<object_ptr<const Type>>
-    vars(const object_ptr<const Type>& tp)
+  std::vector<object_ptr<const Type>> vars(const object_ptr<const Type>& tp)
   {
     auto vars = std::vector<object_ptr<const Type>> {};
     vars_impl(tp, vars);
     return vars;
   }
 
-  [[nodiscard]] object_ptr<const Type> genpoly(const object_ptr<const Type>& tp)
+  object_ptr<const Type> genpoly(const object_ptr<const Type>& tp)
   {
     if (!is_arrow_type(tp))
       return tp;
@@ -270,7 +266,7 @@ namespace yave {
   }
 
   namespace {
-    [[nodiscard]] const object_ptr<const Type>
+    const object_ptr<const Type>
       type_of_func_impl(const object_ptr<const Object>& obj)
     {
       // Apply
@@ -298,8 +294,7 @@ namespace yave {
     }
   } // namespace
 
-  [[nodiscard]] object_ptr<const Type>
-    type_of(const object_ptr<const Object>& obj)
+  object_ptr<const Type> type_of(const object_ptr<const Object>& obj)
   {
     return type_of_func_impl(obj);
   }

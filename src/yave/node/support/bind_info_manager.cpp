@@ -64,7 +64,7 @@ namespace yave {
     return *this;
   }
 
-  [[nodiscard]] bool bind_info_manager::add(const bind_info& info)
+  bool bind_info_manager::add(const bind_info& info)
   {
     auto iter = m_info.emplace(info.name(), std::make_shared<info_type>(info));
     if (iter == m_info.end())
@@ -121,12 +121,12 @@ namespace yave {
     }
   }
 
-  [[nodiscard]] bool bind_info_manager::exists(const std::string& name) const
+  bool bind_info_manager::exists(const std::string& name) const
   {
     return m_info.find(name) != m_info.end();
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+  std::vector<std::shared_ptr<const bind_info_manager::info_type>>
     bind_info_manager::enumerate()
   {
     std::vector<std::shared_ptr<const info_type>> ret;
@@ -137,7 +137,7 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+  std::vector<std::shared_ptr<const bind_info_manager::info_type>>
     bind_info_manager::find(const std::string& name) const
   {
     auto [bgn, end] = m_info.equal_range(name);
@@ -149,7 +149,7 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+  std::vector<std::shared_ptr<const bind_info_manager::info_type>>
     bind_info_manager::find(
       const std::string& name,
       const std::vector<std::string>& input,
@@ -167,19 +167,19 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+  std::vector<std::shared_ptr<const bind_info_manager::info_type>>
     bind_info_manager::find(const bind_info& info) const
   {
     return find(info.name(), info.input_sockets(), info.output_socket());
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+  std::vector<std::shared_ptr<const bind_info_manager::info_type>>
     bind_info_manager::get_binds(const node_info& info) const
   {
     return get_binds(info.name(), info.input_sockets(), info.output_sockets());
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<const bind_info_manager::info_type>>
+  std::vector<std::shared_ptr<const bind_info_manager::info_type>>
     bind_info_manager::get_binds(
       const std::string& name,
       const std::vector<std::string>& input_sockets,
@@ -195,7 +195,7 @@ namespace yave {
     return ret;
   }
 
-  [[nodiscard]] std::unique_lock<std::mutex> bind_info_manager::lock() const
+  std::unique_lock<std::mutex> bind_info_manager::lock() const
   {
     return std::unique_lock(m_mtx);
   }
