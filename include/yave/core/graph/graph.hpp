@@ -677,11 +677,23 @@ namespace yave::graph {
     graph(const graph &) = delete;
 
     /// Move constructor
-    graph(graph &&g)
+    graph(graph &&other)
     {
-      m_nodes   = std::move(g.m_nodes);
-      m_edges   = std::move(g.m_edges);
-      m_sockets = std::move(g.m_sockets);
+      m_nodes   = std::move(other.m_nodes);
+      m_edges   = std::move(other.m_edges);
+      m_sockets = std::move(other.m_sockets);
+    }
+
+    /// Copy assignment is deleted. use clone().
+    graph &operator=(const graph &) = delete;
+
+    /// Move assignment.
+    graph &operator=(graph &&other)
+    {
+      clear();
+      m_nodes   = std::move(other.m_nodes);
+      m_edges   = std::move(other.m_edges);
+      m_sockets = std::move(other.m_sockets);
     }
 
     /// A destructor
