@@ -18,7 +18,8 @@ namespace yave {
     parsed_node_property(
       const object_ptr<const Object>& instance,
       const object_ptr<const Type>& type,
-      const std::shared_ptr<const class bind_info>& bind_info);
+      const std::shared_ptr<const class bind_info>& bind_info,
+      bool is_root = false);
 
     /// Get instance object.
     const object_ptr<const Object>& instance() const;
@@ -38,9 +39,13 @@ namespace yave {
     /// Get list of input sockets from bind info.
     const std::vector<std::string>& input_sockets() const;
 
+    /// root?
+    bool is_root() const;
+
   private:
     object_ptr<const Object> m_instance;
     object_ptr<const Type> m_type;
     std::shared_ptr<const class bind_info> m_bind_info;
+    bool m_is_root;
   };
 } // namespace yave
