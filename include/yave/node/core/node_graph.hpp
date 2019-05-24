@@ -69,7 +69,7 @@ namespace yave {
 
     /// Disconnect sockets.
     /// \throws should not throw exception.
-    void disconnect(const connection_handle& info);
+    void disconnect(const connection_handle& connection);
 
     /// Find nodes from name.
     /// \returns Empty vector when not found.
@@ -188,6 +188,8 @@ namespace yave {
   private:
     /// graph
     graph_t m_g;
+
+  private:
     /// mutex
     mutable std::mutex m_mtx;
   };
