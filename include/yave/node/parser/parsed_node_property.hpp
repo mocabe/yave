@@ -27,7 +27,7 @@ namespace yave {
     const object_ptr<const Type> type() const;
 
     /// Get bind info.
-    const std::shared_ptr<const bind_info>& bind_info() const;
+    const std::shared_ptr<const class bind_info>& bind_info() const;
 
     /// Get name fron bind info.
     const std::string& name() const;
