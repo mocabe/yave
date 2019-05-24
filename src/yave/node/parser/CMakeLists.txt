@@ -6,7 +6,8 @@ add_library(yave-node-parser
   parsed_connection_info.cpp
   parsed_node_info.cpp
   parsed_node_property.cpp
-  parsed_socket_property.cpp)
+  parsed_socket_property.cpp
+  parsed_node_graph.cpp)
 
 add_library(yave::node::parser ALIAS yave-node-parser)
 

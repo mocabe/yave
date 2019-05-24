@@ -61,7 +61,7 @@ namespace yave {
       output_connection(const parsed_node_handle& node) const;
 
     /// Get output socket.
-    [[nodiscard]] std::string
+    [[nodiscard]] std::vector<std::string>
       output_socket(const parsed_node_handle& node) const;
 
     /// Get list of input sockets.
@@ -97,6 +97,7 @@ namespace yave {
 
   private:
     parsed_graph_t m_graph;
+    std::vector<parsed_node_handle> m_roots;
 
   private:
     mutable std::mutex m_mtx;
