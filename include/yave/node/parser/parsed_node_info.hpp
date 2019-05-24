@@ -22,7 +22,7 @@ namespace yave {
     parsed_node_info(
       const object_ptr<const Object>& instance,
       const object_ptr<const Type>& type,
-      std::shared_ptr<const class bind_info>& bind_info);
+      const std::shared_ptr<const class bind_info>& bind_info);
 
     /// Get instance object.
     const object_ptr<const Object>& instance() const;
