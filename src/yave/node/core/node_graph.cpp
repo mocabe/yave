@@ -79,22 +79,26 @@ namespace yave {
       throw std::runtime_error(
         "Failed to add node to node_graph: Failed to create new node.");
 
-    // attach sockets
     auto _attach_sockets = [&](auto&& names, auto io) {
-      // attach sockets
       for (auto&& name : names) {
         auto socket = m_g.add_socket(name, io);
         if (!m_g.attach_socket(node, socket)) {
-          if (node)
-            m_g.remove_node(node);
           throw std::runtime_error(
             "Failed to add node to node_graph: Failed to attach sockets.");
         }
       }
     };
 
-    _attach_sockets(info.input_sockets(), socket_property::input);
-    _attach_sockets(info.output_sockets(), socket_property::output);
+    try {
+      _attach_sockets(info.input_sockets(), socket_property::input);
+      _attach_sockets(info.output_sockets(), socket_property::output);
+    } catch (...) {
+      for (auto&& s : m_g.sockets(node)) {
+        m_g.remove_socket(s);
+      }
+      m_g.remove_node(node);
+      throw;
+    }
 
     auto handle = node_handle(node, m_g.id(node));
 
