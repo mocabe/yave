@@ -22,51 +22,25 @@ namespace yave {
     parsed_node_info(
       const object_ptr<const Object>& instance,
       const object_ptr<const Type>& type,
-      std::shared_ptr<const class bind_info>& bind_info)
-      : m_instance {instance}
-      , m_type {type}
-      , m_bind_info {bind_info}
-    {
-      m_name          = m_bind_info->name();
-      m_output_socket = m_bind_info->output_socket();
-      m_input_sockets = m_bind_info->input_sockets();
-    }
+      std::shared_ptr<const class bind_info>& bind_info);
 
     /// Get instance object.
-    const object_ptr<const Object>& instance() const
-    {
-      return m_instance;
-    }
+    const object_ptr<const Object>& instance() const;
 
     /// Get current type of the node.
-    const object_ptr<const Type>& type() const
-    {
-      return m_type;
-    }
+    const object_ptr<const Type>& type() const;
 
     /// Get current bind info of the node.
-    std::shared_ptr<const class bind_info> bind_info() const
-    {
-      return m_bind_info;
-    }
+    std::shared_ptr<const class bind_info> bind_info() const;
 
     /// Get name of node.
-    const std::string& name() const
-    {
-      return m_name;
-    }
+    const std::string& name() const;
 
     /// Get output socket of the node.
-    const std::string& output_socket() const
-    {
-      return m_output_socket;
-    }
+    const std::string& output_socket() const;
 
     /// Get list of input sockets of the node.
-    const std::vector<std::string>& input_sockets() const
-    {
-      return m_input_sockets;
-    }
+    const std::vector<std::string>& input_sockets() const;
 
   private: /* from parsed_node_property */
     object_ptr<const Object> m_instance;
