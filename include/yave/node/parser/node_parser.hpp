@@ -10,7 +10,7 @@
 #include <yave/support/error.hpp>
 
 #include <yave/node/parser/errors.hpp>
-#include <yave/node/parser/parsed_node_tree.hpp>
+#include <yave/node/parser/parsed_node_graph.hpp>
 
 namespace yave {
 
@@ -43,6 +43,7 @@ namespace yave {
     /// \required Tree is already parsed by parse_prime_tree() successfully.
     std::pair<object_ptr<const Type>, error_list>
       type_prime_tree(const node_handle& node, const std::string& socket) const;
+
 
   private:
     /// reference to node graph
