@@ -95,6 +95,8 @@ namespace yave {
 
     void disconnect(const parsed_connection_handle& connection);
 
+    void set_root(const parsed_node_handle& ndoe);
+
   private:
     parsed_graph_t m_graph;
     std::vector<parsed_node_handle> m_roots;

@@ -327,4 +327,22 @@ namespace yave {
     m_graph.remove_edge(connection.descriptor());
   }
 
+  void parsed_node_graph::set_root(const parsed_node_handle& node)
+  {
+    if (!exists(node))
+      return;
+
+    for (auto&& r : m_roots) {
+      if (r == node)
+        return;
+    }
+
+    if (!m_graph[node.descriptor()].is_root()) {
+      m_graph[node.descriptor()].set_root();
+      m_roots.push_back(node);
+    }
+
+    return;
+  }
+
 } // namespace yave
