@@ -28,16 +28,16 @@ namespace yave {
 
     template <class T>
     struct PrimitiveGetter
-      : Function<PrimitiveGetter<T>, PrimitiveContainer, Object>
+      : Function<PrimitiveGetter<T>, PrimitiveContainer, Constructor<Box<T>>>
     {
       typename PrimitiveGetter::return_type code() const
       {
         auto container = PrimitiveGetter::template eval_arg<0>();
         auto prim      = container->get();
         if (auto v = std::get_if<T>(&prim)) {
-          return object_ptr<>(make_object<Constructor<Box<T>>>(container));
+          return make_object<Constructor<Box<T>>>(container);
         } else {
-          return object_ptr<>(make_object<Constructor<Box<T>>>());
+          return make_object<Constructor<Box<T>>>();
         }
       }
     };

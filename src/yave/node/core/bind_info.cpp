@@ -7,6 +7,8 @@
 #include <yave/core/objects/primitive.hpp>
 #include <yave/core/rts/eval.hpp>
 
+#include <yave/core/objects/frame.hpp>
+
 #include <algorithm>
 
 namespace yave {
@@ -45,11 +47,23 @@ namespace yave {
       throw std::invalid_argument("get_instance_func is null");
     }
 
-    // test primitive apply
+    // test type
     try {
       auto prim = make_object<PrimitiveContainer>();
       auto app  = m_get_instance_func << prim;
       auto tp   = type_of(app);
+
+      auto flat = flatten(tp);
+
+      if (flat.size() != m_input_sockets.size() + 2)
+        throw std::invalid_argument(
+          "get_instance_func may return closure with invalid number of "
+          "arguments");
+
+      if (!same_type(flat[m_input_sockets.size()], object_type<Frame>()))
+        throw std::invalid_argument(
+          "get_instance_func may return closure with invalid argument type");
+
     } catch (type_error::type_error& e) {
       throw std::invalid_argument(
         std::string("get_instance_func has invalid type: ") + e.what());
@@ -102,9 +116,17 @@ namespace yave {
       auto prim = make_object<PrimitiveContainer>();
       auto app  = func << prim;
       auto tp   = type_of(app);
+
+      auto flat = flatten(tp);
+      if (
+        flat.size() != m_input_sockets.size() + 2 ||
+        !same_type(flat[m_input_sockets.size()], object_type<Frame>()))
+        throw std::invalid_argument(
+          "Invalid closure type retuend from instance getter function");
+
     } catch (type_error::type_error& e) {
       throw std::invalid_argument(
-        std::string("get_instance_func has invalid type: ") + e.what());
+        std::string("Invalid type in instance getter function: ") + e.what());
     }
     m_get_instance_func = func;
   }
@@ -133,7 +155,6 @@ namespace yave {
     const object_ptr<const PrimitiveContainer>& prim) const
   {
     auto app = m_get_instance_func << prim;
-    assert(same_type(type_of(app), object_type<Object>()));
     return eval(app);
   }
 

@@ -297,7 +297,7 @@ namespace yave {
       }
     };
 
-    struct DummyGetter : Function<DummyGetter, PrimitiveContainer, Object>
+    struct DummyGetter : Function<DummyGetter, PrimitiveContainer, DummyFunc>
     {
       return_type code() const
       {
