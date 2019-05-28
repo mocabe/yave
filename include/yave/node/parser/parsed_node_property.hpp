@@ -11,15 +11,15 @@
 
 namespace yave {
 
+  struct socket_instance;
+
   /// Node property of parsed_node_graph.
   class parsed_node_property
   {
+    friend class parsed_node_graph;
+
   public:
-    parsed_node_property(
-      const object_ptr<const Object>& instance,
-      const object_ptr<const Type>& type,
-      const std::shared_ptr<const class bind_info>& bind_info,
-      bool is_root = false);
+    parsed_node_property(const socket_instance* inst_ptr, bool is_root = false);
 
     /// Get instance object.
     const object_ptr<const Object>& instance() const;
@@ -46,9 +46,9 @@ namespace yave {
     void set_root();
 
   private:
-    object_ptr<const Object> m_instance;
-    object_ptr<const Type> m_type;
-    std::shared_ptr<const class bind_info> m_bind_info;
+    /// points to element of parsed_node_graph::m_instances
+    const socket_instance* m_inst_ptr;
+    /// root?
     bool m_is_root;
   };
 } // namespace yave
