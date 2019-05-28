@@ -9,6 +9,8 @@
 #include <yave/core/rts/to_string.hpp>
 #include <yave/support/log.hpp>
 
+#include <yave/node/support/socket_instance_manager.hpp>
+
 namespace {
   // operator<< for uid
   std::ostream& operator<<(std::ostream& os, const yave::uid& id)
@@ -111,9 +113,28 @@ namespace yave {
     return {errors.empty(), std::move(errors)};
   }
 
-  std::pair<object_ptr<const Type>, error_list> node_parser::type_prime_tree(
-    const node_handle& node,
-    const std::string& socket) const
+  /*
+    Type check prime trees and generate parsed_node_graph.
+    Assumes prime tree is already successfully parsed by parse_prime_tree().
+    We use socket_instance_manager to collect all node instances attached to
+    specific node/socket combination to share instance objects across multiple
+    inputs. Instance manager should be given by caller, and it's instance tables
+    should be valid for current node graph (otherwise result parsed_node_graph
+    will be constructed by invalid instances thus may crash whole program on
+    execution).
+    Type checking each node is done by following algorithm:
+    1. Type check all input sockets.
+    2. Find bindings which have exactly same input arguments to current active
+    input sockets of the node.
+    3. Create genealized type of the node from bindings.
+    4. Type check to generalized type, and collect valid bindings.
+    5. Decide the single most specialized binding from valid bindings.
+   */
+  std::pair<std::optional<parsed_node_graph>, error_list>
+    node_parser::type_prime_tree(
+      const node_handle& node,
+      const std::string& socket,
+      socket_instance_manager& sim) const
   {
     if (!node)
       throw std::invalid_argument("Null node handle");
@@ -137,13 +158,16 @@ namespace yave {
     struct
     {
       // Recursive implementation of node type checker.
+      // Recursively type check nodes while building return node graph.
       // Returns type of node tree.
-      object_ptr<const Type> rec(
-        error_list& errors,             /* error list (ref) */
-        const node_graph& graph,        /* graph*/
-        const bind_info_manager& binds, /* bind info */
-        const node_handle& node,        /* target tree */
-        const std::string& socket)      /* target tree */
+      parsed_node_handle rec(
+        parsed_node_graph& parsed_graph, /* parsed graph (ref) */
+        error_list& errors,              /* error list (ref) */
+        socket_instance_manager& sim,    /* instance cache table (ref) */
+        const node_graph& graph,         /* graph*/
+        const bind_info_manager& binds,  /* bind info */
+        const node_handle& node,         /* target tree */
+        const std::string& socket)       /* target tree */
       {
         auto node_info      = graph.get_info(node);
         auto node_binds     = binds.get_binds(*node_info);
@@ -172,17 +196,53 @@ namespace yave {
           input_connections.push_back(*info);
         }
 
-        // recursively parse tree
-        std::vector<object_ptr<const Type>> input_types;
+        std::vector<parsed_node_handle> input_handles;
 
+        // recursively parse tree
         for (auto&& i : inputs) {
           for (auto&& ic : input_connections) {
             if (ic.dst_socket() == i) {
-              input_types.push_back(
-                rec(errors, graph, binds, ic.src_node(), ic.src_socket()));
+              auto handle = rec(
+                parsed_graph,
+                errors,
+                sim,
+                graph,
+                binds,
+                ic.src_node(),
+                ic.src_socket());
+              input_handles.push_back(handle);
               break;
             }
           }
+        }
+
+        // when already in cache
+        if (auto inst = sim.find(node, socket)) {
+
+          Info(
+            g_parser_logger,
+            "Found instance cache at {}({})#{}",
+            node_info->name(),
+            node.id(),
+            socket);
+
+          auto n = parsed_graph.add(inst->instance, inst->type, inst->bind);
+
+          assert(inputs.size() == input_handles.size());
+
+          for (size_t i = 0; i < inputs.size(); ++i) {
+            if (!parsed_graph.connect(input_handles[i], n, inputs[i])) {
+              throw std::runtime_error("Failed to connect sockets");
+            }
+          }
+
+          return n;
+        }
+
+        std::vector<object_ptr<const Type>> input_types;
+
+        for (auto&& ih : input_handles) {
+          input_types.push_back(parsed_graph.get_info(ih)->type());
         }
 
         // log
@@ -241,7 +301,11 @@ namespace yave {
             node.id(),
             socket);
 
-          return genvar();
+          for (auto&& ih : input_handles) {
+            parsed_graph.remove_subtree(ih);
+          }
+          // return var
+          return parsed_graph.add_dummy();
         }
 
         // log
@@ -249,10 +313,10 @@ namespace yave {
         for (auto&& o : overloadings) {
           overloadings_str += "| ";
           for (auto&& i : o->input_sockets())
-            overloadings_str += fmt::format("{}", i);
+            overloadings_str += fmt::format("{} ", i);
           if (o->input_sockets().empty())
             overloadings_str += "(no input)";
-          overloadings_str += fmt::format("->{}\n", o->output_socket());
+          overloadings_str += fmt::format("-> {}\n", o->output_socket());
         }
         overloadings_str.pop_back();
 
@@ -353,7 +417,12 @@ namespace yave {
               to_string(e.expected()),
               to_string(e.provided()));
 
-            return genvar();
+              for(auto&& ih : input_handles) {
+                parsed_graph.remove_subtree(ih);
+              }
+
+              return parsed_graph.add_dummy(generalized_tp); 
+
           } catch (type_error::type_error&) {
 
             errors.push_back(make_error<parse_errors::no_valid_overloading>(
@@ -371,7 +440,11 @@ namespace yave {
               inputs[i],
               to_string(input_types[i]));
 
-            return genvar();
+            for (auto&& ih : input_handles) {
+              parsed_graph.remove_subtree(ih);
+            }
+
+            return parsed_graph.add_dummy(generalized_tp);
           }
         }
 
@@ -388,7 +461,7 @@ namespace yave {
 
         struct hit_info
         {
-          const bind_info* bind;
+          std::shared_ptr<const bind_info> bind;
           object_ptr<const Object> instance;
           object_ptr<const Type> instance_tp;
           object_ptr<const Type> result_tp;
@@ -403,7 +476,7 @@ namespace yave {
           try {
             auto c         = unify({Constr {node_tp, t}}, nullptr);
             auto result_tp = subst_type_all(c, tmp_tp);
-            hits.push_back({b.get(), o, t, result_tp});
+            hits.push_back({b, o, t, result_tp});
           } catch (type_error::type_error&) {
             continue;
           }
@@ -422,7 +495,11 @@ namespace yave {
             node.id(),
             socket);
 
-          return genvar();
+          for (auto&& ih : input_handles) {
+            parsed_graph.remove_subtree(ih);
+          }
+
+          return parsed_graph.add_dummy();
         }
 
         auto ret = hits.front();
@@ -442,7 +519,11 @@ namespace yave {
                 node.id(),
                 socket);
 
-              return genvar();
+              for (auto&& ih : input_handles) {
+                parsed_graph.remove_subtree(ih);
+              }
+
+              return parsed_graph.add_dummy(generalized_tp);
             }
             ret = hits[i];
           }
@@ -457,19 +538,41 @@ namespace yave {
           socket,
           to_string(ret.result_tp));
 
-        return ret.result_tp;
+        // create new node in parsed graph
+        auto parsed_node =
+          parsed_graph.add(ret.instance, ret.result_tp, ret.bind);
+
+        assert(input_handles.size() == ret.bind->input_sockets().size());
+
+        // connect input sockets
+        for (size_t i = 0; i < input_handles.size(); ++i) {
+          [[maybe_unused]] auto c = parsed_graph.connect(
+            input_handles[i], parsed_node, ret.bind->input_sockets()[i]);
+        }
+
+        // add instance cache
+        sim.add(
+          node,
+          socket,
+          socket_instance {ret.instance, ret.result_tp, ret.bind});
+
+        return parsed_node;
       }
 
-    } parse_prime_node;
+    } impl;
 
     error_list errors;
-    auto tp = parse_prime_node.rec(errors, m_graph, m_binds, node, socket);
+    parsed_node_graph parsed_graph;
 
-    if (!errors.empty()) {
-      tp = nullptr;
+    auto root =
+      impl.rec(parsed_graph, errors, sim, m_graph, m_binds, node, socket);
+
+    if (errors.empty()) {
+      parsed_graph.set_root(root);
+      return {std::optional(parsed_graph), std::move(errors)};
     }
 
-    return {tp, std::move(errors)};
+    return {std::nullopt, std::move(errors)};
   }
 
 } // namespace yave

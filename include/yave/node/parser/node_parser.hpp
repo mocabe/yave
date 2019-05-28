@@ -14,6 +14,8 @@
 
 namespace yave {
 
+  class socket_instance_manager;
+
   /// node_graph parser
   class node_parser
   {
@@ -41,9 +43,10 @@ namespace yave {
 
     /// Parse prime tree.
     /// \required Tree is already parsed by parse_prime_tree() successfully.
-    std::pair<object_ptr<const Type>, error_list>
-      type_prime_tree(const node_handle& node, const std::string& socket) const;
-
+    std::pair<std::optional<parsed_node_graph>, error_list> type_prime_tree(
+      const node_handle& node,
+      const std::string& socket,
+      socket_instance_manager& sim) const;
 
   private:
     /// reference to node graph
