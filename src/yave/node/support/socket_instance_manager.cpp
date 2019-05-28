@@ -58,10 +58,10 @@ namespace yave {
   }
 
   std::optional<socket_instance> socket_instance_manager::find(
-    const node_handle& h,
+    const node_handle& node,
     const std::string& socket) const
   {
-    auto [bgn, end] = m_map.equal_range(h);
+    auto [bgn, end] = m_map.equal_range(node);
     for (auto iter = bgn; iter != end; ++iter) {
       if (iter->second.socket == socket)
         return iter->second.si;
@@ -70,25 +70,25 @@ namespace yave {
   }
 
   void socket_instance_manager::add(
-    const node_handle& h,
+    const node_handle& node,
     const std::string& socket,
     const socket_instance& socket_instance)
   {
-    auto [bgn, end] = m_map.equal_range(h);
+    auto [bgn, end] = m_map.equal_range(node);
     for (auto iter = bgn; iter != end; ++iter) {
       if (iter->second.socket == socket) {
         iter->second.si = socket_instance;
         return;
       }
     }
-    m_map.emplace(h, instanceTable {socket, socket_instance});
+    m_map.emplace(node, instanceTable {socket, socket_instance});
   }
 
   void socket_instance_manager::remove(
-    const node_handle& h,
+    const node_handle& node,
     const std::string& socket)
   {
-    auto [bgn, end] = m_map.equal_range(h);
+    auto [bgn, end] = m_map.equal_range(node);
 
     auto iter = bgn;
     while (iter != end) {
@@ -99,9 +99,9 @@ namespace yave {
     }
   }
 
-  void socket_instance_manager::remove(const node_handle& h)
+  void socket_instance_manager::remove(const node_handle& node)
   {
-    auto [bgn, end] = m_map.equal_range(h);
+    auto [bgn, end] = m_map.equal_range(node);
     auto iter       = bgn;
     while (iter != end) m_map.erase(iter++);
   }
