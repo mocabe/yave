@@ -5,6 +5,12 @@
 
 #include <yave/node/parser/parsed_node_graph.hpp>
 
+#include <yave/core/rts/dynamic_typing.hpp>
+#include <yave/core/rts/function.hpp>
+#include <yave/core/objects/frame.hpp>
+
+#include <yave/node/support/socket_instance_manager.hpp>
+
 #include <cassert>
 
 namespace yave {
@@ -16,18 +22,35 @@ namespace yave {
   }
 
   parsed_node_graph::parsed_node_graph(const parsed_node_graph& other)
-    : m_graph {other.m_graph.clone()}
   {
+    // clone graph
+    m_graph = other.m_graph.clone();
+
     for (auto&& n : nodes()) {
       assert(exists(n));
+      // rebuild link between graph and instances
+      {
+        auto dsc  = n.descriptor();
+        auto iter = m_instances.emplace(
+          m_instances.end(),
+          std::make_unique<socket_instance>(
+            socket_instance {m_graph[dsc].instance(),
+                             m_graph[dsc].type(),
+                             m_graph[dsc].bind_info()}));
+        m_graph[dsc].m_inst_ptr = iter->get();
+      }
+      // add root
+      {
       if (m_graph[n.descriptor()].is_root()) {
         m_roots.push_back(n);
       }
     }
   }
+  }
 
   parsed_node_graph::parsed_node_graph(parsed_node_graph&& other)
     : m_graph {std::move(other.m_graph)}
+    , m_instances {std::move(other.m_instances)}
     , m_roots {std::move(other.m_roots)}
   {
   }
@@ -217,7 +240,12 @@ namespace yave {
     if (!bind_info)
       throw std::invalid_argument("Null bind info");
 
-    auto node = m_graph.add_node(instance, type, bind_info, is_root);
+    auto iter = m_instances.emplace(
+      m_instances.end(),
+      std::make_unique<socket_instance>(
+        socket_instance {instance, type, bind_info}));
+
+    auto node = m_graph.add_node(iter->get(), is_root);
 
     if (!node)
       throw std::runtime_error("Failed to create node");
@@ -244,14 +272,44 @@ namespace yave {
       throw;
     }
 
-    return parsed_node_handle(node, m_graph.id(node));
+    auto node_handle = parsed_node_handle(node, m_graph.id(node));
+
+    // add to root list
+    if (is_root)
+      m_roots.push_back(node_handle);
+
+    return node_handle;
+  }
+
   }
 
   void parsed_node_graph::remove(const parsed_node_handle& node)
   {
     if (!exists(node))
       return;
+
+    // remove from instance list
+    {
+      auto back =
+        std::remove_if(m_instances.begin(), m_instances.end(), [&](auto& p) {
+          p.get() == m_graph[node.descriptor()].m_inst_ptr;
+        });
+      m_instances.erase(back, m_instances.end());
+    }
+
+    // remove from root list
+    {
+      auto back = std::remove(m_roots.begin(), m_roots.end(), node);
+      m_roots.erase(back, m_roots.end());
+    }
+
+    // remove from graph
+    {
+      for (auto&& srcs : m_graph.sockets(node.descriptor())) {
+        m_graph.remove_socket(srcs);
+      }
     m_graph.remove_node(node.descriptor());
+  }
   }
 
   void parsed_node_graph::remove_subtree(const parsed_node_handle& node)
@@ -262,6 +320,7 @@ namespace yave {
     struct
     {
       void rec(
+        parsed_node_graph* _this,
         parsed_graph_t& graph,
         const typename parsed_graph_t::node_descriptor_type& n)
       {
@@ -269,26 +328,17 @@ namespace yave {
           if (graph[s].is_input()) {
             for (auto&& e : graph.dst_edges(s)) {
               for (auto&& srcn : graph.nodes(graph.src(e))) {
-                rec(graph, srcn);
-                for (auto&& srcs : graph.sockets(srcn)) {
-                  graph.remove_socket(srcs);
-                }
-                graph.remove_node(srcn);
+                rec(_this, graph, srcn);
               }
             }
           }
         }
+        _this->remove(parsed_node_handle(n, graph.id(n)));
       }
     } impl;
 
     // remove subtree
-    impl.rec(m_graph, node.descriptor());
-
-    // remove root
-    for (auto&& s : m_graph.sockets(node.descriptor())) {
-      m_graph.remove_socket(s);
-    }
-    m_graph.remove_node(node.descriptor());
+    impl.rec(this, m_graph, node.descriptor());
   }
 
   parsed_connection_handle

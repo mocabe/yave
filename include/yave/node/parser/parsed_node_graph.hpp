@@ -74,7 +74,7 @@ namespace yave {
     /// Lock this graph.
     [[nodiscard]] std::unique_lock<std::mutex> lock() const;
 
-  private:
+  private: /* internal */
     [[nodiscard]] parsed_node_handle add(
       const object_ptr<const Object>& instance,
       const object_ptr<const Type>& type,
@@ -99,6 +99,7 @@ namespace yave {
 
   private:
     parsed_graph_t m_graph;
+    std::vector<std::unique_ptr<socket_instance>> m_instances;
     std::vector<parsed_node_handle> m_roots;
 
   private:
