@@ -41,11 +41,11 @@ namespace yave {
       }
       // add root
       {
-      if (m_graph[n.descriptor()].is_root()) {
-        m_roots.push_back(n);
+        if (m_graph[n.descriptor()].is_root()) {
+          m_roots.push_back(n);
+        }
       }
     }
-  }
   }
 
   parsed_node_graph::parsed_node_graph(parsed_node_graph&& other)
@@ -350,8 +350,8 @@ namespace yave {
       for (auto&& srcs : m_graph.sockets(node.descriptor())) {
         m_graph.remove_socket(srcs);
       }
-    m_graph.remove_node(node.descriptor());
-  }
+      m_graph.remove_node(node.descriptor());
+    }
   }
 
   void parsed_node_graph::remove_subtree(const parsed_node_handle& node)
