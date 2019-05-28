@@ -5,15 +5,16 @@
 
 #pragma once
 
-#include <yave/core/rts/function.hpp>
 #include <yave/core/objects/frame.hpp>
 #include <yave/core/objects/primitive.hpp>
+
+#include <yave/node/objects/function.hpp>
 
 namespace yave {
 
   /// Constructor (factory) function for primitive data types
   template <class T>
-  struct Constructor : Function<Constructor<T>, Frame, T>
+  struct Constructor : NodeFunction<Constructor<T>, T>
   {
     /// Ctor
     Constructor()

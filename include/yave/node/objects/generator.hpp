@@ -5,21 +5,22 @@
 
 #pragma once
 
-#include <yave/core/rts/function.hpp>
 #include <yave/core/rts/eval.hpp>
 #include <yave/core/objects/frame.hpp>
+
+#include <yave/node/objects/function.hpp>
+
 #include <functional>
 
 namespace yave {
 
   /// UnaryFunction
   template <class T1, class TR, class E>
-  struct UnaryFunction //
-    : Function<UnaryFunction<T1, TR, E>, closure<Frame, T1>, Frame, TR>
+  struct UnaryFunction : NodeFunction<UnaryFunction<T1, TR, E>, T1, TR>
   {
     typename UnaryFunction::return_type code() const
     {
-      auto v0 = eval(this->template arg<0>() << this->template arg<1>());
+      auto v0 = this->template eval_arg<0>();
       E e;
       return make_object<TR>(e(*v0));
     }
@@ -27,18 +28,13 @@ namespace yave {
 
   /// BinaryFunction
   template <class T1, class T2, class TR, class E>
-  struct BinaryFunction //
-    : Function<
-        BinaryFunction<T1, T2, TR, E>,
-        closure<Frame, T1>,
-        closure<Frame, T2>,
-        Frame,
-        TR>
+  struct BinaryFunction
+    : NodeFunction<BinaryFunction<T1, T2, TR, E>, T1, T2, TR>
   {
     typename BinaryFunction::return_type code() const
     {
-      auto v0 = eval(this->template arg<0>() << this->template arg<2>());
-      auto v1 = eval(this->template arg<1>() << this->template arg<2>());
+      auto v0 = this->template eval_arg<0>();
+      auto v1 = this->template eval_arg<1>();
       E e;
       return make_object<TR>(e(*v0, *v1));
     }
@@ -46,20 +42,14 @@ namespace yave {
 
   /// TernaryFunction
   template <class T1, class T2, class T3, class TR, class E>
-  struct TernaryFunction //
-    : Function<
-        TernaryFunction<T1, T2, T3, TR, E>,
-        closure<Frame, T1>,
-        closure<Frame, T2>,
-        closure<Frame, T3>,
-        Frame,
-        TR>
+  struct TernaryFunction
+    : NodeFunction<TernaryFunction<T1, T2, T3, TR, E>, T1, T2, T3, TR>
   {
     typename TernaryFunction::return_type code() const
     {
-      auto v0 = eval(this->template arg<0>() << this->template arg<3>());
-      auto v1 = eval(this->template arg<1>() << this->template arg<3>());
-      auto v2 = eval(this->template arg<2>() << this->template arg<3>());
+      auto v0 = this->template eval_arg<0>();
+      auto v1 = this->template eval_arg<1>();
+      auto v2 = this->template eval_arg<2>();
       E e;
       return make_object<TR>(e(*v0, *v1, *v2));
     }
@@ -68,21 +58,20 @@ namespace yave {
   /// QuaternaryFunction
   template <class T1, class T2, class T3, class T4, class TR, class E>
   struct QuaternaryFunction //
-    : Function<
+    : NodeFunction<
         QuaternaryFunction<T1, T2, T3, T4, TR, E>,
-        closure<Frame, T1>,
-        closure<Frame, T2>,
-        closure<Frame, T3>,
-        closure<Frame, T4>,
-        Frame,
+        T1,
+        T2,
+        T3,
+        T4,
         TR>
   {
     typename QuaternaryFunction::return_type code() const
     {
-      auto v0 = eval(this->template arg<0>() << this->template arg<4>());
-      auto v1 = eval(this->template arg<1>() << this->template arg<4>());
-      auto v2 = eval(this->template arg<2>() << this->template arg<4>());
-      auto v3 = eval(this->template arg<3>() << this->template arg<4>());
+      auto v0 = this->template eval_arg<0>();
+      auto v1 = this->template eval_arg<1>();
+      auto v2 = this->template eval_arg<2>();
+      auto v3 = this->template eval_arg<3>();
       E e;
       return make_object<TR>(e(*v0, *v1, *v2, *v3));
     }

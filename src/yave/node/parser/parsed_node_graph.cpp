@@ -10,6 +10,7 @@
 #include <yave/core/objects/frame.hpp>
 
 #include <yave/node/support/socket_instance_manager.hpp>
+#include <yave/node/objects/function.hpp>
 
 #include <cassert>
 
@@ -289,7 +290,7 @@ namespace yave {
   parsed_node_handle
     parsed_node_graph::add_dummy(const object_ptr<const Type>& dummy_type)
   {
-    struct DummyFunc : Function<DummyFunc, Frame, Undefined>
+    struct DummyFunc : NodeFunction<DummyFunc, Undefined>
     {
       return_type code() const
       {
