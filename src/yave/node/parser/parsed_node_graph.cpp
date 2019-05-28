@@ -281,6 +281,48 @@ namespace yave {
     return node_handle;
   }
 
+  parsed_node_handle parsed_node_graph::add_dummy()
+  {
+    return add_dummy(genvar());
+  }
+
+  parsed_node_handle
+    parsed_node_graph::add_dummy(const object_ptr<const Type>& dummy_type)
+  {
+    struct DummyFunc : Function<DummyFunc, Frame, Undefined>
+    {
+      return_type code() const
+      {
+        throw;
+      }
+    };
+
+    struct DummyGetter : Function<DummyGetter, PrimitiveContainer, Object>
+    {
+      return_type code() const
+      {
+        throw;
+      }
+    };
+
+    auto dummy_bind = std::make_shared<bind_info>(bind_info(
+      "_dummy",
+      {},
+      "dummy_out",
+      make_object<DummyGetter>(),
+      "Dummy node created by node_parser"));
+
+    auto iter = m_instances.emplace(
+      m_instances.end(),
+      std::make_unique<socket_instance>(
+        socket_instance {make_object<DummyFunc>(), dummy_type, dummy_bind}));
+    auto n  = m_graph.add_node(iter->get());
+    auto os = m_graph.add_socket("dummy_out", parsed_socket_property::output);
+
+    if (!m_graph.attach_socket(n, os))
+      throw std::runtime_error("Falied to attach socket");
+
+    return parsed_node_handle(n, m_graph.id(n));
   }
 
   void parsed_node_graph::remove(const parsed_node_handle& node)

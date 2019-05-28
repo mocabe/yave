@@ -81,6 +81,11 @@ namespace yave {
       const std::shared_ptr<const bind_info>& bind_info,
       bool is_root = false);
 
+    [[nodiscard]] parsed_node_handle add_dummy();
+
+    [[nodiscard]] parsed_node_handle
+      add_dummy(const object_ptr<const Type>& dummy_type);
+
     void remove(const parsed_node_handle& node);
 
     void remove_subtree(const parsed_node_handle& node);
