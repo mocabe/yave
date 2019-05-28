@@ -694,6 +694,8 @@ namespace yave::graph {
       m_nodes   = std::move(other.m_nodes);
       m_edges   = std::move(other.m_edges);
       m_sockets = std::move(other.m_sockets);
+
+      return *this;
     }
 
     /// A destructor
