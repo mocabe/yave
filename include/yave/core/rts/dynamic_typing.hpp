@@ -73,6 +73,10 @@ namespace yave {
     return is_var_type(get_type(obj));
   }
 
+  /// flatten arrow type (non recursive)
+  [[nodiscard]] std::vector<object_ptr<const Type>>
+    flatten(const object_ptr<const Type>& tp);
+
   struct TyArrow
   {
     object_ptr<const Type> from;

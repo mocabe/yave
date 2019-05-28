@@ -8,6 +8,29 @@
 
 namespace yave {
 
+  std::vector<object_ptr<const Type>> flatten(const object_ptr<const Type>& tp)
+  {
+    struct
+    {
+      void rec(
+        const object_ptr<const Type>& t,
+        std::vector<object_ptr<const Type>>& v)
+      {
+        if (!t)
+          return;
+        if (auto arr = get_if<arrow_type>(&*t)) {
+          v.push_back(arr->captured);
+          rec(arr->returns, v);
+        } else
+          v.push_back(t);
+      }
+    } impl;
+
+    std::vector<object_ptr<const Type>> ret;
+    impl.rec(tp, ret);
+    return ret;
+  }
+
   namespace {
     object_ptr<const Type> copy_type_impl(const object_ptr<const Type>& ptp)
     {
