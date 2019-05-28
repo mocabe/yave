@@ -18,11 +18,11 @@ namespace yave {
   struct socket_instance
   {
     /// socket object
-    object_ptr<> object;
-    /// socket type
+    object_ptr<const Object> instance;
+    /// type
     object_ptr<const Type> type;
-    /// bind info
-    const yave::bind_info* bind_info;
+    /// bind
+    std::shared_ptr<const bind_info> bind;
   };
 
   /// Socket instance manager
@@ -48,7 +48,7 @@ namespace yave {
     void add(
       const node_handle& h,
       const std::string& socket,
-      const socket_instance& instance);
+      const socket_instance& socket_instance);
 
     /// remove instance
     void remove(const node_handle& h, const std::string& socket);
@@ -69,7 +69,7 @@ namespace yave {
     struct instanceTable
     {
       std::string socket;
-      socket_instance instance;
+      socket_instance si;
     };
 
   private:

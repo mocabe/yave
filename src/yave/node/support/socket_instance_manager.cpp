@@ -64,7 +64,7 @@ namespace yave {
     auto [bgn, end] = m_map.equal_range(h);
     for (auto iter = bgn; iter != end; ++iter) {
       if (iter->second.socket == socket)
-        return iter->second.instance;
+        return iter->second.si;
     }
     return std::nullopt;
   }
@@ -72,16 +72,16 @@ namespace yave {
   void socket_instance_manager::add(
     const node_handle& h,
     const std::string& socket,
-    const socket_instance& instance)
+    const socket_instance& socket_instance)
   {
     auto [bgn, end] = m_map.equal_range(h);
     for (auto iter = bgn; iter != end; ++iter) {
       if (iter->second.socket == socket) {
-        iter->second.instance = instance;
+        iter->second.si = socket_instance;
         return;
       }
     }
-    m_map.emplace(h, instanceTable {socket, instance});
+    m_map.emplace(h, instanceTable {socket, socket_instance});
   }
 
   void socket_instance_manager::remove(
