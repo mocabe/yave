@@ -334,7 +334,7 @@ namespace yave {
     {
       auto back =
         std::remove_if(m_instances.begin(), m_instances.end(), [&](auto& p) {
-          p.get() == m_graph[node.descriptor()].m_inst_ptr;
+          return p.get() == m_graph[node.descriptor()].m_inst_ptr;
         });
       m_instances.erase(back, m_instances.end());
     }
