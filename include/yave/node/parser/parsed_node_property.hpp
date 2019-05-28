@@ -42,6 +42,9 @@ namespace yave {
     /// root?
     bool is_root() const;
 
+    /// set this node root
+    void set_root();
+
   private:
     object_ptr<const Object> m_instance;
     object_ptr<const Type> m_type;

@@ -54,4 +54,9 @@ namespace yave {
   {
     return m_is_root;
   }
+
+  void parsed_node_property::set_root()
+  {
+    m_is_root = true;
+  }
 } // namespace yave
