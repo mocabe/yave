@@ -1,1 +1,1 @@
-YAVE_Test(parser parser yave::node::parser)
+YAVE_Test(parser parser yave::node::parser yave::support::log)
