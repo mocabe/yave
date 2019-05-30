@@ -16,6 +16,9 @@ namespace yave {
   [[nodiscard]] object_ptr<const Object>
     copy_apply_graph(const object_ptr<const Object>& obj);
 
+  /// clear apply cache
+  void clear_apply_cache(const object_ptr<const Object>& obj);
+
   namespace detail {
 
     /// eval implementation

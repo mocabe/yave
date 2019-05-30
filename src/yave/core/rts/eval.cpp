@@ -24,6 +24,17 @@ namespace yave {
     return obj;
   }
 
+  void clear_apply_cache(const object_ptr<const Object>& obj)
+  {
+    if (auto app = value_cast_if<Apply>(obj)) {
+      auto& storage = _get_storage(*app);
+      if (storage.evaluated())
+        storage.clear_cache();
+      clear_apply_cache(storage.app());
+      clear_apply_cache(storage.arg());
+    }
+  }
+
   namespace detail {
 
     /// eval implementation

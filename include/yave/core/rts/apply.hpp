@@ -10,21 +10,6 @@
 namespace yave {
 
   // ------------------------------------------
-  // helper
-
-  [[nodiscard]] inline object_ptr<const Object>
-    add_cache_tag(object_ptr<const Object> obj)
-  {
-    _get_storage(obj).set_pointer_tag(object_ptr_storage::pointer_tags::cache);
-    return obj;
-  }
-
-  [[nodiscard]] inline bool has_cache_tag(const object_ptr<const Object>& obj)
-  {
-    return _get_storage(obj).is_cache();
-  }
-
-  // ------------------------------------------
   // apply object storage
 
   struct apply_object_value_storage
@@ -51,22 +36,27 @@ namespace yave {
 
     bool evaluated() const
     {
-      return has_cache_tag(m_arg);
+      return static_cast<bool>(m_cache);
     }
 
     /// get cache of object
     auto get_cache() const
     {
       assert(evaluated());
-      return clear_pointer_tag(m_arg);
+      return m_cache;
     }
 
     /// set cache of object
     void set_cache(const object_ptr<const Object>& obj) const
     {
       assert(!evaluated());
-      m_app = nullptr;
-      m_arg = add_cache_tag(obj);
+      m_cache = obj;
+    }
+
+    /// clear cache
+    void clear_cache() const
+    {
+      m_cache = nullptr;
     }
 
   private:
@@ -74,6 +64,8 @@ namespace yave {
     mutable object_ptr<const Object> m_app;
     /// argument
     mutable object_ptr<const Object> m_arg;
+    /// cache
+    mutable object_ptr<const Object> m_cache;
   };
 
   /// value of Apply

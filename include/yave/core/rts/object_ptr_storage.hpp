@@ -26,9 +26,8 @@ namespace yave {
       //                        tag (3bit)
       //                        ^^^^^^^^^^
 
-      pointer   = 0x0, //< pointer
-      cache     = 0x1, //< cache
-      exception = 0x2, //< exception returned from vtbl_code_func
+      pointer   = 0x0, //< plain pointer
+      exception = 0x1, //< exception returned from vtbl_code_func
 
       extract_mask = 0x0000000000000007, // 0...0111
       clear_mask   = 0xFFFFFFFFFFFFFFF8, // 1...1000
@@ -91,12 +90,6 @@ namespace yave {
     {
       assert(get());
       return head()->info_table;
-    }
-
-    /// apply? (optional)
-    [[nodiscard]] bool is_cache() const noexcept
-    {
-      return get_pointer_tag() == pointer_tags::cache;
     }
 
     /// exception? (optional)
