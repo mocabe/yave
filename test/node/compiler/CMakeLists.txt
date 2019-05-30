@@ -1,0 +1,1 @@
+YAVE_Test(compiler compiler yave::node::compiler yave::node::parser)
