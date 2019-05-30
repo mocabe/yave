@@ -82,70 +82,70 @@ namespace yave {
     /// Maximum milliseconds can be contained.
     [[nodiscard]] static constexpr double max_milliseconds() noexcept
     {
-      return std::numeric_limits<value_type>::max() /
+      return static_cast<double>(std::numeric_limits<value_type>::max()) /
              static_cast<double>(per_millisecond());
     }
 
     /// Maximum seconds can be contained.
     [[nodiscard]] static constexpr double max_seconds() noexcept
     {
-      return std::numeric_limits<value_type>::max() /
+      return static_cast<double>(std::numeric_limits<value_type>::max()) /
              static_cast<double>(per_second());
     }
 
     /// Maximum minutes can be contained.
     [[nodiscard]] static constexpr double max_minutes() noexcept
     {
-      return std::numeric_limits<value_type>::max() /
+      return static_cast<double>(std::numeric_limits<value_type>::max()) /
              static_cast<double>(per_minute());
     }
 
     /// Maximum hours can be contained.
     [[nodiscard]] static constexpr double max_hours() noexcept
     {
-      return std::numeric_limits<value_type>::max() /
+      return static_cast<double>(std::numeric_limits<value_type>::max()) /
              static_cast<double>(per_hour());
     }
 
     /// Maximum days can be containd.
     [[nodiscard]] static constexpr double max_days() noexcept
     {
-      return std::numeric_limits<value_type>::max() /
+      return static_cast<double>(std::numeric_limits<value_type>::max()) /
              static_cast<double>(per_day());
     }
 
     /// Minimum millisecond can be contained (ca be negative).
     [[nodiscard]] static constexpr double min_milliseconds() noexcept
     {
-      return std::numeric_limits<value_type>::min() /
+      return static_cast<double>(std::numeric_limits<value_type>::min()) /
              static_cast<double>(per_millisecond());
     }
 
     /// Minimum seconds can be containd (can be negative).
     [[nodiscard]] static constexpr double min_seconds() noexcept
     {
-      return std::numeric_limits<value_type>::min() /
+      return static_cast<double>(std::numeric_limits<value_type>::min()) /
              static_cast<double>(per_second());
     }
 
     /// Minimum minutes can be contained (can be negative).
     [[nodiscard]] static constexpr double min_minutes() noexcept
     {
-      return std::numeric_limits<value_type>::min() /
+      return static_cast<double>(std::numeric_limits<value_type>::min()) /
              static_cast<double>(per_minute());
     }
 
     /// Minimum hours can be contained (can be negative).
     [[nodiscard]] static constexpr double min_hours() noexcept
     {
-      return std::numeric_limits<value_type>::min() /
+      return static_cast<double>(std::numeric_limits<value_type>::min()) /
              static_cast<double>(per_hour());
     }
 
     /// Minimum days can be contained (can be negative).
     [[nodiscard]] static constexpr double min_days() noexcept
     {
-      return std::numeric_limits<value_type>::min() /
+      return static_cast<double>(std::numeric_limits<value_type>::min()) /
              static_cast<double>(per_day());
     }
 
@@ -231,31 +231,32 @@ namespace yave {
     /// Convert to millisecond.
     [[nodiscard]] constexpr double to_millisecond() const noexcept
     {
-      return m_value / static_cast<double>(per_millisecond());
+      return static_cast<double>(m_value) /
+             static_cast<double>(per_millisecond());
     }
 
     /// Convert to second.
     [[nodiscard]] constexpr double to_second() const noexcept
     {
-      return m_value / static_cast<double>(per_second());
+      return static_cast<double>(m_value) / static_cast<double>(per_second());
     }
 
     /// Convert to minute.
     [[nodiscard]] constexpr double to_minute() const noexcept
     {
-      return m_value / static_cast<double>(per_minute());
+      return static_cast<double>(m_value) / static_cast<double>(per_minute());
     }
 
     /// Convert to hour.
     [[nodiscard]] constexpr double to_hour() const noexcept
     {
-      return m_value / static_cast<double>(per_hour());
+      return static_cast<double>(m_value) / static_cast<double>(per_hour());
     }
 
     /// Convert to day.
     [[nodiscard]] constexpr double to_day() const noexcept
     {
-      return m_value / static_cast<double>(per_day());
+      return static_cast<double>(m_value) / static_cast<double>(per_day());
     }
 
     /// Constructor.

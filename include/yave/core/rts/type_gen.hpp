@@ -105,17 +105,17 @@ namespace yave {
           continue;
         }
         if ('0' <= c && c <= '9') {
-          hex[hex_idx] = c - '0';
+          hex[hex_idx] = static_cast<char>(c - '0');
           ++hex_idx;
           continue;
         }
         if ('a' <= c && c <= 'f') {
-          hex[hex_idx] = c - 'a' + 10;
+          hex[hex_idx] = static_cast<char>(c - 'a' + 10);
           ++hex_idx;
           continue;
         }
         if ('A' <= c && c <= 'F') {
-          hex[hex_idx] = c - 'A' + 10;
+          hex[hex_idx] = static_cast<char>(c - 'A' + 10);
           ++hex_idx;
           continue;
         }
@@ -132,7 +132,7 @@ namespace yave {
       for (size_t i = 0; i < 16; ++i) {
         auto upper = 2 * i;
         auto lower = 2 * i + 1;
-        ret[i]     = hex[upper] * 16 + hex[lower];
+        ret[i]     = static_cast<char>(hex[upper] * 16 + hex[lower]);
       }
       return ret;
     }
