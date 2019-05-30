@@ -4,7 +4,6 @@
 //
 
 #include <yave/node/compiler/node_compiler.hpp>
-#include <yave/node/compiler/errors.hpp>
 #include <yave/core/rts.hpp>
 
 namespace yave {
