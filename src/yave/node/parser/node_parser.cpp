@@ -9,6 +9,8 @@
 #include <yave/core/rts/to_string.hpp>
 #include <yave/support/log.hpp>
 
+#include <yave/core/objects/frame.hpp>
+
 #include <yave/node/support/socket_instance_manager.hpp>
 
 namespace {
@@ -421,7 +423,10 @@ namespace yave {
                 parsed_graph.remove_subtree(ih);
               }
 
-              return parsed_graph.add_dummy(generalized_tp); 
+              auto flat = flatten(generalized_tp);
+              assert(flat.size() >= 2);
+              return parsed_graph.add_dummy(make_object<Type>(
+                arrow_type {object_type<Frame>(), flat.back()}));
 
           } catch (type_error::type_error&) {
 
@@ -567,11 +572,12 @@ namespace yave {
     auto root =
       impl.rec(parsed_graph, errors, sim, m_graph, m_binds, node, socket);
 
+    // success
     if (errors.empty()) {
       parsed_graph.set_root(root);
       return {std::optional(parsed_graph), std::move(errors)};
     }
-
+    // fail
     return {std::nullopt, std::move(errors)};
   }
 
