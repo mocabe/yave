@@ -17,13 +17,13 @@ namespace yave {
     /// Ctor
     Executable(object_ptr<const Object> obj, object_ptr<const Type> type);
     /// Ctor
-    Executable(const Executable& exe) = default;
+    Executable(const Executable& exe);
     /// Ctor
-    Executable(Executable&& exe) = default;
+    Executable(Executable&& exe);
     /// operator=
-    Executable& operator=(const Executable& exe) = default;
+    Executable& operator=(const Executable& exe);
     /// operator=
-    Executable& operator=(Executable&& exe) = default;
+    Executable& operator=(Executable&& exe);
 
     /// Get type.
     object_ptr<const Type> type() const;

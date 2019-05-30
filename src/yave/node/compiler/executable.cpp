@@ -18,6 +18,32 @@ namespace yave {
   {
   }
 
+  Executable::Executable(const Executable& other)
+    : m_obj {other.m_obj}
+    , m_type {other.m_type}
+  {
+  }
+
+  Executable::Executable(Executable&& other)
+    : m_obj {std::move(other.m_obj)}
+    , m_type {std::move(other.m_type)}
+  {
+  }
+
+  Executable& Executable::operator=(const Executable& other)
+  {
+    m_obj  = other.m_obj;
+    m_type = other.m_type;
+    return *this;
+  }
+
+  Executable& Executable::operator=(Executable&& other)
+  {
+    m_obj  = std::move(other.m_obj);
+    m_type = std::move(other.m_type);
+    return *this;
+  }
+
   object_ptr<const Type> Executable::type() const
   {
     return m_type;
