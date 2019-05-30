@@ -232,6 +232,7 @@ TEST_CASE("type_of")
       {
         return_type code() const
         {
+          throw;
         }
       };
       auto a = make_object<A>();
@@ -247,6 +248,7 @@ TEST_CASE("type_of")
       {
         return_type code() const
         {
+          throw;
         }
       };
 
@@ -281,6 +283,7 @@ TEST_CASE("type_of")
     {
       return_type code() const
       {
+        throw;
       }
     };
 
@@ -288,6 +291,7 @@ TEST_CASE("type_of")
     {
       return_type code() const
       {
+        throw;
       }
     };
 
@@ -323,6 +327,7 @@ TEST_CASE("type_of")
     {
       return_type code() const
       {
+        throw;
       }
     };
 
@@ -353,6 +358,7 @@ TEST_CASE("type_of")
     {
       return_type code() const
       {
+        throw;
       }
     };
 
@@ -360,6 +366,7 @@ TEST_CASE("type_of")
     {
       return_type code() const
       {
+        throw;
       }
     };
 
@@ -376,6 +383,7 @@ TEST_CASE("type_of")
     {
       return_type code() const
       {
+        throw;
       }
     };
 
@@ -447,6 +455,7 @@ TEST_CASE("copy_type")
     {
       return_type code() const
       {
+        throw;
       }
     };
     auto tp = object_type<F>();
@@ -459,6 +468,7 @@ TEST_CASE("copy_type")
     {
       return_type code() const
       {
+        throw;
       }
     };
 
