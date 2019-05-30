@@ -4,6 +4,7 @@
 //
 
 #include <yave/core/data_types/primitive.hpp>
+#include <yave/support/overloaded.hpp>
 
 #include <mutex>
 
@@ -30,7 +31,9 @@ namespace yave {
   void primitive_container::set(const primitive_t& prim)
   {
     std::lock_guard lck {m_mtx};
-    m_prim = prim;
+    // FIXME: This does not actually assign new value on clang (gcc is fine).
+    // m_prim = prim;
+    std::visit(overloaded {[&](const auto& v) { m_prim = v; }}, prim);
   }
 
   primitive_t primitive_container::get() const
