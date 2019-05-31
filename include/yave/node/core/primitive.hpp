@@ -24,7 +24,7 @@ namespace yave {
   /// get primitive node name
   [[nodiscard]] constexpr const char* get_primitive_name(const primitive_t& v)
   {
-    return std::visit(
+    return visit(
       overloaded {([](auto t) constexpr {
         return primitive_type_traits<decltype(t)>::name;
       })},

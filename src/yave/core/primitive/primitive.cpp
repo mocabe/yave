@@ -33,7 +33,7 @@ namespace yave {
     std::lock_guard lck {m_mtx};
     // FIXME: This does not actually assign new value on clang (gcc is fine).
     // m_prim = prim;
-    std::visit(overloaded {[&](const auto& v) { m_prim = v; }}, prim);
+    visit(overloaded {[&](const auto& v) { m_prim = v; }}, prim);
   }
 
   primitive_t primitive_container::get() const

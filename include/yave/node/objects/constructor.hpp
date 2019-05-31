@@ -33,7 +33,7 @@ namespace yave {
     {
       if (m_value) {
         auto prim = m_value->get();
-        if (auto v = std::get_if<typename T::value_type>(&prim)) {
+        if (auto v = get_if<typename T::value_type>(&prim)) {
           return make_object<T>(*v);
         }
       }
