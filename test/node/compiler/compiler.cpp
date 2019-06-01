@@ -98,18 +98,18 @@ TEST_CASE("node_parser")
 
     {
       socket_instance_manager sim;
-      auto [graph, errors] = parser.type_prime_tree(plus, "value", sim);
+      auto [parsed_graph, errors] = parser.type_prime_tree(plus, "value", sim);
       REQUIRE(errors.empty());
-      REQUIRE(graph);
-      REQUIRE(graph->nodes().size() == 3);
-      REQUIRE(graph->roots().size() == 1);
+      REQUIRE(parsed_graph);
+      REQUIRE(parsed_graph->nodes().size() == 3);
+      REQUIRE(parsed_graph->roots().size() == 1);
       REQUIRE(sim.size() == 3);
       REQUIRE(same_type(
-        graph->get_info(graph->roots().front())->type(),
+        parsed_graph->get_info(parsed_graph->roots().front())->type(),
         object_type<closure<Frame, Int>>()));
 
       node_compiler compiler;
-      auto exe    = compiler.compile(*graph, graph->roots().front());
+      auto exe = compiler.compile(*parsed_graph, parsed_graph->roots().front());
       auto result = exe.execute({0});
 
       REQUIRE(*value_cast<Int>(result) == 66);
