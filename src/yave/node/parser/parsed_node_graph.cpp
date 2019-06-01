@@ -273,13 +273,13 @@ namespace yave {
       throw;
     }
 
-    auto node_handle = parsed_node_handle(node, m_graph.id(node));
+    auto handle = parsed_node_handle(node, m_graph.id(node));
 
     // add to root list
     if (is_root)
-      m_roots.push_back(node_handle);
+      m_roots.push_back(handle);
 
-    return node_handle;
+    return handle;
   }
 
   parsed_node_handle parsed_node_graph::add_dummy()

@@ -32,13 +32,13 @@ TEST_CASE("node_parser")
     auto n = graph.add(*Int_info);
     // should be Frame->Int
     socket_instance_manager sim;
-    auto [graph, errors] = parser.type_prime_tree(n, "value", sim);
-    REQUIRE(graph);
+    auto [parsed_graph, errors] = parser.type_prime_tree(n, "value", sim);
+    REQUIRE(parsed_graph);
     REQUIRE(errors.empty());
     REQUIRE(sim.size() == 1);
-    REQUIRE(graph->nodes().size() == 1);
+    REQUIRE(parsed_graph->nodes().size() == 1);
     REQUIRE(same_type(
-      graph->get_info(graph->nodes().front())->type(),
+      parsed_graph->get_info(parsed_graph->nodes().front())->type(),
       get_primitive_type(int(0))));
   }
 
@@ -51,9 +51,9 @@ TEST_CASE("node_parser")
 
     REQUIRE(graph.connect(i, "value", n, "x"));
     socket_instance_manager sim;
-    auto [graph, errors] = parser.type_prime_tree(n, "out", sim);
+    auto [parsed_graph, errors] = parser.type_prime_tree(n, "out", sim);
     REQUIRE(!errors.empty());
-    REQUIRE(!graph);
+    REQUIRE(!parsed_graph);
 
     for (auto&& e : errors) {
       Error("{}", e.message());
@@ -100,14 +100,14 @@ TEST_CASE("node_parser")
 
     {
       socket_instance_manager sim;
-      auto [graph, errors] = parser.type_prime_tree(plus, "value", sim);
+      auto [parsed_graph, errors] = parser.type_prime_tree(plus, "value", sim);
       REQUIRE(errors.empty());
-      REQUIRE(graph);
-      REQUIRE(graph->nodes().size() == 3);
-      REQUIRE(graph->roots().size() == 1);
+      REQUIRE(parsed_graph);
+      REQUIRE(parsed_graph->nodes().size() == 3);
+      REQUIRE(parsed_graph->roots().size() == 1);
       REQUIRE(sim.size() == 3);
       REQUIRE(same_type(
-        graph->get_info(graph->roots().front())->type(),
+        parsed_graph->get_info(parsed_graph->roots().front())->type(),
         object_type<closure<Frame, Int>>()));
     }
 
@@ -121,14 +121,14 @@ TEST_CASE("node_parser")
 
     {
       socket_instance_manager sim;
-      auto [graph, errors] = parser.type_prime_tree(plus2, "value", sim);
+      auto [parsed_graph, errors] = parser.type_prime_tree(plus2, "value", sim);
       REQUIRE(errors.empty());
-      REQUIRE(graph);
+      REQUIRE(parsed_graph);
       REQUIRE(sim.size() == 4);
-      REQUIRE(graph->nodes().size() == 7);
-      REQUIRE(graph->roots().size() == 1);
+      REQUIRE(parsed_graph->nodes().size() == 7);
+      REQUIRE(parsed_graph->roots().size() == 1);
       REQUIRE(same_type(
-        graph->get_info(graph->roots().front())->type(),
+        parsed_graph->get_info(parsed_graph->roots().front())->type(),
         object_type<closure<Frame, Int>>()));
     }
   }
@@ -177,8 +177,8 @@ TEST_CASE("node_parser")
 
     {
       socket_instance_manager sim;
-      auto [graph, errors] = parser.type_prime_tree(plus, "value", sim);
-      REQUIRE(!graph);
+      auto [parsed_graph, errors] = parser.type_prime_tree(plus, "value", sim);
+      REQUIRE(!parsed_graph);
       REQUIRE(!errors.empty());
       for (auto&& e : errors) {
         Error("{}", e.message());
@@ -196,8 +196,8 @@ TEST_CASE("node_parser")
 
     {
       socket_instance_manager sim;
-      auto [graph, errors] = parser.type_prime_tree(plus2, "value", sim);
-      REQUIRE(!graph);
+      auto [parsed_graph, errors] = parser.type_prime_tree(plus2, "value", sim);
+      REQUIRE(!parsed_graph);
     REQUIRE(!errors.empty());
       for (auto&& e : errors) {
         Error("{}", e.message());
