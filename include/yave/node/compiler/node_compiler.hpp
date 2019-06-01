@@ -18,7 +18,7 @@ namespace yave {
     /// Ctor
     node_compiler() = default;
     /// Generate executable from parsed node graph.
-    Executable compile(
+    executable compile(
       const parsed_node_graph& parsed_graph,
       const parsed_node_handle& root) const;
   };

@@ -10,7 +10,7 @@
 
 namespace yave {
 
-  Executable::Executable(
+  executable::executable(
     object_ptr<const Object> obj,
     object_ptr<const Type> type)
     : m_obj {std::move(obj)}
@@ -18,38 +18,38 @@ namespace yave {
   {
   }
 
-  Executable::Executable(const Executable& other)
+  executable::executable(const executable& other)
     : m_obj {other.m_obj}
     , m_type {other.m_type}
   {
   }
 
-  Executable::Executable(Executable&& other)
+  executable::executable(executable&& other)
     : m_obj {std::move(other.m_obj)}
     , m_type {std::move(other.m_type)}
   {
   }
 
-  Executable& Executable::operator=(const Executable& other)
+  executable& executable::operator=(const executable& other)
   {
     m_obj  = other.m_obj;
     m_type = other.m_type;
     return *this;
   }
 
-  Executable& Executable::operator=(Executable&& other)
+  executable& executable::operator=(executable&& other)
   {
     m_obj  = std::move(other.m_obj);
     m_type = std::move(other.m_type);
     return *this;
   }
 
-  object_ptr<const Type> Executable::type() const
+  object_ptr<const Type> executable::type() const
   {
     return m_type;
   }
 
-  object_ptr<const Object> Executable::execute(yave::frame frame) const
+  object_ptr<const Object> executable::execute(yave::frame frame)
   {
     auto app = m_obj << make_object<Frame>(frame);
     return eval(app);

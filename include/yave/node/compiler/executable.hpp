@@ -11,25 +11,25 @@
 namespace yave {
 
   /// Executable wrapper
-  class Executable
+  class executable
   {
   public:
     /// Ctor
-    Executable(object_ptr<const Object> obj, object_ptr<const Type> type);
+    executable(object_ptr<const Object> obj, object_ptr<const Type> type);
     /// Ctor
-    Executable(const Executable& exe);
+    executable(const executable& exe);
     /// Ctor
-    Executable(Executable&& exe);
+    executable(executable&& exe);
     /// operator=
-    Executable& operator=(const Executable& exe);
+    executable& operator=(const executable& exe);
     /// operator=
-    Executable& operator=(Executable&& exe);
+    executable& operator=(executable&& exe);
 
     /// Get type.
     object_ptr<const Type> type() const;
 
     /// Execute.
-    object_ptr<const Object> execute(frame frame) const;
+    object_ptr<const Object> execute(frame frame);
 
   private:
     object_ptr<const Object> m_obj;

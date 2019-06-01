@@ -8,7 +8,7 @@
 
 namespace yave {
 
-  Executable node_compiler::compile(
+  executable node_compiler::compile(
     const parsed_node_graph& graph,
     const parsed_node_handle& root) const
   {
@@ -47,6 +47,6 @@ namespace yave {
     auto apply = impl.rec(graph, root);
     assert(same_type(type_of(apply), graph.get_info(root)->type()));
 
-    return Executable(apply, graph.get_info(root)->type());
+    return executable(apply, graph.get_info(root)->type());
   }
 } // namespace yave
