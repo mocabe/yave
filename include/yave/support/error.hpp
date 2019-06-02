@@ -42,7 +42,7 @@ namespace yave {
       return typeid(Derived);
     }
 
-    virtual std::unique_ptr<error_info_base> clone() const
+    virtual std::unique_ptr<error_info_base> clone() const override
     {
       return std::make_unique<Derived>(*static_cast<const Derived*>(this));
     }
