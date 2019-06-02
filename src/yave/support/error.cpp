@@ -170,4 +170,9 @@ namespace yave {
     m_errors.erase(first, last);
   }
 
+  void error_list::clear()
+  {
+    m_errors.clear();
+  }
+
 } // namespace yave

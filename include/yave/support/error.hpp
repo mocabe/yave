@@ -172,6 +172,9 @@ namespace yave {
     /// Erase range of elements.
     void erase(const_iterator fist, const_iterator last);
 
+    /// Clear error list
+    void clear();
+
   private:
     std::vector<error> m_errors;
   };
