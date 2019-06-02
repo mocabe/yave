@@ -121,6 +121,11 @@ namespace yave {
     }
   }
 
+  void bind_info_manager::remove(const bind_info& info)
+  {
+    remove(info.name(), info.input_sockets(), info.output_socket());
+  }
+
   bool bind_info_manager::exists(const std::string& name) const
   {
     return m_info.find(name) != m_info.end();

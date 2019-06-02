@@ -55,6 +55,9 @@ namespace yave {
       const std::vector<std::string>& input_sockets,
       const std::string& output_socket);
 
+    /// Remove info
+    void remove(const bind_info& info);
+
     /// Get list of info
     [[nodiscard]] std::vector<std::shared_ptr<const info_type>> enumerate();
 
