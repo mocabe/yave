@@ -330,6 +330,38 @@ namespace yave {
     return false;
   }
 
+  std::vector<connection_handle> node_graph::input_connections() const
+  {
+    std::vector<connection_handle> ret;
+    for (auto&& node : m_g.nodes()) {
+      for (auto&& socket : m_g.sockets(node)) {
+        if (m_g[socket].is_input()) {
+          assert(m_g.src_edges(socket).empty());
+          for (auto&& edge : m_g.dst_edges(socket)) {
+            ret.emplace_back(edge, m_g.id(edge));
+          }
+        }
+      }
+    }
+    return ret;
+  }
+
+  std::vector<connection_handle> node_graph::output_connections() const
+  {
+    std::vector<connection_handle> ret;
+    for (auto&& node : m_g.nodes()) {
+      for (auto&& socket : m_g.sockets(node)) {
+        if (m_g[socket].is_output()) {
+          assert(m_g.dst_edges(socket).empty());
+          for (auto&& edge : m_g.src_edges(socket)) {
+            ret.emplace_back(edge, m_g.id(edge));
+          }
+        }
+      }
+    }
+    return ret;
+  }
+
   std::vector<connection_handle> node_graph::input_connections(
     const node_handle& h,
     const std::string& socket) const

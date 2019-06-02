@@ -103,23 +103,33 @@ namespace yave {
       const node_handle& node,
       const std::string& socket) const;
 
-    /// Find input connection to the node.
-    [[nodiscard]] std::vector<connection_handle> input_connections(
-      const node_handle& node,
-      const std::string& socket) const;
-
-    /// Find output connection from the node.
-    [[nodiscard]] std::vector<connection_handle> output_connections(
-      const node_handle& node,
-      const std::string& socket) const;
+    /// List all input connections.
+    /// \returns Result should be same to connections(), but order of handles
+    /// may differ.
+    [[nodiscard]] std::vector<connection_handle> input_connections() const;
 
     /// Get list of input connections to the node.
     [[nodiscard]] std::vector<connection_handle>
       input_connections(const node_handle& node) const;
 
+    /// Find input connection to the node.
+    [[nodiscard]] std::vector<connection_handle> input_connections(
+      const node_handle& node,
+      const std::string& socket) const;
+
+    /// List all output connections.
+    /// \returns Result should be same to connections(), but order of handles
+    /// may differ.
+    [[nodiscard]] std::vector<connection_handle> output_connections() const;
+
     /// Get list of output connections from the node.
     [[nodiscard]] std::vector<connection_handle>
       output_connections(const node_handle& node) const;
+
+    /// Find output connection from the node.
+    [[nodiscard]] std::vector<connection_handle> output_connections(
+      const node_handle& node,
+      const std::string& socket) const;
 
     /// Get all connections.
     [[nodiscard]] std::vector<connection_handle> connections() const;

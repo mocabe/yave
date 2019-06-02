@@ -123,6 +123,9 @@ TEST_CASE("node_graph control")
     REQUIRE(ng.connect(n2, "output1", n3, "input1"));
     REQUIRE(!ng.connect(n3, "output1", n1, "input1"));
 
+    REQUIRE(ng.input_connections().size() == 2);
+    REQUIRE(ng.input_connections().size() == ng.connections().size());
+
     REQUIRE(ng.nodes("test node").size() == 3);
 
     ng.remove(n2);
@@ -153,6 +156,12 @@ TEST_CASE("node_graph control")
     REQUIRE(ng.connect(ci));
     REQUIRE(ng.connect(ci));
     REQUIRE(ng.connect(ci) == ng.connect(ci));
+
+    REQUIRE(ng.connections().size() == 1);
+    REQUIRE(ng.input_connections().size() == 1);
+    REQUIRE(ng.output_connections().size() == 1);
+    REQUIRE(ng.connections() == ng.output_connections());
+    REQUIRE(ng.connections() == ng.input_connections());
 
     REQUIRE(!ng.has_connection(n1, "input"));
     REQUIRE(ng.has_connection(n1, "output"));
