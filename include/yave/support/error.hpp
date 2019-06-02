@@ -83,16 +83,16 @@ namespace yave {
     error& operator=(const class success&);
 
     /// Get pointer to errorInfo.
-    const error_info_base* info() const;
+    [[nodiscard]] const error_info_base* info() const;
 
     /// success?
-    bool is_success() const;
+    [[nodiscard]] bool is_success() const;
 
     /// operator bool
-    explicit operator bool() const;
+    [[nodiscard]] explicit operator bool() const;
 
     /// Get error message
-    std::string message() const;
+    [[nodiscard]] std::string message() const;
 
     /// Get type_info
     [[nodiscard]] const std::type_info& type() const;
@@ -149,22 +149,22 @@ namespace yave {
     void push_back(error&& error);
 
     /// Get size of list.
-    size_t size() const;
+    [[nodiscard]] size_t size() const;
 
     /// Empty?
-    bool empty() const;
+    [[nodiscard]] bool empty() const;
 
     /// operator[]
-    const error& operator[](size_t index) const;
+    [[nodiscard]] const error& operator[](size_t index) const;
 
     /// at
-    const error& at(size_t index) const;
+    [[nodiscard]] const error& at(size_t index) const;
 
     /// begin
-    const_iterator begin() const;
+    [[nodiscard]] const_iterator begin() const;
 
     /// end
-    const_iterator end() const;
+    [[nodiscard]] const_iterator end() const;
 
     /// Erase element.
     void erase(const_iterator position);
