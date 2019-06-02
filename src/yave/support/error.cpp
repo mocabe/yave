@@ -75,6 +75,11 @@ namespace yave {
     return m_error_info->type();
   }
 
+  error error::clone() const
+  {
+    return m_error_info->clone();
+  }
+
   success::success()
     : error(nullptr)
   {

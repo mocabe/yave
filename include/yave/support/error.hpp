@@ -22,6 +22,8 @@ namespace yave {
     virtual std::string message() const = 0;
     /// type info
     virtual const std::type_info& type() const = 0;
+    /// clone this error
+    virtual std::unique_ptr<error_info_base> clone() const = 0;
     /// dtor
     virtual ~error_info_base() noexcept;
   };
@@ -38,6 +40,11 @@ namespace yave {
     virtual const std::type_info& type() const override
     {
       return typeid(Derived);
+    }
+
+    virtual std::unique_ptr<error_info_base> clone() const
+    {
+      return std::make_unique<Derived>(*static_cast<const Derived*>(this));
     }
 
     virtual ~error_info() noexcept override
@@ -88,7 +95,10 @@ namespace yave {
     std::string message() const;
 
     /// Get type_info
-    const std::type_info& type() const;
+    [[nodiscard]] const std::type_info& type() const;
+
+    /// Clone
+    [[nodiscard]] error clone() const;
 
   private:
     std::unique_ptr<const error_info_base> m_error_info;
