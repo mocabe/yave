@@ -24,8 +24,10 @@ namespace yave {
       return table.node == node;
     });
 
-    if (it != m_roots.end())
+    if (it != m_roots.end()) {
+      m_binds.remove(it->name);
       m_roots.erase(it);
+    }
   }
 
   void root_manager::remove_root(const std::string& name)
@@ -34,8 +36,10 @@ namespace yave {
       return table.name == name;
     });
 
-    if (it != m_roots.end())
+    if (it != m_roots.end()) {
+      m_binds.remove(it->name);
       m_roots.erase(it);
+    }
   }
 
   bool root_manager::is_root(const node_handle& node) const
