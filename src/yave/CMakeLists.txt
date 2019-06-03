@@ -10,3 +10,6 @@ add_library(yave::all ALIAS yave-all)
 target_link_libraries(yave-all INTERFACE yave-core)
 target_link_libraries(yave-all INTERFACE yave-node)
 target_link_libraries(yave-all INTERFACE yave-support)
+
+# yave::interface
+add_subdirectory(interface)
