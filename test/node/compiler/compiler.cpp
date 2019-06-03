@@ -43,13 +43,13 @@ TEST_CASE("node_parser")
         parsed_graph->get_info(parsed_graph->nodes().front())->type(),
         get_primitive_type(int(0))));
 
-      node_compiler compiler;
-      auto exe = compiler.compile(*parsed_graph, parsed_graph->roots().front());
+      node_compiler compiler {*parsed_graph};
+      auto exe = compiler.compile(parsed_graph->roots().front());
       auto result = exe.execute({0});
       REQUIRE(*value_cast<Int>(result) == 42);
 
       graph.set_primitive(n, {(int)24});
-      exe    = compiler.compile(*parsed_graph, parsed_graph->roots().front());
+      exe    = compiler.compile(parsed_graph->roots().front());
       result = exe.execute({0});
       REQUIRE(*value_cast<Int>(result) == 24);
     }
@@ -108,8 +108,8 @@ TEST_CASE("node_parser")
         parsed_graph->get_info(parsed_graph->roots().front())->type(),
         object_type<closure<Frame, Int>>()));
 
-      node_compiler compiler;
-      auto exe = compiler.compile(*parsed_graph, parsed_graph->roots().front());
+      node_compiler compiler {*parsed_graph};
+      auto exe    = compiler.compile(parsed_graph->roots().front());
       auto result = exe.execute({0});
 
       REQUIRE(*value_cast<Int>(result) == 66);
