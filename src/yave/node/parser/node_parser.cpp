@@ -581,4 +581,9 @@ namespace yave {
     return {std::nullopt, std::move(errors)};
   }
 
+  std::unique_lock<std::mutex> node_parser::lock() const
+  {
+    return std::unique_lock {m_mtx};
+  }
+
 } // namespace yave

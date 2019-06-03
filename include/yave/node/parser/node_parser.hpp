@@ -48,11 +48,19 @@ namespace yave {
       const std::string& socket,
       socket_instance_manager& sim) const;
 
+    /// Lock.
+    /// \notes: Also need to lock node_graph and bind_info_manager.
+    std::unique_lock<std::mutex> lock() const;
+
   private:
     /// reference to node graph
     const node_graph& m_graph;
     /// reference to bind list
     const bind_info_manager& m_binds;
+
+  private:
+    /// mutex
+    mutable std::mutex m_mtx;
   };
 
 } // namespace yave
