@@ -8,15 +8,18 @@
 
 namespace yave {
 
-  executable node_compiler::compile(
-    const parsed_node_graph& graph,
-    const parsed_node_handle& root) const
+  node_compiler::node_compiler(const parsed_node_graph& parsed_graph)
+    : m_parsed_graph {parsed_graph}
   {
-    if (!graph.exists(root))
+  }
+
+  executable node_compiler::compile(const parsed_node_handle& root) const
+  {
+    if (!m_parsed_graph.exists(root))
       throw std::invalid_argument("Does not exists");
 
     if (![&]() {
-          for (auto&& r : graph.roots())
+          for (auto&& r : m_parsed_graph.roots())
             if (r == root)
               return true;
           return false;
@@ -44,9 +47,14 @@ namespace yave {
       }
     } impl;
 
-    auto apply = impl.rec(graph, root);
-    assert(same_type(type_of(apply), graph.get_info(root)->type()));
+    auto apply = impl.rec(m_parsed_graph, root);
+    assert(same_type(type_of(apply), m_parsed_graph.get_info(root)->type()));
 
-    return executable(apply, graph.get_info(root)->type());
+    return executable(apply, m_parsed_graph.get_info(root)->type());
+  }
+
+  std::unique_lock<std::mutex> node_compiler::lock() const
+  {
+    return std::unique_lock {m_mtx};
   }
 } // namespace yave
