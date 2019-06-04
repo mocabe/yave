@@ -14,6 +14,13 @@
 namespace yave {
 
   /// (loose) UTF-8 string.
+  /// \notes Currently string still allows to construct from char* string
+  /// without narrow/UTF8 conversion, so user must provide properly encoded
+  /// UTF-8 string for those constructors. In the futue, we can emit those
+  /// narrow charactor constructors and use char8_t instead, but we'll still
+  /// need narrow/UTF8 convertion helpers to support STL's char* interface
+  /// (namely, `std::exception::what()`). At this point, we just leave some
+  /// char8_t compatible interface and don't touch encoding.
   class string
   {
   public:
