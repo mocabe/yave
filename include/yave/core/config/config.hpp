@@ -41,4 +41,12 @@ namespace yave {
 
   using nullptr_t = std::nullptr_t;
 
+#if defined(__cpp_char8_t)
+  // use c++20 char8_t
+#else
+  enum char8_t : unsigned char
+  {
+  };
+#endif
+
 } // namespace yave
