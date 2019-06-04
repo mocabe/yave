@@ -289,13 +289,26 @@ namespace yave {
   }
 
   namespace {
+    // fwd
+    const object_ptr<const Type>
+      type_of_func_impl(const object_ptr<const Object>& obj);
+
+    const object_ptr<const Type>
+      type_of_func_impl_app(const object_ptr<const Object>& obj)
+    {
+      if (has_arrow_type(obj))
+        return genpoly(get_type(obj));
+      else
+        return type_of_func_impl(obj);
+    }
+
     const object_ptr<const Type>
       type_of_func_impl(const object_ptr<const Object>& obj)
     {
       // Apply
       if (auto apply = value_cast_if<const Apply>(obj)) {
         auto& apply_storage = _get_storage(*apply);
-        auto _t1            = type_of_func_impl(apply_storage.app());
+        auto _t1            = type_of_func_impl_app(apply_storage.app());
         auto _t2            = type_of_func_impl(apply_storage.arg());
         auto _t             = genvar();
         auto c =
@@ -311,7 +324,7 @@ namespace yave {
         return get_type(obj);
       // arrow -> genpoly arrow
       if (has_arrow_type(obj))
-        return genpoly(get_type(obj));
+        return get_type(obj);
 
       unreachable();
     }
