@@ -383,6 +383,13 @@ namespace yave {
   // ------------------------------------------
   // type_of
 
+  // fwd
+  template <class Term, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<Term> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert);
+
   /// Convert `tm_closure<T1, T2...>` to `arrow<T1, arrow<T2, ...>>`.
   /// \param term term
   /// \param gen generator
@@ -418,6 +425,26 @@ namespace yave {
       return type_of_impl(term, gen, enable_assert);
   }
 
+  /// Create fresh polymorphic type on tm_closure, otherwise fallback to
+  /// type_of_impl.
+  template <class Term, class Gen, bool Assert>
+  constexpr auto type_of_impl_app(
+    meta_type<Term> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    if constexpr (is_tm_closure(term)) {
+      // generate fresh polymorphoc type
+      auto p1 = genpoly(term, gen);
+      auto t1 = p1.first();
+      auto g1 = p1.second();
+      // create arrow type from tm_closure
+      return type_of_impl_closure(t1, g1, enable_assert);
+    } else {
+      return type_of_impl(term, gen, enable_assert);
+    }
+  }
+
   /// Infer a type of term tree.
   /// \param term term
   /// \param gen generator
@@ -434,7 +461,7 @@ namespace yave {
 
     if constexpr (is_tm_apply(term)) {
       // app
-      auto p1 = type_of_impl(term.t1(), gen, enable_assert);
+      auto p1 = type_of_impl_app(term.t1(), gen, enable_assert);
       auto t1 = p1.first();
       auto g1 = p1.second();
       if constexpr (is_error_type(t1)) {
@@ -459,12 +486,7 @@ namespace yave {
         }
       }
     } else if constexpr (is_tm_closure(term)) {
-      // generate fresh polymorphoc type
-      auto p1 = genpoly(term, gen);
-      auto t1 = p1.first();
-      auto g1 = p1.second();
-      // create arrow type from tm_closure
-      return type_of_impl_closure(t1, g1, enable_assert);
+      return type_of_impl_closure(term, gen, enable_assert);
     } else if constexpr (is_tm_value(term)) {
       return make_pair(make_value(term.tag()), gen);
     } else if constexpr (is_tm_varvalue(term)) {

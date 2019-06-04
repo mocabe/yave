@@ -43,4 +43,21 @@ TEST_CASE("NodeFunction")
 
     auto f = make_object<F>();
   }
+
+  SECTION("poly")
+  {
+    class X;
+    struct F : NodeFunction<F, Bool, forall<X>, forall<X>, forall<X>>
+    {
+      return_type code() const
+      {
+        if (*eval_arg<0>())
+          return arg<1>();
+        else
+          return arg<2>();
+      }
+    };
+
+    auto f = make_object<F>();
+  }
 }
