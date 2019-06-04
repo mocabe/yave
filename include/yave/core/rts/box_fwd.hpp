@@ -94,18 +94,10 @@ namespace yave {
   template <class T>
   struct Box : Object
   {
-
     /// value type
     using value_type = T;
     /// term
     static constexpr auto term = detail::inherit_box_term<T>();
-
-    /// info table initializer
-    struct info_table_initializer
-    {
-      /// static object info table
-      alignas(32) static const object_info_table info_table;
-    };
 
     /// Ctor
     template <
@@ -173,16 +165,19 @@ namespace yave {
 
     /// value
     value_type value;
-  };
 
-  // Initialize object header
-  template <class T>
-  alignas(32) const
-    object_info_table Box<T>::info_table_initializer::info_table = { //
-      object_type<Box>(),                                            //
-      sizeof(Box),                                                   //
-      object_type_traits<Box>::name,                                 //
-      vtbl_destroy_func<Box>,                                        //
-      vtbl_clone_func<Box>};                                         //
+  private:
+    /// info table initializer
+    struct info_table_initializer
+    {
+      /// static object info table
+      alignas(32) inline static const object_info_table info_table {
+        object_type<Box>(),            //
+        sizeof(Box),                   //
+        object_type_traits<Box>::name, //
+        vtbl_destroy_func<Box>,        //
+        vtbl_clone_func<Box>};         //
+    };
+  };
 
 } // namespace yave

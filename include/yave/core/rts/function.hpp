@@ -40,6 +40,14 @@ namespace yave {
     object_ptr<const Object> (*code)(const Closure<>*) noexcept;
   };
 
+  /// Trait class for Object::obj_name for closure objects.
+  template <class T>
+  struct closure_type_traits
+  {
+    /// Object::obj_name can be used for ID of closures.
+    static constexpr const char name[] = "00000000-0000-0000-0000-000000000000";
+  };
+
   template <class Closure1>
   struct Closure : Object
   {
@@ -384,13 +392,6 @@ namespace yave {
     using base::m_arity;
     using base::m_args;
 
-    /// Closure info table initializer
-    struct info_table_initializer
-    {
-      /// static closure info
-      alignas(64) static const closure_info_table info_table;
-    };
-
     /// check signature of code()
     void check_code()
     {
@@ -401,25 +402,21 @@ namespace yave {
 
     // check_code
     using concept_check_code = concept_checker<&Function::check_code>;
-  };
 
-  template <class T>
-  struct closure_type_traits
-  {
-    /// Object::obj_name can be used for ID of closures.
-    static constexpr const char name[] = "00000000-0000-0000-0000-000000000000";
+  private:
+    /// Closure info table initializer
+    struct info_table_initializer
+    {
+      /// static closure info
+      alignas(64) inline static const closure_info_table info_table {
+        {object_type<T>(),                              //
+         sizeof(T),                                     //
+         closure_type_traits<Function<T, Ts...>>::name, //
+         vtbl_destroy_func<T>,                          //
+         vtbl_clone_func<T>},                           //
+        sizeof...(Ts) - 1,                              //
+        vtbl_code_func<T>};                             //
+    };
   };
-
-  // Initialize closure infotable
-  template <class T, class... Ts>
-  alignas(64) const closure_info_table
-    Function<T, Ts...>::info_table_initializer::info_table = { //
-      {object_type<T>(),                                       //
-       sizeof(T),                                              //
-       closure_type_traits<Function<T, Ts...>>::name,          //
-       vtbl_destroy_func<T>,                                   //
-       vtbl_clone_func<T>},                                    //
-      sizeof...(Ts) - 1,                                       //
-      vtbl_code_func<T>};                                      //
 
 } // namespace yave

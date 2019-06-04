@@ -72,21 +72,6 @@ namespace yave {
     // ------------------------------------------
     // value type
 
-    static_assert(offset_of_member(&Type::value) == 16);
-
-    /// value type
-    template <class T>
-    struct value_type_initializer
-    {
-      alignas(16) static const Type type;
-    };
-
-    template <class T>
-    constexpr auto value_type_address(meta_type<T>)
-    {
-      return &value_type_initializer<T>::type;
-    }
-
     /// read UUID from constexpr char array
     [[nodiscard]] constexpr std::array<char, 16>
       read_from_constexpr_string(char const (&str)[37])
@@ -143,10 +128,23 @@ namespace yave {
       value_type_uuid = read_from_constexpr_string(
         object_type_traits<typename decltype(type_c<T>.tag())::type>::uuid);
 
+    static_assert(offset_of_member(&Type::value) == 16);
+
+    /// value type
     template <class T>
-    alignas(16) const Type value_type_initializer<T>::type {
-      static_construct,
-      value_type {value_type_uuid<T>}};
+    struct value_type_initializer
+    {
+      /// value type object
+      alignas(16) inline static const Type type {
+        static_construct,
+        value_type {value_type_uuid<T>}};
+    };
+
+    template <class T>
+    constexpr auto value_type_address(meta_type<T>)
+    {
+      return &value_type_initializer<T>::type;
+    }
 
     // ------------------------------------------
     // arrow type
@@ -154,13 +152,20 @@ namespace yave {
     template <class T, class... Ts>
     struct arrow_type_initializer
     {
-      static const Type type;
+      /// arrow type object
+      inline static const Type type {
+        static_construct,
+        arrow_type {object_type_impl(type_c<T>),
+                    &arrow_type_initializer<Ts...>::type}};
     };
 
     template <class T1, class T2>
     struct arrow_type_initializer<T1, T2>
     {
-      static const Type type;
+      /// arrow type object
+      inline static const Type type {static_construct,
+                                     arrow_type {object_type_impl(type_c<T1>),
+                                                 object_type_impl(type_c<T2>)}};
     };
 
     template <class... Ts>
@@ -169,17 +174,6 @@ namespace yave {
       return &arrow_type_initializer<Ts...>::type;
     }
 
-    template <class T, class... Ts>
-    const Type arrow_type_initializer<T, Ts...>::type {
-      static_construct,
-      arrow_type {object_type_impl(type_c<T>),
-                  &arrow_type_initializer<Ts...>::type}};
-
-    template <class T1, class T2>
-    const Type arrow_type_initializer<T1, T2>::type {
-      static_construct,
-      arrow_type {object_type_impl(type_c<T1>), object_type_impl(type_c<T2>)}};
-
     // ------------------------------------------
     // var type
 
@@ -187,13 +181,14 @@ namespace yave {
     template <class T>
     struct var_type_initializer
     {
-      static const Type type;
-
       /// id
       static uid get_id()
       {
         return uid::random_generate();
       }
+
+      /// var type object.
+      inline static const Type type {static_construct, var_type {get_id()}};
     };
 
     template <class T>
@@ -201,10 +196,6 @@ namespace yave {
     {
       return &var_type_initializer<T>::type;
     }
-
-    template <class T>
-    const Type var_type_initializer<T>::type {static_construct,
-                                              var_type {get_id()}};
 
     // ------------------------------------------
     // constexpr version of object_type type
