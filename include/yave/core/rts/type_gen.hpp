@@ -130,6 +130,13 @@ namespace yave {
         object_type_traits<typename decltype(type_c<T>.tag())::type>::uuid);
     }
 
+    /// get friendly name of value type.
+    template <class T>
+    constexpr const char* value_type_name()
+    {
+      return object_type_traits<typename decltype(type_c<T>.tag())::type>::name;
+    }
+
     static_assert(offset_of_member(&Type::value) == 16);
 
     /// value type
@@ -140,9 +147,12 @@ namespace yave {
       alignas(16) static constexpr const std::array<char, 16> aligned_uuid =
         value_type_uuid<T>();
 
+      /// name
+      static constexpr const char* friendly_name = value_type_name<T>();
+
       /// value type object
       inline static const Type type {static_construct,
-                                     value_type {&aligned_uuid}};
+                                     value_type {&aligned_uuid, friendly_name}};
     };
 
     template <class T>

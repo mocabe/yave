@@ -5,6 +5,7 @@
 
 #include <yave/core/rts/type_value.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <fmt/format.h>
 
 namespace yave {
 
@@ -12,6 +13,6 @@ namespace yave {
   {
     boost::uuids::uuid id {};
     std::memcpy(id.data, data->data(), sizeof(data));
-    return boost::uuids::to_string(id);
+    return fmt::format("{}({})", name, boost::uuids::to_string(id));
   }
 }

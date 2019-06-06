@@ -24,6 +24,9 @@ namespace yave {
     /// Pointer to 16byte aligned 128bit UUID.
     const std::array<char, 16>* data;
 
+    /// Friendly name of this value type.
+    const char* name;
+
     /// compare two value types
     [[nodiscard]] static bool
       compare(const value_type& lhs, const value_type& rhs)
