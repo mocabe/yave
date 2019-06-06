@@ -24,6 +24,8 @@ namespace yave {
     node_tree(const node_tree&) = delete;
     /// Move constructor.
     node_tree(node_tree&&);
+    /// Destructor.
+    ~node_tree();
 
     /// Copy assignment (deleted).
     node_tree& operator=(const node_tree&) = delete;

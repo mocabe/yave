@@ -95,6 +95,10 @@ namespace yave {
     m_pimpl = std::move(other.m_pimpl);
   }
 
+  node_tree::~node_tree()
+  {
+  }
+
   node_tree& node_tree::operator=(node_tree&& other)
   {
     m_pimpl = std::move(other.m_pimpl);
