@@ -122,11 +122,13 @@ namespace yave {
       return ret;
     }
 
-    /// aligned buffer
+    /// get buffer for value type
     template <class T>
-    inline constexpr const std::array<char, 16>
-      value_type_uuid = read_from_constexpr_string(
+    constexpr const std::array<char, 16> value_type_uuid()
+    {
+      return read_from_constexpr_string(
         object_type_traits<typename decltype(type_c<T>.tag())::type>::uuid);
+    }
 
     static_assert(offset_of_member(&Type::value) == 16);
 
@@ -137,7 +139,7 @@ namespace yave {
       /// value type object
       alignas(16) inline static const Type type {
         static_construct,
-        value_type {value_type_uuid<T>}};
+        value_type {value_type_uuid<T>()}};
     };
 
     template <class T>
