@@ -60,6 +60,20 @@ namespace yave {
   {
   }
 
+  parsed_node_graph& parsed_node_graph::
+    operator=(const parsed_node_graph& other)
+  {
+    auto tmp = other;
+    *this    = other;
+  }
+
+  parsed_node_graph& parsed_node_graph::operator=(parsed_node_graph&& other)
+  {
+    m_graph     = std::move(other.m_graph);
+    m_instances = std::move(other.m_instances);
+    m_roots     = std::move(other.m_roots);
+  }
+
   bool parsed_node_graph::exists(const parsed_node_handle& node) const
   {
     return m_graph.exists(node.descriptor());

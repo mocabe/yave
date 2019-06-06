@@ -25,6 +25,8 @@ namespace yave {
     parsed_node_graph();
     parsed_node_graph(const parsed_node_graph&);
     parsed_node_graph(parsed_node_graph&&);
+    parsed_node_graph& operator=(const parsed_node_graph&);
+    parsed_node_graph& operator=(parsed_node_graph&&);
     ~parsed_node_graph();
 
     /// Check node handle.
