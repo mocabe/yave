@@ -136,10 +136,13 @@ namespace yave {
     template <class T>
     struct value_type_initializer
     {
+      /// 16byte aligned uuid
+      alignas(16) static constexpr const std::array<char, 16> aligned_uuid =
+        value_type_uuid<T>();
+
       /// value type object
-      alignas(16) inline static const Type type {
-        static_construct,
-        value_type {value_type_uuid<T>()}};
+      inline static const Type type {static_construct,
+                                     value_type {&aligned_uuid}};
     };
 
     template <class T>

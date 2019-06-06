@@ -11,7 +11,7 @@ namespace yave {
   std::string value_type::to_string() const
   {
     boost::uuids::uuid id {};
-    std::memcpy(id.data, data.data(), sizeof(data));
+    std::memcpy(id.data, data->data(), sizeof(data));
     return boost::uuids::to_string(id);
   }
 }
