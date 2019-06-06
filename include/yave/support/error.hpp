@@ -127,6 +127,8 @@ namespace yave {
   class error_list
   {
   public:
+    /// iterator
+    using iterator = typename std::vector<error>::iterator;
     /// const_iterator
     using const_iterator = typename std::vector<error>::const_iterator;
 
@@ -165,6 +167,12 @@ namespace yave {
 
     /// end
     [[nodiscard]] const_iterator end() const;
+
+    /// begin
+    [[nodiscard]] iterator begin();
+
+    /// end
+    [[nodiscard]] iterator end();
 
     /// Erase element.
     void erase(const_iterator position);

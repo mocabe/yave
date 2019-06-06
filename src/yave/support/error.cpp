@@ -155,9 +155,19 @@ namespace yave {
     return m_errors.cbegin();
   }
 
+  typename error_list::iterator error_list::begin()
+  {
+    return m_errors.begin();
+  }
+
   typename error_list::const_iterator error_list::end() const
   {
     return m_errors.cend();
+  }
+
+  typename error_list::iterator error_list::end()
+  {
+    return m_errors.end();
   }
 
   void error_list::erase(const_iterator position)
