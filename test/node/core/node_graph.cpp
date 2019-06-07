@@ -74,8 +74,7 @@ TEST_CASE("node_graph control")
 
   SECTION("add")
   {
-    node_info info {
-      "test node", {"input1", "input2"}, {"output1", "output2"}, false};
+    node_info info {"test node", {"input1", "input2"}, {"output1", "output2"}};
 
     auto n1 = ng.add(info);
     REQUIRE(n1);
@@ -85,7 +84,8 @@ TEST_CASE("node_graph control")
     REQUIRE(ng.exists(n2));
     REQUIRE(ng.nodes().size() == 2);
 
-    node_info prim_info {"prim test node", {}, {"value"}, true};
+    node_info prim_info {"prim test node", {}, {"value"}};
+    REQUIRE(prim_info.is_prim());
     auto n3 = ng.add(prim_info);
     REQUIRE(n3);
     REQUIRE(ng.exists(n3));
@@ -112,8 +112,7 @@ TEST_CASE("node_graph control")
 
   SECTION("remove")
   {
-    node_info info {
-      "test node", {"input1", "input2"}, {"output1", "output2"}, false};
+    node_info info {"test node", {"input1", "input2"}, {"output1", "output2"}};
 
     auto n1 = ng.add(info);
     auto n2 = ng.add(info);
@@ -147,7 +146,7 @@ TEST_CASE("node_graph control")
 
   SECTION("connect")
   {
-    node_info info {"test node", {"input"}, {"output"}, false};
+    node_info info {"test node", {"input"}, {"output"}};
     auto n1 = ng.add(info);
     auto n2 = ng.add(info);
     REQUIRE(n1);
@@ -181,7 +180,7 @@ TEST_CASE("node_graph control")
 
   SECTION("disconnect")
   {
-    node_info info {"test node", {"input"}, {"output"}, false};
+    node_info info {"test node", {"input"}, {"output"}};
     auto n1 = ng.add(info);
     auto n2 = ng.add(info);
 
@@ -198,8 +197,8 @@ TEST_CASE("node_graph control")
 
   SECTION("find node")
   {
-    node_info info1 {"test node", {"input"}, {"output"}, false};
-    node_info info2 {"test node2", {"input", "input2"}, {"output"}, false};
+    node_info info1 {"test node", {"input"}, {"output"}};
+    node_info info2 {"test node2", {"input", "input2"}, {"output"}};
     auto n1 = ng.add(info1);
     auto n2 = ng.add(info1);
     auto n3 = ng.add(info2);
@@ -215,7 +214,7 @@ TEST_CASE("node_graph control")
   {
     SECTION("1")
     {
-      node_info info {"test node", {"input"}, {"output"}, false};
+      node_info info {"test node", {"input"}, {"output"}};
       auto n1 = ng.add(info);
       auto n2 = ng.add(info);
       REQUIRE(ng.connect(n1, "output", n2, "input"));
@@ -225,8 +224,10 @@ TEST_CASE("node_graph control")
     }
     SECTION("2")
     {
-      node_info info1 {"test node", {}, {"output"}, true};
-      node_info info2 {"test node", {"input"}, {"output"}, false};
+      node_info info1 {"test node", {}, {"output"}};
+      node_info info2 {"test node", {"input"}, {"output"}};
+      REQUIRE(info1.is_prim());
+
       auto n1 = ng.add(info1);
       auto n2 = ng.add(info2);
 
@@ -241,8 +242,10 @@ TEST_CASE("node_graph control")
 
   SECTION("io sockets")
   {
-    node_info info1 {"test node", {}, {"output"}, true};
-    node_info info2 {"test node", {"input"}, {"output", "2"}, false};
+    node_info info1 {"test node", {}, {"output"}};
+    node_info info2 {"test node", {"input"}, {"output", "2"}};
+    REQUIRE(info1.is_prim());
+
     auto n1 = ng.add(info1);
     auto n2 = ng.add(info2);
 
@@ -255,11 +258,9 @@ TEST_CASE("node_graph control")
 
   SECTION("connections")
   {
-    node_info info1 {"test node", {"input"}, {"output"}, false};
-    node_info info2 {"test node test node",
-                     {"input1", "input2"},
-                     {"output1", "output2"},
-                     false};
+    node_info info1 {"test node", {"input"}, {"output"}};
+    node_info info2 {
+      "test node test node", {"input1", "input2"}, {"output1", "output2"}};
 
     auto n1 = ng.add(info1);
     auto n2 = ng.add(info2);

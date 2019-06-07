@@ -21,7 +21,9 @@ namespace yave {
 
   node_info get_primitive_info(const primitive_t& v)
   {
-    return {{get_primitive_name(v)}, {}, {"value"}, true};
+    auto ret = node_info({get_primitive_name(v)}, {}, {"value"});
+    assert(ret.is_prim());
+    return ret;
   }
 
   namespace {

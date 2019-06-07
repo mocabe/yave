@@ -25,8 +25,7 @@ namespace yave {
     node_info(
       std::string name,
       std::vector<std::string> input_sockets,
-      std::vector<std::string> output_sockets,
-      bool is_prim = false);
+      std::vector<std::string> output_sockets);
 
     /// name
     [[nodiscard]] const std::string& name() const;
@@ -46,14 +45,8 @@ namespace yave {
     /// set output sockets
     void set_output_sockets(const std::vector<std::string>& sockets);
 
-    /// is_prim
+    /// primitive?
     [[nodiscard]] bool is_prim() const;
-
-    /// set prim
-    void set_prim(bool is_prim);
-
-  private:
-    void validate() const;
 
   private:
     /// Unique name of node.
@@ -62,8 +55,6 @@ namespace yave {
     std::vector<std::string> m_input_sockets;
     /// List of output sockets.
     std::vector<std::string> m_output_sockets;
-    /// Primitive node flag.
-    bool m_is_prim;
   };
 
   /// operator==
