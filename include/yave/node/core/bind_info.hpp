@@ -43,11 +43,11 @@ namespace yave {
     /// \param description Description of this bind.
     /// \throws std::invalid_argument when arguments are invalid.
     bind_info(
-      const std::string& name,
-      const std::vector<std::string>& input_sockets,
-      const std::string& output_socket,
-      const object_ptr<const Object> instance_func,
-      const std::string& description,
+      std::string name,
+      std::vector<std::string> input_sockets,
+      std::string output_socket,
+      object_ptr<const Object> instance_func,
+      std::string description,
       bool is_const = true);
 
     /// Get name.
@@ -112,12 +112,12 @@ namespace yave {
     std::vector<std::string> m_input_sockets;
     /// output sockets
     std::string m_output_socket;
-    /// constness
-    bool m_is_const;
     /// callback to get closure object
     object_ptr<const Object> m_get_instance_func;
     /// description
     std::string m_description;
+    /// constness
+    bool m_is_const;
   };
 
 } // namespace yave

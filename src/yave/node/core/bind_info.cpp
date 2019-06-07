@@ -24,18 +24,18 @@ namespace yave {
   }
 
   bind_info::bind_info(
-    const std::string& name,
-    const std::vector<std::string>& input_sockets,
-    const std::string& output_socket,
-    const object_ptr<const Object> get_instance_func,
-    const std::string& description,
+    std::string name,
+    std::vector<std::string> input_sockets,
+    std::string output_socket,
+    object_ptr<const Object> get_instance_func,
+    std::string description,
     bool is_const)
-    : m_name {name}
-    , m_input_sockets {input_sockets}
-    , m_output_socket {output_socket}
+    : m_name {std::move(name)}
+    , m_input_sockets {std::move(input_sockets)}
+    , m_output_socket {std::move(output_socket)}
+    , m_get_instance_func {std::move(get_instance_func)}
+    , m_description {std::move(description)}
     , m_is_const {is_const}
-    , m_get_instance_func {get_instance_func}
-    , m_description {description}
   {
     // check names
     if (!has_unique_name(m_input_sockets)) {
@@ -43,7 +43,7 @@ namespace yave {
     }
 
     // null
-    if (!get_instance_func) {
+    if (!m_get_instance_func) {
       throw std::invalid_argument("get_instance_func is null");
     }
 

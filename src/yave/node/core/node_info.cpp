@@ -11,13 +11,13 @@
 namespace yave {
 
   node_info::node_info(
-    const std::string& name,
-    const std::vector<std::string>& input_sockets,
-    const std::vector<std::string>& output_sockets,
+    std::string name,
+    std::vector<std::string> input_sockets,
+    std::vector<std::string> output_sockets,
     bool is_prim)
-    : m_name {name}
-    , m_input_sockets {input_sockets}
-    , m_output_sockets {output_sockets}
+    : m_name {std::move(name)}
+    , m_input_sockets {std::move(input_sockets)}
+    , m_output_sockets {std::move(output_sockets)}
     , m_is_prim {is_prim}
   {
     // check

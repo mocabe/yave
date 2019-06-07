@@ -23,9 +23,9 @@ namespace yave {
     node_info& operator=(const node_info&) = default;
     node_info& operator=(node_info&&) = default;
     node_info(
-      const std::string& name,
-      const std::vector<std::string>& input_sockets,
-      const std::vector<std::string>& output_sockets,
+      std::string name,
+      std::vector<std::string> input_sockets,
+      std::vector<std::string> output_sockets,
       bool is_prim = false);
 
     /// name
