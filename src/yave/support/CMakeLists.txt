@@ -39,6 +39,17 @@ target_include_directories(yave-support-error PRIVATE ${YAVE_INCLUDE_DIR})
 target_compile_options(yave-support-error PRIVATE ${YAVE_COMPILE_FLAGS})
 target_link_options(yave-support-error PRIVATE ${YAVE_LINK_FLAGS})
 
+# yave::support::vulkan
+add_library(yave-support-vulkan vulkan_context.cpp)
+add_library(yave::support::vulkan ALIAS yave-support-vulkan)
+
+target_include_directories(yave-support-vulkan PRIVATE ${YAVE_INCLUDE_DIR})
+target_compile_options(yave-support-vulkan PRIVATE ${YAVE_COMPILE_FLAGS})
+target_link_options(yave-support-vulkan PRIVATE ${YAVE_LINK_FLAGS})
+target_link_libraries(yave-support-vulkan PRIVATE yave-support-log)
+target_link_libraries(yave-support-vulkan PRIVATE glfw)
+target_link_libraries(yave-support-vulkan PRIVATE vulkan)
+
 # yave::support
 
 add_library(yave-support INTERFACE)
@@ -48,3 +59,4 @@ target_link_libraries(yave-support INTERFACE yave-support-log)
 target_link_libraries(yave-support INTERFACE yave-support-id)
 target_link_libraries(yave-support INTERFACE yave-support-uuid)
 target_link_libraries(yave-support INTERFACE yave-support-error)
+target_link_libraries(yave-support INTERFACE yave-support-vulkan)
