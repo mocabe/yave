@@ -39,6 +39,11 @@ namespace yave {
       const vk::UniqueSurfaceKHR& surface,
       const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const;
 
+    /// Create image views
+    std::vector<vk::UniqueImageView> create_swapchain_image_views(
+      const vk::UniqueSurfaceKHR& surface,
+      const vk::UniqueSwapchainKHR& swapchain) const;
+
     /// Get avalable surface formats
     std::vector<vk::SurfaceFormatKHR>
       get_surface_formats(const vk::SurfaceKHR& surface) const;

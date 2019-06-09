@@ -191,7 +191,7 @@ namespace {
 
   /* Utility functions */
 
-  /// ereate application info
+  /// create application info
   vk::ApplicationInfo createApplicationInfo()
   {
     return vk::ApplicationInfo(
@@ -672,7 +672,7 @@ namespace {
     using namespace yave;
 
     auto default_format = vk::SurfaceFormatKHR {
-      vk::Format::eR8G8B8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear};
+      vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear};
 
     Info(
       g_vulkan_logger,
@@ -688,15 +688,14 @@ namespace {
     }
 
     for (auto&& format : formats) {
-      if (format == default_format) {
-        Info(g_vulkan_logger, "Default format found. Use default format");
-        return default_format;
-      }
+      if (format == default_format)
+        Info(g_vulkan_logger, "Default surface format is supported");
+      return default_format;
     }
 
     Info(
       g_vulkan_logger,
-      "B8G8R8A8Unorm/SRGBNonLinear surface format is not supported. "
+      "Default surface format is not supported. "
       "Use first format avalable.");
 
     return formats[0];
@@ -769,16 +768,16 @@ namespace {
 
   vk::UniqueSwapchainKHR createSwapchain(
     const vk::SurfaceKHR& surface,
-    const vk::Extent2D window_extent,
-    uint32_t graphics_queue_index,
-    uint32_t present_queue_index,
+    const vk::Extent2D windowExtent,
+    uint32_t graphicsQueueIndex,
+    uint32_t presentQueueIndex,
     const vk::PhysicalDevice& physicalDevice,
     const vk::Device& logicalDevice)
   {
     using namespace yave;
 
-    auto avail_formats = physicalDevice.getSurfaceFormatsKHR(surface);
-    auto format        = chooseSurfaceFormat(avail_formats);
+    auto availFormats  = physicalDevice.getSurfaceFormatsKHR(surface);
+    auto format        = chooseSurfaceFormat(availFormats);
 
     Info(
       g_vulkan_logger,
@@ -786,37 +785,37 @@ namespace {
       vk::to_string(format.format),
       vk::to_string(format.colorSpace));
 
-    auto avail_modes = physicalDevice.getSurfacePresentModesKHR(surface);
-    auto mode        = choosePresentMode(avail_modes);
+    auto availModes = physicalDevice.getSurfacePresentModesKHR(surface);
+    auto mode       = choosePresentMode(availModes);
 
     Info(g_vulkan_logger, "Present mode: {}", vk::to_string(mode));
 
     auto capabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
-    auto extent       = chooseSwapchainExtent(window_extent, capabilities);
+    auto extent       = chooseSwapchainExtent(windowExtent, capabilities);
 
     Info(
       g_vulkan_logger, "Swapchain extent: {},{}", extent.width, extent.height);
 
-    uint32_t image_count = std::clamp(
+    uint32_t imageCount = std::clamp(
       capabilities.minImageCount + 1,
       capabilities.minImageCount,
       capabilities.maxImageCount);
 
-    Info(g_vulkan_logger, "Swapchain count: {}", image_count);
+    Info(g_vulkan_logger, "Swapchain count: {}", imageCount);
 
-    auto pre_transform   = chooseSwapchainPreTransform(capabilities);
+    auto preTransform   = chooseSwapchainPreTransform(capabilities);
 
     Info(
       g_vulkan_logger,
       "Swapchain pre transform: {}",
-      vk::to_string(pre_transform));
+      vk::to_string(preTransform));
 
-    auto composite_alpha = chooseSwapchainCompositeAlpha(capabilities);
+    auto compositeAlpha = chooseSwapchainCompositeAlpha(capabilities);
 
     Info(
       g_vulkan_logger,
       "Swapchain composite alpha: {}",
-      vk::to_string(composite_alpha));
+      vk::to_string(compositeAlpha));
 
     vk::SwapchainCreateInfoKHR info;
     info.flags            = vk::SwapchainCreateFlagsKHR();
@@ -825,24 +824,23 @@ namespace {
     info.imageColorSpace  = format.colorSpace;
     info.imageExtent      = extent;
     info.presentMode      = mode;
-    info.preTransform     = pre_transform;
-    info.compositeAlpha   = composite_alpha;
+    info.preTransform     = preTransform;
+    info.compositeAlpha   = compositeAlpha;
     // single layer
     info.imageArrayLayers = 1;
     // directly render (as color attachment)
     info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
+    uint32_t queueFamilyIndicies[] = {graphicsQueueIndex, presentQueueIndex};
 
-    uint32_t queue_indicies[] = {graphics_queue_index, present_queue_index};
-
-    if (graphics_queue_index == present_queue_index) {
+    if (graphicsQueueIndex == presentQueueIndex) {
       info.imageSharingMode      = vk::SharingMode::eExclusive;
       info.queueFamilyIndexCount = 0;
       info.pQueueFamilyIndices   = nullptr;
     } else {
       info.imageSharingMode      = vk::SharingMode::eConcurrent;
       info.queueFamilyIndexCount = 2;
-      info.pQueueFamilyIndices   = queue_indicies;
+      info.pQueueFamilyIndices   = queueFamilyIndicies;
     }
 
     Info(
@@ -853,6 +851,78 @@ namespace {
     auto swapchain = logicalDevice.createSwapchainKHRUnique(info);
     Info(g_vulkan_logger, "Created new swapchain");
     return swapchain;
+  }
+
+  vk::ComponentMapping chooseImageViewComponentMapping()
+  {
+    return vk::ComponentMapping(
+      vk::ComponentSwizzle::eIdentity,
+      vk::ComponentSwizzle::eIdentity,
+      vk::ComponentSwizzle::eIdentity,
+      vk::ComponentSwizzle::eIdentity);
+  }
+
+  vk::ImageSubresourceRange chooseImageViewSubResourceRange()
+  {
+    return vk::ImageSubresourceRange(
+      vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+  }
+
+  std::vector<vk::UniqueImageView> createSwapchainImageViews(
+    const vk::SurfaceKHR& surface,
+    const vk::SwapchainKHR& swapchain,
+    const vk::PhysicalDevice& physicalDevice,
+    const vk::Device& device)
+  {
+    using namespace yave;
+
+    auto swapchainImages = device.getSwapchainImagesKHR(swapchain);
+
+    std::vector<vk::UniqueImageView> ret;
+    ret.reserve(swapchainImages.size());
+
+    auto componentMapping = chooseImageViewComponentMapping();
+
+    Info(
+      g_vulkan_logger,
+      "Image view component mapping: {},{},{},{}",
+      vk::to_string(componentMapping.r),
+      vk::to_string(componentMapping.g),
+      vk::to_string(componentMapping.b),
+      vk::to_string(componentMapping.a));
+
+    auto subResourceRange = chooseImageViewSubResourceRange();
+
+    Info(
+      g_vulkan_logger,
+      "Image view sub resource range: {}",
+      vk::to_string(subResourceRange.aspectMask));
+
+    // TODO: find better way to set image format
+    auto availFormats = physicalDevice.getSurfaceFormatsKHR(surface);
+    auto format       = chooseSurfaceFormat(availFormats);
+
+    Info(
+      g_vulkan_logger,
+      "Swapchain image view format: {}",
+      vk::to_string(format.format));
+
+    for (auto&& image : swapchainImages) {
+      vk::ImageViewCreateInfo info;
+      info.flags    = vk::ImageViewCreateFlags();
+      info.image    = image;
+      info.format   = format.format;
+      info.viewType = vk::ImageViewType::e2D;
+
+      auto view = device.createImageViewUnique(info);
+
+      if (!view)
+        throw std::runtime_error("Failed to create swapchain image view");
+
+      ret.push_back(std::move(view));
+    }
+
+    return ret;
   }
 
 } // namespace
@@ -957,6 +1027,16 @@ namespace yave {
       m_presentQueueIndex,
       m_physicalDevice,
       m_device.get());
+  }
+
+  std::vector<vk::UniqueImageView> vulkan_context::create_swapchain_image_views(
+    const vk::UniqueSurfaceKHR& surface,
+    const vk::UniqueSwapchainKHR& swapchain) const
+  {
+    auto image_views = createSwapchainImageViews(
+      surface.get(), swapchain.get(), m_physicalDevice, m_device.get());
+    Info(g_vulkan_logger, "Created swapchain image views");
+    return image_views;
   }
 
   std::vector<vk::SurfaceFormatKHR>

@@ -28,4 +28,6 @@ TEST_CASE("glfw window")
   auto window    = glfw_ctx.create_window(1280, 720, "test window");
   auto surface   = vulkan_ctx.create_window_surface(window);
   auto swapchain = vulkan_ctx.create_surface_swapchain(surface, window);
+  auto image_views =
+    vulkan_ctx.create_swapchain_image_views(surface, swapchain);
 }
