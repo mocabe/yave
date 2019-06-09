@@ -31,4 +31,8 @@ TEST_CASE("glfw window")
   auto image_views =
     vulkan_ctx.create_swapchain_image_views(surface, swapchain);
   auto render_pass = vulkan_ctx.create_render_pass(surface, swapchain);
+  auto frame_buffers =
+    vulkan_ctx.create_frame_buffers(surface, window, image_views, render_pass);
+  auto pipeline_layout = vulkan_ctx.create_pipeline_layout();
+  auto pipeline_cache  = vulkan_ctx.create_pipeline_cache();
 }

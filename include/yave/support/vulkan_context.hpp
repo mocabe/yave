@@ -49,6 +49,19 @@ namespace yave {
       const vk::UniqueSurfaceKHR& surface,
       const vk::UniqueSwapchainKHR& swapchain) const;
 
+    /// Create frame buffer
+    std::vector<vk::UniqueFramebuffer> create_frame_buffers(
+      const vk::UniqueSurfaceKHR& surface,
+      const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window,
+      const std::vector<vk::UniqueImageView>& swapchain_views,
+      const vk::UniqueRenderPass& render_pass) const;
+
+    /// Create pipeline layout
+    vk::UniquePipelineLayout create_pipeline_layout() const;
+
+    /// Create pipeline cache
+    vk::UniquePipelineCache create_pipeline_cache() const;
+
     /// Get avalable surface formats
     std::vector<vk::SurfaceFormatKHR>
       get_surface_formats(const vk::SurfaceKHR& surface) const;

@@ -925,6 +925,38 @@ namespace {
     return ret;
   }
 
+  std::vector<vk::UniqueFramebuffer> createFrameBuffers(
+    const std::vector<vk::ImageView>& image_views,
+    const vk::RenderPass& render_pass,
+    const vk::Extent2D swapchainExtent,
+    const vk::Device& device)
+  {
+    std::vector<vk::UniqueFramebuffer> ret;
+    ret.reserve(image_views.size());
+
+    for (auto&& view : image_views) {
+
+      auto attachments = std::vector {view};
+
+      vk::FramebufferCreateInfo info;
+      info.flags           = vk::FramebufferCreateFlags();
+      info.renderPass      = render_pass;
+      info.attachmentCount = attachments.size();
+      info.pAttachments    = attachments.data();
+      info.width           = swapchainExtent.width;
+      info.height          = swapchainExtent.height;
+      info.layers          = 1;
+
+      auto buff = device.createFramebufferUnique(info);
+      if (!buff)
+        throw std::runtime_error("Failed to create frame buffer");
+
+      ret.push_back(std::move(buff));
+    }
+
+    return ret;
+  }
+
   std::vector<vk::AttachmentDescription> getRenderPassColorAttachments(
     const vk::SurfaceKHR& surface,
     const vk::PhysicalDevice& physicalDevice)
@@ -1032,6 +1064,39 @@ namespace {
     return renderPass;
   }
 
+  vk::UniquePipelineLayout createPipelineLayout(const vk::Device& device)
+  {
+    vk::PipelineLayoutCreateInfo info {};
+    info.flags                  = {};
+    info.setLayoutCount         = 0;
+    info.pSetLayouts            = nullptr;
+    info.pushConstantRangeCount = 0;
+    info.pPushConstantRanges    = nullptr;
+
+    auto layout = device.createPipelineLayoutUnique(info);
+
+    if (!layout)
+      throw std::runtime_error("Failed to create pipeline layout");
+
+    return layout;
+  }
+
+  vk::UniquePipelineCache createPipelineCache(const vk::Device& device)
+  {
+    vk::PipelineCacheCreateInfo info {};
+    // reserved
+    info.flags = {};
+    // initial data
+    info.initialDataSize = 0;
+    info.pInitialData    = nullptr;
+
+    auto cache = device.createPipelineCacheUnique(info);
+
+    if (!cache)
+      throw std::runtime_error("Failed to create pipeline cache");
+
+    return cache;
+  }
 } // namespace
 
 namespace yave {
@@ -1122,6 +1187,7 @@ namespace yave {
     const vk::UniqueSurfaceKHR& surface,
     const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const
   {
+    // TODO: cache swapchain extent
     int width, height;
     glfwGetFramebufferSize(window.get(), &width, &height);
 
@@ -1136,6 +1202,16 @@ namespace yave {
       m_device.get());
   }
 
+  std::vector<vk::UniqueImageView> vulkan_context::create_swapchain_image_views(
+    const vk::UniqueSurfaceKHR& surface,
+    const vk::UniqueSwapchainKHR& swapchain) const
+  {
+    auto image_views = createSwapchainImageViews(
+      surface.get(), swapchain.get(), m_physicalDevice, m_device.get());
+    Info(g_vulkan_logger, "Created swapchain image views");
+    return image_views;
+  }
+
   vk::UniqueRenderPass vulkan_context::create_render_pass(
     const vk::UniqueSurfaceKHR& surface,
     const vk::UniqueSwapchainKHR& swapchain) const
@@ -1147,14 +1223,45 @@ namespace yave {
     return pass;
   }
 
-  std::vector<vk::UniqueImageView> vulkan_context::create_swapchain_image_views(
+  std::vector<vk::UniqueFramebuffer> vulkan_context::create_frame_buffers(
     const vk::UniqueSurfaceKHR& surface,
-    const vk::UniqueSwapchainKHR& swapchain) const
+    const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window,
+    const std::vector<vk::UniqueImageView>& swapchain_views,
+    const vk::UniqueRenderPass& render_pass) const
   {
-    auto image_views = createSwapchainImageViews(
-      surface.get(), swapchain.get(), m_physicalDevice, m_device.get());
-    Info(g_vulkan_logger, "Created swapchain image views");
-    return image_views;
+    std::vector<vk::ImageView> tmp_views;
+    for (auto&& view : swapchain_views) {
+      tmp_views.push_back(view.get());
+    }
+
+    // TODO: cache swapchain extent
+    int width, height;
+    glfwGetFramebufferSize(window.get(), &width, &height);
+
+    assert(width > 0 && height > 0);
+
+    auto buffs = createFrameBuffers(
+      tmp_views,
+      render_pass.get(),
+      {static_cast<uint32_t>(width), static_cast<uint32_t>(height)},
+      m_device.get());
+
+    Info(g_vulkan_logger, "Created frame buffers");
+    return buffs;
+  }
+
+  vk::UniquePipelineLayout vulkan_context::create_pipeline_layout() const
+  {
+    auto layout = createPipelineLayout(m_device.get());
+    Info(g_vulkan_logger, "Created pipeline layout");
+    return layout;
+  }
+
+  vk::UniquePipelineCache vulkan_context::create_pipeline_cache() const
+  {
+    auto cache = createPipelineCache(m_device.get());
+    Info(g_vulkan_logger, "Created pipeline cache");
+    return cache;
   }
 
   std::vector<vk::SurfaceFormatKHR>
