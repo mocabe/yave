@@ -925,6 +925,113 @@ namespace {
     return ret;
   }
 
+  std::vector<vk::AttachmentDescription> getRenderPassColorAttachments(
+    const vk::SurfaceKHR& surface,
+    const vk::PhysicalDevice& physicalDevice)
+  {
+    auto availFormats = physicalDevice.getSurfaceFormatsKHR(surface);
+    auto format       = chooseSurfaceFormat(availFormats);
+
+    vk::AttachmentDescription colorAttachment;
+
+    // swap chain image format
+    colorAttachment.format = format.format;
+    // sample count
+    colorAttachment.samples = vk::SampleCountFlagBits::e1;
+
+    // behaviour before rendering
+    // eClear: clear
+    // eLoad: preserve
+    // eDontCare: undefined
+    colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+
+    // behaviour before rendering
+    // eStore: store rendered content to memory
+    // eDontCare: undefined
+    colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+
+    // dont care about stencil
+    colorAttachment.stencilLoadOp  = vk::AttachmentLoadOp::eDontCare;
+    colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+
+    // don't care initial layout (we clear it anyway)
+    colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+    // follow swap chain
+    colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+    return {colorAttachment};
+  }
+
+  std::vector<vk::AttachmentReference> getRenderPassAttachmentReferences()
+  {
+    vk::AttachmentReference colorAttachmentRef {};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout     = vk::ImageLayout::eColorAttachmentOptimal;
+    return {colorAttachmentRef};
+  }
+
+  std::pair<
+    std::vector<vk::SubpassDescription>,
+    std::tuple<std::vector<vk::AttachmentReference>>>
+    getSubpasses(
+      [[maybe_unused]] const vk::SurfaceKHR& surface,
+      [[maybe_unused]] const vk::PhysicalDevice& physicalDevice)
+  {
+    std::vector<vk::AttachmentReference> colorAttachmentRef =
+      getRenderPassAttachmentReferences();
+
+    std::vector<vk::SubpassDescription> subpass(1);
+    subpass[0].pipelineBindPoint    = vk::PipelineBindPoint::eGraphics;
+    subpass[0].colorAttachmentCount = colorAttachmentRef.size();
+    subpass[0].pColorAttachments    = colorAttachmentRef.data();
+
+    // forward resource to caller with std::make_*
+    return std::make_pair(
+      subpass, std::make_tuple(std::move(colorAttachmentRef)));
+  }
+
+  vk::SubpassDependency getSubpassDependency()
+  {
+    vk::SubpassDependency dep;
+    dep.srcSubpass    = VK_SUBPASS_EXTERNAL;
+    dep.dstSubpass    = 0;
+    dep.srcStageMask  = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dep.srcAccessMask = {};
+    dep.dstStageMask  = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dep.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead |
+                        vk::AccessFlagBits::eColorAttachmentWrite;
+    return dep;
+  }
+
+  vk::UniqueRenderPass createRenderPass(
+    const vk::SurfaceKHR& surface,
+    const vk::PhysicalDevice& physicalDevice,
+    const vk::Device& device)
+  {
+    using namespace yave;
+
+    vk::RenderPassCreateInfo info;
+
+    auto attachments = getRenderPassColorAttachments(surface, physicalDevice);
+    info.attachmentCount = attachments.size();
+    info.pAttachments    = attachments.data();
+
+    auto [subpasses, subpassesResource] = getSubpasses(surface, physicalDevice);
+    info.subpassCount                   = subpasses.size();
+    info.pSubpasses                     = subpasses.data();
+
+    auto dependency      = getSubpassDependency();
+    info.dependencyCount = 1;
+    info.pDependencies   = &dependency;
+
+    auto renderPass = device.createRenderPassUnique(info);
+
+    if (!renderPass)
+      throw std::runtime_error("Failed create render pass");
+
+    return renderPass;
+  }
+
 } // namespace
 
 namespace yave {
@@ -1027,6 +1134,17 @@ namespace yave {
       m_presentQueueIndex,
       m_physicalDevice,
       m_device.get());
+  }
+
+  vk::UniqueRenderPass vulkan_context::create_render_pass(
+    const vk::UniqueSurfaceKHR& surface,
+    const vk::UniqueSwapchainKHR& swapchain) const
+  {
+    (void)swapchain;
+    auto pass =
+      createRenderPass(surface.get(), m_physicalDevice, m_device.get());
+    Info(g_vulkan_logger, "Created render pass");
+    return pass;
   }
 
   std::vector<vk::UniqueImageView> vulkan_context::create_swapchain_image_views(

@@ -44,6 +44,11 @@ namespace yave {
       const vk::UniqueSurfaceKHR& surface,
       const vk::UniqueSwapchainKHR& swapchain) const;
 
+    /// Create render pass
+    vk::UniqueRenderPass create_render_pass(
+      const vk::UniqueSurfaceKHR& surface,
+      const vk::UniqueSwapchainKHR& swapchain) const;
+
     /// Get avalable surface formats
     std::vector<vk::SurfaceFormatKHR>
       get_surface_formats(const vk::SurfaceKHR& surface) const;
