@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <yave/support/glfw_context.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace yave {
@@ -14,9 +15,11 @@ namespace yave {
   {
   public:
     /// Ctor.
-    vulkan_context(bool enable_validation_layer = true);
+    vulkan_context(glfw_context& glfw_ctx, bool enable_validation_layer = true);
     /// Dtor.
-    ~vulkan_context();
+    ~vulkan_context() noexcept;
+
+    /* instance, devices */
 
     /// Get instance.
     vk::Instance instance() const;
@@ -24,6 +27,21 @@ namespace yave {
     vk::PhysicalDevice physical_device() const;
     /// Get device.
     vk::Device device() const;
+
+    /* window and surface helpers */
+
+    /// Create surface
+    vk::UniqueSurfaceKHR create_window_surface(
+      const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const;
+
+    /// Create swapchain
+    vk::UniqueSwapchainKHR create_surface_swapchain(
+      const vk::UniqueSurfaceKHR& surface,
+      const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const;
+
+    /// Get avalable surface formats
+    std::vector<vk::SurfaceFormatKHR>
+      get_surface_formats(const vk::SurfaceKHR& surface) const;
 
   private:
     /* instance */
@@ -45,12 +63,12 @@ namespace yave {
 
     /* device queue */
 
-    /// list of queues
-    std::vector<vk::QueueFlagBits> m_queueFlags;
-    /// list of queue family indicies
-    std::vector<uint32_t> m_queueFamilyIndicies;
+    /// index of graphics queue
+    uint32_t m_graphicsQueueIndex;
     /// index of present queue
     uint32_t m_presentQueueIndex;
+    /// list of queue family indicies
+    std::vector<uint32_t> m_queueFamilyIndicies;
 
     /* logical device */
 

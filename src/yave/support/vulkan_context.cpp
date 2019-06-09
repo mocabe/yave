@@ -44,20 +44,12 @@ namespace {
 
   // logger
   std::shared_ptr<spdlog::logger> g_vulkan_logger;
-  std::shared_ptr<spdlog::logger> g_glfw_logger;
 
   // init
   void init_vulkan_logger()
   {
     [[maybe_unused]] static auto init_logger = [] {
       g_vulkan_logger = yave::add_logger("vulkan_context");
-      return 1;
-    }();
-  }
-  void init_glfw_logger()
-  {
-    [[maybe_unused]] static auto init_logger = [] {
-      g_glfw_logger = yave::add_logger("glfw");
       return 1;
     }();
   }
@@ -96,14 +88,6 @@ namespace {
         break;
     }
     return VK_FALSE;
-  }
-
-  /// GLFW erro callback
-  void glfwErrorCallback(int error, const char* msg)
-  {
-    using namespace yave;
-    (void)error;
-    Error(g_glfw_logger, "{}", msg);
   }
 
   // platform surface extensions
@@ -384,10 +368,14 @@ namespace {
 
   /// create debug callback
   vk::UniqueDebugReportCallbackEXT
-    createDebugReportCallback(vk::Instance instance)
+    createDebugReportCallback(bool enableValidationLayer, vk::Instance instance)
   {
     using namespace yave;
     assert(instance);
+
+    // no validation
+    if (!enableValidationLayer)
+      return vk::UniqueDebugReportCallbackEXT();
 
     vk::DebugReportCallbackCreateInfoEXT info;
     // enable for error and warning
@@ -532,69 +520,38 @@ namespace {
     return physicalDevices[index];
   }
 
-  std::vector<uint32_t> getQueueFamilyIndicies(
-    const std::vector<vk::QueueFlagBits>& queueFlags,
-    const std::vector<vk::QueueFamilyProperties>& properties)
+  uint32_t getGraphicsQueueIndex(
+    const vk::PhysicalDevice& physicalDevice)
   {
     using namespace yave;
-    std::vector<uint32_t> indicies;
 
-    for (auto&& qf : queueFlags) {
-      uint32_t index = std::distance(
-        properties.begin(),
-        std::find_if(properties.begin(), properties.end(), [&](auto& p) {
-          return p.queueFlags & qf;
-        }));
-      assert(index != properties.size());
-      indicies.push_back(index);
+    auto properties = physicalDevice.getQueueFamilyProperties();
+
+    for (size_t i = 0; i < properties.size(); ++i) {
+      if (properties[i].queueFlags & vk::QueueFlagBits::eGraphics)
+        return i;
     }
 
-    Info(g_vulkan_logger, "Queue family indicies:");
-    for (size_t i = 0; i < queueFlags.size(); ++i) {
-      Info(
-        g_vulkan_logger, "  {}: {}", vk::to_string(queueFlags[i]), indicies[i]);
-    }
-
-    return indicies;
+    throw std::runtime_error("Device does not support graphics queue");
   }
 
   uint32_t getPresentQueueIndex(
-    const std::vector<vk::QueueFlagBits>& queueFlags,
-    const std::vector<uint32_t>& queueFamilyIndicies,
+    uint32_t graphicsQueueIndex,
     const vk::Instance& instance,
     const vk::PhysicalDevice& physicalDevice)
   {
     using namespace yave;
 
-    // if graphics queue supports presentation, use it.
-    for (uint32_t i = 0; i < queueFlags.size(); ++i) {
-      if (queueFlags[i] == vk::QueueFlagBits::eGraphics) {
-        if (glfwGetPhysicalDevicePresentationSupport(
-              instance, physicalDevice, queueFamilyIndicies[i])) {
-          Info(
-            g_vulkan_logger, "Present queue index: {}", queueFamilyIndicies[i]);
-          return queueFamilyIndicies[i];
-        } else {
-          Warning(
-            g_vulkan_logger,
-            "Graphics queue (index: {}) does not support "
-            "presentation.",
-            queueFamilyIndicies[i]);
-        }
-      }
-    }
-
-    // find presentation queue from all queue indicies
-    for (uint32_t i = 0; i < queueFlags.size(); ++i) {
-      if (glfwGetPhysicalDevicePresentationSupport(
-            instance, physicalDevice, queueFamilyIndicies[i]))
-        return queueFamilyIndicies[i];
+    // when graphics queue supports presentation, use graphics queue.
+    if (glfwGetPhysicalDevicePresentationSupport(
+          instance, physicalDevice, graphicsQueueIndex)) {
+      return graphicsQueueIndex;
     }
 
     Warning(
       g_vulkan_logger,
-      "None of selected queue family supports presentation. Try to search from "
-      "all existing queue families");
+      "Graphics queue does not support presentation. Try to find from other "
+      "queue families");
 
     auto queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
     for (size_t i = 0; i < queueFamilyProperties.size(); ++i) {
@@ -609,6 +566,15 @@ namespace {
     }
 
     throw std::runtime_error("Presentation is not supported on this device");
+  }
+
+  std::vector<uint32_t>
+    getUniqueQueueFamilyIndicies(std::vector<uint32_t> indicies)
+  {
+    std::sort(indicies.begin(), indicies.end());
+    auto iter = std::unique(indicies.begin(), indicies.end());
+    indicies.erase(iter, indicies.end());
+    return indicies;
   }
 
   std::vector<std::string> getDeviceExtensions()
@@ -700,27 +666,213 @@ namespace {
     return device;
   }
 
+  vk::SurfaceFormatKHR
+    chooseSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& formats)
+  {
+    using namespace yave;
+
+    auto default_format = vk::SurfaceFormatKHR {
+      vk::Format::eR8G8B8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear};
+
+    Info(
+      g_vulkan_logger,
+      "Default surface format: {}/{}",
+      vk::to_string(default_format.format),
+      vk::to_string(default_format.colorSpace));
+
+    if (formats.size() == 1 && formats[0].format == vk::Format::eUndefined) {
+      Info(
+        g_vulkan_logger,
+        "Surface format is undefined. Use default format");
+      return default_format;
+    }
+
+    for (auto&& format : formats) {
+      if (format == default_format) {
+        Info(g_vulkan_logger, "Default format found. Use default format");
+        return default_format;
+      }
+    }
+
+    Info(
+      g_vulkan_logger,
+      "B8G8R8A8Unorm/SRGBNonLinear surface format is not supported. "
+      "Use first format avalable.");
+
+    return formats[0];
+  }
+
+  vk::PresentModeKHR
+    choosePresentMode(const std::vector<vk::PresentModeKHR>& modes)
+  {
+    for (auto&& mode : modes) {
+      if (mode == vk::PresentModeKHR::eMailbox)
+        return mode;
+      if (mode == vk::PresentModeKHR::eImmediate)
+        return mode;
+    }
+    return vk::PresentModeKHR::eFifo;
+  }
+
+  vk::Extent2D chooseSwapchainExtent(
+    vk::Extent2D window_size,
+    const vk::SurfaceCapabilitiesKHR& capabilities)
+  {
+    using namespace yave;
+
+    if (
+      capabilities.currentExtent.width ==
+      std::numeric_limits<uint32_t>::max()) {
+
+      Warning(g_vulkan_logger, "currentExtend is not set. Use clamped value.");
+
+      vk::Extent2D extent = window_size;
+
+      extent.width = std::clamp(
+        extent.width,
+        capabilities.minImageExtent.width,
+        capabilities.maxImageExtent.width);
+
+      extent.height = std::clamp(
+        extent.height,
+        capabilities.minImageExtent.height,
+        capabilities.maxImageExtent.height);
+
+      return extent;
+    } else {
+      return capabilities.currentExtent;
+    }
+  }
+
+  vk::SurfaceTransformFlagBitsKHR
+    chooseSwapchainPreTransform(const vk::SurfaceCapabilitiesKHR& capabilities)
+  {
+    return capabilities.currentTransform;
+  }
+
+  vk::CompositeAlphaFlagBitsKHR chooseSwapchainCompositeAlpha(
+    const vk::SurfaceCapabilitiesKHR& capabilities)
+  {
+    using namespace yave;
+
+    if (
+      capabilities.supportedCompositeAlpha &
+      vk::CompositeAlphaFlagBitsKHR::eOpaque)
+      return vk::CompositeAlphaFlagBitsKHR::eOpaque;
+
+    Warning(
+      g_vulkan_logger,
+      "vk::CompositeAlphaFlagBitsKHR::eOpaque is not supported. Use eInherit");
+
+    return vk::CompositeAlphaFlagBitsKHR::eInherit;
+  }
+
+  vk::UniqueSwapchainKHR createSwapchain(
+    const vk::SurfaceKHR& surface,
+    const vk::Extent2D window_extent,
+    uint32_t graphics_queue_index,
+    uint32_t present_queue_index,
+    const vk::PhysicalDevice& physicalDevice,
+    const vk::Device& logicalDevice)
+  {
+    using namespace yave;
+
+    auto avail_formats = physicalDevice.getSurfaceFormatsKHR(surface);
+    auto format        = chooseSurfaceFormat(avail_formats);
+
+    Info(
+      g_vulkan_logger,
+      "Surface format: {}/{}",
+      vk::to_string(format.format),
+      vk::to_string(format.colorSpace));
+
+    auto avail_modes = physicalDevice.getSurfacePresentModesKHR(surface);
+    auto mode        = choosePresentMode(avail_modes);
+
+    Info(g_vulkan_logger, "Present mode: {}", vk::to_string(mode));
+
+    auto capabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
+    auto extent       = chooseSwapchainExtent(window_extent, capabilities);
+
+    Info(
+      g_vulkan_logger, "Swapchain extent: {},{}", extent.width, extent.height);
+
+    uint32_t image_count = std::clamp(
+      capabilities.minImageCount + 1,
+      capabilities.minImageCount,
+      capabilities.maxImageCount);
+
+    Info(g_vulkan_logger, "Swapchain count: {}", image_count);
+
+    auto pre_transform   = chooseSwapchainPreTransform(capabilities);
+
+    Info(
+      g_vulkan_logger,
+      "Swapchain pre transform: {}",
+      vk::to_string(pre_transform));
+
+    auto composite_alpha = chooseSwapchainCompositeAlpha(capabilities);
+
+    Info(
+      g_vulkan_logger,
+      "Swapchain composite alpha: {}",
+      vk::to_string(composite_alpha));
+
+    vk::SwapchainCreateInfoKHR info;
+    info.flags            = vk::SwapchainCreateFlagsKHR();
+    info.surface          = surface;
+    info.imageFormat      = format.format;
+    info.imageColorSpace  = format.colorSpace;
+    info.imageExtent      = extent;
+    info.presentMode      = mode;
+    info.preTransform     = pre_transform;
+    info.compositeAlpha   = composite_alpha;
+    // single layer
+    info.imageArrayLayers = 1;
+    // directly render (as color attachment)
+    info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+
+
+    uint32_t queue_indicies[] = {graphics_queue_index, present_queue_index};
+
+    if (graphics_queue_index == present_queue_index) {
+      info.imageSharingMode      = vk::SharingMode::eExclusive;
+      info.queueFamilyIndexCount = 0;
+      info.pQueueFamilyIndices   = nullptr;
+    } else {
+      info.imageSharingMode      = vk::SharingMode::eConcurrent;
+      info.queueFamilyIndexCount = 2;
+      info.pQueueFamilyIndices   = queue_indicies;
+    }
+
+    Info(
+      g_vulkan_logger,
+      "Swapchain image sharing mode: {}",
+      vk::to_string(info.imageSharingMode));
+
+    auto swapchain = logicalDevice.createSwapchainKHRUnique(info);
+    Info(g_vulkan_logger, "Created new swapchain");
+    return swapchain;
+  }
+
 } // namespace
 
 namespace yave {
 
-  vulkan_context::vulkan_context(bool enableValidationLayer)
+  vulkan_context::vulkan_context(
+    [[maybe_unused]] glfw_context& glfw_ctx,
+    bool enableValidationLayer)
   {
     init_vulkan_logger();
-    init_glfw_logger();
-
-    glfwSetErrorCallback(glfwErrorCallback);
-
-    if (!glfwInit())
-      throw std::runtime_error("Failed to initialize GLFW");
 
     if (!glfwVulkanSupported())
       throw std::runtime_error("GLFW could not find Vulkan");
 
     /* instance */
 
-    m_instance      = createInstance(enableValidationLayer);
-    m_debugCallback = createDebugReportCallback(m_instance.get());
+    m_instance = createInstance(enableValidationLayer);
+    m_debugCallback =
+      createDebugReportCallback(enableValidationLayer, m_instance.get());
 
     /* physical device */
 
@@ -731,19 +883,28 @@ namespace yave {
 
     /* device queue settings */
 
-    m_queueFlags          = getRequiredPhysicalDeviceQueueFlags();
-    m_queueFamilyIndicies = getQueueFamilyIndicies(
-      m_queueFlags, m_physicalDeviceQueueFamilyProperties);
+    m_graphicsQueueIndex = getGraphicsQueueIndex(m_physicalDevice);
+
+    Info(g_vulkan_logger, "Graphs queue idex: {}", m_graphicsQueueIndex);
+
     m_presentQueueIndex = getPresentQueueIndex(
-      m_queueFlags, m_queueFamilyIndicies, m_instance.get(), m_physicalDevice);
+      m_graphicsQueueIndex, m_instance.get(), m_physicalDevice);
+
+    Info(g_vulkan_logger, "Presentation queue index: {}", m_presentQueueIndex);
+
+    m_queueFamilyIndicies =
+      getUniqueQueueFamilyIndicies({m_graphicsQueueIndex, m_presentQueueIndex});
 
     /* logical device */
 
     m_device = createDevice(m_queueFamilyIndicies, m_physicalDevice);
+
+    Info(g_vulkan_logger, "Initialized Vulkan context");
   }
 
-  vulkan_context::~vulkan_context()
+  vulkan_context::~vulkan_context() noexcept
   {
+    Info(g_vulkan_logger, "Destroying Vulkan context");
   }
 
   vk::Instance vulkan_context::instance() const
@@ -759,6 +920,59 @@ namespace yave {
   vk::Device vulkan_context::device() const
   {
     return m_device.get();
+  }
+
+  vk::UniqueSurfaceKHR vulkan_context::create_window_surface(
+    const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const
+  {
+    VkSurfaceKHR surface;
+
+    auto err = glfwCreateWindowSurface(
+      m_instance.get(), window.get(), nullptr, &surface);
+
+    if (err != VK_SUCCESS) {
+      throw std::runtime_error("Failed to create window surface");
+    }
+
+    Info(g_vulkan_logger, "Created new window surface");
+
+    vk::ObjectDestroy<vk::Instance, vk::DispatchLoaderStatic> deleter(
+      m_instance.get());
+    return vk::UniqueSurfaceKHR(surface, deleter);
+  }
+
+  vk::UniqueSwapchainKHR vulkan_context::create_surface_swapchain(
+    const vk::UniqueSurfaceKHR& surface,
+    const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const
+  {
+    int width, height;
+    glfwGetFramebufferSize(window.get(), &width, &height);
+
+    assert(width > 0 && height > 0);
+
+    return createSwapchain(
+      surface.get(),
+      {static_cast<uint32_t>(width), static_cast<uint32_t>(height)},
+      m_graphicsQueueIndex,
+      m_presentQueueIndex,
+      m_physicalDevice,
+      m_device.get());
+  }
+
+  std::vector<vk::SurfaceFormatKHR>
+    vulkan_context::get_surface_formats(const vk::SurfaceKHR& surface) const
+  {
+    using namespace yave;
+    auto formats = m_physicalDevice.getSurfaceFormatsKHR(surface);
+    Info(g_vulkan_logger, "Query surface formats:");
+    for (auto&& f : formats) {
+      Info(
+        g_vulkan_logger,
+        "  {} {}",
+        vk::to_string(f.format),
+        vk::to_string(f.colorSpace));
+    }
+    return formats;
   }
 
 } // namespace yave
