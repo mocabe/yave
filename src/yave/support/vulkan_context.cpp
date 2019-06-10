@@ -666,6 +666,38 @@ namespace {
     return device;
   }
 
+  vk::UniqueSurfaceKHR
+    createWindowSurface(GLFWwindow* window, const vk::Instance& instance)
+  {
+    using namespace yave;
+
+    VkSurfaceKHR surface;
+
+    auto err = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+
+    if (err != VK_SUCCESS) {
+      throw std::runtime_error("Failed to create window surface");
+    }
+
+    Info(g_vulkan_logger, "Created new window surface");
+
+    vk::ObjectDestroy<vk::Instance, vk::DispatchLoaderStatic> deleter(instance);
+    return vk::UniqueSurfaceKHR(surface, deleter);
+  }
+
+  vk::Extent2D getWindowExtent(GLFWwindow* window)
+  {
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+
+    if (width < 0)
+      width = 0;
+    if (height < 0)
+      height = 0;
+
+    return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+  }
+
   vk::SurfaceFormatKHR
     chooseSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& formats)
   {
@@ -772,7 +804,11 @@ namespace {
     uint32_t graphicsQueueIndex,
     uint32_t presentQueueIndex,
     const vk::PhysicalDevice& physicalDevice,
-    const vk::Device& logicalDevice)
+    const vk::Device& logicalDevice,
+    vk::SurfaceFormatKHR* out_format     = nullptr,
+    vk::PresentModeKHR* out_present_mode = nullptr,
+    vk::Extent2D* out_extent             = nullptr,
+    uint32_t* out_image_count            = nullptr)
   {
     using namespace yave;
 
@@ -818,14 +854,16 @@ namespace {
       vk::to_string(compositeAlpha));
 
     vk::SwapchainCreateInfoKHR info;
-    info.flags            = vk::SwapchainCreateFlagsKHR();
-    info.surface          = surface;
-    info.imageFormat      = format.format;
-    info.imageColorSpace  = format.colorSpace;
-    info.imageExtent      = extent;
-    info.presentMode      = mode;
-    info.preTransform     = preTransform;
-    info.compositeAlpha   = compositeAlpha;
+    info.flags           = vk::SwapchainCreateFlagsKHR();
+    info.surface         = surface;
+    info.minImageCount   = imageCount;
+    info.imageFormat     = format.format;
+    info.imageColorSpace = format.colorSpace;
+    info.imageExtent     = extent;
+    info.preTransform    = preTransform;
+    info.compositeAlpha  = compositeAlpha;
+    info.presentMode     = mode;
+    info.clipped         = true;
     // single layer
     info.imageArrayLayers = 1;
     // directly render (as color attachment)
@@ -848,8 +886,24 @@ namespace {
       "Swapchain image sharing mode: {}",
       vk::to_string(info.imageSharingMode));
 
+    // create swapchain
+
     auto swapchain = logicalDevice.createSwapchainKHRUnique(info);
-    Info(g_vulkan_logger, "Created new swapchain");
+
+    if (!swapchain)
+      throw std::runtime_error("Failed to create swapchain");
+
+    // write out pointers
+
+    if (out_format)
+      *out_format = format;
+    if (out_present_mode)
+      *out_present_mode = mode;
+    if (out_extent)
+      *out_extent = extent;
+    if (out_image_count)
+      *out_image_count = imageCount;
+
     return swapchain;
   }
 
@@ -871,15 +925,15 @@ namespace {
   std::vector<vk::UniqueImageView> createSwapchainImageViews(
     const vk::SurfaceKHR& surface,
     const vk::SwapchainKHR& swapchain,
-    const vk::PhysicalDevice& physicalDevice,
+    const vk::SurfaceFormatKHR& surface_format,
     const vk::Device& device)
   {
     using namespace yave;
 
-    auto swapchainImages = device.getSwapchainImagesKHR(swapchain);
-
-    std::vector<vk::UniqueImageView> ret;
-    ret.reserve(swapchainImages.size());
+    Info(
+      g_vulkan_logger,
+      "Swapchain image view format: {}",
+      vk::to_string(surface_format.format));
 
     auto componentMapping = chooseImageViewComponentMapping();
 
@@ -898,20 +952,15 @@ namespace {
       "Image view sub resource range: {}",
       vk::to_string(subResourceRange.aspectMask));
 
-    // TODO: find better way to set image format
-    auto availFormats = physicalDevice.getSurfaceFormatsKHR(surface);
-    auto format       = chooseSurfaceFormat(availFormats);
-
-    Info(
-      g_vulkan_logger,
-      "Swapchain image view format: {}",
-      vk::to_string(format.format));
+    auto swapchainImages = device.getSwapchainImagesKHR(swapchain);
+    std::vector<vk::UniqueImageView> ret;
+    ret.reserve(swapchainImages.size());
 
     for (auto&& image : swapchainImages) {
       vk::ImageViewCreateInfo info;
       info.flags    = vk::ImageViewCreateFlags();
       info.image    = image;
-      info.format   = format.format;
+      info.format   = surface_format.format;
       info.viewType = vk::ImageViewType::e2D;
 
       auto view = device.createImageViewUnique(info);
@@ -926,7 +975,7 @@ namespace {
   }
 
   std::vector<vk::UniqueFramebuffer> createFrameBuffers(
-    const std::vector<vk::ImageView>& image_views,
+    const std::vector<vk::UniqueImageView>& image_views,
     const vk::RenderPass& render_pass,
     const vk::Extent2D swapchainExtent,
     const vk::Device& device)
@@ -936,7 +985,7 @@ namespace {
 
     for (auto&& view : image_views) {
 
-      auto attachments = std::vector {view};
+      auto attachments = std::vector {view.get()};
 
       vk::FramebufferCreateInfo info;
       info.flags           = vk::FramebufferCreateFlags();
@@ -1097,6 +1146,39 @@ namespace {
 
     return cache;
   }
+
+  vk::UniqueCommandPool
+    createCommandPool(uint32_t graphicsQueueIndex, const vk::Device& device)
+  {
+    vk::CommandPoolCreateInfo info;
+    // reserved
+    info.flags = vk::CommandPoolCreateFlags();
+    // use graphics queue
+    info.queueFamilyIndex = graphicsQueueIndex;
+
+    auto pool = device.createCommandPoolUnique(info);
+
+    if (!pool)
+      throw std::runtime_error("Failed to create command pool");
+
+    return pool;
+  }
+
+  std::vector<vk::UniqueCommandBuffer> createCommandBuffers(
+    const std::vector<vk::Framebuffer>& frameBuffers,
+    const vk::CommandPool& commandPool,
+    const vk::Device& device)
+  {
+    std::vector<vk::UniqueCommandBuffer> ret;
+    ret.resize(frameBuffers.size());
+
+    vk::CommandBufferAllocateInfo info {};
+    info.commandPool        = commandPool;
+    info.level              = vk::CommandBufferLevel::ePrimary;
+    info.commandBufferCount = ret.size();
+
+    return device.allocateCommandBuffersUnique(info);
+  }
 } // namespace
 
 namespace yave {
@@ -1109,6 +1191,8 @@ namespace yave {
 
     if (!glfwVulkanSupported())
       throw std::runtime_error("GLFW could not find Vulkan");
+
+    Info(g_vulkan_logger, "Start initializing vulkan_context");
 
     /* instance */
 
@@ -1142,6 +1226,10 @@ namespace yave {
     m_device = createDevice(m_queueFamilyIndicies, m_physicalDevice);
 
     Info(g_vulkan_logger, "Initialized Vulkan context");
+
+    /* command buffer */
+
+    m_commandPool = createCommandPool(m_graphicsQueueIndex, m_device.get());
   }
 
   vulkan_context::~vulkan_context() noexcept
@@ -1164,120 +1252,170 @@ namespace yave {
     return m_device.get();
   }
 
-  vk::UniqueSurfaceKHR vulkan_context::create_window_surface(
-    const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const
+  class vulkan_context::window_context::impl
   {
-    VkSurfaceKHR surface;
+  public:
+    impl() = default;
+    vk::UniqueSurfaceKHR surface;
+    vk::UniqueSwapchainKHR swapchain;
+    std::vector<vk::Image> swapchain_images; // owned by swapchain
+    std::vector<vk::UniqueImageView> swapchain_image_views;
+    vk::UniqueRenderPass render_pass;
+    std::vector<vk::UniqueFramebuffer> frame_buffers;
+    std::vector<vk::UniqueCommandBuffer> command_buffers;
 
-    auto err = glfwCreateWindowSurface(
-      m_instance.get(), window.get(), nullptr, &surface);
+  public:
+    const vulkan_context* context; // non-owning
+    GLFWwindow* window;            // non-owning
+    vk::SurfaceFormatKHR swapchain_format;
+    vk::PresentModeKHR swapchain_present_mode;
+    vk::Extent2D swapchain_extent;
+    uint32_t swapchain_image_count;
+  };
 
-    if (err != VK_SUCCESS) {
-      throw std::runtime_error("Failed to create window surface");
-    }
-
-    Info(g_vulkan_logger, "Created new window surface");
-
-    vk::ObjectDestroy<vk::Instance, vk::DispatchLoaderStatic> deleter(
-      m_instance.get());
-    return vk::UniqueSurfaceKHR(surface, deleter);
-  }
-
-  vk::UniqueSwapchainKHR vulkan_context::create_surface_swapchain(
-    const vk::UniqueSurfaceKHR& surface,
-    const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const
+  vulkan_context::window_context vulkan_context::create_window_context(
+    std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const
   {
-    // TODO: cache swapchain extent
-    int width, height;
-    glfwGetFramebufferSize(window.get(), &width, &height);
+    Info(g_vulkan_logger, "Start initializing vulkan_context::window_context");
 
-    assert(width > 0 && height > 0);
+    auto impl = std::make_unique<window_context::impl>();
 
-    return createSwapchain(
-      surface.get(),
-      {static_cast<uint32_t>(width), static_cast<uint32_t>(height)},
+    // back pointer
+    impl->context = this;
+    // window
+    impl->window = window.get();
+
+    // create surface
+    impl->surface = createWindowSurface(window.get(), m_instance.get());
+
+    Info(g_vulkan_logger, "Created new surface");
+
+    // create swapchain
+    impl->swapchain = createSwapchain(
+      impl->surface.get(),
+      getWindowExtent(window.get()),
       m_graphicsQueueIndex,
       m_presentQueueIndex,
       m_physicalDevice,
+      m_device.get(),
+      &impl->swapchain_format,       // out
+      &impl->swapchain_present_mode, // out
+      &impl->swapchain_extent,       // out
+      &impl->swapchain_image_count); // out
+
+    Info(g_vulkan_logger, "Created new swapchain");
+
+    // get swapchain images
+    impl->swapchain_images =
+      m_device->getSwapchainImagesKHR(impl->swapchain.get());
+
+    // create image views
+    impl->swapchain_image_views = createSwapchainImageViews(
+      impl->surface.get(),
+      impl->swapchain.get(),
+      impl->swapchain_format,
       m_device.get());
-  }
 
-  std::vector<vk::UniqueImageView> vulkan_context::create_swapchain_image_views(
-    const vk::UniqueSurfaceKHR& surface,
-    const vk::UniqueSwapchainKHR& swapchain) const
-  {
-    auto image_views = createSwapchainImageViews(
-      surface.get(), swapchain.get(), m_physicalDevice, m_device.get());
+    assert(impl->swapchain_images.size() == impl->swapchain_image_views.size());
+    assert(impl->swapchain_images.size() == impl->swapchain_image_count);
+
     Info(g_vulkan_logger, "Created swapchain image views");
-    return image_views;
-  }
 
-  vk::UniqueRenderPass vulkan_context::create_render_pass(
-    const vk::UniqueSurfaceKHR& surface,
-    const vk::UniqueSwapchainKHR& swapchain) const
-  {
-    (void)swapchain;
-    auto pass =
-      createRenderPass(surface.get(), m_physicalDevice, m_device.get());
+    // create render pass
+    impl->render_pass =
+      createRenderPass(impl->surface.get(), m_physicalDevice, m_device.get());
+
     Info(g_vulkan_logger, "Created render pass");
-    return pass;
-  }
 
-  std::vector<vk::UniqueFramebuffer> vulkan_context::create_frame_buffers(
-    const vk::UniqueSurfaceKHR& surface,
-    const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window,
-    const std::vector<vk::UniqueImageView>& swapchain_views,
-    const vk::UniqueRenderPass& render_pass) const
-  {
-    std::vector<vk::ImageView> tmp_views;
-    for (auto&& view : swapchain_views) {
-      tmp_views.push_back(view.get());
-    }
-
-    // TODO: cache swapchain extent
-    int width, height;
-    glfwGetFramebufferSize(window.get(), &width, &height);
-
-    assert(width > 0 && height > 0);
-
-    auto buffs = createFrameBuffers(
-      tmp_views,
-      render_pass.get(),
-      {static_cast<uint32_t>(width), static_cast<uint32_t>(height)},
+    // create frame buffers
+    impl->frame_buffers = createFrameBuffers(
+      impl->swapchain_image_views,
+      impl->render_pass.get(),
+      impl->swapchain_extent,
       m_device.get());
 
     Info(g_vulkan_logger, "Created frame buffers");
-    return buffs;
+
+    window_context ctx;
+    ctx.m_pimpl = std::move(impl);
+
+    Info(g_vulkan_logger, "Initialized new window context");
+
+    return ctx;
   }
 
-  vk::UniquePipelineLayout vulkan_context::create_pipeline_layout() const
+  vulkan_context::window_context::window_context()
   {
-    auto layout = createPipelineLayout(m_device.get());
-    Info(g_vulkan_logger, "Created pipeline layout");
-    return layout;
   }
 
-  vk::UniquePipelineCache vulkan_context::create_pipeline_cache() const
+  vulkan_context::window_context::window_context(
+    window_context&& other) noexcept
+    : m_pimpl {std::move(other.m_pimpl)}
   {
-    auto cache = createPipelineCache(m_device.get());
-    Info(g_vulkan_logger, "Created pipeline cache");
-    return cache;
   }
 
-  std::vector<vk::SurfaceFormatKHR>
-    vulkan_context::get_surface_formats(const vk::SurfaceKHR& surface) const
+  vulkan_context::window_context::~window_context() noexcept
   {
     using namespace yave;
-    auto formats = m_physicalDevice.getSurfaceFormatsKHR(surface);
-    Info(g_vulkan_logger, "Query surface formats:");
-    for (auto&& f : formats) {
-      Info(
-        g_vulkan_logger,
-        "  {} {}",
-        vk::to_string(f.format),
-        vk::to_string(f.colorSpace));
+    Info(g_vulkan_logger, "Destroying window context");
+  }
+
+  GLFWwindow* vulkan_context::window_context::window() const
+  {
+    assert(m_pimpl->window);
+    return m_pimpl->window;
+  }
+
+  vk::SurfaceKHR vulkan_context::window_context::surface() const
+  {
+    assert(m_pimpl->surface);
+    return m_pimpl->surface.get();
+  }
+
+  vk::SwapchainKHR vulkan_context::window_context::swapchain() const
+  {
+    assert(m_pimpl->swapchain);
+    return m_pimpl->swapchain.get();
+  }
+
+  vk::SurfaceFormatKHR vulkan_context::window_context::swapchain_format() const
+  {
+    assert(m_pimpl->swapchain_format.format != vk::Format::eUndefined);
+    return m_pimpl->swapchain_format;
+  }
+
+  vk::Extent2D vulkan_context::window_context::swapchain_extent() const
+  {
+    return m_pimpl->swapchain_extent;
+  }
+
+  std::vector<vk::Image>
+    vulkan_context::window_context::swapchain_images() const
+  {
+    assert(!m_pimpl->swapchain_images.empty());
+    return m_pimpl->swapchain_images;
+  }
+
+  std::vector<vk::ImageView>
+    vulkan_context::window_context::swapchain_image_views() const
+  {
+    assert(!m_pimpl->swapchain_image_views.empty());
+    std::vector<vk::ImageView> ret;
+    for (auto&& view : m_pimpl->swapchain_image_views) {
+      ret.push_back(view.get());
     }
-    return formats;
+    return ret;
+  }
+
+  std::vector<vk::Framebuffer>
+    vulkan_context::window_context::frame_buffers() const
+  {
+    assert(!m_pimpl->frame_buffers.empty());
+    std::vector<vk::Framebuffer> ret;
+    for (auto&& fb : m_pimpl->frame_buffers) {
+      ret.push_back(fb.get());
+    }
+    return ret;
   }
 
 } // namespace yave

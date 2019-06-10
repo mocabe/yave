@@ -30,41 +30,34 @@ namespace yave {
 
     /* window and surface helpers */
 
-    /// Create surface
-    vk::UniqueSurfaceKHR create_window_surface(
-      const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const;
+    /// glfw/vulkan window context
+    class window_context
+    {
+      friend class vulkan_context;
+      window_context();
 
-    /// Create swapchain
-    vk::UniqueSwapchainKHR create_surface_swapchain(
-      const vk::UniqueSurfaceKHR& surface,
-      const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const;
+    public:
+      window_context(window_context&& other) noexcept;
+      ~window_context() noexcept;
+      vk::SurfaceKHR surface() const;
+      vk::SwapchainKHR swapchain() const;
+      vk::SurfaceFormatKHR swapchain_format() const;
+      vk::Extent2D swapchain_extent() const;
+      std::vector<vk::Image> swapchain_images() const;
+      std::vector<vk::ImageView> swapchain_image_views() const;
+      std::vector<vk::Framebuffer> frame_buffers() const;
 
-    /// Create image views
-    std::vector<vk::UniqueImageView> create_swapchain_image_views(
-      const vk::UniqueSurfaceKHR& surface,
-      const vk::UniqueSwapchainKHR& swapchain) const;
+    public:
+      GLFWwindow* window() const;
 
-    /// Create render pass
-    vk::UniqueRenderPass create_render_pass(
-      const vk::UniqueSurfaceKHR& surface,
-      const vk::UniqueSwapchainKHR& swapchain) const;
+    private:
+      class impl;
+      std::unique_ptr<impl> m_pimpl;
+    };
 
-    /// Create frame buffer
-    std::vector<vk::UniqueFramebuffer> create_frame_buffers(
-      const vk::UniqueSurfaceKHR& surface,
-      const std::unique_ptr<GLFWwindow, glfw_window_deleter>& window,
-      const std::vector<vk::UniqueImageView>& swapchain_views,
-      const vk::UniqueRenderPass& render_pass) const;
-
-    /// Create pipeline layout
-    vk::UniquePipelineLayout create_pipeline_layout() const;
-
-    /// Create pipeline cache
-    vk::UniquePipelineCache create_pipeline_cache() const;
-
-    /// Get avalable surface formats
-    std::vector<vk::SurfaceFormatKHR>
-      get_surface_formats(const vk::SurfaceKHR& surface) const;
+    /// Create new window context
+    vulkan_context::window_context create_window_context(
+      std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const;
 
   private:
     /* instance */
@@ -97,5 +90,13 @@ namespace yave {
 
     /// device
     vk::UniqueDevice m_device;
+
+    /* command buffer  */
+
+    /// command pool
+    vk::UniqueCommandPool m_commandPool;
+
+    /// command buffer
+    vk::UniqueCommandBuffer m_commandBuffer;
   };
 }
