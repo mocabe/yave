@@ -16,56 +16,56 @@ namespace yave {
   {
     apply_object_value_storage(
       object_ptr<const Object> app,
-      object_ptr<const Object> arg)
+      object_ptr<const Object> arg) noexcept
       : m_app {std::move(app)}
       , m_arg {std::move(arg)}
     {
     }
 
-    const auto& app() const
+    const auto& app() const noexcept
     {
       assert(!evaluated());
       return m_app;
     }
 
-    const auto& arg() const
+    const auto& arg() const noexcept
     {
       assert(!evaluated());
       return m_arg;
     }
 
-    bool evaluated() const
+    bool evaluated() const noexcept
     {
       return static_cast<bool>(m_cache);
     }
 
     /// get cache of object
-    auto get_cache() const
+    auto get_cache() const noexcept
     {
       assert(evaluated());
       return m_cache;
     }
 
     /// set cache of object
-    void set_cache(const object_ptr<const Object>& obj) const
+    void set_cache(const object_ptr<const Object>& obj) const noexcept
     {
       assert(!evaluated());
       m_cache = obj;
     }
 
     /// clear cache
-    void clear_cache() const
+    void clear_cache() const noexcept
     {
       m_cache = nullptr;
     }
 
   private:
+    /// cache
+    mutable object_ptr<const Object> m_cache;
     /// closure
     mutable object_ptr<const Object> m_app;
     /// argument
     mutable object_ptr<const Object> m_arg;
-    /// cache
-    mutable object_ptr<const Object> m_cache;
   };
 
   /// value of Apply
@@ -77,19 +77,19 @@ namespace yave {
       class Arg,
       class = std::enable_if_t<
         !std::is_same_v<std::decay_t<App>, apply_object_value>>>
-    apply_object_value(App&& app, Arg&& arg)
+    apply_object_value(App&& app, Arg&& arg) noexcept
       : m_storage {std::forward<App>(app), std::forward<Arg>(arg)}
     {
     }
 
     [[nodiscard]] friend inline const apply_object_value_storage&
-      _get_storage(const apply_object_value& v)
+      _get_storage(const apply_object_value& v) noexcept
     {
       return v.m_storage;
     }
 
     [[nodiscard]] friend inline apply_object_value_storage&
-      _get_storage(apply_object_value& v)
+      _get_storage(apply_object_value& v) noexcept
     {
       return v.m_storage;
     }
@@ -111,21 +111,25 @@ namespace yave {
     static constexpr auto term =
       make_tm_apply(get_term<App>(), get_term<Arg>());
 
-    // clang-format off
+    TApply(object_ptr<App> ap, object_ptr<Arg> ar) noexcept
+      : base(std::move(ap), std::move(ar))
+    {
+    }
 
-      TApply(object_ptr<App> ap, object_ptr<Arg> ar) 
-        : base(std::move(ap), std::move(ar)) {}
+    TApply(App* ap, Arg* ar) noexcept
+      : base(object_ptr<const Object>(ap), object_ptr<const Object>(ar))
+    {
+    }
 
-      TApply(App* ap, Arg* ar) 
-        : base(object_ptr<const Object>(ap), object_ptr<const Object>(ar)) {}
+    TApply(App* ap, object_ptr<Arg> ar) noexcept
+      : base(ap, std::move(ar))
+    {
+    }
 
-      TApply(App* ap, object_ptr<Arg> ar) 
-        : base(ap, std::move(ar)) {}
-
-      TApply(object_ptr<App> ap, Arg* ar) 
-        : base(std::move(ap), ar) {}
-
-    // clang-format on
+    TApply(object_ptr<App> ap, Arg* ar) noexcept
+      : base(std::move(ap), ar)
+    {
+    }
   };
 
   namespace detail {

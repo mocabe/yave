@@ -21,7 +21,9 @@ namespace yave {
   struct exception_object_value
   {
     template <class T>
-    exception_object_value(object_ptr<const String> msg, object_ptr<T> err)
+    exception_object_value(
+      object_ptr<const String> msg,
+      object_ptr<T> err) noexcept
       : message {std::move(msg)}
       , error_value {std::move(err)}
     {
@@ -46,7 +48,7 @@ namespace yave {
   // helper
 
   template <class T>
-  [[nodiscard]] object_ptr<T> add_exception_tag(object_ptr<T> e)
+  [[nodiscard]] object_ptr<T> add_exception_tag(object_ptr<T> e) noexcept
   {
     _get_storage(e).set_pointer_tag(
       object_ptr_storage::pointer_tags::exception);
@@ -54,13 +56,13 @@ namespace yave {
   }
 
   [[nodiscard]] inline bool
-    has_exception_tag(const object_ptr<const Object>& obj)
+    has_exception_tag(const object_ptr<const Object>& obj) noexcept
   {
     return _get_storage(obj).is_exception();
   }
 
   [[nodiscard]] inline object_ptr<const Exception>
-    get_tagged_exception(const object_ptr<const Object>& obj)
+    get_tagged_exception(const object_ptr<const Object>& obj) noexcept
   {
     assert(has_exception_tag(obj));
     return static_object_cast<const Exception>(obj);

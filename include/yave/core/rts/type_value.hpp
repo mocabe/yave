@@ -29,7 +29,7 @@ namespace yave {
 
     /// compare two value types
     [[nodiscard]] static bool
-      compare(const value_type& lhs, const value_type& rhs)
+      compare(const value_type& lhs, const value_type& rhs) noexcept
     {
       if constexpr (has_SSE) {
         // assume 16 byte alignment
@@ -71,26 +71,26 @@ namespace yave {
     type_value_storage() = delete;
 
     // initializers
-    type_value_storage(value_type t)
+    type_value_storage(value_type t) noexcept
       : value {std::move(t)}
       , index {value_index}
     {
     }
 
-    type_value_storage(arrow_type t)
+    type_value_storage(arrow_type t) noexcept
       : arrow {std::move(t)}
       , index {arrow_index}
     {
     }
 
-    type_value_storage(var_type t)
+    type_value_storage(var_type t) noexcept
       : var {std::move(t)}
       , index {var_index}
     {
     }
 
     /// Copy constructor
-    type_value_storage(const type_value_storage& other)
+    type_value_storage(const type_value_storage& other) noexcept
       : index {other.index}
     {
       // copy union
@@ -155,17 +155,10 @@ namespace yave {
   /// Base class for TypeValue
   class type_value : type_value_storage
   {
-    friend const type_value_storage&    //
-      _get_storage(const type_value&);  //
-                                        //
-    friend type_value_storage&          //
-      _get_storage(type_value&);        //
-                                        //
-    friend const type_value_storage&&   //
-      _get_storage(const type_value&&); //
-                                        //
-    friend type_value_storage&&         //
-      _get_storage(type_value&&);       //
+    friend const type_value_storage& _get_storage(const type_value&) noexcept;
+    friend type_value_storage& _get_storage(type_value&) noexcept;
+    friend const type_value_storage&& _get_storage(const type_value&&) noexcept;
+    friend type_value_storage&& _get_storage(type_value&&) noexcept;
 
     using base = type_value_storage;
 
@@ -198,23 +191,24 @@ namespace yave {
   // _get_storage
 
   [[nodiscard]] inline const type_value_storage&
-    _get_storage(const type_value& v)
+    _get_storage(const type_value& v) noexcept
   {
     return v;
   }
 
-  [[nodiscard]] inline type_value_storage& _get_storage(type_value& v)
+  [[nodiscard]] inline type_value_storage& _get_storage(type_value& v) noexcept
   {
     return v;
   }
 
   [[nodiscard]] inline const type_value_storage&&
-    _get_storage(const type_value&& v)
+    _get_storage(const type_value&& v) noexcept
   {
     return std::move(v);
   }
 
-  [[nodiscard]] inline type_value_storage&& _get_storage(type_value&& v)
+  [[nodiscard]] inline type_value_storage&&
+    _get_storage(type_value&& v) noexcept
   {
     return std::move(v);
   }
@@ -228,7 +222,7 @@ namespace yave {
     std::enable_if_t<
       std::is_same_v<std::decay_t<T>, type_value_storage>,
       nullptr_t>* = nullptr>
-  [[nodiscard]] constexpr decltype(auto) _access(T&& v)
+  [[nodiscard]] constexpr decltype(auto) _access(T&& v) noexcept
   {
     if constexpr (Idx == type_value_storage::value_index) {
       auto&& ref = std::forward<T>(v).value;
@@ -295,7 +289,7 @@ namespace yave {
   /// std::get_if() equivalent
   template <class T>
   [[nodiscard]] constexpr std::add_pointer_t<const T>
-    get_if(const type_value* val)
+    get_if(const type_value* val) noexcept
   {
     constexpr auto Idx = type_value_storage::type_index<T>();
     if (val && Idx == _get_storage(*val).index)
@@ -305,7 +299,7 @@ namespace yave {
 
   /// std::get_if() equivalent
   template <class T>
-  [[nodiscard]] constexpr std::add_pointer_t<T> get_if(type_value* val)
+  [[nodiscard]] constexpr std::add_pointer_t<T> get_if(type_value* val) noexcept
   {
     constexpr auto Idx = type_value_storage::type_index<T>();
     if (val && Idx == _get_storage(*val).index)

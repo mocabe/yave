@@ -208,13 +208,13 @@ namespace yave {
     }
 
     /// copy
-    return_type_checker(const return_type_checker& other)
+    return_type_checker(const return_type_checker& other) noexcept
       : m_value {other.m_value}
     {
     }
 
     /// move
-    return_type_checker(return_type_checker&& other)
+    return_type_checker(return_type_checker&& other) noexcept
       : m_value {std::move(other.m_value)}
     {
     }
@@ -239,21 +239,21 @@ namespace yave {
   {
   public:
     /// return_type ctor
-    exception_handler_return_type_checker(return_type_checker<T> e)
+    exception_handler_return_type_checker(return_type_checker<T> e) noexcept
       : m_value {std::move(e).value()}
     {
     }
 
     /// Exception ctor
     template <class U>
-    exception_handler_return_type_checker(object_ptr<U> e)
+    exception_handler_return_type_checker(object_ptr<U> e) noexcept
       : m_value {object_ptr<const Exception>(std::move(e))}
     {
       m_value = add_exception_tag(std::move(m_value));
     }
 
     /// Exception ctor
-    exception_handler_return_type_checker(const Exception* e)
+    exception_handler_return_type_checker(const Exception* e) noexcept
       : exception_handler_return_type_checker(object_ptr(e))
     {
       m_value = add_exception_tag(std::move(m_value));
