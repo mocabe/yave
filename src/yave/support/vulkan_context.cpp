@@ -1008,15 +1008,13 @@ namespace {
 
   std::vector<vk::AttachmentDescription> getRenderPassColorAttachments(
     const vk::SurfaceKHR& surface,
+    const vk::SurfaceFormatKHR& swapchain_format,
     const vk::PhysicalDevice& physicalDevice)
   {
-    auto availFormats = physicalDevice.getSurfaceFormatsKHR(surface);
-    auto format       = chooseSurfaceFormat(availFormats);
-
     vk::AttachmentDescription colorAttachment;
 
     // swap chain image format
-    colorAttachment.format = format.format;
+    colorAttachment.format = swapchain_format.format;
     // sample count
     colorAttachment.samples = vk::SampleCountFlagBits::e1;
 
@@ -1077,7 +1075,7 @@ namespace {
     dep.srcSubpass    = VK_SUBPASS_EXTERNAL;
     dep.dstSubpass    = 0;
     dep.srcStageMask  = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-    dep.srcAccessMask = {};
+    dep.srcAccessMask = vk::AccessFlags();
     dep.dstStageMask  = vk::PipelineStageFlagBits::eColorAttachmentOutput;
     dep.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead |
                         vk::AccessFlagBits::eColorAttachmentWrite;
@@ -1086,6 +1084,7 @@ namespace {
 
   vk::UniqueRenderPass createRenderPass(
     const vk::SurfaceKHR& surface,
+    const vk::SurfaceFormatKHR& swapchain_format,
     const vk::PhysicalDevice& physicalDevice,
     const vk::Device& device)
   {
@@ -1093,7 +1092,8 @@ namespace {
 
     vk::RenderPassCreateInfo info;
 
-    auto attachments = getRenderPassColorAttachments(surface, physicalDevice);
+    auto attachments =
+      getRenderPassColorAttachments(surface, swapchain_format, physicalDevice);
     info.attachmentCount = attachments.size();
     info.pAttachments    = attachments.data();
 
@@ -1151,8 +1151,8 @@ namespace {
     createCommandPool(uint32_t graphicsQueueIndex, const vk::Device& device)
   {
     vk::CommandPoolCreateInfo info;
-    // reserved
-    info.flags = vk::CommandPoolCreateFlags();
+    // allow vkResetCommandBuffer
+    info.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
     // use graphics queue
     info.queueFamilyIndex = graphicsQueueIndex;
 
@@ -1345,8 +1345,11 @@ namespace yave {
     Info(g_vulkan_logger, "Created swapchain image views");
 
     // create render pass
-    impl->render_pass =
-      createRenderPass(impl->surface.get(), m_physicalDevice, m_device.get());
+    impl->render_pass = createRenderPass(
+      impl->surface.get(),
+      impl->swapchain_format,
+      m_physicalDevice,
+      m_device.get());
 
     Info(g_vulkan_logger, "Created render pass");
 
