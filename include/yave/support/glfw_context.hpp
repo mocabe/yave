@@ -31,7 +31,7 @@ namespace yave {
     ~glfw_context() noexcept;
 
     /// Create window
-    std::unique_ptr<GLFWwindow, glfw_window_deleter>
+    [[nodiscard]] std::unique_ptr<GLFWwindow, glfw_window_deleter>
       create_window(uint32_t width, uint32_t height, const char* name) const;
 
     /// poll events

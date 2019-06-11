@@ -22,15 +22,15 @@ namespace yave {
     /* instance, devices */
 
     /// Get instance.
-    vk::Instance instance() const;
+    [[nodiscard]] vk::Instance instance() const;
     /// Get physical device.
-    vk::PhysicalDevice physical_device() const;
+    [[nodiscard]] vk::PhysicalDevice physical_device() const;
     /// Get device.
-    vk::Device device() const;
+    [[nodiscard]] vk::Device device() const;
     /// Get graphics queue
-    vk::Queue graphics_queue() const;
+    [[nodiscard]] vk::Queue graphics_queue() const;
     /// Get present queue
-    vk::Queue present_queue() const;
+    [[nodiscard]] vk::Queue present_queue() const;
 
     /* window and surface helpers */
 
@@ -43,24 +43,24 @@ namespace yave {
     public:
       window_context(window_context&& other) noexcept;
       ~window_context() noexcept;
-      vk::SurfaceKHR surface() const;
-      vk::SwapchainKHR swapchain() const;
-      std::vector<vk::Image> swapchain_images() const;
-      std::vector<vk::ImageView> swapchain_image_views() const;
-      std::vector<vk::Framebuffer> frame_buffers() const;
-      vk::SurfaceFormatKHR swapchain_format() const;
-      vk::Extent2D swapchain_extent() const;
-      vk::RenderPass render_pass() const;
-      vk::CommandPool command_pool() const;
-      vk::Fence fence() const;
-      vk::Semaphore image_acquired_semaphore() const;
-      vk::Semaphore render_complete_semaphore() const;
-      vk::PipelineCache pipeline_cache() const;
+      [[nodiscard]] vk::SurfaceKHR surface() const;
+      [[nodiscard]] vk::SwapchainKHR swapchain() const;
+      [[nodiscard]] std::vector<vk::Image> swapchain_images() const;
+      [[nodiscard]] std::vector<vk::ImageView> swapchain_image_views() const;
+      [[nodiscard]] std::vector<vk::Framebuffer> frame_buffers() const;
+      [[nodiscard]] vk::SurfaceFormatKHR swapchain_format() const;
+      [[nodiscard]] vk::Extent2D swapchain_extent() const;
+      [[nodiscard]] vk::RenderPass render_pass() const;
+      [[nodiscard]] vk::CommandPool command_pool() const;
+      [[nodiscard]] vk::Fence fence() const;
+      [[nodiscard]] vk::Semaphore image_acquired_semaphore() const;
+      [[nodiscard]] vk::Semaphore render_complete_semaphore() const;
+      [[nodiscard]] vk::PipelineCache pipeline_cache() const;
 
     public:
-      GLFWwindow* window() const;
-      bool resized() const;
-      bool should_close() const;
+      [[nodiscard]] GLFWwindow* window() const;
+      [[nodiscard]] bool resized() const;
+      [[nodiscard]] bool should_close() const;
 
     public:
       /// rebuild resources related to frame buffer.
