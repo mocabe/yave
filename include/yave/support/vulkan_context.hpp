@@ -90,13 +90,5 @@ namespace yave {
 
     /// device
     vk::UniqueDevice m_device;
-
-    /* command buffer  */
-
-    /// command pool
-    vk::UniqueCommandPool m_commandPool;
-
-    /// command buffer
-    vk::UniqueCommandBuffer m_commandBuffer;
   };
 }

@@ -1165,19 +1165,42 @@ namespace {
   }
 
   std::vector<vk::UniqueCommandBuffer> createCommandBuffers(
-    const std::vector<vk::Framebuffer>& frameBuffers,
+    const std::vector<vk::UniqueFramebuffer>& frameBuffers,
     const vk::CommandPool& commandPool,
     const vk::Device& device)
   {
-    std::vector<vk::UniqueCommandBuffer> ret;
-    ret.resize(frameBuffers.size());
-
     vk::CommandBufferAllocateInfo info {};
     info.commandPool        = commandPool;
     info.level              = vk::CommandBufferLevel::ePrimary;
-    info.commandBufferCount = ret.size();
+    info.commandBufferCount = frameBuffers.size();
 
     return device.allocateCommandBuffersUnique(info);
+  }
+
+  vk::UniqueFence createFence(const vk::Device& device)
+  {
+    vk::FenceCreateInfo info;
+    info.flags = vk::FenceCreateFlagBits::eSignaled;
+
+    auto fence = device.createFenceUnique(info);
+
+    if (!fence)
+      throw std::runtime_error("Failed to create fence");
+
+    return fence;
+  }
+
+  vk::UniqueSemaphore createSemaphore(const vk::Device& device)
+  {
+    vk::SemaphoreCreateInfo info;
+    info.flags = vk::SemaphoreCreateFlags();
+
+    auto semaphore = device.createSemaphoreUnique(info);
+
+    if (!semaphore)
+      throw std::runtime_error("Failed to create semaphore");
+
+    return semaphore;
   }
 } // namespace
 
@@ -1226,10 +1249,6 @@ namespace yave {
     m_device = createDevice(m_queueFamilyIndicies, m_physicalDevice);
 
     Info(g_vulkan_logger, "Initialized Vulkan context");
-
-    /* command buffer */
-
-    m_commandPool = createCommandPool(m_graphicsQueueIndex, m_device.get());
   }
 
   vulkan_context::~vulkan_context() noexcept
@@ -1262,7 +1281,11 @@ namespace yave {
     std::vector<vk::UniqueImageView> swapchain_image_views;
     vk::UniqueRenderPass render_pass;
     std::vector<vk::UniqueFramebuffer> frame_buffers;
+    vk::UniqueCommandPool command_pool;
     std::vector<vk::UniqueCommandBuffer> command_buffers;
+    vk::UniqueFence fence;
+    vk::UniqueSemaphore image_acquired_semaphore;
+    vk::UniqueSemaphore render_complete_semaphore;
 
   public:
     const vulkan_context* context; // non-owning
@@ -1335,6 +1358,31 @@ namespace yave {
       m_device.get());
 
     Info(g_vulkan_logger, "Created frame buffers");
+
+    // create command pool
+    impl->command_pool =
+      createCommandPool(m_graphicsQueueIndex, m_device.get());
+
+    Info(g_vulkan_logger, "Created command pool");
+
+    // create command buffers
+    impl->command_buffers = createCommandBuffers(
+      impl->frame_buffers, impl->command_pool.get(), m_device.get());
+
+    assert(impl->command_buffers.size() == impl->frame_buffers.size());
+
+    Info(g_vulkan_logger, "Created command buffers");
+
+    // create fence
+    impl->fence = createFence(m_device.get());
+
+    Info(g_vulkan_logger, "Created fence");
+
+    // create semaphore
+    impl->image_acquired_semaphore  = createSemaphore(m_device.get());
+    impl->render_complete_semaphore = createSemaphore(m_device.get());
+
+    Info(g_vulkan_logger, "Created semaphores");
 
     window_context ctx;
     ctx.m_pimpl = std::move(impl);
