@@ -52,9 +52,6 @@ namespace yave {
       [[nodiscard]] vk::Extent2D swapchain_extent() const;
       [[nodiscard]] vk::RenderPass render_pass() const;
       [[nodiscard]] vk::CommandPool command_pool() const;
-      [[nodiscard]] vk::Fence fence() const;
-      [[nodiscard]] vk::Semaphore image_acquired_semaphore() const;
-      [[nodiscard]] vk::Semaphore render_complete_semaphore() const;
       [[nodiscard]] vk::PipelineCache pipeline_cache() const;
 
     public:
@@ -73,8 +70,8 @@ namespace yave {
     };
 
     /// Create new window context
-    vulkan_context::window_context create_window_context(
-      std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const;
+    vulkan_context::window_context
+      create_window_context(unique_glfw_window& window) const;
 
   private:
     /* instance */

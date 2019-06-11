@@ -1155,31 +1155,6 @@ namespace {
     return device.allocateCommandBuffersUnique(info);
   }
 
-  vk::UniqueFence createFence(const vk::Device& device)
-  {
-    vk::FenceCreateInfo info;
-    info.flags = vk::FenceCreateFlagBits::eSignaled;
-
-    auto fence = device.createFenceUnique(info);
-
-    if (!fence)
-      throw std::runtime_error("Failed to create fence");
-
-    return fence;
-  }
-
-  vk::UniqueSemaphore createSemaphore(const vk::Device& device)
-  {
-    vk::SemaphoreCreateInfo info;
-    info.flags = vk::SemaphoreCreateFlags();
-
-    auto semaphore = device.createSemaphoreUnique(info);
-
-    if (!semaphore)
-      throw std::runtime_error("Failed to create semaphore");
-
-    return semaphore;
-  }
 } // namespace
 
 namespace yave {
@@ -1276,9 +1251,6 @@ namespace yave {
     std::vector<vk::UniqueFramebuffer> frame_buffers;
     vk::UniqueCommandPool command_pool;
     std::vector<vk::UniqueCommandBuffer> command_buffers;
-    vk::UniqueFence fence;
-    vk::UniqueSemaphore image_acquired_semaphore;
-    vk::UniqueSemaphore render_complete_semaphore;
     vk::UniquePipelineCache pipeline_cache;
 
   public:
@@ -1294,8 +1266,8 @@ namespace yave {
     std::atomic<VkExtent2D> window_extent;
   };
 
-  vulkan_context::window_context vulkan_context::create_window_context(
-    std::unique_ptr<GLFWwindow, glfw_window_deleter>& window) const
+  vulkan_context::window_context
+    vulkan_context::create_window_context(unique_glfw_window& window) const
   {
     Info(g_vulkan_logger, "Start initializing vulkan_context::window_context");
 
@@ -1404,17 +1376,6 @@ namespace yave {
     assert(impl->command_buffers.size() == impl->frame_buffers.size());
 
     Info(g_vulkan_logger, "Created command buffers");
-
-    // create fence
-    impl->fence = createFence(m_device.get());
-
-    Info(g_vulkan_logger, "Created fence");
-
-    // create semaphore
-    impl->image_acquired_semaphore  = createSemaphore(m_device.get());
-    impl->render_complete_semaphore = createSemaphore(m_device.get());
-
-    Info(g_vulkan_logger, "Created semaphores");
 
     /* pipeline */
 
@@ -1571,25 +1532,6 @@ namespace yave {
   {
     assert(m_pimpl->command_pool);
     return m_pimpl->command_pool.get();
-  }
-
-  vk::Fence vulkan_context::window_context::fence() const
-  {
-    assert(m_pimpl->fence);
-    return m_pimpl->fence.get();
-  }
-
-  vk::Semaphore vulkan_context::window_context::image_acquired_semaphore() const
-  {
-    assert(m_pimpl->image_acquired_semaphore);
-    return m_pimpl->image_acquired_semaphore.get();
-  }
-  
-  vk::Semaphore
-    vulkan_context::window_context::render_complete_semaphore() const
-  {
-    assert(m_pimpl->render_complete_semaphore);
-    return m_pimpl->render_complete_semaphore.get();
   }
 
   vk::PipelineCache vulkan_context::window_context::pipeline_cache() const

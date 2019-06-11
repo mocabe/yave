@@ -59,7 +59,7 @@ namespace yave {
     Info(g_glfw_logger, "Terminated GLFW");
   }
 
-  std::unique_ptr<GLFWwindow, glfw_window_deleter> glfw_context::create_window(
+  unique_glfw_window glfw_context::create_window(
     uint32_t width,
     uint32_t height,
     const char* title) const
