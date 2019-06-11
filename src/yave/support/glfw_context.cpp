@@ -20,20 +20,20 @@ namespace {
     }();
   }
 
-  /// GLFW erro callback
-  void glfwErrorCallback(int error, const char* msg)
-  {
-    using namespace yave;
-    (void)error;
-    Error(g_glfw_logger, "{}", msg);
-  }
-
 } // namespace
 
 namespace yave {
 
-  void glfw_window_deleter::operator()(GLFWwindow* window)
+  void glfw_window_deleter::operator()(GLFWwindow* window) noexcept
   {
+    // delete user data
+    glfw_window_data* user_data =
+      (glfw_window_data*)glfwGetWindowUserPointer(window);
+    glfwSetWindowUserPointer(window, nullptr);
+    delete user_data;
+    Info(g_glfw_logger, "Deleted window user data");
+
+    // destroy window handle
     glfwDestroyWindow(window);
   }
 
@@ -41,7 +41,11 @@ namespace yave {
   {
     init_glfw_logger();
 
-    glfwSetErrorCallback(glfwErrorCallback);
+    glfwSetErrorCallback([](int error, const char* msg) {
+      using namespace yave;
+      (void)error;
+      Error(g_glfw_logger, "{}", msg);
+    });
 
     if (!glfwInit())
       throw std::runtime_error("Failed to initialize GLFW");
@@ -61,11 +65,51 @@ namespace yave {
     const char* title) const
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+    // create new window
     auto window = std::unique_ptr<GLFWwindow, glfw_window_deleter>(
       glfwCreateWindow(width, height, title, nullptr, nullptr));
+
+    assert(!glfwGetWindowUserPointer(window.get()));
+
+    // set user pointer.
+    // should delete window data in destructor.
+    glfwSetWindowUserPointer(window.get(), new glfw_window_data());
+    Info(g_glfw_logger, "Created user data for window");
 
     Info(g_glfw_logger, "Created new window: {}({}*{})", title, width, height);
 
     return window;
   }
-}
+
+  void glfw_context::poll_events() const
+  {
+    glfwPollEvents();
+  }
+
+  glfw_window_data::glfw_window_data()
+  {
+  }
+
+  bool glfw_window_data::add(const std::string& key, void* data)
+  {
+    using namespace yave;
+    auto b = m_map.emplace(key, data).second;
+    if (b)
+      Info(g_glfw_logger, "Set new window data: key={}", key);
+    else
+      Warning(g_glfw_logger, "Failed to set window data: key={}", key);
+    return b;
+  }
+
+  void* glfw_window_data::find(const std::string& str) const
+  {
+    auto it = m_map.find(str);
+
+    if (it == m_map.end())
+      return nullptr;
+    else
+      return it->second;
+  }
+
+} // namespace yave

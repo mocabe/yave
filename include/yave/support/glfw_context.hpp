@@ -12,12 +12,13 @@
 #include <GLFW/glfw3.h>
 
 #include <memory>
+#include <unordered_map>
 
 namespace yave {
 
   struct glfw_window_deleter
   {
-    void operator()(GLFWwindow* window);
+    void operator()(GLFWwindow* window) noexcept;
   };
 
   /// GLFW context
@@ -32,6 +33,20 @@ namespace yave {
     /// Create window
     std::unique_ptr<GLFWwindow, glfw_window_deleter>
       create_window(uint32_t width, uint32_t height, const char* name) const;
+
+    /// poll events
+    void poll_events() const;
   };
 
+  /// Window data stored in user pointer
+  class glfw_window_data
+  {
+  public:
+    glfw_window_data();
+    [[nodiscard]] bool add(const std::string& key, void* data);
+    [[nodiscard]] void* find(const std::string& str) const;
+
+  private:
+    std::unordered_map<std::string, void*> m_map;
+  };
 } // namespace yave

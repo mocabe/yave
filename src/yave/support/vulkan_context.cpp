@@ -568,15 +568,6 @@ namespace {
     throw std::runtime_error("Presentation is not supported on this device");
   }
 
-  std::vector<uint32_t>
-    getUniqueQueueFamilyIndicies(std::vector<uint32_t> indicies)
-  {
-    std::sort(indicies.begin(), indicies.end());
-    auto iter = std::unique(indicies.begin(), indicies.end());
-    indicies.erase(iter, indicies.end());
-    return indicies;
-  }
-
   std::vector<std::string> getDeviceExtensions()
   {
     static constexpr const char* extensions[] = {
@@ -596,10 +587,13 @@ namespace {
   }
 
   vk::UniqueDevice createDevice(
-    const std::vector<uint32_t>& queueFamilyIndicies,
+    uint32_t graphicsQueueIndex,
+    uint32_t presentQueueIndex,
     const vk::PhysicalDevice& physicalDevice)
   {
     using namespace yave;
+
+    uint32_t queueFamilyIndicies[] = {graphicsQueueIndex, presentQueueIndex};
 
     std::vector<vk::DeviceQueueCreateInfo> createInfoList;
     for (auto index : queueFamilyIndicies) {
@@ -664,6 +658,17 @@ namespace {
     Info(g_vulkan_logger, "Created logical device");
 
     return device;
+  }
+
+  vk::Queue getDeviceQueue(uint32_t queueFamilyIndex, const vk::Device& device)
+  {
+    // Assume only single queue is initialized.
+    auto queue = device.getQueue(queueFamilyIndex, 0);
+
+    if (!queue)
+      throw std::runtime_error("Failed to get queue");
+
+    return queue;
   }
 
   vk::UniqueSurfaceKHR
@@ -923,7 +928,6 @@ namespace {
   }
 
   std::vector<vk::UniqueImageView> createSwapchainImageViews(
-    const vk::SurfaceKHR& surface,
     const vk::SwapchainKHR& swapchain,
     const vk::SurfaceFormatKHR& surface_format,
     const vk::Device& device)
@@ -1006,10 +1010,8 @@ namespace {
     return ret;
   }
 
-  std::vector<vk::AttachmentDescription> getRenderPassColorAttachments(
-    const vk::SurfaceKHR& surface,
-    const vk::SurfaceFormatKHR& swapchain_format,
-    const vk::PhysicalDevice& physicalDevice)
+  std::vector<vk::AttachmentDescription>
+    getRenderPassColorAttachments(const vk::SurfaceFormatKHR& swapchain_format)
   {
     vk::AttachmentDescription colorAttachment;
 
@@ -1019,13 +1021,13 @@ namespace {
     colorAttachment.samples = vk::SampleCountFlagBits::e1;
 
     // behaviour before rendering
-    // eClear: clear
-    // eLoad: preserve
+    // eClear   : clear
+    // eLoad    : preserve
     // eDontCare: undefined
     colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 
     // behaviour before rendering
-    // eStore: store rendered content to memory
+    // eStore   : store rendered content to memory
     // eDontCare: undefined
     colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
 
@@ -1035,7 +1037,7 @@ namespace {
 
     // don't care initial layout (we clear it anyway)
     colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
-    // follow swap chain
+    // pass it to swap chain
     colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
     return {colorAttachment};
@@ -1052,9 +1054,7 @@ namespace {
   std::pair<
     std::vector<vk::SubpassDescription>,
     std::tuple<std::vector<vk::AttachmentReference>>>
-    getSubpasses(
-      [[maybe_unused]] const vk::SurfaceKHR& surface,
-      [[maybe_unused]] const vk::PhysicalDevice& physicalDevice)
+    getSubpasses()
   {
     std::vector<vk::AttachmentReference> colorAttachmentRef =
       getRenderPassAttachmentReferences();
@@ -1083,21 +1083,18 @@ namespace {
   }
 
   vk::UniqueRenderPass createRenderPass(
-    const vk::SurfaceKHR& surface,
     const vk::SurfaceFormatKHR& swapchain_format,
-    const vk::PhysicalDevice& physicalDevice,
     const vk::Device& device)
   {
     using namespace yave;
 
     vk::RenderPassCreateInfo info;
 
-    auto attachments =
-      getRenderPassColorAttachments(surface, swapchain_format, physicalDevice);
+    auto attachments     = getRenderPassColorAttachments(swapchain_format);
     info.attachmentCount = attachments.size();
     info.pAttachments    = attachments.data();
 
-    auto [subpasses, subpassesResource] = getSubpasses(surface, physicalDevice);
+    auto [subpasses, subpassesResource] = getSubpasses();
     info.subpassCount                   = subpasses.size();
     info.pSubpasses                     = subpasses.data();
 
@@ -1113,29 +1110,10 @@ namespace {
     return renderPass;
   }
 
-  vk::UniquePipelineLayout createPipelineLayout(const vk::Device& device)
-  {
-    vk::PipelineLayoutCreateInfo info {};
-    info.flags                  = {};
-    info.setLayoutCount         = 0;
-    info.pSetLayouts            = nullptr;
-    info.pushConstantRangeCount = 0;
-    info.pPushConstantRanges    = nullptr;
-
-    auto layout = device.createPipelineLayoutUnique(info);
-
-    if (!layout)
-      throw std::runtime_error("Failed to create pipeline layout");
-
-    return layout;
-  }
-
   vk::UniquePipelineCache createPipelineCache(const vk::Device& device)
   {
-    vk::PipelineCacheCreateInfo info {};
-    // reserved
-    info.flags = {};
-    // initial data
+    vk::PipelineCacheCreateInfo info;
+    info.flags           = vk::PipelineCacheCreateFlags();
     info.initialDataSize = 0;
     info.pInitialData    = nullptr;
 
@@ -1241,12 +1219,17 @@ namespace yave {
 
     Info(g_vulkan_logger, "Presentation queue index: {}", m_presentQueueIndex);
 
-    m_queueFamilyIndicies =
-      getUniqueQueueFamilyIndicies({m_graphicsQueueIndex, m_presentQueueIndex});
-
     /* logical device */
 
-    m_device = createDevice(m_queueFamilyIndicies, m_physicalDevice);
+    m_device =
+      createDevice(m_graphicsQueueIndex, m_presentQueueIndex, m_physicalDevice);
+
+    Info(g_vulkan_logger, "Created new logical device");
+
+    /* get queue */
+
+    m_graphicsQueue = getDeviceQueue(m_graphicsQueueIndex, m_device.get());
+    m_presentQueue  = getDeviceQueue(m_presentQueueIndex, m_device.get());
 
     Info(g_vulkan_logger, "Initialized Vulkan context");
   }
@@ -1271,6 +1254,16 @@ namespace yave {
     return m_device.get();
   }
 
+  vk::Queue vulkan_context::graphics_queue() const
+  {
+    return m_graphicsQueue;
+  }
+
+  vk::Queue vulkan_context::present_queue() const
+  {
+    return m_presentQueue;
+  }
+
   class vulkan_context::window_context::impl
   {
   public:
@@ -1286,6 +1279,7 @@ namespace yave {
     vk::UniqueFence fence;
     vk::UniqueSemaphore image_acquired_semaphore;
     vk::UniqueSemaphore render_complete_semaphore;
+    vk::UniquePipelineCache pipeline_cache;
 
   public:
     const vulkan_context* context; // non-owning
@@ -1294,6 +1288,10 @@ namespace yave {
     vk::PresentModeKHR swapchain_present_mode;
     vk::Extent2D swapchain_extent;
     uint32_t swapchain_image_count;
+
+  public:
+    // GLFW window size callback will update this on window resize
+    std::atomic<VkExtent2D> window_extent;
   };
 
   vulkan_context::window_context vulkan_context::create_window_context(
@@ -1308,6 +1306,43 @@ namespace yave {
     // window
     impl->window = window.get();
 
+    // get window size
+    impl->window_extent = getWindowExtent(window.get());
+
+    // set user data to window
+    auto* window_data =
+      (glfw_window_data*)glfwGetWindowUserPointer(window.get());
+
+    // key for user data pointer of window context
+    static const char* user_pointer_key = "window_context";
+
+    // add data pointer
+    if (!window_data || !window_data->add(user_pointer_key, impl.get())) {
+      throw std::runtime_error("Failed to set window data");
+    }
+
+    // set window resize callback
+    glfwSetFramebufferSizeCallback(
+      window.get(), [](GLFWwindow* window, int width, int height) {
+        // get window data container
+        auto* window_data = (glfw_window_data*)glfwGetWindowUserPointer(window);
+        if (!window_data)
+          return;
+
+        // get user data
+        auto* ctx =
+          (window_context::impl*)(window_data->find(user_pointer_key));
+        if (!ctx)
+          return;
+
+        // set new window size
+        ctx->window_extent = {
+          static_cast<uint32_t>(std::clamp(0, width, width)),
+          static_cast<uint32_t>(std::clamp(0, height, height))};
+
+        Info(g_vulkan_logger, "Window resized to ({}*{})", width, height);
+      });
+
     // create surface
     impl->surface = createWindowSurface(window.get(), m_instance.get());
 
@@ -1316,7 +1351,7 @@ namespace yave {
     // create swapchain
     impl->swapchain = createSwapchain(
       impl->surface.get(),
-      getWindowExtent(window.get()),
+      {impl->window_extent},
       m_graphicsQueueIndex,
       m_presentQueueIndex,
       m_physicalDevice,
@@ -1334,10 +1369,7 @@ namespace yave {
 
     // create image views
     impl->swapchain_image_views = createSwapchainImageViews(
-      impl->surface.get(),
-      impl->swapchain.get(),
-      impl->swapchain_format,
-      m_device.get());
+      impl->swapchain.get(), impl->swapchain_format, m_device.get());
 
     assert(impl->swapchain_images.size() == impl->swapchain_image_views.size());
     assert(impl->swapchain_images.size() == impl->swapchain_image_count);
@@ -1345,11 +1377,8 @@ namespace yave {
     Info(g_vulkan_logger, "Created swapchain image views");
 
     // create render pass
-    impl->render_pass = createRenderPass(
-      impl->surface.get(),
-      impl->swapchain_format,
-      m_physicalDevice,
-      m_device.get());
+    impl->render_pass =
+      createRenderPass(impl->swapchain_format, m_device.get());
 
     Info(g_vulkan_logger, "Created render pass");
 
@@ -1387,12 +1416,75 @@ namespace yave {
 
     Info(g_vulkan_logger, "Created semaphores");
 
+    /* pipeline */
+
+    impl->pipeline_cache = createPipelineCache(m_device.get());
+
+    Info(g_vulkan_logger, "Created pipeline cache");
+
     window_context ctx;
     ctx.m_pimpl = std::move(impl);
 
     Info(g_vulkan_logger, "Initialized new window context");
 
     return ctx;
+  }
+
+  void vulkan_context::window_context::rebuild_swapchain()
+  {
+    Info(g_vulkan_logger, "Rebuild swapchain. Waiting device idle...");
+
+    // idle
+    m_pimpl->context->m_device->waitIdle();
+
+    /* destroy swapchain resources */
+    m_pimpl->command_buffers.clear();
+    m_pimpl->frame_buffers.clear();
+    m_pimpl->render_pass.reset();
+    m_pimpl->swapchain_image_views.clear();
+    m_pimpl->swapchain_images.clear();
+    m_pimpl->swapchain.reset();
+
+    Info(g_vulkan_logger, "Cleared old swapchain resources");
+
+    /* create new swapchain resources */
+
+    m_pimpl->swapchain = createSwapchain(
+      m_pimpl->surface.get(),
+      {m_pimpl->window_extent},
+      m_pimpl->context->m_graphicsQueueIndex,
+      m_pimpl->context->m_presentQueueIndex,
+      m_pimpl->context->m_physicalDevice,
+      m_pimpl->context->m_device.get(),
+      &m_pimpl->swapchain_format,
+      &m_pimpl->swapchain_present_mode,
+      &m_pimpl->swapchain_extent,
+      &m_pimpl->swapchain_image_count);
+
+    m_pimpl->swapchain_images =
+      m_pimpl->context->m_device->getSwapchainImagesKHR(
+        m_pimpl->swapchain.get());
+
+    m_pimpl->swapchain_image_views = createSwapchainImageViews(
+      m_pimpl->swapchain.get(),
+      m_pimpl->swapchain_format,
+      m_pimpl->context->m_device.get());
+
+    m_pimpl->render_pass = createRenderPass(
+      m_pimpl->swapchain_format, m_pimpl->context->m_device.get());
+
+    m_pimpl->frame_buffers = createFrameBuffers(
+      m_pimpl->swapchain_image_views,
+      m_pimpl->render_pass.get(),
+      m_pimpl->swapchain_extent,
+      m_pimpl->context->m_device.get());
+
+    m_pimpl->command_buffers = createCommandBuffers(
+      m_pimpl->frame_buffers,
+      m_pimpl->command_pool.get(),
+      m_pimpl->context->m_device.get());
+
+    Info(g_vulkan_logger, "Recreated swapchain");
   }
 
   vulkan_context::window_context::window_context()
@@ -1467,6 +1559,53 @@ namespace yave {
       ret.push_back(fb.get());
     }
     return ret;
+  }
+
+  vk::RenderPass vulkan_context::window_context::render_pass() const
+  {
+    assert(m_pimpl->render_pass);
+    return m_pimpl->render_pass.get();
+  }
+
+  vk::CommandPool vulkan_context::window_context::command_pool() const
+  {
+    assert(m_pimpl->command_pool);
+    return m_pimpl->command_pool.get();
+  }
+
+  vk::Fence vulkan_context::window_context::fence() const
+  {
+    assert(m_pimpl->fence);
+    return m_pimpl->fence.get();
+  }
+
+  vk::Semaphore vulkan_context::window_context::image_acquired_semaphore() const
+  {
+    assert(m_pimpl->image_acquired_semaphore);
+    return m_pimpl->image_acquired_semaphore.get();
+  }
+  
+  vk::Semaphore
+    vulkan_context::window_context::render_complete_semaphore() const
+  {
+    assert(m_pimpl->render_complete_semaphore);
+    return m_pimpl->render_complete_semaphore.get();
+  }
+
+  vk::PipelineCache vulkan_context::window_context::pipeline_cache() const
+  {
+    assert(m_pimpl->pipeline_cache);
+    return m_pimpl->pipeline_cache.get();
+  }
+
+  bool vulkan_context::window_context::resized() const
+  {
+    return vk::Extent2D(m_pimpl->window_extent) != m_pimpl->swapchain_extent;
+  }
+
+  bool vulkan_context::window_context::should_close() const
+  {
+    return glfwWindowShouldClose(m_pimpl->window);
   }
 
 } // namespace yave

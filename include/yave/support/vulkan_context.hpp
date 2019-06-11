@@ -27,6 +27,10 @@ namespace yave {
     vk::PhysicalDevice physical_device() const;
     /// Get device.
     vk::Device device() const;
+    /// Get graphics queue
+    vk::Queue graphics_queue() const;
+    /// Get present queue
+    vk::Queue present_queue() const;
 
     /* window and surface helpers */
 
@@ -41,14 +45,27 @@ namespace yave {
       ~window_context() noexcept;
       vk::SurfaceKHR surface() const;
       vk::SwapchainKHR swapchain() const;
-      vk::SurfaceFormatKHR swapchain_format() const;
-      vk::Extent2D swapchain_extent() const;
       std::vector<vk::Image> swapchain_images() const;
       std::vector<vk::ImageView> swapchain_image_views() const;
       std::vector<vk::Framebuffer> frame_buffers() const;
+      vk::SurfaceFormatKHR swapchain_format() const;
+      vk::Extent2D swapchain_extent() const;
+      vk::RenderPass render_pass() const;
+      vk::CommandPool command_pool() const;
+      vk::Fence fence() const;
+      vk::Semaphore image_acquired_semaphore() const;
+      vk::Semaphore render_complete_semaphore() const;
+      vk::PipelineCache pipeline_cache() const;
 
     public:
       GLFWwindow* window() const;
+      bool resized() const;
+      bool should_close() const;
+
+    public:
+      /// rebuild resources related to frame buffer.
+      /// \note: Not internally synchronized.
+      void rebuild_swapchain();
 
     private:
       class impl;
@@ -81,10 +98,12 @@ namespace yave {
 
     /// index of graphics queue
     uint32_t m_graphicsQueueIndex;
+    /// graphics queue
+    vk::Queue m_graphicsQueue;
     /// index of present queue
     uint32_t m_presentQueueIndex;
-    /// list of queue family indicies
-    std::vector<uint32_t> m_queueFamilyIndicies;
+    /// present queue
+    vk::Queue m_presentQueue;
 
     /* logical device */
 
