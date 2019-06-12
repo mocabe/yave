@@ -38,6 +38,9 @@ namespace yave {
 
     /// poll events
     void poll_events() const;
+
+    /// wait events
+    void wait_events() const;
   };
 
   /// Window data stored in user pointer

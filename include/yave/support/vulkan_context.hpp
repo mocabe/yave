@@ -74,6 +74,9 @@ namespace yave {
       create_window_context(unique_glfw_window& window) const;
 
   private:
+    // glfw
+    glfw_context* m_glfw;
+
     /* instance */
 
     /// instance

@@ -1180,6 +1180,7 @@ namespace yave {
   vulkan_context::vulkan_context(
     [[maybe_unused]] glfw_context& glfw_ctx,
     bool enableValidationLayer)
+    : m_glfw {&glfw_ctx}
   {
     init_vulkan_logger();
 
@@ -1417,6 +1418,20 @@ namespace yave {
   {
     Info(g_vulkan_logger, "Rebuild swapchain. Waiting device idle...");
 
+    // new swapchain extent
+    auto new_extent = m_pimpl->window_extent.load();
+
+    // no need to rebuild swapchain
+    if (vk::Extent2D(new_extent) == m_pimpl->swapchain_extent) {
+      return;
+    }
+
+    // Windows: minimized window have zero extent. Wait until next event.
+    if (vk::Extent2D(new_extent) == vk::Extent2D(0, 0)) {
+      m_pimpl->context->m_glfw->wait_events();
+      new_extent = m_pimpl->window_extent.load();
+    }
+
     // idle
     m_pimpl->context->m_device->waitIdle();
 
@@ -1434,7 +1449,7 @@ namespace yave {
 
     m_pimpl->swapchain = createSwapchain(
       m_pimpl->surface.get(),
-      {m_pimpl->window_extent},
+      new_extent,
       m_pimpl->context->m_graphicsQueueIndex,
       m_pimpl->context->m_presentQueueIndex,
       m_pimpl->context->m_physicalDevice,

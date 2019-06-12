@@ -87,6 +87,11 @@ namespace yave {
     glfwPollEvents();
   }
 
+  void glfw_context::wait_events() const
+  {
+    glfwWaitEvents();
+  }
+
   glfw_window_data::glfw_window_data()
   {
   }
