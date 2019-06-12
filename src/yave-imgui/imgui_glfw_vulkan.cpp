@@ -4,7 +4,7 @@
 //
 
 #include <yave-imgui/imgui_glfw_vulkan.hpp>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 namespace {
 
@@ -21,19 +21,6 @@ namespace {
     return fence;
   }
 
-  vk::UniqueSemaphore createSemaphore(const vk::Device& device)
-  {
-    vk::SemaphoreCreateInfo info;
-    info.flags = vk::SemaphoreCreateFlags();
-
-    auto semaphore = device.createSemaphoreUnique(info);
-
-    if (!semaphore)
-      throw std::runtime_error("Failed to create semaphore");
-
-    return semaphore;
-  }
-
   vk::UniquePipelineLayout createPipelineLayout(const vk::Device& device)
   {
     vk::PipelineLayoutCreateInfo info;
@@ -44,6 +31,21 @@ namespace {
     info.pPushConstantRanges    = nullptr;
 
     auto cache = device.createPipelineLayoutUnique(info);
+
+    if (!cache)
+      throw std::runtime_error("Failed to create pipeline cache");
+
+    return cache;
+  }
+
+  vk::UniquePipelineCache createPipelineCache(const vk::Device& device)
+  {
+    vk::PipelineCacheCreateInfo info;
+    info.flags           = vk::PipelineCacheCreateFlags();
+    info.initialDataSize = 0;
+    info.pInitialData    = nullptr;
+
+    auto cache = device.createPipelineCacheUnique(info);
 
     if (!cache)
       throw std::runtime_error("Failed to create pipeline cache");
@@ -271,6 +273,35 @@ namespace {
     return pipeline;
   }
 
+  vk::UniqueDescriptorPool createDescriptorPool(const vk::Device& device)
+  {
+    std::array poolSizes = {
+      vk::DescriptorPoolSize {vk::DescriptorType::eSampler, 1000},
+      vk::DescriptorPoolSize {vk::DescriptorType::eCombinedImageSampler, 1000},
+      vk::DescriptorPoolSize {vk::DescriptorType::eSampledImage, 1000},
+      vk::DescriptorPoolSize {vk::DescriptorType::eStorageImage, 1000},
+      vk::DescriptorPoolSize {vk::DescriptorType::eUniformTexelBuffer, 1000},
+      vk::DescriptorPoolSize {vk::DescriptorType::eStorageTexelBuffer, 1000},
+      vk::DescriptorPoolSize {vk::DescriptorType::eUniformBuffer, 1000},
+      vk::DescriptorPoolSize {vk::DescriptorType::eStorageBuffer, 1000},
+      vk::DescriptorPoolSize {vk::DescriptorType::eUniformBufferDynamic, 1000},
+      vk::DescriptorPoolSize {vk::DescriptorType::eStorageBufferDynamic, 1000},
+      vk::DescriptorPoolSize {vk::DescriptorType::eInputAttachment, 1000}};
+
+    vk::DescriptorPoolCreateInfo info;
+    info.flags         = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
+    info.maxSets       = 1000 * poolSizes.size();
+    info.poolSizeCount = poolSizes.size();
+    info.pPoolSizes    = poolSizes.data();
+
+    auto pool = device.createDescriptorPoolUnique(info);
+
+    if (!pool)
+      throw std::runtime_error("Failed to create descriptor pool");
+
+    return pool;
+  }
+
 } // namespace
 
 namespace yave {
@@ -281,16 +312,19 @@ namespace yave {
     , m_window {m_glfwCtx.create_window(1280, 720, "imgui_glfw_vulkan")}
     , m_windowCtx {m_vulkanCtx.create_window_context(m_window)}
   {
-    m_fence                   = createFence(m_vulkanCtx.device());
-    m_imageAcquiredSemaphore  = createSemaphore(m_vulkanCtx.device());
-    m_renderCompleteSemaphore = createSemaphore(m_vulkanCtx.device());
-    m_pipelineLayout          = createPipelineLayout(m_vulkanCtx.device());
-    m_pipeline                = createPipeline(
+    m_fence          = createFence(m_vulkanCtx.device());
+    m_pipelineLayout = createPipelineLayout(m_vulkanCtx.device());
+    m_pipelineCache  = createPipelineCache(m_vulkanCtx.device());
+    m_pipeline       = createPipeline(
       m_windowCtx.swapchain_extent(),
       m_windowCtx.render_pass(),
-      m_windowCtx.pipeline_cache(),
+      m_pipelineCache.get(),
       m_pipelineLayout.get(),
       m_vulkanCtx.device());
+
+    m_descriptorPool = createDescriptorPool(m_vulkanCtx.device());
+  }
+
   }
 
 } // namespace yave

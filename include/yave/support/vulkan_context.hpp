@@ -40,7 +40,7 @@ namespace yave {
       friend class vulkan_context;
       window_context();
 
-    public:
+    public: /* data access */
       window_context(window_context&& other) noexcept;
       ~window_context() noexcept;
       [[nodiscard]] vk::SurfaceKHR surface() const;
@@ -52,17 +52,31 @@ namespace yave {
       [[nodiscard]] vk::Extent2D swapchain_extent() const;
       [[nodiscard]] vk::RenderPass render_pass() const;
       [[nodiscard]] vk::CommandPool command_pool() const;
-      [[nodiscard]] vk::PipelineCache pipeline_cache() const;
+      [[nodiscard]] std::vector<vk::CommandBuffer> command_buffers() const;
+      [[nodiscard]] std::vector<vk::Semaphore> acquire_semaphores() const;
+      [[nodiscard]] std::vector<vk::Semaphore> complete_semaphores() const;
 
-    public:
+    public: /* window state */
       [[nodiscard]] GLFWwindow* window() const;
       [[nodiscard]] bool resized() const;
       [[nodiscard]] bool should_close() const;
 
-    public:
+    public: /* framebuffer update */
       /// rebuild resources related to frame buffer.
       /// \note: Not internally synchronized.
-      void rebuild_swapchain();
+      void rebuild_frame_buffers();
+
+    public: /* render operations */
+      /// get current frame index
+      [[nodiscard]] uint32_t frame_index() const;
+      /// get current semaphore index
+      [[nodiscard]] uint32_t semaphore_index() const;
+      /// update frame/semaphore indicies and acquire new image
+      void new_frame();
+      /// submit current frame buffer
+      void end_frame();
+      /// get current frame buffer
+      vk::Framebuffer get_frame_buffer() const;
 
     private:
       class impl;

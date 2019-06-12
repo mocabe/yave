@@ -218,8 +218,8 @@ namespace {
 
     // default extensions
     static constexpr const char* extensions[] = {
-      VK_KHR_SURFACE_EXTENSION_NAME,   // for surface
-      PlatformSurfaceExtensionName,    // for surface
+      VK_KHR_SURFACE_EXTENSION_NAME, // for surface
+      PlatformSurfaceExtensionName,  // for surface
     };
 
     // for validation layer
@@ -520,8 +520,7 @@ namespace {
     return physicalDevices[index];
   }
 
-  uint32_t getGraphicsQueueIndex(
-    const vk::PhysicalDevice& physicalDevice)
+  uint32_t getGraphicsQueueIndex(const vk::PhysicalDevice& physicalDevice)
   {
     using namespace yave;
 
@@ -602,7 +601,7 @@ namespace {
       std::unique(queueFamilyIndicies.begin(), queueFamilyIndicies.end());
     queueFamilyIndicies.erase(unique_end, queueFamilyIndicies.end());
 
-    float queuePriority            = 0.f;
+    float queuePriority = 0.f;
 
     std::vector<vk::DeviceQueueCreateInfo> createInfoList;
     for (auto index : queueFamilyIndicies) {
@@ -831,8 +830,8 @@ namespace {
         "Current surface format is not supported by presentation queue family");
     }
 
-    auto availFormats  = physicalDevice.getSurfaceFormatsKHR(surface);
-    auto format        = chooseSurfaceFormat(availFormats);
+    auto availFormats = physicalDevice.getSurfaceFormatsKHR(surface);
+    auto format       = chooseSurfaceFormat(availFormats);
 
     Info(
       g_vulkan_logger,
@@ -860,7 +859,7 @@ namespace {
 
     Info(g_vulkan_logger, "Swapchain count: {}", imageCount);
 
-    auto preTransform   = chooseSwapchainPreTransform(capabilities);
+    auto preTransform = chooseSwapchainPreTransform(capabilities);
 
     Info(
       g_vulkan_logger,
@@ -1128,21 +1127,6 @@ namespace {
     return renderPass;
   }
 
-  vk::UniquePipelineCache createPipelineCache(const vk::Device& device)
-  {
-    vk::PipelineCacheCreateInfo info;
-    info.flags           = vk::PipelineCacheCreateFlags();
-    info.initialDataSize = 0;
-    info.pInitialData    = nullptr;
-
-    auto cache = device.createPipelineCacheUnique(info);
-
-    if (!cache)
-      throw std::runtime_error("Failed to create pipeline cache");
-
-    return cache;
-  }
-
   vk::UniqueCommandPool
     createCommandPool(uint32_t graphicsQueueIndex, const vk::Device& device)
   {
@@ -1161,16 +1145,33 @@ namespace {
   }
 
   std::vector<vk::UniqueCommandBuffer> createCommandBuffers(
-    const std::vector<vk::UniqueFramebuffer>& frameBuffers,
+    uint32_t size,
     const vk::CommandPool& commandPool,
     const vk::Device& device)
   {
     vk::CommandBufferAllocateInfo info {};
     info.commandPool        = commandPool;
     info.level              = vk::CommandBufferLevel::ePrimary;
-    info.commandBufferCount = frameBuffers.size();
+    info.commandBufferCount = size;
 
     return device.allocateCommandBuffersUnique(info);
+  }
+
+  std::vector<vk::UniqueSemaphore>
+    createSemaphores(uint32_t size, const vk::Device& device)
+  {
+    std::vector<vk::UniqueSemaphore> ret;
+
+    vk::SemaphoreCreateInfo info;
+    info.flags = vk::SemaphoreCreateFlags();
+
+    for (uint32_t i = 0; i < size; ++i) {
+      auto semaphore = device.createSemaphoreUnique(info);
+      if (!semaphore)
+        throw std::runtime_error("Failed to create semaphore");
+      ret.emplace_back(std::move(semaphore));
+    }
+    return ret;
   }
 
 } // namespace
@@ -1267,14 +1268,18 @@ namespace yave {
   public:
     impl() = default;
     vk::UniqueSurfaceKHR surface;
+    vk::UniqueRenderPass render_pass;
+    vk::UniqueCommandPool command_pool;
+    vk::UniquePipelineCache pipeline_cache;
     vk::UniqueSwapchainKHR swapchain;
+
+  public:
     std::vector<vk::Image> swapchain_images; // owned by swapchain
     std::vector<vk::UniqueImageView> swapchain_image_views;
-    vk::UniqueRenderPass render_pass;
-    std::vector<vk::UniqueFramebuffer> frame_buffers;
-    vk::UniqueCommandPool command_pool;
     std::vector<vk::UniqueCommandBuffer> command_buffers;
-    vk::UniquePipelineCache pipeline_cache;
+    std::vector<vk::UniqueFramebuffer> frame_buffers;
+    std::vector<vk::UniqueSemaphore> acquire_semaphores;
+    std::vector<vk::UniqueSemaphore> complete_semaphores;
 
   public:
     const vulkan_context* context; // non-owning
@@ -1283,6 +1288,10 @@ namespace yave {
     vk::PresentModeKHR swapchain_present_mode;
     vk::Extent2D swapchain_extent;
     uint32_t swapchain_image_count;
+
+  public:
+    uint32_t frame_index     = 0;
+    uint32_t semaphore_index = 0;
 
   public:
     // GLFW window size callback will update this on window resize
@@ -1394,17 +1403,18 @@ namespace yave {
 
     // create command buffers
     impl->command_buffers = createCommandBuffers(
-      impl->frame_buffers, impl->command_pool.get(), m_device.get());
+      impl->swapchain_image_count, impl->command_pool.get(), m_device.get());
 
     assert(impl->command_buffers.size() == impl->frame_buffers.size());
 
     Info(g_vulkan_logger, "Created command buffers");
 
-    /* pipeline */
+    /* semaphores */
 
-    impl->pipeline_cache = createPipelineCache(m_device.get());
-
-    Info(g_vulkan_logger, "Created pipeline cache");
+    impl->acquire_semaphores =
+      createSemaphores(impl->swapchain_image_count, m_device.get());
+    impl->complete_semaphores =
+      createSemaphores(impl->swapchain_image_count, m_device.get());
 
     window_context ctx;
     ctx.m_pimpl = std::move(impl);
@@ -1414,7 +1424,7 @@ namespace yave {
     return ctx;
   }
 
-  void vulkan_context::window_context::rebuild_swapchain()
+  void vulkan_context::window_context::rebuild_frame_buffers()
   {
     Info(g_vulkan_logger, "Rebuild swapchain. Waiting device idle...");
 
@@ -1442,6 +1452,8 @@ namespace yave {
     m_pimpl->swapchain_image_views.clear();
     m_pimpl->swapchain_images.clear();
     m_pimpl->swapchain.reset();
+    m_pimpl->frame_index     = 0;
+    m_pimpl->semaphore_index = 0;
 
     Info(g_vulkan_logger, "Cleared old swapchain resources");
 
@@ -1478,15 +1490,80 @@ namespace yave {
       m_pimpl->context->m_device.get());
 
     m_pimpl->command_buffers = createCommandBuffers(
-      m_pimpl->frame_buffers,
+      m_pimpl->swapchain_image_count,
       m_pimpl->command_pool.get(),
       m_pimpl->context->m_device.get());
+
+    m_pimpl->acquire_semaphores = createSemaphores(
+      m_pimpl->swapchain_image_count, m_pimpl->context->m_device.get());
+    m_pimpl->complete_semaphores = createSemaphores(
+      m_pimpl->swapchain_image_count, m_pimpl->context->m_device.get());
 
     Info(g_vulkan_logger, "Recreated swapchain");
   }
 
+  uint32_t vulkan_context::window_context::frame_index() const
+  {
+    return m_pimpl->frame_index;
+  }
+
+  void vulkan_context::window_context::new_frame()
+  {
+    // set next semaphore index
+    m_pimpl->semaphore_index =
+      (m_pimpl->semaphore_index + 1) % m_pimpl->swapchain_image_count;
+
+    // set next frame index
+    m_pimpl->context->m_device->acquireNextImageKHR(
+      m_pimpl->swapchain.get(),
+      std::numeric_limits<uint64_t>::max(),
+      m_pimpl->acquire_semaphores[m_pimpl->semaphore_index].get(),
+      vk::Fence(),
+      &m_pimpl->frame_index);
+  }
+
+  void vulkan_context::window_context::end_frame()
+  {
+    /* submit current command buffers */
+
+    std::array<vk::Semaphore, 1> waitSemaphores = {
+      m_pimpl->acquire_semaphores[m_pimpl->semaphore_index].get()};
+    std::array<vk::Semaphore, 1> signalSemaphores = {
+      m_pimpl->complete_semaphores[m_pimpl->semaphore_index].get()};
+    vk::PipelineStageFlags waitStage = {
+      vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+    vk::SubmitInfo submitInfo;
+    submitInfo.waitSemaphoreCount   = waitSemaphores.size();
+    submitInfo.pWaitSemaphores      = waitSemaphores.data();
+    submitInfo.signalSemaphoreCount = signalSemaphores.size();
+    submitInfo.pSignalSemaphores    = signalSemaphores.data();
+    submitInfo.pWaitDstStageMask    = &waitStage;
+    submitInfo.commandBufferCount   = 1;
+    submitInfo.pCommandBuffers =
+      &m_pimpl->command_buffers[m_pimpl->frame_index].get();
+
+    // submit
+    m_pimpl->context->m_graphicsQueue.submit(1, &submitInfo, {});
+
+    /* present result */
+
+    vk::PresentInfoKHR presentInfo;
+    presentInfo.waitSemaphoreCount = signalSemaphores.size();
+    presentInfo.pWaitSemaphores    = signalSemaphores.data();
+    presentInfo.swapchainCount     = 1;
+    presentInfo.pSwapchains        = &m_pimpl->swapchain.get();
+    presentInfo.pImageIndices      = &m_pimpl->frame_index;
+  }
+
+  vk::Framebuffer vulkan_context::window_context::get_frame_buffer() const
+  {
+    return m_pimpl->frame_buffers[m_pimpl->frame_index].get();
+  }
+
   vulkan_context::window_context::window_context()
   {
+    // m_pimpl will be initialized by vulkan_context.
   }
 
   vulkan_context::window_context::window_context(
@@ -1571,10 +1648,45 @@ namespace yave {
     return m_pimpl->command_pool.get();
   }
 
-  vk::PipelineCache vulkan_context::window_context::pipeline_cache() const
+  std::vector<vk::CommandBuffer>
+    vulkan_context::window_context::command_buffers() const
   {
-    assert(m_pimpl->pipeline_cache);
-    return m_pimpl->pipeline_cache.get();
+    assert(!m_pimpl->command_buffers.empty());
+    assert(m_pimpl->command_buffers.size() == m_pimpl->swapchain_image_count);
+
+    std::vector<vk::CommandBuffer> ret;
+    for (auto&& cb : m_pimpl->command_buffers) {
+      ret.push_back(cb.get());
+    }
+    return ret;
+  }
+
+  std::vector<vk::Semaphore>
+    vulkan_context::window_context::acquire_semaphores() const
+  {
+    assert(!m_pimpl->acquire_semaphores.empty());
+    assert(
+      m_pimpl->acquire_semaphores.size() == m_pimpl->swapchain_image_count);
+
+    std::vector<vk::Semaphore> ret;
+    for (auto&& semaph : m_pimpl->acquire_semaphores) {
+      ret.push_back(semaph.get());
+    }
+    return ret;
+  }
+
+  std::vector<vk::Semaphore>
+    vulkan_context::window_context::complete_semaphores() const
+  {
+    assert(!m_pimpl->complete_semaphores.empty());
+    assert(
+      m_pimpl->complete_semaphores.size() == m_pimpl->swapchain_image_count);
+
+    std::vector<vk::Semaphore> ret;
+    for (auto&& semaph : m_pimpl->complete_semaphores) {
+      ret.push_back(semaph.get());
+    }
+    return ret;
   }
 
   bool vulkan_context::window_context::resized() const

@@ -23,9 +23,9 @@ namespace yave {
 
   private:
     vk::UniquePipelineLayout m_pipelineLayout;
+    vk::UniquePipelineCache m_pipelineCache;
     vk::UniquePipeline m_pipeline;
     vk::UniqueFence m_fence;
-    vk::UniqueSemaphore m_imageAcquiredSemaphore;
-    vk::UniqueSemaphore m_renderCompleteSemaphore;
+    vk::UniqueDescriptorPool m_descriptorPool;
   };
 }
