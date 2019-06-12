@@ -593,7 +593,16 @@ namespace {
   {
     using namespace yave;
 
-    uint32_t queueFamilyIndicies[] = {graphicsQueueIndex, presentQueueIndex};
+    std::vector<uint32_t> queueFamilyIndicies = {graphicsQueueIndex,
+                                                 presentQueueIndex};
+
+    // Vulkan API requires queue family indicies to be unqiue.
+    std::sort(queueFamilyIndicies.begin(), queueFamilyIndicies.end());
+    auto unique_end =
+      std::unique(queueFamilyIndicies.begin(), queueFamilyIndicies.end());
+    queueFamilyIndicies.erase(unique_end, queueFamilyIndicies.end());
+
+    float queuePriority            = 0.f;
 
     std::vector<vk::DeviceQueueCreateInfo> createInfoList;
     for (auto index : queueFamilyIndicies) {
@@ -601,7 +610,6 @@ namespace {
       info.flags            = vk::DeviceQueueCreateFlags();
       info.queueFamilyIndex = index;
       info.queueCount       = 1;
-      float queuePriority   = 0.f;
       info.pQueuePriorities = &queuePriority;
       createInfoList.push_back(std::move(info));
     }
@@ -684,6 +692,9 @@ namespace {
       throw std::runtime_error("Failed to create window surface");
     }
 
+    if (!surface)
+      throw std::runtime_error("Failed to create window surface");
+
     Info(g_vulkan_logger, "Created new window surface");
 
     vk::ObjectDestroy<vk::Instance, vk::DispatchLoaderStatic> deleter(instance);
@@ -718,9 +729,7 @@ namespace {
       vk::to_string(default_format.colorSpace));
 
     if (formats.size() == 1 && formats[0].format == vk::Format::eUndefined) {
-      Info(
-        g_vulkan_logger,
-        "Surface format is undefined. Use default format");
+      Info(g_vulkan_logger, "Surface format is undefined. Use default format");
       return default_format;
     }
 
@@ -817,6 +826,11 @@ namespace {
   {
     using namespace yave;
 
+    if (!physicalDevice.getSurfaceSupportKHR(presentQueueIndex, surface)) {
+      throw std::runtime_error(
+        "Current surface format is not supported by presentation queue family");
+    }
+
     auto availFormats  = physicalDevice.getSurfaceFormatsKHR(surface);
     auto format        = chooseSurfaceFormat(availFormats);
 
@@ -837,10 +851,12 @@ namespace {
     Info(
       g_vulkan_logger, "Swapchain extent: {},{}", extent.width, extent.height);
 
+    // maxImageCount is 0 when infinite...
     uint32_t imageCount = std::clamp(
       capabilities.minImageCount + 1,
       capabilities.minImageCount,
-      capabilities.maxImageCount);
+      capabilities.maxImageCount == 0 ? std::numeric_limits<uint32_t>::max()
+                                      : capabilities.maxImageCount);
 
     Info(g_vulkan_logger, "Swapchain count: {}", imageCount);
 
@@ -962,10 +978,12 @@ namespace {
 
     for (auto&& image : swapchainImages) {
       vk::ImageViewCreateInfo info;
-      info.flags    = vk::ImageViewCreateFlags();
-      info.image    = image;
-      info.format   = surface_format.format;
-      info.viewType = vk::ImageViewType::e2D;
+      info.flags            = vk::ImageViewCreateFlags();
+      info.image            = image;
+      info.format           = surface_format.format;
+      info.viewType         = vk::ImageViewType::e2D;
+      info.components       = componentMapping;
+      info.subresourceRange = subResourceRange;
 
       auto view = device.createImageViewUnique(info);
 
@@ -1205,6 +1223,10 @@ namespace yave {
 
     m_graphicsQueue = getDeviceQueue(m_graphicsQueueIndex, m_device.get());
     m_presentQueue  = getDeviceQueue(m_presentQueueIndex, m_device.get());
+
+    if (m_graphicsQueueIndex == m_presentQueueIndex) {
+      assert(m_graphicsQueue == m_presentQueue);
+    }
 
     Info(g_vulkan_logger, "Initialized Vulkan context");
   }
