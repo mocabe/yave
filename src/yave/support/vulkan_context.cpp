@@ -1446,7 +1446,7 @@ namespace yave {
     return ctx;
   }
 
-  void vulkan_context::window_context::rebuild_frame_buffers()
+  void vulkan_context::window_context::rebuild_frame_buffers() const
   {
     Info(g_vulkan_logger, "Rebuild swapchain. Waiting device idle...");
 
@@ -1536,48 +1536,55 @@ namespace yave {
   {
     auto device = m_pimpl->context->device();
 
-    auto check_device_lost = [](vk::Result result) {
-      if (result == vk::Result::eErrorDeviceLost)
-        throw std::runtime_error("Vulkan: device lost");
-    };
-
     // set next semaphore index
     m_pimpl->semaphore_index =
       (m_pimpl->semaphore_index + 1) % m_pimpl->swapchain_image_count;
 
-    // wait in-flight fence
-    auto wait_result = device.waitForFences(
-      m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get(),
-      VK_TRUE,
-      std::numeric_limits<uint64_t>::max());
+    {
+      // wait in-flight fence
+      auto err = device.waitForFences(
+        m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get(),
+        VK_TRUE,
+        std::numeric_limits<uint64_t>::max());
 
-    check_device_lost(wait_result);
+      if (err != vk::Result::eSuccess)
+        throw std::runtime_error(
+          "Failed to wait for in-flight fence: " + vk::to_string(err));
 
-    if (wait_result != vk::Result::eSuccess)
-      Error(
-        g_vulkan_logger,
-        "Failed to wait for in-flight fence: {}",
-        vk::to_string(wait_result));
+      // reset fence
+      device.resetFences(
+        m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get());
+    }
 
-    // reset fence
-    device.resetFences(
-      m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get());
+    {
+      // on resize
+      if (resized())
+        rebuild_frame_buffers();
+    }
 
-    // set next frame index
-    auto acquire_result = device.acquireNextImageKHR(
-      m_pimpl->swapchain.get(),
-      std::numeric_limits<uint64_t>::max(),
-      m_pimpl->acquire_semaphores[m_pimpl->semaphore_index].get(),
-      vk::Fence(),
-      &m_pimpl->frame_index);
+    {
+      // acquire new image, set next frame index.
+      auto err = device.acquireNextImageKHR(
+        m_pimpl->swapchain.get(),
+        std::numeric_limits<uint64_t>::max(),
+        m_pimpl->acquire_semaphores[m_pimpl->semaphore_index].get(),
+        vk::Fence(),
+        &m_pimpl->frame_index);
 
-    check_device_lost(acquire_result);
+      while (err == vk::Result::eErrorOutOfDateKHR) {
+        rebuild_frame_buffers();
+        err = device.acquireNextImageKHR(
+          m_pimpl->swapchain.get(),
+          std::numeric_limits<uint64_t>::max(),
+          m_pimpl->acquire_semaphores[m_pimpl->semaphore_index].get(),
+          vk::Fence(),
+          &m_pimpl->frame_index);
+      }
 
-    if (acquire_result != vk::Result::eSuccess)
-      Error(
-        g_vulkan_logger,
-        "Failed to acquire image: {}",
-        vk::to_string(acquire_result));
+      if (err != vk::Result::eSuccess)
+        throw std::runtime_error(
+          "Failed to acquire image: " + vk::to_string(err));
+    }
 
     // return current command buffer
     return m_pimpl->command_buffers[m_pimpl->frame_index].get();
@@ -1587,11 +1594,6 @@ namespace yave {
   {
     auto graphicsQueue = m_pimpl->context->graphics_queue();
     auto presentQueue  = m_pimpl->context->present_queue();
-
-    auto check_device_lost = [](vk::Result result) {
-      if (result == vk::Result::eErrorDeviceLost)
-        throw std::runtime_error("Vulkan: device lost");
-    };
 
     /* submit current command buffers */
 
@@ -1618,13 +1620,9 @@ namespace yave {
       &submitInfo,
       m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get());
 
-    check_device_lost(submit_result);
-
     if (submit_result != vk::Result::eSuccess)
-      Error(
-        g_vulkan_logger,
-        "Failed to submit command buffer: {}",
-        vk::to_string(submit_result));
+      throw std::runtime_error(
+        "Failed to submit command buffer: " + vk::to_string(submit_result));
 
     /* present result */
 
@@ -1637,18 +1635,16 @@ namespace yave {
 
     auto present_result = presentQueue.presentKHR(&presentInfo);
 
-    check_device_lost(present_result);
-
     if (present_result == vk::Result::eErrorOutOfDateKHR) {
       Warning(
         g_vulkan_logger,
         "Surface is not longer compatible with current frame buffer");
-    } else if (present_result != vk::Result::eSuccess) {
-      Error(
-        g_vulkan_logger,
-        "Failed to present: {}",
-        vk::to_string(present_result));
+      return;
     }
+
+    if (present_result != vk::Result::eSuccess)
+      throw std::runtime_error(
+        "Failed to present: " + vk::to_string(present_result));
   }
 
   vk::Framebuffer vulkan_context::window_context::get_frame_buffer() const
@@ -1787,6 +1783,7 @@ namespace yave {
 
   bool vulkan_context::window_context::resized() const
   {
+    m_pimpl->context->m_glfw->poll_events();
     return vk::Extent2D(m_pimpl->window_extent) != m_pimpl->swapchain_extent;
   }
 
@@ -1847,10 +1844,24 @@ namespace yave {
   {
     // start new frame
     m_buffer = m_window_ctx->begin_frame();
-    // begin command buffer
-    vk::CommandBufferBeginInfo beginInfo;
-    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-    m_buffer.begin(beginInfo);
+    {
+      // begin command buffer
+      vk::CommandBufferBeginInfo beginInfo;
+      beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+      m_buffer.begin(beginInfo);
+    }
+    {
+      vk::ClearValue clearValue; // TODO: costom clear color
+
+      // begin render pass
+      vk::RenderPassBeginInfo beginInfo;
+      beginInfo.renderPass        = m_window_ctx->render_pass();
+      beginInfo.framebuffer       = m_window_ctx->get_frame_buffer();
+      beginInfo.renderArea.extent = m_window_ctx->swapchain_extent();
+      beginInfo.clearValueCount   = 1;
+      beginInfo.pClearValues      = &clearValue;
+      m_buffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
+    }
   }
 
   vulkan_context::window_context::command_recorder::command_recorder(
@@ -1862,6 +1873,8 @@ namespace yave {
 
   vulkan_context::window_context::command_recorder::~command_recorder()
   {
+    // end render pass
+    m_buffer.endRenderPass();
     // end command buffer
     m_buffer.end();
     // end current frame
@@ -1869,7 +1882,7 @@ namespace yave {
   }
 
   vulkan_context::window_context::command_recorder
-    vulkan_context::window_context::get_new_frame() const
+    vulkan_context::window_context::new_frame() const
   {
     return command_recorder(this);
   }

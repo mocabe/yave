@@ -84,7 +84,7 @@ namespace yave {
     public: /* framebuffer update */
       /// rebuild resources related to frame buffer.
       /// \note: Not internally synchronized.
-      void rebuild_frame_buffers();
+      void rebuild_frame_buffers() const;
 
     private: /* render operations */
       /// get current frame index
@@ -116,7 +116,7 @@ namespace yave {
       };
 
       /// create frame context
-      [[nodiscard]] command_recorder get_new_frame() const;
+      [[nodiscard]] command_recorder new_frame() const;
 
     public:
       /// Create single time command
