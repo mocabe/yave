@@ -1160,16 +1160,32 @@ namespace {
   std::vector<vk::UniqueSemaphore>
     createSemaphores(uint32_t size, const vk::Device& device)
   {
-    std::vector<vk::UniqueSemaphore> ret;
-
     vk::SemaphoreCreateInfo info;
     info.flags = vk::SemaphoreCreateFlags();
 
+    std::vector<vk::UniqueSemaphore> ret;
     for (uint32_t i = 0; i < size; ++i) {
       auto semaphore = device.createSemaphoreUnique(info);
       if (!semaphore)
         throw std::runtime_error("Failed to create semaphore");
       ret.emplace_back(std::move(semaphore));
+    }
+    return ret;
+  }
+
+  std::vector<vk::UniqueFence>
+    createFences(uint32_t size, const vk::Device& device)
+  {
+    vk::FenceCreateInfo info;
+    // create with signaled so render loop can wait for it on the first time
+    info.flags = vk::FenceCreateFlagBits::eSignaled;
+
+    std::vector<vk::UniqueFence> ret;
+    for (uint32_t i = 0; i < size; ++i) {
+      auto fence = device.createFenceUnique(info);
+      if (!fence)
+        throw std::runtime_error("Failed to create fence");
+      ret.emplace_back(std::move(fence));
     }
     return ret;
   }
@@ -1280,6 +1296,7 @@ namespace yave {
     std::vector<vk::UniqueFramebuffer> frame_buffers;
     std::vector<vk::UniqueSemaphore> acquire_semaphores;
     std::vector<vk::UniqueSemaphore> complete_semaphores;
+    std::vector<vk::UniqueFence> in_flight_fences;
 
   public:
     const vulkan_context* context; // non-owning
@@ -1416,6 +1433,11 @@ namespace yave {
     impl->complete_semaphores =
       createSemaphores(impl->swapchain_image_count, m_device.get());
 
+    /* fences */
+
+    impl->in_flight_fences =
+      createFences(impl->swapchain_image_count, m_device.get());
+
     window_context ctx;
     ctx.m_pimpl = std::move(impl);
 
@@ -1499,6 +1521,9 @@ namespace yave {
     m_pimpl->complete_semaphores = createSemaphores(
       m_pimpl->swapchain_image_count, m_pimpl->context->m_device.get());
 
+    m_pimpl->in_flight_fences = createFences(
+      m_pimpl->swapchain_image_count, m_pimpl->context->m_device.get());
+
     Info(g_vulkan_logger, "Recreated swapchain");
   }
 
@@ -1509,21 +1534,62 @@ namespace yave {
 
   void vulkan_context::window_context::new_frame()
   {
+    auto device = m_pimpl->context->device();
+
+    auto check_device_lost = [](vk::Result result) {
+      if (result == vk::Result::eErrorDeviceLost)
+        throw std::runtime_error("Vulkan: device lost");
+    };
+
     // set next semaphore index
     m_pimpl->semaphore_index =
       (m_pimpl->semaphore_index + 1) % m_pimpl->swapchain_image_count;
 
+    // wait in-flight fence
+    auto wait_result = device.waitForFences(
+      m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get(),
+      VK_TRUE,
+      std::numeric_limits<uint64_t>::max());
+
+    check_device_lost(wait_result);
+
+    if (wait_result != vk::Result::eSuccess)
+      Error(
+        g_vulkan_logger,
+        "Failed to wait for in-flight fence: {}",
+        vk::to_string(wait_result));
+
+    // reset fence
+    device.resetFences(
+      m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get());
+
     // set next frame index
-    m_pimpl->context->m_device->acquireNextImageKHR(
+    auto acquire_result = device.acquireNextImageKHR(
       m_pimpl->swapchain.get(),
       std::numeric_limits<uint64_t>::max(),
       m_pimpl->acquire_semaphores[m_pimpl->semaphore_index].get(),
       vk::Fence(),
       &m_pimpl->frame_index);
+
+    check_device_lost(acquire_result);
+
+    if (acquire_result != vk::Result::eSuccess)
+      Error(
+        g_vulkan_logger,
+        "Failed to acquire image: {}",
+        vk::to_string(acquire_result));
   }
 
   void vulkan_context::window_context::end_frame()
   {
+    auto graphicsQueue = m_pimpl->context->graphics_queue();
+    auto presentQueue  = m_pimpl->context->present_queue();
+
+    auto check_device_lost = [](vk::Result result) {
+      if (result == vk::Result::eErrorDeviceLost)
+        throw std::runtime_error("Vulkan: device lost");
+    };
+
     /* submit current command buffers */
 
     std::array<vk::Semaphore, 1> waitSemaphores = {
@@ -1544,7 +1610,18 @@ namespace yave {
       &m_pimpl->command_buffers[m_pimpl->frame_index].get();
 
     // submit
-    m_pimpl->context->m_graphicsQueue.submit(1, &submitInfo, {});
+    auto submit_result = graphicsQueue.submit(
+      1,
+      &submitInfo,
+      m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get());
+
+    check_device_lost(submit_result);
+
+    if (submit_result != vk::Result::eSuccess)
+      Error(
+        g_vulkan_logger,
+        "Failed to submit command buffer: {}",
+        vk::to_string(submit_result));
 
     /* present result */
 
@@ -1554,6 +1631,21 @@ namespace yave {
     presentInfo.swapchainCount     = 1;
     presentInfo.pSwapchains        = &m_pimpl->swapchain.get();
     presentInfo.pImageIndices      = &m_pimpl->frame_index;
+
+    auto present_result = presentQueue.presentKHR(&presentInfo);
+
+    check_device_lost(present_result);
+
+    if (present_result == vk::Result::eErrorOutOfDateKHR) {
+      Warning(
+        g_vulkan_logger,
+        "Surface is not longer compatible with current frame buffer");
+    } else if (present_result != vk::Result::eSuccess) {
+      Error(
+        g_vulkan_logger,
+        "Failed to present: {}",
+        vk::to_string(present_result));
+    }
   }
 
   vk::Framebuffer vulkan_context::window_context::get_frame_buffer() const
