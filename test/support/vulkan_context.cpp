@@ -27,4 +27,12 @@ TEST_CASE("unique context")
 
   auto window     = glfw_ctx.create_window(1280, 720, "test window");
   auto window_ctx = vulkan_ctx.create_window_context(window);
+
+  while (!window_ctx.should_close()) {
+    glfw_ctx.poll_events();
+
+    if (window_ctx.resized()) {
+      window_ctx.rebuild_frame_buffers();
+    }
+  }
 }
