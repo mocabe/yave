@@ -10,6 +10,26 @@
 
 namespace yave {
 
+  /// single time command
+  class single_time_command
+  {
+  public:
+    single_time_command(
+      const vk::Device& device,
+      const vk::Queue& queue,
+      const vk::CommandPool& pool);
+    ~single_time_command();
+    single_time_command(single_time_command&& other) noexcept;
+    [[nodiscard]] vk::CommandBuffer command_buffer() const;
+
+  private:
+    single_time_command(const single_time_command&) = delete;
+    vk::Device m_device;
+    vk::Queue m_queue;
+    vk::CommandPool m_pool;
+    vk::UniqueCommandBuffer m_buffer;
+  };
+
   /// Vulkan API context.
   class vulkan_context
   {
@@ -66,17 +86,41 @@ namespace yave {
       /// \note: Not internally synchronized.
       void rebuild_frame_buffers();
 
-    public: /* render operations */
+    private: /* render operations */
       /// get current frame index
       [[nodiscard]] uint32_t frame_index() const;
       /// get current semaphore index
       [[nodiscard]] uint32_t semaphore_index() const;
       /// update frame/semaphore indicies and acquire new image
-      void new_frame();
+      vk::CommandBuffer begin_frame() const;
       /// submit current frame buffer
-      void end_frame();
+      void end_frame() const;
       /// get current frame buffer
-      vk::Framebuffer get_frame_buffer() const;
+      [[nodiscard]] vk::Framebuffer get_frame_buffer() const;
+
+    public:
+      /// RAII frame context
+      class command_recorder
+      {
+      public:
+        command_recorder(command_recorder&& other) noexcept;
+        ~command_recorder();
+        [[nodiscard]] vk::CommandBuffer command_buffer() const;
+
+      private:
+        friend class window_context;
+        command_recorder(const command_recorder&) = delete;
+        command_recorder(const window_context* window_ctx);
+        const window_context* m_window_ctx;
+        vk::CommandBuffer m_buffer;
+      };
+
+      /// create frame context
+      [[nodiscard]] command_recorder get_new_frame() const;
+
+    public:
+      /// Create single time command
+      [[nodiscard]] single_time_command single_time_command() const;
 
     private:
       class impl;

@@ -1027,7 +1027,7 @@ namespace {
     return ret;
   }
 
-  std::vector<vk::AttachmentDescription>
+  std::array<vk::AttachmentDescription, 1>
     getRenderPassColorAttachments(const vk::SurfaceFormatKHR& swapchain_format)
   {
     vk::AttachmentDescription colorAttachment;
@@ -1086,7 +1086,7 @@ namespace {
       subpass, std::make_tuple(std::move(colorAttachmentRef)));
   }
 
-  vk::SubpassDependency getSubpassDependency()
+  std::array<vk::SubpassDependency, 1> getSubpassDependency()
   {
     vk::SubpassDependency dep;
     dep.srcSubpass    = VK_SUBPASS_EXTERNAL;
@@ -1096,7 +1096,7 @@ namespace {
     dep.dstStageMask  = vk::PipelineStageFlagBits::eColorAttachmentOutput;
     dep.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead |
                         vk::AccessFlagBits::eColorAttachmentWrite;
-    return dep;
+    return {dep};
   }
 
   vk::UniqueRenderPass createRenderPass(
@@ -1116,8 +1116,8 @@ namespace {
     info.pSubpasses                     = subpasses.data();
 
     auto dependency      = getSubpassDependency();
-    info.dependencyCount = 1;
-    info.pDependencies   = &dependency;
+    info.dependencyCount = dependency.size();
+    info.pDependencies   = dependency.data();
 
     auto renderPass = device.createRenderPassUnique(info);
 
@@ -1532,7 +1532,7 @@ namespace yave {
     return m_pimpl->frame_index;
   }
 
-  void vulkan_context::window_context::new_frame()
+  vk::CommandBuffer vulkan_context::window_context::begin_frame() const
   {
     auto device = m_pimpl->context->device();
 
@@ -1578,9 +1578,12 @@ namespace yave {
         g_vulkan_logger,
         "Failed to acquire image: {}",
         vk::to_string(acquire_result));
+
+    // return current command buffer
+    return m_pimpl->command_buffers[m_pimpl->frame_index].get();
   }
 
-  void vulkan_context::window_context::end_frame()
+  void vulkan_context::window_context::end_frame() const
   {
     auto graphicsQueue = m_pimpl->context->graphics_queue();
     auto presentQueue  = m_pimpl->context->present_queue();
@@ -1667,6 +1670,7 @@ namespace yave {
   vulkan_context::window_context::~window_context() noexcept
   {
     using namespace yave;
+    m_pimpl->context->device().waitIdle();
     Info(g_vulkan_logger, "Destroying window context");
   }
 
@@ -1789,6 +1793,85 @@ namespace yave {
   bool vulkan_context::window_context::should_close() const
   {
     return glfwWindowShouldClose(m_pimpl->window);
+  }
+
+  single_time_command::single_time_command(single_time_command&& other) noexcept
+    : m_device {other.m_device}
+    , m_queue {other.m_queue}
+    , m_pool {other.m_pool}
+    , m_buffer {std::move(other.m_buffer)}
+  {
+  }
+
+  single_time_command::single_time_command(
+    const vk::Device& device,
+    const vk::Queue& queue,
+    const vk::CommandPool& pool)
+    : m_device {device}
+    , m_queue {queue}
+    , m_pool {pool}
+  {
+    // create command buffer
+    m_buffer = std::move(createCommandBuffers(1, m_pool, m_device)[0]);
+    // begin command buffer
+    vk::CommandBufferBeginInfo beginInfo;
+    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+    m_buffer->begin(beginInfo);
+  }
+
+  single_time_command::~single_time_command()
+  {
+    // submit command buffer
+    vk::SubmitInfo submitInfo;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers    = &m_buffer.get();
+    m_queue.submit(submitInfo, vk::Fence());
+  }
+
+  vk::CommandBuffer single_time_command::command_buffer() const
+  {
+    return m_buffer.get();
+  }
+
+  single_time_command
+    vulkan_context::window_context::single_time_command() const
+  {
+    return {m_pimpl->context->device(),
+            m_pimpl->context->graphics_queue(),
+            m_pimpl->command_pool.get()};
+  }
+
+  vulkan_context::window_context::command_recorder::command_recorder(
+    const window_context* window_ctx)
+    : m_window_ctx {window_ctx}
+  {
+    // start new frame
+    m_buffer = m_window_ctx->begin_frame();
+    // begin command buffer
+    vk::CommandBufferBeginInfo beginInfo;
+    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+    m_buffer.begin(beginInfo);
+  }
+
+  vulkan_context::window_context::command_recorder::command_recorder(
+    command_recorder&& other) noexcept
+    : m_window_ctx {std::move(other.m_window_ctx)}
+    , m_buffer {std::move(other.m_buffer)}
+  {
+  }
+
+  vulkan_context::window_context::command_recorder::~command_recorder()
+  {
+    // end command buffer
+    m_buffer.end();
+    // end current frame
+    m_window_ctx->end_frame();
+  }
+
+  vulkan_context::window_context::command_recorder
+    vulkan_context::window_context::get_new_frame() const
+  {
+    return command_recorder(this);
   }
 
 } // namespace yave
