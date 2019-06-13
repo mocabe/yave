@@ -1307,8 +1307,8 @@ namespace yave {
     uint32_t swapchain_image_count;
 
   public:
-    uint32_t frame_index     = 0;
-    uint32_t semaphore_index = 0;
+    uint32_t image_index     = 0;
+    uint32_t frame_index = 0;
 
   public:
     // GLFW window size callback will update this on window resize
@@ -1474,8 +1474,8 @@ namespace yave {
     m_pimpl->swapchain_image_views.clear();
     m_pimpl->swapchain_images.clear();
     m_pimpl->swapchain.reset();
-    m_pimpl->frame_index     = 0;
-    m_pimpl->semaphore_index = 0;
+    m_pimpl->frame_index = 0;
+    m_pimpl->image_index = 0;
 
     Info(g_vulkan_logger, "Cleared old swapchain resources");
 
@@ -1527,23 +1527,18 @@ namespace yave {
     Info(g_vulkan_logger, "Recreated swapchain");
   }
 
-  uint32_t vulkan_context::window_context::frame_index() const
-  {
-    return m_pimpl->frame_index;
-  }
-
   vk::CommandBuffer vulkan_context::window_context::begin_frame() const
   {
     auto device = m_pimpl->context->device();
 
     // set next semaphore index
-    m_pimpl->semaphore_index =
-      (m_pimpl->semaphore_index + 1) % m_pimpl->swapchain_image_count;
+    m_pimpl->frame_index =
+      (m_pimpl->frame_index + 1) % m_pimpl->swapchain_image_count;
 
     {
       // wait in-flight fence
       auto err = device.waitForFences(
-        m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get(),
+        m_pimpl->in_flight_fences[m_pimpl->frame_index].get(),
         VK_TRUE,
         std::numeric_limits<uint64_t>::max());
 
@@ -1552,8 +1547,7 @@ namespace yave {
           "Failed to wait for in-flight fence: " + vk::to_string(err));
 
       // reset fence
-      device.resetFences(
-        m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get());
+      device.resetFences(m_pimpl->in_flight_fences[m_pimpl->frame_index].get());
     }
 
     {
@@ -1567,18 +1561,18 @@ namespace yave {
       auto err = device.acquireNextImageKHR(
         m_pimpl->swapchain.get(),
         std::numeric_limits<uint64_t>::max(),
-        m_pimpl->acquire_semaphores[m_pimpl->semaphore_index].get(),
+        m_pimpl->acquire_semaphores[m_pimpl->frame_index].get(),
         vk::Fence(),
-        &m_pimpl->frame_index);
+        &m_pimpl->image_index);
 
       while (err == vk::Result::eErrorOutOfDateKHR) {
         rebuild_frame_buffers();
         err = device.acquireNextImageKHR(
           m_pimpl->swapchain.get(),
           std::numeric_limits<uint64_t>::max(),
-          m_pimpl->acquire_semaphores[m_pimpl->semaphore_index].get(),
+          m_pimpl->acquire_semaphores[m_pimpl->frame_index].get(),
           vk::Fence(),
-          &m_pimpl->frame_index);
+          &m_pimpl->image_index);
       }
 
       if (err != vk::Result::eSuccess)
@@ -1598,9 +1592,9 @@ namespace yave {
     /* submit current command buffers */
 
     std::array<vk::Semaphore, 1> waitSemaphores = {
-      m_pimpl->acquire_semaphores[m_pimpl->semaphore_index].get()};
+      m_pimpl->acquire_semaphores[m_pimpl->frame_index].get()};
     std::array<vk::Semaphore, 1> signalSemaphores = {
-      m_pimpl->complete_semaphores[m_pimpl->semaphore_index].get()};
+      m_pimpl->complete_semaphores[m_pimpl->frame_index].get()};
     vk::PipelineStageFlags waitStage = {
       vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
@@ -1618,7 +1612,7 @@ namespace yave {
     auto submit_result = graphicsQueue.submit(
       1,
       &submitInfo,
-      m_pimpl->in_flight_fences[m_pimpl->semaphore_index].get());
+      m_pimpl->in_flight_fences[m_pimpl->frame_index].get());
 
     if (submit_result != vk::Result::eSuccess)
       throw std::runtime_error(
@@ -1631,7 +1625,7 @@ namespace yave {
     presentInfo.pWaitSemaphores    = signalSemaphores.data();
     presentInfo.swapchainCount     = 1;
     presentInfo.pSwapchains        = &m_pimpl->swapchain.get();
-    presentInfo.pImageIndices      = &m_pimpl->frame_index;
+    presentInfo.pImageIndices      = &m_pimpl->image_index;
 
     auto present_result = presentQueue.presentKHR(&presentInfo);
 
@@ -1645,11 +1639,6 @@ namespace yave {
     if (present_result != vk::Result::eSuccess)
       throw std::runtime_error(
         "Failed to present: " + vk::to_string(present_result));
-  }
-
-  vk::Framebuffer vulkan_context::window_context::get_frame_buffer() const
-  {
-    return m_pimpl->frame_buffers[m_pimpl->frame_index].get();
   }
 
   vulkan_context::window_context::window_context()
@@ -1856,10 +1845,13 @@ namespace yave {
       // begin render pass
       vk::RenderPassBeginInfo beginInfo;
       beginInfo.renderPass        = m_window_ctx->render_pass();
-      beginInfo.framebuffer       = m_window_ctx->get_frame_buffer();
       beginInfo.renderArea.extent = m_window_ctx->swapchain_extent();
       beginInfo.clearValueCount   = 1;
       beginInfo.pClearValues      = &clearValue;
+      beginInfo.framebuffer =
+        m_window_ctx->m_pimpl->frame_buffers[m_window_ctx->m_pimpl->image_index]
+          .get();
+
       m_buffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
     }
   }

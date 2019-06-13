@@ -87,16 +87,10 @@ namespace yave {
       void rebuild_frame_buffers() const;
 
     private: /* render operations */
-      /// get current frame index
-      [[nodiscard]] uint32_t frame_index() const;
-      /// get current semaphore index
-      [[nodiscard]] uint32_t semaphore_index() const;
       /// update frame/semaphore indicies and acquire new image
       vk::CommandBuffer begin_frame() const;
       /// submit current frame buffer
       void end_frame() const;
-      /// get current frame buffer
-      [[nodiscard]] vk::Framebuffer get_frame_buffer() const;
 
     public:
       /// RAII frame context
