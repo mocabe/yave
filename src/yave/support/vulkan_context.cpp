@@ -1536,21 +1536,6 @@ namespace yave {
       (m_pimpl->frame_index + 1) % m_pimpl->swapchain_image_count;
 
     {
-      // wait in-flight fence
-      auto err = device.waitForFences(
-        m_pimpl->in_flight_fences[m_pimpl->frame_index].get(),
-        VK_TRUE,
-        std::numeric_limits<uint64_t>::max());
-
-      if (err != vk::Result::eSuccess)
-        throw std::runtime_error(
-          "Failed to wait for in-flight fence: " + vk::to_string(err));
-
-      // reset fence
-      device.resetFences(m_pimpl->in_flight_fences[m_pimpl->frame_index].get());
-    }
-
-    {
       // on resize
       if (resized())
         rebuild_frame_buffers();
@@ -1578,6 +1563,25 @@ namespace yave {
       if (err != vk::Result::eSuccess)
         throw std::runtime_error(
           "Failed to acquire image: " + vk::to_string(err));
+    }
+
+    {
+      // wait in-flight fence. this should happen after acquiring next image
+      // because rebuilding frame buffers may reset all fences to signaled
+      // state. calling vkAcquireNextImageKHR before presentation engine
+      // completes is allowed by Vulkan specification.
+
+      auto err = device.waitForFences(
+        m_pimpl->in_flight_fences[m_pimpl->frame_index].get(),
+        VK_TRUE,
+        std::numeric_limits<uint64_t>::max());
+
+      if (err != vk::Result::eSuccess)
+        throw std::runtime_error(
+          "Failed to wait for in-flight fence: " + vk::to_string(err));
+
+      // reset fence
+      device.resetFences(m_pimpl->in_flight_fences[m_pimpl->frame_index].get());
     }
 
     // return current command buffer
