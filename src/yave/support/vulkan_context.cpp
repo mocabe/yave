@@ -1297,6 +1297,7 @@ namespace yave {
     std::vector<vk::UniqueSemaphore> acquire_semaphores;
     std::vector<vk::UniqueSemaphore> complete_semaphores;
     std::vector<vk::UniqueFence> in_flight_fences;
+    vk::UniqueFence acquire_fence;
 
   public:
     const vulkan_context* context; // non-owning
@@ -1438,6 +1439,8 @@ namespace yave {
     impl->in_flight_fences =
       createFences(impl->swapchain_image_count, m_device.get());
 
+    impl->acquire_fence = std::move(createFences(1, m_device.get())[0]);
+
     window_context ctx;
     ctx.m_pimpl = std::move(impl);
 
@@ -1543,21 +1546,37 @@ namespace yave {
 
     {
       // acquire new image, set next frame index.
+
+      device.resetFences(m_pimpl->acquire_fence.get());
+
       auto err = device.acquireNextImageKHR(
         m_pimpl->swapchain.get(),
         std::numeric_limits<uint64_t>::max(),
         m_pimpl->acquire_semaphores[m_pimpl->frame_index].get(),
-        vk::Fence(),
+        m_pimpl->acquire_fence.get(),
         &m_pimpl->image_index);
+
+      device.waitForFences(
+        m_pimpl->acquire_fence.get(),
+        VK_TRUE,
+        std::numeric_limits<uint64_t>::max());
 
       while (err == vk::Result::eErrorOutOfDateKHR) {
         rebuild_frame_buffers();
+
+        device.resetFences(m_pimpl->acquire_fence.get());
+
         err = device.acquireNextImageKHR(
           m_pimpl->swapchain.get(),
           std::numeric_limits<uint64_t>::max(),
           m_pimpl->acquire_semaphores[m_pimpl->frame_index].get(),
-          vk::Fence(),
+          m_pimpl->acquire_fence.get(),
           &m_pimpl->image_index);
+
+        device.waitForFences(
+          m_pimpl->acquire_fence.get(),
+          VK_TRUE,
+          std::numeric_limits<uint64_t>::max());
       }
 
       if (err != vk::Result::eSuccess)
