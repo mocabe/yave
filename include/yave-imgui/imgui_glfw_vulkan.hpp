@@ -14,6 +14,9 @@ namespace yave {
   {
   public:
     imgui_glfw_vulkan(bool enableValidation = true);
+    ~imgui_glfw_vulkan();
+
+    void run();
 
   private:
     yave::glfw_context m_glfwCtx;
@@ -22,10 +25,14 @@ namespace yave {
     yave::vulkan_context::window_context m_windowCtx;
 
   private:
-    vk::UniquePipelineLayout m_pipelineLayout;
     vk::UniquePipelineCache m_pipelineCache;
+    vk::UniquePipelineLayout m_pipelineLayout;
     vk::UniquePipeline m_pipeline;
-    vk::UniqueFence m_fence;
     vk::UniqueDescriptorPool m_descriptorPool;
+    vk::UniqueDescriptorSetLayout m_descriptorSetLayout;
+    vk::UniqueDescriptorSet m_descriptorSet;
+    vk::UniqueImage m_fontImage;
+    vk::UniqueImageView m_fontImageView;
+    vk::UniqueSampler m_fontSampler;
   };
 }
