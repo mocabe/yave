@@ -28,6 +28,7 @@ namespace yave {
     vk::Queue m_queue;
     vk::CommandPool m_pool;
     vk::UniqueCommandBuffer m_buffer;
+    vk::UniqueFence m_fence;
   };
 
   /// Vulkan API context.
@@ -114,7 +115,7 @@ namespace yave {
 
     public:
       /// Create single time command
-      [[nodiscard]] single_time_command single_time_command() const;
+      [[nodiscard]] yave::single_time_command single_time_command() const;
 
     private:
       class impl;

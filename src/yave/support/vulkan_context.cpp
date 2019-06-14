@@ -1832,6 +1832,7 @@ namespace yave {
   {
     // create command buffer
     m_buffer = std::move(createCommandBuffers(1, m_pool, m_device)[0]);
+    m_fence  = std::move(createFences(1, m_device)[0]);
     // begin command buffer
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
@@ -1840,11 +1841,18 @@ namespace yave {
 
   single_time_command::~single_time_command()
   {
+    // end command buffer
+    m_buffer->end();
+    // reset fence
+    m_device.resetFences(m_fence.get());
     // submit command buffer
     vk::SubmitInfo submitInfo;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers    = &m_buffer.get();
-    m_queue.submit(submitInfo, vk::Fence());
+    m_queue.submit(submitInfo, m_fence.get());
+    // wait command submission
+    m_device.waitForFences(
+      m_fence.get(), VK_TRUE, std::numeric_limits<uint64_t>::max());
   }
 
   vk::CommandBuffer single_time_command::command_buffer() const
@@ -1913,6 +1921,12 @@ namespace yave {
     vulkan_context::window_context::new_frame() const
   {
     return command_recorder(this);
+  }
+
+  vk::CommandBuffer
+    vulkan_context::window_context::command_recorder::command_buffer() const
+  {
+    return m_buffer;
   }
 
 } // namespace yave
