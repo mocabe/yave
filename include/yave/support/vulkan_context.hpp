@@ -62,36 +62,56 @@ namespace yave {
       window_context();
 
     public: /* data access */
+      /// Move window context.
       window_context(window_context&& other) noexcept;
+      /// Dtor
       ~window_context() noexcept;
+      /// Get surface
       [[nodiscard]] vk::SurfaceKHR surface() const;
+      /// Get swapchain
       [[nodiscard]] vk::SwapchainKHR swapchain() const;
+      /// Get swapchain images
       [[nodiscard]] std::vector<vk::Image> swapchain_images() const;
+      /// Get swapchain image views
       [[nodiscard]] std::vector<vk::ImageView> swapchain_image_views() const;
+      /// Get frame buffers
       [[nodiscard]] std::vector<vk::Framebuffer> frame_buffers() const;
+      /// Get current swapchain format
       [[nodiscard]] vk::SurfaceFormatKHR swapchain_format() const;
+      /// Get current swapchain extent
       [[nodiscard]] vk::Extent2D swapchain_extent() const;
+      /// Get render pass
       [[nodiscard]] vk::RenderPass render_pass() const;
+      /// Get command pool
       [[nodiscard]] vk::CommandPool command_pool() const;
+      /// Get command buffers
       [[nodiscard]] std::vector<vk::CommandBuffer> command_buffers() const;
-      [[nodiscard]] std::vector<vk::Semaphore> acquire_semaphores() const;
-      [[nodiscard]] std::vector<vk::Semaphore> complete_semaphores() const;
 
     public: /* window state */
+      /// Get window
       [[nodiscard]] GLFWwindow* window() const;
+      /// Check if frame buffer is resized.
       [[nodiscard]] bool resized() const;
+      /// Check if widnow should close.
       [[nodiscard]] bool should_close() const;
 
     public: /* framebuffer update */
-      /// rebuild resources related to frame buffer.
+      /// Rebuild resources related to frame buffer.
       /// \note: Not internally synchronized.
+      /// \note: Does not poll glfw event. Use resized() to check resize event.
+      /// \note: This function will block rendering thread when frame buffer
+      /// size is zero. Happens when window is minimized on Windows platform.
       void rebuild_frame_buffers() const;
 
-    private: /* render operations */
-      /// update frame/semaphore indicies and acquire new image
-      vk::CommandBuffer begin_frame() const;
-      /// submit current frame buffer
+    public: /* render operations */
+      /// Update frame/semaphore indicies and acquire new image.
+      void begin_frame() const;
+      /// Submit current frame buffer.
       void end_frame() const;
+      /// Begin recording command.
+      [[nodiscard]] vk::CommandBuffer begin_record() const;
+      /// End recording command.
+      void end_record(const vk::CommandBuffer& buffer) const;
 
     public:
       /// RAII frame context
@@ -111,7 +131,7 @@ namespace yave {
       };
 
       /// create frame context
-      [[nodiscard]] command_recorder new_frame() const;
+      [[nodiscard]] command_recorder new_recorder() const;
 
     public:
       /// Create single time command

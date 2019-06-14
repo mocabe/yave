@@ -1308,7 +1308,7 @@ namespace yave {
     uint32_t swapchain_image_count;
 
   public:
-    uint32_t image_index     = 0;
+    uint32_t image_index = 0;
     uint32_t frame_index = 0;
 
   public:
@@ -1462,7 +1462,7 @@ namespace yave {
     }
 
     // Windows: minimized window have zero extent. Wait until next event.
-    if (vk::Extent2D(new_extent) == vk::Extent2D(0, 0)) {
+    while (vk::Extent2D(new_extent) == vk::Extent2D(0, 0)) {
       m_pimpl->context->m_glfw->wait_events();
       new_extent = m_pimpl->window_extent.load();
     }
@@ -1530,7 +1530,7 @@ namespace yave {
     Info(g_vulkan_logger, "Recreated swapchain");
   }
 
-  vk::CommandBuffer vulkan_context::window_context::begin_frame() const
+  void vulkan_context::window_context::begin_frame() const
   {
     auto device = m_pimpl->context->device();
 
@@ -1538,7 +1538,7 @@ namespace yave {
     m_pimpl->frame_index =
       (m_pimpl->frame_index + 1) % m_pimpl->swapchain_image_count;
 
-    // detect reisze
+    // detect window resize.
     if (resized())
       rebuild_frame_buffers();
 
@@ -1569,6 +1569,10 @@ namespace yave {
       // loop
       while (err == vk::Result::eErrorOutOfDateKHR) {
 
+        // poll window resize event
+        if (!resized())
+          break; // abort
+
         rebuild_frame_buffers();
 
         device.resetFences(m_pimpl->acquire_fence.get());
@@ -1580,7 +1584,7 @@ namespace yave {
           m_pimpl->acquire_fence.get(),
           &m_pimpl->image_index);
 
-        auto wait_err = device.waitForFences(
+        wait_err = device.waitForFences(
           m_pimpl->acquire_fence.get(),
           VK_TRUE,
           std::numeric_limits<uint64_t>::max());
@@ -1613,9 +1617,6 @@ namespace yave {
       // reset fence
       device.resetFences(m_pimpl->in_flight_fences[m_pimpl->frame_index].get());
     }
-
-    // return current command buffer
-    return m_pimpl->command_buffers[m_pimpl->frame_index].get();
   }
 
   void vulkan_context::window_context::end_frame() const
@@ -1672,6 +1673,44 @@ namespace yave {
       if (err != vk::Result::eSuccess)
         throw std::runtime_error("Failed to present: " + vk::to_string(err));
     }
+  }
+
+  vk::CommandBuffer vulkan_context::window_context::begin_record() const
+  {
+    auto buffer = m_pimpl->command_buffers[m_pimpl->frame_index].get();
+
+    /* begin command buffer */
+    {
+      vk::CommandBufferBeginInfo beginInfo;
+      beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+      buffer.begin(beginInfo);
+    }
+    /* begin render pass */
+    {
+      // TODO: set clear color
+      vk::ClearValue clearValue;
+
+      // begin render pass
+      vk::RenderPassBeginInfo beginInfo;
+      beginInfo.renderPass        = m_pimpl->render_pass.get();
+      beginInfo.renderArea.extent = m_pimpl->swapchain_extent;
+      beginInfo.clearValueCount   = 1;
+      beginInfo.pClearValues      = &clearValue;
+      beginInfo.framebuffer =
+        m_pimpl->frame_buffers[m_pimpl->image_index].get();
+
+      buffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
+    }
+    return buffer;
+  }
+
+  void vulkan_context::window_context::end_record(
+    const vk::CommandBuffer& buffer) const
+  {
+    // end render pass
+    buffer.endRenderPass();
+    // end command buffer
+    buffer.end();
   }
 
   vulkan_context::window_context::window_context()
@@ -1775,34 +1814,6 @@ namespace yave {
     return ret;
   }
 
-  std::vector<vk::Semaphore>
-    vulkan_context::window_context::acquire_semaphores() const
-  {
-    assert(!m_pimpl->acquire_semaphores.empty());
-    assert(
-      m_pimpl->acquire_semaphores.size() == m_pimpl->swapchain_image_count);
-
-    std::vector<vk::Semaphore> ret;
-    for (auto&& semaph : m_pimpl->acquire_semaphores) {
-      ret.push_back(semaph.get());
-    }
-    return ret;
-  }
-
-  std::vector<vk::Semaphore>
-    vulkan_context::window_context::complete_semaphores() const
-  {
-    assert(!m_pimpl->complete_semaphores.empty());
-    assert(
-      m_pimpl->complete_semaphores.size() == m_pimpl->swapchain_image_count);
-
-    std::vector<vk::Semaphore> ret;
-    for (auto&& semaph : m_pimpl->complete_semaphores) {
-      ret.push_back(semaph.get());
-    }
-    return ret;
-  }
-
   bool vulkan_context::window_context::resized() const
   {
     m_pimpl->context->m_glfw->poll_events();
@@ -1872,32 +1883,14 @@ namespace yave {
     const window_context* window_ctx)
     : m_window_ctx {window_ctx}
   {
-    // start new frame
-    m_buffer = m_window_ctx->begin_frame();
+    m_window_ctx->begin_frame();
+    m_buffer = m_window_ctx->begin_record();
+  }
 
-    /* begin command buffer */
-    {
-      vk::CommandBufferBeginInfo beginInfo;
-      beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-      m_buffer.begin(beginInfo);
-    }
-    /* begin render pass */
-    {
-      // TODO: set clear color
-      vk::ClearValue clearValue;
-
-      // begin render pass
-      vk::RenderPassBeginInfo beginInfo;
-      beginInfo.renderPass        = m_window_ctx->render_pass();
-      beginInfo.renderArea.extent = m_window_ctx->swapchain_extent();
-      beginInfo.clearValueCount   = 1;
-      beginInfo.pClearValues      = &clearValue;
-      beginInfo.framebuffer =
-        m_window_ctx->m_pimpl->frame_buffers[m_window_ctx->m_pimpl->image_index]
-          .get();
-
-      m_buffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
-    }
+  vulkan_context::window_context::command_recorder::~command_recorder()
+  {
+    m_window_ctx->end_record(m_buffer);
+    m_window_ctx->end_frame();
   }
 
   vulkan_context::window_context::command_recorder::command_recorder(
@@ -1907,18 +1900,8 @@ namespace yave {
   {
   }
 
-  vulkan_context::window_context::command_recorder::~command_recorder()
-  {
-    // end render pass
-    m_buffer.endRenderPass();
-    // end command buffer
-    m_buffer.end();
-    // end current frame
-    m_window_ctx->end_frame();
-  }
-
   vulkan_context::window_context::command_recorder
-    vulkan_context::window_context::new_frame() const
+    vulkan_context::window_context::new_recorder() const
   {
     return command_recorder(this);
   }

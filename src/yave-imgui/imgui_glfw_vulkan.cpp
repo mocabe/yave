@@ -684,7 +684,7 @@ namespace yave {
 
       auto bgn = std::chrono::high_resolution_clock::now();
       {
-        auto recorder = m_windowCtx.new_frame();
+        auto recorder = m_windowCtx.new_recorder();
         renderImGuiDrawData(
           ImGui::GetDrawData(), m_windowCtx, recorder.command_buffer());
       }
