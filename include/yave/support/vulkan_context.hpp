@@ -14,12 +14,16 @@ namespace yave {
   class single_time_command
   {
   public:
+    /// Create command buffer and start recording.
     single_time_command(
       const vk::Device& device,
       const vk::Queue& queue,
       const vk::CommandPool& pool);
+    /// End command buffer and submit.
     ~single_time_command();
+    /// Move single time command.
     single_time_command(single_time_command&& other) noexcept;
+    /// Get recording command buffer.
     [[nodiscard]] vk::CommandBuffer command_buffer() const;
 
   private:
@@ -48,8 +52,12 @@ namespace yave {
     [[nodiscard]] vk::PhysicalDevice physical_device() const;
     /// Get device.
     [[nodiscard]] vk::Device device() const;
+    /// Get graphics queue index
+    [[nodiscard]] uint32_t graphics_queue_family_index() const;
     /// Get graphics queue
     [[nodiscard]] vk::Queue graphics_queue() const;
+    /// Get present queue index
+    [[nodiscard]] uint32_t present_queue_family_index() const;
     /// Get present queue
     [[nodiscard]] vk::Queue present_queue() const;
 
@@ -105,13 +113,33 @@ namespace yave {
 
     public: /* render operations */
       /// Update frame/semaphore indicies and acquire new image.
+      /// \note: command_recorder will call this automatically.
       void begin_frame() const;
       /// Submit current frame buffer.
+      /// \note: command_recorder will call this automatically.
       void end_frame() const;
       /// Begin recording command.
+      /// \note: command_recorder will call this automatically.
       [[nodiscard]] vk::CommandBuffer begin_record() const;
       /// End recording command.
+      /// \note: command_recorder will call this automatically.
       void end_record(const vk::CommandBuffer& buffer) const;
+      /// Get current swapchain index.
+      /// \note: Swapchain index is given by driver every frame, and there's no
+      /// guarantee about order of index. This index should only be used for
+      /// specifying swapchain resources like image or frame buffer.
+      /// \note: Maximum value of swapchain index is swapchain_image_count()-1
+      /// or swapchain_index_count()-1;
+      [[nodiscard]] uint32_t swapchain_index() const;
+      /// Get number of swapchain index.
+      /// \returns swapchain_image_count()
+      [[nodiscard]] uint32_t swapchain_index_count() const;
+      /// Get current frame index. This index can be used for resources for each
+      /// render operation.
+      [[nodiscard]] uint32_t frame_index() const;
+      /// Get number of frame index. This value also represents maximum number
+      /// of in-flight render operations.
+      [[nodiscard]] uint32_t frame_index_count() const;
 
     public:
       /// RAII frame context
@@ -119,18 +147,22 @@ namespace yave {
       {
       public:
         command_recorder(command_recorder&& other) noexcept;
+        /// calls end_record() and end_frame()
         ~command_recorder();
         [[nodiscard]] vk::CommandBuffer command_buffer() const;
 
       private:
-        friend class window_context;
         command_recorder(const command_recorder&) = delete;
+        /// calls begin_frame() and begin_record()
         command_recorder(const window_context* window_ctx);
+
+      private:
+        friend class window_context;
         const window_context* m_window_ctx;
         vk::CommandBuffer m_buffer;
       };
 
-      /// create frame context
+      /// create RAII frame recorder
       [[nodiscard]] command_recorder new_recorder() const;
 
     public:
@@ -143,44 +175,11 @@ namespace yave {
     };
 
     /// Create new window context
-    vulkan_context::window_context
+    [[nodiscard]] vulkan_context::window_context
       create_window_context(unique_glfw_window& window) const;
 
   private:
-    // glfw
-    glfw_context* m_glfw;
-
-    /* instance */
-
-    /// instance
-    vk::UniqueInstance m_instance;
-    /// validation callback
-    vk::UniqueDebugReportCallbackEXT m_debugCallback;
-
-    /* physical device */
-
-    /// physical device
-    vk::PhysicalDevice m_physicalDevice;
-    /// property of physical device
-    vk::PhysicalDeviceProperties m_physicalDeviceProperties;
-    /// queue family property of physical device
-    std::vector<vk::QueueFamilyProperties>
-      m_physicalDeviceQueueFamilyProperties;
-
-    /* device queue */
-
-    /// index of graphics queue
-    uint32_t m_graphicsQueueIndex;
-    /// graphics queue
-    vk::Queue m_graphicsQueue;
-    /// index of present queue
-    uint32_t m_presentQueueIndex;
-    /// present queue
-    vk::Queue m_presentQueue;
-
-    /* logical device */
-
-    /// device
-    vk::UniqueDevice m_device;
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
   };
 }

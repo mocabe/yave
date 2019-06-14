@@ -1194,10 +1194,102 @@ namespace {
 
 namespace yave {
 
+  // -----------------------------------------
+  // single_time_command
+
+  single_time_command::single_time_command(single_time_command&& other) noexcept
+    : m_device {other.m_device}
+    , m_queue {other.m_queue}
+    , m_pool {other.m_pool}
+    , m_buffer {std::move(other.m_buffer)}
+  {
+  }
+
+  single_time_command::single_time_command(
+    const vk::Device& device,
+    const vk::Queue& queue,
+    const vk::CommandPool& pool)
+    : m_device {device}
+    , m_queue {queue}
+    , m_pool {pool}
+  {
+    // create command buffer
+    m_buffer = std::move(createCommandBuffers(1, m_pool, m_device)[0]);
+    m_fence  = std::move(createFences(1, m_device)[0]);
+    // begin command buffer
+    vk::CommandBufferBeginInfo beginInfo;
+    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+    m_buffer->begin(beginInfo);
+  }
+
+  single_time_command::~single_time_command()
+  {
+    // end command buffer
+    m_buffer->end();
+    // reset fence
+    m_device.resetFences(m_fence.get());
+    // submit command buffer
+    vk::SubmitInfo submitInfo;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers    = &m_buffer.get();
+    m_queue.submit(submitInfo, m_fence.get());
+    // wait command submission
+    m_device.waitForFences(
+      m_fence.get(), VK_TRUE, std::numeric_limits<uint64_t>::max());
+  }
+
+  vk::CommandBuffer single_time_command::command_buffer() const
+  {
+    return m_buffer.get();
+  }
+
+  // -----------------------------------------
+  // vulkan_context
+
+  class vulkan_context::impl
+  {
+  public:
+    impl() = default;
+
+    // glfw
+    glfw_context* glfw;
+
+    /* instance */
+
+    /// instance
+    vk::UniqueInstance instance;
+    /// validation callback
+    vk::UniqueDebugReportCallbackEXT debugCallback;
+
+    /* physical device */
+
+    /// physical device
+    vk::PhysicalDevice physicalDevice;
+    /// property of physical device
+    vk::PhysicalDeviceProperties physicalDeviceProperties;
+    /// queue family property of physical device
+    std::vector<vk::QueueFamilyProperties> physicalDeviceQueueFamilyProperties;
+
+    /* device queue */
+
+    /// index of graphics queue
+    uint32_t graphicsQueueIndex;
+    /// graphics queue
+    vk::Queue graphicsQueue;
+    /// index of present queue
+    uint32_t presentQueueIndex;
+    /// present queue
+    vk::Queue presentQueue;
+
+    /* logical device */
+
+    /// device
+    vk::UniqueDevice device;
+  };
+
   vulkan_context::vulkan_context(
     [[maybe_unused]] glfw_context& glfw_ctx,
     bool enableValidationLayer)
-    : m_glfw {&glfw_ctx}
   {
     init_vulkan_logger();
 
@@ -1206,46 +1298,56 @@ namespace yave {
 
     Info(g_vulkan_logger, "Start initializing vulkan_context");
 
+    /// pimpl
+    auto impl = std::make_unique<vulkan_context::impl>();
+
+    // glfw
+    impl->glfw = &glfw_ctx;
+
     /* instance */
 
-    m_instance = createInstance(enableValidationLayer);
-    m_debugCallback =
-      createDebugReportCallback(enableValidationLayer, m_instance.get());
+    impl->instance = createInstance(enableValidationLayer);
+    impl->debugCallback =
+      createDebugReportCallback(enableValidationLayer, impl->instance.get());
 
     /* physical device */
 
-    m_physicalDevice           = acquirePhysicalDevice(m_instance.get());
-    m_physicalDeviceProperties = m_physicalDevice.getProperties();
-    m_physicalDeviceQueueFamilyProperties =
-      m_physicalDevice.getQueueFamilyProperties();
+    impl->physicalDevice = acquirePhysicalDevice(impl->instance.get());
+    impl->physicalDeviceProperties = impl->physicalDevice.getProperties();
+    impl->physicalDeviceQueueFamilyProperties =
+      impl->physicalDevice.getQueueFamilyProperties();
 
     /* device queue settings */
 
-    m_graphicsQueueIndex = getGraphicsQueueIndex(m_physicalDevice);
+    impl->graphicsQueueIndex = getGraphicsQueueIndex(impl->physicalDevice);
 
-    Info(g_vulkan_logger, "Graphs queue idex: {}", m_graphicsQueueIndex);
+    Info(g_vulkan_logger, "Graphs queue idex: {}", impl->graphicsQueueIndex);
 
-    m_presentQueueIndex = getPresentQueueIndex(
-      m_graphicsQueueIndex, m_instance.get(), m_physicalDevice);
+    impl->presentQueueIndex = getPresentQueueIndex(
+      impl->graphicsQueueIndex, impl->instance.get(), impl->physicalDevice);
 
-    Info(g_vulkan_logger, "Presentation queue index: {}", m_presentQueueIndex);
+    Info(
+      g_vulkan_logger, "Presentation queue index: {}", impl->presentQueueIndex);
 
     /* logical device */
 
-    m_device =
-      createDevice(m_graphicsQueueIndex, m_presentQueueIndex, m_physicalDevice);
+    impl->device = createDevice(
+      impl->graphicsQueueIndex, impl->presentQueueIndex, impl->physicalDevice);
 
     Info(g_vulkan_logger, "Created new logical device");
 
     /* get queue */
 
-    m_graphicsQueue = getDeviceQueue(m_graphicsQueueIndex, m_device.get());
-    m_presentQueue  = getDeviceQueue(m_presentQueueIndex, m_device.get());
+    impl->graphicsQueue =
+      getDeviceQueue(impl->graphicsQueueIndex, impl->device.get());
+    impl->presentQueue =
+      getDeviceQueue(impl->presentQueueIndex, impl->device.get());
 
-    if (m_graphicsQueueIndex == m_presentQueueIndex) {
-      assert(m_graphicsQueue == m_presentQueue);
+    if (impl->graphicsQueueIndex == impl->presentQueueIndex) {
+      assert(impl->graphicsQueue == impl->presentQueue);
     }
 
+    m_pimpl = std::move(impl);
     Info(g_vulkan_logger, "Initialized Vulkan context");
   }
 
@@ -1256,28 +1358,41 @@ namespace yave {
 
   vk::Instance vulkan_context::instance() const
   {
-    return m_instance.get();
+    return m_pimpl->instance.get();
   }
 
   vk::PhysicalDevice vulkan_context::physical_device() const
   {
-    return m_physicalDevice;
+    return m_pimpl->physicalDevice;
   }
 
   vk::Device vulkan_context::device() const
   {
-    return m_device.get();
+    return m_pimpl->device.get();
+  }
+
+  uint32_t vulkan_context::graphics_queue_family_index() const
+  {
+    return m_pimpl->graphicsQueueIndex;
   }
 
   vk::Queue vulkan_context::graphics_queue() const
   {
-    return m_graphicsQueue;
+    return m_pimpl->graphicsQueue;
+  }
+
+  uint32_t vulkan_context::present_queue_family_index() const
+  {
+    return m_pimpl->presentQueueIndex;
   }
 
   vk::Queue vulkan_context::present_queue() const
   {
-    return m_presentQueue;
+    return m_pimpl->presentQueue;
   }
+
+  // -----------------------------------------
+  // window_context
 
   class vulkan_context::window_context::impl
   {
@@ -1366,7 +1481,7 @@ namespace yave {
       });
 
     // create surface
-    impl->surface = createWindowSurface(window.get(), m_instance.get());
+    impl->surface = createWindowSurface(window.get(), m_pimpl->instance.get());
 
     Info(g_vulkan_logger, "Created new surface");
 
@@ -1374,10 +1489,10 @@ namespace yave {
     impl->swapchain = createSwapchain(
       impl->surface.get(),
       {impl->window_extent},
-      m_graphicsQueueIndex,
-      m_presentQueueIndex,
-      m_physicalDevice,
-      m_device.get(),
+      m_pimpl->graphicsQueueIndex,
+      m_pimpl->presentQueueIndex,
+      m_pimpl->physicalDevice,
+      m_pimpl->device.get(),
       &impl->swapchain_format,       // out
       &impl->swapchain_present_mode, // out
       &impl->swapchain_extent,       // out
@@ -1387,11 +1502,11 @@ namespace yave {
 
     // get swapchain images
     impl->swapchain_images =
-      m_device->getSwapchainImagesKHR(impl->swapchain.get());
+      m_pimpl->device->getSwapchainImagesKHR(impl->swapchain.get());
 
     // create image views
     impl->swapchain_image_views = createSwapchainImageViews(
-      impl->swapchain.get(), impl->swapchain_format, m_device.get());
+      impl->swapchain.get(), impl->swapchain_format, m_pimpl->device.get());
 
     assert(impl->swapchain_images.size() == impl->swapchain_image_views.size());
     assert(impl->swapchain_images.size() == impl->swapchain_image_count);
@@ -1400,7 +1515,7 @@ namespace yave {
 
     // create render pass
     impl->render_pass =
-      createRenderPass(impl->swapchain_format, m_device.get());
+      createRenderPass(impl->swapchain_format, m_pimpl->device.get());
 
     Info(g_vulkan_logger, "Created render pass");
 
@@ -1409,19 +1524,21 @@ namespace yave {
       impl->swapchain_image_views,
       impl->render_pass.get(),
       impl->swapchain_extent,
-      m_device.get());
+      m_pimpl->device.get());
 
     Info(g_vulkan_logger, "Created frame buffers");
 
     // create command pool
     impl->command_pool =
-      createCommandPool(m_graphicsQueueIndex, m_device.get());
+      createCommandPool(m_pimpl->graphicsQueueIndex, m_pimpl->device.get());
 
     Info(g_vulkan_logger, "Created command pool");
 
     // create command buffers
     impl->command_buffers = createCommandBuffers(
-      impl->swapchain_image_count, impl->command_pool.get(), m_device.get());
+      impl->swapchain_image_count,
+      impl->command_pool.get(),
+      m_pimpl->device.get());
 
     assert(impl->command_buffers.size() == impl->frame_buffers.size());
 
@@ -1430,16 +1547,16 @@ namespace yave {
     /* semaphores */
 
     impl->acquire_semaphores =
-      createSemaphores(impl->swapchain_image_count, m_device.get());
+      createSemaphores(impl->swapchain_image_count, m_pimpl->device.get());
     impl->complete_semaphores =
-      createSemaphores(impl->swapchain_image_count, m_device.get());
+      createSemaphores(impl->swapchain_image_count, m_pimpl->device.get());
 
     /* fences */
 
     impl->in_flight_fences =
-      createFences(impl->swapchain_image_count, m_device.get());
+      createFences(impl->swapchain_image_count, m_pimpl->device.get());
 
-    impl->acquire_fence = std::move(createFences(1, m_device.get())[0]);
+    impl->acquire_fence = std::move(createFences(1, m_pimpl->device.get())[0]);
 
     window_context ctx;
     ctx.m_pimpl = std::move(impl);
@@ -1463,12 +1580,12 @@ namespace yave {
 
     // Windows: minimized window have zero extent. Wait until next event.
     while (vk::Extent2D(new_extent) == vk::Extent2D(0, 0)) {
-      m_pimpl->context->m_glfw->wait_events();
+      glfwWaitEvents();
       new_extent = m_pimpl->window_extent.load();
     }
 
     // idle
-    m_pimpl->context->m_device->waitIdle();
+    m_pimpl->context->device().waitIdle();
 
     /* destroy swapchain resources */
     m_pimpl->command_buffers.clear();
@@ -1487,45 +1604,45 @@ namespace yave {
     m_pimpl->swapchain = createSwapchain(
       m_pimpl->surface.get(),
       new_extent,
-      m_pimpl->context->m_graphicsQueueIndex,
-      m_pimpl->context->m_presentQueueIndex,
-      m_pimpl->context->m_physicalDevice,
-      m_pimpl->context->m_device.get(),
+      m_pimpl->context->graphics_queue_family_index(),
+      m_pimpl->context->present_queue_family_index(),
+      m_pimpl->context->physical_device(),
+      m_pimpl->context->device(),
       &m_pimpl->swapchain_format,
       &m_pimpl->swapchain_present_mode,
       &m_pimpl->swapchain_extent,
       &m_pimpl->swapchain_image_count);
 
     m_pimpl->swapchain_images =
-      m_pimpl->context->m_device->getSwapchainImagesKHR(
+      m_pimpl->context->device().getSwapchainImagesKHR(
         m_pimpl->swapchain.get());
 
     m_pimpl->swapchain_image_views = createSwapchainImageViews(
       m_pimpl->swapchain.get(),
       m_pimpl->swapchain_format,
-      m_pimpl->context->m_device.get());
+      m_pimpl->context->device());
 
-    m_pimpl->render_pass = createRenderPass(
-      m_pimpl->swapchain_format, m_pimpl->context->m_device.get());
+    m_pimpl->render_pass =
+      createRenderPass(m_pimpl->swapchain_format, m_pimpl->context->device());
 
     m_pimpl->frame_buffers = createFrameBuffers(
       m_pimpl->swapchain_image_views,
       m_pimpl->render_pass.get(),
       m_pimpl->swapchain_extent,
-      m_pimpl->context->m_device.get());
+      m_pimpl->context->device());
 
     m_pimpl->command_buffers = createCommandBuffers(
       m_pimpl->swapchain_image_count,
       m_pimpl->command_pool.get(),
-      m_pimpl->context->m_device.get());
+      m_pimpl->context->device());
 
     m_pimpl->acquire_semaphores = createSemaphores(
-      m_pimpl->swapchain_image_count, m_pimpl->context->m_device.get());
+      m_pimpl->swapchain_image_count, m_pimpl->context->device());
     m_pimpl->complete_semaphores = createSemaphores(
-      m_pimpl->swapchain_image_count, m_pimpl->context->m_device.get());
+      m_pimpl->swapchain_image_count, m_pimpl->context->device());
 
-    m_pimpl->in_flight_fences = createFences(
-      m_pimpl->swapchain_image_count, m_pimpl->context->m_device.get());
+    m_pimpl->in_flight_fences =
+      createFences(m_pimpl->swapchain_image_count, m_pimpl->context->device());
 
     Info(g_vulkan_logger, "Recreated swapchain");
   }
@@ -1816,59 +1933,13 @@ namespace yave {
 
   bool vulkan_context::window_context::resized() const
   {
-    m_pimpl->context->m_glfw->poll_events();
+    glfwPollEvents();
     return vk::Extent2D(m_pimpl->window_extent) != m_pimpl->swapchain_extent;
   }
 
   bool vulkan_context::window_context::should_close() const
   {
     return glfwWindowShouldClose(m_pimpl->window);
-  }
-
-  single_time_command::single_time_command(single_time_command&& other) noexcept
-    : m_device {other.m_device}
-    , m_queue {other.m_queue}
-    , m_pool {other.m_pool}
-    , m_buffer {std::move(other.m_buffer)}
-  {
-  }
-
-  single_time_command::single_time_command(
-    const vk::Device& device,
-    const vk::Queue& queue,
-    const vk::CommandPool& pool)
-    : m_device {device}
-    , m_queue {queue}
-    , m_pool {pool}
-  {
-    // create command buffer
-    m_buffer = std::move(createCommandBuffers(1, m_pool, m_device)[0]);
-    m_fence  = std::move(createFences(1, m_device)[0]);
-    // begin command buffer
-    vk::CommandBufferBeginInfo beginInfo;
-    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-    m_buffer->begin(beginInfo);
-  }
-
-  single_time_command::~single_time_command()
-  {
-    // end command buffer
-    m_buffer->end();
-    // reset fence
-    m_device.resetFences(m_fence.get());
-    // submit command buffer
-    vk::SubmitInfo submitInfo;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers    = &m_buffer.get();
-    m_queue.submit(submitInfo, m_fence.get());
-    // wait command submission
-    m_device.waitForFences(
-      m_fence.get(), VK_TRUE, std::numeric_limits<uint64_t>::max());
-  }
-
-  vk::CommandBuffer single_time_command::command_buffer() const
-  {
-    return m_buffer.get();
   }
 
   single_time_command
@@ -1878,6 +1949,35 @@ namespace yave {
             m_pimpl->context->graphics_queue(),
             m_pimpl->command_pool.get()};
   }
+
+  vulkan_context::window_context::command_recorder
+    vulkan_context::window_context::new_recorder() const
+  {
+    return command_recorder(this);
+  }
+
+  uint32_t vulkan_context::window_context::swapchain_index() const
+  {
+    return m_pimpl->image_index;
+  }
+
+  uint32_t vulkan_context::window_context::swapchain_index_count() const
+  {
+    return m_pimpl->swapchain_image_count;
+  }
+
+  uint32_t vulkan_context::window_context::frame_index() const
+  {
+    return m_pimpl->frame_index;
+  }
+
+  uint32_t vulkan_context::window_context::frame_index_count() const
+  {
+    return m_pimpl->swapchain_image_count;
+  }
+
+  // -----------------------------------------
+  // command_recorder
 
   vulkan_context::window_context::command_recorder::command_recorder(
     const window_context* window_ctx)
@@ -1898,12 +1998,6 @@ namespace yave {
     : m_window_ctx {std::move(other.m_window_ctx)}
     , m_buffer {std::move(other.m_buffer)}
   {
-  }
-
-  vulkan_context::window_context::command_recorder
-    vulkan_context::window_context::new_recorder() const
-  {
-    return command_recorder(this);
   }
 
   vk::CommandBuffer
