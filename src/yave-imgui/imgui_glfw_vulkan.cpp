@@ -28,13 +28,7 @@ namespace {
   {
     vk::FenceCreateInfo info;
     info.flags = vk::FenceCreateFlagBits::eSignaled;
-
-    auto fence = device.createFenceUnique(info);
-
-    if (!fence)
-      throw std::runtime_error("Failed to create fence");
-
-    return fence;
+    return device.createFenceUnique(info);
   }
 
   vk::UniquePipelineLayout createImGuiPipelineLayout(
@@ -45,37 +39,21 @@ namespace {
     // vec2 uScale; vec2 uTranslate;
     vk::PushConstantRange pcr;
     pcr.stageFlags = vk::ShaderStageFlagBits::eVertex;
-    pcr.offset     = 0;
-    pcr.size       = sizeof(ImVec2) * 2;
+    pcr.size       = sizeof(float) * 4;
 
     vk::PipelineLayoutCreateInfo info;
-    info.flags                  = vk::PipelineLayoutCreateFlags();
     info.setLayoutCount         = 1;
     info.pSetLayouts            = &setLayout;
     info.pushConstantRangeCount = 1;
     info.pPushConstantRanges    = &pcr;
 
-    auto cache = device.createPipelineLayoutUnique(info);
-
-    if (!cache)
-      throw std::runtime_error("Failed to create pipeline cache");
-
-    return cache;
+    return device.createPipelineLayoutUnique(info);
   }
 
   vk::UniquePipelineCache createPipelineCache(const vk::Device& device)
   {
     vk::PipelineCacheCreateInfo info;
-    info.flags           = vk::PipelineCacheCreateFlags();
-    info.initialDataSize = 0;
-    info.pInitialData    = nullptr;
-
-    auto cache = device.createPipelineCacheUnique(info);
-
-    if (!cache)
-      throw std::runtime_error("Failed to create pipeline cache");
-
-    return cache;
+    return device.createPipelineCacheUnique(info);
   }
 
   vk::UniqueShaderModule createShaderModule(
@@ -87,10 +65,7 @@ namespace {
     info.codeSize = code.size();
     info.pCode    = reinterpret_cast<const uint32_t*>(code.data());
 
-    auto module = device.createShaderModuleUnique(info);
-    if (!module)
-      throw std::runtime_error("Failed to create shader module");
-    return module;
+    return device.createShaderModuleUnique(info);
   }
 
   std::vector<std::byte> createImGuiVertexShader()
@@ -114,7 +89,6 @@ namespace {
     const vk::PipelineLayout& pipelineLayout,
     const vk::Device& device)
   {
-
     /* shader stages */
 
     // vertex shader
@@ -122,22 +96,18 @@ namespace {
       createShaderModule(createImGuiVertexShader(), device);
 
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
-    vertShaderStageInfo.flags  = vk::PipelineShaderStageCreateFlags();
     vertShaderStageInfo.stage  = vk::ShaderStageFlagBits::eVertex;
     vertShaderStageInfo.module = *vertShaderModule;
     vertShaderStageInfo.pName  = "main";
-    vertShaderStageInfo.pSpecializationInfo = nullptr;
 
     // fragment shader
     vk::UniqueShaderModule fragShaderModule =
       createShaderModule(createImGuiFragmentShader(), device);
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
-    fragShaderStageInfo.flags  = vk::PipelineShaderStageCreateFlags();
     fragShaderStageInfo.stage  = vk::ShaderStageFlagBits::eFragment;
     fragShaderStageInfo.module = *fragShaderModule;
     fragShaderStageInfo.pName  = "main";
-    fragShaderStageInfo.pSpecializationInfo = nullptr;
 
     // stages
     std::array shaderStages = {vertShaderStageInfo, fragShaderStageInfo};
@@ -171,7 +141,6 @@ namespace {
     vertAttrDesc[2].offset   = offsetof(ImDrawVert, col);
 
     vk::PipelineVertexInputStateCreateInfo vertInputStateInfo;
-    vertInputStateInfo.flags = vk::PipelineVertexInputStateCreateFlags();
     vertInputStateInfo.vertexBindingDescriptionCount   = vertBindingDesc.size();
     vertInputStateInfo.pVertexBindingDescriptions      = vertBindingDesc.data();
     vertInputStateInfo.vertexAttributeDescriptionCount = vertAttrDesc.size();
@@ -180,29 +149,21 @@ namespace {
     /* input assembler */
 
     vk::PipelineInputAssemblyStateCreateInfo inputAsmStateInfo;
-    inputAsmStateInfo.flags    = vk::PipelineInputAssemblyStateCreateFlags();
     inputAsmStateInfo.topology = vk::PrimitiveTopology::eTriangleList;
-    inputAsmStateInfo.primitiveRestartEnable = VK_FALSE;
 
     /* viewport */
 
     std::array<vk::Viewport, 1> viewports;
-    viewports[0].x        = 0.f;
-    viewports[0].y        = 0.f;
     viewports[0].width    = swapchainExtent.width;
     viewports[0].height   = swapchainExtent.height;
-    viewports[0].minDepth = 0.f;
     viewports[0].maxDepth = 1.f;
 
     std::array<vk::Rect2D, 1> scissors;
-    scissors[0].offset.x = 0.f;
-    scissors[0].offset.y = 0.f;
-    scissors[0].extent   = swapchainExtent;
+    scissors[0].extent = swapchainExtent;
 
     static_assert(viewports.size() == scissors.size());
 
     vk::PipelineViewportStateCreateInfo viewportStateInfo;
-    viewportStateInfo.flags         = vk::PipelineViewportStateCreateFlags();
     viewportStateInfo.viewportCount = viewports.size();
     viewportStateInfo.pViewports    = viewports.data();
     viewportStateInfo.scissorCount  = scissors.size();
@@ -211,28 +172,15 @@ namespace {
     /* rasterization */
 
     vk::PipelineRasterizationStateCreateInfo rasterStateInfo;
-    rasterStateInfo.flags = vk::PipelineRasterizationStateCreateFlags();
-    rasterStateInfo.depthClampEnable        = VK_FALSE;
-    rasterStateInfo.rasterizerDiscardEnable = VK_FALSE;
-    rasterStateInfo.polygonMode             = vk::PolygonMode::eFill;
-    rasterStateInfo.cullMode                = vk::CullModeFlagBits::eNone;
-    rasterStateInfo.frontFace               = vk::FrontFace::eClockwise;
-    rasterStateInfo.depthBiasEnable         = VK_FALSE;
-    rasterStateInfo.depthBiasConstantFactor = 0.f;
-    rasterStateInfo.depthBiasClamp          = 0.f;
-    rasterStateInfo.depthBiasSlopeFactor    = 0.f;
-    rasterStateInfo.lineWidth               = 1.f;
+    rasterStateInfo.polygonMode = vk::PolygonMode::eFill;
+    rasterStateInfo.frontFace   = vk::FrontFace::eClockwise;
+    rasterStateInfo.lineWidth   = 1.f;
 
     /* sample */
 
     vk::PipelineMultisampleStateCreateInfo multisampleStateInfo;
-    multisampleStateInfo.flags = vk::PipelineMultisampleStateCreateFlags();
-    multisampleStateInfo.rasterizationSamples  = vk::SampleCountFlagBits::e1;
-    multisampleStateInfo.sampleShadingEnable   = VK_FALSE;
-    multisampleStateInfo.minSampleShading      = 1.f;
-    multisampleStateInfo.pSampleMask           = nullptr;
-    multisampleStateInfo.alphaToCoverageEnable = VK_FALSE;
-    multisampleStateInfo.alphaToOneEnable      = VK_FALSE;
+    multisampleStateInfo.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    multisampleStateInfo.minSampleShading     = 1.f;
 
     /* color blend */
 
@@ -248,28 +196,14 @@ namespace {
     colAttachments[0].dstAlphaBlendFactor = vk::BlendFactor::eZero;
     colAttachments[0].alphaBlendOp        = vk::BlendOp::eAdd;
 
-    vk::PipelineDepthStencilStateCreateInfo depthStencilStateInfo;
-    depthStencilStateInfo.flags = vk::PipelineDepthStencilStateCreateFlags();
-    depthStencilStateInfo.depthTestEnable       = VK_FALSE;
-    depthStencilStateInfo.depthWriteEnable      = VK_FALSE;
-    depthStencilStateInfo.depthCompareOp        = vk::CompareOp::eLess;
-    depthStencilStateInfo.depthBoundsTestEnable = VK_FALSE;
-    depthStencilStateInfo.stencilTestEnable     = VK_FALSE;
-    depthStencilStateInfo.front                 = vk::StencilOpState {};
-    depthStencilStateInfo.back                  = vk::StencilOpState {};
-    depthStencilStateInfo.minDepthBounds        = 0.f;
-    depthStencilStateInfo.maxDepthBounds        = 1.f;
-
     vk::PipelineColorBlendStateCreateInfo colorBlendStateInfo;
-    colorBlendStateInfo.flags = vk::PipelineColorBlendStateCreateFlags();
-    colorBlendStateInfo.logicOpEnable     = VK_FALSE;
-    colorBlendStateInfo.logicOp           = vk::LogicOp::eCopy;
-    colorBlendStateInfo.attachmentCount   = colAttachments.size();
-    colorBlendStateInfo.pAttachments      = colAttachments.data();
-    colorBlendStateInfo.blendConstants[0] = 0.f;
-    colorBlendStateInfo.blendConstants[1] = 0.f;
-    colorBlendStateInfo.blendConstants[2] = 0.f;
-    colorBlendStateInfo.blendConstants[3] = 0.f;
+    colorBlendStateInfo.attachmentCount = colAttachments.size();
+    colorBlendStateInfo.pAttachments    = colAttachments.data();
+
+    vk::PipelineDepthStencilStateCreateInfo depthStencilStateInfo;
+    depthStencilStateInfo.depthCompareOp = vk::CompareOp::eLess;
+    depthStencilStateInfo.minDepthBounds = 0.f;
+    depthStencilStateInfo.maxDepthBounds = 1.f;
 
     /* dynamic state */
 
@@ -278,14 +212,12 @@ namespace {
                                 vk::DynamicState::eLineWidth};
 
     vk::PipelineDynamicStateCreateInfo dynamicStateInfo;
-    dynamicStateInfo.flags             = vk::PipelineDynamicStateCreateFlags();
     dynamicStateInfo.dynamicStateCount = dynamicStates.size();
     dynamicStateInfo.pDynamicStates    = dynamicStates.data();
 
     /* pipeline */
 
     vk::GraphicsPipelineCreateInfo info;
-    info.flags               = vk::PipelineCreateFlags();
     info.stageCount          = shaderStages.size();
     info.pStages             = shaderStages.data();
     info.pVertexInputState   = &vertInputStateInfo;
@@ -294,16 +226,12 @@ namespace {
     info.pRasterizationState = &rasterStateInfo;
     info.pMultisampleState   = &multisampleStateInfo;
     info.pColorBlendState    = &colorBlendStateInfo;
+    info.pDepthStencilState  = &depthStencilStateInfo;
     info.pDynamicState       = &dynamicStateInfo;
     info.renderPass          = renderPass;
     info.layout              = pipelineLayout;
 
-    auto pipeline = device.createGraphicsPipelineUnique(pipelineCache, info);
-
-    if (!pipeline)
-      throw std::runtime_error("Failed to create graphic pipeline");
-
-    return pipeline;
+    return device.createGraphicsPipelineUnique(pipelineCache, info);
   }
 
   vk::UniqueDescriptorPool createImGuiDescriptorPool(const vk::Device& device)
@@ -327,12 +255,7 @@ namespace {
     info.poolSizeCount = poolSizes.size();
     info.pPoolSizes    = poolSizes.data();
 
-    auto pool = device.createDescriptorPoolUnique(info);
-
-    if (!pool)
-      throw std::runtime_error("Failed to create descriptor pool");
-
-    return pool;
+    return device.createDescriptorPoolUnique(info);
   }
 
   uint32_t findMemoryType(
@@ -371,7 +294,6 @@ namespace {
     vk::UniqueBuffer buffer;
     {
       vk::BufferCreateInfo info;
-      info.flags       = vk::BufferCreateFlags();
       info.size        = upload_size;
       info.usage       = vk::BufferUsageFlagBits::eTransferSrc;
       info.sharingMode = vk::SharingMode::eExclusive;
@@ -398,13 +320,13 @@ namespace {
     vk::UniqueImage image;
     {
       vk::ImageCreateInfo info;
-      info.imageType    = vk::ImageType::e2D;
-      info.format       = vk::Format::eR8G8B8A8Unorm;
-      info.extent       = imageExtent;
-      info.mipLevels    = 1;
-      info.arrayLayers  = 1;
-      info.samples      = vk::SampleCountFlagBits::e1;
-      info.tiling       = vk::ImageTiling::eOptimal;
+      info.imageType   = vk::ImageType::e2D;
+      info.format      = vk::Format::eR8G8B8A8Unorm;
+      info.extent      = imageExtent;
+      info.mipLevels   = 1;
+      info.arrayLayers = 1;
+      info.samples     = vk::SampleCountFlagBits::e1;
+      info.tiling      = vk::ImageTiling::eOptimal;
       info.usage =
         vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
       info.sharingMode   = vk::SharingMode::eExclusive;
@@ -487,14 +409,12 @@ namespace {
     /* image layout: transfer dst optimal -> shader read only */
     {
       vk::ImageMemoryBarrier barrier;
-      barrier.oldLayout           = vk::ImageLayout::eTransferDstOptimal;
-      barrier.newLayout           = vk::ImageLayout::eShaderReadOnlyOptimal;
-      barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-      barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-      barrier.image               = image.get();
-      barrier.subresourceRange    = subresourceRange;
-      barrier.srcAccessMask       = vk::AccessFlagBits::eTransferWrite;
-      barrier.dstAccessMask       = vk::AccessFlagBits::eShaderRead;
+      barrier.oldLayout        = vk::ImageLayout::eTransferDstOptimal;
+      barrier.newLayout        = vk::ImageLayout::eShaderReadOnlyOptimal;
+      barrier.image            = image.get();
+      barrier.subresourceRange = subresourceRange;
+      barrier.srcAccessMask    = vk::AccessFlagBits::eTransferWrite;
+      barrier.dstAccessMask    = vk::AccessFlagBits::eShaderRead;
 
       vk::PipelineStageFlags srcStage = vk::PipelineStageFlagBits::eTransfer;
       vk::PipelineStageFlags dstStage =
@@ -552,30 +472,259 @@ namespace {
     return std::move(device.allocateDescriptorSetsUnique(info).front());
   }
 
-  void renderImGuiDrawData(
-    ImDrawData* drawData,
-    const yave::vulkan_context::window_context& windowCtx,
+  template <class Buffer>
+  void uploadImGuiDrawData(
+    const Buffer& vertexBuffer,
+    const Buffer& indexBuffer,
+    const ImDrawData* drawData,
+    const vk::Device& device)
+  {
+    assert(vertexBuffer.size == drawData->TotalVtxCount * sizeof(ImDrawVert));
+    assert(indexBuffer.size == drawData->TotalIdxCount * sizeof(ImDrawIdx));
+    assert(
+      vertexBuffer.capacity >= drawData->TotalVtxCount * sizeof(ImDrawVert));
+    assert(indexBuffer.capacity >= drawData->TotalIdxCount * sizeof(ImDrawIdx));
+
+    /* map memory */
+    std::byte* vertexPtr;
+    std::byte* indexPtr;
+    {
+      vertexPtr = (std::byte*)device.mapMemory(
+        vertexBuffer.memory.get(), 0, vertexBuffer.size);
+      indexPtr = (std::byte*)device.mapMemory(
+        indexBuffer.memory.get(), 0, indexBuffer.size);
+    }
+
+    /* write to buffers */
+    for (int i = 0; i < drawData->CmdListsCount; ++i) {
+      const ImDrawList* cmdList = drawData->CmdLists[i];
+
+      auto vtxSize = cmdList->VtxBuffer.size_in_bytes();
+      auto idxSize = cmdList->IdxBuffer.size_in_bytes();
+
+      std::memcpy(vertexPtr, cmdList->VtxBuffer.Data, vtxSize);
+      std::memcpy(indexPtr, cmdList->IdxBuffer.Data, idxSize);
+
+      vertexPtr += vtxSize;
+      indexPtr += idxSize;
+    }
+
+    /* render buffers are not host coherent. */
+    {
+      std::array<vk::MappedMemoryRange, 2> ranges;
+      ranges[0].memory = vertexBuffer.memory.get();
+      ranges[1].memory = indexBuffer.memory.get();
+      device.flushMappedMemoryRanges(ranges);
+    }
+
+    /* unmap memory */
+    {
+      device.unmapMemory(vertexBuffer.memory.get());
+      device.unmapMemory(indexBuffer.memory.get());
+    }
+  }
+
+  void initImGuiPipeline(
+    const ImDrawData* drawData,
+    const vk::PipelineLayout& pipelineLayout,
+    const vk::Pipeline& pipeline,
+    const vk::DescriptorSet& descriptorSet,
+    const vk::Buffer& vertexBuffer,
+    const vk::Buffer& indexBuffer,
+    const vk::Extent2D swapchainExtent,
     const vk::CommandBuffer& commandBuffer)
   {
-    assert(!"TODO");
-    /* resize render buffer if needed. */
-    /* upload buffer data */
-    /* bind descriptors */
-    /* record render commands */
+    /* Bind pipeline */
+    {
+      commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+      commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, descriptorSet, {});
+    }
+    /* Bind buffers */
+    {
+      commandBuffer.bindVertexBuffers(0, vertexBuffer, {0});
+
+      static_assert(
+        std::is_same_v<ImDrawIdx, uint16_t> ||
+        std::is_same_v<ImDrawIdx, uint32_t>);
+
+      vk::IndexType indexType = sizeof(ImDrawIdx) == sizeof(uint16_t)
+                                  ? vk::IndexType::eUint16
+                                  : vk::IndexType::eUint32;
+
+      commandBuffer.bindIndexBuffer(indexBuffer, 0, indexType);
+    }
+    /* Viewport */
+    {
+      vk::Viewport viewport;
+      viewport.width    = swapchainExtent.width;
+      viewport.height   = swapchainExtent.height;
+      viewport.maxDepth = 1.f;
+      commandBuffer.setViewport(0, viewport);
+    }
+    /* Push constants */
+    {
+      float scale[2];
+      scale[0] = 2.f / drawData->DisplaySize.x;
+      scale[1] = 2.f / drawData->DisplaySize.y;
+
+      commandBuffer.pushConstants(
+        pipelineLayout,
+        vk::ShaderStageFlagBits::eVertex,
+        sizeof(float) * 0,
+        sizeof(float) * 2,
+        scale);
+
+      float translate[2];
+      translate[0] = -1.f - drawData->DisplayPos.x * scale[0];
+      translate[0] = -1.f - drawData->DisplayPos.y * scale[1];
+
+      commandBuffer.pushConstants(
+        pipelineLayout,
+        vk::ShaderStageFlagBits::eVertex,
+        sizeof(float) * 2,
+        sizeof(float) * 2,
+        translate);
+    }
+  }
+
+  void renderImGuiDrawData(
+    const ImDrawData* drawData,
+    const vk::PipelineLayout& pipelineLayout,
+    const vk::Pipeline& pipeline,
+    const vk::DescriptorSet& descriptorSet,
+    const vk::Buffer& vertexBuffer,
+    const vk::Buffer& indexBuffer,
+    const vk::Extent2D swapchainExtent,
+    const vk::CommandBuffer& commandBuffer)
+  {
+    ImVec2 viewportPos = drawData->DisplayPos;
+    ImVec2 pixScale    = drawData->FramebufferScale;
+
+    int idxOffset = 0;
+    int vtxOffset = 0;
+
+    for (int listIdx = 0; listIdx < drawData->CmdListsCount; ++listIdx) {
+
+      const ImDrawList* cmdList = drawData->CmdLists[listIdx];
+
+      for (int cmdIdx = 0; cmdIdx < cmdList->CmdBuffer.Size; ++cmdIdx) {
+
+        const ImDrawCmd& cmd = cmdList->CmdBuffer[cmdIdx];
+
+        // User callback
+        if (cmd.UserCallback) {
+          // Handle special callback to reset render state.
+          if (cmd.UserCallback == ImDrawCallback_ResetRenderState)
+            initImGuiPipeline(
+              drawData,
+              pipelineLayout,
+              pipeline,
+              descriptorSet,
+              vertexBuffer,
+              indexBuffer,
+              swapchainExtent,
+              commandBuffer);
+          else
+            cmd.UserCallback(cmdList, &cmd);
+          continue;
+        }
+
+        /* Render */
+
+        assert(cmd.ClipRect.z > cmd.ClipRect.x);
+        assert(cmd.ClipRect.w > cmd.ClipRect.y);
+
+        vk::Rect2D scissor;
+        scissor.offset.x      = (cmd.ClipRect.x - viewportPos.x) * pixScale.x;
+        scissor.offset.y      = (cmd.ClipRect.y - viewportPos.y) * pixScale.y;
+        scissor.extent.width  = (cmd.ClipRect.z - cmd.ClipRect.x) * pixScale.x;
+        scissor.extent.height = (cmd.ClipRect.w - cmd.ClipRect.y) * pixScale.y;
+
+        // Vulkan specification says offset must be positive.
+        // Scissor rect can be larger than frame buffer.
+        scissor.offset.x = std::max(0, scissor.offset.x);
+        scissor.offset.y = std::max(0, scissor.offset.y);
+
+        // set clipping rectangle
+        commandBuffer.setScissor(0, scissor);
+
+        // draw
+        commandBuffer.drawIndexed(cmd.ElemCount, 1, idxOffset, vtxOffset, 0);
+
+        // advance index
+        idxOffset += cmd.ElemCount;
+      }
+      vtxOffset += cmdList->VtxBuffer.Size;
+    }
   }
 
 } // namespace
 
 namespace yave {
 
+  /// for vertex/index buffers
   struct ImGuiRenderBuffer
   {
-    vk::DeviceSize size;
-    vk::UniqueDeviceMemory memory;
-    vk::UniqueBuffer buffer;
+    vk::DeviceSize size           = 0;
+    vk::DeviceSize capacity       = 0;
+    vk::UniqueDeviceMemory memory = vk::UniqueDeviceMemory();
+    vk::UniqueBuffer buffer       = vk::UniqueBuffer();
 
-    void resize(vk::DeviceSize size);
+    void resize(
+      const vk::DeviceSize& size,
+      const vk::BufferUsageFlags& flags,
+      const vk::PhysicalDevice& physicalDevice,
+      const vk::Device& device);
   };
+
+  void ImGuiRenderBuffer::resize(
+    const vk::DeviceSize& newSize,
+    const vk::BufferUsageFlags& flags,
+    const vk::PhysicalDevice& physicalDevice,
+    const vk::Device& device)
+  {
+    // in capacity
+    if (newSize <= capacity && newSize > capacity / 8) {
+      size = newSize;
+      return;
+    }
+
+    // re-allocate buffer
+
+    vk::BufferCreateInfo info;
+    info.size        = newSize;
+    info.usage       = flags;
+    info.sharingMode = vk::SharingMode::eExclusive;
+
+    auto buff   = device.createBufferUnique(info);
+    auto memReq = device.getBufferMemoryRequirements(buff.get());
+
+    auto newCapacity = std::max(memReq.size, memReq.alignment);
+
+    vk::MemoryAllocateInfo allocInfo;
+    allocInfo.allocationSize  = newCapacity;
+    allocInfo.memoryTypeIndex = findMemoryType(
+      memReq.memoryTypeBits,
+      vk::MemoryPropertyFlagBits::eHostVisible,
+      physicalDevice);
+
+    auto mem = device.allocateMemoryUnique(allocInfo);
+    device.bindBufferMemory(buff.get(), mem.get(), 0);
+
+    Info(
+      g_logger,
+      "ImGuiRenderBuffer::resize(): size:{},cap:{} -> size:{},cap{}",
+      size,
+      capacity,
+      newSize,
+      newCapacity);
+
+    size     = newSize;
+    capacity = newCapacity;
+    buffer   = std::move(buff);
+    memory   = std::move(mem);
+  }
 
   imgui_glfw_vulkan::imgui_glfw_vulkan(bool enableValidation)
     : m_glfwCtx {}
@@ -620,7 +769,7 @@ namespace yave {
     m_pipelineCache  = createPipelineCache(m_vulkanCtx.device());
     m_pipelineLayout = createImGuiPipelineLayout(
       m_descriptorSetLayout.get(), m_vulkanCtx.device());
-    m_pipeline    = createImGuiPipeline(
+    m_pipeline = createImGuiPipeline(
       m_windowCtx.swapchain_extent(),
       m_windowCtx.render_pass(),
       m_pipelineCache.get(),
@@ -631,7 +780,7 @@ namespace yave {
 
     /* upload font texture */
     {
-      auto cmd                = m_windowCtx.single_time_command();
+      auto cmd                             = m_windowCtx.single_time_command();
       auto [imageMemory, image, imageView] = createImGuiFontTexture(
         m_windowCtx, m_vulkanCtx.physical_device(), m_vulkanCtx.device());
       m_fontImageMemory = std::move(imageMemory);
@@ -643,8 +792,8 @@ namespace yave {
     /* update descriptor set */
     {
       vk::DescriptorImageInfo info;
-      info.sampler = m_fontSampler.get();
-      info.imageView = m_fontImageView.get();
+      info.sampler     = m_fontSampler.get();
+      info.imageView   = m_fontImageView.get();
       info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 
       vk::WriteDescriptorSet write;
@@ -674,19 +823,84 @@ namespace yave {
 
       /* render ImGui frame */
 
+      glfwPollEvents();
       ImGui_ImplGlfw_NewFrame();
       ImGui::NewFrame();
       {
+        static bool show_demo_window = true;
+        ImGui::ShowDemoWindow(&show_demo_window);
       }
       ImGui::Render();
 
       /* render Vulkan frame */
 
+      // ImGui draw data
+      const auto* drawData = ImGui::GetDrawData();
+
+      assert(drawData->Valid);
+
       auto bgn = std::chrono::high_resolution_clock::now();
       {
-        auto recorder = m_windowCtx.new_recorder();
+        // start new frame
+        auto recorder      = m_windowCtx.new_recorder();
+        auto commandBuffer = recorder.command_buffer();
+        // device
+        auto physicalDevice = m_vulkanCtx.physical_device();
+        auto device         = m_vulkanCtx.device();
+
+        /* Resize buffers to match current in-flight frames */
+        {
+          m_vertexBuffers.resize(m_windowCtx.frame_index_count());
+          m_indexBuffers.resize(m_windowCtx.frame_index_count());
+        }
+
+        auto& vertexBuffer = m_vertexBuffers[m_windowCtx.frame_index()];
+        auto& indexBuffer  = m_indexBuffers[m_windowCtx.frame_index()];
+
+        /* Resize vertex/index buffers  */
+        {
+          {
+            auto new_size = drawData->TotalVtxCount * sizeof(ImDrawVert);
+            vertexBuffer.resize(
+              new_size,
+              vk::BufferUsageFlagBits::eVertexBuffer,
+              physicalDevice,
+              device);
+          }
+          {
+            auto new_size = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+            indexBuffer.resize(
+              new_size,
+              vk::BufferUsageFlagBits::eIndexBuffer,
+              physicalDevice,
+              device);
+          }
+        }
+
+        /* Upload vertex/index data to GPU */
+        uploadImGuiDrawData(vertexBuffer, indexBuffer, drawData, device);
+
+        /* Initialize pipeline */
+        initImGuiPipeline(
+          drawData,
+          m_pipelineLayout.get(),
+          m_pipeline.get(),
+          m_descriptorSet.get(),
+          vertexBuffer.buffer.get(),
+          indexBuffer.buffer.get(),
+          m_windowCtx.swapchain_extent(),
+          commandBuffer);
+
+        /* Record draw commands */
         renderImGuiDrawData(
-          ImGui::GetDrawData(), m_windowCtx, recorder.command_buffer());
+          drawData,
+          m_pipelineLayout.get(),
+          m_pipeline.get(),
+          m_descriptorSet.get(),
+          vertexBuffer.buffer.get(),
+          indexBuffer.buffer.get(),
+          m_windowCtx.swapchain_extent(),
+          commandBuffer);
       }
       auto end = std::chrono::high_resolution_clock::now();
       auto elapsed =

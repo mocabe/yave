@@ -1566,7 +1566,7 @@ namespace yave {
     return ctx;
   }
 
-  void vulkan_context::window_context::rebuild_frame_buffers() const
+  void vulkan_context::window_context::rebuild_frame_buffers()
   {
     Info(g_vulkan_logger, "Rebuild swapchain. Waiting device idle...");
 
@@ -1647,7 +1647,7 @@ namespace yave {
     Info(g_vulkan_logger, "Recreated swapchain");
   }
 
-  void vulkan_context::window_context::begin_frame() const
+  void vulkan_context::window_context::begin_frame()
   {
     auto device = m_pimpl->context->device();
 
@@ -1951,7 +1951,7 @@ namespace yave {
   }
 
   vulkan_context::window_context::command_recorder
-    vulkan_context::window_context::new_recorder() const
+    vulkan_context::window_context::new_recorder()
   {
     return command_recorder(this);
   }
@@ -1980,7 +1980,7 @@ namespace yave {
   // command_recorder
 
   vulkan_context::window_context::command_recorder::command_recorder(
-    const window_context* window_ctx)
+    window_context* window_ctx)
     : m_window_ctx {window_ctx}
   {
     m_window_ctx->begin_frame();

@@ -109,12 +109,12 @@ namespace yave {
       /// \note: Does not poll glfw event. Use resized() to check resize event.
       /// \note: This function will block rendering thread when frame buffer
       /// size is zero. Happens when window is minimized on Windows platform.
-      void rebuild_frame_buffers() const;
+      void rebuild_frame_buffers();
 
     public: /* render operations */
       /// Update frame/semaphore indicies and acquire new image.
       /// \note: command_recorder will call this automatically.
-      void begin_frame() const;
+      void begin_frame();
       /// Submit current frame buffer.
       /// \note: command_recorder will call this automatically.
       void end_frame() const;
@@ -154,16 +154,16 @@ namespace yave {
       private:
         command_recorder(const command_recorder&) = delete;
         /// calls begin_frame() and begin_record()
-        command_recorder(const window_context* window_ctx);
+        command_recorder(window_context* window_ctx);
 
       private:
         friend class window_context;
-        const window_context* m_window_ctx;
+        window_context* m_window_ctx;
         vk::CommandBuffer m_buffer;
       };
 
       /// create RAII frame recorder
-      [[nodiscard]] command_recorder new_recorder() const;
+      [[nodiscard]] command_recorder new_recorder();
 
     public:
       /// Create single time command

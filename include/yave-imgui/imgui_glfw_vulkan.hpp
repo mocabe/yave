@@ -37,7 +37,7 @@ namespace yave {
     vk::UniqueImageView m_fontImageView;
 
   private:
-    std::vector<struct ImGuiRenderBuffer> vertexBuffers;
-    std::vector<struct ImGuiRenderBuffer> indexBuffers;
+    std::vector<struct ImGuiRenderBuffer> m_vertexBuffers;
+    std::vector<struct ImGuiRenderBuffer> m_indexBuffers;
   };
 }
