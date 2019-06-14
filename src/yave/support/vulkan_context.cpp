@@ -1538,14 +1538,15 @@ namespace yave {
     m_pimpl->frame_index =
       (m_pimpl->frame_index + 1) % m_pimpl->swapchain_image_count;
 
-    {
-      // on resize
-      if (resized())
-        rebuild_frame_buffers();
-    }
+    // detect reisze
+    if (resized())
+      rebuild_frame_buffers();
 
     {
-      // acquire new image, set next frame index.
+      // acquire next image, get next image_index.
+      // when swapchain is out of date, rebuild it until not getting error.
+      // VkAcquireNextImageKHR can be non-blocking depending on driver
+      // implementation. so uses fence to prevent over-commit.
 
       device.resetFences(m_pimpl->acquire_fence.get());
 
@@ -1556,12 +1557,18 @@ namespace yave {
         m_pimpl->acquire_fence.get(),
         &m_pimpl->image_index);
 
-      device.waitForFences(
+      auto wait_err = device.waitForFences(
         m_pimpl->acquire_fence.get(),
         VK_TRUE,
         std::numeric_limits<uint64_t>::max());
 
+      if (wait_err != vk::Result::eSuccess)
+        throw std::runtime_error(
+          "Failed to wait for fence: " + vk::to_string(wait_err));
+
+      // loop
       while (err == vk::Result::eErrorOutOfDateKHR) {
+
         rebuild_frame_buffers();
 
         device.resetFences(m_pimpl->acquire_fence.get());
@@ -1573,10 +1580,14 @@ namespace yave {
           m_pimpl->acquire_fence.get(),
           &m_pimpl->image_index);
 
-        device.waitForFences(
+        auto wait_err = device.waitForFences(
           m_pimpl->acquire_fence.get(),
           VK_TRUE,
           std::numeric_limits<uint64_t>::max());
+
+        if (wait_err != vk::Result::eSuccess)
+          throw std::runtime_error(
+            "Failed to wait for fence: " + vk::to_string(wait_err));
       }
 
       if (err != vk::Result::eSuccess)
@@ -1612,8 +1623,6 @@ namespace yave {
     auto graphicsQueue = m_pimpl->context->graphics_queue();
     auto presentQueue  = m_pimpl->context->present_queue();
 
-    /* submit current command buffers */
-
     std::array<vk::Semaphore, 1> waitSemaphores = {
       m_pimpl->acquire_semaphores[m_pimpl->frame_index].get()};
     std::array<vk::Semaphore, 1> signalSemaphores = {
@@ -1621,47 +1630,48 @@ namespace yave {
     vk::PipelineStageFlags waitStage = {
       vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
-    vk::SubmitInfo submitInfo;
-    submitInfo.waitSemaphoreCount   = waitSemaphores.size();
-    submitInfo.pWaitSemaphores      = waitSemaphores.data();
-    submitInfo.signalSemaphoreCount = signalSemaphores.size();
-    submitInfo.pSignalSemaphores    = signalSemaphores.data();
-    submitInfo.pWaitDstStageMask    = &waitStage;
-    submitInfo.commandBufferCount   = 1;
-    submitInfo.pCommandBuffers =
-      &m_pimpl->command_buffers[m_pimpl->frame_index].get();
+    /* submit current command buffers */
+    {
+      vk::SubmitInfo submitInfo;
+      submitInfo.waitSemaphoreCount   = waitSemaphores.size();
+      submitInfo.pWaitSemaphores      = waitSemaphores.data();
+      submitInfo.signalSemaphoreCount = signalSemaphores.size();
+      submitInfo.pSignalSemaphores    = signalSemaphores.data();
+      submitInfo.pWaitDstStageMask    = &waitStage;
+      submitInfo.commandBufferCount   = 1;
+      submitInfo.pCommandBuffers =
+        &m_pimpl->command_buffers[m_pimpl->frame_index].get();
 
-    // submit
-    auto submit_result = graphicsQueue.submit(
-      1,
-      &submitInfo,
-      m_pimpl->in_flight_fences[m_pimpl->frame_index].get());
+      // submit
+      auto err = graphicsQueue.submit(
+        1, &submitInfo, m_pimpl->in_flight_fences[m_pimpl->frame_index].get());
 
-    if (submit_result != vk::Result::eSuccess)
-      throw std::runtime_error(
-        "Failed to submit command buffer: " + vk::to_string(submit_result));
-
-    /* present result */
-
-    vk::PresentInfoKHR presentInfo;
-    presentInfo.waitSemaphoreCount = signalSemaphores.size();
-    presentInfo.pWaitSemaphores    = signalSemaphores.data();
-    presentInfo.swapchainCount     = 1;
-    presentInfo.pSwapchains        = &m_pimpl->swapchain.get();
-    presentInfo.pImageIndices      = &m_pimpl->image_index;
-
-    auto present_result = presentQueue.presentKHR(&presentInfo);
-
-    if (present_result == vk::Result::eErrorOutOfDateKHR) {
-      Warning(
-        g_vulkan_logger,
-        "Surface is not longer compatible with current frame buffer");
-      return;
+      if (err != vk::Result::eSuccess)
+        throw std::runtime_error(
+          "Failed to submit command buffer: " + vk::to_string(err));
     }
 
-    if (present_result != vk::Result::eSuccess)
-      throw std::runtime_error(
-        "Failed to present: " + vk::to_string(present_result));
+    /* present result */
+    {
+      vk::PresentInfoKHR presentInfo;
+      presentInfo.waitSemaphoreCount = signalSemaphores.size();
+      presentInfo.pWaitSemaphores    = signalSemaphores.data();
+      presentInfo.swapchainCount     = 1;
+      presentInfo.pSwapchains        = &m_pimpl->swapchain.get();
+      presentInfo.pImageIndices      = &m_pimpl->image_index;
+
+      auto err = presentQueue.presentKHR(&presentInfo);
+
+      if (err == vk::Result::eErrorOutOfDateKHR) {
+        Warning(
+          g_vulkan_logger,
+          "Surface is not longer compatible with current frame buffer");
+        return;
+      }
+
+      if (err != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to present: " + vk::to_string(err));
+    }
   }
 
   vulkan_context::window_context::window_context()
@@ -1856,14 +1866,17 @@ namespace yave {
   {
     // start new frame
     m_buffer = m_window_ctx->begin_frame();
+
+    /* begin command buffer */
     {
-      // begin command buffer
       vk::CommandBufferBeginInfo beginInfo;
       beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
       m_buffer.begin(beginInfo);
     }
+    /* begin render pass */
     {
-      vk::ClearValue clearValue; // TODO: costom clear color
+      // TODO: set clear color
+      vk::ClearValue clearValue;
 
       // begin render pass
       vk::RenderPassBeginInfo beginInfo;
