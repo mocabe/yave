@@ -31,6 +31,7 @@ namespace yave {
     vk::UniqueDescriptorPool m_descriptorPool;
     vk::UniqueDescriptorSetLayout m_descriptorSetLayout;
     vk::UniqueDescriptorSet m_descriptorSet;
+    vk::UniqueDeviceMemory m_fontImageMemory;
     vk::UniqueImage m_fontImage;
     vk::UniqueImageView m_fontImageView;
     vk::UniqueSampler m_fontSampler;

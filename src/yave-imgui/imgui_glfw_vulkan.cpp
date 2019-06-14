@@ -37,14 +37,23 @@ namespace {
     return fence;
   }
 
-  vk::UniquePipelineLayout createImGuiPipelineLayout(const vk::Device& device)
+  vk::UniquePipelineLayout createImGuiPipelineLayout(
+    const vk::DescriptorSetLayout& setLayout,
+    const vk::Device& device)
   {
+    // Push constants:
+    // vec2 uScale; vec2 uTranslate;
+    vk::PushConstantRange pcr;
+    pcr.stageFlags = vk::ShaderStageFlagBits::eVertex;
+    pcr.offset     = 0;
+    pcr.size       = sizeof(ImVec2) * 2;
+
     vk::PipelineLayoutCreateInfo info;
     info.flags                  = vk::PipelineLayoutCreateFlags();
-    info.setLayoutCount         = 0;
-    info.pSetLayouts            = nullptr;
-    info.pushConstantRangeCount = 0;
-    info.pPushConstantRanges    = nullptr;
+    info.setLayoutCount         = 1;
+    info.pSetLayouts            = &setLayout;
+    info.pushConstantRangeCount = 1;
+    info.pPushConstantRanges    = &pcr;
 
     auto cache = device.createPipelineLayoutUnique(info);
 
@@ -140,6 +149,10 @@ namespace {
     vertBindingDesc[0].stride    = sizeof(ImDrawVert);
     vertBindingDesc[0].inputRate = vk::VertexInputRate::eVertex;
 
+    // vertex input:
+    // vec2 aPos;
+    // vec2 aUV;
+    // vec2 aColor;
     std::array<vk::VertexInputAttributeDescription, 3> vertAttrDesc;
     // ImDrawVert::pos
     vertAttrDesc[0].location = 0;
@@ -161,7 +174,7 @@ namespace {
     vertInputStateInfo.flags = vk::PipelineVertexInputStateCreateFlags();
     vertInputStateInfo.vertexBindingDescriptionCount   = vertBindingDesc.size();
     vertInputStateInfo.pVertexBindingDescriptions      = vertBindingDesc.data();
-    vertInputStateInfo.vertexAttributeDescriptionCount = vertBindingDesc.size();
+    vertInputStateInfo.vertexAttributeDescriptionCount = vertAttrDesc.size();
     vertInputStateInfo.pVertexAttributeDescriptions    = vertAttrDesc.data();
 
     /* input assembler */
@@ -338,10 +351,11 @@ namespace {
     throw std::runtime_error("Failed to find suitable memory type");
   }
 
-  std::pair<vk::UniqueImage, vk::UniqueImageView> createImGuiFontTexture(
-    const yave::vulkan_context::window_context& windowCtx,
-    const vk::PhysicalDevice& physicalDevice,
-    const vk::Device& device)
+  std::tuple<vk::UniqueDeviceMemory, vk::UniqueImage, vk::UniqueImageView>
+    createImGuiFontTexture(
+      const yave::vulkan_context::window_context& windowCtx,
+      const vk::PhysicalDevice& physicalDevice,
+      const vk::Device& device)
   {
     /* get texture data */
     ImGuiIO& io = ImGui::GetIO();
@@ -490,7 +504,7 @@ namespace {
         srcStage, dstStage, vk::DependencyFlags(), {}, {}, barrier);
     }
 
-    return {std::move(image), std::move(imageView)};
+    return {std::move(imageMemory), std::move(image), std::move(imageView)};
   }
 
   vk::UniqueSampler createImGuiFontSampler(const vk::Device& device)
@@ -575,17 +589,6 @@ namespace yave {
 
     Info(g_logger, "Initialized ImGui context");
 
-    m_pipelineCache  = createPipelineCache(m_vulkanCtx.device());
-    m_pipelineLayout = createImGuiPipelineLayout(m_vulkanCtx.device());
-    m_pipeline    = createImGuiPipeline(
-      m_windowCtx.swapchain_extent(),
-      m_windowCtx.render_pass(),
-      m_pipelineCache.get(),
-      m_pipelineLayout.get(),
-      m_vulkanCtx.device());
-
-    Info(g_logger, "Created ImGui pipeline");
-
     m_fontSampler = createImGuiFontSampler(m_vulkanCtx.device());
 
     Info(g_logger, "Created ImGui font sampler");
@@ -600,13 +603,26 @@ namespace yave {
 
     Info(g_logger, "Created ImGui descriptor set");
 
+    m_pipelineCache  = createPipelineCache(m_vulkanCtx.device());
+    m_pipelineLayout = createImGuiPipelineLayout(
+      m_descriptorSetLayout.get(), m_vulkanCtx.device());
+    m_pipeline    = createImGuiPipeline(
+      m_windowCtx.swapchain_extent(),
+      m_windowCtx.render_pass(),
+      m_pipelineCache.get(),
+      m_pipelineLayout.get(),
+      m_vulkanCtx.device());
+
+    Info(g_logger, "Created ImGui pipeline");
+
     /* upload font texture */
     {
       auto cmd                = m_windowCtx.single_time_command();
-      auto [image, imageView] = createImGuiFontTexture(
+      auto [imageMemory, image, imageView] = createImGuiFontTexture(
         m_windowCtx, m_vulkanCtx.physical_device(), m_vulkanCtx.device());
-      m_fontImage     = std::move(image);
-      m_fontImageView = std::move(imageView);
+      m_fontImageMemory = std::move(imageMemory);
+      m_fontImage       = std::move(image);
+      m_fontImageView   = std::move(imageView);
 
       Info(g_logger, "Uploaded ImGui font texture");
     }
@@ -627,6 +643,7 @@ namespace yave {
 
       Info(g_logger, "Updated ImGui descriptor set");
     }
+    assert(false);
   }
 
   imgui_glfw_vulkan::~imgui_glfw_vulkan()
