@@ -557,11 +557,25 @@ namespace {
     const yave::vulkan_context::window_context& windowCtx,
     const vk::CommandBuffer& commandBuffer)
   {
+    assert(!"TODO");
+    /* resize render buffer if needed. */
+    /* upload buffer data */
+    /* bind descriptors */
+    /* record render commands */
   }
 
 } // namespace
 
 namespace yave {
+
+  struct ImGuiRenderBuffer
+  {
+    vk::DeviceSize size;
+    vk::UniqueDeviceMemory memory;
+    vk::UniqueBuffer buffer;
+
+    void resize(vk::DeviceSize size);
+  };
 
   imgui_glfw_vulkan::imgui_glfw_vulkan(bool enableValidation)
     : m_glfwCtx {}
@@ -643,7 +657,6 @@ namespace yave {
 
       Info(g_logger, "Updated ImGui descriptor set");
     }
-    assert(false);
   }
 
   imgui_glfw_vulkan::~imgui_glfw_vulkan()

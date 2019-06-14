@@ -25,15 +25,19 @@ namespace yave {
     yave::vulkan_context::window_context m_windowCtx;
 
   private:
-    vk::UniquePipelineCache m_pipelineCache;
-    vk::UniquePipelineLayout m_pipelineLayout;
-    vk::UniquePipeline m_pipeline;
+    vk::UniqueSampler m_fontSampler;
     vk::UniqueDescriptorPool m_descriptorPool;
     vk::UniqueDescriptorSetLayout m_descriptorSetLayout;
     vk::UniqueDescriptorSet m_descriptorSet;
+    vk::UniquePipelineCache m_pipelineCache;
+    vk::UniquePipelineLayout m_pipelineLayout;
+    vk::UniquePipeline m_pipeline;
     vk::UniqueDeviceMemory m_fontImageMemory;
     vk::UniqueImage m_fontImage;
     vk::UniqueImageView m_fontImageView;
-    vk::UniqueSampler m_fontSampler;
+
+  private:
+    std::vector<struct ImGuiRenderBuffer> vertexBuffers;
+    std::vector<struct ImGuiRenderBuffer> indexBuffers;
   };
 }
