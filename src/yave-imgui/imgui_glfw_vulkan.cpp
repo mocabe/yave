@@ -153,6 +153,8 @@ namespace {
 
     /* viewport */
 
+    // these values are ignored when dynamic viewport is enabled.
+
     std::array<vk::Viewport, 1> viewports;
     viewports[0].width    = swapchainExtent.width;
     viewports[0].height   = swapchainExtent.height;
@@ -173,7 +175,7 @@ namespace {
 
     vk::PipelineRasterizationStateCreateInfo rasterStateInfo;
     rasterStateInfo.polygonMode = vk::PolygonMode::eFill;
-    rasterStateInfo.frontFace   = vk::FrontFace::eClockwise;
+    rasterStateInfo.frontFace   = vk::FrontFace::eCounterClockwise;
     rasterStateInfo.lineWidth   = 1.f;
 
     /* sample */
@@ -208,8 +210,7 @@ namespace {
     /* dynamic state */
 
     std::array dynamicStates = {vk::DynamicState::eViewport,
-                                vk::DynamicState::eScissor,
-                                vk::DynamicState::eLineWidth};
+                                vk::DynamicState::eScissor};
 
     vk::PipelineDynamicStateCreateInfo dynamicStateInfo;
     dynamicStateInfo.dynamicStateCount = dynamicStates.size();
@@ -486,16 +487,18 @@ namespace {
     assert(indexBuffer.capacity >= drawData->TotalIdxCount * sizeof(ImDrawIdx));
 
     /* map memory */
+
     std::byte* vertexPtr;
     std::byte* indexPtr;
     {
       vertexPtr = (std::byte*)device.mapMemory(
-        vertexBuffer.memory.get(), 0, vertexBuffer.size);
+        vertexBuffer.memory.get(), 0, vertexBuffer.capacity);
       indexPtr = (std::byte*)device.mapMemory(
-        indexBuffer.memory.get(), 0, indexBuffer.size);
+        indexBuffer.memory.get(), 0, indexBuffer.capacity);
     }
 
     /* write to buffers */
+
     for (int i = 0; i < drawData->CmdListsCount; ++i) {
       const ImDrawList* cmdList = drawData->CmdLists[i];
 
@@ -577,7 +580,7 @@ namespace {
 
       float translate[2];
       translate[0] = -1.f - drawData->DisplayPos.x * scale[0];
-      translate[0] = -1.f - drawData->DisplayPos.y * scale[1];
+      translate[1] = -1.f - drawData->DisplayPos.y * scale[1];
 
       commandBuffer.pushConstants(
         pipelineLayout,
@@ -668,8 +671,8 @@ namespace yave {
   {
     vk::DeviceSize size           = 0;
     vk::DeviceSize capacity       = 0;
-    vk::UniqueDeviceMemory memory = vk::UniqueDeviceMemory();
     vk::UniqueBuffer buffer       = vk::UniqueBuffer();
+    vk::UniqueDeviceMemory memory = vk::UniqueDeviceMemory();
 
     void resize(
       const vk::DeviceSize& size,
@@ -690,12 +693,17 @@ namespace yave {
       return;
     }
 
-    // re-allocate buffer
+    // create new buffer
 
     vk::BufferCreateInfo info;
     info.size        = newSize;
     info.usage       = flags;
     info.sharingMode = vk::SharingMode::eExclusive;
+
+    // Vulkan does not allow zero sized buffer.
+    // Just use dymmy size here.
+    if (info.size == 0)
+      info.size = 1;
 
     auto buff   = device.createBufferUnique(info);
     auto memReq = device.getBufferMemoryRequirements(buff.get());
@@ -810,6 +818,7 @@ namespace yave {
 
   imgui_glfw_vulkan::~imgui_glfw_vulkan()
   {
+    m_vulkanCtx.device().waitIdle();
     Info("Destroying ImGui context");
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -860,17 +869,17 @@ namespace yave {
         /* Resize vertex/index buffers  */
         {
           {
-            auto new_size = drawData->TotalVtxCount * sizeof(ImDrawVert);
+            auto newSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
             vertexBuffer.resize(
-              new_size,
+              newSize,
               vk::BufferUsageFlagBits::eVertexBuffer,
               physicalDevice,
               device);
           }
           {
-            auto new_size = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+            auto newSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
             indexBuffer.resize(
-              new_size,
+              newSize,
               vk::BufferUsageFlagBits::eIndexBuffer,
               physicalDevice,
               device);
