@@ -26,13 +26,12 @@ namespace yave {
 
   void glfw_window_deleter::operator()(GLFWwindow* window) noexcept
   {
-    // delete user data
+    // unser user pointer
     glfw_window_data* user_data =
       (glfw_window_data*)glfwGetWindowUserPointer(window);
     glfwSetWindowUserPointer(window, nullptr);
+    // delete user data
     delete user_data;
-    Info(g_glfw_logger, "Deleted window user data");
-
     // destroy window handle
     glfwDestroyWindow(window);
   }

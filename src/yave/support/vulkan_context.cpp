@@ -361,8 +361,6 @@ namespace {
       loadDebugReportExtensions(instance.get());
     }
 
-    Info(g_vulkan_logger, "Created Vulkan instance");
-
     return instance;
   }
 
@@ -384,8 +382,6 @@ namespace {
       vk::DebugReportFlagBitsEXT::eWarning));
     // set callback
     info.setPfnCallback(validationCallback);
-
-    Info(g_vulkan_logger, "Created debug report callback");
 
     return instance.createDebugReportCallbackEXTUnique(info);
   }
@@ -478,44 +474,13 @@ namespace {
   /// create device
   vk::PhysicalDevice acquirePhysicalDevice(vk::Instance instance)
   {
-    using namespace yave;
-    assert(instance);
-
     auto physicalDevices = instance.enumeratePhysicalDevices();
-
-    Info(
-      g_vulkan_logger,
-      "{} physical devices are installed:",
-      physicalDevices.size());
-    for (auto&& d : physicalDevices) {
-      auto property = d.getProperties();
-      Info(
-        g_vulkan_logger, "  [{}]: {}", property.deviceID, property.deviceName);
-    }
 
     if (physicalDevices.empty()) {
       throw std::runtime_error("No physical device avalable");
     }
 
     uint32_t index = getOptimalPhysicalDeviceIndex(physicalDevices);
-
-    Info(
-      g_vulkan_logger,
-      "Use physical device #{}: {}",
-      index,
-      physicalDevices[index].getProperties().deviceName);
-
-    Info(
-      g_vulkan_logger,
-      "Queue family information of physical device {}",
-      physicalDevices[index].getProperties().deviceName);
-    for (auto&& prop : physicalDevices[index].getQueueFamilyProperties()) {
-      Info(
-        g_vulkan_logger,
-        "  ({}) {}",
-        prop.queueCount,
-        vk::to_string(prop.queueFlags));
-    }
 
     return physicalDevices[index];
   }
@@ -547,21 +512,16 @@ namespace {
       return graphicsQueueIndex;
     }
 
-    Warning(
-      g_vulkan_logger,
-      "Graphics queue does not support presentation. Try to find from other "
-      "queue families");
+    Warning(g_vulkan_logger, "Graphics queue does not support presentation.");
 
     auto queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
-    for (size_t i = 0; i < queueFamilyProperties.size(); ++i) {
-      auto support =
-        glfwGetPhysicalDevicePresentationSupport(instance, physicalDevice, i);
+    for (size_t index = 0; index < queueFamilyProperties.size(); ++index) {
 
-      Info(
-        g_vulkan_logger, "QueueFamily[{}]: presentationSupport={}", i, support);
+      auto support = glfwGetPhysicalDevicePresentationSupport(
+        instance, physicalDevice, index);
 
       if (support)
-        return i;
+        return index;
     }
 
     throw std::runtime_error("Presentation is not supported on this device");
@@ -590,8 +550,6 @@ namespace {
     uint32_t presentQueueIndex,
     const vk::PhysicalDevice& physicalDevice)
   {
-    using namespace yave;
-
     std::vector<uint32_t> queueFamilyIndicies = {graphicsQueueIndex,
                                                  presentQueueIndex};
 
@@ -660,29 +618,18 @@ namespace {
     info.enabledExtensionCount   = eNames.size();
     info.pEnabledFeatures = nullptr; // TODO: enable only reauired features.
 
-    auto device = physicalDevice.createDeviceUnique(info);
-
-    Info(g_vulkan_logger, "Created logical device");
-
-    return device;
+    return physicalDevice.createDeviceUnique(info);
   }
 
   vk::Queue getDeviceQueue(uint32_t queueFamilyIndex, const vk::Device& device)
   {
     // Assume only single queue is initialized.
-    auto queue = device.getQueue(queueFamilyIndex, 0);
-
-    if (!queue)
-      throw std::runtime_error("Failed to get queue");
-
-    return queue;
+    return device.getQueue(queueFamilyIndex, 0);
   }
 
   vk::UniqueSurfaceKHR
     createWindowSurface(GLFWwindow* window, const vk::Instance& instance)
   {
-    using namespace yave;
-
     VkSurfaceKHR surface;
 
     auto err = glfwCreateWindowSurface(instance, window, nullptr, &surface);
@@ -693,8 +640,6 @@ namespace {
 
     if (!surface)
       throw std::runtime_error("Failed to create window surface");
-
-    Info(g_vulkan_logger, "Created new window surface");
 
     vk::ObjectDestroy<vk::Instance, vk::DispatchLoaderStatic> deleter(instance);
     return vk::UniqueSurfaceKHR(surface, deleter);
@@ -721,28 +666,22 @@ namespace {
     auto default_format = vk::SurfaceFormatKHR {
       vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear};
 
-    Info(
-      g_vulkan_logger,
-      "Default surface format: {}/{}",
-      vk::to_string(default_format.format),
-      vk::to_string(default_format.colorSpace));
-
     if (formats.size() == 1 && formats[0].format == vk::Format::eUndefined) {
-      Info(g_vulkan_logger, "Surface format is undefined. Use default format");
+      // use default format
       return default_format;
     }
 
     for (auto&& format : formats) {
+      // find default format
       if (format == default_format)
-        Info(g_vulkan_logger, "Default surface format is supported");
-      return default_format;
+        return default_format;
     }
 
-    Info(
+    Warning(
       g_vulkan_logger,
-      "Default surface format is not supported. "
-      "Use first format avalable.");
+      "Default surface format is not avalable. Return first format avalable.");
 
+    // fallback to first format
     return formats[0];
   }
 
@@ -759,33 +698,26 @@ namespace {
   }
 
   vk::Extent2D chooseSwapchainExtent(
-    vk::Extent2D window_size,
+    vk::Extent2D windowSize,
     const vk::SurfaceCapabilitiesKHR& capabilities)
   {
-    using namespace yave;
+    vk::Extent2D extent = capabilities.currentExtent;
 
-    if (
-      capabilities.currentExtent.width ==
-      std::numeric_limits<uint32_t>::max()) {
-
-      Warning(g_vulkan_logger, "currentExtend is not set. Use clamped value.");
-
-      vk::Extent2D extent = window_size;
-
+    if (extent.width == std::numeric_limits<uint32_t>::max()) {
       extent.width = std::clamp(
-        extent.width,
+        windowSize.width,
         capabilities.minImageExtent.width,
         capabilities.maxImageExtent.width);
+    }
 
+    if (extent.height == std::numeric_limits<uint32_t>::max()) {
       extent.height = std::clamp(
-        extent.height,
+        windowSize.height,
         capabilities.minImageExtent.height,
         capabilities.maxImageExtent.height);
-
-      return extent;
-    } else {
-      return capabilities.currentExtent;
     }
+
+    return extent;
   }
 
   vk::SurfaceTransformFlagBitsKHR
@@ -823,8 +755,6 @@ namespace {
     vk::Extent2D* out_extent             = nullptr,
     uint32_t* out_image_count            = nullptr)
   {
-    using namespace yave;
-
     if (!physicalDevice.getSurfaceSupportKHR(presentQueueIndex, surface)) {
       throw std::runtime_error(
         "Current surface format is not supported by presentation queue family");
@@ -833,22 +763,11 @@ namespace {
     auto availFormats = physicalDevice.getSurfaceFormatsKHR(surface);
     auto format       = chooseSurfaceFormat(availFormats);
 
-    Info(
-      g_vulkan_logger,
-      "Surface format: {}/{}",
-      vk::to_string(format.format),
-      vk::to_string(format.colorSpace));
-
     auto availModes = physicalDevice.getSurfacePresentModesKHR(surface);
     auto mode       = choosePresentMode(availModes);
 
-    Info(g_vulkan_logger, "Present mode: {}", vk::to_string(mode));
-
     auto capabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
     auto extent       = chooseSwapchainExtent(windowExtent, capabilities);
-
-    Info(
-      g_vulkan_logger, "Swapchain extent: {},{}", extent.width, extent.height);
 
     // maxImageCount is 0 when infinite...
     uint32_t imageCount = std::clamp(
@@ -857,21 +776,9 @@ namespace {
       capabilities.maxImageCount == 0 ? std::numeric_limits<uint32_t>::max()
                                       : capabilities.maxImageCount);
 
-    Info(g_vulkan_logger, "Swapchain count: {}", imageCount);
-
     auto preTransform = chooseSwapchainPreTransform(capabilities);
 
-    Info(
-      g_vulkan_logger,
-      "Swapchain pre transform: {}",
-      vk::to_string(preTransform));
-
     auto compositeAlpha = chooseSwapchainCompositeAlpha(capabilities);
-
-    Info(
-      g_vulkan_logger,
-      "Swapchain composite alpha: {}",
-      vk::to_string(compositeAlpha));
 
     vk::SwapchainCreateInfoKHR info;
     info.flags           = vk::SwapchainCreateFlagsKHR();
@@ -901,17 +808,9 @@ namespace {
       info.pQueueFamilyIndices   = queueFamilyIndicies;
     }
 
-    Info(
-      g_vulkan_logger,
-      "Swapchain image sharing mode: {}",
-      vk::to_string(info.imageSharingMode));
-
     // create swapchain
 
     auto swapchain = logicalDevice.createSwapchainKHRUnique(info);
-
-    if (!swapchain)
-      throw std::runtime_error("Failed to create swapchain");
 
     // write out pointers
 
@@ -947,31 +846,10 @@ namespace {
     const vk::SurfaceFormatKHR& surface_format,
     const vk::Device& device)
   {
-    using namespace yave;
-
-    Info(
-      g_vulkan_logger,
-      "Swapchain image view format: {}",
-      vk::to_string(surface_format.format));
-
     auto componentMapping = chooseImageViewComponentMapping();
-
-    Info(
-      g_vulkan_logger,
-      "Image view component mapping: {},{},{},{}",
-      vk::to_string(componentMapping.r),
-      vk::to_string(componentMapping.g),
-      vk::to_string(componentMapping.b),
-      vk::to_string(componentMapping.a));
-
     auto subResourceRange = chooseImageViewSubResourceRange();
+    auto swapchainImages  = device.getSwapchainImagesKHR(swapchain);
 
-    Info(
-      g_vulkan_logger,
-      "Image view sub resource range: {}",
-      vk::to_string(subResourceRange.aspectMask));
-
-    auto swapchainImages = device.getSwapchainImagesKHR(swapchain);
     std::vector<vk::UniqueImageView> ret;
     ret.reserve(swapchainImages.size());
 
@@ -984,12 +862,7 @@ namespace {
       info.components       = componentMapping;
       info.subresourceRange = subResourceRange;
 
-      auto view = device.createImageViewUnique(info);
-
-      if (!view)
-        throw std::runtime_error("Failed to create swapchain image view");
-
-      ret.push_back(std::move(view));
+      ret.push_back(device.createImageViewUnique(info));
     }
 
     return ret;
@@ -1017,11 +890,7 @@ namespace {
       info.height          = swapchainExtent.height;
       info.layers          = 1;
 
-      auto buff = device.createFramebufferUnique(info);
-      if (!buff)
-        throw std::runtime_error("Failed to create frame buffer");
-
-      ret.push_back(std::move(buff));
+      ret.push_back(device.createFramebufferUnique(info));
     }
 
     return ret;
@@ -1119,12 +988,7 @@ namespace {
     info.dependencyCount = dependency.size();
     info.pDependencies   = dependency.data();
 
-    auto renderPass = device.createRenderPassUnique(info);
-
-    if (!renderPass)
-      throw std::runtime_error("Failed create render pass");
-
-    return renderPass;
+    return device.createRenderPassUnique(info);
   }
 
   vk::UniqueCommandPool
@@ -1136,12 +1000,7 @@ namespace {
     // use graphics queue
     info.queueFamilyIndex = graphicsQueueIndex;
 
-    auto pool = device.createCommandPoolUnique(info);
-
-    if (!pool)
-      throw std::runtime_error("Failed to create command pool");
-
-    return pool;
+    return device.createCommandPoolUnique(info);
   }
 
   std::vector<vk::UniqueCommandBuffer> createCommandBuffers(
@@ -1165,10 +1024,7 @@ namespace {
 
     std::vector<vk::UniqueSemaphore> ret;
     for (uint32_t i = 0; i < size; ++i) {
-      auto semaphore = device.createSemaphoreUnique(info);
-      if (!semaphore)
-        throw std::runtime_error("Failed to create semaphore");
-      ret.emplace_back(std::move(semaphore));
+      ret.push_back(device.createSemaphoreUnique(info));
     }
     return ret;
   }
@@ -1182,10 +1038,7 @@ namespace {
 
     std::vector<vk::UniqueFence> ret;
     for (uint32_t i = 0; i < size; ++i) {
-      auto fence = device.createFenceUnique(info);
-      if (!fence)
-        throw std::runtime_error("Failed to create fence");
-      ret.emplace_back(std::move(fence));
+      ret.push_back(device.createFenceUnique(info));
     }
     return ret;
   }
@@ -1296,7 +1149,7 @@ namespace yave {
     if (!glfwVulkanSupported())
       throw std::runtime_error("GLFW could not find Vulkan");
 
-    Info(g_vulkan_logger, "Start initializing vulkan_context");
+    Info(g_vulkan_logger, "Initializing vulkan_context");
 
     /// pimpl
     auto impl = std::make_unique<vulkan_context::impl>();
@@ -1435,7 +1288,7 @@ namespace yave {
   vulkan_context::window_context
     vulkan_context::create_window_context(unique_glfw_window& window) const
   {
-    Info(g_vulkan_logger, "Start initializing vulkan_context::window_context");
+    Info(g_vulkan_logger, "Initializing window context");
 
     auto impl = std::make_unique<window_context::impl>();
 
@@ -1477,8 +1330,6 @@ namespace yave {
         ctx->window_extent = {
           static_cast<uint32_t>(std::clamp(0, width, width)),
           static_cast<uint32_t>(std::clamp(0, height, height))};
-
-        Info(g_vulkan_logger, "Window resized to ({}*{})", width, height);
       });
 
     // create surface
@@ -1552,12 +1403,16 @@ namespace yave {
     impl->complete_semaphores =
       createSemaphores(impl->swapchain_image_count, m_pimpl->device.get());
 
+    Info(g_vulkan_logger, "Created semaphores");
+
     /* fences */
 
     impl->in_flight_fences =
       createFences(impl->swapchain_image_count, m_pimpl->device.get());
 
     impl->acquire_fence = std::move(createFences(1, m_pimpl->device.get())[0]);
+
+    Info(g_vulkan_logger, "Created fences");
 
     window_context ctx;
     ctx.m_pimpl = std::move(impl);
@@ -1569,42 +1424,38 @@ namespace yave {
 
   void vulkan_context::window_context::rebuild_frame_buffers()
   {
-    Info(g_vulkan_logger, "Rebuild swapchain. Waiting device idle...");
-
     // new swapchain extent
-    auto new_extent = m_pimpl->window_extent.load();
-
-    // no need to rebuild swapchain
-    if (vk::Extent2D(new_extent) == m_pimpl->swapchain_extent) {
-      return;
-    }
+    auto newWindowExtent = m_pimpl->window_extent.load();
 
     // Windows: minimized window have zero extent. Wait until next event.
-    while (vk::Extent2D(new_extent) == vk::Extent2D(0, 0)) {
+    while (vk::Extent2D(newWindowExtent) == vk::Extent2D(0, 0)) {
       glfwWaitEvents();
-      new_extent = m_pimpl->window_extent.load();
+      newWindowExtent = m_pimpl->window_extent.load();
     }
 
-    // idle
+    // wait idle
     m_pimpl->context->device().waitIdle();
 
     /* destroy swapchain resources */
+    m_pimpl->in_flight_fences.clear();
+    m_pimpl->complete_semaphores.clear();
+    m_pimpl->acquire_semaphores.clear();
     m_pimpl->command_buffers.clear();
     m_pimpl->frame_buffers.clear();
     m_pimpl->render_pass.reset();
     m_pimpl->swapchain_image_views.clear();
     m_pimpl->swapchain_images.clear();
     m_pimpl->swapchain.reset();
+
+    /* reset index */
     m_pimpl->frame_index = 0;
     m_pimpl->image_index = 0;
-
-    Info(g_vulkan_logger, "Cleared old swapchain resources");
 
     /* create new swapchain resources */
 
     m_pimpl->swapchain = createSwapchain(
       m_pimpl->surface.get(),
-      new_extent,
+      newWindowExtent,
       m_pimpl->context->graphics_queue_family_index(),
       m_pimpl->context->present_queue_family_index(),
       m_pimpl->context->physical_device(),
@@ -1639,13 +1490,12 @@ namespace yave {
 
     m_pimpl->acquire_semaphores = createSemaphores(
       m_pimpl->swapchain_image_count, m_pimpl->context->device());
+
     m_pimpl->complete_semaphores = createSemaphores(
       m_pimpl->swapchain_image_count, m_pimpl->context->device());
 
     m_pimpl->in_flight_fences =
       createFences(m_pimpl->swapchain_image_count, m_pimpl->context->device());
-
-    Info(g_vulkan_logger, "Recreated swapchain");
   }
 
   void vulkan_context::window_context::begin_frame()
@@ -1770,10 +1620,8 @@ namespace yave {
 
       auto err = presentQueue.presentKHR(&presentInfo);
 
+      // Surface is not longer compatible with current frame buffer.
       if (err == vk::Result::eErrorOutOfDateKHR) {
-        Warning(
-          g_vulkan_logger,
-          "Surface is not longer compatible with current frame buffer");
         return;
       }
 

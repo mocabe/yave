@@ -13,12 +13,18 @@ namespace yave {
   class imgui_glfw_vulkan
   {
   public:
+    /// Ctor
     imgui_glfw_vulkan(bool enableValidation = true);
+    /// Dtor
     ~imgui_glfw_vulkan();
 
-    void run();
+    /// Start drawing imgui window.
+    void draw();
 
-  private:
+    /// imgui user draw calls
+    virtual void user_code();
+
+  protected:
     yave::glfw_context m_glfwCtx;
     yave::vulkan_context m_vulkanCtx;
     yave::unique_glfw_window m_window;

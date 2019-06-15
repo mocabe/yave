@@ -750,9 +750,6 @@ namespace yave {
     capacity = newCapacity;
     buffer   = std::move(buff);
     memory   = std::move(mem);
-
-    Info(
-      g_logger, "ImGuiRenderBuffer::resize(): size:{},cap:{}", size, capacity);
   }
 
   imgui_glfw_vulkan::imgui_glfw_vulkan(bool enableValidation)
@@ -765,47 +762,51 @@ namespace yave {
     init_logger();
 
     /* init ImGui */
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui::StyleColorsDark();
-
-    /* setup GLFW input binding */
-    ImGui_ImplGlfw_InitForVulkan(m_window.get(), true);
-
-    /* setup vulkan binding */
     {
+      IMGUI_CHECKVERSION();
+      ImGui::CreateContext();
+      ImGui::StyleColorsDark();
+
+      /* setup GLFW input binding */
+      ImGui_ImplGlfw_InitForVulkan(m_window.get(), true);
+
+      /* setup vulkan binding */
       ImGuiIO& io            = ImGui::GetIO();
       io.BackendRendererName = "yave::imgui_glfw_vulkan";
+
+      Info(g_logger, "Initialized ImGui context");
     }
 
-    Info(g_logger, "Initialized ImGui context");
+    {
+      m_fontSampler = createImGuiFontSampler(m_vulkanCtx.device());
+      Info(g_logger, "Created ImGui font sampler");
+    }
 
-    m_fontSampler = createImGuiFontSampler(m_vulkanCtx.device());
+    {
+      m_descriptorPool      = createImGuiDescriptorPool(m_vulkanCtx.device());
+      m_descriptorSetLayout = createImGuiDescriptorSetLayout(
+        m_fontSampler.get(), m_vulkanCtx.device());
+      m_descriptorSet = createImGuiDescriptorSet(
+        m_descriptorPool.get(),
+        m_descriptorSetLayout.get(),
+        m_vulkanCtx.device());
 
-    Info(g_logger, "Created ImGui font sampler");
+      Info(g_logger, "Created ImGui descriptor set");
+    }
 
-    m_descriptorPool = createImGuiDescriptorPool(m_vulkanCtx.device());
-    m_descriptorSetLayout =
-      createImGuiDescriptorSetLayout(m_fontSampler.get(), m_vulkanCtx.device());
-    m_descriptorSet = createImGuiDescriptorSet(
-      m_descriptorPool.get(),
-      m_descriptorSetLayout.get(),
-      m_vulkanCtx.device());
+    {
+      m_pipelineCache  = createPipelineCache(m_vulkanCtx.device());
+      m_pipelineLayout = createImGuiPipelineLayout(
+        m_descriptorSetLayout.get(), m_vulkanCtx.device());
+      m_pipeline = createImGuiPipeline(
+        m_windowCtx.swapchain_extent(),
+        m_windowCtx.render_pass(),
+        m_pipelineCache.get(),
+        m_pipelineLayout.get(),
+        m_vulkanCtx.device());
 
-    Info(g_logger, "Created ImGui descriptor set");
-
-    m_pipelineCache  = createPipelineCache(m_vulkanCtx.device());
-    m_pipelineLayout = createImGuiPipelineLayout(
-      m_descriptorSetLayout.get(), m_vulkanCtx.device());
-    m_pipeline = createImGuiPipeline(
-      m_windowCtx.swapchain_extent(),
-      m_windowCtx.render_pass(),
-      m_pipelineCache.get(),
-      m_pipelineLayout.get(),
-      m_vulkanCtx.device());
-
-    Info(g_logger, "Created ImGui pipeline");
+      Info(g_logger, "Created ImGui pipeline");
+    }
 
     /* upload font texture */
     {
@@ -818,6 +819,7 @@ namespace yave {
 
       Info(g_logger, "Uploaded ImGui font texture");
     }
+
     /* update descriptor set */
     {
       vk::DescriptorImageInfo info;
@@ -839,13 +841,20 @@ namespace yave {
 
   imgui_glfw_vulkan::~imgui_glfw_vulkan()
   {
+    Info(g_logger, "Destroying ImGui context");
+    // wait idle
     m_vulkanCtx.device().waitIdle();
-    Info("Destroying ImGui context");
+    // unbind GLFW
     ImGui_ImplGlfw_Shutdown();
+    // destroy ImGui
     ImGui::DestroyContext();
   }
 
-  void imgui_glfw_vulkan::run()
+  void imgui_glfw_vulkan::user_code()
+  {
+  }
+
+  void imgui_glfw_vulkan::draw()
   {
     /* main loop */
 
@@ -861,6 +870,7 @@ namespace yave {
         {
           static bool show_demo_window = true;
           ImGui::ShowDemoWindow(&show_demo_window);
+          user_code();
         }
         ImGui::Render();
       }
@@ -955,8 +965,6 @@ namespace yave {
         lastTime = endTime;
       }
     }
-
-    Info("Finished");
   }
 
 } // namespace yave
