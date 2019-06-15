@@ -852,10 +852,12 @@ namespace yave {
   {
     /* main loop */
 
+    auto lastTime = std::chrono::high_resolution_clock::now();
+
     while (!m_windowCtx.should_close()) {
 
       /* render ImGui frame */
-
+      {
       glfwPollEvents();
       ImGui_ImplGlfw_NewFrame();
       ImGui::NewFrame();
@@ -864,6 +866,7 @@ namespace yave {
         ImGui::ShowDemoWindow(&show_demo_window);
       }
       ImGui::Render();
+      }
 
       /* render Vulkan frame */
 
@@ -876,9 +879,10 @@ namespace yave {
 
       /* Render with Vulkan */
       {
-        // start new frame
+        // begin new frame (use RAII recorder)
         auto recorder      = m_windowCtx.new_recorder();
         auto commandBuffer = recorder.command_buffer();
+
         // device
         auto physicalDevice = m_vulkanCtx.physical_device();
         auto device         = m_vulkanCtx.device();
@@ -938,6 +942,20 @@ namespace yave {
           indexBuffer.buffer.get(),
           m_windowCtx.swapchain_extent(),
           commandBuffer);
+      }
+
+      /* frame rate limiter */
+
+      auto endTime         = std::chrono::high_resolution_clock::now();
+      auto frameTime       = (endTime - lastTime);
+      auto frameTimeWindow = std::chrono::milliseconds(16);
+      auto sleepTime       = frameTimeWindow - frameTime;
+
+      if (sleepTime.count() > 0) {
+        lastTime = endTime + sleepTime;
+        std::this_thread::sleep_for(sleepTime);
+      } else {
+        lastTime = endTime;
       }
     }
 
