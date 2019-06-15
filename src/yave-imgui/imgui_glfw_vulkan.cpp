@@ -848,6 +848,8 @@ namespace yave {
 
       assert(drawData->Valid);
 
+      m_windowCtx.set_clear_color(0.45f, 0.55f, 0.60f, 1.f);
+
       auto bgn = std::chrono::high_resolution_clock::now();
       {
         // start new frame
@@ -866,7 +868,7 @@ namespace yave {
         auto& vertexBuffer = m_vertexBuffers[m_windowCtx.frame_index()];
         auto& indexBuffer  = m_indexBuffers[m_windowCtx.frame_index()];
 
-        /* Resize vertex/index buffers  */
+        /* Resize vertex/index buffers */
         {
           {
             auto newSize = drawData->TotalVtxCount * sizeof(ImDrawVert);

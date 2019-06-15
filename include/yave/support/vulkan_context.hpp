@@ -103,6 +103,10 @@ namespace yave {
       /// Check if widnow should close.
       [[nodiscard]] bool should_close() const;
 
+    public: /* window settings */
+      /// Set clear color
+      void set_clear_color(float r, float g, float b, float a);
+
     public: /* framebuffer update */
       /// Rebuild resources related to frame buffer.
       /// \note: Not internally synchronized.

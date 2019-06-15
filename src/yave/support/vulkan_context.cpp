@@ -1413,6 +1413,7 @@ namespace yave {
     std::vector<vk::UniqueSemaphore> complete_semaphores;
     std::vector<vk::UniqueFence> in_flight_fences;
     vk::UniqueFence acquire_fence;
+    vk::ClearColorValue clearColor;
 
   public:
     const vulkan_context* context; // non-owning
@@ -1804,8 +1805,9 @@ namespace yave {
     }
     /* begin render pass */
     {
-      // TODO: set clear color
+      // you can set clear color with set_clear_color()
       vk::ClearValue clearValue;
+      clearValue.color = m_pimpl->clearColor;
 
       // begin render pass
       vk::RenderPassBeginInfo beginInfo;
@@ -1940,6 +1942,15 @@ namespace yave {
   bool vulkan_context::window_context::should_close() const
   {
     return glfwWindowShouldClose(m_pimpl->window);
+  }
+
+  void vulkan_context::window_context::set_clear_color(
+    float r,
+    float g,
+    float b,
+    float a)
+  {
+    m_pimpl->clearColor = std::array {r, g, b, a};
   }
 
   single_time_command
