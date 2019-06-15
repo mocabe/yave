@@ -601,6 +601,8 @@ namespace {
     const vk::Extent2D swapchainExtent,
     const vk::CommandBuffer& commandBuffer)
   {
+    using namespace yave;
+
     ImVec2 viewportPos = drawData->DisplayPos;
     ImVec2 pixScale    = drawData->FramebufferScale;
 
@@ -633,11 +635,22 @@ namespace {
           continue;
         }
 
+        if (
+          cmd.ClipRect.z < cmd.ClipRect.x && cmd.ClipRect.w < cmd.ClipRect.y) {
+          Error(
+            g_logger,
+            "Detected invalid ClipRect in draw data. This ca be caused by bug "
+            "in ImGui. ClipRect: {},{},{},{}",
+            cmd.ClipRect.x,
+            cmd.ClipRect.y,
+            cmd.ClipRect.z,
+            cmd.ClipRect.w);
+          continue;
+        }
+
         /* Render */
 
-        assert(cmd.ClipRect.z > cmd.ClipRect.x);
-        assert(cmd.ClipRect.w > cmd.ClipRect.y);
-
+        // scissor
         vk::Rect2D scissor;
         scissor.offset.x      = (cmd.ClipRect.x - viewportPos.x) * pixScale.x;
         scissor.offset.y      = (cmd.ClipRect.y - viewportPos.y) * pixScale.y;
@@ -653,12 +666,11 @@ namespace {
         commandBuffer.setScissor(0, scissor);
 
         // draw
-        commandBuffer.drawIndexed(cmd.ElemCount, 1, idxOffset, vtxOffset, 0);
-
-        // advance index
-        idxOffset += cmd.ElemCount;
+        commandBuffer.drawIndexed(
+          cmd.ElemCount, 1, cmd.IdxOffset + idxOffset, vtxOffset, 0);
       }
       vtxOffset += cmdList->VtxBuffer.Size;
+      idxOffset += cmdList->IdxBuffer.Size;
     }
   }
 
@@ -687,8 +699,8 @@ namespace yave {
     const vk::PhysicalDevice& physicalDevice,
     const vk::Device& device)
   {
-    // in capacity
-    if (newSize <= capacity && newSize > capacity / 8) {
+    // Avoid allocation when new size is smaller than current capacity.
+    if (newSize <= capacity && newSize > capacity / 16) {
       size = newSize;
       return;
     }
@@ -722,7 +734,7 @@ namespace yave {
 
     Info(
       g_logger,
-      "ImGuiRenderBuffer::resize(): size:{},cap:{} -> size:{},cap{}",
+      "ImGuiRenderBuffer::resize(): size:{},cap:{} -> size:{},cap:{}",
       size,
       capacity,
       newSize,
