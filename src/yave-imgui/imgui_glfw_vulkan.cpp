@@ -667,10 +667,15 @@ namespace {
 
         // draw
         commandBuffer.drawIndexed(
-          cmd.ElemCount, 1, cmd.IdxOffset + idxOffset, vtxOffset, 0);
+          cmd.ElemCount,
+          1,
+          (uint32_t)idxOffset + cmd.IdxOffset,
+          (uint32_t)vtxOffset + cmd.VtxOffset,
+          0);
       }
-      vtxOffset += cmdList->VtxBuffer.Size;
+
       idxOffset += cmdList->IdxBuffer.Size;
+      vtxOffset += cmdList->VtxBuffer.Size;
     }
   }
 
@@ -699,14 +704,7 @@ namespace yave {
     const vk::PhysicalDevice& physicalDevice,
     const vk::Device& device)
   {
-    // Avoid allocation when new size is smaller than current capacity.
-    if (newSize <= capacity && newSize > capacity / 16) {
-      size = newSize;
-      return;
-    }
-
     // create new buffer
-
     vk::BufferCreateInfo info;
     info.size        = newSize;
     info.usage       = flags;
@@ -717,10 +715,25 @@ namespace yave {
     if (info.size == 0)
       info.size = 1;
 
+    // create new buffer
     auto buff   = device.createBufferUnique(info);
     auto memReq = device.getBufferMemoryRequirements(buff.get());
 
-    auto newCapacity = std::max(memReq.size, memReq.alignment);
+    // Avoid allocation when new size is smaller than current capacity unless
+    // required size is very small.
+    if (newSize <= capacity && newSize > capacity / 8) {
+      // Bind existing memory to new buffer.
+      device.bindBufferMemory(buff.get(), memory.get(), 0);
+      // Update
+      buffer = std::move(buff);
+      size   = newSize;
+      return;
+    }
+
+    // Double buffer capacity (or half when we can shrink).
+    auto newCapacity = (memReq.size < capacity)
+                         ? std::max(memReq.size, capacity / 2)
+                         : std::max(memReq.size, capacity * 2);
 
     vk::MemoryAllocateInfo allocInfo;
     allocInfo.allocationSize  = newCapacity;
@@ -729,21 +742,20 @@ namespace yave {
       vk::MemoryPropertyFlagBits::eHostVisible,
       physicalDevice);
 
+    // allocate new device memory.
     auto mem = device.allocateMemoryUnique(allocInfo);
+
+    // Bind new memory to new buffer.
     device.bindBufferMemory(buff.get(), mem.get(), 0);
 
-    Info(
-      g_logger,
-      "ImGuiRenderBuffer::resize(): size:{},cap:{} -> size:{},cap:{}",
-      size,
-      capacity,
-      newSize,
-      newCapacity);
-
+    // Update
     size     = newSize;
     capacity = newCapacity;
     buffer   = std::move(buff);
     memory   = std::move(mem);
+
+    Info(
+      g_logger, "ImGuiRenderBuffer::resize(): size:{},cap:{}", size, capacity);
   }
 
   imgui_glfw_vulkan::imgui_glfw_vulkan(bool enableValidation)
@@ -862,7 +874,7 @@ namespace yave {
 
       m_windowCtx.set_clear_color(0.45f, 0.55f, 0.60f, 1.f);
 
-      auto bgn = std::chrono::high_resolution_clock::now();
+      /* Render with Vulkan */
       {
         // start new frame
         auto recorder      = m_windowCtx.new_recorder();
@@ -889,6 +901,7 @@ namespace yave {
               vk::BufferUsageFlagBits::eVertexBuffer,
               physicalDevice,
               device);
+            assert(vertexBuffer.size == newSize);
           }
           {
             auto newSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
@@ -897,6 +910,7 @@ namespace yave {
               vk::BufferUsageFlagBits::eIndexBuffer,
               physicalDevice,
               device);
+            assert(indexBuffer.size == newSize);
           }
         }
 
@@ -925,12 +939,6 @@ namespace yave {
           m_windowCtx.swapchain_extent(),
           commandBuffer);
       }
-      auto end = std::chrono::high_resolution_clock::now();
-      auto elapsed =
-        std::chrono::duration_cast<std::chrono::milliseconds>(end - bgn);
-      // keep it 60 fps
-      if (elapsed < std::chrono::milliseconds(16))
-        std::this_thread::sleep_for(std::chrono::milliseconds(16) - elapsed);
     }
 
     Info("Finished");
