@@ -482,48 +482,45 @@ namespace {
   {
     assert(vertexBuffer.size == drawData->TotalVtxCount * sizeof(ImDrawVert));
     assert(indexBuffer.size == drawData->TotalIdxCount * sizeof(ImDrawIdx));
-    assert(
-      vertexBuffer.capacity >= drawData->TotalVtxCount * sizeof(ImDrawVert));
-    assert(indexBuffer.capacity >= drawData->TotalIdxCount * sizeof(ImDrawIdx));
 
-    /* map memory */
-
-    std::byte* vertexPtr;
-    std::byte* indexPtr;
-    {
-      vertexPtr = (std::byte*)device.mapMemory(
-        vertexBuffer.memory.get(), 0, vertexBuffer.capacity);
-      indexPtr = (std::byte*)device.mapMemory(
-        indexBuffer.memory.get(), 0, indexBuffer.capacity);
+    if (vertexBuffer.size != 0) {
+      // map to host memory
+      std::byte* vertexPtr = (std::byte*)device.mapMemory(
+        vertexBuffer.memory.get(), 0, vertexBuffer.size);
+      // copy data
+      for (int i = 0; i < drawData->CmdListsCount; ++i) {
+        const ImDrawList* cmdList = drawData->CmdLists[i];
+        auto vtxSize              = cmdList->VtxBuffer.size_in_bytes();
+        std::memcpy(vertexPtr, cmdList->VtxBuffer.Data, vtxSize);
+        vertexPtr += vtxSize;
+      }
+      // unmap memory
+      {
+        vk::MappedMemoryRange range;
+        range.memory = vertexBuffer.memory.get();
+        device.flushMappedMemoryRanges(range);
+        device.unmapMemory(vertexBuffer.memory.get());
+      }
     }
 
-    /* write to buffers */
-
-    for (int i = 0; i < drawData->CmdListsCount; ++i) {
-      const ImDrawList* cmdList = drawData->CmdLists[i];
-
-      auto vtxSize = cmdList->VtxBuffer.size_in_bytes();
-      auto idxSize = cmdList->IdxBuffer.size_in_bytes();
-
-      std::memcpy(vertexPtr, cmdList->VtxBuffer.Data, vtxSize);
-      std::memcpy(indexPtr, cmdList->IdxBuffer.Data, idxSize);
-
-      vertexPtr += vtxSize;
-      indexPtr += idxSize;
-    }
-
-    /* render buffers are not host coherent. */
-    {
-      std::array<vk::MappedMemoryRange, 2> ranges;
-      ranges[0].memory = vertexBuffer.memory.get();
-      ranges[1].memory = indexBuffer.memory.get();
-      device.flushMappedMemoryRanges(ranges);
-    }
-
-    /* unmap memory */
-    {
-      device.unmapMemory(vertexBuffer.memory.get());
-      device.unmapMemory(indexBuffer.memory.get());
+    if (indexBuffer.size != 0) {
+      // map to host memory
+      std::byte* indexPtr = (std::byte*)device.mapMemory(
+        indexBuffer.memory.get(), 0, indexBuffer.size);
+      // copy data
+      for (int i = 0; i < drawData->CmdListsCount; ++i) {
+        const ImDrawList* cmdList = drawData->CmdLists[i];
+        auto idxSize              = cmdList->IdxBuffer.size_in_bytes();
+        std::memcpy(indexPtr, cmdList->IdxBuffer.Data, idxSize);
+        indexPtr += idxSize;
+      }
+      // unmap memory
+      {
+        vk::MappedMemoryRange range;
+        range.memory = indexBuffer.memory.get();
+        device.flushMappedMemoryRanges(range);
+        device.unmapMemory(indexBuffer.memory.get());
+      }
     }
   }
 
@@ -858,14 +855,14 @@ namespace yave {
 
       /* render ImGui frame */
       {
-      glfwPollEvents();
-      ImGui_ImplGlfw_NewFrame();
-      ImGui::NewFrame();
-      {
-        static bool show_demo_window = true;
-        ImGui::ShowDemoWindow(&show_demo_window);
-      }
-      ImGui::Render();
+        glfwPollEvents();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        {
+          static bool show_demo_window = true;
+          ImGui::ShowDemoWindow(&show_demo_window);
+        }
+        ImGui::Render();
       }
 
       /* render Vulkan frame */
