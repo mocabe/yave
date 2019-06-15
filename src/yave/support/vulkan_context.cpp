@@ -1666,23 +1666,12 @@ namespace yave {
       // VkAcquireNextImageKHR can be non-blocking depending on driver
       // implementation. so uses fence to prevent over-commit.
 
-      device.resetFences(m_pimpl->acquire_fence.get());
-
       auto err = device.acquireNextImageKHR(
         m_pimpl->swapchain.get(),
         std::numeric_limits<uint64_t>::max(),
         m_pimpl->acquire_semaphores[m_pimpl->frame_index].get(),
-        m_pimpl->acquire_fence.get(),
+        vk::Fence(),
         &m_pimpl->image_index);
-
-      auto wait_err = device.waitForFences(
-        m_pimpl->acquire_fence.get(),
-        VK_TRUE,
-        std::numeric_limits<uint64_t>::max());
-
-      if (wait_err != vk::Result::eSuccess)
-        throw std::runtime_error(
-          "Failed to wait for fence: " + vk::to_string(wait_err));
 
       // loop
       while (err == vk::Result::eErrorOutOfDateKHR) {
@@ -1702,7 +1691,7 @@ namespace yave {
           m_pimpl->acquire_fence.get(),
           &m_pimpl->image_index);
 
-        wait_err = device.waitForFences(
+        auto wait_err = device.waitForFences(
           m_pimpl->acquire_fence.get(),
           VK_TRUE,
           std::numeric_limits<uint64_t>::max());
