@@ -24,6 +24,10 @@ namespace yave {
     /// imgui user draw calls
     virtual void draw();
 
+  private:
+    /// Ctor
+    imgui_glfw_vulkan(const imgui_glfw_vulkan&) = delete;
+
   protected:
     yave::glfw_context m_glfwCtx;
     yave::vulkan_context m_vulkanCtx;

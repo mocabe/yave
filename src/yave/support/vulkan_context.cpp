@@ -3,6 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
+# define _ENABLE_ATOMIC_ALIGNMENT_FIX 
+
 #include <yave/support/vulkan_context.hpp>
 #include <yave/support/log.hpp>
 
@@ -1090,6 +1092,9 @@ namespace yave {
 
   single_time_command::~single_time_command()
   {
+    if (!m_buffer)
+      return;
+
     // end command buffer
     m_buffer->end();
     // submit command buffer
@@ -1702,6 +1707,10 @@ namespace yave {
   vulkan_context::window_context::~window_context() noexcept
   {
     using namespace yave;
+
+    if (!m_pimpl)
+      return;
+
     m_pimpl->context->device().waitIdle();
     Info(g_vulkan_logger, "Destroying window context");
   }
@@ -1856,6 +1865,9 @@ namespace yave {
 
   vulkan_context::window_context::command_recorder::~command_recorder()
   {
+    if (!m_window_ctx)
+      return;
+
     m_window_ctx->end_record(m_buffer);
     m_window_ctx->end_frame();
   }
