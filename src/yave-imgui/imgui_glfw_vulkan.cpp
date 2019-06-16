@@ -4,13 +4,16 @@
 //
 
 #include <yave-imgui/imgui_glfw_vulkan.hpp>
+#include <yave/support/log.hpp>
+
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 
-#include <yave/support/log.hpp>
 #include <chrono>
+#include <thread>
+#include <fstream>
 
-#include "shader.hpp"
+#include <boost/dll/runtime_symbol_info.hpp>
 
 namespace {
 
@@ -56,9 +59,8 @@ namespace {
     return device.createPipelineCacheUnique(info);
   }
 
-  vk::UniqueShaderModule createShaderModule(
-    const std::vector<std::byte>& code,
-    const vk::Device& device)
+  vk::UniqueShaderModule
+    createShaderModule(const std::vector<char>& code, const vk::Device& device)
   {
     vk::ShaderModuleCreateInfo info;
     info.flags    = vk::ShaderModuleCreateFlags();
@@ -68,18 +70,26 @@ namespace {
     return device.createShaderModuleUnique(info);
   }
 
-  std::vector<std::byte> createImGuiVertexShader()
+  std::vector<char> loadShaderFile(const std::string& filename)
   {
-    std::vector<std::byte> code(sizeof(yave::vertex_shader_code));
-    memcpy(code.data(), yave::vertex_shader_code, code.size());
-    return code;
-  }
+    // get relative path (this really should be in std::filesystem...)
+    auto path = boost::dll::program_location().remove_filename() / filename;
 
-  std::vector<std::byte> createImGuiFragmentShader()
-  {
-    std::vector<std::byte> code(sizeof(yave::fragment_shader_code));
-    memcpy(code.data(), yave::fragment_shader_code, code.size());
-    return code;
+    // open file and seek to end
+    std::ifstream ifs(path.native(), std::ios::binary | std::ios::ate);
+
+    if (!ifs.is_open())
+      throw std::runtime_error("Failed to open shader file " + path.native());
+
+    // get file size
+    auto size = ifs.tellg();
+    std::vector<char> ret(size);
+
+    // read whole file to buffer
+    ifs.seekg(0);
+    ifs.read(ret.data(), size);
+
+    return ret;
   }
 
   vk::UniquePipeline createImGuiPipeline(
@@ -93,7 +103,7 @@ namespace {
 
     // vertex shader
     vk::UniqueShaderModule vertShaderModule =
-      createShaderModule(createImGuiVertexShader(), device);
+      createShaderModule(loadShaderFile("vert.spv"), device);
 
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
     vertShaderStageInfo.stage  = vk::ShaderStageFlagBits::eVertex;
@@ -102,7 +112,7 @@ namespace {
 
     // fragment shader
     vk::UniqueShaderModule fragShaderModule =
-      createShaderModule(createImGuiFragmentShader(), device);
+      createShaderModule(loadShaderFile("frag.spv"), device);
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
     fragShaderStageInfo.stage  = vk::ShaderStageFlagBits::eFragment;
@@ -120,9 +130,9 @@ namespace {
     vertBindingDesc[0].inputRate = vk::VertexInputRate::eVertex;
 
     // vertex input:
-    // vec2 aPos;
-    // vec2 aUV;
-    // vec2 aColor;
+    // vec2 pos
+    // vec2 uv
+    // vec2 color
     std::array<vk::VertexInputAttributeDescription, 3> vertAttrDesc;
     // ImDrawVert::pos
     vertAttrDesc[0].location = 0;
