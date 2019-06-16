@@ -881,11 +881,14 @@ namespace yave {
     ImGui::DestroyContext();
   }
 
-  void imgui_glfw_vulkan::user_code()
+  void imgui_glfw_vulkan::draw()
   {
+    // show demo
+    static bool show_demo_window = true;
+    ImGui::ShowDemoWindow(&show_demo_window);
   }
 
-  void imgui_glfw_vulkan::draw()
+  void imgui_glfw_vulkan::exec()
   {
     /* main loop */
 
@@ -899,9 +902,7 @@ namespace yave {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         {
-          static bool show_demo_window = true;
-          ImGui::ShowDemoWindow(&show_demo_window);
-          user_code();
+          draw();
         }
         ImGui::Render();
       }

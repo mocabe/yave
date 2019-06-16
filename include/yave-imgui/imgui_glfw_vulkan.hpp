@@ -19,10 +19,10 @@ namespace yave {
     ~imgui_glfw_vulkan();
 
     /// Start drawing imgui window.
-    void draw();
+    void exec();
 
     /// imgui user draw calls
-    virtual void user_code();
+    virtual void draw();
 
   protected:
     yave::glfw_context m_glfwCtx;
