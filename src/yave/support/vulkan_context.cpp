@@ -1003,42 +1003,54 @@ namespace {
     return device.createCommandPoolUnique(info);
   }
 
+
   std::vector<vk::UniqueCommandBuffer> createCommandBuffers(
     uint32_t size,
+    const vk::CommandBufferLevel& level,
     const vk::CommandPool& commandPool,
     const vk::Device& device)
   {
     vk::CommandBufferAllocateInfo info {};
     info.commandPool        = commandPool;
-    info.level              = vk::CommandBufferLevel::ePrimary;
+    info.level              = level;
     info.commandBufferCount = size;
 
     return device.allocateCommandBuffersUnique(info);
   }
 
-  std::vector<vk::UniqueSemaphore>
-    createSemaphores(uint32_t size, const vk::Device& device)
+  vk::UniqueSemaphore createSemaphore(const vk::Device& device)
   {
     vk::SemaphoreCreateInfo info;
     info.flags = vk::SemaphoreCreateFlags();
+    return device.createSemaphoreUnique(info);
+  }
 
+  std::vector<vk::UniqueSemaphore>
+    createSemaphores(uint32_t size, const vk::Device& device)
+  {
     std::vector<vk::UniqueSemaphore> ret;
     for (uint32_t i = 0; i < size; ++i) {
-      ret.push_back(device.createSemaphoreUnique(info));
+      ret.push_back(createSemaphore(device));
     }
     return ret;
   }
 
-  std::vector<vk::UniqueFence>
-    createFences(uint32_t size, const vk::Device& device)
+  vk::UniqueFence
+    createFence(const vk::Device& device, const vk::FenceCreateFlags& flags)
   {
     vk::FenceCreateInfo info;
-    // create with signaled so render loop can wait for it on the first time
-    info.flags = vk::FenceCreateFlagBits::eSignaled;
+    info.flags = flags;
+    return device.createFenceUnique(info);
+  }
 
+  std::vector<vk::UniqueFence> createFences(
+    uint32_t size,
+    const vk::Device& device,
+    const vk::FenceCreateFlags& flags)
+  {
     std::vector<vk::UniqueFence> ret;
     for (uint32_t i = 0; i < size; ++i) {
-      ret.push_back(device.createFenceUnique(info));
+      ret.push_back(createFence(device, flags));
     }
     return ret;
   }
@@ -1067,8 +1079,9 @@ namespace yave {
     , m_pool {pool}
   {
     // create command buffer
-    m_buffer = std::move(createCommandBuffers(1, m_pool, m_device)[0]);
-    m_fence  = std::move(createFences(1, m_device)[0]);
+    m_buffer = std::move(createCommandBuffers(
+      1, vk::CommandBufferLevel::ePrimary, m_pool, m_device)[0]);
+    m_fence  = createFence(m_device, vk::FenceCreateFlags());
     // begin command buffer
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
@@ -1079,8 +1092,6 @@ namespace yave {
   {
     // end command buffer
     m_buffer->end();
-    // reset fence
-    m_device.resetFences(m_fence.get());
     // submit command buffer
     vk::SubmitInfo submitInfo;
     submitInfo.commandBufferCount = 1;
@@ -1389,6 +1400,7 @@ namespace yave {
     // create command buffers
     impl->command_buffers = createCommandBuffers(
       impl->swapchain_image_count,
+      vk::CommandBufferLevel::ePrimary,
       impl->command_pool.get(),
       m_pimpl->device.get());
 
@@ -1407,10 +1419,14 @@ namespace yave {
 
     /* fences */
 
-    impl->in_flight_fences =
-      createFences(impl->swapchain_image_count, m_pimpl->device.get());
+    // create with signaled state
+    impl->in_flight_fences = createFences(
+      impl->swapchain_image_count,
+      m_pimpl->device.get(),
+      vk::FenceCreateFlagBits::eSignaled);
 
-    impl->acquire_fence = std::move(createFences(1, m_pimpl->device.get())[0]);
+    impl->acquire_fence =
+      createFence(m_pimpl->device.get(), vk::FenceCreateFlags());
 
     Info(g_vulkan_logger, "Created fences");
 
@@ -1485,6 +1501,7 @@ namespace yave {
 
     m_pimpl->command_buffers = createCommandBuffers(
       m_pimpl->swapchain_image_count,
+      vk::CommandBufferLevel::ePrimary,
       m_pimpl->command_pool.get(),
       m_pimpl->context->device());
 
@@ -1494,8 +1511,10 @@ namespace yave {
     m_pimpl->complete_semaphores = createSemaphores(
       m_pimpl->swapchain_image_count, m_pimpl->context->device());
 
-    m_pimpl->in_flight_fences =
-      createFences(m_pimpl->swapchain_image_count, m_pimpl->context->device());
+    m_pimpl->in_flight_fences = createFences(
+      m_pimpl->swapchain_image_count,
+      m_pimpl->context->device(),
+      vk::FenceCreateFlagBits::eSignaled);
   }
 
   void vulkan_context::window_context::begin_frame()

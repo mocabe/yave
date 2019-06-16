@@ -27,19 +27,13 @@ namespace {
     }();
   }
 
-  vk::UniqueFence createFence(const vk::Device& device)
-  {
-    vk::FenceCreateInfo info;
-    info.flags = vk::FenceCreateFlagBits::eSignaled;
-    return device.createFenceUnique(info);
-  }
-
   vk::UniquePipelineLayout createImGuiPipelineLayout(
     const vk::DescriptorSetLayout& setLayout,
     const vk::Device& device)
   {
     // Push constants:
-    // vec2 uScale; vec2 uTranslate;
+    // vec2 scale;
+    // vec2 translate;
     vk::PushConstantRange pcr;
     pcr.stageFlags = vk::ShaderStageFlagBits::eVertex;
     pcr.size       = sizeof(float) * 4;
@@ -483,20 +477,20 @@ namespace {
     return std::move(device.allocateDescriptorSetsUnique(info).front());
   }
 
-  template <class Buffer>
+  template <class BufferT>
   void uploadImGuiDrawData(
-    const Buffer& vertexBuffer,
-    const Buffer& indexBuffer,
+    const BufferT& vertexBuffer,
+    const BufferT& indexBuffer,
     const ImDrawData* drawData,
     const vk::Device& device)
   {
-    assert(vertexBuffer.size == drawData->TotalVtxCount * sizeof(ImDrawVert));
-    assert(indexBuffer.size == drawData->TotalIdxCount * sizeof(ImDrawIdx));
+    assert(vertexBuffer.size() == drawData->TotalVtxCount * sizeof(ImDrawVert));
+    assert(indexBuffer.size() == drawData->TotalIdxCount * sizeof(ImDrawIdx));
 
-    if (vertexBuffer.size != 0) {
+    if (vertexBuffer.size() != 0) {
       // map to host memory
       std::byte* vertexPtr = (std::byte*)device.mapMemory(
-        vertexBuffer.memory.get(), 0, vertexBuffer.size);
+        vertexBuffer.memory(), 0, vertexBuffer.size());
       // copy data
       for (int i = 0; i < drawData->CmdListsCount; ++i) {
         const ImDrawList* cmdList = drawData->CmdLists[i];
@@ -507,16 +501,16 @@ namespace {
       // unmap memory
       {
         vk::MappedMemoryRange range;
-        range.memory = vertexBuffer.memory.get();
+        range.memory = vertexBuffer.memory();
         device.flushMappedMemoryRanges(range);
-        device.unmapMemory(vertexBuffer.memory.get());
+        device.unmapMemory(vertexBuffer.memory());
       }
     }
 
-    if (indexBuffer.size != 0) {
+    if (indexBuffer.size() != 0) {
       // map to host memory
       std::byte* indexPtr = (std::byte*)device.mapMemory(
-        indexBuffer.memory.get(), 0, indexBuffer.size);
+        indexBuffer.memory(), 0, indexBuffer.size());
       // copy data
       for (int i = 0; i < drawData->CmdListsCount; ++i) {
         const ImDrawList* cmdList = drawData->CmdLists[i];
@@ -527,9 +521,9 @@ namespace {
       // unmap memory
       {
         vk::MappedMemoryRange range;
-        range.memory = indexBuffer.memory.get();
+        range.memory = indexBuffer.memory();
         device.flushMappedMemoryRanges(range);
-        device.unmapMemory(indexBuffer.memory.get());
+        device.unmapMemory(indexBuffer.memory());
       }
     }
   }
@@ -691,30 +685,57 @@ namespace {
 namespace yave {
 
   /// for vertex/index buffers
-  struct ImGuiRenderBuffer
+  class ImGuiRenderBuffer
   {
-    vk::DeviceSize size           = 0;
-    vk::DeviceSize capacity       = 0;
-    vk::UniqueBuffer buffer       = vk::UniqueBuffer();
-    vk::UniqueDeviceMemory memory = vk::UniqueDeviceMemory();
+  public:
+    ImGuiRenderBuffer(const vk::BufferUsageFlags& usage)
+      : m_usage {usage}
+    {
+      // Leave all resources uninitialized. Use reisze() before using.
+    }
+
+    vk::DeviceSize size() const
+    {
+      return m_size;
+    }
+
+    vk::DeviceSize capacity() const
+    {
+      return m_capacity;
+    }
+
+    vk::Buffer buffer() const
+    {
+      return m_buffer.get();
+    }
+
+    vk::DeviceMemory memory() const
+    {
+      return m_memory.get();
+    }
 
     void resize(
       const vk::DeviceSize& size,
-      const vk::BufferUsageFlags& flags,
       const vk::PhysicalDevice& physicalDevice,
       const vk::Device& device);
+
+  private:
+    vk::BufferUsageFlags m_usage; // init by ctor
+    vk::DeviceSize m_size           = 0;
+    vk::DeviceSize m_capacity       = 0;
+    vk::UniqueBuffer m_buffer       = vk::UniqueBuffer();
+    vk::UniqueDeviceMemory m_memory = vk::UniqueDeviceMemory();
   };
 
   void ImGuiRenderBuffer::resize(
     const vk::DeviceSize& newSize,
-    const vk::BufferUsageFlags& flags,
     const vk::PhysicalDevice& physicalDevice,
     const vk::Device& device)
   {
     // create new buffer
     vk::BufferCreateInfo info;
     info.size        = newSize;
-    info.usage       = flags;
+    info.usage       = m_usage;
     info.sharingMode = vk::SharingMode::eExclusive;
 
     // Vulkan does not allow zero sized buffer.
@@ -728,19 +749,19 @@ namespace yave {
 
     // Avoid allocation when new size is smaller than current capacity unless
     // required size is very small.
-    if (newSize <= capacity && newSize > capacity / 8) {
+    if (newSize <= m_capacity && newSize > m_capacity / 8) {
       // Bind existing memory to new buffer.
-      device.bindBufferMemory(buff.get(), memory.get(), 0);
+      device.bindBufferMemory(buff.get(), m_memory.get(), 0);
       // Update
-      buffer = std::move(buff);
-      size   = newSize;
+      m_buffer = std::move(buff);
+      m_size   = newSize;
       return;
     }
 
     // Double buffer capacity (or half when we can shrink).
-    auto newCapacity = (memReq.size < capacity)
-                         ? std::max(memReq.size, capacity / 2)
-                         : std::max(memReq.size, capacity * 2);
+    auto newCapacity = (memReq.size < m_capacity)
+                         ? std::max(memReq.size, m_capacity / 2)
+                         : std::max(memReq.size, m_capacity * 2);
 
     vk::MemoryAllocateInfo allocInfo;
     allocInfo.allocationSize  = newCapacity;
@@ -756,10 +777,10 @@ namespace yave {
     device.bindBufferMemory(buff.get(), mem.get(), 0);
 
     // Update
-    size     = newSize;
-    capacity = newCapacity;
-    buffer   = std::move(buff);
-    memory   = std::move(mem);
+    m_size     = newSize;
+    m_capacity = newCapacity;
+    m_buffer   = std::move(buff);
+    m_memory   = std::move(mem);
   }
 
   imgui_glfw_vulkan::imgui_glfw_vulkan(bool enableValidation)
@@ -904,10 +925,27 @@ namespace yave {
         auto physicalDevice = m_vulkanCtx.physical_device();
         auto device         = m_vulkanCtx.device();
 
-        /* Resize buffers to match current in-flight frames */
+        /* Resize buffers vector to match current in-flight frames */
         {
-          m_vertexBuffers.resize(m_windowCtx.frame_index_count());
-          m_indexBuffers.resize(m_windowCtx.frame_index_count());
+          auto frameCount = m_windowCtx.frame_index_count();
+          // vertec buffer
+          if (m_vertexBuffers.size() > frameCount) {
+            for (size_t i = 0; i < m_vertexBuffers.size() - frameCount; ++i)
+              m_vertexBuffers.pop_back();
+          } else {
+            for (size_t i = 0; i < frameCount - m_vertexBuffers.size(); ++i)
+              m_vertexBuffers.emplace_back(
+                vk::BufferUsageFlagBits::eVertexBuffer);
+          }
+          // index buffer
+          if (m_indexBuffers.size() > frameCount) {
+            for (size_t i = 0; i < m_indexBuffers.size() - frameCount; ++i)
+              m_indexBuffers.pop_back();
+          } else {
+            for (size_t i = 0; i < frameCount - m_indexBuffers.size(); ++i)
+              m_indexBuffers.emplace_back(
+                vk::BufferUsageFlagBits::eIndexBuffer);
+          }
         }
 
         auto& vertexBuffer = m_vertexBuffers[m_windowCtx.frame_index()];
@@ -917,21 +955,13 @@ namespace yave {
         {
           {
             auto newSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
-            vertexBuffer.resize(
-              newSize,
-              vk::BufferUsageFlagBits::eVertexBuffer,
-              physicalDevice,
-              device);
-            assert(vertexBuffer.size == newSize);
+            vertexBuffer.resize(newSize, physicalDevice, device);
+            assert(vertexBuffer.size() == newSize);
           }
           {
             auto newSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
-            indexBuffer.resize(
-              newSize,
-              vk::BufferUsageFlagBits::eIndexBuffer,
-              physicalDevice,
-              device);
-            assert(indexBuffer.size == newSize);
+            indexBuffer.resize(newSize, physicalDevice, device);
+            assert(indexBuffer.size() == newSize);
           }
         }
 
@@ -944,8 +974,8 @@ namespace yave {
           m_pipelineLayout.get(),
           m_pipeline.get(),
           m_descriptorSet.get(),
-          vertexBuffer.buffer.get(),
-          indexBuffer.buffer.get(),
+          vertexBuffer.buffer(),
+          indexBuffer.buffer(),
           m_windowCtx.swapchain_extent(),
           commandBuffer);
 
@@ -955,8 +985,8 @@ namespace yave {
           m_pipelineLayout.get(),
           m_pipeline.get(),
           m_descriptorSet.get(),
-          vertexBuffer.buffer.get(),
-          indexBuffer.buffer.get(),
+          vertexBuffer.buffer(),
+          indexBuffer.buffer(),
           m_windowCtx.swapchain_extent(),
           commandBuffer);
       }
