@@ -4,6 +4,8 @@
 //
 
 #include <yave/support/log.hpp>
+
+#include <spdlog/sinks/sink.h>
 #include <spdlog/sinks/stdout_sinks.h>
 
 namespace yave {
