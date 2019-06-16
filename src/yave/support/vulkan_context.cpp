@@ -790,7 +790,7 @@ namespace {
     info.preTransform    = preTransform;
     info.compositeAlpha  = compositeAlpha;
     info.presentMode     = mode;
-    info.clipped         = true;
+    info.clipped         = VK_TRUE;
     // single layer
     info.imageArrayLayers = 1;
     // directly render (as color attachment)

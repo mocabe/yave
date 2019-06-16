@@ -955,7 +955,7 @@ namespace yave {
 
       auto endTime         = std::chrono::high_resolution_clock::now();
       auto frameTime       = (endTime - lastTime);
-      auto frameTimeWindow = std::chrono::milliseconds(16);
+      auto frameTimeWindow = std::chrono::microseconds(16666);
       auto sleepTime       = frameTimeWindow - frameTime;
 
       if (sleepTime.count() > 0) {
