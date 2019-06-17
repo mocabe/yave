@@ -21,6 +21,7 @@ int main()
 
 
 
+  imgui_glfw_vulkan imgui(true);
 
 
   while (!imgui.window_context().should_close()) {
