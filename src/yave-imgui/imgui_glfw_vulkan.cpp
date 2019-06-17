@@ -528,16 +528,14 @@ namespace {
     }
   }
 
-  ImTextureID toImTextureId(const vk::DescriptorSet& dsc)
+  ImTextureID toImTextureId(vk::DescriptorSet& dsc)
   {
-    static_assert(sizeof(ImTextureID) == sizeof(VkDescriptorSet));
-    return (ImTextureID)dsc;
+    return (ImTextureID)&dsc;
   }
 
-  vk::DescriptorSet fromImTextureId(const ImTextureID& tex)
+  const vk::DescriptorSet* fromImTextureId(const ImTextureID& tex)
   {
-    static_assert(sizeof(ImTextureID) == sizeof(VkDescriptorSet));
-    return (VkDescriptorSet)tex;
+    return (const vk::DescriptorSet*)tex;
   }
 
   void initImGuiPipeline(
@@ -660,7 +658,7 @@ namespace {
         /* Texture */
 
         auto dscToBind =
-          cmd.TextureId ? fromImTextureId(cmd.TextureId) : descriptorSet;
+          cmd.TextureId ? *fromImTextureId(cmd.TextureId) : descriptorSet;
 
         commandBuffer.bindDescriptorSets(
           vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, dscToBind, {});
@@ -886,6 +884,9 @@ namespace yave {
 
       Info(g_logger, "Updated ImGui descriptor set");
     }
+
+    // for rendering loop
+    m_lastTime = std::chrono::high_resolution_clock::now();
   }
 
   imgui_glfw_vulkan::~imgui_glfw_vulkan()
@@ -899,130 +900,192 @@ namespace yave {
     ImGui::DestroyContext();
   }
 
-  void imgui_glfw_vulkan::draw()
+  void imgui_glfw_vulkan::begin()
   {
-    // show demo
-    static bool show_demo_window = true;
-    ImGui::ShowDemoWindow(&show_demo_window);
-  }
-
-  void imgui_glfw_vulkan::exec()
-  {
-    /* main loop */
-
-    auto lastTime = std::chrono::high_resolution_clock::now();
-
-    while (!m_windowCtx.should_close()) {
-
-      /* render ImGui frame */
-      {
-        glfwPollEvents();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        {
-          draw();
-        }
-        ImGui::Render();
-      }
-
-      /* render Vulkan frame */
-
-      // ImGui draw data
-      const auto* drawData = ImGui::GetDrawData();
-
-      assert(drawData->Valid);
-
-      m_windowCtx.set_clear_color(0.45f, 0.55f, 0.60f, 1.f);
-
-      /* Render with Vulkan */
-      {
-        // begin new frame (use RAII recorder)
-        auto recorder      = m_windowCtx.new_recorder();
-        auto commandBuffer = recorder.command_buffer();
-
-        // device
-        auto physicalDevice = m_vulkanCtx.physical_device();
-        auto device         = m_vulkanCtx.device();
-
-        /* Resize buffers vector to match current in-flight frames */
-        {
-          auto frameCount = m_windowCtx.frame_index_count();
-          // vertec buffer
-          if (m_vertexBuffers.size() > frameCount) {
-            for (size_t i = 0; i < m_vertexBuffers.size() - frameCount; ++i)
-              m_vertexBuffers.pop_back();
-          } else {
-            for (size_t i = 0; i < frameCount - m_vertexBuffers.size(); ++i)
-              m_vertexBuffers.emplace_back(
-                vk::BufferUsageFlagBits::eVertexBuffer);
-          }
-          // index buffer
-          if (m_indexBuffers.size() > frameCount) {
-            for (size_t i = 0; i < m_indexBuffers.size() - frameCount; ++i)
-              m_indexBuffers.pop_back();
-          } else {
-            for (size_t i = 0; i < frameCount - m_indexBuffers.size(); ++i)
-              m_indexBuffers.emplace_back(
-                vk::BufferUsageFlagBits::eIndexBuffer);
-          }
-        }
-
-        auto& vertexBuffer = m_vertexBuffers[m_windowCtx.frame_index()];
-        auto& indexBuffer  = m_indexBuffers[m_windowCtx.frame_index()];
-
-        /* Resize vertex/index buffers */
-        {
-          {
-            auto newSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
-            vertexBuffer.resize(newSize, physicalDevice, device);
-            assert(vertexBuffer.size() == newSize);
-          }
-          {
-            auto newSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
-            indexBuffer.resize(newSize, physicalDevice, device);
-            assert(indexBuffer.size() == newSize);
-          }
-        }
-
-        /* Upload vertex/index data to GPU */
-        uploadImGuiDrawData(vertexBuffer, indexBuffer, drawData, device);
-
-        /* Initialize pipeline */
-        initImGuiPipeline(
-          drawData,
-          m_pipelineLayout.get(),
-          m_pipeline.get(),
-          vertexBuffer.buffer(),
-          indexBuffer.buffer(),
-          m_windowCtx.swapchain_extent(),
-          commandBuffer);
-
-        /* Record draw commands */
-        renderImGuiDrawData(
-          drawData,
-          m_descriptorSet.get(),
-          m_pipelineLayout.get(),
-          m_pipeline.get(),
-          vertexBuffer.buffer(),
-          indexBuffer.buffer(),
-          m_windowCtx.swapchain_extent(),
-          commandBuffer);
-      }
-
-      /* frame rate limiter */
-
-      auto endTime         = std::chrono::high_resolution_clock::now();
-      auto frameTime       = (endTime - lastTime);
-      auto frameTimeWindow = std::chrono::microseconds(16666);
-      auto sleepTime       = frameTimeWindow - frameTime;
-
-      if (sleepTime.count() > 0) {
-        lastTime = endTime + sleepTime;
-        std::this_thread::sleep_for(sleepTime);
-      } else {
-        lastTime = endTime;
-      }
+    /* start ImGui frame */
+    {
+      glfwPollEvents();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
     }
   }
 
+  void imgui_glfw_vulkan::end()
+  {
+    /* end ImGui frame */
+    {
+      ImGui::Render();
+    }
+  }
+
+  void imgui_glfw_vulkan::render()
+  {
+    /* render Vulkan frame */
+
+    // ImGui draw data
+    const auto* drawData = ImGui::GetDrawData();
+
+    assert(drawData->Valid);
+
+    m_windowCtx.set_clear_color(0.45f, 0.55f, 0.60f, 1.f);
+
+    /* Render with Vulkan */
+    {
+      // begin new frame (use RAII recorder)
+      auto recorder      = m_windowCtx.new_recorder();
+      auto commandBuffer = recorder.command_buffer();
+
+      // device
+      auto physicalDevice = m_vulkanCtx.physical_device();
+      auto device         = m_vulkanCtx.device();
+
+      /* Resize buffers vector to match current in-flight frames */
+      {
+        auto frameCount = m_windowCtx.frame_index_count();
+        // vertec buffer
+        if (m_vertexBuffers.size() > frameCount) {
+          for (size_t i = 0; i < m_vertexBuffers.size() - frameCount; ++i)
+            m_vertexBuffers.pop_back();
+        } else {
+          for (size_t i = 0; i < frameCount - m_vertexBuffers.size(); ++i)
+            m_vertexBuffers.emplace_back(
+              vk::BufferUsageFlagBits::eVertexBuffer);
+        }
+        // index buffer
+        if (m_indexBuffers.size() > frameCount) {
+          for (size_t i = 0; i < m_indexBuffers.size() - frameCount; ++i)
+            m_indexBuffers.pop_back();
+        } else {
+          for (size_t i = 0; i < frameCount - m_indexBuffers.size(); ++i)
+            m_indexBuffers.emplace_back(vk::BufferUsageFlagBits::eIndexBuffer);
+        }
+      }
+
+      auto& vertexBuffer = m_vertexBuffers[m_windowCtx.frame_index()];
+      auto& indexBuffer  = m_indexBuffers[m_windowCtx.frame_index()];
+
+      /* Resize vertex/index buffers */
+      {
+        {
+          auto newSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
+          vertexBuffer.resize(newSize, physicalDevice, device);
+          assert(vertexBuffer.size() == newSize);
+        }
+        {
+          auto newSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+          indexBuffer.resize(newSize, physicalDevice, device);
+          assert(indexBuffer.size() == newSize);
+        }
+      }
+
+      /* Upload vertex/index data to GPU */
+      uploadImGuiDrawData(vertexBuffer, indexBuffer, drawData, device);
+
+      /* Initialize pipeline */
+      initImGuiPipeline(
+        drawData,
+        m_pipelineLayout.get(),
+        m_pipeline.get(),
+        vertexBuffer.buffer(),
+        indexBuffer.buffer(),
+        m_windowCtx.swapchain_extent(),
+        commandBuffer);
+
+      /* Record draw commands */
+      renderImGuiDrawData(
+        drawData,
+        m_descriptorSet.get(),
+        m_pipelineLayout.get(),
+        m_pipeline.get(),
+        vertexBuffer.buffer(),
+        indexBuffer.buffer(),
+        m_windowCtx.swapchain_extent(),
+        commandBuffer);
+    }
+
+    /* frame rate limiter */
+
+    auto endTime         = std::chrono::high_resolution_clock::now();
+    auto frameTime       = (endTime - m_lastTime);
+    auto frameTimeWindow = std::chrono::microseconds(16666);
+    auto sleepTime       = frameTimeWindow - frameTime;
+
+    if (sleepTime.count() > 0) {
+      m_lastTime = endTime + sleepTime;
+      std::this_thread::sleep_for(sleepTime);
+    } else {
+      m_lastTime = endTime;
+    }
+  }
+
+  ImTextureID imgui_glfw_vulkan::get_texture_id(vk::DescriptorSet& tex) const
+  {
+    return toImTextureId(tex);
+  }
+
+  const glfw_context& imgui_glfw_vulkan::glfw_context() const
+  {
+    return m_glfwCtx;
+  }
+
+  const vulkan_context& imgui_glfw_vulkan::vulkan_context() const
+  {
+    return m_vulkanCtx;
+  }
+
+  const vulkan_context::window_context&
+    imgui_glfw_vulkan::window_context() const
+  {
+    return m_windowCtx;
+  }
+
+  vk::Sampler imgui_glfw_vulkan::font_sampler() const
+  {
+    return m_fontSampler.get();
+  }
+
+  vk::DescriptorPool imgui_glfw_vulkan::descriptor_pool() const
+  {
+    return m_descriptorPool.get();
+  }
+
+  vk::DescriptorSetLayout imgui_glfw_vulkan::descriptor_set_layout() const
+  {
+    return m_descriptorSetLayout.get();
+  }
+
+  vk::DescriptorSet imgui_glfw_vulkan::descriptor_set() const
+  {
+    return m_descriptorSet.get();
+  }
+
+  vk::PipelineCache imgui_glfw_vulkan::pipeline_cache() const
+  {
+    return m_pipelineCache.get();
+  }
+
+  vk::PipelineLayout imgui_glfw_vulkan::pipeline_layout() const
+  {
+    return m_pipelineLayout.get();
+  }
+
+  vk::Pipeline imgui_glfw_vulkan::pipeline() const
+  {
+    return m_pipeline.get();
+  }
+
+  vk::DeviceMemory imgui_glfw_vulkan::font_image_memory() const
+  {
+    return m_fontImageMemory.get();
+  }
+
+  vk::Image imgui_glfw_vulkan::font_image() const
+  {
+    return m_fontImage.get();
+  }
+
+  vk::ImageView imgui_glfw_vulkan::font_image_view() const
+  {
+    return m_fontImageView.get();
+  }
 } // namespace yave

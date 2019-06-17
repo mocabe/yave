@@ -4,20 +4,35 @@
 //
 
 #include <yave-imgui/imgui_glfw_vulkan.hpp>
+
+#include <yave-imgui/vulkan_util.hpp>
+
 #include <imgui.h>
+#include <selene/img_io/IO.hpp>
+#include <selene/img/interop/DynImageToImage.hpp>
+#include <selene/img_ops/ImageConversions.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <fmt/format.h>
 
-struct yave_imgui : yave::imgui_glfw_vulkan
-{
-  using yave::imgui_glfw_vulkan::imgui_glfw_vulkan;
-
-  virtual void draw() override
-  {
-    yave::imgui_glfw_vulkan::draw();
-  }
-};
+using namespace yave;
 
 int main()
 {
-  yave_imgui app(true);
-  app.exec();
+
+
+
+
+
+  while (!imgui.window_context().should_close()) {
+    imgui.begin();
+  {
+      static bool show_demo_window = true;
+      ImGui::ShowMetricsWindow(&show_demo_window);
+
+
+
+    }
+    imgui.end();
+    imgui.render();
+  }
 }
