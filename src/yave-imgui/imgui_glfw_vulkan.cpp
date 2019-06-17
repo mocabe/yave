@@ -528,11 +528,22 @@ namespace {
     }
   }
 
+  ImTextureID toImTextureId(const vk::DescriptorSet& dsc)
+  {
+    static_assert(sizeof(ImTextureID) == sizeof(VkDescriptorSet));
+    return (ImTextureID)dsc;
+  }
+
+  vk::DescriptorSet fromImTextureId(const ImTextureID& tex)
+  {
+    static_assert(sizeof(ImTextureID) == sizeof(VkDescriptorSet));
+    return (VkDescriptorSet)tex;
+  }
+
   void initImGuiPipeline(
     const ImDrawData* drawData,
     const vk::PipelineLayout& pipelineLayout,
     const vk::Pipeline& pipeline,
-    const vk::DescriptorSet& descriptorSet,
     const vk::Buffer& vertexBuffer,
     const vk::Buffer& indexBuffer,
     const vk::Extent2D swapchainExtent,
@@ -541,8 +552,6 @@ namespace {
     /* Bind pipeline */
     {
       commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-      commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, descriptorSet, {});
     }
     /* Bind buffers */
     {
@@ -594,9 +603,9 @@ namespace {
 
   void renderImGuiDrawData(
     const ImDrawData* drawData,
+    const vk::DescriptorSet& descriptorSet,
     const vk::PipelineLayout& pipelineLayout,
     const vk::Pipeline& pipeline,
-    const vk::DescriptorSet& descriptorSet,
     const vk::Buffer& vertexBuffer,
     const vk::Buffer& indexBuffer,
     const vk::Extent2D swapchainExtent,
@@ -626,7 +635,6 @@ namespace {
               drawData,
               pipelineLayout,
               pipeline,
-              descriptorSet,
               vertexBuffer,
               indexBuffer,
               swapchainExtent,
@@ -648,6 +656,14 @@ namespace {
             cmd.ClipRect.w);
           continue;
         }
+
+        /* Texture */
+
+        auto dscToBind =
+          cmd.TextureId ? fromImTextureId(cmd.TextureId) : descriptorSet;
+
+        commandBuffer.bindDescriptorSets(
+          vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, dscToBind, {});
 
         /* Render */
 
@@ -679,7 +695,6 @@ namespace {
       vtxOffset += cmdList->VtxBuffer.Size;
     }
   }
-
 } // namespace
 
 namespace yave {
@@ -817,11 +832,6 @@ namespace yave {
       m_descriptorPool      = createImGuiDescriptorPool(m_vulkanCtx.device());
       m_descriptorSetLayout = createImGuiDescriptorSetLayout(
         m_fontSampler.get(), m_vulkanCtx.device());
-      m_descriptorSet = createImGuiDescriptorSet(
-        m_descriptorPool.get(),
-        m_descriptorSetLayout.get(),
-        m_vulkanCtx.device());
-
       Info(g_logger, "Created ImGui descriptor set");
     }
 
@@ -851,8 +861,13 @@ namespace yave {
       Info(g_logger, "Uploaded ImGui font texture");
     }
 
-    /* update descriptor set */
+    /* create default descriptor set (font texture) */
     {
+      m_descriptorSet = createImGuiDescriptorSet(
+        m_descriptorPool.get(),
+        m_descriptorSetLayout.get(),
+        m_vulkanCtx.device());
+
       vk::DescriptorImageInfo info;
       info.sampler     = m_fontSampler.get();
       info.imageView   = m_fontImageView.get();
@@ -865,6 +880,9 @@ namespace yave {
       write.pImageInfo      = &info;
 
       m_vulkanCtx.device().updateDescriptorSets(write, {});
+
+      // set font texture ID
+      ImGui::GetIO().Fonts->TexID = toImTextureId(m_descriptorSet.get());
 
       Info(g_logger, "Updated ImGui descriptor set");
     }
@@ -974,7 +992,6 @@ namespace yave {
           drawData,
           m_pipelineLayout.get(),
           m_pipeline.get(),
-          m_descriptorSet.get(),
           vertexBuffer.buffer(),
           indexBuffer.buffer(),
           m_windowCtx.swapchain_extent(),
@@ -983,9 +1000,9 @@ namespace yave {
         /* Record draw commands */
         renderImGuiDrawData(
           drawData,
+          m_descriptorSet.get(),
           m_pipelineLayout.get(),
           m_pipeline.get(),
-          m_descriptorSet.get(),
           vertexBuffer.buffer(),
           indexBuffer.buffer(),
           m_windowCtx.swapchain_extent(),
