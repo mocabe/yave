@@ -73,7 +73,7 @@ namespace {
     std::ifstream ifs(path.native(), std::ios::binary | std::ios::ate);
 
     if (!ifs.is_open())
-      throw std::runtime_error("Failed to open shader file " + path.native());
+      throw std::runtime_error("Failed to open shader file " + path.string());
 
     // get file size
     auto size = ifs.tellg();

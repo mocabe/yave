@@ -10,17 +10,20 @@ target_link_libraries(yave-imgui_glfw_vulkan PUBLIC yave::support::glfw_vulkan)
 target_link_libraries(yave-imgui_glfw_vulkan PUBLIC imgui-glfw-vulkan)
 target_link_libraries(yave-imgui_glfw_vulkan PRIVATE Boost::boost)
 target_link_libraries(yave-imgui_glfw_vulkan PRIVATE Boost::filesystem)
+target_link_libraries(yave-imgui_glfw_vulkan PRIVATE Boost::disable_autolinking)
 
 # Add commands to compile shaders
 add_custom_command(
   OUTPUT vert.spv
   COMMAND glslangValidator -V ${CMAKE_CURRENT_LIST_DIR}/shader.vert -o vert.spv
   MAIN_DEPENDENCY ${CMAKE_CURRENT_LIST_DIR}/shader.vert
+  WORKING_DIRECTORY $<TARGET_FILE_DIR:yave-imgui_glfw_vulkan>
 )
 add_custom_command(
   OUTPUT frag.spv
   COMMAND glslangValidator -V ${CMAKE_CURRENT_LIST_DIR}/shader.frag -o frag.spv
   MAIN_DEPENDENCY ${CMAKE_CURRENT_LIST_DIR}/shader.frag
+  WORKING_DIRECTORY $<TARGET_FILE_DIR:yave-imgui_glfw_vulkan>
 )
 
 # And add custom targets for commands because it's CMake
