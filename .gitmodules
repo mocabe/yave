@@ -26,3 +26,7 @@
 	path = external/glfw
 	url = https://github.com/glfw/glfw.git
 	ignore = dirty
+[submodule "external/selene"]
+	path = external/selene
+	url = https://github.com/kmhofmann/selene.git
+	ignore = dirty
