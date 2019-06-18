@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave-imgui/imgui_context.hpp>
+#include <yave/imgui/imgui_context.hpp>
 #include <yave/support/log.hpp>
 
 #include <imgui.h>

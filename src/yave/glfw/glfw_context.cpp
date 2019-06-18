@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/support/glfw_context.hpp>
+#include <yave/glfw/glfw_context.hpp>
 #include <yave/support/log.hpp>
 
 namespace {

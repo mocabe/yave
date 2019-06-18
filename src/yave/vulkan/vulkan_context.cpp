@@ -3,9 +3,9 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-# define _ENABLE_ATOMIC_ALIGNMENT_FIX 
+# define _ENABLE_ATOMIC_ALIGNMENT_FIX
 
-#include <yave/support/vulkan_context.hpp>
+#include <yave/vulkan/vulkan_context.hpp>
 #include <yave/support/log.hpp>
 
 #include <vulkan/vulkan.hpp>

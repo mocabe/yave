@@ -1,0 +1,1 @@
+YAVE_Test(vulkan_context support yave::vulkan)
