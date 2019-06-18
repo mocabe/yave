@@ -10,17 +10,17 @@
 #include <imgui.h>
 #include <chrono>
 
-namespace yave {
+namespace yave::imgui {
 
   /// imgui application
-  class imgui_glfw_vulkan
+  class imgui_context
   {
   public:
     /// Ctor
-    imgui_glfw_vulkan(bool enableValidation = true);
+    imgui_context(bool enableValidation = true);
 
     /// Dtor
-    ~imgui_glfw_vulkan();
+    ~imgui_context();
 
     /// Begin ImGui frame
     void begin();
@@ -39,9 +39,9 @@ namespace yave {
 
     // clang-format off
   public:
-    [[nodiscard]] const yave::glfw_context& glfw_context() const;
-    [[nodiscard]] const yave::vulkan_context& vulkan_context() const;
-    [[nodiscard]] const yave::vulkan_context::window_context& window_context() const;
+    [[nodiscard]] const glfw::glfw_context& glfw_context() const;
+    [[nodiscard]] const vulkan::vulkan_context& vulkan_context() const;
+    [[nodiscard]] const vulkan::vulkan_context::window_context& window_context() const;
     // clang-format on
 
   public:
@@ -57,13 +57,13 @@ namespace yave {
     [[nodiscard]] vk::ImageView font_image_view() const;
 
   private:
-    imgui_glfw_vulkan(const imgui_glfw_vulkan&) = delete;
+    imgui_context(const imgui_context&) = delete;
 
   private:
-    yave::glfw_context m_glfwCtx;
-    yave::vulkan_context m_vulkanCtx;
-    yave::unique_glfw_window m_window;
-    yave::vulkan_context::window_context m_windowCtx;
+    glfw::glfw_context m_glfwCtx;
+    vulkan::vulkan_context m_vulkanCtx;
+    glfw::unique_glfw_window m_window;
+    vulkan::vulkan_context::window_context m_windowCtx;
 
   private:
     vk::UniqueSampler m_fontSampler;

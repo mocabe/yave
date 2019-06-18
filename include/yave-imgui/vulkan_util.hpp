@@ -10,7 +10,7 @@
 #include <selene/img/typed/ImageView.hpp>
 #include <selene/img/pixel/PixelTypeAliases.hpp>
 
-namespace yave {
+namespace yave::vulkan {
 
   /// Upload image to GPU.
   std::tuple<vk::UniqueImage, vk::UniqueImageView, vk::UniqueDeviceMemory>

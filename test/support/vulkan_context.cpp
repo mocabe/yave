@@ -10,20 +10,22 @@ using namespace yave;
 
 TEST_CASE("vulkan_context without validation")
 {
-  glfw_context glfw_ctx;
-  vulkan_context vulkan_ctx(glfw_ctx, false);
+  glfw::glfw_context glfw_ctx;
+  vulkan::vulkan_context vulkan_ctx(glfw_ctx, false);
+  vulkan_ctx.device().waitIdle();
 }
 
 TEST_CASE("vulkan_context with validation")
 {
-  glfw_context glfw_ctx;
-  vulkan_context vulkan_ctx(glfw_ctx, true);
+  glfw::glfw_context glfw_ctx;
+  vulkan::vulkan_context vulkan_ctx(glfw_ctx, true);
+  vulkan_ctx.device().waitIdle();
 }
 
 TEST_CASE("unique context")
 {
-  glfw_context glfw_ctx;
-  vulkan_context vulkan_ctx(glfw_ctx);
+  glfw::glfw_context glfw_ctx;
+  vulkan::vulkan_context vulkan_ctx(glfw_ctx);
 
   auto window     = glfw_ctx.create_window(1280, 720, "test window");
   auto window_ctx = vulkan_ctx.create_window_context(window);
@@ -35,4 +37,5 @@ TEST_CASE("unique context")
       window_ctx.rebuild_frame_buffers();
     }
   }
+  vulkan_ctx.device().waitIdle();
 }

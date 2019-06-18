@@ -1059,7 +1059,7 @@ namespace {
 
 } // namespace
 
-namespace yave {
+namespace yave::vulkan {
 
   // -----------------------------------------
   // single_time_command
@@ -1121,7 +1121,7 @@ namespace yave {
     impl() = default;
 
     // glfw
-    glfw_context* glfw;
+    glfw::glfw_context* glfw;
 
     /* instance */
 
@@ -1157,7 +1157,7 @@ namespace yave {
   };
 
   vulkan_context::vulkan_context(
-    [[maybe_unused]] glfw_context& glfw_ctx,
+    [[maybe_unused]] glfw::glfw_context& glfw_ctx,
     bool enableValidationLayer)
   {
     init_vulkan_logger();
@@ -1301,8 +1301,8 @@ namespace yave {
     std::atomic<VkExtent2D> window_extent;
   };
 
-  vulkan_context::window_context
-    vulkan_context::create_window_context(unique_glfw_window& window) const
+  vulkan_context::window_context vulkan_context::create_window_context(
+    glfw::unique_glfw_window& window) const
   {
     Info(g_vulkan_logger, "Initializing window context");
 
@@ -1318,7 +1318,7 @@ namespace yave {
 
     // set user data to window
     auto* window_data =
-      (glfw_window_data*)glfwGetWindowUserPointer(window.get());
+      (glfw::glfw_window_data*)glfwGetWindowUserPointer(window.get());
 
     // key for user data pointer of window context
     static const char* user_pointer_key = "window_context";
@@ -1332,7 +1332,8 @@ namespace yave {
     glfwSetFramebufferSizeCallback(
       window.get(), [](GLFWwindow* window, int width, int height) {
         // get window data container
-        auto* window_data = (glfw_window_data*)glfwGetWindowUserPointer(window);
+        auto* window_data =
+          (glfw::glfw_window_data*)glfwGetWindowUserPointer(window);
         if (!window_data)
           return;
 

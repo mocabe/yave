@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave-imgui/imgui_glfw_vulkan.hpp>
+#include <yave-imgui/imgui_context.hpp>
 #include <yave/support/log.hpp>
 
 #include <imgui.h>
@@ -22,7 +22,7 @@ namespace {
   void init_logger()
   {
     [[maybe_unused]] static auto init_logger = [] {
-      g_logger = yave::add_logger("imgui_glfw_vulkan");
+      g_logger = yave::add_logger("imgui_context");
       return 1;
     }();
   }
@@ -281,7 +281,7 @@ namespace {
 
   std::tuple<vk::UniqueDeviceMemory, vk::UniqueImage, vk::UniqueImageView>
     createImGuiFontTexture(
-      const yave::vulkan_context::window_context& windowCtx,
+      const yave::vulkan::vulkan_context::window_context& windowCtx,
       const vk::PhysicalDevice& physicalDevice,
       const vk::Device& device)
   {
@@ -695,7 +695,7 @@ namespace {
   }
 } // namespace
 
-namespace yave {
+namespace yave::imgui {
 
   /// for vertex/index buffers
   class ImGuiRenderBuffer
@@ -796,10 +796,10 @@ namespace yave {
     m_memory   = std::move(mem);
   }
 
-  imgui_glfw_vulkan::imgui_glfw_vulkan(bool enableValidation)
+  imgui_context::imgui_context(bool enableValidation)
     : m_glfwCtx {}
     , m_vulkanCtx {m_glfwCtx, enableValidation}
-    , m_window {m_glfwCtx.create_window(1280, 720, "imgui_glfw_vulkan")}
+    , m_window {m_glfwCtx.create_window(1280, 720, "imgui_context")}
     , m_windowCtx {m_vulkanCtx.create_window_context(m_window)}
   {
     using namespace yave;
@@ -816,7 +816,7 @@ namespace yave {
 
       /* setup vulkan binding */
       ImGuiIO& io            = ImGui::GetIO();
-      io.BackendRendererName = "yave::imgui_glfw_vulkan";
+      io.BackendRendererName = "yave::imgui_context";
 
       Info(g_logger, "Initialized ImGui context");
     }
@@ -889,7 +889,7 @@ namespace yave {
     m_lastTime = std::chrono::high_resolution_clock::now();
   }
 
-  imgui_glfw_vulkan::~imgui_glfw_vulkan()
+  imgui_context::~imgui_context()
   {
     Info(g_logger, "Destroying ImGui context");
     // wait idle
@@ -900,7 +900,7 @@ namespace yave {
     ImGui::DestroyContext();
   }
 
-  void imgui_glfw_vulkan::begin()
+  void imgui_context::begin()
   {
     /* start ImGui frame */
     {
@@ -910,7 +910,7 @@ namespace yave {
     }
   }
 
-  void imgui_glfw_vulkan::end()
+  void imgui_context::end()
   {
     /* end ImGui frame */
     {
@@ -918,7 +918,7 @@ namespace yave {
     }
   }
 
-  void imgui_glfw_vulkan::render()
+  void imgui_context::render()
   {
     /* render Vulkan frame */
 
@@ -1018,73 +1018,73 @@ namespace yave {
     }
   }
 
-  ImTextureID imgui_glfw_vulkan::get_texture_id(vk::DescriptorSet& tex) const
+  ImTextureID imgui_context::get_texture_id(vk::DescriptorSet& tex) const
   {
     return toImTextureId(tex);
   }
 
-  const glfw_context& imgui_glfw_vulkan::glfw_context() const
+  const glfw::glfw_context& imgui_context::glfw_context() const
   {
     return m_glfwCtx;
   }
 
-  const vulkan_context& imgui_glfw_vulkan::vulkan_context() const
+  const vulkan::vulkan_context& imgui_context::vulkan_context() const
   {
     return m_vulkanCtx;
   }
 
-  const vulkan_context::window_context&
-    imgui_glfw_vulkan::window_context() const
+  const vulkan::vulkan_context::window_context&
+    imgui_context::window_context() const
   {
     return m_windowCtx;
   }
 
-  vk::Sampler imgui_glfw_vulkan::font_sampler() const
+  vk::Sampler imgui_context::font_sampler() const
   {
     return m_fontSampler.get();
   }
 
-  vk::DescriptorPool imgui_glfw_vulkan::descriptor_pool() const
+  vk::DescriptorPool imgui_context::descriptor_pool() const
   {
     return m_descriptorPool.get();
   }
 
-  vk::DescriptorSetLayout imgui_glfw_vulkan::descriptor_set_layout() const
+  vk::DescriptorSetLayout imgui_context::descriptor_set_layout() const
   {
     return m_descriptorSetLayout.get();
   }
 
-  vk::DescriptorSet imgui_glfw_vulkan::descriptor_set() const
+  vk::DescriptorSet imgui_context::descriptor_set() const
   {
     return m_descriptorSet.get();
   }
 
-  vk::PipelineCache imgui_glfw_vulkan::pipeline_cache() const
+  vk::PipelineCache imgui_context::pipeline_cache() const
   {
     return m_pipelineCache.get();
   }
 
-  vk::PipelineLayout imgui_glfw_vulkan::pipeline_layout() const
+  vk::PipelineLayout imgui_context::pipeline_layout() const
   {
     return m_pipelineLayout.get();
   }
 
-  vk::Pipeline imgui_glfw_vulkan::pipeline() const
+  vk::Pipeline imgui_context::pipeline() const
   {
     return m_pipeline.get();
   }
 
-  vk::DeviceMemory imgui_glfw_vulkan::font_image_memory() const
+  vk::DeviceMemory imgui_context::font_image_memory() const
   {
     return m_fontImageMemory.get();
   }
 
-  vk::Image imgui_glfw_vulkan::font_image() const
+  vk::Image imgui_context::font_image() const
   {
     return m_fontImage.get();
   }
 
-  vk::ImageView imgui_glfw_vulkan::font_image_view() const
+  vk::ImageView imgui_context::font_image_view() const
   {
     return m_fontImageView.get();
   }

@@ -22,7 +22,7 @@ namespace {
 
 } // namespace
 
-namespace yave {
+namespace yave::glfw {
 
   void glfw_window_deleter::operator()(GLFWwindow* window) noexcept
   {

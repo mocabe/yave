@@ -8,7 +8,7 @@
 #include <yave/support/glfw_context.hpp>
 #include <vulkan/vulkan.hpp>
 
-namespace yave {
+namespace yave::vulkan {
 
   /// single time command
   class single_time_command
@@ -40,7 +40,9 @@ namespace yave {
   {
   public:
     /// Ctor.
-    vulkan_context(glfw_context& glfw_ctx, bool enable_validation_layer = true);
+    vulkan_context(
+      glfw::glfw_context& glfw_ctx,
+      bool enable_validation_layer = true);
     /// Dtor.
     ~vulkan_context() noexcept;
 
@@ -171,7 +173,7 @@ namespace yave {
 
     public:
       /// Create single time command
-      [[nodiscard]] yave::single_time_command single_time_command() const;
+      [[nodiscard]] vulkan::single_time_command single_time_command() const;
 
     private:
       class impl;
@@ -180,7 +182,7 @@ namespace yave {
 
     /// Create new window context
     [[nodiscard]] vulkan_context::window_context
-      create_window_context(unique_glfw_window& window) const;
+      create_window_context(glfw::unique_glfw_window& window) const;
 
   private:
     class impl;

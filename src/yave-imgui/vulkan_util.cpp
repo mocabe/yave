@@ -8,7 +8,7 @@
 #include <selene/img/typed/ImageView.hpp>
 #include <selene/img/pixel/PixelTypeAliases.hpp>
 
-namespace yave {
+namespace yave::vulkan {
 
   /// Find memory type
   uint32_t find_memory_type(

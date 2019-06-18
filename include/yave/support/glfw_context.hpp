@@ -14,7 +14,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace yave {
+namespace yave::glfw {
 
   struct glfw_window_deleter
   {
@@ -54,4 +54,4 @@ namespace yave {
   private:
     std::unordered_map<std::string, void*> m_map;
   };
-} // namespace yave
+} // namespace yave::vulkan
