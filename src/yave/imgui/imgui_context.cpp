@@ -13,7 +13,16 @@
 #include <thread>
 #include <fstream>
 
-#include <boost/dll/runtime_symbol_info.hpp>
+#include <filesystem>
+
+#if !defined(YAVE_IMGUI_VERT_SHADER) || !defined(YAVE_IMGUI_FRAG_SHADER)
+#  pragma message("Shader paths are not privided by build script.")
+#  define YAVE_IMGUI_VERT_SHADER vert.spv
+#  define YAVE_IMGUI_FRAG_SHADER frag.spv
+#endif
+
+#define YAVE_TOSTR_(id) #id
+#define YAVE_TOSTR(id) YAVE_TOSTR_(id)
 
 namespace {
 
@@ -64,13 +73,12 @@ namespace {
     return device.createShaderModuleUnique(info);
   }
 
-  std::vector<char> loadShaderFile(const std::string& filename)
+  std::vector<char> loadShaderFile(const std::string& str_path)
   {
-    // get relative path (this really should be in std::filesystem...)
-    auto path = boost::dll::program_location().remove_filename() / filename;
+    auto path = std::filesystem::u8path(str_path);
 
     // open file and seek to end
-    std::ifstream ifs(path.native(), std::ios::binary | std::ios::ate);
+    std::ifstream ifs(path.string(), std::ios::binary | std::ios::ate);
 
     if (!ifs.is_open())
       throw std::runtime_error("Failed to open shader file " + path.string());
@@ -96,8 +104,8 @@ namespace {
     /* shader stages */
 
     // vertex shader
-    vk::UniqueShaderModule vertShaderModule =
-      createShaderModule(loadShaderFile("vert.spv"), device);
+    vk::UniqueShaderModule vertShaderModule = createShaderModule(
+      loadShaderFile(u8"" YAVE_TOSTR(YAVE_IMGUI_VERT_SHADER)), device);
 
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
     vertShaderStageInfo.stage  = vk::ShaderStageFlagBits::eVertex;
@@ -105,8 +113,8 @@ namespace {
     vertShaderStageInfo.pName  = "main";
 
     // fragment shader
-    vk::UniqueShaderModule fragShaderModule =
-      createShaderModule(loadShaderFile("frag.spv"), device);
+    vk::UniqueShaderModule fragShaderModule = createShaderModule(
+      loadShaderFile(u8"" YAVE_TOSTR(YAVE_IMGUI_FRAG_SHADER)), device);
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
     fragShaderStageInfo.stage  = vk::ShaderStageFlagBits::eFragment;

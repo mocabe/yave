@@ -29,7 +29,7 @@ add_custom_command(
   WORKING_DIRECTORY $<TARGET_FILE_DIR:yave-imgui>
 )
 
-# And add custom targets for commands because it's CMake
+# And custom targets for commands
 add_custom_target(
   yave-imgui-vert
   DEPENDS vert.spv
@@ -39,6 +39,12 @@ add_custom_target(
   DEPENDS frag.spv
 )
 
+# And compiler definitions for shader paths...
+add_library(yave-imgui-shaders INTERFACE)
+add_dependencies(yave-imgui-shaders yave-imgui-vert)
+add_dependencies(yave-imgui-shaders yave-imgui-frag)
+target_compile_definitions(yave-imgui-shaders INTERFACE "-DYAVE_IMGUI_VERT_SHADER=$<TARGET_FILE_DIR:yave-imgui>/vert.spv")
+target_compile_definitions(yave-imgui-shaders INTERFACE "-DYAVE_IMGUI_FRAG_SHADER=$<TARGET_FILE_DIR:yave-imgui>/frag.spv")
+
 # And dependencies for target... CMake is easy isn't it?
-add_dependencies(yave-imgui yave-imgui-vert)
-add_dependencies(yave-imgui yave-imgui-frag)
+target_link_libraries(yave-imgui PRIVATE yave-imgui-shaders)
