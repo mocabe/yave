@@ -76,6 +76,9 @@ namespace yave {
     /// Lock this graph.
     [[nodiscard]] std::unique_lock<std::mutex> lock() const;
 
+    /// swap
+    void swap(parsed_node_graph& other) noexcept;
+
   private: /* internal */
     [[nodiscard]] parsed_node_handle add(
       const object_ptr<const Object>& instance,

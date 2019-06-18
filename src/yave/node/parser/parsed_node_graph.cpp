@@ -64,14 +64,15 @@ namespace yave {
     operator=(const parsed_node_graph& other)
   {
     auto tmp = other;
-    *this    = other;
+    swap(tmp);
+    return *this;
   }
 
   parsed_node_graph& parsed_node_graph::operator=(parsed_node_graph&& other)
   {
-    m_graph     = std::move(other.m_graph);
-    m_instances = std::move(other.m_instances);
-    m_roots     = std::move(other.m_roots);
+    auto tmp = std::move(other);
+    swap(tmp);
+    return *this;
   }
 
   bool parsed_node_graph::exists(const parsed_node_handle& node) const
@@ -236,6 +237,16 @@ namespace yave {
   std::unique_lock<std::mutex> parsed_node_graph::lock() const
   {
     return std::unique_lock {m_mtx};
+  }
+
+  void parsed_node_graph::swap(parsed_node_graph& other) noexcept
+  {
+    auto lck1 = lock();
+    auto lck2 = other.lock();
+
+    std::swap(m_graph, other.m_graph);
+    std::swap(m_instances, other.m_instances);
+    std::swap(m_roots, other.m_roots);
   }
 
   /* private */
