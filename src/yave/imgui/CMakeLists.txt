@@ -11,6 +11,11 @@ target_link_libraries(yave-imgui PRIVATE Boost::boost)
 target_link_libraries(yave-imgui PRIVATE Boost::filesystem)
 target_link_libraries(yave-imgui PRIVATE Boost::disable_autolinking)
 
+if(YAVE_COMPILER_GNU)
+  # <experimental/filesystem>
+  target_link_libraries(yave-imgui PRIVATE stdc++fs)
+endif()
+
 target_link_libraries(yave-imgui PUBLIC yave::glfw)
 target_link_libraries(yave-imgui PUBLIC yave::vulkan)
 target_link_libraries(yave-imgui PUBLIC imgui-glfw-vulkan)
