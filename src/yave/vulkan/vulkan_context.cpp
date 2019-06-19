@@ -1321,10 +1321,10 @@ namespace yave::vulkan {
       (glfw::glfw_window_data*)glfwGetWindowUserPointer(window.get());
 
     // key for user data pointer of window context
-    static const char* user_pointer_key = "window_context";
+    static const char* wc_user_pointer_key = "window_context";
 
     // add data pointer
-    if (!window_data || !window_data->add(user_pointer_key, impl.get())) {
+    if (!window_data || !window_data->add(wc_user_pointer_key, impl.get())) {
       throw std::runtime_error("Failed to set window data");
     }
 
@@ -1332,14 +1332,12 @@ namespace yave::vulkan {
     glfwSetFramebufferSizeCallback(
       window.get(), [](GLFWwindow* window, int width, int height) {
         // get window data container
-        auto* window_data =
-          (glfw::glfw_window_data*)glfwGetWindowUserPointer(window);
-        if (!window_data)
+        auto* wd = (glfw::glfw_window_data*)glfwGetWindowUserPointer(window);
+        if (!wd)
           return;
 
         // get user data
-        auto* ctx =
-          (window_context::impl*)(window_data->find(user_pointer_key));
+        auto* ctx = (window_context::impl*)(wd->find(wc_user_pointer_key));
         if (!ctx)
           return;
 
