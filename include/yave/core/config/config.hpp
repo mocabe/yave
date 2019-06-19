@@ -11,6 +11,7 @@
 #include <yave/core/config/unreachable.hpp>
 #include <yave/core/config/type_traits.hpp>
 #include <yave/core/config/os.hpp>
+#include <yave/core/config/compiler.hpp>
 #include <yave/core/config/uuid.hpp>
 
 #include <cstdint>

@@ -3,6 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
+#include <yave/core/config.hpp>
 #include <yave/imgui/imgui_context.hpp>
 #include <yave/support/log.hpp>
 
@@ -13,7 +14,14 @@
 #include <thread>
 #include <fstream>
 
-#include <filesystem>
+#if defined(YAVE_COMPILER_GCC) && __GNUC__ < 8
+#  include <experimental/filesystem>
+namespace std {
+  namespace filesystem = experimental::filesystem;
+}
+#else
+#  include <filesystem>
+#endif
 
 #if !defined(YAVE_IMGUI_VERT_SHADER) || !defined(YAVE_IMGUI_FRAG_SHADER)
 #  pragma message("Shader paths are not privided by build script.")
