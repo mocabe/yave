@@ -9,7 +9,10 @@ add_library(yave-node-core
   socket_property.cpp
   connection_info.cpp
   node_graph.cpp
-)
+  node_tree.cpp
+  error_list_wrapper.cpp
+  root_manager.cpp)
+
 add_library(yave::node::core ALIAS yave-node-core)
 
 target_include_directories(yave-node-core PRIVATE ${YAVE_INCLUDE_DIR})
