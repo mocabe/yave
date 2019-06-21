@@ -16,6 +16,8 @@
 
 namespace yave::glfw {
 
+  // clang-format off
+
   struct glfw_window_deleter
   {
     void operator()(GLFWwindow* window) noexcept;
@@ -32,13 +34,12 @@ namespace yave::glfw {
     /// Terminate GLFW
     ~glfw_context() noexcept;
 
+  public:
     /// Create window
-    [[nodiscard]] unique_glfw_window
-      create_window(uint32_t width, uint32_t height, const char* name) const;
-
+    [[nodiscard]] 
+    auto create_window(uint32_t width, uint32_t height, const char* name) const -> unique_glfw_window;
     /// poll events
     void poll_events() const;
-
     /// wait events
     void wait_events() const;
   };
@@ -47,11 +48,21 @@ namespace yave::glfw {
   class glfw_window_data
   {
   public:
+    /// Ctor
     glfw_window_data();
-    [[nodiscard]] bool add(const std::string& key, void* data);
-    [[nodiscard]] void* find(const std::string& str) const;
+  
+  public:
+    /// Add new data pointer
+    [[nodiscard]] 
+    auto add(const std::string& key, void* data) -> bool;
+    /// Find data pointer
+    [[nodiscard]] 
+    auto find(const std::string& str) const      -> void*;
 
   private:
     std::unordered_map<std::string, void*> m_map;
   };
+
+  // clang-format on
+
 } // namespace yave::vulkan

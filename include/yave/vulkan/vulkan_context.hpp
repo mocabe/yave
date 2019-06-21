@@ -10,29 +10,32 @@
 
 namespace yave::vulkan {
 
+  // clang-format off
+
   /// single time command
   class single_time_command
   {
   public:
     /// Create command buffer and start recording.
-    single_time_command(
-      const vk::Device& device,
-      const vk::Queue& queue,
-      const vk::CommandPool& pool);
-    /// End command buffer and submit.
-    ~single_time_command();
+    single_time_command(const vk::Device& device, const vk::Queue& queue, const vk::CommandPool& pool);
     /// Move single time command.
     single_time_command(single_time_command&& other) noexcept;
+    /// End command buffer and submit.
+    ~single_time_command();
+
+  public:
     /// Get recording command buffer.
-    [[nodiscard]] vk::CommandBuffer command_buffer() const;
+    [[nodiscard]] auto command_buffer() const -> vk::CommandBuffer;
 
   private:
     single_time_command(const single_time_command&) = delete;
-    vk::Device m_device;
-    vk::Queue m_queue;
-    vk::CommandPool m_pool;
+  
+  private:
+    vk::Device              m_device;
+    vk::Queue               m_queue;
+    vk::CommandPool         m_pool;
     vk::UniqueCommandBuffer m_buffer;
-    vk::UniqueFence m_fence;
+    vk::UniqueFence         m_fence;
   };
 
   /// Vulkan API context.
@@ -40,70 +43,68 @@ namespace yave::vulkan {
   {
   public:
     /// Ctor.
-    vulkan_context(
-      glfw::glfw_context& glfw_ctx,
-      bool enable_validation_layer = true);
+    vulkan_context(glfw::glfw_context& glfw_ctx, bool enable_validation_layer = true);
     /// Dtor.
     ~vulkan_context() noexcept;
 
-    /* instance, devices */
-
+  public: /* instance, devices */
     /// Get instance.
-    [[nodiscard]] vk::Instance instance() const;
+    [[nodiscard]] auto instance() const                    -> vk::Instance;
     /// Get physical device.
-    [[nodiscard]] vk::PhysicalDevice physical_device() const;
+    [[nodiscard]] auto physical_device() const             -> vk::PhysicalDevice;;
     /// Get device.
-    [[nodiscard]] vk::Device device() const;
+    [[nodiscard]] auto device() const                      -> vk::Device;
     /// Get graphics queue index
-    [[nodiscard]] uint32_t graphics_queue_family_index() const;
+    [[nodiscard]] auto graphics_queue_family_index() const -> uint32_t;
     /// Get graphics queue
-    [[nodiscard]] vk::Queue graphics_queue() const;
+    [[nodiscard]] auto graphics_queue() const              -> vk::Queue;
     /// Get present queue index
-    [[nodiscard]] uint32_t present_queue_family_index() const;
+    [[nodiscard]] auto present_queue_family_index() const  -> uint32_t;
     /// Get present queue
-    [[nodiscard]] vk::Queue present_queue() const;
+    [[nodiscard]] auto present_queue() const               -> vk::Queue;
 
-    /* window and surface helpers */
-
+  public: /* window and surface helpers */
     /// glfw/vulkan window context
     class window_context
     {
       friend class vulkan_context;
       window_context();
 
-    public: /* data access */
+    public:
       /// Move window context.
       window_context(window_context&& other) noexcept;
       /// Dtor
       ~window_context() noexcept;
+
+    public: /* data access */
       /// Get surface
-      [[nodiscard]] vk::SurfaceKHR surface() const;
+      [[nodiscard]] auto surface() const               -> vk::SurfaceKHR;
       /// Get swapchain
-      [[nodiscard]] vk::SwapchainKHR swapchain() const;
+      [[nodiscard]] auto swapchain() const             -> vk::SwapchainKHR;
       /// Get swapchain images
-      [[nodiscard]] std::vector<vk::Image> swapchain_images() const;
+      [[nodiscard]] auto swapchain_images() const      -> std::vector<vk::Image>;
       /// Get swapchain image views
-      [[nodiscard]] std::vector<vk::ImageView> swapchain_image_views() const;
+      [[nodiscard]] auto swapchain_image_views() const -> std::vector<vk::ImageView>;
       /// Get frame buffers
-      [[nodiscard]] std::vector<vk::Framebuffer> frame_buffers() const;
+      [[nodiscard]] auto frame_buffers() const         -> std::vector<vk::Framebuffer>;
       /// Get current swapchain format
-      [[nodiscard]] vk::SurfaceFormatKHR swapchain_format() const;
+      [[nodiscard]] auto swapchain_format() const      -> vk::SurfaceFormatKHR;
       /// Get current swapchain extent
-      [[nodiscard]] vk::Extent2D swapchain_extent() const;
+      [[nodiscard]] auto swapchain_extent() const      -> vk::Extent2D;
       /// Get render pass
-      [[nodiscard]] vk::RenderPass render_pass() const;
+      [[nodiscard]] auto render_pass() const           -> vk::RenderPass;
       /// Get command pool
-      [[nodiscard]] vk::CommandPool command_pool() const;
+      [[nodiscard]] auto command_pool() const          -> vk::CommandPool;
       /// Get command buffers
-      [[nodiscard]] std::vector<vk::CommandBuffer> command_buffers() const;
+      [[nodiscard]] auto command_buffers() const       -> std::vector<vk::CommandBuffer>;
 
     public: /* window state */
       /// Get window
-      [[nodiscard]] GLFWwindow* window() const;
+      [[nodiscard]] auto window() const       -> GLFWwindow*;
       /// Check if frame buffer is resized.
-      [[nodiscard]] bool resized() const;
+      [[nodiscard]] auto resized() const      -> bool;
       /// Check if widnow should close.
-      [[nodiscard]] bool should_close() const;
+      [[nodiscard]] auto should_close() const -> bool;
 
     public: /* window settings */
       /// Set clear color
@@ -126,7 +127,8 @@ namespace yave::vulkan {
       void end_frame() const;
       /// Begin recording command.
       /// \note: command_recorder will call this automatically.
-      [[nodiscard]] vk::CommandBuffer begin_record() const;
+      [[nodiscard]] 
+      auto begin_record() const -> vk::CommandBuffer;
       /// End recording command.
       /// \note: command_recorder will call this automatically.
       void end_record(const vk::CommandBuffer& buffer) const;
@@ -136,26 +138,35 @@ namespace yave::vulkan {
       /// specifying swapchain resources like image or frame buffer.
       /// \note: Maximum value of swapchain index is swapchain_image_count()-1
       /// or swapchain_index_count()-1;
-      [[nodiscard]] uint32_t swapchain_index() const;
+      [[nodiscard]] 
+      auto swapchain_index() const       -> uint32_t;
       /// Get number of swapchain index.
       /// \returns swapchain_image_count()
-      [[nodiscard]] uint32_t swapchain_index_count() const;
+      [[nodiscard]] 
+      auto swapchain_index_count() const -> uint32_t;
       /// Get current frame index. This index can be used for resources for each
       /// render operation.
-      [[nodiscard]] uint32_t frame_index() const;
+      [[nodiscard]] 
+      auto frame_index() const           -> uint32_t;
       /// Get number of frame index. This value also represents maximum number
       /// of in-flight render operations.
-      [[nodiscard]] uint32_t frame_index_count() const;
+      [[nodiscard]] 
+      auto frame_index_count() const     -> uint32_t;
 
     public:
       /// RAII frame context
       class command_recorder
       {
       public:
+        /// move
         command_recorder(command_recorder&& other) noexcept;
         /// calls end_record() and end_frame()
         ~command_recorder();
-        [[nodiscard]] vk::CommandBuffer command_buffer() const;
+
+      public:
+        /// get command buffer
+        [[nodiscard]] 
+        auto command_buffer() const -> vk::CommandBuffer;
 
       private:
         command_recorder(const command_recorder&) = delete;
@@ -164,16 +175,18 @@ namespace yave::vulkan {
 
       private:
         friend class window_context;
-        window_context* m_window_ctx;
+        window_context*   m_window_ctx;
         vk::CommandBuffer m_buffer;
       };
 
       /// create RAII frame recorder
-      [[nodiscard]] command_recorder new_recorder();
+      [[nodiscard]] 
+      auto new_recorder() -> command_recorder;
 
     public:
       /// Create single time command
-      [[nodiscard]] vulkan::single_time_command single_time_command() const;
+      [[nodiscard]] 
+      auto single_time_command() const -> vulkan::single_time_command;
 
     private:
       class impl;
@@ -181,11 +194,13 @@ namespace yave::vulkan {
     };
 
     /// Create new window context
-    [[nodiscard]] vulkan_context::window_context
-      create_window_context(glfw::unique_glfw_window& window) const;
+    [[nodiscard]] 
+    auto create_window_context(glfw::unique_glfw_window& window) const -> vulkan_context::window_context;
 
   private:
     class impl;
     std::unique_ptr<impl> m_pimpl;
   };
+
+  // clang-format on
 }

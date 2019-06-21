@@ -12,70 +12,71 @@
 
 namespace yave::imgui {
 
+  // clang-format off
+
   /// imgui application
   class imgui_context
   {
   public:
     /// Ctor
     imgui_context(bool enableValidation = true);
-
     /// Dtor
     ~imgui_context();
-
+  
+  public:
     /// Begin ImGui frame
     void begin();
-
     /// End ImGui frame
     void end();
-
     /// Render ImGui frame with Vulkan
     void render();
 
   public:
     /// underlying type of ImTextureID
     using texture_type = const vk::DescriptorSet*;
+
     /// get texture ID from image descriptor
-    [[nodiscard]] ImTextureID get_texture_id(vk::DescriptorSet& tex) const;
+    [[nodiscard]] auto get_texture_id(vk::DescriptorSet& tex) const -> ImTextureID;
 
     // clang-format off
   public:
-    [[nodiscard]] const glfw::glfw_context& glfw_context() const;
-    [[nodiscard]] const vulkan::vulkan_context& vulkan_context() const;
-    [[nodiscard]] const vulkan::vulkan_context::window_context& window_context() const;
+    [[nodiscard]] auto glfw_context() const   -> const glfw::glfw_context&;
+    [[nodiscard]] auto vulkan_context() const -> const vulkan::vulkan_context&;
+    [[nodiscard]] auto window_context() const -> const vulkan::vulkan_context::window_context&;
     // clang-format on
 
   public:
-    [[nodiscard]] vk::Sampler font_sampler() const;
-    [[nodiscard]] vk::DescriptorPool descriptor_pool() const;
-    [[nodiscard]] vk::DescriptorSetLayout descriptor_set_layout() const;
-    [[nodiscard]] vk::DescriptorSet descriptor_set() const;
-    [[nodiscard]] vk::PipelineCache pipeline_cache() const;
-    [[nodiscard]] vk::PipelineLayout pipeline_layout() const;
-    [[nodiscard]] vk::Pipeline pipeline() const;
-    [[nodiscard]] vk::DeviceMemory font_image_memory() const;
-    [[nodiscard]] vk::Image font_image() const;
-    [[nodiscard]] vk::ImageView font_image_view() const;
+    [[nodiscard]] auto font_sampler() const          -> vk::Sampler;
+    [[nodiscard]] auto descriptor_pool() const       -> vk::DescriptorPool;
+    [[nodiscard]] auto descriptor_set_layout() const -> vk::DescriptorSetLayout;
+    [[nodiscard]] auto descriptor_set() const        -> vk::DescriptorSet;
+    [[nodiscard]] auto pipeline_cache() const        -> vk::PipelineCache;
+    [[nodiscard]] auto pipeline_layout() const       -> vk::PipelineLayout;
+    [[nodiscard]] auto pipeline() const              -> vk::Pipeline;
+    [[nodiscard]] auto font_image_memory() const     -> vk::DeviceMemory;
+    [[nodiscard]] auto font_image() const            -> vk::Image;
+    [[nodiscard]] auto font_image_view() const       -> vk::ImageView;
 
   private:
     imgui_context(const imgui_context&) = delete;
 
   private:
-    glfw::glfw_context m_glfwCtx;
-    vulkan::vulkan_context m_vulkanCtx;
-    glfw::unique_glfw_window m_window;
+    glfw::glfw_context                     m_glfwCtx;
+    vulkan::vulkan_context                 m_vulkanCtx;
+    glfw::unique_glfw_window               m_window;
     vulkan::vulkan_context::window_context m_windowCtx;
 
   private:
-    vk::UniqueSampler m_fontSampler;
-    vk::UniqueDescriptorPool m_descriptorPool;
+    vk::UniqueSampler             m_fontSampler;
+    vk::UniqueDescriptorPool      m_descriptorPool;
     vk::UniqueDescriptorSetLayout m_descriptorSetLayout;
-    vk::UniqueDescriptorSet m_descriptorSet;
-    vk::UniquePipelineCache m_pipelineCache;
-    vk::UniquePipelineLayout m_pipelineLayout;
-    vk::UniquePipeline m_pipeline;
-    vk::UniqueDeviceMemory m_fontImageMemory;
-    vk::UniqueImage m_fontImage;
-    vk::UniqueImageView m_fontImageView;
+    vk::UniqueDescriptorSet       m_descriptorSet;
+    vk::UniquePipelineCache       m_pipelineCache;
+    vk::UniquePipelineLayout      m_pipelineLayout;
+    vk::UniquePipeline            m_pipeline;
+    vk::UniqueDeviceMemory        m_fontImageMemory;
+    vk::UniqueImage               m_fontImage;
+    vk::UniqueImageView           m_fontImageView;
 
   private:
     std::vector<class ImGuiRenderBuffer> m_vertexBuffers;
@@ -84,4 +85,6 @@ namespace yave::imgui {
   private:
     std::chrono::high_resolution_clock::time_point m_lastTime;
   };
+
+  // clang-format on
 }
