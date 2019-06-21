@@ -6,8 +6,11 @@
 #pragma once
 
 #include <yave/node/core.hpp>
-#include <yave/node/parser.hpp>
-#include <yave/node/compiler.hpp>
+
+#include <yave/node/support/node_info_manager.hpp>
+#include <yave/node/support/bind_info_manager.hpp>
+#include <yave/node/support/socket_instance_manager.hpp>
+#include <yave/node/core/root_manager.hpp>
 
 #include <memory>
 
@@ -26,12 +29,12 @@ namespace yave {
     node_tree(node_tree&&);
     /// Destructor.
     ~node_tree();
-
     /// Copy assignment (deleted).
     node_tree& operator=(const node_tree&) = delete;
     /// Move assignment.
     node_tree& operator=(node_tree&&);
 
+  public:
     /// register new node info
     [[nodiscard]]
     bool register_node_info(const node_info& info);
@@ -45,7 +48,7 @@ namespace yave {
 
     /// exist?
     [[nodiscard]]
-    bool exists(const node_handle& node) const; [[nodiscard]]
+    bool exists(const node_handle& node) const;
     /// exist?
     [[nodiscard]]
     bool exists(const connection_handle& connection) const;
@@ -54,20 +57,21 @@ namespace yave {
     [[nodiscard]]
     node_handle create(const std::string& name);
     /// destroy node
-    void destroy(const node_handle& handle);
+    void        destroy(const node_handle& handle);
+
+    /// cteate root node
+    template <class T>
+    [[nodiscard]] node_handle create_root(const std::string& name);
 
     /// connect sockets
     [[nodiscard]]
-    connection_handle connect(
-      const node_handle& src_n, const std::string& src_s,
-      const node_handle& dst_n, const std::string& dst_s);
+    connection_handle connect(const node_handle& src_n, const std::string& src_s, const node_handle& dst_n, const std::string& dst_s);
     /// disconnect sockets
-    void disconnect(const connection_handle& handle);
+    void              disconnect(const connection_handle& handle);
 
     /// list nodes
     [[nodiscard]]
-    std::vector<node_handle> nodes() const;
-
+    std::vector<node_handle>       nodes() const;
     /// list connections
     [[nodiscard]]
     std::vector<connection_handle> connections() const;
@@ -100,7 +104,7 @@ namespace yave {
 
     /// get node info
     [[nodiscard]]
-    std::optional<node_info> get_info(const node_handle& node) const;
+    std::optional<node_info>       get_info(const node_handle& node) const;
 
     /// get connection info
     [[nodiscard]]
@@ -108,28 +112,30 @@ namespace yave {
 
     /// primitive?
     [[nodiscard]]
-    std::optional<primitive_t> get_primitive(const node_handle& node) const;
+    std::optional<primitive_t>     get_primitive(const node_handle& node) const;
+
     /// set primitive
-    void set_primitive(const node_handle& node, const primitive_t& prim);
-
-    /// Check
-    void run_check();
-
-    /// Get last errors
-    [[nodiscard]]
-    error_list get_errors();
-
-    /// Get last warnings
-    [[nodiscard]]
-    error_list get_warnings();
+    [[nodiscard]] 
+    bool                           set_primitive(const node_handle& node, const primitive_t& prim);
 
     /// clear
-    void clear();
+    void                           clear();
 
   private:
-    struct impl;
-    std::unique_ptr<impl> m_pimpl;
+    root_manager& get_root_manager();
+
+  private:
+    node_graph        m_ng;
+    node_info_manager m_nim;
+    bind_info_manager m_bim;
+    root_manager      m_rm;
   };
+
+  template <class T>
+  node_handle node_tree::create_root(const std::string& name) {
+    auto& rm = get_root_manager();
+    return rm.add_root<T>(name);
+  }
 
   // clang-format on
 }
