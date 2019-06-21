@@ -3,9 +3,11 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/interface/node_tree.hpp>
-#include <yave/interface/error_list_wrapper.hpp>
-#include <yave/interface/root_manager.hpp>
+#include <yave/node/core/node_tree.hpp>
+#include <yave/node/core/error_list_wrapper.hpp>
+#include <yave/node/core/root_manager.hpp>
+
+#include <yave/support/log.hpp>
 
 namespace yave {
 
@@ -77,7 +79,12 @@ namespace yave {
     std::optional<connection_info>
       get_info(const connection_handle& handle) const;
 
+    std::optional<primitive_t> get_primitive(const node_handle& node) const;
+    bool set_primitive(const node_handle& node, const primitive_t& prim);
+
     void run_check();
+    std::optional<executable> execute(node_handle root);
+
     error_list get_errors();
     error_list get_warnings();
 
@@ -103,6 +110,11 @@ namespace yave {
   {
     m_pimpl = std::move(other.m_pimpl);
     return *this;
+  }
+
+  root_manager& node_tree::get_root_manager()
+  {
+    return m_pimpl->rm;
   }
 
   void node_tree::impl::init()
@@ -440,6 +452,43 @@ namespace yave {
     return m_pimpl->get_info(handle);
   }
 
+  /* get_primitive */
+
+  std::optional<primitive_t>
+    node_tree::impl::get_primitive(const node_handle& node) const
+  {
+    return ng.get_primitive(node);
+  }
+
+  std::optional<primitive_t>
+    node_tree::get_primitive(const node_handle& node) const
+  {
+    return m_pimpl->get_primitive(node);
+  }
+
+  /* set_primitive */
+
+  bool node_tree::impl::set_primitive(
+    const node_handle& node,
+    const primitive_t& prim)
+  {
+    ng.set_primitive(node, prim);
+    return true;
+    if (auto p = get_primitive(node)) {
+      if (p->index() == prim.index()) {
+        ng.set_primitive(node, prim);
+        return true;
+      }
+      return false;
+    }
+    return false;
+  }
+
+  bool node_tree::set_primitive(const node_handle& node, const primitive_t& prim)
+  {
+    return m_pimpl->set_primitive(node, prim);
+  }
+
   /* run_check */
 
   void node_tree::impl::run_check()
@@ -447,45 +496,100 @@ namespace yave {
     auto lck_ng = ng.lock();
     auto lck_parser = parser.lock();
 
-    node_handle root;
-    // fist stage
-    {
-      auto [b, e] =
-        parser.parse_prime_tree(root, ng.input_sockets(root).front());
+    // TODO: run check for non-prime roots
+    auto prime_roots = rm.roots();
 
-      if (!b) {
-        auto lck_errs = errs.lock();
-        auto lck_wrns = wrns.lock();
-        errs.set_move(std::move(e));
-        wrns.set_move({});
-        return;
+    error_list errs_local;
+    error_list wrns_local;
+
+    for (auto&& root : prime_roots) {
+      Info("Start checking first prime tree");
+      // fist stage
+      {
+        Info("First stage");
+        auto [b, e] =
+          parser.parse_prime_tree(root, ng.input_sockets(root).front());
+
+        // add errors
+        if (!b) {
+          for (auto& er : e) {
+            errs_local.push_back(std::move(er));
+          }
+          break;
+        }
       }
-    }
 
-    // second stage
-    {
-      socket_instance_manager sim;
-      auto [pg, e] =
-        parser.type_prime_tree(root, ng.input_sockets(root).front(), sim);
+      // second stage
+      {
+        Info("Second stage");
+        socket_instance_manager sim;
+        auto [pg, e] =
+          parser.type_prime_tree(root, ng.input_sockets(root).front(), sim);
 
-        auto lck_errs = errs.lock();
-        auto ock_wrns = wrns.lock();
         if (!pg) {
-          errs.set_move(std::move(e));
-          wrns.set_move({});
-          return;
+          // add errors
+          for (auto& er : e) {
+            errs_local.push_back(std::move(er));
+          }
         } else {
           auto lck_parsed = parsed.lock();
           parsed          = std::move(*pg);
-          errs.set_move({});
-          wrns.set_move({});
         }
+      }
     }
+
+    // set new error and warnings
+
+    auto lck_errs = errs.lock();
+    auto lck_wrns = wrns.lock();
+
+    errs.set_move(std::move(errs_local));
+    wrns.set_move(std::move(wrns_local));
   }
 
   void node_tree::run_check()
   {
     return m_pimpl->run_check();
+  }
+
+  /* execute */
+
+  std::optional<executable> node_tree::impl::execute(node_handle root)
+  {
+    auto r = root;
+
+    if (!r) {
+      Error("No Root found");
+      return std::nullopt;
+    }
+    {
+      auto [succ, errors] = parser.parse_prime_tree(r, "out");
+
+      if (!succ) {
+        Error("Parse error");
+        return std::nullopt;
+      }
+    }
+    {
+      socket_instance_manager sim;
+      auto [png, errs] = parser.type_prime_tree(r, "out", sim);
+
+      if (!png) {
+        Error("Type check error");
+        return std::nullopt;
+      }
+
+      parsed = std::move(*png);
+
+      auto exe = compiler.compile(parsed.roots().front());
+
+      return exe;
+    }
+  }
+
+  std::optional<executable> node_tree::execute(node_handle root)
+  {
+    return m_pimpl->execute(root);
   }
 
   /* get_errors */

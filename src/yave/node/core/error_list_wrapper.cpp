@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/interface/error_list_wrapper.hpp>
+#include <yave/node/core/error_list_wrapper.hpp>
 
 namespace yave {
 

@@ -9,6 +9,8 @@
 #include <yave/node/objects/function.hpp>
 #include <yave/node/objects/instance_getter.hpp>
 
+#include <yave/support/log.hpp>
+
 namespace yave {
 
   class root_manager
@@ -43,6 +45,9 @@ namespace yave {
     /// Get type of root.
     [[nodiscard]] object_ptr<const Type>
       get_type(const std::string& node) const;
+
+    /// Get all root
+    [[nodiscard]] std::vector<node_handle> roots() const;
 
   private:
     /// reference to node graph
@@ -123,16 +128,20 @@ namespace yave {
     });
 
     if (it != m_roots.end()) {
+      Error("Root Already Exists");
       return nullptr;
     }
 
     auto node = m_graph.add(detail::get_root_node_info<T>(name));
 
-    if (!node)
+    if (!node) {
+      Error("Could not create root");
       return nullptr;
+    }
 
     if (!m_binds.add(detail::get_root_node_bind<T>(name))) {
       m_graph.remove(node);
+      Error("Could not add binding");
       return nullptr;
     }
 

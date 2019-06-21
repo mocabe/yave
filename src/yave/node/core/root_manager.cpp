@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/interface/root_manager.hpp>
+#include <yave/node/core/root_manager.hpp>
 
 namespace yave {
 
@@ -75,6 +75,13 @@ namespace yave {
         return table.type;
     }
     return nullptr;
+  }
+
+  std::vector<node_handle> root_manager::roots() const
+  {
+    std::vector<node_handle> ret;
+    for (auto&& table : m_roots) ret.push_back(table.node);
+    return ret;
   }
 
 } // namespace yave
