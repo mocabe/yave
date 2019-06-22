@@ -44,37 +44,22 @@ namespace yave {
     return make_object<FrameBuffer>(m_manager, m_manager.create(m_id));
   }
 
-  image_view frame_buffer::get_image_view() const
+  mutable_image_view frame_buffer::get_image_view()
   {
-    return image_view(
+    return mutable_image_view(
       m_manager.get_data(m_id),
       m_manager.width(),
       m_manager.height(),
       m_manager.format());
   }
 
-  uint32_t frame_buffer::width() const
+  const_image_view frame_buffer::get_image_view() const
   {
-    return m_manager.width();
+    return const_image_view(
+      m_manager.get_data(m_id),
+      m_manager.width(),
+      m_manager.height(),
+      m_manager.format());
   }
 
-  uint32_t frame_buffer::height() const
-  {
-    return m_manager.height();
-  }
-
-  image_format frame_buffer::format() const
-  {
-    return m_manager.format();
-  }
-
-  const uint8_t* frame_buffer::data() const
-  {
-    return m_manager.get_data(m_id);
-  }
-
-  uint8_t* frame_buffer::data()
-  {
-    return m_manager.get_data(m_id);
-  }
 } // namespace yave

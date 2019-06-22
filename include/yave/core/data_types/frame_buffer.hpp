@@ -38,19 +38,9 @@ namespace yave {
     /// Get frame buffer object.
     [[nodiscard]] object_ptr<FrameBuffer> get() const;
     /// Get image view.
-    [[nodiscard]] image_view get_image_view() const;
-
-    /// Get buffer width
-    [[nodiscard]] uint32_t width() const;
-    /// Get buffer height
-    [[nodiscard]] uint32_t height() const;
-    /// Get buffer format
-    [[nodiscard]] image_format format() const;
-
-    /// Get data pointer.
-    [[nodiscard]] uint8_t* data();
-    /// Get data pointer.
-    [[nodiscard]] const uint8_t* data() const;
+    [[nodiscard]] mutable_image_view get_image_view();
+    /// Get image view.
+    [[nodiscard]] const_image_view get_image_view() const;
 
   private:
     frame_buffer_manager& m_manager;
