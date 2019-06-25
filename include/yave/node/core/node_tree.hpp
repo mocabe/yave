@@ -9,8 +9,6 @@
 
 #include <yave/node/support/node_info_manager.hpp>
 #include <yave/node/support/bind_info_manager.hpp>
-#include <yave/node/support/socket_instance_manager.hpp>
-#include <yave/node/core/root_manager.hpp>
 
 #include <memory>
 
@@ -24,28 +22,29 @@ namespace yave {
     /// Construct empty node tree.
     node_tree();
     /// Copy constructor (deleted).
-    node_tree(const node_tree&) = delete;
+    node_tree(const node_tree&);
     /// Move constructor.
-    node_tree(node_tree&&);
+    node_tree(node_tree&&) noexcept;
     /// Destructor.
-    ~node_tree();
+    ~node_tree() noexcept;
     /// Copy assignment (deleted).
-    node_tree& operator=(const node_tree&) = delete;
+    node_tree& operator=(const node_tree&);
     /// Move assignment.
-    node_tree& operator=(node_tree&&);
+    node_tree& operator=(node_tree&&) noexcept;
 
   public:
     /// register new node info
     [[nodiscard]]
     bool register_node_info(const node_info& info);
     /// unregister node info
-    void unregister_node_info(const node_info& info);
+    bool unregister_node_info(const node_info& info);
     /// register new bind info
     [[nodiscard]]
     bool register_bind_info(const bind_info& info);
     /// register bind info
-    void unregister_bind_info(const bind_info& info);
+    bool unregister_bind_info(const bind_info& info);
 
+  public:
     /// exist?
     [[nodiscard]]
     bool exists(const node_handle& node) const;
@@ -53,15 +52,12 @@ namespace yave {
     [[nodiscard]]
     bool exists(const connection_handle& connection) const;
 
+  public:
     /// create new node
     [[nodiscard]]
     node_handle create(const std::string& name);
     /// destroy node
     void        destroy(const node_handle& handle);
-
-    /// cteate root node
-    template <class T>
-    [[nodiscard]] node_handle create_root(const std::string& name);
 
     /// connect sockets
     [[nodiscard]]
@@ -69,6 +65,7 @@ namespace yave {
     /// disconnect sockets
     void              disconnect(const connection_handle& handle);
 
+  public:
     /// list nodes
     [[nodiscard]]
     std::vector<node_handle>       nodes() const;
@@ -108,7 +105,7 @@ namespace yave {
 
     /// get connection info
     [[nodiscard]]
-    std::optional<connection_info> get_info(const connection_handle& node) const;
+    std::optional<connection_info> get_info(const connection_handle& connection) const;
 
     /// primitive?
     [[nodiscard]]
@@ -122,20 +119,10 @@ namespace yave {
     void                           clear();
 
   private:
-    root_manager& get_root_manager();
-
-  private:
     node_graph        m_ng;
     node_info_manager m_nim;
     bind_info_manager m_bim;
-    root_manager      m_rm;
   };
-
-  template <class T>
-  node_handle node_tree::create_root(const std::string& name) {
-    auto& rm = get_root_manager();
-    return rm.add_root<T>(name);
-  }
 
   // clang-format on
 }

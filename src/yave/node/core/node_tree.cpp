@@ -4,388 +4,170 @@
 //
 
 #include <yave/node/core/node_tree.hpp>
-#include <yave/node/core/error_list_wrapper.hpp>
-#include <yave/node/core/root_manager.hpp>
-
 #include <yave/support/log.hpp>
+
+namespace {
+
+  std::shared_ptr<spdlog::logger> g_logger;
+
+  void init_logger()
+  {
+    [[maybe_unused]] static auto init = [] {
+      g_logger = yave::add_logger("node_tree");
+      return 1;
+    }();
+  }
+} // namespace
 
 namespace yave {
 
-  struct node_tree::impl
-  {
-    // node graph
-    node_graph ng;
-    // node info
-    node_info_manager nim;
-    // bind info
-    bind_info_manager bim;
-    // errors
-    error_list_wrapper errs;
-    // warnings
-    error_list_wrapper wrns;
-
-    // root manager
-    root_manager rm = {ng, bim};
-
-    // parser
-    node_parser parser = {ng, bim};
-    // parsed node
-    parsed_node_graph parsed;
-    // compiler
-    node_compiler compiler = {parsed};
-
-    void init();
-
-    bool register_node_info(const node_info& info);
-    void unregister_node_info(const node_info& name);
-    bool register_bind_info(const bind_info& info);
-    void unregister_bind_info(const bind_info&);
-
-    bool exists(const node_handle& node) const;
-    bool exists(const connection_handle& connection) const;
-
-    std::vector<connection_handle> connections() const;
-    std::vector<connection_handle> connections(const node_handle& node) const;
-    std::vector<connection_handle>
-      connections(const node_handle& node, const std::string& socket) const;
-
-    std::vector<connection_handle> input_connections() const;
-    std::vector<connection_handle>
-      input_connections(const node_handle& node) const;
-    std::vector<connection_handle> input_connections(
-      const node_handle& node,
-      const std::string& socket) const;
-
-    std::vector<connection_handle> output_connections() const;
-    std::vector<connection_handle>
-      output_connections(const node_handle& node) const;
-    std::vector<connection_handle> output_connections(
-      const node_handle& node,
-      const std::string& socket) const;
-
-    node_handle create(const std::string& name);
-    void destroy(const node_handle& handle);
-
-    connection_handle connect(
-      const node_handle& src_n,
-      const std::string& src_s,
-      const node_handle& dst_n,
-      const std::string& dst_s);
-    void disconnect(const connection_handle& handle);
-
-    std::vector<node_handle> nodes() const;
-
-    std::optional<node_info> get_info(const node_handle& handle) const;
-    std::optional<connection_info>
-      get_info(const connection_handle& handle) const;
-
-    std::optional<primitive_t> get_primitive(const node_handle& node) const;
-    bool set_primitive(const node_handle& node, const primitive_t& prim);
-
-    void run_check();
-    std::optional<executable> execute(node_handle root);
-
-    error_list get_errors();
-    error_list get_warnings();
-
-    void clear();
-  };
-
   node_tree::node_tree()
+    : m_ng {}
+    , m_nim {}
+    , m_bim {}
   {
-    m_pimpl = std::make_unique<impl>();
-    m_pimpl->init();
+    init_logger();
+
+    auto lck1 = m_ng.lock();
+    auto lck3 = m_nim.lock();
+    auto lck2 = m_bim.lock();
+
+    auto prim_info = get_primitive_node_info_list();
+    auto prim_bind = get_primitive_bind_info_list();
+
+    for (auto&& info : prim_info) {
+      [[maybe_unused]] auto r = m_nim.add(info);
+      assert(r);
+    }
+
+    for (auto&& info : prim_bind) {
+      [[maybe_unused]] auto r = m_bim.add(info);
+      assert(r);
+    }
   }
 
-  node_tree::node_tree(node_tree&& other)
+  node_tree::node_tree(const node_tree& other)
+    : m_ng {}
+    , m_nim {}
+    , m_bim {}
   {
-    m_pimpl = std::move(other.m_pimpl);
+    auto lck1 = other.m_ng.lock();
+    auto lck2 = other.m_nim.lock();
+    auto lck3 = other.m_bim.lock();
+
+    auto ng  = other.m_ng;
+    auto nim = other.m_nim;
+    auto bim = other.m_bim;
+
+    m_ng  = std::move(ng);
+    m_nim = std::move(nim);
+    m_bim = std::move(bim);
   }
 
-  node_tree::~node_tree()
+  node_tree::node_tree(node_tree&& other) noexcept
+    : m_ng {}
+    , m_nim {}
+    , m_bim {}
+  {
+    auto lck1 = other.m_ng.lock();
+    auto lck2 = other.m_nim.lock();
+    auto lck3 = other.m_bim.lock();
+
+    m_ng  = std::move(other.m_ng);
+    m_nim = std::move(other.m_nim);
+    m_bim = std::move(other.m_bim);
+  }
+
+  node_tree::~node_tree() noexcept
   {
   }
 
-  node_tree& node_tree::operator=(node_tree&& other)
+  node_tree& node_tree::operator=(const node_tree& other)
   {
-    m_pimpl = std::move(other.m_pimpl);
+    auto lck1 = other.m_ng.lock();
+    auto lck2 = other.m_nim.lock();
+    auto lck3 = other.m_bim.lock();
+
+    m_ng  = other.m_ng;
+    m_nim = other.m_nim;
+    m_bim = other.m_bim;
+
     return *this;
   }
 
-  root_manager& node_tree::get_root_manager()
+  node_tree& node_tree::operator=(node_tree&& other) noexcept
   {
-    return m_pimpl->rm;
+    auto lck1 = other.m_ng.lock();
+    auto lck2 = other.m_nim.lock();
+    auto lck3 = other.m_bim.lock();
+
+    m_ng  = std::move(other.m_ng);
+    m_nim = std::move(other.m_nim);
+    m_bim = std::move(other.m_bim);
+
+    return *this;
   }
 
-  void node_tree::impl::init()
-  {
-    auto lck1 = nim.lock();
-    auto lck2 = bim.lock();
-    auto lck3 = ng.lock();
-
-    /* Add primitive info */
-
-    for (auto&& info : get_primitive_info_list()) {
-      [[maybe_unused]] auto succ = nim.add(info);
-    }
-
-    for (auto&& info : get_primitive_bind_info_list()) {
-      [[maybe_unused]] auto succ = bim.add(info);
-    }
-  }
-
-  /* register_node_info */
-
-  bool node_tree::impl::register_node_info(const node_info& info)
-  {
-    auto lck = nim.lock();
-    return nim.add(info);
-  }
+  /* reg/unreg */
 
   bool node_tree::register_node_info(const node_info& info)
   {
-    return m_pimpl->register_node_info(info);
+    auto lck = m_nim.lock();
+    return m_nim.add(info);
   }
 
-  /* unregister_node_info */
-
-  void node_tree::impl::unregister_node_info(const node_info& info)
+  bool node_tree::unregister_node_info(const node_info& info)
   {
-    auto lck = nim.lock();
-    return nim.remove(info);
-  }
-
-  void node_tree::unregister_node_info(const node_info& info)
-  {
-    return m_pimpl->unregister_node_info(info);
-  }
-
-  /* register_bind_info */
-
-  bool node_tree::impl::register_bind_info(const bind_info& info)
-  {
-    auto lock = bim.lock();
-    return bim.add(info);
+    auto lck = m_nim.lock();
+    m_nim.remove(info);
+    return true;
   }
 
   bool node_tree::register_bind_info(const bind_info& info)
   {
-    return m_pimpl->register_bind_info(info);
+    auto lck = m_bim.lock();
+    return m_bim.add(info);
   }
 
-  /* unregister_bind_info */
-
-  void node_tree::impl::unregister_bind_info(const bind_info& info)
+  bool node_tree::unregister_bind_info(const bind_info& info)
   {
-    auto lock = bim.lock();
-    return bim.remove(info);
-  }
-
-  void node_tree::unregister_bind_info(const bind_info& info)
-  {
-    return m_pimpl->unregister_bind_info(info);
+    auto lck = m_bim.lock();
+    m_bim.remove(info);
+    return true;
   }
 
   /* exists */
 
-  bool node_tree::impl::exists(const node_handle& node) const
-  {
-    auto lck = ng.lock();
-    return ng.exists(node);
-  }
   bool node_tree::exists(const node_handle& node) const
   {
-    return m_pimpl->exists(node);
+    auto lck = m_ng.lock();
+    return m_ng.exists(node);
   }
-
-  /* exists */
-
-  bool node_tree::impl::exists(const connection_handle& connection) const
-  {
-    auto lck = ng.lock();
-    return ng.exists(connection);
-  }
-
   bool node_tree::exists(const connection_handle& connection) const
   {
-    return m_pimpl->exists(connection);
+    auto lck = m_ng.lock();
+    return m_ng.exists(connection);
   }
 
-  /* connections */
-
-  std::vector<connection_handle> node_tree::impl::connections() const
-  {
-    auto lck = ng.lock();
-    return ng.connections();
-  }
-
-  std::vector<connection_handle> node_tree::connections() const
-  {
-    return m_pimpl->connections();
-  }
-
-  /* connections */
-
-  std::vector<connection_handle>
-    node_tree::impl::connections(const node_handle& node) const
-  {
-    auto lck = ng.lock();
-    return ng.connections(node);
-  }
-
-  std::vector<connection_handle>
-    node_tree::connections(const node_handle& node) const
-  {
-    return m_pimpl->connections(node);
-  }
-
-  /* connections */
-
-  std::vector<connection_handle> node_tree::impl::connections(
-    const node_handle& node,
-    const std::string& socket) const
-  {
-    auto lck = ng.lock();
-    return ng.connections(node, socket);
-  }
-
-  std::vector<connection_handle> node_tree::connections(
-    const node_handle& node,
-    const std::string& socket) const
-  {
-    return m_pimpl->connections(node, socket);
-  }
-
-  /* input_connections */
-
-  std::vector<connection_handle> node_tree::impl::input_connections() const
-  {
-    auto lck = ng.lock();
-    return ng.input_connections();
-  }
-
-  std::vector<connection_handle> node_tree::input_connections() const
-  {
-    return m_pimpl->input_connections();
-  }
-
-  /* input_connections */
-
-  std::vector<connection_handle>
-    node_tree::impl::input_connections(const node_handle& node) const
-  {
-    auto lck = ng.lock();
-    return ng.input_connections(node);
-  }
-
-  std::vector<connection_handle>
-    node_tree::input_connections(const node_handle& node) const
-  {
-    return m_pimpl->input_connections(node);
-  }
-
-  /* input_connections */
-
-  std::vector<connection_handle> node_tree::impl::input_connections(
-    const node_handle& node,
-    const std::string& socket) const
-  {
-    auto lck = ng.lock();
-    return ng.input_connections(node, socket);
-  }
-
-  std::vector<connection_handle> node_tree::input_connections(
-    const node_handle& node,
-    const std::string& socket) const
-  {
-    return m_pimpl->input_connections(node, socket);
-  }
-
-  /* output_connections */
-
-  std::vector<connection_handle> node_tree::impl::output_connections() const
-  {
-    auto lck = ng.lock();
-    return ng.output_connections();
-  }
-
-  std::vector<connection_handle> node_tree::output_connections() const
-  {
-    return m_pimpl->output_connections();
-  }
-
-  /* output_connections */
-
-  std::vector<connection_handle>
-    node_tree::impl::output_connections(const node_handle& node) const
-  {
-    auto lck = ng.lock();
-    return ng.output_connections(node);
-  }
-
-  std::vector<connection_handle>
-    node_tree::output_connections(const node_handle& node) const
-  {
-    return m_pimpl->output_connections(node);
-  }
-
-  /* output_connections */
-
-  std::vector<connection_handle> node_tree::impl::output_connections(
-    const node_handle& node,
-    const std::string& socket) const
-  {
-    auto lck = ng.lock();
-    return ng.output_connections(node, socket);
-  }
-
-  std::vector<connection_handle> node_tree::output_connections(
-    const node_handle& node,
-    const std::string& socket) const
-  {
-    return m_pimpl->output_connections(node, socket);
-  }
-
-  /* create */
-
-  node_handle node_tree::impl::create(const std::string& name)
-  {
-    auto lck1 = ng.lock();
-    auto lck2 = bim.lock();
-    if (auto info = nim.find(name)) {
-      return ng.add(*info);
-    }
-    return nullptr;
-  }
+  /* create/connect */
 
   node_handle node_tree::create(const std::string& name)
   {
-    return m_pimpl->create(name);
-  }
+    auto lck1 = m_nim.lock();
+    auto lck2 = m_ng.lock();
 
-  /* destroy */
+    auto info = m_nim.find(name);
 
-  void node_tree::impl::destroy(const node_handle& handle)
-  {
-    auto lck = ng.lock();
-    return ng.remove(handle);
+    if (!info)
+      return nullptr;
+
+    return m_ng.add(*info);
   }
 
   void node_tree::destroy(const node_handle& handle)
   {
-    return m_pimpl->destroy(handle);
-  }
-
-  /* connect */
-
-  connection_handle node_tree::impl::connect(
-    const node_handle& src_n,
-    const std::string& src_s,
-    const node_handle& dst_n,
-    const std::string& dst_s)
-  {
-    auto lock = ng.lock();
-    return ng.connect(src_n, src_s, dst_n, dst_s);
+    auto lck = m_ng.lock();
+    return m_ng.remove(handle);
   }
 
   connection_handle node_tree::connect(
@@ -394,246 +176,144 @@ namespace yave {
     const node_handle& dst_n,
     const std::string& dst_s)
   {
-    return m_pimpl->connect(src_n, src_s, dst_n, dst_s);
-  }
-
-  /* disconnect */
-
-  void node_tree::impl::disconnect(const connection_handle& handle)
-  {
-    auto lck = ng.lock();
-    return ng.disconnect(handle);
+    auto lck = m_ng.lock();
+    return m_ng.connect(src_n, src_s, dst_n, dst_s);
   }
 
   void node_tree::disconnect(const connection_handle& handle)
   {
-    return m_pimpl->disconnect(handle);
+    auto lck = m_ng.lock();
+    return m_ng.disconnect(handle);
   }
 
-  /* nodes */
-
-  std::vector<node_handle> node_tree::impl::nodes() const
-  {
-    auto lck = ng.lock();
-    return ng.nodes();
-  }
+  /* stats */
 
   std::vector<node_handle> node_tree::nodes() const
   {
-    return m_pimpl->nodes();
+    auto lck = m_ng.lock();
+    return m_ng.nodes();
   }
 
-  /* get_info */
-
-  std::optional<node_info>
-    node_tree::impl::get_info(const node_handle& handle) const
+  std::vector<connection_handle> node_tree::connections() const
   {
-    auto lck = ng.lock();
-    return ng.get_info(handle);
+    auto lck = m_ng.lock();
+    return m_ng.connections();
   }
 
-  std::optional<node_info> node_tree::get_info(const node_handle& handle) const
+  std::vector<connection_handle>
+    node_tree::connections(const node_handle& node) const
   {
-    return m_pimpl->get_info(handle);
+    auto lck = m_ng.lock();
+    return m_ng.connections(node);
   }
 
-  /* get_info */
+  std::vector<connection_handle> node_tree::connections(
+    const node_handle& node,
+    const std::string& socket) const
+  {
+    auto lck = m_ng.lock();
+    return m_ng.connections(node, socket);
+  }
+
+  std::vector<connection_handle> node_tree::input_connections() const
+  {
+    auto lck = m_ng.lock();
+    return m_ng.input_connections();
+  }
+
+  std::vector<connection_handle>
+    node_tree::input_connections(const node_handle& node) const
+  {
+    auto lck = m_ng.lock();
+    return m_ng.input_connections(node);
+  }
+
+  std::vector<connection_handle> node_tree::input_connections(
+    const node_handle& node,
+    const std::string& socket) const
+  {
+    auto lck = m_ng.lock();
+    return m_ng.input_connections(node, socket);
+  }
+
+  std::vector<connection_handle> node_tree::output_connections() const
+  {
+    auto lck = m_ng.lock();
+    return m_ng.output_connections();
+  }
+
+  std::vector<connection_handle>
+    node_tree::output_connections(const node_handle& node) const
+  {
+    auto lck = m_ng.lock();
+    return m_ng.output_connections(node);
+  }
+
+  std::vector<connection_handle> node_tree::output_connections(
+    const node_handle& node,
+    const std::string& socket) const
+  {
+    auto lck = m_ng.lock();
+    return m_ng.output_connections(node, socket);
+  }
+
+  std::optional<node_info> node_tree::get_info(const node_handle& node) const
+  {
+    auto lck = m_ng.lock();
+    return m_ng.get_info(node);
+  }
 
   std::optional<connection_info>
-    node_tree::impl::get_info(const connection_handle& handle) const
+    node_tree::get_info(const connection_handle& connection) const
   {
-    auto lck = ng.lock();
-    return ng.get_info(handle);
-  }
-
-  std::optional<connection_info>
-    node_tree::get_info(const connection_handle& handle) const
-  {
-    return m_pimpl->get_info(handle);
-  }
-
-  /* get_primitive */
-
-  std::optional<primitive_t>
-    node_tree::impl::get_primitive(const node_handle& node) const
-  {
-    return ng.get_primitive(node);
+    auto lck = m_ng.lock();
+    return m_ng.get_info(connection);
   }
 
   std::optional<primitive_t>
     node_tree::get_primitive(const node_handle& node) const
   {
-    return m_pimpl->get_primitive(node);
+    auto lck = m_ng.lock();
+    return m_ng.get_primitive(node);
   }
 
-  /* set_primitive */
-
-  bool node_tree::impl::set_primitive(
-    const node_handle& node,
-    const primitive_t& prim)
+  bool
+    node_tree::set_primitive(const node_handle& node, const primitive_t& prim)
   {
-    ng.set_primitive(node, prim);
-    return true;
-    if (auto p = get_primitive(node)) {
-      if (p->index() == prim.index()) {
-        ng.set_primitive(node, prim);
-        return true;
-      }
+    auto lck = m_ng.lock();
+
+    auto info = m_ng.get_info(node);
+
+    if (!info)
       return false;
+
+    if (info->is_prim()) {
+      m_ng.set_primitive(node, prim);
+      return true;
     }
+
     return false;
-  }
-
-  bool node_tree::set_primitive(const node_handle& node, const primitive_t& prim)
-  {
-    return m_pimpl->set_primitive(node, prim);
-  }
-
-  /* run_check */
-
-  void node_tree::impl::run_check()
-  {
-    auto lck_ng = ng.lock();
-    auto lck_parser = parser.lock();
-
-    // TODO: run check for non-prime roots
-    auto prime_roots = rm.roots();
-
-    error_list errs_local;
-    error_list wrns_local;
-
-    for (auto&& root : prime_roots) {
-      Info("Start checking first prime tree");
-      // fist stage
-      {
-        Info("First stage");
-        auto [b, e] =
-          parser.parse_prime_tree(root, ng.input_sockets(root).front());
-
-        // add errors
-        if (!b) {
-          for (auto& er : e) {
-            errs_local.push_back(std::move(er));
-          }
-          break;
-        }
-      }
-
-      // second stage
-      {
-        Info("Second stage");
-        socket_instance_manager sim;
-        auto [pg, e] =
-          parser.type_prime_tree(root, ng.input_sockets(root).front(), sim);
-
-        if (!pg) {
-          // add errors
-          for (auto& er : e) {
-            errs_local.push_back(std::move(er));
-          }
-        } else {
-          auto lck_parsed = parsed.lock();
-          parsed          = std::move(*pg);
-        }
-      }
-    }
-
-    // set new error and warnings
-
-    auto lck_errs = errs.lock();
-    auto lck_wrns = wrns.lock();
-
-    errs.set_move(std::move(errs_local));
-    wrns.set_move(std::move(wrns_local));
-  }
-
-  void node_tree::run_check()
-  {
-    return m_pimpl->run_check();
-  }
-
-  /* execute */
-
-  std::optional<executable> node_tree::impl::execute(node_handle root)
-  {
-    auto r = root;
-
-    if (!r) {
-      Error("No Root found");
-      return std::nullopt;
-    }
-    {
-      auto [succ, errors] = parser.parse_prime_tree(r, "out");
-
-      if (!succ) {
-        Error("Parse error");
-        return std::nullopt;
-      }
-    }
-    {
-      socket_instance_manager sim;
-      auto [png, errs] = parser.type_prime_tree(r, "out", sim);
-
-      if (!png) {
-        Error("Type check error");
-        return std::nullopt;
-      }
-
-      parsed = std::move(*png);
-
-      auto exe = compiler.compile(parsed.roots().front());
-
-      return exe;
-    }
-  }
-
-  std::optional<executable> node_tree::execute(node_handle root)
-  {
-    return m_pimpl->execute(root);
-  }
-
-  /* get_errors */
-
-  error_list node_tree::impl::get_errors()
-  {
-    auto lck = errs.lock();
-    return errs.get_copy();
-  }
-
-  error_list node_tree::get_errors()
-  {
-    return m_pimpl->get_errors();
-  }
-
-  /* get_warnings */
-
-  error_list node_tree::impl::get_warnings()
-  {
-    auto lck = wrns.lock();
-    return wrns.get_copy();
-  }
-
-  error_list node_tree::get_warnings()
-  {
-    return m_pimpl->get_warnings();
-  }
-
-  /* clear */
-
-  void node_tree::impl::clear()
-  {
-    auto lck1 = ng.lock();
-    auto lck2 = nim.lock();
-    auto lck3 = bim.lock();
-
-    ng.clear();
-    nim.clear();
-    bim.clear();
   }
 
   void node_tree::clear()
   {
-    m_pimpl->clear();
-    m_pimpl->init();
+    auto lck1 = m_ng.lock();
+    auto lck2 = m_nim.lock();
+    auto lck3 = m_bim.lock();
+
+    m_ng.clear();
+    m_nim.clear();
+    m_bim.clear();
+
+    for (auto&& info : get_primitive_node_info_list()) {
+      [[maybe_unused]] auto r = m_nim.add(info);
+      assert(r);
+    }
+
+    for (auto&& info : get_primitive_bind_info_list()) {
+      [[maybe_unused]] auto r = m_bim.add(info);
+      assert(r);
+    }
   }
+
 } // namespace yave
