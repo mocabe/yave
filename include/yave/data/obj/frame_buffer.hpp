@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/core/rts/box.hpp>
-#include <yave/date/lib/frame_buffer.hpp>
+#include <yave/data/lib/frame_buffer.hpp>
 
 namespace yave {
 

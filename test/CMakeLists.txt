@@ -27,6 +27,7 @@ endfunction()
 # Tests
 
 add_subdirectory(core)
+add_subdirectory(data)
 add_subdirectory(node)
 add_subdirectory(support)
 add_subdirectory(vulkan)

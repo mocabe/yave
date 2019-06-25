@@ -5,8 +5,8 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/core/objects/string.hpp>
-#include <yave/node/objects/generator.hpp>
+#include <yave/data/obj/string.hpp>
+#include <yave/node/obj/generator.hpp>
 
 using namespace yave;
 

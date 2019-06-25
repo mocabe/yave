@@ -7,7 +7,7 @@
 
 #include <yave/core/config.hpp>
 #include <yave/core/rts/atomic.hpp>
-#include <yave/lib/data/string.hpp>
+#include <yave/data/lib/string.hpp>
 
 #include <variant>
 #include <string>

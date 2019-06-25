@@ -5,7 +5,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/node/objects/constructor.hpp>
+#include <yave/node/obj/constructor.hpp>
 #include <yave/core/rts/eval.hpp>
 
 using namespace yave;

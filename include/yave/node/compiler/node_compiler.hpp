@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <yave/node/core.hpp>
-#include <yave/node/support.hpp>
 #include <yave/node/parser/parsed_node_graph.hpp>
 #include <yave/node/compiler/executable.hpp>
 

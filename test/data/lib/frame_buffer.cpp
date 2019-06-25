@@ -5,8 +5,8 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/core/data_types/frame_buffer.hpp>
-#include <yave/core/objects/frame_buffer.hpp>
+#include <yave/data/lib/frame_buffer.hpp>
+#include <yave/data/obj/frame_buffer.hpp>
 
 using namespace yave;
 
@@ -42,7 +42,7 @@ TEST_CASE("frame_buffer")
     const auto f1 = frame_buffer(mngr);
     REQUIRE(mngr.size() == 1);
     auto view = f1.get_image_view();
-    auto data = f1.data();
+    auto data = f1.get_image_view().data();
     REQUIRE(view.image_format() == mngr.format());
     REQUIRE(view.width() == 1920);
     REQUIRE(view.height() == 1080);
@@ -61,6 +61,6 @@ TEST_CASE("frame_buffer")
     REQUIRE(view.height() == 1080);
     auto f2 = f1->get();
     REQUIRE(mngr.size() == 2);
-    f2->data()[0] = 255;
+    f2->get_image_view().data()[0] = 255;
   }
 }

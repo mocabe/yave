@@ -10,8 +10,7 @@ add_library(yave-node-core
   connection_info.cpp
   node_graph.cpp
   node_tree.cpp
-  error_list_wrapper.cpp
-  root_manager.cpp)
+  error_list_wrapper.cpp)
 
 add_library(yave::node::core ALIAS yave-node-core)
 
@@ -21,4 +20,4 @@ target_link_options(yave-node-core PRIVATE ${YAVE_LINK_FLAGS})
 target_link_libraries(yave-node-core PRIVATE yave::support::log)
 target_link_libraries(yave-node-core PRIVATE yave::support::id)
 target_link_libraries(yave-node-core PRIVATE yave::core::rts)
-target_link_libraries(yave-node-core PRIVATE yave::core::primitive)
+target_link_libraries(yave-node-core PRIVATE yave::data::primitive)

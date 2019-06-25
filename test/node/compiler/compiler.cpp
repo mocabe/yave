@@ -3,10 +3,12 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
+#include <yave/node/core/node_tree.hpp>
+#include <yave/node/support/socket_instance_manager.hpp>
 #include <yave/node/compiler/node_compiler.hpp>
 #include <yave/node/parser/node_parser.hpp>
-#include <yave/node/objects/function.hpp>
-#include <yave/node/objects/instance_getter.hpp>
+#include <yave/node/obj/function.hpp>
+#include <yave/node/obj/instance_getter.hpp>
 #include <yave/core/rts.hpp>
 #include <catch2/catch.hpp>
 
@@ -15,7 +17,7 @@ using namespace yave;
 TEST_CASE("node_parser")
 {
   node_graph graph;
-  node_info_manager info_mngr(get_primitive_info_list());
+  node_info_manager info_mngr(get_primitive_node_info_list());
   bind_info_manager bind_mngr(get_primitive_bind_info_list());
   node_parser parser(graph, bind_mngr);
 

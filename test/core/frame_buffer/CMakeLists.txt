@@ -1,1 +1,0 @@
-YAVE_Test(frame_buffer frame_buffer yave::core::frame_buffer yave::support::id)

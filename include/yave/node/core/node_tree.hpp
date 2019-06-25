@@ -5,8 +5,7 @@
 
 #pragma once
 
-#include <yave/node/core.hpp>
-
+#include <yave/node/core/node_graph.hpp>
 #include <yave/node/support/node_info_manager.hpp>
 #include <yave/node/support/bind_info_manager.hpp>
 

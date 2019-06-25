@@ -51,7 +51,7 @@ namespace yave::vulkan {
     /// Get instance.
     [[nodiscard]] auto instance() const                    -> vk::Instance;
     /// Get physical device.
-    [[nodiscard]] auto physical_device() const             -> vk::PhysicalDevice;;
+    [[nodiscard]] auto physical_device() const             -> vk::PhysicalDevice;
     /// Get device.
     [[nodiscard]] auto device() const                      -> vk::Device;
     /// Get graphics queue index
@@ -104,7 +104,7 @@ namespace yave::vulkan {
       /// Check if frame buffer is resized.
       [[nodiscard]] bool        resized() const;
       /// Check if widnow should close.
-      [[nodiscard]] bool        should_close();
+      [[nodiscard]] bool        should_close() const;
 
     public: /* window settings */
       /// Set clear color

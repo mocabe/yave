@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/node/core.hpp>
-
+#include <yave/core/graph.hpp>
+#include <yave/node/core/descriptor_handle.hpp>
 #include <yave/node/parser/parsed_node_property.hpp>
 #include <yave/node/parser/parsed_socket_property.hpp>
 #include <yave/node/parser/parsed_edge_property.hpp>

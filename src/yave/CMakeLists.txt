@@ -17,6 +17,3 @@ target_link_libraries(yave-all INTERFACE yave-support)
 target_link_libraries(yave-all INTERFACE yave-glfw)
 target_link_libraries(yave-all INTERFACE yave-vulkan)
 target_link_libraries(yave-all INTERFACE yave-imgui)
-
-# yave::interface
-add_subdirectory(interface)

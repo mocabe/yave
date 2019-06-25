@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include <yave/node/core.hpp>
-#include <yave/core/graph.hpp>
-
+#include <yave/node/parser/parsed_graph_definition.hpp>
 #include <yave/node/parser/parsed_node_info.hpp>
 #include <yave/node/parser/parsed_connection_info.hpp>
 

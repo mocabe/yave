@@ -5,8 +5,8 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/node/objects/function.hpp>
-#include <yave/core/objects/primitive.hpp>
+#include <yave/node/obj/function.hpp>
+#include <yave/data/obj/primitive.hpp>
 
 using namespace yave;
 

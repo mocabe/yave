@@ -5,12 +5,11 @@
 
 #pragma once
 
-#include <yave/node/core.hpp>
-#include <yave/node/support.hpp>
-#include <yave/support/error.hpp>
-
+#include <yave/node/core/node_graph.hpp>
+#include <yave/node/support/bind_info_manager.hpp>
 #include <yave/node/parser/errors.hpp>
 #include <yave/node/parser/parsed_node_graph.hpp>
+#include <yave/support/error.hpp>
 
 namespace yave {
 
