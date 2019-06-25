@@ -46,10 +46,22 @@ namespace yave {
   {
   }
 
-  node_graph::node_graph(node_graph&& other)
+  node_graph::node_graph(node_graph&& other) noexcept
     : m_g {std::move(other.m_g)}
     , m_mtx {}
   {
+  }
+
+  node_graph& node_graph::operator=(const node_graph& other)
+  {
+    m_g = other.m_g.clone();
+    return *this;
+  }
+
+  node_graph& node_graph::operator=(node_graph&& other) noexcept
+  {
+    m_g = std::move(other.m_g);
+    return *this;
   }
 
   bool node_graph::exists(const node_handle& h) const

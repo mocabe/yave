@@ -23,14 +23,20 @@ namespace yave {
     /// Constructor
     node_graph();
 
+    /// Destructor
+    ~node_graph() noexcept;
+
     /// Copy
     node_graph(const node_graph&);
 
     /// Move constructor
-    node_graph(node_graph&&);
+    node_graph(node_graph&&) noexcept;
 
-    /// Destructor
-    ~node_graph();
+    /// Copy assignment
+    node_graph& operator=(const node_graph& other);
+
+    /// Move assignment
+    node_graph& operator=(node_graph&& other) noexcept;
 
     /// exists
     [[nodiscard]] bool exists(const node_handle& node) const;
