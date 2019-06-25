@@ -6,8 +6,8 @@
 #pragma once
 
 #include <yave/node.hpp>
-#include <yave/node/objects/function.hpp>
-#include <yave/node/objects/instance_getter.hpp>
+#include <yave/node/obj/function.hpp>
+#include <yave/node/obj/instance_getter.hpp>
 
 #include <yave/support/log.hpp>
 

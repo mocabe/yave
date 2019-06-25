@@ -5,10 +5,9 @@
 
 #pragma once
 
-#include <yave/core/objects/frame.hpp>
-#include <yave/core/objects/primitive.hpp>
-
-#include <yave/node/objects/function.hpp>
+#include <yave/data/obj/frame.hpp>
+#include <yave/data/obj/primitive.hpp>
+#include <yave/node/obj/function.hpp>
 
 namespace yave {
 
@@ -37,7 +36,7 @@ namespace yave {
           return make_object<T>(*v);
         }
       }
-
+      assert(false);
       return make_object<T>();
     }
 

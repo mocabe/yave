@@ -7,10 +7,10 @@
 
 #include <yave/core/rts/dynamic_typing.hpp>
 #include <yave/core/rts/function.hpp>
-#include <yave/core/objects/frame.hpp>
+#include <yave/data/obj/frame.hpp>
 
 #include <yave/node/support/socket_instance_manager.hpp>
-#include <yave/node/objects/function.hpp>
+#include <yave/node/obj/function.hpp>
 
 #include <cassert>
 

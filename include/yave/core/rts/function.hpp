@@ -17,7 +17,7 @@
 #include <yave/core/rts/type_error.hpp>
 #include <yave/core/rts/value_cast.hpp>
 
-#include <yave/core/objects/string.hpp>
+#include <yave/data/obj/string.hpp>
 
 namespace yave {
 

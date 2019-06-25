@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/core/rts.hpp>
-#include <yave/core/objects/frame.hpp>
+#include <yave/data/obj/frame.hpp>
 
 namespace yave {
 

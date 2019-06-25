@@ -4,10 +4,10 @@
 //
 
 #include <yave/node/core/bind_info.hpp>
-#include <yave/core/objects/primitive.hpp>
+#include <yave/data/obj/primitive.hpp>
 #include <yave/core/rts/eval.hpp>
 
-#include <yave/core/objects/frame.hpp>
+#include <yave/data/obj/frame.hpp>
 
 #include <algorithm>
 

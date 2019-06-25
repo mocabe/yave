@@ -8,7 +8,7 @@
 #include <yave/node/core/node_info.hpp>
 #include <yave/node/core/bind_info.hpp>
 #include <yave/support/overloaded.hpp>
-#include <yave/core/objects/primitive.hpp>
+#include <yave/data/obj/primitive.hpp>
 
 #include <mutex>
 
