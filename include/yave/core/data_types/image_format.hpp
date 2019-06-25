@@ -24,7 +24,7 @@ namespace yave {
   };
 
   /// Get string name of image format
-  constexpr const char* image_format_string(const image_format& fmt) noexcept
+  constexpr const char* to_string(const image_format& fmt) noexcept
   {
     switch (fmt) {
       case image_format::RGBA8UI:
