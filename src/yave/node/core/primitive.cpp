@@ -86,7 +86,7 @@ namespace yave {
     return ret;
   }
 
-  std::vector<node_info> get_primitive_info_list()
+  std::vector<node_info> get_primitive_node_info_list()
   {
     std::vector<node_info> ret;
     primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(

@@ -48,7 +48,7 @@ namespace yave {
   [[nodiscard]] std::vector<std::string> get_primitive_name_list();
 
   /// get primitive info list
-  [[nodiscard]] std::vector<node_info> get_primitive_info_list();
+  [[nodiscard]] std::vector<node_info> get_primitive_node_info_list();
 
   /// get primitive bind list
   [[nodiscard]] std::vector<bind_info> get_primitive_bind_info_list();
