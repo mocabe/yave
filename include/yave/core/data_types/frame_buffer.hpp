@@ -43,6 +43,9 @@ namespace yave {
     [[nodiscard]] const_image_view get_image_view() const;
 
   private:
+    frame_buffer() = delete;
+
+  private:
     frame_buffer_manager& m_manager;
     uid m_id;
   };
