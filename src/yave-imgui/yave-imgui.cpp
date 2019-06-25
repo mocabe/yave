@@ -19,6 +19,7 @@ using namespace yave::imgui;
 int main()
 {
   auto path = boost::dll::program_location().remove_filename() / "inu.jpg";
+
   auto file = sln::FileReader(path.string());
 
   if (!file.is_open())

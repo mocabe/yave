@@ -100,11 +100,11 @@ namespace yave::vulkan {
 
     public: /* window state */
       /// Get window
-      [[nodiscard]] auto window() const       -> GLFWwindow*;
+      [[nodiscard]] GLFWwindow* window() const;
       /// Check if frame buffer is resized.
-      [[nodiscard]] auto resized() const      -> bool;
+      [[nodiscard]] bool        resized() const;
       /// Check if widnow should close.
-      [[nodiscard]] auto should_close() const -> bool;
+      [[nodiscard]] bool        should_close();
 
     public: /* window settings */
       /// Set clear color
@@ -128,10 +128,10 @@ namespace yave::vulkan {
       /// Begin recording command.
       /// \note: command_recorder will call this automatically.
       [[nodiscard]] 
-      auto begin_record() const -> vk::CommandBuffer;
+      vk::CommandBuffer begin_record() const;
       /// End recording command.
       /// \note: command_recorder will call this automatically.
-      void end_record(const vk::CommandBuffer& buffer) const;
+      void              end_record(const vk::CommandBuffer& buffer) const;
       /// Get current swapchain index.
       /// \note: Swapchain index is given by driver every frame, and there's no
       /// guarantee about order of index. This index should only be used for
@@ -139,19 +139,19 @@ namespace yave::vulkan {
       /// \note: Maximum value of swapchain index is swapchain_image_count()-1
       /// or swapchain_index_count()-1;
       [[nodiscard]] 
-      auto swapchain_index() const       -> uint32_t;
+      uint32_t swapchain_index() const;
       /// Get number of swapchain index.
       /// \returns swapchain_image_count()
       [[nodiscard]] 
-      auto swapchain_index_count() const -> uint32_t;
+      uint32_t swapchain_index_count() const;
       /// Get current frame index. This index can be used for resources for each
       /// render operation.
       [[nodiscard]] 
-      auto frame_index() const           -> uint32_t;
+      uint32_t frame_index() const;
       /// Get number of frame index. This value also represents maximum number
       /// of in-flight render operations.
       [[nodiscard]] 
-      auto frame_index_count() const     -> uint32_t;
+      uint32_t frame_index_count() const;
 
     public:
       /// RAII frame context
@@ -166,7 +166,7 @@ namespace yave::vulkan {
       public:
         /// get command buffer
         [[nodiscard]] 
-        auto command_buffer() const -> vk::CommandBuffer;
+        vk::CommandBuffer command_buffer() const;
 
       private:
         command_recorder(const command_recorder&) = delete;
@@ -181,12 +181,12 @@ namespace yave::vulkan {
 
       /// create RAII frame recorder
       [[nodiscard]] 
-      auto new_recorder() -> command_recorder;
+      command_recorder new_recorder();
 
     public:
       /// Create single time command
       [[nodiscard]] 
-      auto single_time_command() const -> vulkan::single_time_command;
+      vulkan::single_time_command single_time_command() const;
 
     private:
       class impl;
@@ -195,7 +195,7 @@ namespace yave::vulkan {
 
     /// Create new window context
     [[nodiscard]] 
-    auto create_window_context(glfw::unique_glfw_window& window) const -> vulkan_context::window_context;
+    vulkan_context::window_context create_window_context(glfw::unique_glfw_window& window) const;
 
   private:
     class impl;

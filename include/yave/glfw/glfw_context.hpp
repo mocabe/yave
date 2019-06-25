@@ -37,7 +37,9 @@ namespace yave::glfw {
   public:
     /// Create window
     [[nodiscard]] 
-    auto create_window(uint32_t width, uint32_t height, const char* name) const -> unique_glfw_window;
+    unique_glfw_window create_window(uint32_t width, uint32_t height, const char* name) const;
+  
+  public:
     /// poll events
     void poll_events() const;
     /// wait events
@@ -54,10 +56,10 @@ namespace yave::glfw {
   public:
     /// Add new data pointer
     [[nodiscard]] 
-    auto add(const std::string& key, void* data) -> bool;
+    bool  add(const std::string& key, void* data);
     /// Find data pointer
     [[nodiscard]] 
-    auto find(const std::string& str) const      -> void*;
+    void* find(const std::string& str) const;
 
   private:
     std::unordered_map<std::string, void*> m_map;

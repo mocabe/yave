@@ -1525,13 +1525,9 @@ namespace yave::vulkan {
   {
     auto device = m_pimpl->context->device();
 
-    // set next semaphore index
+    // set next frame index
     m_pimpl->frame_index =
       (m_pimpl->frame_index + 1) % m_pimpl->swapchain_image_count;
-
-    // detect window resize.
-    if (resized())
-      rebuild_frame_buffers();
 
     {
       // acquire next image, get next image_index.
@@ -1539,6 +1535,11 @@ namespace yave::vulkan {
       // VkAcquireNextImageKHR can be non-blocking depending on driver
       // implementation. so uses fence to prevent over-commit.
 
+      // poll window resize event
+      if (resized())
+        rebuild_frame_buffers();
+
+      // try without fence first time
       auto err = device.acquireNextImageKHR(
         m_pimpl->swapchain.get(),
         std::numeric_limits<uint64_t>::max(),
@@ -1549,7 +1550,6 @@ namespace yave::vulkan {
       // loop
       while (err == vk::Result::eErrorOutOfDateKHR) {
 
-        // poll window resize event
         if (!resized())
           break; // abort
 
@@ -1582,8 +1582,7 @@ namespace yave::vulkan {
     {
       // wait in-flight fence. this should happen after acquiring next image
       // because rebuilding frame buffers may reset all fences to signaled
-      // state. calling vkAcquireNextImageKHR before presentation engine
-      // completes is allowed by Vulkan specification.
+      // state.
 
       auto err = device.waitForFences(
         m_pimpl->in_flight_fences[m_pimpl->frame_index].get(),
