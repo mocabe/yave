@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/core/config.hpp>
-#include <yave/core/data_types/image.hpp>
+#include <yave/data/lib/image.hpp>
 #include <yave/support/id.hpp>
 
 #include <vector>

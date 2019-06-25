@@ -6,8 +6,8 @@
 #pragma once
 
 #include <yave/core/config.hpp>
-#include <yave/core/data_types/string.hpp>
 #include <yave/core/rts/atomic.hpp>
+#include <yave/lib/data/string.hpp>
 
 #include <variant>
 #include <string>

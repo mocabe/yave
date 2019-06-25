@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/core/data_types/frame_buffer/frame_buffer_manager.hpp>
+#include <yave/data/lib/frame_buffer_manager.hpp>
 #include <yave/support/id.hpp>
 
 #include <yave/core/rts/atomic.hpp>

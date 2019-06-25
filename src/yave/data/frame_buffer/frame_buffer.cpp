@@ -3,8 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/core/data_types/frame_buffer.hpp>
-#include <yave/core/objects/frame_buffer.hpp>
+#include <yave/lib/obj/frame_buffer.hpp>
 
 namespace yave {
 

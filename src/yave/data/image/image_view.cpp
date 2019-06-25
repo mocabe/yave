@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/core/data_types/image_view.hpp>
+#include <yave/data/lib/image_view.hpp>
 
 namespace yave {
 

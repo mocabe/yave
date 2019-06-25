@@ -3,8 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/core/data_types/primitive.hpp>
 #include <yave/support/overloaded.hpp>
+#include <yave/data/lib/primitive.hpp>
 
 #include <mutex>
 

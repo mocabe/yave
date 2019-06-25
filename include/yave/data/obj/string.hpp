@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/core/rts/box.hpp>
-#include <yave/core/data_types/string.hpp>
+#include <yave/data/lib/string.hpp>
 
 #include <string>
 #include <cstring>
