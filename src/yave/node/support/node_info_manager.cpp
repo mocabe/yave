@@ -71,6 +71,16 @@ namespace yave {
     auto [it, succ] =
       m_info.emplace(info.name(), std::make_shared<info_type>(info));
 
+    // when exact same info is already there
+    if (*it->second == info) {
+      assert(it->first == info.name());
+      Warning(
+        g_info_mngr_logger,
+        "Tried to add same node_info multiple times: {}",
+        info.name());
+      return true;
+    }
+
     if (succ)
       Info(
         g_info_mngr_logger,
