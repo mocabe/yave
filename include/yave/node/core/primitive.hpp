@@ -39,7 +39,7 @@ namespace yave {
   [[nodiscard]] object_ptr<const Type> get_primitive_type(const primitive_t& v);
 
   /// get primitive node info
-  [[nodiscard]] node_info get_primitive_info(const primitive_t& v);
+  [[nodiscard]] node_info get_primitive_node_info(const primitive_t& v);
 
   /// get primitive bind info
   [[nodiscard]] bind_info get_primitive_bind_info(const primitive_t& v);

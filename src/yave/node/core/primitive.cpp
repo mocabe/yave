@@ -13,53 +13,29 @@ namespace yave {
   object_ptr<const Type> get_primitive_type(const primitive_t& v)
   {
     return std::visit(
-      overloaded {[](const auto& a) {
-        return object_type<Constructor<Box<std::decay_t<decltype(a)>>>>();
+      overloaded {[](const auto& p) {
+        using value_type = std::decay_t<decltype(p)>;
+        return object_type<Constructor<Box<value_type>>>();
       }},
       v);
   }
 
-  node_info get_primitive_info(const primitive_t& v)
+  node_info get_primitive_node_info(const primitive_t& v)
   {
-    auto ret = node_info({get_primitive_name(v)}, {}, {"value"});
-    assert(ret.is_prim());
-    return ret;
+    return std::visit(
+      overloaded {[&](const auto& p) {
+        using value_type = std::decay_t<decltype(p)>;
+        return get_node_info<Constructor<Box<value_type>>>();
+      }},
+      v);
   }
-
-  namespace {
-
-    template <class T>
-    struct PrimitiveGetter
-      : Function<PrimitiveGetter<T>, PrimitiveContainer, Constructor<Box<T>>>
-    {
-      typename PrimitiveGetter::return_type code() const
-      {
-        auto container = PrimitiveGetter::template eval_arg<0>();
-        auto prim      = container->get();
-        if (auto v = std::get_if<T>(&prim)) {
-          return make_object<Constructor<Box<T>>>(container);
-        } else {
-          return make_object<Constructor<Box<T>>>();
-        }
-      }
-    };
-
-  } // namespace
 
   bind_info get_primitive_bind_info(const primitive_t& v)
   {
-    auto info = get_primitive_info(v);
-    assert(info.output_sockets().size() == 1);
-
     return std::visit(
       overloaded {[&](const auto& p) {
-        using prim_type = std::decay_t<decltype(p)>;
-        return bind_info {info.name(),
-                          {},
-                          {info.output_sockets().front()},
-                          make_object<PrimitiveGetter<prim_type>>(),
-                          {info.name()},
-                          true};
+        using value_type = std::decay_t<decltype(p)>;
+        return get_bind_info<Constructor<Box<value_type>>>();
       }},
       v);
   }
@@ -90,7 +66,7 @@ namespace yave {
   {
     std::vector<node_info> ret;
     primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
-      ret, get_primitive_info);
+      ret, get_primitive_node_info);
     return ret;
   }
 
