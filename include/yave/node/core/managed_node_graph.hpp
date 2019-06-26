@@ -15,33 +15,34 @@ namespace yave {
 
   // clang-format off
 
-  class node_tree
+  class managed_node_graph
   {
   public:
-    /// Construct empty node tree.
-    node_tree();
+  // Construct empty node tree.
+    managed_node_graph();
     /// Copy constructor (deleted).
-    node_tree(const node_tree&);
+    managed_node_graph(const managed_node_graph&);
     /// Move constructor.
-    node_tree(node_tree&&) noexcept;
+    managed_node_graph(managed_node_graph&&) noexcept;
     /// Destructor.
-    ~node_tree() noexcept;
+    ~managed_node_graph() noexcept;
     /// Copy assignment (deleted).
-    node_tree& operator=(const node_tree&);
+    managed_node_graph& operator=(const managed_node_graph&);
     /// Move assignment.
-    node_tree& operator=(node_tree&&) noexcept;
+    managed_node_graph& operator=(managed_node_graph&&) noexcept;
 
   public:
     /// register new node info
     [[nodiscard]]
     bool register_node_info(const node_info& info);
     /// unregister node info
-    bool unregister_node_info(const node_info& info);
-    /// register new bind info
+    void unregister_node_info(const node_info& info);
+
+    /// register new node info
     [[nodiscard]]
-    bool register_bind_info(const bind_info& info);
-    /// register bind info
-    bool unregister_bind_info(const bind_info& info);
+    bool register_node_info(const std::vector<node_info>& info);
+    /// unregister node info
+    void unregister_node_info(const std::vector<node_info>& info);
 
   public:
     /// exist?
@@ -120,7 +121,6 @@ namespace yave {
   private:
     node_graph        m_ng;
     node_info_manager m_nim;
-    bind_info_manager m_bim;
   };
 
   // clang-format on
