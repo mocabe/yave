@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/core/scene_config.hpp>
+#include <yave/editor/scene_config.hpp>
 #include <yave/support/log.hpp>
 
 namespace {
