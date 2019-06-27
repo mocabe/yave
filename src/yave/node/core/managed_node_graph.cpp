@@ -303,4 +303,10 @@ namespace yave {
     m_nim.clear();
   }
 
+  node_graph managed_node_graph::get_node_graph() const
+  {
+    auto lck = m_ng.lock();
+    return m_ng;
+  }
+
 } // namespace yave

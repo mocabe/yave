@@ -118,6 +118,10 @@ namespace yave {
     /// clear
     void                           clear();
 
+    /// Get node graph copy
+    [[nodiscard]] 
+    node_graph                     get_node_graph() const;
+
   private:
     node_graph        m_ng;
     node_info_manager m_nim;
