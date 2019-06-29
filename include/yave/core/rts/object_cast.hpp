@@ -9,7 +9,7 @@
 
 namespace yave {
 
-  /// static object cast
+  /// static object cast (possibly unsafe)
   template <class T, class U>
   [[nodiscard]] object_ptr<T> static_object_cast(const object_ptr<U>& obj)
   {
@@ -17,26 +17,28 @@ namespace yave {
     if (likely(obj && !obj.is_static()))
       _get_storage(obj).head()->refcount.fetch_add();
 
-    if constexpr (std::is_base_of_v<U, T> && sizeof(T) == sizeof(U))
-      // downcast to proxy types (empty derived class from Object) using
-      // static_cast IS undefined behaviour. reinterpret_cast is probably
-      // undefined behaviour too but it works in practice. object_ptr uses
-      // `const Object*` pointer in underlying storage so most of read/write
-      // operations are still done through `const Object*` pointer.
-      return reinterpret_cast<T*>(obj.get());
-    else
-      // it's undefined behavior if `obj` is not an actual object of T.
-      return static_cast<T*>(obj.get());
+    // to ensure safety of cast
+    static_assert(
+      std::is_base_of_v<T, U> || // upcast
+      std::is_base_of_v<U, T> || // downcast
+      sizeof(T) == sizeof(U));   // crosscast to proxy type
+
+    // crosscasting to proxy types to add additional compile time information
+    // using static_cast leads undefined behaviour by itself. So here we use
+    // reinterpret_cast. Programmer is responsible for casting back to original
+    // type or it's base type (Object for example) before accessing it's data.
+    return reinterpret_cast<T*>(obj.get());
   }
 
-  /// static object cast
+  /// static object cast (possibly unsafe)
   template <class T, class U>
   [[nodiscard]] object_ptr<T> static_object_cast(object_ptr<U>&& obj)
   {
-    if constexpr (std::is_base_of_v<U, T> && sizeof(T) == sizeof(U))
-      return reinterpret_cast<T*>(obj.release());
-    else
-      return static_cast<T*>(obj.release());
+    static_assert(
+      std::is_base_of_v<T, U> || // upcast
+      std::is_base_of_v<U, T> || // downcast
+      sizeof(T) == sizeof(U));   // crosscast to proxy type
+    return reinterpret_cast<T*>(obj.release());
   }
 
 } // namespace yave
