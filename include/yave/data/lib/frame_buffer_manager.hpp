@@ -19,9 +19,9 @@ namespace yave {
   public:
     /// ctor
     frame_buffer_manager(
-      const image_format& format,
       uint32_t width,
-      uint32_t height);
+      uint32_t height,
+      const image_format& format);
 
     /// copy ctor is deleted
     frame_buffer_manager(const frame_buffer_manager&) = delete;

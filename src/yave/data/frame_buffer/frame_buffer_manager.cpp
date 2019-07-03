@@ -37,14 +37,14 @@ namespace yave {
 
     size_t byte_size(uint32_t width, uint32_t height, image_format fmt)
     {
-      return width * height * byte_per_pixel(fmt);
+      return (size_t)width * height * byte_per_pixel(fmt);
     }
   } // namespace
 
   frame_buffer_manager::frame_buffer_manager(
-    const image_format& format,
     uint32_t width,
-    uint32_t height)
+    uint32_t height,
+    const image_format& format)
     : m_format {format}
     , m_width {width}
     , m_height {height}
