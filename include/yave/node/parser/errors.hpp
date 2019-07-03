@@ -5,8 +5,10 @@
 
 #pragma once
 
+#include <yave/core/rts.hpp>
+#include <yave/node/core/bind_info.hpp>
+#include <yave/node/core/node_handle.hpp>
 #include <yave/support/error.hpp>
-#include <yave/node/core.hpp>
 
 #include <vector>
 #include <memory>

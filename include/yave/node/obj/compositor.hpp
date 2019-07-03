@@ -12,13 +12,19 @@
 
 namespace yave {
 
+  struct LayerBlendOp
+    : NodeFunction<LayerBlendOp, FrameBuffer, FrameBuffer, FrameBuffer>
+  {
+    // just for type
+  };
+
   /// Compositor
-  struct LayerCompositor
-    : NodeFunction<
-        FrameBuffer,                                    // src
-        FrameBuffer,                                    // dst
-        closure<FrameBuffer, FrameBuffer, FrameBuffer>, // blend func
-        FrameBuffer>
+  struct LayerCompositor : NodeFunction<
+                             LayerCompositor,
+                             FrameBuffer,  // src
+                             FrameBuffer,  // dst
+                             LayerBlendOp, // blend op
+                             FrameBuffer>
   {
     return_type code() const
     {
@@ -33,17 +39,16 @@ namespace yave {
   {
     static node_info get_node_info()
     {
-      return node_info(
-        "LayerImageOutput", {"src", "dst", "blend_func"}, {"out"});
+      return node_info("LayerCompositor", {"src", "dst", "blend op"}, {"out"});
     }
     static bind_info get_bind_info()
     {
       return bind_info(
         "LayerCompositor",
-        {"src", "dst", "blend func"},
+        {"src", "dst", "blend op"},
         "out",
         make_object<InstanceGetterFunction<LayerCompositor>>(),
-        "Layer composition node.");
+        "LayerCompositor");
     }
   };
 

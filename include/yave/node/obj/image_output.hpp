@@ -13,7 +13,8 @@
 namespace yave {
 
   /// FrameBuffer -> FrameBuffer
-  struct LayerImageOutput : NodeFunction<FrameBuffer, FrameBuffer>
+  struct LayerImageOutput
+    : NodeFunction<LayerImageOutput, FrameBuffer, FrameBuffer>
   {
     return_type code() const
     {

@@ -13,7 +13,6 @@ namespace yave {
   /// Alpha blend op
   enum class blend_operation : uint32_t
   {
-    clear = 1,
     src   = 2,
     dst   = 3,
     over  = 4,
@@ -26,8 +25,6 @@ namespace yave {
   constexpr const char* to_string(blend_operation op)
   {
     switch (op) {
-      case blend_operation::clear:
-        return "blend_operation::clear";
       case blend_operation::src:
         return "blend_operation::src";
       case blend_operation::dst:
@@ -51,7 +48,7 @@ namespace yave {
     node_handle input;
     /// Handle to compositor node
     node_handle compositor;
-    /// Blend op
-    blend_operation blend_op;
+    /// Handle to blend op
+    node_handle blend_op;
   };
 }
