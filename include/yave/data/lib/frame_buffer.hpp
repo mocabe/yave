@@ -36,7 +36,7 @@ namespace yave {
     ~frame_buffer() noexcept;
 
     /// Get frame buffer object.
-    [[nodiscard]] object_ptr<FrameBuffer> get() const;
+    [[nodiscard]] object_ptr<FrameBuffer> copy() const;
     /// Get image view.
     [[nodiscard]] mutable_image_view get_image_view();
     /// Get image view.
@@ -46,7 +46,7 @@ namespace yave {
     frame_buffer() = delete;
 
   private:
-    frame_buffer_manager& m_manager;
+    frame_buffer_manager* m_manager;
     uid m_id;
   };
 }

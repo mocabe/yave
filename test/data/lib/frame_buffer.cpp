@@ -16,7 +16,7 @@ TEST_CASE("frame_buffer")
   {
     SECTION("basic")
     {
-      frame_buffer_manager fb_mngr {image_format::RGBA8UI, 1920, 1080};
+      frame_buffer_manager fb_mngr {1920, 1080, image_format::RGBA8UI};
       REQUIRE(fb_mngr.format() == image_format::RGBA8UI);
       REQUIRE(fb_mngr.width() == 1920);
       REQUIRE(fb_mngr.height() == 1080);
@@ -38,7 +38,7 @@ TEST_CASE("frame_buffer")
 
   SECTION("value")
   {
-    frame_buffer_manager mngr {image_format::RGBA32F, 1920, 1080};
+    frame_buffer_manager mngr {1920, 1080, image_format::RGBA32F};
     const auto f1 = frame_buffer(mngr);
     REQUIRE(mngr.size() == 1);
     auto view = f1.get_image_view();
@@ -52,14 +52,14 @@ TEST_CASE("frame_buffer")
 
   SECTION("obj")
   {
-    frame_buffer_manager mngr(image_format::RGBA8UI, 1920, 1080);
+    frame_buffer_manager mngr(1920, 1080, image_format::RGBA32F);
     const auto f1 = make_object<FrameBuffer>(mngr);
     REQUIRE(mngr.size() == 1);
     auto view = f1->get_image_view();
     REQUIRE(view.image_format() == mngr.format());
     REQUIRE(view.width() == 1920);
     REQUIRE(view.height() == 1080);
-    auto f2 = f1->get();
+    auto f2 = f1->copy();
     REQUIRE(mngr.size() == 2);
     f2->get_image_view().data()[0] = 255;
   }
