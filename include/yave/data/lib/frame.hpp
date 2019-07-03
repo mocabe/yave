@@ -14,6 +14,8 @@ namespace yave {
   {
     /// Time point of frame
     yave::time time;
+    /// Lendth of current frame
+    yave::time length;
   };
 
 } // namespace yave
