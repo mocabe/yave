@@ -43,7 +43,7 @@ namespace yave {
     bool exists(const node_handle& node, const layer_handle& layer) const;
   
     /// Create new sublayer under specified layer
-    layer_handle add_layer(const layer_handle&);
+    layer_handle add_layer(const layer_handle& target);
 
     /// Remove layer and resources
     void remove_layer(const layer_handle& handle);
@@ -71,7 +71,7 @@ namespace yave {
 
     /// Get list of resources
     [[nodiscard]] std::vector<layer_resource>
-      get_resources(const layer_handle& layer) const;
+      get_resources(const layer_handle& layer, layer_resource_scope scpe) const;
 
     /// Get composition list
     [[nodiscard]] std::vector<layer_composition>
@@ -83,9 +83,12 @@ namespace yave {
   private: /* nodes */
     managed_node_graph m_node_graph;
 
-  private: /* layer control */
+  private: /* layers */
+    struct layer_container;
+    std::vector<layer_container> m_layers;
+
+  private: /* root layer */
     struct layer;
-    std::vector<std::shared_ptr<layer>> m_layers;
     std::shared_ptr<layer> m_root;
   };
 } // namespace yave

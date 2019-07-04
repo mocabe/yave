@@ -44,11 +44,15 @@ namespace yave {
   /// Layer composition
   struct layer_composition
   {
-    /// Image input
-    node_handle input;
     /// Handle to compositor node
     node_handle compositor;
-    /// Handle to blend op
-    node_handle blend_op;
+    /// Image input node
+    node_handle input_node;
+    /// Image input socket
+    std::string input_socket;
+    /// Image blender node
+    node_handle blender_node;
+    /// Image blender socket
+    std::string blender_socket;
   };
 }
