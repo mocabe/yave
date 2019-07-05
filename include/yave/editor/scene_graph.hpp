@@ -13,6 +13,7 @@
 
 namespace yave {
 
+  /// layer handle
   using layer_handle = descriptor_handle<class scene_graph::layer*>;
 
   /// Scene graph class. Manages all frontend node controls, including layer
@@ -31,36 +32,36 @@ namespace yave {
 
   public:
     /// Get root layer
-    layer_handle root() const;
+    [[nodiscard]] layer_handle root() const;
 
     /// exists?
-    bool exists(const layer_handle& layer) const;
+    [[nodiscard]] bool exists(const layer_handle& layer) const;
 
     /// exists?
-    bool exists(const node_handle& node) const;
+    [[nodiscard]] bool exists(const node_handle& node) const;
 
     /// exists?
-    bool exists(const node_handle& node, const layer_handle& layer) const;
+    [[nodiscard]] bool exists(const node_handle& node, const layer_handle& layer) const;
   
     /// Create new sublayer under specified layer
-    layer_handle add_layer(const layer_handle& target);
+    [[nodiscard]] layer_handle add_layer(const layer_handle& target);
 
     /// Remove layer and resources
     void remove_layer(const layer_handle& handle);
 
     /// Get name of layer
-    const std::string& get_name() const;
+    [[nodiscard]] const std::string& get_name() const;
     /// Set name of layer
     void set_name(const std::string& name);
 
     /// visible?
-    bool is_visible(const layer_handle& layer) const;
+    [[nodiscard]] bool is_visible(const layer_handle& layer) const;
 
     /// set new visibility state
     void set_visibility(bool visibility);
 
     /// Custom layer?
-    bool is_custom(const layer_handle& layer) const;
+    [[nodiscard]] bool is_custom(const layer_handle& layer) const;
 
     /// Convert managed layer to custom layer
     void make_custom(const layer_handle& layer);
