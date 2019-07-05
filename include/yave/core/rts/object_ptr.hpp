@@ -94,7 +94,7 @@ namespace yave {
     [[nodiscard]] auto* value() const noexcept
     {
       assert(get());
-      return &get()->value;
+      return &get()->value();
     }
 
     /// operator bool

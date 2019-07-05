@@ -137,8 +137,6 @@ namespace yave {
       return object_type_traits<typename decltype(type_c<T>.tag())::type>::name;
     }
 
-    static_assert(offset_of_member(&Type::value) == 16);
-
     /// value type
     template <class T>
     struct value_type_initializer

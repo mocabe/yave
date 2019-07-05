@@ -109,7 +109,7 @@ namespace yave {
     constexpr Box(U &&u, Args &&... args) //
       noexcept(std::is_nothrow_constructible_v<T, U, Args...>)
       : Object {&info_table_initializer::info_table}
-      , value {std::forward<U>(u), std::forward<Args>(args)...}
+      , m_value {std::forward<U>(u), std::forward<Args>(args)...}
     {
     }
 
@@ -127,7 +127,7 @@ namespace yave {
     constexpr Box() //
       noexcept(std::is_nothrow_constructible_v<T>)
       : Object {&info_table_initializer::info_table}
-      , value {}
+      , m_value {}
     {
     }
 
@@ -135,7 +135,7 @@ namespace yave {
     constexpr Box(const Box &obj) //
       noexcept(std::is_nothrow_copy_constructible_v<T>)
       : Object {&info_table_initializer::info_table}
-      , value {obj.value}
+      , m_value {obj.m_value}
     {
     }
 
@@ -143,7 +143,7 @@ namespace yave {
     constexpr Box(Box &&obj) //
       noexcept(std::is_nothrow_move_constructible_v<T>)
       : Object {&info_table_initializer::info_table}
-      , value {std::move(obj.value)}
+      , m_value {std::move(obj.m_value)}
     {
     }
 
@@ -151,7 +151,7 @@ namespace yave {
     constexpr Box &operator=(const Box &obj) //
       noexcept(std::is_nothrow_copy_assignable_v<T>)
     {
-      value = obj.value;
+      m_value = obj.m_value;
       return *this;
     }
 
@@ -159,12 +159,25 @@ namespace yave {
     constexpr Box &operator=(Box &&obj) //
       noexcept(std::is_nothrow_move_assignable_v<T>)
     {
-      value = std::move(obj.value);
+      m_value = std::move(obj.m_value);
       return *this;
     }
 
+    /// value getter
+    value_type &value() noexcept
+    {
+      return m_value;
+    }
+
+    /// value getter
+    const value_type &value() const noexcept
+    {
+      return m_value;
+    }
+
+  private:
     /// value
-    value_type value;
+    value_type m_value;
 
   private:
     /// info table initializer
