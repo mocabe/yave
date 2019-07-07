@@ -20,6 +20,7 @@ namespace yave {
       m_ptr = std::make_shared<data>(node_graph, node_handle);
     }
 
+    shared_node_handle()                          = default;
     ~shared_node_handle()                         = default;
     shared_node_handle(const shared_node_handle&) = default;
     shared_node_handle(shared_node_handle&&)      = default;
