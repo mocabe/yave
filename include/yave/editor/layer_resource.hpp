@@ -17,7 +17,6 @@ namespace yave {
   {
     Inherit = 1, ///< Resouce which can also be accessed from sublayers.
     Private = 2, ///< Resouce which is private in the layer
-    Global  = 3, ///< Global resource (do we really need this?)
   };
 
   /// to_string
@@ -27,8 +26,6 @@ namespace yave {
         return "layer_resource_scope::Inherit";
       case layer_resource_scope::Private:
         return "layer_resource_scope::Private";
-      case layer_resource_scope::Global:
-        return "layer_resource_scope::Global";
     }
     return "(unrecognized layer scope)";
   }
