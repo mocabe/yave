@@ -124,14 +124,9 @@ namespace yave {
 
   public:
     /// Ctor
-    constexpr object_ptr_storage(Object* p) noexcept
-      : m_ptr {p}
-    {
-    }
-
-    /// Ctor
-    constexpr object_ptr_storage(const Object* p) noexcept
-      : m_ptr {p}
+    template <class T>
+    constexpr object_ptr_storage(T* p) noexcept
+      : m_ptr {static_cast<const Object*>(p)}
     {
     }
 
