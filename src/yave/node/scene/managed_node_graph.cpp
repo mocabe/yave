@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/core/managed_node_graph.hpp>
+#include <yave/node/scene/managed_node_graph.hpp>
 #include <yave/support/log.hpp>
 
 namespace {
