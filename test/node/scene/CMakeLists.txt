@@ -1,0 +1,1 @@
+YAVE_Test(layered_node_graph node yave::node)
