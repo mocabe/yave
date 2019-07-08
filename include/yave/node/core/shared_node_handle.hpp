@@ -69,16 +69,17 @@ namespace yave {
     struct data
     {
       data(node_graph& g, const node_handle& h)
-        : node_graph {g}
+        : graph {g}
         , handle {h}
       {
+        assert(g.exists(h));
       }
       ~data()
       {
         if (handle)
-          node_graph.remove(handle);
+          graph.remove(handle);
       }
-      node_graph& node_graph;
+      node_graph& graph;
       node_handle handle;
     };
 
