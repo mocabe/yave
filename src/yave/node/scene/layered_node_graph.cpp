@@ -77,7 +77,10 @@ namespace yave {
   auto layered_node_graph::_access_parent(const layer_handle& layer)
     -> node_layer&
   {
-    return _access(_access(layer).parent);
+    assert(layer);
+    auto& parent = _access(layer).parent;
+    assert(parent);
+    return _access(parent);
   }
 
   bool layered_node_graph::_exists(const layer_handle& layer) const
