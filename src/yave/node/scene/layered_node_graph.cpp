@@ -675,7 +675,8 @@ namespace yave {
     if (!_exists(layer))
       return {};
 
-    std::vector<layer_resource> ret;
+    if (layer == _get_handle(m_root))
+      return {};
 
     std::vector<layer_resource_handle> ret;
 
@@ -683,7 +684,9 @@ namespace yave {
 
     while (parent) {
       for (auto&& res : _access(parent).resources) {
-        ret.push_back(layer_resource {res.name, res.handle, res.scope});
+        if (res.scope == layer_resource_scope::Inherit)
+          ret.emplace_back(_get_handle(res));
+      }
       parent = _access(parent).parent;
     }
     return ret;
