@@ -12,7 +12,7 @@ namespace yave {
   std::string value_type::to_string() const
   {
     boost::uuids::uuid id {};
-    std::memcpy(id.data, data->data(), sizeof(data));
+    std::memcpy(id.data, data->data(), sizeof(16));
     return fmt::format("{}({})", name, boost::uuids::to_string(id));
   }
 }
