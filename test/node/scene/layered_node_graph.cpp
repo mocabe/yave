@@ -4,6 +4,7 @@
 //
 
 #include <yave/node/scene/layered_node_graph.hpp>
+#include <yave/node/core/primitive.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
@@ -23,6 +24,7 @@ TEST_CASE("layered_node_graph")
     REQUIRE(graph.get_owning_resources(handle).empty());
     REQUIRE(graph.get_inherited_resources(handle).empty());
     REQUIRE(graph.get_sublayers(handle).empty());
+    REQUIRE(!graph.get_parent(handle));
     graph.remove_layer(handle);
     REQUIRE(handle == graph.root());
   }
@@ -34,6 +36,7 @@ TEST_CASE("layered_node_graph")
     auto handle = graph.add_layer(graph.root()); // 2
     REQUIRE(handle);
     REQUIRE(graph.exists(handle));
+    REQUIRE(graph.get_parent(handle) == graph.root());
     REQUIRE(graph.add_layer(graph.root())); // 3
     REQUIRE(graph.add_layer(handle));       // 4
     REQUIRE(graph.layers().size() == 4);
@@ -122,10 +125,107 @@ TEST_CASE("layered_node_graph")
     REQUIRE(graph.movable_below(l2, l4));
     graph.move_below(l2, l4);
 
+    REQUIRE(graph.get_parent(l2) == l1);
     REQUIRE(graph.get_sublayers(root)[0] == l1);
     REQUIRE(graph.get_sublayers(l1)[2] == l4);
     REQUIRE(graph.get_sublayers(l1)[1] == l2);
     REQUIRE(graph.get_sublayers(l1)[0] == l3);
     REQUIRE(graph.get_sublayers(l2)[0] == l5);
+  }
+
+  SECTION("move_above")
+  {
+    layered_node_graph graph;
+    REQUIRE(!graph.movable_above(graph.root(), graph.root()));
+    REQUIRE(!graph.movable_above(nullptr, graph.root()));
+    REQUIRE(!graph.movable_above(graph.root(), nullptr));
+
+    auto l1 = graph.add_layer(graph.root());
+
+    REQUIRE(!graph.movable_above(l1, graph.root()));
+    REQUIRE(!graph.movable_above(graph.root(), l1));
+
+    auto l2 = graph.add_layer(graph.root());
+    REQUIRE(graph.movable_above(l1, l2));
+    REQUIRE(graph.movable_above(l2, l1));
+
+    graph.move_above(l1, l2);
+    REQUIRE(graph.get_parent(l1) == graph.root());
+    REQUIRE(graph.get_parent(l2) == graph.root());
+    REQUIRE(graph.get_sublayers(graph.root())[0] == l2);
+    REQUIRE(graph.get_sublayers(graph.root())[1] == l1);
+  }
+
+  SECTION("move_into")
+  {
+    layered_node_graph graph;
+    auto root = graph.root();
+
+    REQUIRE(!graph.movable_into(root, root));
+    REQUIRE(!graph.movable_into(root, nullptr));
+    REQUIRE(!graph.movable_into(nullptr, root));
+    REQUIRE(!graph.movable_into(nullptr, nullptr));
+
+    auto l1 = graph.add_layer(root);
+
+    REQUIRE(!graph.movable_into(l1, l1));
+    REQUIRE(graph.movable_into(l1, root));
+
+    graph.move_into(l1, root);
+    REQUIRE(graph.get_sublayers(root)[0] == l1);
+
+    auto l2 = graph.add_layer(l1);
+
+    REQUIRE(!graph.movable_into(l1, l2));
+    REQUIRE(graph.movable_into(l2, l1));
+    REQUIRE(graph.movable_into(l2, root));
+
+    /*
+      root - l1
+           - l2
+     */
+    graph.move_into(l2, root);
+    REQUIRE(graph.get_parent(l1) == root);
+    REQUIRE(graph.get_parent(l2) == root);
+    REQUIRE(graph.get_sublayers(l1).empty());
+    REQUIRE(graph.get_sublayers(root)[0] == l1);
+    REQUIRE(graph.get_sublayers(root)[1] == l2);
+  }
+
+  SECTION("resources")
+  {
+    layered_node_graph graph;
+
+    auto root = graph.root();
+    REQUIRE(graph.register_node_info(get_primitive_node_info_list()));
+
+    auto r1 = graph.add_resource("Int", root, layer_resource_scope::Private);
+    auto r2 = graph.add_resource("Double", root, layer_resource_scope::Inherit);
+
+    REQUIRE(graph.get_resource_name(r1) == "Int");
+    REQUIRE(graph.get_resource_scope(r1) == layer_resource_scope::Private);
+
+    REQUIRE(graph.get_resource_name(r2) == "Double");
+    REQUIRE(graph.get_resource_scope(r2) == layer_resource_scope::Inherit);
+
+    REQUIRE(graph.get_owning_resources(root).size() == 2);
+    REQUIRE(graph.get_owning_resources(root)[0] == r1);
+    REQUIRE(graph.get_owning_resources(root)[1] == r2);
+    REQUIRE(graph.get_inherited_resources(root).empty());
+
+    auto l1 = graph.add_layer(root);
+
+    REQUIRE(graph.get_inherited_resources(l1).size() == 1);
+    REQUIRE(graph.get_inherited_resources(l1)[0] == r2);
+
+    graph.set_resource_scope(r2, layer_resource_scope::Private);
+    REQUIRE(graph.get_inherited_resources(l1).empty());
+
+    graph.set_resource_name(r2, "Hello, World");
+    REQUIRE(graph.get_resource_name(r2) == "Hello, World");
+
+    graph.remove_resource(r2);
+    REQUIRE(graph.get_owning_resources(root).size() == 1);
+    REQUIRE(graph.get_owning_resources(root)[0] == r1);
   }
 }
