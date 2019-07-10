@@ -553,7 +553,7 @@ namespace yave {
     const layer_handle& to) const
   {
     auto lck = _lock();
-    return _movable_below(from, to);
+    return _movable_into(from, to);
   }
 
   void layered_node_graph::move_into(
