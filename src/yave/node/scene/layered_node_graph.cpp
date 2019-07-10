@@ -564,9 +564,11 @@ namespace yave {
     const layer_handle& from,
     const layer_handle& to)
   {
+    // TODO: optimization
+
     auto lck = _lock();
 
-    if (!_movable_below(from, to))
+    if (!_movable_into(from, to))
       return;
 
     Info(
@@ -576,8 +578,28 @@ namespace yave {
       _access(from).id.data,
       _access(to).name,
       _access(to).id.data);
+
+    // detach
+    std::unique_ptr<node_layer> tmp;
+    {
+      auto& parent = _access_parent(from);
+      for (auto iter = parent.sublayers.begin(); iter != parent.sublayers.end();
+           ++iter) {
+        if (_get_handle(*iter) == from) {
+          tmp = std::move(*iter);
+          parent.sublayers.erase(iter);
+          break;
+        }
+      }
   }
 
+    {
+      // insert layer
+      _access(to).sublayers.emplace_back(std::move(tmp));
+      // update parent
+      _access(from).parent = to;
+    }
+  }
 
   auto layered_node_graph::add_resource(
     const std::string& name,
