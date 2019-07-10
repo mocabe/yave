@@ -17,6 +17,9 @@ namespace yave {
   /// Layer handle
   using layer_handle = descriptor_handle<struct node_layer*>;
 
+  /// Layer resource handle
+  using layer_resource_handle = node_handle;
+
   /// Layer info
   struct layer_info
   {
@@ -107,26 +110,32 @@ namespace yave {
     auto add_resource(
       const std::string& name,
       const layer_handle& layer,
-      layer_resource_scope scope) -> std::optional<layer_resource>;
+      layer_resource_scope scope) -> layer_resource_handle;
     /// Remove resource from layer
-    void remove_resource(const node_handle& node);
+    void remove_resource(const layer_resource_handle& node);
     /// Get owning resources
     auto get_owning_resources(const layer_handle& layer) const
-      -> std::vector<layer_resource>;
+      -> std::vector<layer_resource_handle>;
     /// Get external resources
     auto get_inherited_resources(const layer_handle& layer) const
-      -> std::vector<layer_resource>;
+      -> std::vector<layer_resource_handle>;
 
   public: /* resource info */
+    auto get_info(const layer_resource_handle& handle) const
+      -> std::optional<layer_resource>;
     /// Set new scope for the resource
-    void set_resource_scope(const node_handle& res, layer_resource_scope scope);
+    void set_resource_scope(
+      const layer_resource_handle& res,
+      layer_resource_scope scope);
     /// Get current resource scope
-    auto get_resource_scope(const node_handle& res)
+    auto get_resource_scope(const layer_resource_handle& res)
       -> std::optional<layer_resource_scope>;
     /// Set resource name
-    void set_resource_name(const node_handle& res, const std::string& name);
+    void set_resource_name(
+      const layer_resource_handle& res,
+      const std::string& name);
     /// Get resource name
-    auto get_resource_name(const node_handle& ret) const
+    auto get_resource_name(const layer_resource_handle& ret) const
       -> std::optional<std::string>;
 
   public: /* node info */
@@ -150,9 +159,6 @@ namespace yave {
     std::unique_ptr<node_layer> m_root;
 
   private: /* non-locking internal functions */
-    /// get handle from unique_ptr
-    auto _get_handle(const std::unique_ptr<node_layer>& ptr) const
-      -> layer_handle;
     /// access layer with handle
     auto _access(const layer_handle& layer) -> node_layer&;
     /// access layer with handle
@@ -170,7 +176,7 @@ namespace yave {
     /// movable?
     bool _movable_into(const layer_handle& from, const layer_handle& to) const;
     /// layer
-    auto _find_layer(const node_handle& node) const -> layer_handle;
+    auto _find_layer(const layer_resource_handle& node) const -> layer_handle;
 
   private:
     /// lock layer tree

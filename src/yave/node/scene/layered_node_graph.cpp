@@ -54,12 +54,18 @@ namespace yave {
 
   /* Private helper functions */
 
-  auto layered_node_graph::_get_handle(
-    const std::unique_ptr<node_layer>& ptr) const -> layer_handle
-  {
-    assert(ptr);
-    return layer_handle(ptr.get(), ptr->id);
-  }
+  namespace {
+    auto _get_handle(const std::unique_ptr<node_layer>& ptr) -> layer_handle
+    {
+      assert(ptr);
+      return layer_handle(ptr.get(), ptr->id);
+    }
+
+    auto _get_handle(const node_layer::resource& res) -> layer_resource_handle
+    {
+      return {res.handle};
+    }
+  } // namespace
 
   auto layered_node_graph::_access(const layer_handle& layer) -> node_layer&
   {
@@ -591,7 +597,7 @@ namespace yave {
           break;
         }
       }
-  }
+    }
 
     {
       // insert layer
@@ -604,24 +610,25 @@ namespace yave {
   auto layered_node_graph::add_resource(
     const std::string& name,
     const layer_handle& layer,
-    layer_resource_scope scope) -> std::optional<layer_resource>
+    layer_resource_scope scope) -> layer_resource_handle
   {
     auto lck = _lock();
 
     if (!_exists(layer))
-      return std::nullopt;
+      return nullptr;
 
     auto node = m_node_graph.create(name);
 
     if (!node)
-      return std::nullopt;
+      return nullptr;
 
     node_layer::resource res {name, node, scope};
     _access(layer).resources.push_back(res);
-    return layer_resource {res.name, res.handle, res.scope};
+
+    return {node};
   }
 
-  void layered_node_graph::remove_resource(const node_handle& node)
+  void layered_node_graph::remove_resource(const layer_resource_handle& node)
   {
     auto lck = _lock();
 
@@ -632,9 +639,10 @@ namespace yave {
       for (auto iter = _access(layer).resources.begin();
            iter != _access(layer).resources.end();
            ++iter) {
-        if (iter->handle == node) {
+        if (_get_handle(*iter) == node) {
+          auto n = iter->handle;
           _access(layer).resources.erase(iter);
-          m_node_graph.destroy(node);
+          m_node_graph.destroy(n);
           break;
         }
       }
@@ -642,25 +650,25 @@ namespace yave {
   }
 
   auto layered_node_graph::get_owning_resources(const layer_handle& layer) const
-    -> std::vector<layer_resource>
+    -> std::vector<layer_resource_handle>
   {
     auto lck = _lock();
 
     if (!_exists(layer))
       return {};
 
-    std::vector<layer_resource> ret;
+    std::vector<layer_resource_handle> ret;
     ret.reserve(_access(layer).resources.size());
 
     for (auto&& res : _access(layer).resources) {
-      ret.push_back({res.name, res.handle, res.scope});
+      ret.emplace_back(_get_handle(res));
     }
     return ret;
   }
 
   auto
     layered_node_graph::get_inherited_resources(const layer_handle& layer) const
-    -> std::vector<layer_resource>
+    -> std::vector<layer_resource_handle>
   {
     auto lck = _lock();
 
@@ -669,19 +677,34 @@ namespace yave {
 
     std::vector<layer_resource> ret;
 
+    std::vector<layer_resource_handle> ret;
+
     auto parent = _access(layer).parent;
 
     while (parent) {
       for (auto&& res : _access(parent).resources) {
         ret.push_back(layer_resource {res.name, res.handle, res.scope});
-        parent = _access(parent).parent;
-      }
+      parent = _access(parent).parent;
     }
     return ret;
   }
 
+  auto layered_node_graph::get_info(const layer_resource_handle& handle) const
+    -> std::optional<layer_resource>
+  {
+    auto lck = _lock();
+
+    if (auto layer = _find_layer(handle)) {
+      for (auto&& res : _access(layer).resources) {
+        if (_get_handle(res) == handle)
+          return {{res.name, res.handle, res.scope}};
+      }
+    }
+    return std::nullopt;
+  }
+
   void layered_node_graph::set_resource_scope(
-    const node_handle& node,
+    const layer_resource_handle& node,
     layer_resource_scope scope)
   {
     auto lck = _lock();
@@ -690,7 +713,7 @@ namespace yave {
       assert(_exists(layer));
 
       for (auto&& res : _access(layer).resources) {
-        if (res.handle == node) {
+        if (_get_handle(res) == node) {
           res.scope = scope;
           break;
         }
@@ -707,7 +730,7 @@ namespace yave {
       assert(_exists(layer));
 
       for (auto&& res : _access(layer).resources) {
-        if (res.handle == node) {
+        if (_get_handle(res) == node) {
           return res.scope;
         }
       }
@@ -725,7 +748,7 @@ namespace yave {
       assert(_exists(layer));
 
       for (auto&& res : _access(layer).resources) {
-        if (res.handle == node) {
+        if (_get_handle(res) == node) {
           res.name = name;
           return;
         }
@@ -742,7 +765,7 @@ namespace yave {
       assert(_exists(layer));
 
       for (auto&& res : _access(layer).resources) {
-        if (res.handle == node)
+        if (_get_handle(res) == node)
           return res.name;
       }
     }
