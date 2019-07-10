@@ -487,6 +487,8 @@ namespace yave {
         if (_get_handle(*iter) == to) {
           // move layer before target (i.e. below)
           parent.sublayers.emplace(iter, std::move(tmp));
+          // update parent
+          _access(from).parent = _access(to).parent;
           break;
         }
       }
@@ -520,7 +522,7 @@ namespace yave {
       _access(to).name,
       _access(to).id.data);
 
-    // detach move
+    // detach
     std::unique_ptr<node_layer> tmp;
     {
       auto& parent = _access_parent(from);
@@ -542,6 +544,8 @@ namespace yave {
         if (_get_handle(*iter) == to) {
           // move layer next of target (i.e. above target)
           parent.sublayers.emplace(std::next(iter), std::move(tmp));
+          // update parent
+          _access(from).parent = _access(to).parent;
           break;
         }
       }
