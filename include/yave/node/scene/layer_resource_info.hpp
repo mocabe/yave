@@ -31,14 +31,13 @@ namespace yave {
   }
 
   /// Layer resource
-  struct layer_resource
+  struct layer_resource_info
   {
-    /// name of resource (optional)
+    /// name of resource
     std::string name;
     /// handle to resource
     node_handle handle;
     /// scope of this resource
     layer_resource_scope scope;
   };
-
 }

@@ -11,7 +11,7 @@ namespace yave {
     const std::string& name,
     const layer_handle& parent,
     const std::vector<layer_handle>& sublayers,
-    const std::vector<layer_resource>& resources)
+    const std::vector<layer_resource_info>& resources)
     : m_name {name}
     , m_parent {parent}
     , m_sublayers {sublayers}
@@ -34,7 +34,7 @@ namespace yave {
     return m_sublayers;
   }
 
-  auto layer_info::resources() const -> std::vector<layer_resource>
+  auto layer_info::resources() const -> std::vector<layer_resource_info>
   {
     return m_resources;
   }

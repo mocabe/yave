@@ -309,7 +309,7 @@ namespace yave {
       }
     }
     // resources
-    std::vector<layer_resource> resources;
+    std::vector<layer_resource_info> resources;
     {
       resources.reserve(l.resources.size());
       for (auto&& res : l.resources) {
@@ -693,7 +693,7 @@ namespace yave {
   }
 
   auto layered_node_graph::get_info(const layer_resource_handle& handle) const
-    -> std::optional<layer_resource>
+    -> std::optional<layer_resource_info>
   {
     auto lck = _lock();
 

@@ -7,7 +7,7 @@
 
 #include <yave/node/core/shared_node_handle.hpp>
 #include <yave/node/scene/managed_node_graph.hpp>
-#include <yave/node/scene/layer_resource.hpp>
+#include <yave/node/scene/layer_resource_info.hpp>
 
 #include <memory>
 #include <mutex>
@@ -27,19 +27,19 @@ namespace yave {
       const std::string& name,
       const layer_handle& parent,
       const std::vector<layer_handle>& sublayers,
-      const std::vector<layer_resource>& resources);
+      const std::vector<layer_resource_info>& resources);
 
   public:
     auto name() const -> std::string;
     auto parent() const -> layer_handle;
     auto sublayers() const -> std::vector<layer_handle>;
-    auto resources() const -> std::vector<layer_resource>;
+    auto resources() const -> std::vector<layer_resource_info>;
 
   private:
     std::string m_name;
     layer_handle m_parent;
     std::vector<layer_handle> m_sublayers;
-    std::vector<layer_resource> m_resources;
+    std::vector<layer_resource_info> m_resources;
   };
 
   /// Node graph with layer control
@@ -122,7 +122,7 @@ namespace yave {
 
   public: /* resource info */
     auto get_info(const layer_resource_handle& handle) const
-      -> std::optional<layer_resource>;
+      -> std::optional<layer_resource_info>;
     /// Set new scope for the resource
     void set_resource_scope(
       const layer_resource_handle& res,
