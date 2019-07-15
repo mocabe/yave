@@ -202,9 +202,13 @@ TEST_CASE("layered_node_graph")
     auto r1 = graph.add_resource("Int", root, layer_resource_scope::Private);
     auto r2 = graph.add_resource("Double", root, layer_resource_scope::Inherit);
 
+    REQUIRE(graph.exists(r1));
+    REQUIRE(graph.exists(r1, root));
     REQUIRE(graph.get_resource_name(r1) == "Int");
     REQUIRE(graph.get_resource_scope(r1) == layer_resource_scope::Private);
 
+    REQUIRE(graph.exists(r2));
+    REQUIRE(graph.exists(r2, root));
     REQUIRE(graph.get_resource_name(r2) == "Double");
     REQUIRE(graph.get_resource_scope(r2) == layer_resource_scope::Inherit);
 
@@ -225,6 +229,8 @@ TEST_CASE("layered_node_graph")
     REQUIRE(graph.get_resource_name(r2) == "Hello, World");
 
     graph.remove_resource(r2);
+    REQUIRE(!graph.exists(r2));
+    REQUIRE(!graph.exists(r2, root));
     REQUIRE(graph.get_owning_resources(root).size() == 1);
     REQUIRE(graph.get_owning_resources(root)[0] == r1);
   }

@@ -692,6 +692,23 @@ namespace yave {
     return ret;
   }
 
+  bool layered_node_graph::exists(const layer_resource_handle& resource) const
+  {
+    auto lck = _lock();
+    return static_cast<bool>(_find_layer(resource));
+  }
+
+  bool layered_node_graph::exists(
+    const layer_resource_handle& resource,
+    const layer_handle& layer) const
+  {
+    auto lock = _lock();
+    if (auto found = _find_layer(resource)) {
+      return found == layer;
+    }
+    return false;
+  }
+
   auto layered_node_graph::get_info(const layer_resource_handle& handle) const
     -> std::optional<layer_resource_info>
   {
