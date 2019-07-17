@@ -49,6 +49,14 @@ namespace yave {
     /// Initialize root layer.
     layered_node_graph();
 
+    /// Move layered node graph.
+    /// Locks `other` before move.
+    layered_node_graph(layered_node_graph&& other) noexcept;
+
+    /// Move assign layered node graph.
+    /// Locks both this and other before move.
+    layered_node_graph& operator=(layered_node_graph&& other) noexcept;
+
     /// Dtor
     ~layered_node_graph();
 

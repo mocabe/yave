@@ -250,6 +250,22 @@ namespace yave {
     m_root = std::make_unique<node_layer>(nullptr, "root");
   }
 
+  layered_node_graph::layered_node_graph(layered_node_graph&& other) noexcept
+  {
+    auto lck     = other._lock();
+    m_node_graph = std::move(other.m_node_graph);
+    m_root       = std::move(other.m_root);
+  }
+
+  layered_node_graph& layered_node_graph::
+    operator=(layered_node_graph&& other) noexcept
+  {
+    auto lck1    = other._lock();
+    auto lck2    = _lock();
+    m_node_graph = std::move(other.m_node_graph);
+    m_root       = std::move(other.m_root);
+  }
+
   layered_node_graph::~layered_node_graph()
   {
   }
