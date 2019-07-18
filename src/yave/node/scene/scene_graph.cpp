@@ -64,6 +64,30 @@ namespace yave {
     std::vector<scene_layer_composition> m_compositions;
   };
 
+  scene_graph::scene_graph()
+  {
+    init_logger();
+  }
+
+  scene_graph::~scene_graph() noexcept
+  {
+  }
+
+  scene_graph::scene_graph(scene_graph&& other) noexcept
+  {
+    auto lck     = _lock();
+    m_graph      = std::move(other.m_graph);
+    m_layer_info = std::move(other.m_layer_info);
+  }
+
+  scene_graph& scene_graph::operator=(scene_graph&& other) noexcept
+  {
+    auto lck1    = _lock();
+    auto lck2    = other._lock();
+    m_graph      = std::move(other.m_graph);
+    m_layer_info = std::move(other.m_layer_info);
+  }
+
   // Use when modifying additional information for m_graph
   auto scene_graph::_lock() const -> std::unique_lock<std::mutex>
   {
@@ -100,6 +124,7 @@ namespace yave {
     auto l = m_graph.add_layer(layer);
 
     // add composition control
+
   }
 
   void scene_graph::remove_layer(const layer_handle& layer)
