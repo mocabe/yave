@@ -234,4 +234,26 @@ TEST_CASE("layered_node_graph")
     REQUIRE(graph.get_owning_resources(root).size() == 1);
     REQUIRE(graph.get_owning_resources(root)[0] == r1);
   }
+
+  SECTION("move_resource")
+  {
+    layered_node_graph graph;
+
+    REQUIRE(graph.register_node_info(get_primitive_node_info_list()));
+
+    auto root = graph.root();
+
+    auto i1 = graph.add_resource("Int", root, layer_resource_scope::Private);
+
+    REQUIRE(i1);
+
+    auto l1 = graph.add_layer(root);
+
+    REQUIRE(l1);
+
+    graph.move_resource(i1, l1);
+
+    REQUIRE(graph.get_owning_resources(l1)[0] == i1);
+    REQUIRE(graph.get_owning_resources(root).empty());
+  }
 }

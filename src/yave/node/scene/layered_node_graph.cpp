@@ -665,6 +665,47 @@ namespace yave {
     }
   }
 
+  void layered_node_graph::move_resource(
+    const layer_resource_handle& res,
+    const layer_handle& to)
+  {
+    auto lck = _lock();
+
+    if (!_exists(to))
+      return;
+
+    if (auto from = _find_layer(res)) {
+
+      if (from == to)
+        return;
+
+      // move resource to new layer
+
+      for (auto&& resource : _access(from).resources) {
+        if (resource.handle == res)
+          _access(to).resources.push_back(std::move(resource));
+      }
+
+      // erase resource from old layer
+
+      auto& frm = _access(from);
+
+      auto end = std::remove_if(
+        frm.resources.begin(), frm.resources.end(), [&](auto& e) {
+          return e.handle == res;
+        });
+
+      frm.resources.erase(end, frm.resources.end());
+
+      Info(
+        g_logger,
+        "Moved layer resource {} from {} to {}",
+        res.id().data,
+        from.id().data,
+        to.id().data);
+    }
+  }
+
   auto layered_node_graph::get_owning_resources(const layer_handle& layer) const
     -> std::vector<layer_resource_handle>
   {

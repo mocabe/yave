@@ -121,6 +121,8 @@ namespace yave {
       layer_resource_scope scope) -> layer_resource_handle;
     /// Remove resource from layer
     void remove_resource(const layer_resource_handle& node);
+    /// Move resources
+    void move_resource(const layer_resource_handle& r, const layer_handle& to);
     /// Get owning resources
     auto get_owning_resources(const layer_handle& layer) const
       -> std::vector<layer_resource_handle>;
