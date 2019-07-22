@@ -264,6 +264,8 @@ namespace yave {
     auto lck2    = _lock();
     m_node_graph = std::move(other.m_node_graph);
     m_root       = std::move(other.m_root);
+
+    return *this;
   }
 
   layered_node_graph::~layered_node_graph()
