@@ -8,16 +8,27 @@ YAVE is currently under development. Following components are implemented so far
 
 * Core 
   - Dynamic closure object library and type system.
-  - Various data types for data transfer between nodes.
+  - Utility to generate dynamic type information at compile time.
+  - Basic data types.
 * Node 
   - Low-level node graph controls.
-  - Node parser and compiler.
-* ImGui
+  - Basic node graph operations.
+  - Node parser, compiler (obsolate).
+* GUI
   - Full implementation of Vulkan backend for imgui (Immediate GUI library).
-* other
-  - Various interface for external libraries.
 
-and other other things being worked on:  
+Recent development tasks:
+- [x] layer tree implementation (
+    + `layered_node_graph`
+- [ ] per-layer resource control implementation 
+    + `scene_graph`
+- [ ] key-frame object implementation
 
-*  GUI design and implementation.
-*  Cross-platform audio I/O library.
+Other personal projects I want to merge in the future if possible:
+- modern NURBS library 
+  + [ ] v2
+- modern audio I/O library
+  + [x] `WASAPI` backend basic
+  + [ ] `WASAPI` backend streams
+  + [ ] `PulseAudio` backend things
+  + [ ] Adopting `std::audio` proposal
