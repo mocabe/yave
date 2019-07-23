@@ -3,6 +3,7 @@
 add_library(yave-data-image 
   image.cpp
   image_view.cpp
+  image_format.cpp
 )
 add_library(yave::data::image ALIAS yave-data-image)
 

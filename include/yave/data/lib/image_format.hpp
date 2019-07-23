@@ -7,78 +7,68 @@
 
 #include <yave/core/config.hpp>
 
-#pragma once
+#include <yave/data/lib/sample_format.hpp>
+#include <yave/data/lib/pixel_format.hpp>
 
 namespace yave {
 
-  /// Image format supported for data transfar.
-  enum class image_format : uint32_t
-  {
-    Unknown = 0,
-    /// 8bit [0~255]
-    RGBA8UI = 1U,
-    /// 16bit [0~65535]
-    RGBA16UI = 2U,
-    /// 32bit [0.0 ~ 1.0]
-    RGBA32F = 3U,
+  struct image_format {
+    /// pixel format
+    yave::pixel_format pixel_format;
+    /// sample format
+    yave::sample_format sample_format;
+    /// byte per channel
+    uint16_t byte_per_channel;
+
+  public: /* constants */
+    static const image_format Unknown;
+    static const image_format RGBA8UI;
+    static const image_format RGBA16UI;
+    static const image_format RGBA32F;
   };
 
-  /// Get string name of image format
-  constexpr const char* to_string(const image_format& fmt) noexcept
+  static_assert(sizeof(image_format) == sizeof(uint32_t));
+
+  // clang-format off
+  constexpr image_format image_format::Unknown  = {pixel_format::Unknown, sample_format::Unknown, 0};
+  constexpr image_format image_format::RGBA8UI  = {pixel_format::RGBA, sample_format::UnsignedInteger, 1};
+  constexpr image_format image_format::RGBA16UI = {pixel_format::RGBA, sample_format::UnsignedInteger, 2};
+  constexpr image_format image_format::RGBA32F  = {pixel_format::RGBA, sample_format::FloatingPoint,   4};
+  // clang-format on
+
+  /// operator==
+  constexpr bool operator==(const image_format& lhs, const image_format& rhs)
   {
-    switch (fmt) {
-      case image_format::RGBA8UI:
-        return "RGBA8UI";
-      case image_format::RGBA16UI:
-        return "RGBA16UI";
-      case image_format::RGBA32F:
-        return "RGBA32F";
-      default:
-        return "(unrecognized image format)";
-    }
+    return lhs.pixel_format == rhs.pixel_format &&
+           lhs.sample_format == rhs.sample_format &&
+           lhs.byte_per_channel == rhs.byte_per_channel;
+  }
+
+  /// operator!=
+  constexpr bool operator!=(const image_format& lhs, const image_format& rhs)
+  {
+    return !(lhs == rhs);
   }
 
   /// Get channel size
   constexpr uint32_t channel_size(const image_format& fmt) noexcept
   {
-    switch (fmt) {
-      case image_format::RGBA8UI:
-      case image_format::RGBA16UI:
-      case image_format::RGBA32F:
-        return 4;
-      default:
-        return 0;
-    }
+    return get_channel_size(fmt.pixel_format);
   }
 
   /// Get byte per channel
   constexpr uint32_t byte_per_channel(const image_format& fmt) noexcept
   {
-    switch (fmt) {
-      case image_format::RGBA8UI:
-        return 1;
-      case image_format::RGBA16UI:
-        return 2;
-      case image_format::RGBA32F:
-        return 4;
-      default:
-        return 0;
-    }
+    return fmt.byte_per_channel;
   }
 
   /// Get byte per pixel
   constexpr uint32_t byte_per_pixel(const image_format& fmt) noexcept
   {
-    switch (fmt) {
-      case image_format::RGBA8UI:
-        return 4;
-      case image_format::RGBA16UI:
-        return 8;
-      case image_format::RGBA32F:
-        return 16;
-      default:
-        return 0;
-    }
+    return fmt.byte_per_channel * get_channel_size(fmt.pixel_format);
   }
+
+  /// Get string name of image format
+  std::string to_string(const image_format& fmt);
 
 } // namespace yave
