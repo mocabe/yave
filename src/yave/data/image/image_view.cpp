@@ -144,14 +144,6 @@ namespace yave {
   {
   }
 
-  void const_image_view::clear() noexcept
-  {
-    m_data   = nullptr;
-    m_width  = 0;
-    m_height = 0;
-    m_format = image_format::Unknown;
-  }
-
   bool const_image_view::empty() const noexcept
   {
     if (m_data == nullptr) {

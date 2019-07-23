@@ -116,9 +116,6 @@ namespace yave {
     /// Construct image_view from image
     const_image_view(const image& image) noexcept;
 
-    /// Clear
-    void clear() noexcept;
-
     /// Empty?
     [[nodiscard]] bool empty() const noexcept;
 
