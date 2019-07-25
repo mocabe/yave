@@ -65,7 +65,7 @@ namespace yave {
   }
 
   /// Get string representation of pixel format
-  constexpr const char* get_pixel_format_string(const pixel_format& fmt)
+  constexpr const char* get_pixel_format_cstr(const pixel_format& fmt)
   {
     // clang-format off
     switch (fmt) {
@@ -87,6 +87,6 @@ namespace yave {
   /// Convert pixel_format to string
   inline std::string to_string(const pixel_format& format)
   {
-    return {get_pixel_format_string(format)};
+    return {get_pixel_format_cstr(format)};
   }
 } // namespace yave

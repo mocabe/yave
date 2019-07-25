@@ -14,9 +14,9 @@ namespace yave {
     std::stringstream ss;
 
     // ex. RGBA32FloatingPoint
-    ss << get_pixel_format_string(fmt.pixel_format)
+    ss << get_pixel_format_cstr(fmt.pixel_format)
        << std::to_string(fmt.byte_per_channel * 8)
-       << get_sample_format_string(fmt.sample_format);
+       << get_sample_format_cstr(fmt.sample_format);
 
     return ss.str();
   }
