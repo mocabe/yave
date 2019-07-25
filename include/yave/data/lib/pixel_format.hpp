@@ -13,8 +13,8 @@ namespace yave {
   enum class pixel_format : uint8_t
   {
     Unknown = 0U, ///< unknown pixel format.
-    R       = 1U, ///< 1-channel format: R
-    RG      = 2U, ///< 2-channel format: RG
+    Y       = 1U, ///< 1-channel format: Y
+    YA      = 2U, ///< 2-channel format: YA
     RGB     = 3U, ///< 3-channel format: RGB
     YCbCr   = 4U, ///< 3-channel format: YCbCr
     CIELab  = 5U, ///< 3-channel format: CIELab
@@ -30,8 +30,8 @@ namespace yave {
     // clang-format off
     switch (fmt) {
       case pixel_format::Unknown: return 0;
-      case pixel_format::R:       return 1;
-      case pixel_format::RG:      return 2;
+      case pixel_format::Y:       return 1;
+      case pixel_format::YA:      return 2;
       case pixel_format::RGB:     return 3;
       case pixel_format::YCbCr:   return 3;
       case pixel_format::CIELab:  return 3;
@@ -50,8 +50,8 @@ namespace yave {
     // clang-format off
     switch (fmt) {
       case pixel_format::Unknown: return false;
-      case pixel_format::R:       return false;
-      case pixel_format::RG:      return false;
+      case pixel_format::Y:       return false;
+      case pixel_format::YA:      return false;
       case pixel_format::RGB:     return false;
       case pixel_format::YCbCr:   return false;
       case pixel_format::CIELab:  return false;
@@ -70,8 +70,8 @@ namespace yave {
     // clang-format off
     switch (fmt) {
       case pixel_format::Unknown: return "(unknown pixel format)";
-      case pixel_format::R:       return "R";
-      case pixel_format::RG:      return "RG";
+      case pixel_format::Y:       return "R";
+      case pixel_format::YA:      return "RG";
       case pixel_format::RGB:     return "RGB";
       case pixel_format::YCbCr:   return "YCbCr";
       case pixel_format::CIELab:  return "CIELab";
