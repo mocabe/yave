@@ -56,12 +56,7 @@ namespace yave {
     return m_data == nullptr;
   }
 
-  uint8_t* mutable_image_view::data() noexcept
-  {
-    return m_data;
-  }
-
-  const uint8_t* mutable_image_view::data() const noexcept
+  uint8_t* mutable_image_view::data() const noexcept
   {
     return m_data;
   }
