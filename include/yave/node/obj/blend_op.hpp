@@ -7,8 +7,84 @@
 
 #include <yave/node/obj/function.hpp>
 #include <yave/node/obj/compositor.hpp>
+#include <yave/data/lib/blend_operation.hpp>
 
 namespace yave {
+
+  struct BlendOpSrc;
+  struct BlendOpDst;
+  struct BlendOpOver;
+  struct BlendOpIn;
+  struct BlendOpOut;
+  struct BlendOpAdd;
+
+  /// Get node info from blend_operation
+  node_info get_blend_op_node_info(blend_operation op)
+  {
+    switch (op) {
+      case blend_operation::src:
+        return get_node_info<BlendOpSrc>();
+      case blend_operation::dst:
+        return get_node_info<BlendOpDst>();
+      case blend_operation::over:
+        return get_node_info<BlendOpOver>();
+      case blend_operation::in:
+        return get_node_info<BlendOpIn>();
+      case blend_operation::out:
+        return get_node_info<BlendOpOut>();
+      case blend_operation::add:
+        return get_node_info<BlendOpAdd>();
+    }
+    // default: alpha overlay
+    return get_node_info<BlendOpOver>();
+  }
+
+  /// Get bind info from blend_operation
+  bind_info get_blend_op_bind_info(blend_operation op)
+  {
+    switch (op) {
+      case blend_operation::src:
+        return get_bind_info<BlendOpSrc>();
+      case blend_operation::dst:
+        return get_bind_info<BlendOpDst>();
+      case blend_operation::over:
+        return get_bind_info<BlendOpOver>();
+      case blend_operation::in:
+        return get_bind_info<BlendOpIn>();
+      case blend_operation::out:
+        return get_bind_info<BlendOpOut>();
+      case blend_operation::add:
+        return get_bind_info<BlendOpAdd>();
+    }
+    // default: alpha overlay
+    return get_bind_info<BlendOpOver>();
+  }
+
+  /// Get list of node info from blend_operation
+  std::vector<node_info> get_blend_op_node_info_list()
+  {
+    std::vector<node_info> ret = {
+      get_blend_op_node_info(blend_operation::src),
+      get_blend_op_node_info(blend_operation::dst),
+      get_blend_op_node_info(blend_operation::over),
+      get_blend_op_node_info(blend_operation::in),
+      get_blend_op_node_info(blend_operation::add),
+    };
+    return ret;
+  }
+
+  /// Get list of bind info from blend_operation
+  std::vector<bind_info> get_blend_op_bind_info_list()
+  {
+    std::vector<bind_info> ret = {
+      get_blend_op_bind_info(blend_operation::src),
+      get_blend_op_bind_info(blend_operation::dst),
+      get_blend_op_bind_info(blend_operation::over),
+      get_blend_op_bind_info(blend_operation::in),
+      get_blend_op_bind_info(blend_operation::add),
+    };
+    return ret;
+  }
 
   struct BlendOpSrc
     : NodeFunction<BlendOpSrc, FrameBuffer, FrameBuffer, FrameBuffer>
