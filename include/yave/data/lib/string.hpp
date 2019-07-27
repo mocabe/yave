@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/core/config.hpp>
+#include <yave/data/lib/iterator.hpp>
 
 #include <string>
 #include <cstring>
@@ -24,6 +25,17 @@ namespace yave {
   class string
   {
   public:
+    using pointer                = char*;
+    using const_pointer          = const char*;
+    using size_type              = uint64_t;
+    using value_type             = char;
+    using reference              = value_type&;
+    using const_reference        = const value_type&;
+    using iterator               = yave::iterator<pointer, string>;
+    using const_iterator         = yave::iterator<const_pointer, string>;
+    using reverse_iterator       = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
     string(nullptr_t) = delete;
 
     /// Construct empty string.
@@ -157,6 +169,36 @@ namespace yave {
     [[nodiscard]] size_t length() const noexcept
     {
       return m_size;
+    }
+
+    [[nodiscard]] iterator begin() noexcept
+    {
+      return iterator(m_ptr);
+    }
+
+    [[nodiscard]] iterator end() noexcept
+    {
+      return iterator(m_ptr + m_size);
+    }
+
+    [[nodiscard]] const_iterator begin() const noexcept
+    {
+      return const_iterator(m_ptr);
+    }
+
+    [[nodiscard]] const_iterator end() const noexcept
+    {
+      return const_iterator(m_ptr);
+    }
+
+    [[nodiscard]] const_iterator cbegin() const noexcept
+    {
+      return begin();
+    }
+
+    [[nodiscard]] const_iterator cend() const noexcept
+    {
+      return end();
     }
 
   private:
