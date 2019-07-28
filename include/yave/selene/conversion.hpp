@@ -14,7 +14,7 @@
 namespace yave {
 
   /// Convert pixel_format to sln::PixelFormat
-  sln::PixelFormat to_selene(yave::pixel_format fmt)
+  inline sln::PixelFormat to_selene(yave::pixel_format fmt)
   {
     switch (fmt) {
       case pixel_format::Y:
@@ -35,12 +35,14 @@ namespace yave {
         return sln::PixelFormat::CMYK;
       case pixel_format::YCCK:
         return sln::PixelFormat::YCCK;
+      case pixel_format::Unknown:
+        return sln::PixelFormat::Unknown;
     }
     return sln::PixelFormat::Unknown;
   }
 
   /// Convert sln::PixelFormat to pixel_format
-  yave::pixel_format from_selene(sln::PixelFormat fmt)
+  inline yave::pixel_format from_selene(sln::PixelFormat fmt)
   {
     switch (fmt) {
       case sln::PixelFormat::Y:
@@ -61,12 +63,24 @@ namespace yave {
         return pixel_format::CMYK;
       case sln::PixelFormat::YCCK:
         return pixel_format::YCCK;
+      // not supported
+      case sln::PixelFormat::X:
+      case sln::PixelFormat::XX:
+      case sln::PixelFormat::XXX:
+      case sln::PixelFormat::XXXX:
+      case sln::PixelFormat::BGR:
+      case sln::PixelFormat::BGRA:
+      case sln::PixelFormat::ARGB:
+      case sln::PixelFormat::ABGR:
+      case sln::PixelFormat::Unknown:
+      case sln::PixelFormat::Invalid:
+        return pixel_format::Unknown;
     }
     return pixel_format::Unknown;
   }
 
   /// Convert sample_format to sln::SampleFormat
-  sln::SampleFormat to_selene(const yave::sample_format& fmt)
+  inline sln::SampleFormat to_selene(const yave::sample_format& fmt)
   {
     switch (fmt) {
       case sample_format::UnsignedInteger:
@@ -80,12 +94,14 @@ namespace yave {
         return sln::SampleFormat::SignedInteger;
       case sample_format::FloatingPoint:
         return sln::SampleFormat::FloatingPoint;
+      case sample_format::Unknown:
+        return sln::SampleFormat::Unknown;
     }
     return sln::SampleFormat::Unknown;
   }
 
   /// Convert sln::SampleFormat to sample_format
-  yave::sample_format from_selene(sln::SampleFormat fmt)
+  inline yave::sample_format from_selene(sln::SampleFormat fmt)
   {
     switch (fmt) {
       case sln::SampleFormat::UnsignedInteger:
@@ -94,12 +110,15 @@ namespace yave {
         return sample_format::SignedInteger;
       case sln::SampleFormat::FloatingPoint:
         return sample_format::FloatingPoint;
+      case sln::SampleFormat::Unknown:
+        return sample_format::Unknown;
     }
     return sample_format::Unknown;
   }
 
   /// Convert const_image_view to sln::ConstantDynImageView
-  sln::ConstantDynImageView to_selene(const yave::const_image_view& image)
+  inline sln::ConstantDynImageView
+    to_selene(const yave::const_image_view& image)
   {
     auto layout = sln::UntypedLayout(
       sln::PixelLength(image.width()),
@@ -115,7 +134,8 @@ namespace yave {
   }
 
   /// Convert mutable_image_view to sln::MutableDynImageView
-  sln::MutableDynImageView to_selene(const yave::mutable_image_view& image)
+  inline sln::MutableDynImageView
+    to_selene(const yave::mutable_image_view& image)
   {
     auto layout = sln::UntypedLayout(
       sln::PixelLength(image.width()),
@@ -131,24 +151,28 @@ namespace yave {
   }
 
   /// Convert sln::ConstantDynImageView to const_image_view
-  yave::const_image_view from_selene(const sln::ConstantDynImageView& image)
+  inline yave::const_image_view
+    from_selene(const sln::ConstantDynImageView& image)
   {
-    auto fmt = image_format {from_selene(image.pixel_format()),
-                             from_selene(image.sample_format()),
-                             image.nr_bytes_per_channel()};
+    auto fmt =
+      image_format {from_selene(image.pixel_format()),
+                    from_selene(image.sample_format()),
+                    static_cast<uint16_t>(image.nr_bytes_per_channel())};
 
     return yave::const_image_view(
       image.byte_ptr(), image.width().value(), image.height().value(), fmt);
   }
 
   /// Convert sln::MutableDynImageView to mutable_image_view
-  yave::mutable_image_view from_selene(const sln::MutableDynImageView& image)
+  inline yave::mutable_image_view
+    from_selene(const sln::MutableDynImageView& image)
   {
-    auto fmt = image_format {from_selene(image.pixel_format()),
-                             from_selene(image.sample_format()),
-                             image.nr_bytes_per_channel()};
+    auto fmt =
+      image_format {from_selene(image.pixel_format()),
+                    from_selene(image.sample_format()),
+                    static_cast<uint16_t>(image.nr_bytes_per_channel())};
 
     return yave::mutable_image_view(
       image.byte_ptr(), image.width().value(), image.height().value(), fmt);
   }
-}
+} // namespace yave

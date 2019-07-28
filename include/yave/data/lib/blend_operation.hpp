@@ -43,7 +43,7 @@ namespace yave {
   }
 
   /// Convert blend_operation to string
-  std::string to_string(blend_operation op)
+  inline std::string to_string(blend_operation op)
   {
     return {get_blend_operation_cstr(op)};
   }
