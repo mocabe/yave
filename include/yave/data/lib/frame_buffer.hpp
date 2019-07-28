@@ -7,17 +7,21 @@
 
 #include <yave/core/config.hpp>
 #include <yave/core/rts/object_ptr.hpp>
-#include <yave/data/lib/frame_buffer_manager.hpp>
 #include <yave/data/lib/image_view.hpp>
+#include <yave/support/id.hpp>
 
 namespace yave {
 
   template <class T>
-  struct Box; // rts/box_fwd.hpp
+  struct Box; // -> rts/box_fwd.hpp
 
-  class frame_buffer;
+  class frame_buffer;         // -> lib/frame_buffer.hpp
+  class frame_buffer_manager; // -> lib/frame_buffer_manager.hpp
 
-  using FrameBuffer = Box<frame_buffer>; // obj/frame_buffer.hpp
+  // -> obj/frame_buffer.hpp
+  using FrameBuffer = Box<frame_buffer>;
+  // -> obj/frame_buffer_manager.hpp
+  using FrameBufferManager = Box<frame_buffer_manager>;
 
   /// Provides interface to acquire frame buffer.
   /// All frame buffers are allocated and managed by system.
@@ -25,9 +29,9 @@ namespace yave {
   {
   public:
     /// Ctor
-    frame_buffer(frame_buffer_manager& mngr);
+    frame_buffer(const object_ptr<FrameBufferManager>& mngr);
     /// Ctor
-    frame_buffer(frame_buffer_manager& mngr, uid id);
+    frame_buffer(const object_ptr<FrameBufferManager>& mngr, uid id);
     /// Copy ctor
     frame_buffer(const frame_buffer& other);
     /// Move ctor
@@ -46,7 +50,7 @@ namespace yave {
     frame_buffer() = delete;
 
   private:
-    frame_buffer_manager* m_manager;
+    object_ptr<FrameBufferManager> m_manager;
     uid m_id;
   };
 }

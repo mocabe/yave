@@ -2,7 +2,7 @@
 
 add_library(yave-data-frame_buffer
   frame_buffer.cpp
-  frame_buffer_manager.cpp)
+)
 
 add_library(yave::data::frame_buffer ALIAS yave-data-frame_buffer)
 

@@ -4,17 +4,18 @@
 //
 
 #include <yave/data/obj/frame_buffer.hpp>
+#include <yave/data/obj/frame_buffer_manager.hpp>
 
 namespace yave {
 
-  frame_buffer::frame_buffer(frame_buffer_manager& mngr)
-    : m_manager {&mngr}
+  frame_buffer::frame_buffer(const object_ptr<FrameBufferManager>& mngr)
+    : m_manager {mngr}
   {
     m_id = m_manager->create();
   }
 
-  frame_buffer::frame_buffer(frame_buffer_manager& mngr, uid id)
-    : m_manager {&mngr}
+  frame_buffer::frame_buffer(const object_ptr<FrameBufferManager>& mngr, uid id)
+    : m_manager {mngr}
     , m_id {id}
   {
   }
