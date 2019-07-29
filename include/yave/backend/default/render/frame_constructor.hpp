@@ -9,6 +9,7 @@
 
 #include <yave/core/rts.hpp>
 #include <yave/data/obj/frame.hpp>
+#include <yave/node/obj/instance_getter.hpp>
 #include <yave/backend/default/system/config.hpp>
 
 namespace yave {
@@ -35,7 +36,8 @@ namespace yave {
         "Frame",
         {},
         "value",
-        make_object<backend::default_render::FrameConstructor>(),
+        make_object<
+          InstanceGetterFunction<backend::default_render::FrameConstructor>>(),
         "FrameConstructor");
     }
   };
