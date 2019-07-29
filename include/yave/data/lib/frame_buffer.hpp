@@ -15,13 +15,13 @@ namespace yave {
   template <class T>
   struct Box; // -> rts/box_fwd.hpp
 
-  class frame_buffer;         // -> lib/frame_buffer.hpp
-  class frame_buffer_manager; // -> lib/frame_buffer_manager.hpp
+  class frame_buffer;      // -> lib/frame_buffer.hpp
+  class frame_buffer_pool; // -> lib/frame_buffer_pool.hpp
 
   // -> obj/frame_buffer.hpp
   using FrameBuffer = Box<frame_buffer>;
   // -> obj/frame_buffer_manager.hpp
-  using FrameBufferManager = Box<frame_buffer_manager>;
+  using FrameBufferPool = Box<frame_buffer_pool>;
 
   /// Provides interface to acquire frame buffer.
   /// All frame buffers are allocated and managed by system.
@@ -29,9 +29,9 @@ namespace yave {
   {
   public:
     /// Ctor
-    frame_buffer(const object_ptr<FrameBufferManager>& mngr);
+    frame_buffer(const object_ptr<FrameBufferPool>& mngr);
     /// Ctor
-    frame_buffer(const object_ptr<FrameBufferManager>& mngr, uid id);
+    frame_buffer(const object_ptr<FrameBufferPool>& mngr, uid id);
     /// Copy ctor
     frame_buffer(const frame_buffer& other);
     /// Move ctor
@@ -50,7 +50,7 @@ namespace yave {
     frame_buffer() = delete;
 
   private:
-    object_ptr<FrameBufferManager> m_manager;
+    object_ptr<FrameBufferPool> m_manager;
     uid m_id;
   };
 }

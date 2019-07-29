@@ -15,11 +15,11 @@
 
 namespace yave {
 
-  /// Proxy data structue for backend frame buffer manager.
-  class frame_buffer_manager
+  /// Proxy data structue for backend frame buffer pool.
+  class frame_buffer_pool
   {
   public:
-    frame_buffer_manager(
+    frame_buffer_pool(
       void* handle,
       uuid backend_id,
       auto (*create0)(void*)->uid,
@@ -43,8 +43,9 @@ namespace yave {
     {
     }
 
-    frame_buffer_manager(const frame_buffer_manager&) = default;
-    frame_buffer_manager& operator=(const frame_buffer_manager&) = default;
+    frame_buffer_pool(const frame_buffer_pool&) = default;
+
+    frame_buffer_pool& operator=(const frame_buffer_pool&) = default;
 
     auto handle() const -> void*
     {

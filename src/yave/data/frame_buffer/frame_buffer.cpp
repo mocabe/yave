@@ -8,13 +8,13 @@
 
 namespace yave {
 
-  frame_buffer::frame_buffer(const object_ptr<FrameBufferManager>& mngr)
+  frame_buffer::frame_buffer(const object_ptr<FrameBufferPool>& mngr)
     : m_manager {mngr}
   {
     m_id = m_manager->create();
   }
 
-  frame_buffer::frame_buffer(const object_ptr<FrameBufferManager>& mngr, uid id)
+  frame_buffer::frame_buffer(const object_ptr<FrameBufferPool>& mngr, uid id)
     : m_manager {mngr}
     , m_id {id}
   {
