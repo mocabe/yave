@@ -10,6 +10,8 @@
 #include <yave/support/id.hpp>
 #include <yave/support/uuid.hpp>
 
+#include <yave/backend/default/system/config.hpp>
+
 #include <vector>
 #include <mutex>
 

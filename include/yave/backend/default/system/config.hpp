@@ -15,7 +15,7 @@ namespace yave {
     struct default_render;
 
     /// backend tag for default preview backend
-    using default_preview = default_render;
+    struct default_preview;
 
   } // namespace backend::tags
 

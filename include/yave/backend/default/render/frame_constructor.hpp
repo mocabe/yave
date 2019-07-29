@@ -9,7 +9,7 @@
 
 #include <yave/core/rts.hpp>
 #include <yave/data/obj/frame.hpp>
-#include <yave/backend/default/system/backend_tag.hpp>
+#include <yave/backend/default/system/config.hpp>
 
 namespace yave {
 
