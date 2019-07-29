@@ -39,7 +39,7 @@ namespace yave {
         auto mask = _mm_movemask_epi8(cmp);
         return mask == 0xffffU;
       } else
-        return lhs.data == rhs.data;
+        return *lhs.data == *rhs.data;
     }
 
     [[nodiscard]] std::string to_string() const;
