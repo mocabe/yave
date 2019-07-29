@@ -30,10 +30,12 @@ namespace yave {
     return node_info_traits<T>::get_node_info();
   }
 
-  template <class T, class BackendTag>
-  bind_info get_bind_info()
+  template <class T, class BackendTag, class... Args>
+  bind_info get_bind_info(Args&&... args)
   {
-    auto info = bind_info_traits<T, BackendTag>::get_bind_info();
+    auto info = bind_info_traits<T, BackendTag>::get_bind_info(
+      std::forward<Args>(args)...);
+
     {
       auto ni = get_node_info<T>();
       assert(info.name() == ni.name());
