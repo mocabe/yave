@@ -10,28 +10,35 @@
 
 namespace yave {
 
-  /// Trait class for info getters
+  /// trait class to define node info
   template <class T>
-  struct node_function_info_traits
+  struct node_info_traits
   {
     // static node_info get_node_info(...);
+  };
+
+  /// trant class to define backend binding
+  template <class T, class BackendTag>
+  struct bind_info_traits
+  {
     // static bind_info get_bind_info(...);
   };
 
-  /// Get node_info of node funciton (if provided)
-  template <class T, class... Args>
-  node_info get_node_info(Args&&... args)
+  template <class T>
+  node_info get_node_info()
   {
-    return node_function_info_traits<T>::get_node_info(
-      std::forward<Args>(args)...);
+    return node_info_traits<T>::get_node_info();
   }
 
-  /// Get bind_info of node function (if provided)
-  template <class T, class... Args>
-  bind_info get_bind_info(Args&&... args)
+  template <class T, class BackendTag>
+  bind_info get_bind_info()
   {
-    return node_function_info_traits<T>::get_bind_info(
-      std::forward<Args>(args)...);
+    auto info = bind_info_traits<T, BackendTag>::get_bind_info();
+    {
+      auto ni = get_node_info<T>();
+      assert(info.name() == ni.name());
+    }
+    return info;
   }
 
 } // namespace yave
