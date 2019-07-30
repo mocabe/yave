@@ -8,6 +8,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/string_generator.hpp>
 
 #include <cstring>
 
@@ -33,6 +34,13 @@ namespace yave {
   {
     auto gen       = boost::uuids::random_generator_mt19937 {};
     auto generated = gen();
+    return to_uuid(generated);
+  }
+
+  uuid uuid::from_string(const std::string& str)
+  {
+    auto gen       = boost::uuids::string_generator {};
+    auto generated = gen(str);
     return to_uuid(generated);
   }
 
