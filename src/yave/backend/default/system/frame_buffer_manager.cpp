@@ -8,7 +8,9 @@
 
 #include <yave/core/rts/atomic.hpp>
 
-namespace yave::backend::system::default_common {
+#include <yave/data/obj/frame_buffer_pool.hpp>
+
+namespace yave::backend::default_common {
 
   namespace {
 
@@ -49,6 +51,18 @@ namespace yave::backend::system::default_common {
     , m_width {width}
     , m_height {height}
   {
+    // create pool object
+    m_pool = make_object<FrameBufferPool>(
+      (void*)this,
+      yave::backend::default_common::backend_id,
+      [](void* h) { return ((frame_buffer_manager*)h)->create(); },
+      [](void* h, uid id) { return ((frame_buffer_manager*)h)->create(id); },
+      [](void* h, uid id) { return ((frame_buffer_manager*)h)->ref(id); },
+      [](void* h, uid id) { return ((frame_buffer_manager*)h)->unref(id); },
+      [](void* h, uid id) { return ((frame_buffer_manager*)h)->get_data(id); },
+      [](const void* h) { return ((const frame_buffer_manager*)h)->format(); },
+      [](const void* h) { return ((const frame_buffer_manager*)h)->width(); },
+      [](const void* h) { return ((const frame_buffer_manager*)h)->height(); });
   }
 
   frame_buffer_manager::~frame_buffer_manager() noexcept
@@ -202,5 +216,10 @@ namespace yave::backend::system::default_common {
       std::lock_guard lck {m_mtx};
       return m_id;
     }
+  }
+
+  object_ptr<FrameBufferPool> frame_buffer_manager::get_pool_object() const
+  {
+    return m_pool;
   }
 }

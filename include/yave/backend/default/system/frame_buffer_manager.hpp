@@ -6,7 +6,8 @@
 #pragma once
 
 #include <yave/core/config.hpp>
-#include <yave/data/lib/image.hpp>
+#include <yave/data/lib/image_format.hpp>
+#include <yave/data/obj/frame_buffer_pool.hpp>
 #include <yave/support/id.hpp>
 #include <yave/support/uuid.hpp>
 
@@ -15,7 +16,7 @@
 #include <vector>
 #include <mutex>
 
-namespace yave::backend::system::default_common {
+namespace yave::backend::default_common {
 
   class frame_buffer_manager
   {
@@ -61,6 +62,9 @@ namespace yave::backend::system::default_common {
     /// Get list of buffers.
     std::vector<uid> buffers() const;
 
+    /// Get proxy data
+    object_ptr<FrameBufferPool> get_pool_object() const;
+
   private:
     image_format m_format;
     uint32_t m_width;
@@ -70,5 +74,9 @@ namespace yave::backend::system::default_common {
     mutable std::mutex m_mtx;
     std::vector<uid> m_id;
     std::vector<void*> m_data;
+
+  private:
+    // proxy data for backend agnostic frame buffer management.
+    object_ptr<FrameBufferPool> m_pool;
   };
 }

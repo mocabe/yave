@@ -29,9 +29,9 @@ namespace yave {
   {
   public:
     /// Ctor
-    frame_buffer(const object_ptr<FrameBufferPool>& mngr);
+    frame_buffer(const object_ptr<FrameBufferPool>& pl);
     /// Ctor
-    frame_buffer(const object_ptr<FrameBufferPool>& mngr, uid id);
+    frame_buffer(const object_ptr<FrameBufferPool>& pl, uid id);
     /// Copy ctor
     frame_buffer(const frame_buffer& other);
     /// Move ctor
@@ -50,7 +50,7 @@ namespace yave {
     frame_buffer() = delete;
 
   private:
-    object_ptr<FrameBufferPool> m_manager;
+    object_ptr<FrameBufferPool> m_pool;
     uid m_id;
   };
 }

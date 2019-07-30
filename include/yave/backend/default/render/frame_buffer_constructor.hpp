@@ -20,18 +20,17 @@ namespace yave {
     struct FrameBufferConstructor
       : NodeFunction<FrameBufferConstructor, FrameBuffer>
     {
-      FrameBufferConstructor(
-        yave::backend::system::default_common::frame_buffer_manager& mngr)
-        : manager {mngr}
+      FrameBufferConstructor(const object_ptr<FrameBufferPool>& pl)
+        : pool {pl}
       {
       }
 
       return_type code() const
       {
-        return make_object<FrameBuffer>(manager);
+        return make_object<FrameBuffer>(pool);
       }
 
-      yave::backend::system::default_common::frame_buffer_manager& manager;
+      object_ptr<FrameBufferPool> pool;
     };
 
     /// Getter function for FrameBufferConstructor
@@ -42,17 +41,17 @@ namespace yave {
           FrameBufferConstructor>
     {
       FrameBufferConstructorGetterFunction(
-        yave::backend::system::default_common::frame_buffer_manager& mngr)
+        yave::backend::default_common::frame_buffer_manager& mngr)
         : manager {mngr}
       {
       }
 
       return_type code() const
       {
-        return make_object<FrameBufferConstructor>(manager);
+        return make_object<FrameBufferConstructor>(manager.get_pool_object());
       }
 
-      yave::backend::system::default_common::frame_buffer_manager& manager;
+      yave::backend::default_common::frame_buffer_manager& manager;
     };
 
   } // namespace backend::default_render
@@ -60,8 +59,8 @@ namespace yave {
   template <>
   struct bind_info_traits<FrameBufferConstructor, backend::tags::default_render>
   {
-    static bind_info get_bind_info(
-      yave::backend::system::default_common::frame_buffer_manager& mngr)
+    static bind_info
+      get_bind_info(yave::backend::default_common::frame_buffer_manager& mngr)
     {
       return bind_info(
         "FrameBuffer",
