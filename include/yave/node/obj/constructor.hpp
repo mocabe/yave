@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
+#include <yave/node/core/primitive.hpp>
 
 namespace yave {
 

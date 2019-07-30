@@ -31,25 +31,26 @@ namespace yave {
       v);
   }
 
-  /// get primitive object constructor
-  [[nodiscard]] object_ptr<>
-    get_primitive_constructor(const object_ptr<PrimitiveContainer>& v);
-
-  /// get type of primitive object
-  [[nodiscard]] object_ptr<const Type> get_primitive_type(const primitive_t& v);
-
-  /// get primitive node info
-  [[nodiscard]] node_info get_primitive_node_info(const primitive_t& v);
-
-  /// get primitive bind info
-  [[nodiscard]] bind_info get_primitive_bind_info(const primitive_t& v);
 
   /// get primitive name list
   [[nodiscard]] std::vector<std::string> get_primitive_name_list();
 
+  /// get primitive node info
+  [[nodiscard]] node_info get_primitive_node_info(const primitive_t& v);
+
   /// get primitive info list
   [[nodiscard]] std::vector<node_info> get_primitive_node_info_list();
 
+  /// get primitive bind info
+  template <class BackendTag>
+  [[nodiscard]] bind_info get_primitive_bind_info(const primitive_t& v);
+
   /// get primitive bind list
+  template <class BackendTag>
   [[nodiscard]] std::vector<bind_info> get_primitive_bind_info_list();
+
+  /// get type of primitive object
+  template <class BackendTag>
+  [[nodiscard]] object_ptr<const Type> get_primitive_type(const primitive_t& v);
+
 } // namespace yave

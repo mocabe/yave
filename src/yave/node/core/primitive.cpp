@@ -10,32 +10,12 @@
 
 namespace yave {
 
-  object_ptr<const Type> get_primitive_type(const primitive_t& v)
-  {
-    return std::visit(
-      overloaded {[](const auto& p) {
-        using value_type = std::decay_t<decltype(p)>;
-        return object_type<Constructor<Box<value_type>>>();
-      }},
-      v);
-  }
-
   node_info get_primitive_node_info(const primitive_t& v)
   {
     return std::visit(
       overloaded {[&](const auto& p) {
         using value_type = std::decay_t<decltype(p)>;
-        return get_node_info<Constructor<Box<value_type>>>();
-      }},
-      v);
-  }
-
-  bind_info get_primitive_bind_info(const primitive_t& v)
-  {
-    return std::visit(
-      overloaded {[&](const auto& p) {
-        using value_type = std::decay_t<decltype(p)>;
-        return get_bind_info<Constructor<Box<value_type>>>();
+        return get_node_info<PrimitiveConstructor<Box<value_type>>>();
       }},
       v);
   }
@@ -67,14 +47,6 @@ namespace yave {
     std::vector<node_info> ret;
     primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
       ret, get_primitive_node_info);
-    return ret;
-  }
-
-  std::vector<bind_info> get_primitive_bind_info_list()
-  {
-    std::vector<bind_info> ret;
-    primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
-      ret, get_primitive_bind_info);
     return ret;
   }
 
