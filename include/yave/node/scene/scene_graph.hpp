@@ -14,10 +14,18 @@ namespace yave {
 
   // clang-format off
 
+  /// scene_graph layer type
+  enum class layer_type : uint32_t
+  {
+    compos = 1,
+    image  = 2,
+  };
+
   /// Scene graph class. Manages all frontend node controls, including layer
   /// system management.
   class scene_graph
   {
+
   public:
     /// Initialize scene graph
     scene_graph();
@@ -49,27 +57,35 @@ namespace yave {
     [[nodiscard]] 
     bool exists(const layer_resource_handle& node, const layer_handle& layer) const;
 
-    /// Create new sublayer under specified layer
+    /// Create new image layer under specified layer.
     [[nodiscard]] 
-    auto add_layer(const layer_handle& target) -> layer_handle;
+    auto add_layer(const layer_handle& target, layer_type type) -> layer_handle;
 
     /// Remove layer and resources
     void remove_layer(const layer_handle& handle);
 
     /// Movable into target layer?
-    bool movable_into(const layer_handle& frmo, const layer_handle& to);
+    bool movable_into(const layer_handle& frmo, const layer_handle& to) const;
     /// Move layer as sublayer of target layer
     void move_into(const layer_handle& from, const layer_handle& to);
 
     /// Movable into below target layer?
-    bool movable_below(const layer_handle& from, const layer_handle& to);
+    bool movable_below(const layer_handle& from, const layer_handle& to) const;
     /// Move layer below specific layer
     void move_below(const layer_handle& from, const layer_handle& to);
 
     /// Movable above target layer?
-    bool movable_above(const layer_handle& from, const layer_handle& to);
+    bool movable_above(const layer_handle& from, const layer_handle& to) const;
     /// Move layer above specific layer
     void move_above(const layer_handle& from, const layer_handle& to);
+
+    /// Compos layer?
+    [[nodiscard]]
+    bool is_compos_layer(const layer_handle& layer) const;
+
+    /// Image  layer
+    [[nodiscard]]
+    bool is_image_layer(const layer_handle& layer) const;
 
     /// Get name of layer
     [[nodiscard]] 
@@ -123,14 +139,24 @@ namespace yave {
       -> layer_resource_handle;
 
     private: 
+      struct layer_attribute;
       auto _lock() const -> std::unique_lock<std::mutex>;
+      auto _add_layer_attribute(const layer_handle& layer, layer_type) -> layer_attribute*;
+      auto _get_layer_attribute(const layer_handle& layer) -> layer_attribute*;
+      auto _get_layer_attribute(const layer_handle& layer) const -> const layer_attribute*;
+      auto _add_layer(const layer_handle& layer, layer_type type) -> layer_handle;
+      void _remove_layer(const layer_handle& layer);
 
     private: /* underlying layer manager */
       layered_node_graph m_graph;
+
+    private: /* global resources */
+      layer_resource_handle m_image_output;
+      layer_resource_handle m_audio_output;
+      layer_resource_handle m_empty_frame_buffer;
     
     private:  /* additional layer info */
-      struct scene_layer_info;
-      std::map<layer_handle, scene_layer_info> m_layer_info;
+      std::map<layer_handle, layer_attribute> m_layer_attributes;
 
     private: /* mutex */
       mutable std::mutex m_mtx;
