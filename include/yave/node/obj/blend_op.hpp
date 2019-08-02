@@ -57,7 +57,7 @@ namespace yave {
         return get_bind_info<BlendOpAdd, BackendTag>();
     }
     // default: alpha overlay
-    return get_bind_info<BlendOpOver>();
+    return get_bind_info<BlendOpOver, BackendTag>();
   }
 
   /// Get list of node info from blend_operation
