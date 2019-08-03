@@ -637,13 +637,38 @@ namespace yave {
 
     auto node = m_node_graph.create(name);
 
-    if (!node)
+    if (!node) {
+      Error(g_logger, "Failed to create node: {}", name);
       return nullptr;
+    }
 
     node_layer::resource res {name, node, scope};
     _access(layer).resources.push_back(res);
 
-    return {node};
+    return node;
+  }
+
+  auto layered_node_graph::add_resource_shared(
+    const std::string& name,
+    const layer_handle& layer,
+    layer_resource_scope scope) -> shared_layer_resource_handle
+  {
+    auto lck = _lock();
+
+    if (!_exists(layer))
+      return nullptr;
+
+    auto node = m_node_graph.create_shared(name);
+
+    if (!node) {
+      Error(g_logger, "Failed to create node: {}", name);
+      return nullptr;
+    }
+
+    node_layer::resource res {name, node.get(), scope};
+    _access(layer).resources.push_back(res);
+
+    return node;
   }
 
   void layered_node_graph::remove_resource(const layer_resource_handle& node)

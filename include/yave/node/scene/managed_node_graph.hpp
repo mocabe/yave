@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/core/node_graph.hpp>
+#include <yave/node/core/shared_node_handle.hpp>
 #include <yave/node/support/node_info_manager.hpp>
 #include <yave/node/support/bind_info_manager.hpp>
 
@@ -56,6 +57,9 @@ namespace yave {
     /// create new node
     [[nodiscard]]
     node_handle create(const std::string& name);
+    /// create new node
+    [[nodiscard]]
+    shared_node_handle create_shared(const std::string& name);
     /// destroy node
     void        destroy(const node_handle& handle);
 

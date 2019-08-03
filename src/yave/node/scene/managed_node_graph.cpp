@@ -161,6 +161,11 @@ namespace yave {
     return m_ng.add(*info);
   }
 
+  shared_node_handle managed_node_graph::create_shared(const std::string& name)
+  {
+    return shared_node_handle(m_ng, create(name));
+  }
+
   void managed_node_graph::destroy(const node_handle& handle)
   {
     auto lck = m_ng.lock();

@@ -20,6 +20,9 @@ namespace yave {
   /// Layer resource handle
   using layer_resource_handle = node_handle;
 
+  /// Shared layer resource handle
+  using shared_layer_resource_handle = shared_node_handle;
+
   /// Layer info
   struct layer_info
   {
@@ -119,6 +122,11 @@ namespace yave {
       const std::string& name,
       const layer_handle& layer,
       layer_resource_scope scope) -> layer_resource_handle;
+    /// Add new resource to the layer
+    auto add_resource_shared(
+      const std::string& name,
+      const layer_handle& layer,
+      layer_resource_scope scope) -> shared_layer_resource_handle;
     /// Remove resource from layer
     void remove_resource(const layer_resource_handle& node);
     /// Move resources
