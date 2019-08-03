@@ -17,7 +17,15 @@ namespace yave {
   public:
     shared_node_handle(node_graph& node_graph, const node_handle& node_handle)
     {
-      m_ptr = std::make_shared<data>(node_graph, node_handle);
+      if (node_handle)
+        m_ptr = std::make_shared<_data>(node_graph, node_handle);
+      else
+        m_ptr = nullptr;
+    }
+
+    shared_node_handle(nullptr_t)
+    {
+      m_ptr = nullptr;
     }
 
     shared_node_handle()                          = default;
@@ -66,15 +74,15 @@ namespace yave {
     }
 
   private:
-    struct data
+    struct _data
     {
-      data(node_graph& g, const node_handle& h)
+      _data(node_graph& g, const node_handle& h)
         : graph {g}
         , handle {h}
       {
         assert(g.exists(h));
       }
-      ~data()
+      ~_data()
       {
         if (handle)
           graph.remove(handle);
@@ -84,6 +92,6 @@ namespace yave {
     };
 
   private:
-    std::shared_ptr<data> m_ptr;
+    std::shared_ptr<_data> m_ptr;
   };
 } // namespace yave
