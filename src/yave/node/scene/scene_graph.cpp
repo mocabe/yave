@@ -1,7 +1,21 @@
+//
+// Copyright (c) 2019 mocabe (https://github.com/mocabe)
+// Distributed under LGPLv3 License. See LICENSE for more details.
+//
 
 #include <yave/node/scene/scene_graph.hpp>
 
+#include <yave/node/obj/function.hpp>
+#include <yave/data/obj/frame_buffer.hpp>
+#include <yave/node/obj/frame.hpp>
+#include <yave/node/obj/frame_buffer.hpp>
+#include <yave/node/obj/image_output.hpp>
+#include <yave/node/obj/compositor.hpp>
+#include <yave/node/obj/blend_op.hpp>
+#include <yave/node/obj/control_flow.hpp>
+#include <yave/node/obj/keyframe.hpp>
 #include <yave/support/log.hpp>
+#include <yave/support/id.hpp>
 
 namespace {
 
@@ -9,8 +23,8 @@ namespace {
 
   void init_logger()
   {
-    [[maybe_undued]] static auto init = [] {
-      yave::add_logger("scene_graph");
+    [[maybe_unused]] static auto init = [] {
+      g_logger = yave::add_logger("scene_graph");
       return 1;
     }();
   }
