@@ -876,6 +876,14 @@ namespace yave {
     return std::nullopt;
   }
 
+  auto layered_node_graph::get_layer(const layer_resource_handle& res) const
+    -> layer_handle
+  {
+    auto lck = _lock();
+
+    return _find_layer(res);
+  }
+
   bool layered_node_graph::register_node_info(const node_info& info)
   {
     return m_node_graph.register_node_info(info);

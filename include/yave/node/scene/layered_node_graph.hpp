@@ -160,8 +160,10 @@ namespace yave {
       const layer_resource_handle& res,
       const std::string& name);
     /// Get resource name
-    auto get_resource_name(const layer_resource_handle& ret) const
+    auto get_resource_name(const layer_resource_handle& res) const
       -> std::optional<std::string>;
+    /// Get layer of resource
+    auto get_layer(const layer_resource_handle& res) const -> layer_handle;
 
   public: /* node info */
     /// register new node info
