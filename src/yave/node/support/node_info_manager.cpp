@@ -71,6 +71,16 @@ namespace yave {
     auto [it, succ] =
       m_info.emplace(info.name(), std::make_shared<info_type>(info));
 
+    if (succ) {
+      Info(
+        g_info_mngr_logger,
+        "Added new node_info: {}(in:{},out:{})",
+        it->first,
+        it->second->input_sockets().size(),
+        it->second->output_sockets().size());
+      return true;
+    }
+
     // when exact same info is already there
     if (*it->second == info) {
       assert(it->first == info.name());
@@ -81,15 +91,12 @@ namespace yave {
       return true;
     }
 
-    if (succ)
-      Info(
-        g_info_mngr_logger,
-        "Added new node_info: {}(in:{},out:{})",
-        it->first,
-        it->second->input_sockets().size(),
-        it->second->output_sockets().size());
+    Warning(
+      g_info_mngr_logger,
+      "Tried to add node_info which is different from exising one: {}",
+      it->second->name());
 
-    return succ;
+    return false;
   }
 
   void node_info_manager::remove(const std::string& name)
