@@ -20,4 +20,9 @@ namespace yave {
       return {"If", {"cond", "then", "else"}, {"out"}};
     }
   };
+
+  std::vector<node_info> get_control_flow_node_info_list()
+  {
+    return {get_node_info<IfNode>()};
+  }
 }
