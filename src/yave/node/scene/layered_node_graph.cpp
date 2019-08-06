@@ -338,6 +338,11 @@ namespace yave {
       l.name, l.parent, std::move(sublayers), std::move(resources));
   }
 
+  bool layered_node_graph::exists(const connection_handle& connection) const
+  {
+    return m_node_graph.exists(connection);
+  }
+
   auto layered_node_graph::connect(
     const node_handle& src_n,
     const std::string& src_s,

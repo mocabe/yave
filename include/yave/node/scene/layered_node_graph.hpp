@@ -66,6 +66,17 @@ namespace yave {
     /// exist?
     bool exists(const layer_handle& layer) const;
 
+    /// exists?
+    bool exists(const layer_resource_handle& resource) const;
+
+    /// exists?
+    bool exists(
+      const layer_resource_handle& resource,
+      const layer_handle& layer) const;
+
+    /// exists?
+    bool exists(const connection_handle& connection) const;
+
     /// get root layer
     auto root() const -> layer_handle;
 
@@ -139,12 +150,6 @@ namespace yave {
       -> std::vector<layer_resource_handle>;
 
   public: /* resource info */
-    /// exists?
-    bool exists(const layer_resource_handle& resource) const;
-    /// exists?
-    bool exists(
-      const layer_resource_handle& resource,
-      const layer_handle& layer) const;
     /// Get resource info
     auto get_info(const layer_resource_handle& handle) const
       -> std::optional<layer_resource_info>;
