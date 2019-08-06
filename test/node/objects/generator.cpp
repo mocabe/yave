@@ -10,14 +10,6 @@
 
 using namespace yave;
 
-using Int    = Box<int>;
-using Float  = Box<float>;
-using Double = Box<double>;
-
-YAVE_DECL_TYPE(Int, "7d27665a-c56a-40d1-8e2e-844cb48de9e9");
-YAVE_DECL_TYPE(Double, "9cc69b38-8766-44f1-93e9-337cfb3d3bc5");
-YAVE_DECL_TYPE(Float, "51b6aa8c-b54a-417f-bfea-5bbff6ef00c2");
-
 TEST_CASE("generators")
 {
   SECTION("Unary")

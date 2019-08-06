@@ -57,8 +57,6 @@ namespace yave {
     if (!node)
       throw std::invalid_argument("Null node handle");
 
-    auto lck = m_graph.lock();
-
     if (!m_graph.exists(node))
       throw std::invalid_argument("Invalid node handle");
 
@@ -141,7 +139,6 @@ namespace yave {
     if (!node)
       throw std::invalid_argument("Null node handle");
 
-    auto graph_lck = m_graph.lock();
     auto binds_lck = m_binds.lock();
 
     if (!m_graph.exists(node))

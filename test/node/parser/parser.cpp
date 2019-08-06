@@ -12,15 +12,19 @@
 #include <yave/node/obj/function.hpp>
 #include <yave/node/obj/instance_getter.hpp>
 
+#include <yave/backend/default/render/primitive_constructor.hpp>
+#include <yave/backend/default/render/primitive.hpp>
+
 #include <yave/support/log.hpp>
 
 using namespace yave;
+using namespace yave::backend::tags;
 
 TEST_CASE("node_parser")
 {
   node_graph graph;
   node_info_manager info_mngr(get_primitive_node_info_list());
-  bind_info_manager bind_mngr(get_primitive_bind_info_list());
+  bind_info_manager bind_mngr(get_primitive_bind_info_list<default_render>());
   node_parser parser(graph, bind_mngr);
 
   SECTION("Int")
@@ -41,7 +45,7 @@ TEST_CASE("node_parser")
     REQUIRE(parsed_graph->nodes().size() == 1);
     REQUIRE(same_type(
       parsed_graph->get_info(parsed_graph->nodes().front())->type(),
-      get_primitive_type(int(0))));
+      get_primitive_type<default_render>(int(0))));
   }
 
   SECTION("empty")

@@ -8,7 +8,10 @@
 #include <yave/data/lib/frame_buffer.hpp>
 #include <yave/data/obj/frame_buffer.hpp>
 
+#include <yave/backend/default/system/frame_buffer_manager.hpp>
+
 using namespace yave;
+using namespace yave::backend::default_common;
 
 TEST_CASE("frame_buffer")
 {
@@ -39,7 +42,7 @@ TEST_CASE("frame_buffer")
   SECTION("value")
   {
     frame_buffer_manager mngr {1920, 1080, image_format::RGBA32F};
-    const auto f1 = frame_buffer(mngr);
+    const auto f1 = frame_buffer(mngr.get_pool_object());
     REQUIRE(mngr.size() == 1);
     auto view = f1.get_image_view();
     auto data = f1.get_image_view().data();
@@ -53,7 +56,7 @@ TEST_CASE("frame_buffer")
   SECTION("obj")
   {
     frame_buffer_manager mngr(1920, 1080, image_format::RGBA32F);
-    const auto f1 = make_object<FrameBuffer>(mngr);
+    const auto f1 = make_object<FrameBuffer>(mngr.get_pool_object());
     REQUIRE(mngr.size() == 1);
     auto view = f1->get_image_view();
     REQUIRE(view.image_format() == mngr.format());
