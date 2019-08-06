@@ -195,11 +195,17 @@ namespace yave {
     template <class Lambda>
     void depth_first_search(const node_handle& node, Lambda&& lambda) const;
 
-    /// Lock
-    [[nodiscard]] std::unique_lock<std::mutex> lock() const;
-
     /// clear graph
     void clear();
+
+  private: /* non locking helpers */
+    bool _exists(const node_handle&) const;
+    bool _exists(const connection_handle&) const;
+    std::vector<node_handle> _find_loop(const node_handle&) const;
+    std::optional<connection_info> _get_info(const connection_handle&) const;
+    std::optional<node_info> _get_info(const node_handle&) const;
+    std::vector<node_handle> _root_of(const node_handle&) const;
+    std::unique_lock<std::mutex> _lock() const;
 
   private:
     /// graph
@@ -209,6 +215,82 @@ namespace yave {
     /// mutex
     mutable std::mutex m_mtx;
   };
+
+  /* impl */
+
+  template <class Lambda>
+  void node_graph::depth_first_search_until(
+    const yave::node_handle& node,
+    Lambda&& lambda) const
+  {
+    auto lck = _lock();
+
+    if (!_exists(node))
+      return;
+
+    std::vector<node_handle> visited_nodes;
+    std::vector<node_handle> stack;
+
+    auto visit = [&](const node_handle& n) {
+      visited_nodes.push_back(n);
+      stack.push_back(n);
+    };
+
+    auto visited = [&](const node_handle& n) {
+      for (auto&& vn : visited_nodes)
+        if (vn == n)
+          return true;
+      return false;
+    };
+
+    // visit first node
+    visit(node);
+    if (std::forward<Lambda>(lambda)(node))
+      return;
+
+    // main loop
+    while (!stack.empty()) {
+
+      auto current = stack.back();
+
+      bool stop = [&] {
+        std::vector<connection_handle> inputs;
+        for (auto&& s : m_g.sockets(current.descriptor())) {
+          for (auto&& e : m_g.dst_edges(s)) {
+            inputs.emplace_back(e, m_g.id(e));
+          }
+        }
+
+        for (auto&& c : inputs) {
+          auto next = _get_info(c)->src_node();
+          if (!visited(next)) {
+            visit(next);
+            return std::forward<Lambda>(lambda)(node);
+          }
+        }
+        stack.pop_back();
+        return false;
+      }();
+
+      if (stop)
+        break;
+    }
+  }
+
+  template <class Lambda>
+  void node_graph::depth_first_search(
+    const yave::node_handle& node,
+    Lambda&& lambda) const
+  {
+    return depth_first_search_until(node, [&](auto&& n) {
+      std::forward<Lambda>(lambda)(n);
+      return false;
+    });
+  }
+
+} // namespace yave
+
+namespace yave {
 
   struct NodesDiff
   {
@@ -239,70 +321,5 @@ namespace yave {
   [[nodiscard]] ConnectionsDiff connections_diff(
     const std::vector<connection_handle>& prev_connections,
     const std::vector<connection_handle>& connections);
-}
-
-/* impl */
-
-namespace yave {
-
-  template <class Lambda>
-  void node_graph::depth_first_search_until(
-    const yave::node_handle& node,
-    Lambda&& lambda) const
-  {
-    std::vector<node_handle> visited_nodes;
-    std::vector<node_handle> stack;
-
-    auto visit = [&](const node_handle& n) {
-      visited_nodes.push_back(n);
-      stack.push_back(n);
-    };
-
-    auto visited = [&](const node_handle& n) {
-      for (auto&& vn : visited_nodes)
-        if (vn == n)
-          return true;
-      return false;
-    };
-
-    // visit first node
-    visit(node);
-    if (std::forward<Lambda>(lambda)(node))
-      return;
-
-    // main loop
-    while (!stack.empty()) {
-
-      auto current = stack.back();
-
-      /// visit unvisited child node.
-      /// pop when all childs have been visited.
-      bool stop = [&] {
-        for (auto&& c : input_connections(current)) {
-          auto next = get_info(c)->src_node();
-          if (!visited(next)) {
-            visit(next);
-            return std::forward<Lambda>(lambda)(node);
-          }
-        }
-        stack.pop_back();
-        return false;
-      }();
-
-      if (stop)
-        break;
-    }
-  }
-
-  template <class Lambda>
-  void node_graph::depth_first_search(
-    const yave::node_handle& node,
-    Lambda&& lambda) const
-  {
-    return depth_first_search_until(node, [&](auto&& n) {
-      std::forward<Lambda>(lambda)(n);
-      return false;
-    });
-  }
 
 } // namespace yave

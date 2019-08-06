@@ -32,7 +32,6 @@ namespace yave {
     : m_ng {}
     , m_nim {}
   {
-    auto lck1 = other.m_ng.lock();
     auto lck2 = other.m_nim.lock();
 
     auto ng  = other.m_ng;
@@ -46,7 +45,6 @@ namespace yave {
     : m_ng {}
     , m_nim {}
   {
-    auto lck1 = other.m_ng.lock();
     auto lck2 = other.m_nim.lock();
 
     m_ng  = std::move(other.m_ng);
@@ -60,7 +58,6 @@ namespace yave {
   managed_node_graph& managed_node_graph::
     operator=(const managed_node_graph& other)
   {
-    auto lck1 = other.m_ng.lock();
     auto lck2 = other.m_nim.lock();
 
     m_ng  = other.m_ng;
@@ -72,7 +69,6 @@ namespace yave {
   managed_node_graph& managed_node_graph::
     operator=(managed_node_graph&& other) noexcept
   {
-    auto lck1 = other.m_ng.lock();
     auto lck2 = other.m_nim.lock();
 
     m_ng  = std::move(other.m_ng);
@@ -137,12 +133,10 @@ namespace yave {
 
   bool managed_node_graph::exists(const node_handle& node) const
   {
-    auto lck = m_ng.lock();
     return m_ng.exists(node);
   }
   bool managed_node_graph::exists(const connection_handle& connection) const
   {
-    auto lck = m_ng.lock();
     return m_ng.exists(connection);
   }
 
@@ -151,7 +145,6 @@ namespace yave {
   node_handle managed_node_graph::create(const std::string& name)
   {
     auto lck1 = m_nim.lock();
-    auto lck2 = m_ng.lock();
 
     auto info = m_nim.find(name);
 
@@ -168,7 +161,6 @@ namespace yave {
 
   void managed_node_graph::destroy(const node_handle& handle)
   {
-    auto lck = m_ng.lock();
     return m_ng.remove(handle);
   }
 
@@ -178,13 +170,11 @@ namespace yave {
     const node_handle& dst_n,
     const std::string& dst_s)
   {
-    auto lck = m_ng.lock();
     return m_ng.connect(src_n, src_s, dst_n, dst_s);
   }
 
   void managed_node_graph::disconnect(const connection_handle& handle)
   {
-    auto lck = m_ng.lock();
     return m_ng.disconnect(handle);
   }
 
@@ -192,20 +182,17 @@ namespace yave {
 
   std::vector<node_handle> managed_node_graph::nodes() const
   {
-    auto lck = m_ng.lock();
     return m_ng.nodes();
   }
 
   std::vector<connection_handle> managed_node_graph::connections() const
   {
-    auto lck = m_ng.lock();
     return m_ng.connections();
   }
 
   std::vector<connection_handle>
     managed_node_graph::connections(const node_handle& node) const
   {
-    auto lck = m_ng.lock();
     return m_ng.connections(node);
   }
 
@@ -213,20 +200,17 @@ namespace yave {
     const node_handle& node,
     const std::string& socket) const
   {
-    auto lck = m_ng.lock();
     return m_ng.connections(node, socket);
   }
 
   std::vector<connection_handle> managed_node_graph::input_connections() const
   {
-    auto lck = m_ng.lock();
     return m_ng.input_connections();
   }
 
   std::vector<connection_handle>
     managed_node_graph::input_connections(const node_handle& node) const
   {
-    auto lck = m_ng.lock();
     return m_ng.input_connections(node);
   }
 
@@ -234,20 +218,17 @@ namespace yave {
     const node_handle& node,
     const std::string& socket) const
   {
-    auto lck = m_ng.lock();
     return m_ng.input_connections(node, socket);
   }
 
   std::vector<connection_handle> managed_node_graph::output_connections() const
   {
-    auto lck = m_ng.lock();
     return m_ng.output_connections();
   }
 
   std::vector<connection_handle>
     managed_node_graph::output_connections(const node_handle& node) const
   {
-    auto lck = m_ng.lock();
     return m_ng.output_connections(node);
   }
 
@@ -255,28 +236,24 @@ namespace yave {
     const node_handle& node,
     const std::string& socket) const
   {
-    auto lck = m_ng.lock();
     return m_ng.output_connections(node, socket);
   }
 
   std::optional<node_info>
     managed_node_graph::get_info(const node_handle& node) const
   {
-    auto lck = m_ng.lock();
     return m_ng.get_info(node);
   }
 
   std::optional<connection_info>
     managed_node_graph::get_info(const connection_handle& connection) const
   {
-    auto lck = m_ng.lock();
     return m_ng.get_info(connection);
   }
 
   std::optional<primitive_t>
     managed_node_graph::get_primitive(const node_handle& node) const
   {
-    auto lck = m_ng.lock();
     return m_ng.get_primitive(node);
   }
 
@@ -284,8 +261,6 @@ namespace yave {
     const node_handle& node,
     const primitive_t& prim)
   {
-    auto lck = m_ng.lock();
-
     auto info = m_ng.get_info(node);
 
     if (!info)
@@ -301,7 +276,6 @@ namespace yave {
 
   void managed_node_graph::clear()
   {
-    auto lck1 = m_ng.lock();
     auto lck2 = m_nim.lock();
 
     m_ng.clear();
@@ -310,7 +284,6 @@ namespace yave {
 
   const node_graph& managed_node_graph::get_node_graph() const
   {
-    auto lck = m_ng.lock();
     return m_ng;
   }
 
