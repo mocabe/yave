@@ -1096,6 +1096,36 @@ namespace yave::graph {
       return e.id();
     }
 
+    /// Find node from id.
+    [[nodiscard]] node_descriptor_type node(const uid &id) const
+    {
+      for (auto &&n : nodes()) {
+        if (_access(n).id() == id)
+          return n;
+      }
+      return nullptr;
+    }
+
+    /// Get socket from id.
+    [[nodiscard]] socket_descriptor_type socket(const uid &id) const
+    {
+      for (auto &&s : sockets()) {
+        if (_access(s).id() == id)
+          return s;
+      }
+      return nullptr;
+    }
+
+    /// Get edge from id.
+    [[nodiscard]] edge_descriptor_type edge(const uid &id) const
+    {
+      for (auto &&e : edges()) {
+        if (_access(e).id() == id)
+          return e;
+      }
+      return nullptr;
+    }
+
     /// Clone graph
     [[nodiscard]] graph<NodeProperty, SocketProperty, EdgeProperty>
       clone() const

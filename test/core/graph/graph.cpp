@@ -232,3 +232,16 @@ TEST_CASE("Graph clone")
   REQUIRE(cpy.src_edges(cpy.sockets()[1]).size() == 1);
   REQUIRE(cpy.dst_edges(cpy.sockets()[1]).size() == 1);
 }
+
+TEST_CASE("Graph id")
+{
+  graph g;
+  auto n = g.add_node();
+  auto s = g.add_socket();
+  auto d = g.add_socket();
+  auto e = g.add_edge(s, d);
+  REQUIRE(g.node(g.id(n)) == n);
+  REQUIRE(g.socket(g.id(s)) == s);
+  REQUIRE(g.socket(g.id(d)) == d);
+  REQUIRE(g.edge(g.id(e)) == e);
+}
