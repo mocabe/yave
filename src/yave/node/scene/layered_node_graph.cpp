@@ -911,4 +911,10 @@ namespace yave {
     return m_node_graph.unregister_node_info(info);
   }
 
+  auto layered_node_graph::get_managed_node_graph() const
+    -> const managed_node_graph&
+  {
+    return m_node_graph;
+  }
+
 } // namespace yave

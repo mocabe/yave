@@ -185,7 +185,7 @@ namespace yave {
 
   public: /* node graph access */
     /// Access underlying node graph
-    auto node_graph() const -> const managed_node_graph&;
+    auto get_managed_node_graph() const -> const managed_node_graph&;
 
   private:
     std::unique_ptr<node_layer> m_root;
