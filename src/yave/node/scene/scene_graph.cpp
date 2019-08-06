@@ -54,7 +54,10 @@ namespace yave {
       , m_layer_type {type}
       , m_blend_func_info {get_blend_op_node_info(blend_operation::over)}
     {
-      Info("Initializing layer attribute for layer {}", m_layer.id().data);
+      Info(
+        g_logger,
+        "Initializing layer attribute for layer {}",
+        m_layer.id().data);
 
       // layer is visible by default
       m_is_visible = true;
@@ -71,7 +74,7 @@ namespace yave {
           throw std::runtime_error("Failed to create layer image output");
       }
       {
-        auto info       = get_node_info<KeyFrame<Bool>>();
+        auto info       = get_node_info<Keyframe<Bool>>();
         m_visibility_kv = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_visibility_kv)
@@ -150,7 +153,7 @@ namespace yave {
 
       // visibility -> if [cond]
       {
-        auto vis          = get_node_info<KeyFrame<Bool>>();
+        auto vis          = get_node_info<Keyframe<Bool>>();
         auto bif          = get_node_info<IfNode>();
         m_c_visibility_if = m_graph.connect(
           m_visibility_kv.get(),
@@ -189,16 +192,26 @@ namespace yave {
       // sublayer connection
       {
         connect_sublayers();
+
+        if (is_image_layer())
+          assert(m_c_sublayers.empty());
+      }
+
+      // set visible resources
+      {
+        // register image layer
+        if (is_image_layer())
+          m_resources.push_back(m_image_output);
       }
     }
 
     ~layer_attribute()
-  {
+    {
       Info(
         g_logger, "Destroying layer attribute of layer {} ", m_layer.id().data);
 
       // destroy connections
-  {
+      {
         m_graph.disconnect(m_c_io_compos);
         m_graph.disconnect(m_c_if_compos);
         m_graph.disconnect(m_c_visibility_if);
@@ -214,7 +227,7 @@ namespace yave {
 
     void connect_sublayers()
     {
-      Info("Rebuilding sublayer connections...");
+      Info(g_logger, "Rebuilding sublayer connections...");
 
       if (is_image_layer()) {
         Warning(
@@ -228,7 +241,7 @@ namespace yave {
 
         for (auto&& c : m_c_sublayers) {
           m_graph.disconnect(c);
-    }
+        }
         m_c_sublayers.clear();
 
         // connect sublayers
@@ -259,7 +272,7 @@ namespace yave {
 
           // connect first layer
 
-    {
+          {
             auto iter = m_map.find(sublayers[0]);
             if (iter != m_map.end())
               prev = &(iter->second);
@@ -302,12 +315,11 @@ namespace yave {
               // update prev
               prev = &(iter->second);
             }
-    }
+          }
 
           // connect top layer output to image output of this layer
-
           {
-            auto io     = get_node_info<LayerImageOutput>();
+            auto io = get_node_info<LayerImageOutput>();
 
             // compos out -> image out
             auto c = m_graph.connect(
@@ -345,10 +357,10 @@ namespace yave {
 
         if (!m_blend_func)
           throw std::runtime_error("Failed to create blend func");
-    }
+      }
 
       // rebuild connections
-    {
+      {
         auto bif    = get_node_info<IfNode>();
         m_c_func_if = m_graph.connect(
           m_blend_func.get(),
@@ -358,9 +370,9 @@ namespace yave {
 
         if (!m_c_func_if)
           throw std::runtime_error("Failed to connect blend func");
+      }
     }
-    }
-  
+
     bool is_compos_layer() const
     {
       return m_layer_type == layer_type::compos;
@@ -371,8 +383,134 @@ namespace yave {
       if (m_layer_type == layer_type::image) {
         assert(m_graph.get_sublayers(m_layer).empty());
         return true;
-    }
+      }
       return false;
+    }
+
+    std::vector<layer_resource_handle> get_resources() const
+    {
+      std::vector<layer_resource_handle> ret;
+      for (auto&& sr : m_resources) {
+        ret.push_back(sr.get());
+      }
+      return ret;
+    }
+
+    std::vector<layer_resource_handle> get_references() const
+    {
+      std::vector<layer_resource_handle> ret;
+      for (auto&& sr : m_references) {
+        ret.push_back(sr.get());
+      }
+      return ret;
+    }
+
+    layer_resource_handle
+      add_resource(const std::string& name, layer_resource_scope scope)
+    {
+      auto res = m_graph.add_resource_shared(name, m_layer, scope);
+      if (res) {
+        m_resources.push_back(res);
+        return res.get();
+      }
+      return nullptr;
+    }
+
+    bool add_reference(const layer_resource_handle& handle)
+    {
+      auto inherited = m_graph.get_inherited_resources(m_layer);
+
+      // check scope
+      if (
+        std::find(inherited.begin(), inherited.end(), handle) ==
+        inherited.end()) {
+
+        Info(
+          g_logger,
+          "Tried to add reference to layer resource which is not accesible "
+          "from this layer {}. Ignored.",
+          m_layer.id().data);
+
+        return false;
+      }
+
+      // find shared resource and add to reference
+      if (auto layer = m_graph.get_layer(handle)) {
+        auto find = m_map.find(layer);
+        if (find == m_map.end())
+          return false;
+
+        for (auto&& sr : find->second.m_resources) {
+          if (sr.get() == handle) {
+            m_references.push_back(sr);
+
+            Info(
+              g_logger,
+              "Added new reference to the resource {} which belongs to the "
+              "layer {}",
+              handle.id().data,
+              layer.id().data);
+
+            return true;
+          }
+        }
+      }
+
+      Warning(
+        g_logger, "Could not add resource reference: Resource not found.");
+
+      return false;
+    }
+
+    bool is_visible() const
+    {
+      return m_is_visible;
+    }
+
+    void set_visibility(bool visibility)
+    {
+      if (m_is_visible == visibility)
+        return;
+
+      auto dst_info = get_node_info<LayerCompositor>();
+
+      if (visibility) {
+        assert(m_graph.exists(m_c_dst_compos));
+        assert(!m_graph.exists(m_c_if_compos));
+        m_graph.disconnect(m_c_dst_compos);
+        auto src_info = get_node_info<IfNode>();
+
+        m_c_if_compos = m_graph.connect(
+          m_blend_if.get(),
+          src_info.output_sockets()[0],
+          m_compositor.get(),
+          dst_info.input_sockets()[2]);
+
+        if (!m_c_if_compos)
+          throw std::runtime_error("Failed to change layer visibility");
+
+      } else {
+        assert(!m_graph.exists(m_c_dst_compos));
+        assert(m_graph.exists(m_c_if_compos));
+        m_graph.disconnect(m_c_if_compos);
+        auto src_info = get_node_info<BlendOpDst>();
+
+        m_c_dst_compos = m_graph.connect(
+          m_blend_dst.get(),
+          src_info.output_sockets()[0],
+          m_compositor.get(),
+          dst_info.input_sockets()[2]);
+
+        if (!m_c_dst_compos)
+          throw std::runtime_error("Failed to change layer visibility");
+      }
+
+      m_is_visible = visibility;
+    }
+
+    layer_resource_handle get_compositor() const
+    {
+      return m_compositor.get();
     }
 
   private:
@@ -411,13 +549,17 @@ namespace yave {
 
   private:
     connection_handle m_c_io_compos;
-    connection_handle m_c_if_compos;
+    connection_handle m_c_if_compos;  // is_visible() == true
+    connection_handle m_c_dst_compos; // is_visibel() == false
     connection_handle m_c_visibility_if;
     connection_handle m_c_func_if;
     connection_handle m_c_dst_if;
     std::vector<connection_handle> m_c_sublayers;
 
   private:
+  private:
+    /// list of owning resources which is visible from user side
+    std::vector<shared_layer_resource_handle> m_resources;
     /// resource references (list of inherited resources currently used)
     std::vector<shared_layer_resource_handle> m_references;
   };
@@ -425,25 +567,119 @@ namespace yave {
   scene_graph::scene_graph()
   {
     init_logger();
+
+    // register default node info
+    {
+      // primitive
+      if (!m_graph.register_node_info(get_primitive_node_info_list()))
+        throw std::runtime_error("Failed to register primitive node info");
+
+      // layer io
+      if (!m_graph.register_node_info(get_node_info<LayerImageOutput>()))
+        throw std::runtime_error("Failed to register image io info");
+
+      // layer fb
+      if (!m_graph.register_node_info(get_node_info<FrameBufferConstructor>()))
+        throw std::runtime_error("Failed to register frame buffer info");
+
+      // layer compositor
+      if (!m_graph.register_node_info(get_node_info<LayerCompositor>()))
+        throw std::runtime_error("Failed to register compositor info");
+
+      // blend ops
+      if (!m_graph.register_node_info(get_blend_op_node_info_list()))
+        throw std::runtime_error("Failed to register blend op info");
+
+      // keyframes
+      if (!m_graph.register_node_info(get_keyframe_node_info_list()))
+        throw std::runtime_error("Failed to register keyframe info");
+
+      // control flow
+      if (!m_graph.register_node_info(get_control_flow_node_info_list()))
+        throw std::runtime_error("Failed to register control flow node info");
+    }
+
+    // Add global image output (private)
+    {
+      auto info = get_node_info<LayerImageOutput>();
+      auto res  = m_graph.add_resource(
+        info.name(), root(), layer_resource_scope::Private);
+
+      if (!res)
+        throw std::runtime_error("Failed to create layer output node");
+
+      m_graph.set_resource_name(res, "Global Image Output");
+      m_image_output = res;
+    }
+
+    // Add global audio output (private)
+    {
+      // TODO
+      m_audio_output = nullptr;
+    }
+
+    // Add empty frame buffer (inherit)
+    {
+      auto info = get_node_info<FrameBufferConstructor>();
+      auto res  = m_graph.add_resource(
+        info.name(), root(), layer_resource_scope::Inherit);
+
+      if (!res)
+        throw std::runtime_error("Failed to create frame buffer");
+
+      m_graph.set_resource_name(res, "Empty Frame Buffer");
+      m_empty_frame_buffer = res;
+    }
+
+    assert(m_graph.layers().size() == 1);
+
+    // Add layer info as empty image layer
+    auto root_attr = _add_layer_attribute(root(), layer_type::compos);
+
+    // connect root layer to global out
+    {
+      auto compos_info = get_node_info<LayerCompositor>();
+      auto io_info     = get_node_info<LayerImageOutput>();
+      auto fb_info     = get_node_info<FrameBufferConstructor>();
+
+      m_c_fb_root = m_graph.connect(
+        m_empty_frame_buffer,
+        fb_info.output_sockets()[0],
+        root_attr->get_compositor(),
+        compos_info.input_sockets()[1]);
+
+      m_c_root_io = m_graph.connect(
+        root_attr->get_compositor(),
+        compos_info.output_sockets()[0],
+        m_image_output,
+        io_info.input_sockets()[0]);
+
+      if (!m_c_root_io || !m_c_fb_root)
+        throw std::runtime_error("Failed to connect root compositor");
+    }
   }
 
   scene_graph::~scene_graph() noexcept
   {
+    // don't actually need this, just for consistency.
+    m_graph.disconnect(m_c_fb_root);
+    m_graph.disconnect(m_c_root_io);
   }
 
   scene_graph::scene_graph(scene_graph&& other) noexcept
   {
-    auto lck     = _lock();
-    m_graph      = std::move(other.m_graph);
-    m_layer_info = std::move(other.m_layer_info);
+    auto lck           = _lock();
+    m_graph            = std::move(other.m_graph);
+    m_layer_attributes = std::move(other.m_layer_attributes);
   }
 
   scene_graph& scene_graph::operator=(scene_graph&& other) noexcept
   {
-    auto lck1    = _lock();
-    auto lck2    = other._lock();
-    m_graph      = std::move(other.m_graph);
-    m_layer_info = std::move(other.m_layer_info);
+    auto lck1          = _lock();
+    auto lck2          = other._lock();
+    m_graph            = std::move(other.m_graph);
+    m_layer_attributes = std::move(other.m_layer_attributes);
+    return *this;
   }
 
   // Use when modifying additional information for m_graph
@@ -452,18 +688,62 @@ namespace yave {
     return std::unique_lock {m_mtx};
   }
 
+  // Add new layer info to layer info list
+  auto scene_graph::_add_layer_attribute(
+    const layer_handle& layer,
+    layer_type type) -> layer_attribute*
+  {
+    // insert layer info
+    auto [iter, b] = m_layer_attributes.try_emplace(
+      layer, type, layer, m_graph, m_layer_attributes);
+
+    if (!b) {
+      Error(
+        g_logger, "Failed to add new scene layer info: id={}", layer.id().data);
+
+      throw std::runtime_error("Failed to add layer info");
+    }
+
+    return &iter->second;
+  }
+
+  auto scene_graph::_get_layer_attribute(const layer_handle& layer) const
+    -> const layer_attribute*
+  {
+    auto iter = m_layer_attributes.find(layer);
+
+    if (iter == m_layer_attributes.end())
+      return nullptr;
+
+    return &iter->second;
+  }
+
+  auto scene_graph::_get_layer_attribute(const layer_handle& layer)
+    -> layer_attribute*
+  {
+    auto iter = m_layer_attributes.find(layer);
+
+    if (iter == m_layer_attributes.end())
+      return nullptr;
+
+    return &iter->second;
+  }
+
   auto scene_graph::root() const -> layer_handle
   {
+    auto lck = _lock();
     return m_graph.root();
   }
 
   bool scene_graph::exists(const layer_handle& layer) const
   {
+    auto lck = _lock();
     return m_graph.exists(layer);
   }
 
   bool scene_graph::exists(const layer_resource_handle& node) const
   {
+    auto lck = _lock();
     return m_graph.exists(node);
   }
 
@@ -471,21 +751,176 @@ namespace yave {
     const layer_resource_handle& node,
     const layer_handle& layer) const
   {
+    auto lck = _lock();
     return m_graph.exists(node, layer);
   }
 
-  auto scene_graph::add_layer(const layer_handle& layer) -> layer_handle
+  auto scene_graph::_add_layer(const layer_handle& layer, layer_type type)
+    -> layer_handle
+  {
+    auto l = m_graph.add_layer(layer);
+
+    if (!l)
+      throw std::runtime_error("Failed to add layer");
+
+    assert(l == m_graph.get_sublayers(layer).back());
+
+    auto* pInfo = _add_layer_attribute(l, type);
+
+    if (!pInfo)
+      throw std::runtime_error("Failed to add layer attribute");
+
+    return l;
+  }
+
+  auto scene_graph::add_layer(const layer_handle& layer, layer_type type)
+    -> layer_handle
   {
     auto lck = _lock();
 
-    // build new layer
-    auto l = m_graph.add_layer(layer);
+    if (auto attr = _get_layer_attribute(layer)) {
+      // only compos layer can have sublayers
+      if (attr->is_compos_layer())
+        return _add_layer(layer, type);
+    }
 
-    // add composition control
+    return nullptr;
+  }
 
+  void scene_graph::_remove_layer(const layer_handle& layer)
+  {
+    if (!m_graph.exists(layer)) {
+      Warning(
+        g_logger,
+        "remove_layer() is called for invalid layer handle. Ignored.");
+      return;
+    }
+
+    // recursively remove layers
+    for (auto&& sub : m_graph.get_sublayers(layer)) {
+      _remove_layer(sub);
+    }
+
+    auto itr = m_layer_attributes.find(layer);
+
+    if (itr == m_layer_attributes.end()) {
+      Error(g_logger, "Could not find layer attribute for exising layer");
+      return;
+    }
+
+    // destroy
+
+    m_layer_attributes.erase(itr);
+    m_graph.remove_layer(layer);
   }
 
   void scene_graph::remove_layer(const layer_handle& layer)
   {
+    auto lck = _lock();
+    _remove_layer(layer);
   }
+
+  bool scene_graph::is_compos_layer(const layer_handle& layer) const
+  {
+    auto lck = _lock();
+
+    if (auto attr = _get_layer_attribute(layer))
+      return attr->is_compos_layer();
+
+    Warning(
+      g_logger,
+      "is_compos_layer() called for nonexisting layer. Returning false.");
+
+    return false;
+  }
+
+  bool scene_graph::is_image_layer(const layer_handle& layer) const
+  {
+    auto lck = _lock();
+
+    if (auto attr = _get_layer_attribute(layer))
+      return attr->is_image_layer();
+
+    Warning(
+      g_logger,
+      "is_image_layer() called for nonexising layer. Returning false.");
+
+    return false;
+  }
+
+  auto scene_graph::get_name(const layer_handle& layer) const
+    -> std::optional<std::string>
+  {
+    auto lck = _lock();
+    return m_graph.get_layer_name(layer);
+  }
+
+  void scene_graph::set_name(const layer_handle& layer, const std::string& name)
+  {
+    auto lck = _lock();
+    return m_graph.set_layer_name(layer, name);
+  }
+
+  bool scene_graph::is_visible(const layer_handle& layer) const
+  {
+    auto lck = _lock();
+    if (auto attr = _get_layer_attribute(layer)) {
+      return attr->is_visible();
+    }
+    return false;
+  }
+
+  void scene_graph::set_visibility(const layer_handle& layer, bool visibility)
+  {
+    auto lck = _lock();
+    if (auto attr = _get_layer_attribute(layer)) {
+      attr->set_visibility(visibility);
+    }
+  }
+
+  auto scene_graph::get_sublayers(const layer_handle& layer) const
+    -> std::vector<layer_handle>
+  {
+    auto lck = _lock();
+    return m_graph.get_sublayers(layer);
+  }
+
+  auto scene_graph::get_resources(const layer_handle& layer) const
+    -> std::vector<layer_resource_handle>
+  {
+    auto lck = _lock();
+    if (auto attr = _get_layer_attribute(layer)) {
+      auto res = attr->get_resources();
+      auto ref = attr->get_references();
+      res.insert(res.end(), ref.begin(), ref.end());
+      return res;
+    }
+    return {};
+  }
+
+  auto scene_graph::get_resources_owning(const layer_handle& layer) const
+    -> std::vector<layer_resource_handle>
+  {
+    auto lck = _lock();
+    if (auto attr = _get_layer_attribute(layer)) {
+      return attr->get_resources();
+    }
+    return {};
+  }
+
+  auto scene_graph::get_resources_reference(const layer_handle& layer) const
+    -> std::vector<layer_resource_handle>
+  {
+    auto lck = _lock();
+    if (auto attr = _get_layer_attribute(layer)) {
+      return attr->get_references();
+    }
+    return {};
+  }
+
+  auto scene_graph::get_node_graph() const -> const node_graph&
+  {
+    return m_graph.get_managed_node_graph().get_node_graph();
+  }
+
 } // namespace yave

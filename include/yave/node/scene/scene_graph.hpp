@@ -89,7 +89,7 @@ namespace yave {
 
     /// Get name of layer
     [[nodiscard]] 
-    auto get_name(const layer_handle& layer) const -> const std::string&;
+    auto get_name(const layer_handle& layer) const -> std::optional<std::string>;
 
     /// Set name of layer
     void set_name(const layer_handle& layer, const std::string& name);
@@ -100,13 +100,6 @@ namespace yave {
 
     /// set new visibility state
     void set_visibility(const layer_handle& layer, bool visibility);
-
-    /// Custom layer?
-    [[nodiscard]] 
-    bool is_custom(const layer_handle& layer) const;
-
-    /// Convert managed layer to custom layer
-    void make_custom(const layer_handle& layer);
 
     /// Get list of sublayers
     [[nodiscard]]
@@ -124,8 +117,8 @@ namespace yave {
       -> std::vector<layer_resource_handle>;
 
     /// Get list of inherited resources
-    [[nodidcard]]
-    auto get_resources_inherited(const layer_handle& layer) const 
+    [[nodiscard]]
+    auto get_resources_reference(const layer_handle& layer) const 
       -> std::vector<layer_resource_handle>;
 
     /// Get composition list
@@ -137,6 +130,10 @@ namespace yave {
     [[nodiscard]] 
     auto get_image_output(const layer_handle& layer) const 
       -> layer_resource_handle;
+
+    /// Get copy of current node graph.
+    [[nodiscard]]
+    auto get_node_graph() const -> const node_graph&;
 
     private: 
       struct layer_attribute;
@@ -154,6 +151,10 @@ namespace yave {
       layer_resource_handle m_image_output;
       layer_resource_handle m_audio_output;
       layer_resource_handle m_empty_frame_buffer;
+    
+    private:
+      connection_handle m_c_fb_root;
+      connection_handle m_c_root_io;
     
     private:  /* additional layer info */
       std::map<layer_handle, layer_attribute> m_layer_attributes;
