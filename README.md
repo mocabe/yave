@@ -22,7 +22,21 @@ Recent development tasks:
     + `layered_node_graph`
 - [ ] per-layer resource control implementation 
     + `scene_graph`
+        + [x] basic interface and resuorce control
+        + [ ] move_* functions
+        + [ ] tests
 - [ ] key-frame object implementation
+    + `keyframe`
+        + [x] add node info
+        + [ ] implement value type
+        + [ ] backend object impl
+        + [ ] integrate to primitive types
+- [ ] improve test structure
+    + [ ] remove tests for obsolete classes
+    + [ ] restructure tests based on backends
+- [ ] parser rework
+- [ ] compiler rework
+- [ ] async command interfaec
 
 Other personal projects I want to merge in the future if possible:
 - modern NURBS library 
