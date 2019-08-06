@@ -47,12 +47,12 @@ namespace yave::graph {
   class graph;
 
   /// empty class
-  struct empty_property
+  struct empty_graph_property
   {
   };
 
-  /// default container_traits tag
-  struct default_trait_tag;
+  /// default trait tag
+  struct default_graph_trait_tag;
 
   /// container_traits tells Graph how to manage Nodes,Edges,Sockets.
   /// Default implementation is specialized to std::vector as container, pointer
@@ -62,11 +62,15 @@ namespace yave::graph {
     class ValueType,
     class GraphTraits,
     class Property,
-    class Tag = default_trait_tag>
-  struct container_traits;
+    class Tag = default_graph_trait_tag>
+  struct graph_container_traits;
 
   template <template <class> class ValueType, class GraphTraits, class Property>
-  struct container_traits<ValueType, GraphTraits, Property, default_trait_tag>
+  struct graph_container_traits<
+    ValueType,
+    GraphTraits,
+    Property,
+    default_graph_trait_tag>
   {
 
     // value type
@@ -181,6 +185,21 @@ namespace yave::graph {
     }
   };
 
+  /// \brief trait class for defining ID type for node/socket/edge.
+  template <class Node, class Edge, class Socket>
+  struct graph_id_traits
+  {
+    /// yave::id
+    using id_type = uid;
+
+    /// generate random ID for graph objects.
+    static inline uid random_generate()
+    {
+      // uses boost::random
+      return uid::random_generate();
+    }
+  };
+
   /// \brief graph_traits provides all of typedefs used in Graph class.
   /// Property types can only be customized through this class.
   template <
@@ -195,18 +214,21 @@ namespace yave::graph {
     NodeProperty,
     SocketProperty,
     EdgeProperty,
-    default_trait_tag>
+    default_graph_trait_tag>
   {
     /// type
     using type = graph_traits<
       NodeProperty,
       SocketProperty,
       EdgeProperty,
-      default_trait_tag>;
+      default_graph_trait_tag>;
 
     /// graph type
-    using graph_type =
-      graph<NodeProperty, SocketProperty, EdgeProperty, default_trait_tag>;
+    using graph_type = graph<
+      NodeProperty,
+      SocketProperty,
+      EdgeProperty,
+      default_graph_trait_tag>;
 
     /* primitive types */
 
@@ -222,23 +244,14 @@ namespace yave::graph {
 
     /* container traits */
 
-    using node_container_traits = //
-      container_traits<           //
-        node,                     //
-        type,                     //
-        NodeProperty>;            //
+    using node_container_traits =
+      graph_container_traits<node, type, NodeProperty>;
 
-    using edge_container_traits = //
-      container_traits<           //
-        edge,                     //
-        type,                     //
-        EdgeProperty>;            //
+    using edge_container_traits =
+      graph_container_traits<edge, type, EdgeProperty>;
 
-    using socket_container_traits = //
-      container_traits<             //
-        socket,                     //
-        type,                       //
-        SocketProperty>;            //
+    using socket_container_traits =
+      graph_container_traits<socket, type, SocketProperty>;
 
     /* container types */
 
@@ -257,6 +270,11 @@ namespace yave::graph {
       typename edge_container_traits::descriptor_type;
     using socket_descriptor_type =
       typename socket_container_traits::descriptor_type;
+
+    /* ID traits */
+
+    using id_traits = graph_id_traits<node_type, socket_type, edge_type>;
+    using id_type   = typename id_traits::id_type;
   };
 
   /// \brief Node class.
@@ -277,12 +295,15 @@ namespace yave::graph {
     using descriptor_type = typename Traits::node_descriptor_type;
     /// Socket descriptor type
     using socket_descriptor_type = typename Traits::socket_descriptor_type;
+    /// ID type
+    using id_type = typename Traits::id_type;
 
     /// A Constructor.
+    /// \param id Unique id for this node.
     /// \param args Arguments to initialize property class.
     template <class... Args>
-    node(Args &&... args)
-      : m_id {uid::random_generate()}
+    node(const id_type &id, Args &&... args)
+      : m_id {id}
       , m_sockets {}
       , m_inline_property {std::forward<Args>(args)...}
     {
@@ -294,7 +315,7 @@ namespace yave::graph {
     }
 
     /// Get id.
-    [[nodiscard]] uid id() const noexcept
+    [[nodiscard]] id_type id() const noexcept
     {
       return m_id;
     }
@@ -359,7 +380,7 @@ namespace yave::graph {
 
   private:
     /// Id of this node.
-    uid m_id;
+    id_type m_id;
     /// Socket descriptors.
     /// Shouldn't contain 2 or more same descriptors.
     std::basic_string<socket_descriptor_type> m_sockets;
@@ -386,17 +407,21 @@ namespace yave::graph {
     using descriptor_type = typename Traits::edge_descriptor_type;
     /// Socket descriptor type
     using socket_descriptor_type = typename Traits::socket_descriptor_type;
+    /// ID type
+    using id_type = typename Traits::id_type;
 
     /// A constructor.
-    /// \param src descriptor of source socket
-    /// \param dst descriptor of destination socket
-    /// \param args args to initialize property class instance
+    /// \param id Unique id for this edge.
+    /// \param src descriptor of source socket.
+    /// \param dst descriptor of destination socket.
+    /// \param args args to initialize property class instance.
     template <class... Args>
     edge(
+      const id_type &id,
       const socket_descriptor_type &src,
       const socket_descriptor_type &dst,
       Args &&... args)
-      : m_id {uid::random_generate()}
+      : m_id {id}
       , m_src {src}
       , m_dst {dst}
       , m_inline_property {std::forward<Args>(args)...}
@@ -409,7 +434,7 @@ namespace yave::graph {
     }
 
     /// Get id.
-    [[nodiscard]] uid id() const noexcept
+    [[nodiscard]] id_type id() const noexcept
     {
       return m_id;
     }
@@ -440,7 +465,7 @@ namespace yave::graph {
 
   private:
     /// Id of this socket.
-    uid m_id;
+    id_type m_id;
     /// socket descriptors
     socket_descriptor_type m_src, m_dst;
     /// inline property class instance
@@ -466,12 +491,15 @@ namespace yave::graph {
     using node_descriptor_type = typename Traits::node_descriptor_type;
     /// Edge descriptor type
     using edge_descriptor_type = typename Traits::edge_descriptor_type;
+    /// ID type
+    using id_type = typename Traits::id_type;
 
     /// A constructor.
-    /// \param args Args for initialize property class
+    /// \param id Unique id for this socket.
+    /// \param args Args for initialize property class.
     template <class... Args>
-    socket(Args &&... args)
-      : m_id {uid::random_generate()}
+    socket(const id_type &id, Args &&... args)
+      : m_id {id}
       , m_nodes {}
       , m_src_edges {}
       , m_dst_edges {}
@@ -485,7 +513,7 @@ namespace yave::graph {
     }
 
     /// Get id.
-    [[nodiscard]] uid id() const noexcept
+    [[nodiscard]] id_type id() const noexcept
     {
       return m_id;
     }
@@ -636,7 +664,7 @@ namespace yave::graph {
 
   private:
     /// Id of this edge.
-    uid m_id;
+    id_type m_id;
     /// node descriptors
     std::basic_string<node_descriptor_type> m_nodes;
     /// edge descriptors
@@ -650,10 +678,10 @@ namespace yave::graph {
   /// \brief Node Graph class.
   /// This class represents Node Graph Object.
   template <
-    class NodeProperty   = empty_property,
-    class SocketProperty = empty_property,
-    class EdgeProperty   = empty_property,
-    class Tag            = default_trait_tag>
+    class NodeProperty   = empty_graph_property,
+    class SocketProperty = empty_graph_property,
+    class EdgeProperty   = empty_graph_property,
+    class Tag            = default_graph_trait_tag>
   class graph
   {
   public:
@@ -667,6 +695,8 @@ namespace yave::graph {
     using node_descriptor_type   = typename traits::node_descriptor_type;
     using edge_descriptor_type   = typename traits::edge_descriptor_type;
     using socket_descriptor_type = typename traits::socket_descriptor_type;
+
+    using id_type = typename traits::id_type;
 
     /// A constructor
     graph()
@@ -712,7 +742,7 @@ namespace yave::graph {
     [[nodiscard]] node_descriptor_type add_node(Args &&... args)
     {
       // add node
-      return _create_n(std::forward<Args>(args)...);
+      return _create_n(_random_id_gen(), std::forward<Args>(args)...);
     }
 
     /// Add socket.
@@ -722,7 +752,7 @@ namespace yave::graph {
     [[nodiscard]] socket_descriptor_type add_socket(Args &&... args)
     {
       // add socket
-      return _create_s(std::forward<Args>(args)...);
+      return _create_s(_random_id_gen(), std::forward<Args>(args)...);
     }
 
     /// Add edge.
@@ -750,7 +780,8 @@ namespace yave::graph {
           throw std::runtime_error("edge already exists");
       }
 
-      auto e = _create_e(src, dst, std::forward<Args>(args)...);
+      auto e =
+        _create_e(_random_id_gen(), src, dst, std::forward<Args>(args)...);
 
       // set edge to sockets
       bool r1 [[maybe_unused]] = _access(src).set_src_edge(e);
@@ -1076,28 +1107,28 @@ namespace yave::graph {
     }
 
     /// Get id of node.
-    [[nodiscard]] uid id(const node_descriptor_type &descriptor) const
+    [[nodiscard]] id_type id(const node_descriptor_type &descriptor) const
     {
       auto &n = _at(descriptor);
       return n.id();
     }
 
     /// Get id of socket.
-    [[nodiscard]] uid id(const socket_descriptor_type &descriptor) const
+    [[nodiscard]] id_type id(const socket_descriptor_type &descriptor) const
     {
       auto &s = _at(descriptor);
       return s.id();
     }
 
     /// Get id of edge.
-    [[nodiscard]] uid id(const edge_descriptor_type &descriptor) const
+    [[nodiscard]] id_type id(const edge_descriptor_type &descriptor) const
     {
       auto &e = _at(descriptor);
       return e.id();
     }
 
     /// Find node from id.
-    [[nodiscard]] node_descriptor_type node(const uid &id) const
+    [[nodiscard]] node_descriptor_type node(const id_type &id) const
     {
       for (auto &&n : nodes()) {
         if (_access(n).id() == id)
@@ -1107,7 +1138,7 @@ namespace yave::graph {
     }
 
     /// Get socket from id.
-    [[nodiscard]] socket_descriptor_type socket(const uid &id) const
+    [[nodiscard]] socket_descriptor_type socket(const id_type &id) const
     {
       for (auto &&s : sockets()) {
         if (_access(s).id() == id)
@@ -1117,7 +1148,7 @@ namespace yave::graph {
     }
 
     /// Get edge from id.
-    [[nodiscard]] edge_descriptor_type edge(const uid &id) const
+    [[nodiscard]] edge_descriptor_type edge(const id_type &id) const
     {
       for (auto &&e : edges()) {
         if (_access(e).id() == id)
@@ -1199,33 +1230,41 @@ namespace yave::graph {
     {
       return (m_nodes.empty() && m_edges.empty() && m_sockets.empty());
     }
-
-  private:
+private:
     /// Create new node.
+    /// \param id id for new node
     /// \param args arguments to construct node property
     template <class... Args>
-    inline node_descriptor_type _create_n(Args &&... args)
+    inline node_descriptor_type _create_n(const id_type &id, Args &&... args)
     {
       return traits::node_container_traits::create(
-        m_nodes, std::forward<Args>(args)...);
+        m_nodes, id, std::forward<Args>(args)...);
     }
 
     /// Create new edge.
+    /// \param id id for new edge.
     /// \param args arguments to construct node property.
     template <class... Args>
-    inline edge_descriptor_type _create_e(Args &&... args)
+    inline edge_descriptor_type _create_e(const id_type &id, Args &&... args)
     {
       return traits::edge_container_traits::create(
-        m_edges, std::forward<Args>(args)...);
+        m_edges, id, std::forward<Args>(args)...);
     }
 
     /// Create new socket.
+    /// \param id id for new socket.
     /// \param args arguments to construct node property
     template <class... Args>
-    inline socket_descriptor_type _create_s(Args &&... args)
+    inline socket_descriptor_type _create_s(const id_type &id, Args &&... args)
     {
       return traits::socket_container_traits::create(
-        m_sockets, std::forward<Args>(args)...);
+        m_sockets, id, std::forward<Args>(args)...);
+    }
+
+    /// Create random id for node/socket/edge.
+    id_type _random_id_gen()
+    {
+      return traits::id_traits::random_generate();
     }
 
     /// Node access.
