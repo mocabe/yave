@@ -1158,62 +1158,56 @@ namespace yave::graph {
     }
 
     /// Clone graph
-    [[nodiscard]] graph<NodeProperty, SocketProperty, EdgeProperty>
-      clone() const
+    [[nodiscard]] graph clone() const
     {
-      graph ng;
-      auto &n_src = m_nodes;
-      auto &s_src = m_sockets;
-      auto &e_src = m_edges;
+      graph g;
 
-      std::vector<std::pair<node_descriptor_type, node_descriptor_type>> n_map;
-      std::vector<std::pair<socket_descriptor_type, socket_descriptor_type>>
-        s_map;
+      std::map<id_type, node_descriptor_type> n_map;
+      std::map<id_type, socket_descriptor_type> s_map;
 
-      for (auto &&n : n_src) {
-        auto d = ng.add_node((*this)[n]);
-        n_map.emplace_back(n, d);
+      for (auto &&n : nodes()) {
+        // copy nodes
+        auto dsc = g._create_n(id(n), _access(n).inline_property());
+        n_map.emplace(id(n), dsc);
+        assert(dsc);
       }
 
-      for (auto &&s : s_src) {
-        auto d = ng.add_socket((*this)[s]);
-        s_map.emplace_back(s, d);
-      }
+      for (auto &&s : sockets()) {
+        // copy socket
+        auto dsc = g._create_s(id(s), _access(s).inline_property());
+        s_map.emplace(id(s), dsc);
+        assert(dsc);
 
-      // attach sockets
-      for (auto &&np : n_map) {
-        auto &&[nsrc, ndst] = np;
-        auto ss             = sockets(nsrc);
-        for (auto &&s : ss) {
-          for (auto &&sp : s_map) {
-            auto &&[ssrc, sdst] = sp;
-            if (ssrc == s) {
-              bool r [[maybe_unused]] = ng.attach_socket(ndst, sdst);
-              assert(r);
-              break;
-            }
-          }
+        // attach socket
+        for (auto &&n : _access(s).nodes()) {
+          [[maybe_unused]] auto r = g.attach_socket(n_map.at(id(n)), dsc);
+          assert(r);
         }
       }
 
-      // add edge
-      for (auto &&e : e_src) {
-        auto ssrc = src(e);
-        auto sdst = dst(e);
+      for (auto &&e : edges()) {
+        // copy edges
+        auto s   = s_map.at(id(_access(e).src()));
+        auto d   = s_map.at(id(_access(e).dst()));
+        auto dsc = g._create_e(id(e), s, d, _access(e).inline_property());
+        assert(dsc);
 
-        for (auto &&sp1 : s_map) {
-          auto &&[from_1, to_1] = sp1;
-          if (ssrc == from_1) {
-            for (auto &&sp2 : s_map) {
-              auto [from_2, to_2] = sp2;
-              if (sdst == from_2) {
-                auto r [[maybe_unused]] = ng.add_edge(to_1, to_2, (*this)[e]);
-              }
-            }
-          }
+        // set back pointers
+        {
+          [[maybe_unused]] auto r = g._access(s).set_src_edge(dsc);
+          assert(r);
+        }
+        {
+          [[maybe_unused]] auto r = g._access(d).set_dst_edge(dsc);
+          assert(r);
         }
       }
-      return ng;
+
+      assert(g.n_nodes() == n_nodes());
+      assert(g.n_sockets() == n_sockets());
+      assert(g.n_edges() == n_edges());
+
+      return g;
     }
 
     /// Clear graph
