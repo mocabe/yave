@@ -124,7 +124,7 @@ namespace yave {
 
     /// Get node graph copy
     [[nodiscard]] 
-    node_graph                     get_node_graph() const;
+    const node_graph&              get_node_graph() const;
 
   private:
     node_graph        m_ng;
