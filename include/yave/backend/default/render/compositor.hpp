@@ -16,19 +16,14 @@ namespace yave {
 
   namespace backend::default_render {
 
-    struct LayerBlendOp
-      : NodeFunction<LayerBlendOp, FrameBuffer, FrameBuffer, FrameBuffer>
-    {
-      // just for type
-    };
-
     /// Compositor
-    struct LayerCompositor : NodeFunction<
-                               LayerCompositor,
-                               FrameBuffer,  // src
-                               FrameBuffer,  // dst
-                               LayerBlendOp, // blend op
-                               FrameBuffer>
+    struct LayerCompositor
+      : NodeFunction<
+          LayerCompositor,
+          FrameBuffer,                                         // src
+          FrameBuffer,                                         // dst
+          node_closure<FrameBuffer, FrameBuffer, FrameBuffer>, // blend op
+          FrameBuffer>
     {
       return_type code() const
       {
