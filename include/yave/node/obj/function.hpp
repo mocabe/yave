@@ -54,4 +54,23 @@ namespace yave {
   {
   };
 
+  namespace detail {
+
+    template <class...>
+    struct node_closure_impl;
+
+    template <class R, class... Ts>
+    struct node_closure_impl<meta_tuple<Ts...>, meta_type<R>>
+    {
+      using type = closure<closure<Frame, Ts>..., Frame, R>;
+    };
+
+  } // namespace detail
+
+  /// create closure specifier for node function
+  template <class... Ts>
+  using node_closure = typename detail::node_closure_impl<
+    decltype(remove_last(meta_tuple<Ts...> {})),
+    decltype(last(meta_tuple<Ts...> {}))>::type;
+
 } // namespace yave
