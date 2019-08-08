@@ -71,7 +71,7 @@ namespace yave {
 
       if (auto lvar = get_if<value_type>(&left)) {
         if (auto rvar = get_if<value_type>(&right))
-          return value_type::compare(*lvar, *rvar);
+          return value_type::equal(*lvar, *rvar);
         else
           return false;
       }
@@ -238,7 +238,7 @@ namespace yave {
 
   object_ptr<const Type> genvar()
   {
-    auto var = make_object<Type>(var_type {uid::random_generate()});
+    auto var = make_object<Type>(var_type::random_generate());
     return object_ptr<const Type>(var);
   }
 

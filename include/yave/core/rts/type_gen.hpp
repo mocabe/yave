@@ -9,7 +9,6 @@
 #include <yave/core/rts/type_value.hpp>
 #include <yave/core/rts/specifiers.hpp>
 
-#include <yave/support/id.hpp>
 #include <yave/support/offset_of_member.hpp>
 
 #include <cstring>
@@ -194,14 +193,9 @@ namespace yave {
     template <class T>
     struct var_type_initializer
     {
-      /// id
-      static uid get_id()
-      {
-        return uid::random_generate();
-      }
-
       /// var type object.
-      inline static const Type type {static_construct, var_type {get_id()}};
+      inline static const Type type {static_construct,
+                                     var_type::random_generate()};
     };
 
     template <class T>

@@ -25,7 +25,7 @@ namespace yave {
         return "[...]";
 
       if (is_value_type(type)) {
-        return "Value[" + get<value_type>(*type).to_string() + "]";
+        return "Value[" + to_string(get<value_type>(*type)) + "]";
       }
 
       if (is_arrow_type(type)) {
@@ -39,9 +39,9 @@ namespace yave {
       }
 
       if (is_var_type(type)) {
-        return "Var[" +                                        //
-               to_string(get_if<var_type>(type.value())->id) + //
-               "]";                                            //
+        return "Var[" +                                     //
+               to_string(*get_if<var_type>(type.value())) + //
+               "]";                                         //
       }
 
       unreachable();

@@ -12,6 +12,8 @@
 
 #include <array>
 #include <cstring>
+#include <random>
+#include <chrono>
 
 namespace yave {
 
@@ -29,7 +31,7 @@ namespace yave {
 
     /// compare two value types
     [[nodiscard]] static bool
-      compare(const value_type& lhs, const value_type& rhs) noexcept
+      equal(const value_type& lhs, const value_type& rhs) noexcept
     {
       if constexpr (has_SSE) {
         // assume 16 byte alignment
@@ -41,9 +43,41 @@ namespace yave {
       } else
         return *lhs.data == *rhs.data;
     }
-
-    [[nodiscard]] std::string to_string() const;
   };
+
+  /// to_string
+  [[nodiscard]] inline std::string to_string(const value_type& v)
+  {
+    std::string ret;
+
+    ret += v.name;
+
+    ret.reserve(ret.capacity() + 38);
+
+    ret += '(';
+
+    auto _toc = [](uint32_t v) {
+      if (v >= 10)
+        return 'a' + (v - 10);
+      else
+        return '0' + v;
+    };
+
+    for (auto i = 0; i < 16; ++i) {
+      uint32_t lo = 0x0F & v.data->operator[](i);
+      uint32_t hi = 0x0F & v.data->operator[](i) >> 4;
+
+      ret += _toc(lo);
+      ret += _toc(hi);
+
+      if (i == 3 || i == 5 || i == 7 || i == 9)
+        ret += '-';
+    }
+
+    ret += ')';
+
+    return ret;
+  }
 
   /// Arrow type
   struct arrow_type
@@ -58,8 +92,40 @@ namespace yave {
   struct var_type
   {
     /// unique id for VarTpye object
-    uid id;
+    uint64_t id;
+
+    [[nodiscard]] static var_type random_generate()
+    {
+      // MinGW workaround: use <chrono> instead of random_device.
+      std::mt19937_64 mt(
+        std::chrono::high_resolution_clock::now().time_since_epoch().count());
+      return {mt()};
+    }
   };
+
+  [[nodiscard]] inline std::string to_string(const var_type& v)
+  {
+    std::string ret;
+    ret.reserve(16);
+
+    std::array<uint8_t, 8> buff;
+    std::memcpy(&buff, &v.id, 8);
+
+    auto _toc = [](uint32_t i) {
+      if (i >= 10)
+        return 'a' + (i - 10);
+      else
+        return '0' + i;
+    };
+
+    for (size_t i = 0; i < buff.size(); ++i) {
+      uint32_t low = 0x0F & buff[i];
+      uint32_t hi  = 0x0F & buff[i] >> 4;
+      ret += _toc(low);
+      ret += _toc(hi);
+    }
+    return ret;
+  }
 
   // ------------------------------------------
   // TypeValue
