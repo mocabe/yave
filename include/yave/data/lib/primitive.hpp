@@ -9,6 +9,8 @@
 #include <yave/core/rts/atomic.hpp>
 #include <yave/data/lib/string.hpp>
 
+#include <yave/support/overloaded.hpp>
+
 #include <variant>
 #include <string>
 
@@ -63,19 +65,43 @@ namespace yave {
   {
   public:
     /// Constructor
-    primitive_container();
+    primitive_container()
+      : m_prim {}
+      , m_mtx {}
+    {
+    }
 
     /// Constructor
-    primitive_container(const primitive_t& prim);
+    primitive_container(const primitive_t& prim)
+      : m_prim {prim}
+      , m_mtx {}
+    {
+    }
 
     /// Copy constructor
-    primitive_container(const primitive_container& other);
+    primitive_container(const primitive_container& other)
+      : m_prim {other.m_prim}
+      , m_mtx {}
+    {
+    }
 
     /// Set primitive_t value
-    void set(const primitive_t& prim);
+    void set(const primitive_t& prim)
+    {
+      std::lock_guard lck {m_mtx};
+
+      // NOTE: This does not actually assign new value on clang (gcc is fine).
+      // m_prim = prim;
+
+      visit(overloaded {[&](const auto& v) { m_prim = v; }}, prim);
+    }
 
     /// Get primitive_t value
-    [[nodiscard]] primitive_t get() const;
+    [[nodiscard]] primitive_t get() const
+    {
+      std::lock_guard lck {m_mtx};
+      return m_prim;
+    }
 
   private:
     primitive_t m_prim;
