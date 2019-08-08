@@ -18,15 +18,15 @@ namespace yave {
   template <class T>
   struct node_info_traits<Keyframe<T>>;
 
-#define YAVE_DECL_KEYFRAME(TYPE)                                  \
-  template <>                                                     \
-  struct node_info_traits<Keyframe<TYPE>>                         \
-  {                                                               \
-    static node_info get_node_info()                              \
-    {                                                             \
-      return {std::string("Keyframe<" #TYPE ">"), {}, {"value"}}; \
-    }                                                             \
-  };
+#define YAVE_DECL_KEYFRAME(TYPE)                                         \
+  template <>                                                            \
+  struct node_info_traits<Keyframe<TYPE>>                                \
+  {                                                                      \
+    static node_info get_node_info()                                     \
+    {                                                                    \
+      return {std::string("Keyframe<" #TYPE ">"), {"frame"}, {"value"}}; \
+    }                                                                    \
+  }
 
   YAVE_DECL_KEYFRAME(Int8);
   YAVE_DECL_KEYFRAME(Int16);

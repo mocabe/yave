@@ -116,6 +116,13 @@ namespace yave {
           throw std::runtime_error("Failed to create compositor");
       }
       {
+        auto info = get_node_info<FrameConstructor>();
+        m_frame   = m_graph.add_resource_shared(
+          info.name(), m_layer, layer_resource_scope::Private);
+        if (!m_frame)
+          throw std::runtime_error("Failed to create frame");
+      }
+      {
         m_blend_func_info = get_blend_op_node_info(m_blend_op);
         m_blend_func      = m_graph.add_resource_shared(
           m_blend_func_info.name(), m_layer, layer_resource_scope::Private);
@@ -189,6 +196,20 @@ namespace yave {
           throw std::runtime_error("Failed to connect nodes");
       }
 
+      // frame -> visibility
+      {
+        auto vis             = get_node_info<Keyframe<Bool>>();
+        auto fb              = get_node_info<FrameConstructor>();
+        m_c_frame_visibility = m_graph.connect(
+          m_frame.get(),
+          fb.output_sockets()[0],
+          m_visibility_kv.get(),
+          vis.input_sockets()[0]);
+
+        if (!m_c_frame_visibility)
+          throw std::runtime_error("Failed to connect nodes");
+      }
+
       // sublayer connection
       {
         connect_sublayers();
@@ -214,6 +235,7 @@ namespace yave {
       {
         m_graph.disconnect(m_c_io_compos);
         m_graph.disconnect(m_c_if_compos);
+        m_graph.disconnect(m_c_dst_compos);
         m_graph.disconnect(m_c_visibility_if);
         m_graph.disconnect(m_c_func_if);
         m_graph.disconnect(m_c_dst_if);
@@ -533,7 +555,7 @@ namespace yave {
     /*
       Per-layer resources:
                                 (dst: empty)
-      [visibility] --> |    |        |
+    [frame] -> [visibility] --> |    |        |
       [func] --------> | if | -> [compositor] ---> (out: empty)
       [dst] ---------> |    |        |
                                [layer image output]
@@ -545,6 +567,7 @@ namespace yave {
     shared_layer_resource_handle m_blend_dst;     ///< blend function (ab-dst)
     shared_layer_resource_handle m_compositor;    ///< compositor node
     shared_layer_resource_handle m_blend_func;    ///< current blend function
+    shared_layer_resource_handle m_frame;         ///< frame
     node_info m_blend_func_info;                  ///< current blend func info
 
   private:
@@ -554,6 +577,7 @@ namespace yave {
     connection_handle m_c_visibility_if;
     connection_handle m_c_func_if;
     connection_handle m_c_dst_if;
+    connection_handle m_c_frame_visibility;
     std::vector<connection_handle> m_c_sublayers;
 
   private:
@@ -573,6 +597,10 @@ namespace yave {
       // primitive
       if (!m_graph.register_node_info(get_primitive_node_info_list()))
         throw std::runtime_error("Failed to register primitive node info");
+
+      // frame
+      if (!m_graph.register_node_info(get_node_info<FrameConstructor>()))
+        throw std::runtime_error("Failed to register frame ctor info");
 
       // layer io
       if (!m_graph.register_node_info(get_node_info<LayerImageOutput>()))
