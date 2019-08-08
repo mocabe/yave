@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/core/config/config.hpp>
+#include <yave/config/config.hpp>
 #include <yave/data/lib/time.hpp>
 #include <yave/data/lib/image_format.hpp>
 

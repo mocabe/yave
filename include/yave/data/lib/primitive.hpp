@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/core/config.hpp>
+#include <yave/config/config.hpp>
 #include <yave/core/rts/atomic.hpp>
 #include <yave/data/lib/string.hpp>
 

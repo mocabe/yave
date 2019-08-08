@@ -5,14 +5,14 @@
 
 #pragma once
 
-#include <yave/core/config/debug.hpp>
-#include <yave/core/config/intrin.hpp>
-#include <yave/core/config/likely.hpp>
-#include <yave/core/config/unreachable.hpp>
-#include <yave/core/config/type_traits.hpp>
-#include <yave/core/config/os.hpp>
-#include <yave/core/config/compiler.hpp>
-#include <yave/core/config/uuid.hpp>
+#include <yave/config/debug.hpp>
+#include <yave/config/intrin.hpp>
+#include <yave/config/likely.hpp>
+#include <yave/config/unreachable.hpp>
+#include <yave/config/type_traits.hpp>
+#include <yave/config/os.hpp>
+#include <yave/config/compiler.hpp>
+#include <yave/config/uuid.hpp>
 
 #include <cstdint>
 #include <cstddef>

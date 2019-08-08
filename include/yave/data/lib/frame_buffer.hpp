@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/core/config.hpp>
+#include <yave/config/config.hpp>
 #include <yave/core/rts/object_ptr.hpp>
 #include <yave/data/lib/image_view.hpp>
 #include <yave/support/id.hpp>
