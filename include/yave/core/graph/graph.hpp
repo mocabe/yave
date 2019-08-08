@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <yave/support/id.hpp>
-
 #include <cassert>
 #include <exception>
 #include <stdexcept>
@@ -16,6 +14,8 @@
 #include <utility>
 #include <algorithm>
 #include <string>
+#include <random>
+#include <chrono>
 
 namespace yave::graph {
 
@@ -189,14 +189,18 @@ namespace yave::graph {
   template <class Node, class Edge, class Socket>
   struct graph_id_traits
   {
-    /// yave::id
-    using id_type = uid;
+    /// id type
+    using id_type = uint64_t;
 
     /// generate random ID for graph objects.
-    static inline uid random_generate()
+    static id_type random_generate()
     {
-      // uses boost::random
-      return uid::random_generate();
+      auto seed =
+        std::chrono::high_resolution_clock::now().time_since_epoch().count();
+
+      auto gen = std::mt19937_64(seed);
+
+      return gen();
     }
   };
 

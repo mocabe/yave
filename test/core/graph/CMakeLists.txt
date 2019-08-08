@@ -1,1 +1,1 @@
-YAVE_Test(graph graph yave::support::id)
+YAVE_Test(graph graph)

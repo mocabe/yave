@@ -70,7 +70,7 @@ namespace yave {
   bool node_graph::_exists(const node_handle& h) const
   {
     return h.has_value() && m_g.exists(h.descriptor()) &&
-           h.id() == m_g.id(h.descriptor());
+           h.id() == uid {m_g.id(h.descriptor())};
   }
 
   bool node_graph::exists(const node_handle& h) const
@@ -82,7 +82,7 @@ namespace yave {
   bool node_graph::_exists(const connection_handle& h) const
   {
     return h.has_value() && m_g.exists(h.descriptor()) &&
-           h.id() == m_g.id(h.descriptor());
+           h.id() == uid {m_g.id(h.descriptor())};
   }
 
   bool node_graph::exists(const connection_handle& h) const
@@ -129,7 +129,7 @@ namespace yave {
       throw;
     }
 
-    auto handle = node_handle(node, m_g.id(node));
+    auto handle = node_handle(node, {m_g.id(node)});
 
     Info(
       g_logger,
@@ -192,7 +192,7 @@ namespace yave {
                   g_logger,
                   "Connection already exists. Return existing connection "
                   "handle.");
-                return connection_handle(e, m_g.id(e));
+                return connection_handle(e, {m_g.id(e)});
               }
             // input edge cannot have multiple inputs
             if (m_g.n_dst_edges(d) != 0) {
@@ -225,7 +225,7 @@ namespace yave {
               to_string(info.dst_node().id()),
               info.dst_socket());
 
-            return connection_handle(new_edge, m_g.id(new_edge));
+            return connection_handle(new_edge, {m_g.id(new_edge)});
           }
         }
       }
@@ -266,7 +266,7 @@ namespace yave {
     std::vector<node_handle> ret;
     for (auto&& n : m_g.nodes())
       if (m_g[n].name() == name)
-        ret.emplace_back(n, m_g.id(n));
+        ret.emplace_back(n, uid {m_g.id(n)});
     return ret;
   }
 
@@ -275,7 +275,7 @@ namespace yave {
     auto lck = _lock();
 
     std::vector<node_handle> ret;
-    for (auto&& n : m_g.nodes()) ret.emplace_back(n, m_g.id(n));
+    for (auto&& n : m_g.nodes()) ret.emplace_back(n, uid {m_g.id(n)});
     return ret;
   }
 
@@ -387,7 +387,7 @@ namespace yave {
         if (m_g[socket].is_input()) {
           assert(m_g.src_edges(socket).empty());
           for (auto&& edge : m_g.dst_edges(socket)) {
-            ret.emplace_back(edge, m_g.id(edge));
+            ret.emplace_back(edge, uid {m_g.id(edge)});
           }
         }
       }
@@ -405,7 +405,7 @@ namespace yave {
         if (m_g[socket].is_output()) {
           assert(m_g.dst_edges(socket).empty());
           for (auto&& edge : m_g.src_edges(socket)) {
-            ret.emplace_back(edge, m_g.id(edge));
+            ret.emplace_back(edge, uid {m_g.id(edge)});
           }
         }
       }
@@ -432,7 +432,7 @@ namespace yave {
         auto dst_edges = m_g.dst_edges(s);
         if (m_g[s].is_output())
           assert(dst_edges.empty());
-        for (auto&& e : dst_edges) ret.emplace_back(e, m_g.id(e));
+        for (auto&& e : dst_edges) ret.emplace_back(e, uid {m_g.id(e)});
       }
     }
     return ret;
@@ -457,7 +457,7 @@ namespace yave {
         auto src_edges = m_g.src_edges(s);
         if (m_g[s].is_input())
           assert(src_edges.empty());
-        for (auto&& e : src_edges) ret.emplace_back(e, m_g.id(e));
+        for (auto&& e : src_edges) ret.emplace_back(e, uid {m_g.id(e)});
       }
     }
     return ret;
@@ -505,8 +505,8 @@ namespace yave {
       assert(
         (m_g[s].is_input() && src_edges.empty()) ||
         (m_g[s].is_output() && dst_edges.empty()));
-      for (auto&& e : src_edges) ret.emplace_back(e, m_g.id(e));
-      for (auto&& e : dst_edges) ret.emplace_back(e, m_g.id(e));
+      for (auto&& e : src_edges) ret.emplace_back(e, uid {m_g.id(e)});
+      for (auto&& e : dst_edges) ret.emplace_back(e, uid {m_g.id(e)});
     }
     return ret;
   }
@@ -528,8 +528,8 @@ namespace yave {
       if (m_g[s].name() == socket) {
         auto src_edges = m_g.src_edges(s);
         auto dst_edges = m_g.dst_edges(s);
-        for (auto&& e : src_edges) ret.emplace_back(e, m_g.id(e));
-        for (auto&& e : dst_edges) ret.emplace_back(e, m_g.id(e));
+        for (auto&& e : src_edges) ret.emplace_back(e, uid {m_g.id(e)});
+        for (auto&& e : dst_edges) ret.emplace_back(e, uid {m_g.id(e)});
       }
     }
     if (ret.empty())
@@ -554,7 +554,7 @@ namespace yave {
       auto dst_edges = m_g.dst_edges(s);
       assert(m_g[s].is_input() || (m_g[s].is_output() && dst_edges.empty()));
       for (auto&& e : dst_edges) {
-        ret.emplace_back(e, m_g.id(e));
+        ret.emplace_back(e, uid {m_g.id(e)});
       }
     }
     return ret;
@@ -576,7 +576,7 @@ namespace yave {
     for (auto&& s : sockets) {
       auto src_edges = m_g.src_edges(s);
       assert((m_g[s].is_input() && src_edges.empty()) || m_g[s].is_output());
-      for (auto&& e : src_edges) ret.emplace_back(e, m_g.id(e));
+      for (auto&& e : src_edges) ret.emplace_back(e, uid {m_g.id(e)});
     }
     if (ret.empty())
       Warning(
@@ -591,7 +591,7 @@ namespace yave {
     std::vector<connection_handle> ret;
     for (auto&& n : m_g.nodes()) {
       for (auto&& s : m_g.sockets(n)) {
-        for (auto&& e : m_g.src_edges(s)) ret.emplace_back(e, m_g.id(e));
+        for (auto&& e : m_g.src_edges(s)) ret.emplace_back(e, uid {m_g.id(e)});
       }
     }
     return ret;
@@ -614,10 +614,11 @@ namespace yave {
     auto dst_nodes = m_g.nodes(dst);
     assert(src_nodes.size() == 1);
     assert(dst_nodes.size() == 1);
-    return connection_info {node_handle(src_nodes[0], m_g.id(src_nodes[0])), //
-                            m_g[src].name(),                                 //
-                            node_handle(dst_nodes[0], m_g.id(dst_nodes[0])), //
-                            m_g[dst].name()};                                //
+    return connection_info {
+      node_handle(src_nodes[0], {m_g.id(src_nodes[0])}), //
+      m_g[src].name(),                                   //
+      node_handle(dst_nodes[0], {m_g.id(dst_nodes[0])}), //
+      m_g[dst].name()};                                  //
   }
 
   std::optional<connection_info>
@@ -733,7 +734,7 @@ namespace yave {
 
     // TODO: Improve performance.
     for (auto&& n : m_g.nodes()) {
-      for (auto&& root : _root_of(node_handle(n, m_g.id(n)))) {
+      for (auto&& root : _root_of(node_handle(n, {m_g.id(n)}))) {
         [&] {
           for (auto&& r : ret) {
             if (root == r)
@@ -771,7 +772,7 @@ namespace yave {
           auto dst_s = m_g.dst(e);
           auto dst_n = m_g.nodes(dst_s);
           assert(dst_n.size() == 1);
-          stack.emplace_back(dst_n[0], m_g.id(dst_n[0]));
+          stack.emplace_back(dst_n[0], uid {m_g.id(dst_n[0])});
         }
       }
       // node is root
@@ -834,7 +835,7 @@ namespace yave {
         std::vector<connection_handle> inputs;
         for (auto&& s : m_g.sockets(current.descriptor())) {
           for (auto&& e : m_g.dst_edges(s)) {
-            inputs.emplace_back(e, m_g.id(e));
+            inputs.emplace_back(e, uid {m_g.id(e)});
           }
         }
 

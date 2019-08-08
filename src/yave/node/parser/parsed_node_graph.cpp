@@ -90,7 +90,7 @@ namespace yave {
   {
     std::vector<parsed_node_handle> handles;
     for (auto&& d : m_graph.nodes()) {
-      handles.emplace_back(d, m_graph.id(d));
+      handles.emplace_back(d, uid {m_graph.id(d)});
     }
     return handles;
   }
@@ -121,8 +121,8 @@ namespace yave {
     auto dst_node = m_graph.nodes(dst);
     assert(dst_node.size() == 1);
 
-    auto srcd = parsed_node_handle(src_node[0], m_graph.id(src_node[0]));
-    auto dstd = parsed_node_handle(dst_node[0], m_graph.id(dst_node[0]));
+    auto srcd = parsed_node_handle(src_node[0], uid {m_graph.id(src_node[0])});
+    auto dstd = parsed_node_handle(dst_node[0], uid {m_graph.id(dst_node[0])});
 
     return parsed_connection_info(srcd, dstd, m_graph[dst_node[0]].name());
   }
@@ -139,7 +139,7 @@ namespace yave {
       if (m_graph[s].name() == socket && !e.empty()) {
         assert(e.size() == 1);
         assert(m_graph[s].is_input());
-        return {parsed_connection_handle(e[0], m_graph.id(e[0]))};
+        return {parsed_connection_handle(e[0], {m_graph.id(e[0])})};
       }
     }
     return {};
@@ -157,7 +157,7 @@ namespace yave {
       if (!e.empty()) {
         assert(e.size() == 1);
         assert(m_graph[s].is_input());
-        handles.emplace_back(e[0], m_graph.id(e[0]));
+        handles.emplace_back(e[0], uid {m_graph.id(e[0])});
       }
     }
     return handles;
@@ -178,7 +178,7 @@ namespace yave {
         assert(m_graph[s].is_output());
 
       for (auto&& e : es) {
-        handles.emplace_back(e, m_graph.id(e));
+        handles.emplace_back(e, uid {m_graph.id(e)});
       }
     }
 
@@ -298,7 +298,7 @@ namespace yave {
       throw;
     }
 
-    auto handle = parsed_node_handle(node, m_graph.id(node));
+    auto handle = parsed_node_handle(node, {m_graph.id(node)});
 
     // add to root list
     if (is_root)
@@ -348,7 +348,7 @@ namespace yave {
     if (!m_graph.attach_socket(n, os))
       throw std::runtime_error("Falied to attach socket");
 
-    return parsed_node_handle(n, m_graph.id(n));
+    return parsed_node_handle(n, {m_graph.id(n)});
   }
 
   void parsed_node_graph::remove(const parsed_node_handle& node)
@@ -401,7 +401,7 @@ namespace yave {
             }
           }
         }
-        _this->remove(parsed_node_handle(n, graph.id(n)));
+        _this->remove(parsed_node_handle(n, {graph.id(n)}));
       }
     } impl;
 
@@ -430,7 +430,7 @@ namespace yave {
         for (auto&& dsts : m_graph.sockets(dst_node.descriptor())) {
           if (m_graph[dsts].name() == dst_socket) {
             auto e = m_graph.add_edge(srcs, dsts);
-            return parsed_connection_handle(e, m_graph.id(e));
+            return parsed_connection_handle(e, {m_graph.id(e)});
           }
         }
       }

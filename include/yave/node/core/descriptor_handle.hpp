@@ -7,6 +7,8 @@
 
 #include <yave/config/config.hpp>
 
+#include <yave/support/id.hpp>
+
 namespace yave {
 
   /// Simple wrapper for descriptor pointers.
