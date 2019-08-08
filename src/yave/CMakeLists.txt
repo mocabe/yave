@@ -1,4 +1,3 @@
-add_subdirectory(core)
 add_subdirectory(node)
 add_subdirectory(support)
 add_subdirectory(data)
@@ -11,7 +10,6 @@ add_subdirectory(imgui)
 add_library(yave-all INTERFACE)
 add_library(yave::all ALIAS yave-all)
 
-target_link_libraries(yave-all INTERFACE yave-core)
 target_link_libraries(yave-all INTERFACE yave-node)
 target_link_libraries(yave-all INTERFACE yave-support)
 target_link_libraries(yave-all INTERFACE yave-glfw)
