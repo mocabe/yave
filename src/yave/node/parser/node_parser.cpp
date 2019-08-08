@@ -4,9 +4,9 @@
 //
 
 #include <yave/node/parser/node_parser.hpp>
-#include <yave/core/rts/object_util.hpp>
-#include <yave/core/rts/generalize.hpp>
-#include <yave/core/rts/to_string.hpp>
+#include <yave/rts/object_util.hpp>
+#include <yave/rts/generalize.hpp>
+#include <yave/rts/to_string.hpp>
 #include <yave/support/log.hpp>
 
 #include <yave/data/obj/frame.hpp>

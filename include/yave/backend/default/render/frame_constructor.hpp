@@ -7,7 +7,7 @@
 
 #include <yave/node/obj/frame.hpp>
 
-#include <yave/core/rts.hpp>
+#include <yave/rts/rts.hpp>
 #include <yave/data/obj/frame.hpp>
 #include <yave/node/obj/instance_getter.hpp>
 #include <yave/backend/default/system/config.hpp>

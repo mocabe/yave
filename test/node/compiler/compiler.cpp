@@ -9,7 +9,7 @@
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/obj/function.hpp>
 #include <yave/node/obj/instance_getter.hpp>
-#include <yave/core/rts.hpp>
+#include <yave/rts/rts.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;

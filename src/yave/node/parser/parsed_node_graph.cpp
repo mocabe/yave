@@ -5,8 +5,8 @@
 
 #include <yave/node/parser/parsed_node_graph.hpp>
 
-#include <yave/core/rts/dynamic_typing.hpp>
-#include <yave/core/rts/function.hpp>
+#include <yave/rts/dynamic_typing.hpp>
+#include <yave/rts/function.hpp>
 #include <yave/data/obj/frame.hpp>
 
 #include <yave/node/support/socket_instance_manager.hpp>

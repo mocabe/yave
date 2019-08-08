@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/core/rts.hpp>
+#include <yave/rts/rts.hpp>
 
 #include <memory>
 

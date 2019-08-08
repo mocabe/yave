@@ -6,7 +6,7 @@
 #include <yave/backend/default/system/frame_buffer_manager.hpp>
 #include <yave/support/id.hpp>
 
-#include <yave/core/rts/atomic.hpp>
+#include <yave/rts/atomic.hpp>
 
 #include <yave/data/obj/frame_buffer_pool.hpp>
 

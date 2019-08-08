@@ -8,7 +8,7 @@
 #include <yave/node/obj/constructor.hpp>
 #include <yave/data/obj/frame.hpp>
 #include <yave/backend/default/render/primitive_constructor.hpp>
-#include <yave/core/rts/eval.hpp>
+#include <yave/rts/eval.hpp>
 
 using namespace yave;
 

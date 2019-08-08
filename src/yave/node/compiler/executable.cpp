@@ -6,7 +6,7 @@
 #include <yave/node/compiler/executable.hpp>
 #include <yave/data/obj/frame.hpp>
 
-#include <yave/core/rts.hpp>
+#include <yave/rts/rts.hpp>
 
 namespace yave {
 

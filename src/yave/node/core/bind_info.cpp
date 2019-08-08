@@ -5,7 +5,7 @@
 
 #include <yave/node/core/bind_info.hpp>
 #include <yave/data/obj/primitive.hpp>
-#include <yave/core/rts/eval.hpp>
+#include <yave/rts/eval.hpp>
 
 #include <yave/data/obj/frame.hpp>
 

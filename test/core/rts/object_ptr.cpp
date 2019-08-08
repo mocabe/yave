@@ -5,9 +5,9 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/core/rts/object_ptr.hpp>
-#include <yave/core/rts/box.hpp>
-#include <yave/core/rts/value_cast.hpp>
+#include <yave/rts/object_ptr.hpp>
+#include <yave/rts/box.hpp>
+#include <yave/rts/value_cast.hpp>
 
 using namespace yave;
 

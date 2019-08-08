@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/core/rts.hpp>
+#include <yave/rts/rts.hpp>
 #include <yave/data/obj/frame.hpp>
 #include <yave/data/obj/frame_buffer.hpp>
 #include <yave/node/obj/frame_buffer.hpp>

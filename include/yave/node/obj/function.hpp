@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/core/rts.hpp>
+#include <yave/rts/rts.hpp>
 #include <yave/data/obj/frame.hpp>
 #include <yave/node/core/get_info.hpp>
 #include <yave/node/obj/instance_getter.hpp>

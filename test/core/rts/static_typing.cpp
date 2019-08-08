@@ -5,8 +5,8 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/core/rts/static_typing.hpp>
-#include <yave/core/rts/type_gen.hpp>
+#include <yave/rts/static_typing.hpp>
+#include <yave/rts/type_gen.hpp>
 
 using namespace yave;
 
