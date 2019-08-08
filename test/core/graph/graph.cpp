@@ -235,7 +235,7 @@ TEST_CASE("Graph clone")
 
 TEST_CASE("Graph id")
 {
-  graph g;
+  graph<> g;
   auto n = g.add_node();
   auto s = g.add_socket();
   auto d = g.add_socket();
