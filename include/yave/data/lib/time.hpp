@@ -264,22 +264,20 @@ namespace yave {
       : m_value {0}
     {
     }
+
     /// Constructor.
-    constexpr time(const time& t) noexcept
-      : m_value {t.m_value}
-    {
-    }
+    constexpr time(const time&) noexcept = default;
+    /// Move constructor.
+    constexpr time(time&&) noexcept = default;
+    /// operator=
+    constexpr time& operator=(const time&) noexcept = default;
+    /// operator=
+    constexpr time& operator=(time&&) noexcept = default;
+
     /// Constructor.
     constexpr time(value_type v) noexcept
       : m_value {v}
     {
-    }
-
-    /// operator=
-    constexpr time& operator=(const time& t) noexcept
-    {
-      m_value = t.m_value;
-      return *this;
     }
 
     /// operator=
@@ -315,7 +313,7 @@ namespace yave {
     constexpr time operator--(int) noexcept;
 
     /// Get int value.
-    [[nodiscard]] constexpr value_type int_value() const noexcept
+    [[nodiscard]] constexpr value_type count() const noexcept
     {
       return m_value;
     }
@@ -412,37 +410,37 @@ namespace yave {
   [[nodiscard]] constexpr bool
     operator==(const time& lhs, const time& rhs) noexcept
   {
-    return lhs.int_value() == rhs.int_value();
+    return lhs.count() == rhs.count();
   }
 
   [[nodiscard]] constexpr bool
     operator!=(const time& lhs, const time& rhs) noexcept
   {
-    return lhs.int_value() != rhs.int_value();
+    return lhs.count() != rhs.count();
   }
 
   [[nodiscard]] constexpr bool
     operator<(const time& lhs, const time& rhs) noexcept
   {
-    return lhs.int_value() < rhs.int_value();
+    return lhs.count() < rhs.count();
   }
 
   [[nodiscard]] constexpr bool
     operator<=(const time& lhs, const time& rhs) noexcept
   {
-    return lhs.int_value() <= rhs.int_value();
+    return lhs.count() <= rhs.count();
   }
 
   [[nodiscard]] constexpr bool
     operator>(const time& lhs, const time& rhs) noexcept
   {
-    return lhs.int_value() > rhs.int_value();
+    return lhs.count() > rhs.count();
   }
 
   [[nodiscard]] constexpr bool
     operator>=(const time& lhs, const time& rhs) noexcept
   {
-    return lhs.int_value() >= rhs.int_value();
+    return lhs.count() >= rhs.count();
   }
 
 } // namespace yave

@@ -77,7 +77,7 @@ TEST_CASE("time")
   {
     constexpr yave::time t;
 
-    STATIC_REQUIRE(t.int_value() == 0);
+    STATIC_REQUIRE(t.count() == 0);
     STATIC_REQUIRE(t == t.zero());
     STATIC_REQUIRE(t >= t.zero());
     STATIC_REQUIRE(t <= t.zero());

@@ -19,6 +19,6 @@ TEST_CASE("time")
   }
   SECTION("access")
   {
-    [[maybe_unused]] auto v = make_object<const Time>()->int_value();
+    [[maybe_unused]] auto v = make_object<const Time>()->count();
   }
 }
