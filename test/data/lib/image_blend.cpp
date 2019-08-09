@@ -4,7 +4,7 @@
 //
 
 #include <yave/data/lib/image_blend.hpp>
-#include <yave/selene/conversion.hpp>
+#include <yave/lib/selene/conversion.hpp>
 #include <catch2/catch.hpp>
 
 #include <selene/img/pixel/PixelTypeAliases.hpp>

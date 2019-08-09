@@ -1,9 +1,8 @@
 add_subdirectory(node)
+add_subdirectory(backend)
 add_subdirectory(support)
 add_subdirectory(data)
-add_subdirectory(glfw)
-add_subdirectory(vulkan)
-add_subdirectory(imgui)
+add_subdirectory(lib)
 
 # yave::all
 

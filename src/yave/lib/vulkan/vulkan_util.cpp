@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/vulkan/vulkan_context.hpp>
+#include <yave/lib/vulkan/vulkan_context.hpp>
 
 #include <selene/img/typed/ImageView.hpp>
 #include <selene/img/pixel/PixelTypeAliases.hpp>

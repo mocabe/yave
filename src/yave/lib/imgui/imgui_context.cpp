@@ -4,7 +4,7 @@
 //
 
 #include <yave/config/config.hpp>
-#include <yave/imgui/imgui_context.hpp>
+#include <yave/lib/imgui/imgui_context.hpp>
 #include <yave/support/log.hpp>
 
 #include <imgui.h>

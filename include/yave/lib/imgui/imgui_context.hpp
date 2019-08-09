@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/vulkan/vulkan_context.hpp>
+#include <yave/lib/vulkan/vulkan_context.hpp>
 
 #include <imgui.h>
 #include <chrono>

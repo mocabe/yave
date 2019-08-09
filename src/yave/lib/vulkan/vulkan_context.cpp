@@ -5,7 +5,7 @@
 
 # define _ENABLE_ATOMIC_ALIGNMENT_FIX
 
-#include <yave/vulkan/vulkan_context.hpp>
+#include <yave/lib/vulkan/vulkan_context.hpp>
 #include <yave/support/log.hpp>
 
 #include <vulkan/vulkan.hpp>

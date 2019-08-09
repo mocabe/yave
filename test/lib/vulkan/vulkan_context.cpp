@@ -4,7 +4,7 @@
 //
 
 #include <catch2/catch.hpp>
-#include <yave/vulkan/vulkan_context.hpp>
+#include <yave/lib/vulkan/vulkan_context.hpp>
 
 using namespace yave;
 

@@ -3,8 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/imgui/imgui_context.hpp>
-#include <yave/vulkan/vulkan_util.hpp>
+#include <yave/lib/imgui/imgui_context.hpp>
+#include <yave/lib/vulkan/vulkan_util.hpp>
 
 #include <imgui.h>
 #include <selene/img_io/IO.hpp>

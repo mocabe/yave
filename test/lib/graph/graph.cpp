@@ -5,7 +5,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/core/graph.hpp>
+#include <yave/lib/graph/graph.hpp>
 
 using namespace yave::graph;
 

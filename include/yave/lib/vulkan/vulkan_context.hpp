@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/glfw/glfw_context.hpp>
+#include <yave/lib/glfw/glfw_context.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace yave::vulkan {

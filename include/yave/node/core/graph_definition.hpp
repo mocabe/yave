@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/core/graph.hpp>
+#include <yave/lib/graph/graph.hpp>
 #include <yave/node/core/node_property.hpp>
 #include <yave/node/core/socket_property.hpp>
 #include <yave/node/core/edge_property.hpp>
