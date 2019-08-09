@@ -9,6 +9,7 @@
 #include <boost/random/mersenne_twister.hpp>
 
 #include <cstring>
+#include <sstream>
 #include <random>
 
 namespace yave {
@@ -45,7 +46,9 @@ namespace yave {
 
   std::string to_string(const uid& id)
   {
-    return std::to_string(id.data);
+    std::stringstream stream;
+    stream << std::hex << id.data;
+    return std::string(stream.str());
   }
 
   uid uid::random_generate()
