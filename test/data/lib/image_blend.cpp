@@ -11,18 +11,19 @@
 #include <selene/img/typed/ImageTypeAliases.hpp>
 #include <selene/img/interop/ImageToDynImage.hpp>
 
+using namespace yave::sln;
 using namespace yave;
 
 TEST_CASE("RGBA_8U")
 {
   SECTION("src/dst")
   {
-    sln::TypedLayout layout(sln::PixelLength(1), sln::PixelLength(1));
-    sln::ImageRGBA_8u src(layout);
-    sln::ImageRGBA_8u dst(layout);
+    TypedLayout layout(PixelLength(1), PixelLength(1));
+    ImageRGBA_8u src(layout);
+    ImageRGBA_8u dst(layout);
 
-    auto src_view = from_selene(sln::to_dyn_image_view(src.constant_view()));
-    auto dst_view = from_selene(sln::to_dyn_image_view(dst.view()));
+    auto src_view = to_image_view(to_dyn_image_view(src.constant_view()));
+    auto dst_view = to_image_view(to_dyn_image_view(dst.view()));
 
     for (auto&& row : src) {
       for (auto&& pixel : row) {
@@ -58,17 +59,17 @@ TEST_CASE("RGBA_8U")
 
   SECTION("1on1 uint")
   {
-    sln::TypedLayout layout(sln::PixelLength(2), sln::PixelLength(2));
-    sln::ImageRGBA_8u src(layout);
-    sln::ImageRGBA_8u dst(layout);
+    TypedLayout layout(PixelLength(2), PixelLength(2));
+    ImageRGBA_8u src(layout);
+    ImageRGBA_8u dst(layout);
 
-    auto src_view = from_selene(sln::to_dyn_image_view(src.constant_view()));
-    auto dst_view = from_selene(sln::to_dyn_image_view(dst.view()));
+    auto src_view = to_image_view(to_dyn_image_view(src.constant_view()));
+    auto dst_view = to_image_view(to_dyn_image_view(dst.view()));
 
-    auto& A_0  = *src.data(sln::PixelIndex(0), sln::PixelIndex(0));
-    auto& A_A  = *src.data(sln::PixelIndex(1), sln::PixelIndex(0));
-    auto& A_B  = *src.data(sln::PixelIndex(0), sln::PixelIndex(1));
-    auto& A_AB = *src.data(sln::PixelIndex(1), sln::PixelIndex(1));
+    auto& A_0  = *src.data(PixelIndex(0), PixelIndex(0));
+    auto& A_A  = *src.data(PixelIndex(1), PixelIndex(0));
+    auto& A_B  = *src.data(PixelIndex(0), PixelIndex(1));
+    auto& A_AB = *src.data(PixelIndex(1), PixelIndex(1));
 
     A_0[0] = 0;
     A_0[3] = 0;
@@ -82,10 +83,10 @@ TEST_CASE("RGBA_8U")
     A_AB[0] = 'A';
     A_AB[3] = 255;
 
-    auto& B_0  = *dst.data(sln::PixelIndex(0), sln::PixelIndex(0));
-    auto& B_A  = *dst.data(sln::PixelIndex(1), sln::PixelIndex(0));
-    auto& B_B  = *dst.data(sln::PixelIndex(0), sln::PixelIndex(1));
-    auto& B_AB = *dst.data(sln::PixelIndex(1), sln::PixelIndex(1));
+    auto& B_0  = *dst.data(PixelIndex(0), PixelIndex(0));
+    auto& B_A  = *dst.data(PixelIndex(1), PixelIndex(0));
+    auto& B_B  = *dst.data(PixelIndex(0), PixelIndex(1));
+    auto& B_AB = *dst.data(PixelIndex(1), PixelIndex(1));
 
     B_0[0] = 0;
     B_0[3] = 0;
@@ -129,17 +130,17 @@ TEST_CASE("RGBA_8U")
 
   SECTION("1on1 float")
   {
-    sln::TypedLayout layout(sln::PixelLength(2), sln::PixelLength(2));
-    sln::ImageRGBA_32f src(layout);
-    sln::ImageRGBA_32f dst(layout);
+    TypedLayout layout(PixelLength(2), PixelLength(2));
+    ImageRGBA_32f src(layout);
+    ImageRGBA_32f dst(layout);
 
-    auto src_view = from_selene(sln::to_dyn_image_view(src.constant_view()));
-    auto dst_view = from_selene(sln::to_dyn_image_view(dst.view()));
+    auto src_view = to_image_view(to_dyn_image_view(src.constant_view()));
+    auto dst_view = to_image_view(to_dyn_image_view(dst.view()));
 
-    auto& A_0  = *src.data(sln::PixelIndex(0), sln::PixelIndex(0));
-    auto& A_A  = *src.data(sln::PixelIndex(1), sln::PixelIndex(0));
-    auto& A_B  = *src.data(sln::PixelIndex(0), sln::PixelIndex(1));
-    auto& A_AB = *src.data(sln::PixelIndex(1), sln::PixelIndex(1));
+    auto& A_0  = *src.data(PixelIndex(0), PixelIndex(0));
+    auto& A_A  = *src.data(PixelIndex(1), PixelIndex(0));
+    auto& A_B  = *src.data(PixelIndex(0), PixelIndex(1));
+    auto& A_AB = *src.data(PixelIndex(1), PixelIndex(1));
 
     A_0[0] = 0;
     A_0[3] = 0;
@@ -153,10 +154,10 @@ TEST_CASE("RGBA_8U")
     A_AB[0] = 0.42;
     A_AB[3] = 1.0;
 
-    auto& B_0  = *dst.data(sln::PixelIndex(0), sln::PixelIndex(0));
-    auto& B_A  = *dst.data(sln::PixelIndex(1), sln::PixelIndex(0));
-    auto& B_B  = *dst.data(sln::PixelIndex(0), sln::PixelIndex(1));
-    auto& B_AB = *dst.data(sln::PixelIndex(1), sln::PixelIndex(1));
+    auto& B_0  = *dst.data(PixelIndex(0), PixelIndex(0));
+    auto& B_A  = *dst.data(PixelIndex(1), PixelIndex(0));
+    auto& B_B  = *dst.data(PixelIndex(0), PixelIndex(1));
+    auto& B_AB = *dst.data(PixelIndex(1), PixelIndex(1));
 
     B_0[0] = 0;
     B_0[3] = 0;

@@ -10,169 +10,197 @@
 
 #include <selene/img/dynamic/DynImageView.hpp>
 #include <selene/img/typed/ImageView.hpp>
+#include <selene/img/interop/DynImageToImage.hpp>
 
-namespace yave {
+namespace yave::sln {
+
+  using namespace ::sln; // silly, but works.
 
   /// Convert pixel_format to sln::PixelFormat
-  inline sln::PixelFormat to_selene(yave::pixel_format fmt)
+  [[nodiscard]] inline PixelFormat to_PixelFormat(pixel_format fmt)
   {
     switch (fmt) {
       case pixel_format::Y:
-        return sln::PixelFormat::Y;
+        return PixelFormat::Y;
       case pixel_format::YA:
-        return sln::PixelFormat::YA;
+        return PixelFormat::YA;
       case pixel_format::RGB:
-        return sln::PixelFormat::RGB;
+        return PixelFormat::RGB;
       case pixel_format::YCbCr:
-        return sln::PixelFormat::YCbCr;
+        return PixelFormat::YCbCr;
       case pixel_format::CIELab:
-        return sln::PixelFormat::CIELab;
+        return PixelFormat::CIELab;
       case pixel_format::ICCLab:
-        return sln::PixelFormat::ICCLab;
+        return PixelFormat::ICCLab;
       case pixel_format::RGBA:
-        return sln::PixelFormat::RGBA;
+        return PixelFormat::RGBA;
       case pixel_format::CMYK:
-        return sln::PixelFormat::CMYK;
+        return PixelFormat::CMYK;
       case pixel_format::YCCK:
-        return sln::PixelFormat::YCCK;
+        return PixelFormat::YCCK;
       case pixel_format::Unknown:
-        return sln::PixelFormat::Unknown;
+        return PixelFormat::Unknown;
     }
-    return sln::PixelFormat::Unknown;
+    return PixelFormat::Unknown;
   }
 
   /// Convert sln::PixelFormat to pixel_format
-  inline yave::pixel_format from_selene(sln::PixelFormat fmt)
+  [[nodiscard]] inline pixel_format to_pixel_format(PixelFormat fmt)
   {
     switch (fmt) {
-      case sln::PixelFormat::Y:
+      case PixelFormat::Y:
         return pixel_format::Y;
-      case sln::PixelFormat::YA:
+      case PixelFormat::YA:
         return pixel_format::YA;
-      case sln::PixelFormat::RGB:
+      case PixelFormat::RGB:
         return pixel_format::RGB;
-      case sln::PixelFormat::YCbCr:
+      case PixelFormat::YCbCr:
         return pixel_format::YCbCr;
-      case sln::PixelFormat::CIELab:
+      case PixelFormat::CIELab:
         return pixel_format::CIELab;
-      case sln::PixelFormat::ICCLab:
+      case PixelFormat::ICCLab:
         return pixel_format::ICCLab;
-      case sln::PixelFormat::RGBA:
+      case PixelFormat::RGBA:
         return pixel_format::RGBA;
-      case sln::PixelFormat::CMYK:
+      case PixelFormat::CMYK:
         return pixel_format::CMYK;
-      case sln::PixelFormat::YCCK:
+      case PixelFormat::YCCK:
         return pixel_format::YCCK;
       // not supported
-      case sln::PixelFormat::X:
-      case sln::PixelFormat::XX:
-      case sln::PixelFormat::XXX:
-      case sln::PixelFormat::XXXX:
-      case sln::PixelFormat::BGR:
-      case sln::PixelFormat::BGRA:
-      case sln::PixelFormat::ARGB:
-      case sln::PixelFormat::ABGR:
-      case sln::PixelFormat::Unknown:
-      case sln::PixelFormat::Invalid:
+      case PixelFormat::X:
+      case PixelFormat::XX:
+      case PixelFormat::XXX:
+      case PixelFormat::XXXX:
+      case PixelFormat::BGR:
+      case PixelFormat::BGRA:
+      case PixelFormat::ARGB:
+      case PixelFormat::ABGR:
+      case PixelFormat::Unknown:
+      case PixelFormat::Invalid:
         return pixel_format::Unknown;
     }
     return pixel_format::Unknown;
   }
 
   /// Convert sample_format to sln::SampleFormat
-  inline sln::SampleFormat to_selene(const yave::sample_format& fmt)
+  [[nodiscard]] inline SampleFormat to_SampleFormat(const sample_format& fmt)
   {
     switch (fmt) {
       case sample_format::UnsignedInteger:
       case sample_format::UnsignedNormalized:
       case sample_format::UnsignedScaled:
       case sample_format::SRGB:
-        return sln::SampleFormat::UnsignedInteger;
+        return SampleFormat::UnsignedInteger;
       case sample_format::SignedInteger:
       case sample_format::SignedNormalized:
       case sample_format::SignedScaled:
-        return sln::SampleFormat::SignedInteger;
+        return SampleFormat::SignedInteger;
       case sample_format::FloatingPoint:
-        return sln::SampleFormat::FloatingPoint;
+        return SampleFormat::FloatingPoint;
       case sample_format::Unknown:
-        return sln::SampleFormat::Unknown;
+        return SampleFormat::Unknown;
     }
-    return sln::SampleFormat::Unknown;
+    return SampleFormat::Unknown;
   }
 
   /// Convert sln::SampleFormat to sample_format
-  inline yave::sample_format from_selene(sln::SampleFormat fmt)
+  [[nodiscard]] inline sample_format to_sample_format(SampleFormat fmt)
   {
     switch (fmt) {
-      case sln::SampleFormat::UnsignedInteger:
+      case SampleFormat::UnsignedInteger:
         return sample_format::UnsignedInteger;
-      case sln::SampleFormat::SignedInteger:
+      case SampleFormat::SignedInteger:
         return sample_format::SignedInteger;
-      case sln::SampleFormat::FloatingPoint:
+      case SampleFormat::FloatingPoint:
         return sample_format::FloatingPoint;
-      case sln::SampleFormat::Unknown:
+      case SampleFormat::Unknown:
         return sample_format::Unknown;
     }
     return sample_format::Unknown;
   }
 
   /// Convert const_image_view to sln::ConstantDynImageView
-  inline sln::ConstantDynImageView
-    to_selene(const yave::const_image_view& image)
+  [[nodiscard]] inline ConstantDynImageView
+    to_DynImageView(const const_image_view& image)
   {
-    auto layout = sln::UntypedLayout(
-      sln::PixelLength(image.width()),
-      sln::PixelLength(image.height()),
+    auto layout = UntypedLayout(
+      PixelLength(image.width()),
+      PixelLength(image.height()),
       static_cast<int16_t>(image.channels()),
       static_cast<int16_t>(image.byte_per_channel()));
 
-    auto semantics = sln::UntypedImageSemantics(
-      to_selene(image.image_format().pixel_format),
-      to_selene(image.image_format().sample_format));
+    auto semantics = UntypedImageSemantics(
+      to_PixelFormat(image.image_format().pixel_format),
+      to_SampleFormat(image.image_format().sample_format));
 
-    return sln::ConstantDynImageView(image.data(), layout, semantics);
+    return ConstantDynImageView(image.data(), layout, semantics);
   }
 
   /// Convert mutable_image_view to sln::MutableDynImageView
-  inline sln::MutableDynImageView
-    to_selene(const yave::mutable_image_view& image)
+  [[nodiscard]] inline MutableDynImageView
+    to_DynImageView(const mutable_image_view& image)
   {
-    auto layout = sln::UntypedLayout(
-      sln::PixelLength(image.width()),
-      sln::PixelLength(image.height()),
+    auto layout = UntypedLayout(
+      PixelLength(image.width()),
+      PixelLength(image.height()),
       static_cast<int16_t>(image.channels()),
       static_cast<int16_t>(image.byte_per_channel()));
 
-    auto semantics = sln::UntypedImageSemantics(
-      to_selene(image.image_format().pixel_format),
-      to_selene(image.image_format().sample_format));
+    auto semantics = UntypedImageSemantics(
+      to_PixelFormat(image.image_format().pixel_format),
+      to_SampleFormat(image.image_format().sample_format));
 
-    return sln::MutableDynImageView(image.data(), layout, semantics);
+    return MutableDynImageView(image.data(), layout, semantics);
   }
 
   /// Convert sln::ConstantDynImageView to const_image_view
-  inline yave::const_image_view
-    from_selene(const sln::ConstantDynImageView& image)
+  [[nodiscard]] inline const_image_view
+    to_image_view(const ConstantDynImageView& image)
   {
     auto fmt =
-      image_format {from_selene(image.pixel_format()),
-                    from_selene(image.sample_format()),
+      image_format {to_pixel_format(image.pixel_format()),
+                    to_sample_format(image.sample_format()),
                     static_cast<uint16_t>(image.nr_bytes_per_channel())};
 
-    return yave::const_image_view(
+    return const_image_view(
       image.byte_ptr(), image.width().value(), image.height().value(), fmt);
   }
 
   /// Convert sln::MutableDynImageView to mutable_image_view
-  inline yave::mutable_image_view
-    from_selene(const sln::MutableDynImageView& image)
+  [[nodiscard]] inline mutable_image_view
+    to_image_view(const MutableDynImageView& image)
   {
     auto fmt =
-      image_format {from_selene(image.pixel_format()),
-                    from_selene(image.sample_format()),
+      image_format {to_pixel_format(image.pixel_format()),
+                    to_sample_format(image.sample_format()),
                     static_cast<uint16_t>(image.nr_bytes_per_channel())};
 
-    return yave::mutable_image_view(
+    return mutable_image_view(
       image.byte_ptr(), image.width().value(), image.height().value(), fmt);
   }
+
+  /// wrapper of ::sln::to_image_view<...>
+  template <typename PixelType, typename Allocator>
+  [[nodiscard]] MutableImageView<PixelType>
+    to_image_view(DynImage<Allocator>& dyn_img)
+  {
+    return ::sln::to_image_view<PixelType, Allocator>(dyn_img);
+  }
+
+  /// wrapper of ::sln::to_image_view<...>
+  template <typename PixelType, typename Allocator>
+  [[nodiscard]] ConstantImageView<PixelType>
+    to_image_view(const DynImage<Allocator>& dyn_img)
+  {
+    return ::sln::to_image_view<PixelType, Allocator>(dyn_img);
+  }
+
+  /// wrapper of ::sln::to_image_view<...>
+  template <typename PixelType, ImageModifiability modifiability>
+  [[nodiscard]] ImageView<PixelType, modifiability>
+    to_image_view(const DynImageView<modifiability>& view)
+  {
+    return ::sln::to_image_view<PixelType, modifiability>(view);
+  }
+
 } // namespace yave
