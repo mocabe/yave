@@ -25,13 +25,18 @@ add_custom_command(
   OUTPUT vert.spv
   COMMAND glslangValidator -V ${CMAKE_CURRENT_LIST_DIR}/shader.vert -o vert.spv
   MAIN_DEPENDENCY ${CMAKE_CURRENT_LIST_DIR}/shader.vert
-  WORKING_DIRECTORY $<TARGET_FILE_DIR:yave-imgui>
 )
 add_custom_command(
   OUTPUT frag.spv
   COMMAND glslangValidator -V ${CMAKE_CURRENT_LIST_DIR}/shader.frag -o frag.spv
   MAIN_DEPENDENCY ${CMAKE_CURRENT_LIST_DIR}/shader.frag
-  WORKING_DIRECTORY $<TARGET_FILE_DIR:yave-imgui>
+)
+
+# Add command to copy shaders into lib directory
+add_custom_command(
+  TARGET yave-imgui POST_BUILD
+  COMMAND cp -f frag.spv $<TARGET_FILE_DIR:yave-imgui>/frag.spv & true
+  COMMAND cp -f vert.spv $<TARGET_FILE_DIR:yave-imgui>/vert.spv & true
 )
 
 # And custom targets for commands
