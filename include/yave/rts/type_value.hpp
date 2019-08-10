@@ -56,11 +56,11 @@ namespace yave {
 
     ret += '(';
 
-    auto _toc = [](uint32_t v) {
+    auto _toc = [](uint32_t v) -> char {
       if (v >= 10)
-        return 'a' + (v - 10);
+        return static_cast<char>('a' + (v - 10));
       else
-        return '0' + v;
+        return static_cast<char>('0' + v);
     };
 
     for (auto i = 0; i < 16; ++i) {
@@ -111,11 +111,11 @@ namespace yave {
     std::array<uint8_t, 8> buff;
     std::memcpy(&buff, &v.id, 8);
 
-    auto _toc = [](uint32_t i) {
+    auto _toc = [](uint32_t i) -> char {
       if (i >= 10)
-        return 'a' + (i - 10);
+        return static_cast<char>('a' + (i - 10));
       else
-        return '0' + i;
+        return static_cast<char>('0' + i);
     };
 
     for (size_t i = 0; i < buff.size(); ++i) {
