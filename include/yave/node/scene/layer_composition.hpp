@@ -10,37 +10,6 @@
 
 namespace yave {
 
-  /// Alpha blend op
-  enum class blend_operation : uint32_t
-  {
-    src   = 2,
-    dst   = 3,
-    over  = 4,
-    in    = 5,
-    out   = 6,
-    add   = 7,
-  };
-
-  /// to_string
-  constexpr const char* to_string(blend_operation op)
-  {
-    switch (op) {
-      case blend_operation::src:
-        return "blend_operation::src";
-      case blend_operation::dst:
-        return "blend_operation::dst";
-      case blend_operation::over:
-        return "blend_operation::over";
-      case blend_operation::in:
-        return "blend_operation::in";
-      case blend_operation::out:
-        return "blend_operation::out";
-      case blend_operation::add:
-        return "blend_operation::add";
-    }
-    return "(unrecognized blend operation)";
-  }
-
   /// Layer composition
   struct layer_composition
   {
