@@ -4,6 +4,7 @@ add_library(yave-node-scene
   managed_node_graph.cpp
   layered_node_graph.cpp
   layer_info.cpp
+  scene_graph.cpp
 )
 
 add_library(yave::node::scene ALIAS yave-node-scene)
