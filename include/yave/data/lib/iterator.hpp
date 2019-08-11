@@ -39,11 +39,11 @@ namespace yave {
     {
     }
 
-    template <
-      class Ptr,
-      class =
-        std::enable_if_t<std::is_same_v<Ptr, typename Container::pointer>>>
-    constexpr iterator(const iterator<Ptr, Container>& other) noexcept
+    template <class Ptr>
+    constexpr iterator(
+      const iterator<Ptr, Container>& other,
+      std::enable_if_t<std::is_convertible_v<Ptr, Pointer>, nullptr_t> =
+        nullptr) noexcept
       : m_pointer {other.m_pointer}
     {
     }
