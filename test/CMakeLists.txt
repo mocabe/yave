@@ -27,6 +27,7 @@ endfunction()
 # Tests
 
 add_subdirectory(lib)
+add_subdirectory(obj)
 add_subdirectory(rts)
 add_subdirectory(data)
 add_subdirectory(node)
