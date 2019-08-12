@@ -26,6 +26,12 @@ TEST_CASE("yave::string constructors")
     REQUIRE(str.length() == 3);
   }
 
+  SECTION("u8 init")
+  {
+    string str = u8"abc";
+    REQUIRE(str == "abc");
+  }
+
   SECTION("string copy")
   {
     string tmp = "abc";
@@ -95,5 +101,42 @@ TEST_CASE("yave::string assignments")
     str = str;
     REQUIRE(str == "");
     REQUIRE(str.length() == 0);
+  }
+}
+
+TEST_CASE("yave::string util")
+{
+  SECTION("swap")
+  {
+    string str1 = "abc";
+    string str2 = "xyz";
+    str1.swap(str2);
+    REQUIRE(str1 == "xyz");
+    REQUIRE(str2 == "abc");
+  }
+
+  SECTION("range based for")
+  {
+    string str = "aaa";
+    for (auto&& c : str) {
+      c = 'x';
+    }
+    REQUIRE(str == "xxx");
+  }
+
+  SECTION("range based for const")
+  {
+    const string str = "xxx";
+    for (auto&& c : str) {
+      REQUIRE(c == 'x');
+    }
+  }
+
+  SECTION("eq")
+  {
+    std::string str = "abc";
+    REQUIRE("abc" == str);
+    REQUIRE(str == "abc");
+    REQUIRE(str == str);
   }
 }
