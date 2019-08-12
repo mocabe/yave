@@ -161,36 +161,43 @@ namespace yave {
       return m_size;
     }
 
+    /// begin
     [[nodiscard]] iterator begin() noexcept
     {
       return iterator(m_ptr);
     }
 
+    /// end
     [[nodiscard]] iterator end() noexcept
     {
       return iterator(m_ptr + m_size);
     }
 
+    /// begin
     [[nodiscard]] const_iterator begin() const noexcept
     {
       return const_iterator(m_ptr);
     }
 
+    /// end
     [[nodiscard]] const_iterator end() const noexcept
     {
       return const_iterator(m_ptr);
     }
 
+    /// begin
     [[nodiscard]] const_iterator cbegin() const noexcept
     {
       return begin();
     }
 
+    /// end
     [[nodiscard]] const_iterator cend() const noexcept
     {
       return end();
     }
 
+    /// swap with other string
     void swap(string& other) noexcept
     {
       std::swap(m_ptr, other.m_ptr);
