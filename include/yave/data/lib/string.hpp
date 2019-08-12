@@ -40,23 +40,19 @@ namespace yave {
 
     /// Construct empty string.
     string()
-      : m_size {0}
     {
-      auto* buff = (char*)malloc(1);
-      if (!buff)
-        throw std::bad_alloc();
-      buff[0] = '\0';
-      m_ptr   = buff;
+      auto buff = _alloc(1);
+      buff[0]   = '\0';
+      m_ptr     = buff;
+      m_size    = 0;
     }
 
     /// Construct from char pointer.
     /// \param str UTF-8 encoded C-style string.
     string(const char* str)
     {
-      auto len   = std::strlen(str);
-      auto* buff = (char*)std::malloc(len + 1);
-      if (!buff)
-        throw std::bad_alloc();
+      auto len  = std::strlen(str);
+      auto buff = _alloc(len + 1);
       std::copy(str, str + len + 1, buff);
       m_ptr  = buff;
       m_size = len;
@@ -66,10 +62,8 @@ namespace yave {
     /// \param UTF-8 string.
     string(const char8_t* str)
     {
-      auto len   = std::strlen(reinterpret_cast<const char*>(str));
-      auto* buff = (char*)std::malloc(len + 1);
-      if (!buff)
-        throw std::bad_alloc();
+      auto len  = std::strlen(reinterpret_cast<const char*>(str));
+      auto buff = _alloc(len + 1);
       std::copy(str, str + len + 1, buff);
       m_ptr  = buff;
       m_size = len;
@@ -79,10 +73,8 @@ namespace yave {
     /// \param str std::string which contains UTF-8 encoded string.
     string(const std::string& str)
     {
-      auto len   = str.length();
-      auto* buff = (char*)std::malloc(len + 1);
-      if (!buff)
-        throw std::bad_alloc();
+      auto len  = str.length();
+      auto buff = _alloc(len + 1);
       std::copy(str.c_str(), str.c_str() + len + 1, buff);
       m_ptr  = buff;
       m_size = len;
@@ -92,10 +84,8 @@ namespace yave {
     /// \param str UTF-8 string.
     string(const std::basic_string<char8_t>& str)
     {
-      auto len   = str.length();
-      auto* buff = (char*)std::malloc(len + 1);
-      if (!buff)
-        throw std::bad_alloc();
+      auto len  = str.length();
+      auto buff = _alloc(len + 1);
       std::copy(str.c_str(), str.c_str() + len + 1, buff);
       m_ptr  = buff;
       m_size = len;
@@ -104,10 +94,8 @@ namespace yave {
     /// Copy constructor.
     string(const string& other)
     {
-      auto len   = other.length();
-      auto* buff = (char*)std::malloc(len + 1);
-      if (!buff)
-        throw std::bad_alloc();
+      auto len  = other.length();
+      auto buff = _alloc(len + 1);
       std::copy(other.m_ptr, other.m_ptr + len + 1, buff);
       m_ptr  = buff;
       m_size = len;
@@ -115,42 +103,32 @@ namespace yave {
 
     /// Move constructor.
     string(string&& other) noexcept
+      : m_ptr {nullptr}
+      , m_size {0}
     {
-      m_ptr        = other.m_ptr;
-      m_size       = other.m_size;
-      other.m_ptr  = nullptr;
-      other.m_size = 0;
+      swap(other);
     }
 
     /// Copy assignment operator.
     string& operator=(const string& other)
     {
-      auto len   = other.length();
-      auto* buff = (char*)std::realloc(m_ptr, len + 1);
-      if (!buff)
-        throw std::bad_alloc();
-      std::copy(other.m_ptr, other.m_ptr + len + 1, buff);
-      m_ptr  = buff;
-      m_size = len;
+      auto tmp = other;
+      swap(tmp);
       return *this;
     }
 
     /// Move assignment operator.
     string& operator=(string&& other) noexcept
     {
-      auto* tmp    = m_ptr;
-      m_ptr        = other.m_ptr;
-      m_size       = other.m_size;
-      other.m_ptr  = nullptr;
-      other.m_size = 0;
-      std::free(tmp);
+      string tmp = std::move(other);
+      swap(tmp);
       return *this;
     }
 
     /// Destructor.
     ~string() noexcept
     {
-      std::free(m_ptr);
+      _dealloc(m_ptr);
     }
 
     /// Get C style string.
@@ -199,6 +177,26 @@ namespace yave {
     [[nodiscard]] const_iterator cend() const noexcept
     {
       return end();
+    }
+
+    void swap(string& other) noexcept
+    {
+      std::swap(m_ptr, other.m_ptr);
+      std::swap(m_size, other.m_size);
+    }
+
+  private:
+    char* _alloc(size_t n)
+    {
+      auto buff = (char*)std::malloc(sizeof(char) * n);
+      if (!buff)
+        throw std::bad_alloc();
+      return buff;
+    }
+
+    void _dealloc(const char* ptr)
+    {
+      std::free((void*)ptr);
     }
 
   private:
