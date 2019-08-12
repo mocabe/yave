@@ -198,15 +198,12 @@ namespace yave {
   private:
     char* _alloc(size_t n)
     {
-      auto buff = (char*)std::malloc(sizeof(char) * n);
-      if (!buff)
-        throw std::bad_alloc();
-      return buff;
+      return new char[n];
     }
 
     void _dealloc(const char* ptr)
     {
-      std::free((void*)ptr);
+      delete[] ptr;
     }
 
   private:
