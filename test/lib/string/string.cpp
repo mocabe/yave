@@ -8,7 +8,7 @@
 
 using namespace yave;
 
-TEST_CASE("")
+TEST_CASE("yave::string constructors")
 {
   SECTION("default")
   {
@@ -58,11 +58,42 @@ TEST_CASE("")
     string str = str;
     REQUIRE(str == "");
   }
+}
+
+TEST_CASE("yave::string assignments")
+{
+  SECTION("char*")
+  {
+    string str = "x";
+    str        = "abc";
+    REQUIRE(str == "abc");
+    REQUIRE(str.length() == 3);
+  }
+
+  SECTION("copy")
+  {
+    string tmp = "abc";
+    string str = "x";
+    str        = tmp;
+    REQUIRE(str == tmp);
+    REQUIRE(str == "abc");
+    REQUIRE(str.length() == 3);
+  }
+
+  SECTION("move")
+  {
+    string tmp = "abc";
+    string str = "x";
+    str        = std::move(tmp);
+    REQUIRE(str == "abc");
+    REQUIRE(str.length() == 3);
+  }
 
   SECTION("self assign")
   {
     string str;
     str = str;
     REQUIRE(str == "");
+    REQUIRE(str.length() == 0);
   }
 }
