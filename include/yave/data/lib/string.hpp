@@ -208,4 +208,22 @@ namespace yave {
     uint64_t m_size;
   };
 
+  /// operator== for yave::string
+  inline bool operator==(const string& lhs, const string& rhs)
+  {
+    return std::strcmp(lhs.c_str(), rhs.c_str()) == 0;
+  }
+
+  /// operator== for yave::string
+  inline bool operator==(const char* lhs, const string& rhs)
+  {
+    return std::strcmp(lhs, rhs.c_str()) == 0;
+  }
+
+  /// operator== for yave::string
+  inline bool operator==(const string& lhs, const char* rhs)
+  {
+    return std::strcmp(lhs.c_str(), rhs) == 0;
+  }
+
 } // namespace yave
