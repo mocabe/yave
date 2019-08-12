@@ -94,6 +94,13 @@ namespace yave {
     /// Copy constructor.
     string(const string& other)
     {
+      if (this == std::addressof(other)) {
+        auto buff = _alloc(1);
+        buff[0]   = '\0';
+        m_ptr     = buff;
+        m_size    = 0;
+        return;
+      }
       auto len  = other.length();
       auto buff = _alloc(len + 1);
       std::copy(other.m_ptr, other.m_ptr + len + 1, buff);
@@ -112,6 +119,9 @@ namespace yave {
     /// Copy assignment operator.
     string& operator=(const string& other)
     {
+      if (this == std::addressof(other)) {
+        return *this;
+      }
       auto tmp = other;
       swap(tmp);
       return *this;
