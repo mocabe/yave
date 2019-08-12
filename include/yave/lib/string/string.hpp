@@ -110,9 +110,11 @@ namespace yave {
 
     /// Move constructor.
     string(string&& other) noexcept
-      : m_ptr {nullptr}
-      , m_size {0}
     {
+      auto buff = _alloc(1);
+      buff[0]   = '\0';
+      m_ptr     = buff;
+      m_size    = 0;
       swap(other);
     }
 

@@ -42,6 +42,23 @@ TEST_CASE("yave::string constructors")
     }
   }
 
+  SECTION("string move")
+  {
+    string tmp = "abc";
+    {
+      string str = std::move(tmp);
+      REQUIRE(str == "abc");
+      REQUIRE(str.length() == 3);
+    }
+
+    SECTION("after move")
+    {
+      REQUIRE(tmp.length() == 0);
+      REQUIRE(tmp == "");
+      REQUIRE(tmp == string(tmp.c_str()));
+    }
+  }
+
   SECTION("std::string move")
   {
     string str = std::string("abc");
