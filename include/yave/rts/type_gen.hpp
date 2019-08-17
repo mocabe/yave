@@ -73,7 +73,7 @@ namespace yave {
 
     /// read UUID from constexpr char array
     [[nodiscard]] constexpr std::array<char, 16>
-      read_from_constexpr_string(char const (&str)[37])
+      read_uuid_from_constexpr_string(char const (&str)[37])
     {
       // ex) 707186a4-f043-4a08-8223-e03fe9c1b0ea\0
 
@@ -125,7 +125,7 @@ namespace yave {
     template <class T>
     constexpr const std::array<char, 16> value_type_uuid()
     {
-      return read_from_constexpr_string(
+      return read_uuid_from_constexpr_string(
         object_type_traits<typename decltype(type_c<T>.tag())::type>::uuid);
     }
 
