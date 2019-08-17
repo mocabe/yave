@@ -97,7 +97,7 @@ namespace yave {
     [[nodiscard]] static var_type random_generate()
     {
       // MinGW workaround: use <chrono> instead of random_device.
-      std::mt19937_64 mt(
+      static std::mt19937_64 mt(
         std::chrono::high_resolution_clock::now().time_since_epoch().count());
       return {mt()};
     }
