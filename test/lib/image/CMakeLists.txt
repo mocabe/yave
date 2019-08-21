@@ -1,1 +1,1 @@
-YAVE_Test(image_blend image yave::image selene)
+YAVE_Test(image_blend image yave::lib::image selene)

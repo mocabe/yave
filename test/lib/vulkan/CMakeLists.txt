@@ -1,1 +1,1 @@
-YAVE_Test(vulkan_context support yave::vulkan)
+YAVE_Test(vulkan_context support yave::lib::vulkan)
