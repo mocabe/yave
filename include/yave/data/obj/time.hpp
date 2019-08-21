@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/data/lib/time.hpp>
+#include <yave/lib/time/time.hpp>
 
 namespace yave {
   /// Time object

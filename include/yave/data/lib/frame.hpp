@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/data/lib/time.hpp>
+#include <yave/lib/time/time.hpp>
 
 namespace yave {
 
