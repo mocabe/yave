@@ -7,7 +7,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/rts/atomic.hpp>
-#include <yave/data/lib/string.hpp>
+#include <yave/lib/string/string.hpp>
 
 #include <yave/support/overloaded.hpp>
 

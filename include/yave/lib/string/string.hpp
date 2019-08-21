@@ -22,6 +22,8 @@ namespace yave {
   /// need narrow/UTF8 convertion helpers to support STL's char* interface
   /// (namely, `std::exception::what()`). At this point, we just leave some
   /// char8_t compatible interface and don't touch encoding.
+  /// TODO: Use old std::string trick which uses statically allocated buffer for
+  /// empty strings.
   class string
   {
   public:
@@ -40,23 +42,19 @@ namespace yave {
 
     /// Construct empty string.
     string()
-      : m_size {0}
     {
-      auto* buff = (char*)malloc(1);
-      if (!buff)
-        throw std::bad_alloc();
-      buff[0] = '\0';
-      m_ptr   = buff;
+      auto buff = _alloc(1);
+      buff[0]   = '\0';
+      m_ptr     = buff;
+      m_size    = 0;
     }
 
     /// Construct from char pointer.
     /// \param str UTF-8 encoded C-style string.
     string(const char* str)
     {
-      auto len   = std::strlen(str);
-      auto* buff = (char*)std::malloc(len + 1);
-      if (!buff)
-        throw std::bad_alloc();
+      auto len  = std::strlen(str);
+      auto buff = _alloc(len + 1);
       std::copy(str, str + len + 1, buff);
       m_ptr  = buff;
       m_size = len;
@@ -66,10 +64,8 @@ namespace yave {
     /// \param UTF-8 string.
     string(const char8_t* str)
     {
-      auto len   = std::strlen(reinterpret_cast<const char*>(str));
-      auto* buff = (char*)std::malloc(len + 1);
-      if (!buff)
-        throw std::bad_alloc();
+      auto len  = std::strlen(reinterpret_cast<const char*>(str));
+      auto buff = _alloc(len + 1);
       std::copy(str, str + len + 1, buff);
       m_ptr  = buff;
       m_size = len;
@@ -79,10 +75,8 @@ namespace yave {
     /// \param str std::string which contains UTF-8 encoded string.
     string(const std::string& str)
     {
-      auto len   = str.length();
-      auto* buff = (char*)std::malloc(len + 1);
-      if (!buff)
-        throw std::bad_alloc();
+      auto len  = str.length();
+      auto buff = _alloc(len + 1);
       std::copy(str.c_str(), str.c_str() + len + 1, buff);
       m_ptr  = buff;
       m_size = len;
@@ -92,10 +86,8 @@ namespace yave {
     /// \param str UTF-8 string.
     string(const std::basic_string<char8_t>& str)
     {
-      auto len   = str.length();
-      auto* buff = (char*)std::malloc(len + 1);
-      if (!buff)
-        throw std::bad_alloc();
+      auto len  = str.length();
+      auto buff = _alloc(len + 1);
       std::copy(str.c_str(), str.c_str() + len + 1, buff);
       m_ptr  = buff;
       m_size = len;
@@ -104,10 +96,15 @@ namespace yave {
     /// Copy constructor.
     string(const string& other)
     {
-      auto len   = other.length();
-      auto* buff = (char*)std::malloc(len + 1);
-      if (!buff)
-        throw std::bad_alloc();
+      if (this == std::addressof(other)) {
+        auto buff = _alloc(1);
+        buff[0]   = '\0';
+        m_ptr     = buff;
+        m_size    = 0;
+        return;
+      }
+      auto len  = other.length();
+      auto buff = _alloc(len + 1);
       std::copy(other.m_ptr, other.m_ptr + len + 1, buff);
       m_ptr  = buff;
       m_size = len;
@@ -116,41 +113,36 @@ namespace yave {
     /// Move constructor.
     string(string&& other) noexcept
     {
-      m_ptr        = other.m_ptr;
-      m_size       = other.m_size;
-      other.m_ptr  = nullptr;
-      other.m_size = 0;
+      auto buff = _alloc(1);
+      buff[0]   = '\0';
+      m_ptr     = buff;
+      m_size    = 0;
+      swap(other);
     }
 
     /// Copy assignment operator.
     string& operator=(const string& other)
     {
-      auto len   = other.length();
-      auto* buff = (char*)std::realloc(m_ptr, len + 1);
-      if (!buff)
-        throw std::bad_alloc();
-      std::copy(other.m_ptr, other.m_ptr + len + 1, buff);
-      m_ptr  = buff;
-      m_size = len;
+      if (this == std::addressof(other)) {
+        return *this;
+      }
+      auto tmp = other;
+      swap(tmp);
       return *this;
     }
 
     /// Move assignment operator.
     string& operator=(string&& other) noexcept
     {
-      auto* tmp    = m_ptr;
-      m_ptr        = other.m_ptr;
-      m_size       = other.m_size;
-      other.m_ptr  = nullptr;
-      other.m_size = 0;
-      std::free(tmp);
+      string tmp = std::move(other);
+      swap(tmp);
       return *this;
     }
 
     /// Destructor.
     ~string() noexcept
     {
-      std::free(m_ptr);
+      _dealloc(m_ptr);
     }
 
     /// Get C style string.
@@ -171,34 +163,58 @@ namespace yave {
       return m_size;
     }
 
+    /// begin
     [[nodiscard]] iterator begin() noexcept
     {
       return iterator(m_ptr);
     }
 
+    /// end
     [[nodiscard]] iterator end() noexcept
     {
       return iterator(m_ptr + m_size);
     }
 
+    /// begin
     [[nodiscard]] const_iterator begin() const noexcept
     {
       return const_iterator(m_ptr);
     }
 
+    /// end
     [[nodiscard]] const_iterator end() const noexcept
     {
       return const_iterator(m_ptr);
     }
 
+    /// begin
     [[nodiscard]] const_iterator cbegin() const noexcept
     {
       return begin();
     }
 
+    /// end
     [[nodiscard]] const_iterator cend() const noexcept
     {
       return end();
+    }
+
+    /// swap with other string
+    void swap(string& other) noexcept
+    {
+      std::swap(m_ptr, other.m_ptr);
+      std::swap(m_size, other.m_size);
+    }
+
+  private:
+    char* _alloc(size_t n)
+    {
+      return new char[n];
+    }
+
+    void _dealloc(const char* ptr)
+    {
+      delete[] ptr;
     }
 
   private:
@@ -207,5 +223,23 @@ namespace yave {
     /// size
     uint64_t m_size;
   };
+
+  /// operator== for yave::string
+  inline bool operator==(const string& lhs, const string& rhs)
+  {
+    return std::strcmp(lhs.c_str(), rhs.c_str()) == 0;
+  }
+
+  /// operator== for yave::string
+  inline bool operator==(const char* lhs, const string& rhs)
+  {
+    return std::strcmp(lhs, rhs.c_str()) == 0;
+  }
+
+  /// operator== for yave::string
+  inline bool operator==(const string& lhs, const char* rhs)
+  {
+    return std::strcmp(lhs.c_str(), rhs) == 0;
+  }
 
 } // namespace yave
