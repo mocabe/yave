@@ -22,6 +22,8 @@ namespace yave {
   /// need narrow/UTF8 convertion helpers to support STL's char* interface
   /// (namely, `std::exception::what()`). At this point, we just leave some
   /// char8_t compatible interface and don't touch encoding.
+  /// TODO: Use old std::string trick which uses statically allocated buffer for
+  /// empty strings.
   class string
   {
   public:
