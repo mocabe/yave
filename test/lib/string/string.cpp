@@ -81,6 +81,12 @@ TEST_CASE("yave::string constructors")
     string str = str;
     REQUIRE(str == "");
   }
+
+  SECTION("self move init")
+  {
+    string str = std::move(str);
+    REQUIRE(str == "");
+  }
 }
 
 TEST_CASE("yave::string assignments")
@@ -118,6 +124,13 @@ TEST_CASE("yave::string assignments")
     str = str;
     REQUIRE(str == "");
     REQUIRE(str.length() == 0);
+  }
+
+  SECTION("self move assign")
+  {
+    string str = "abc";
+    str        = std::move(str);
+    REQUIRE(str == "abc");
   }
 }
 
