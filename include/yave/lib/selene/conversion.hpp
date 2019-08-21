@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/data/lib/image.hpp>
-#include <yave/data/lib/image_view.hpp>
+#include <yave/lib/image/image.hpp>
+#include <yave/lib/image/image_view.hpp>
 
 #include <selene/img/dynamic/DynImageView.hpp>
 #include <selene/img/typed/ImageView.hpp>
