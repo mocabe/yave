@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/data/lib/iterator.hpp>
+#include <yave/lib/util/iterator.hpp>
 
 #include <string>
 #include <cstring>
