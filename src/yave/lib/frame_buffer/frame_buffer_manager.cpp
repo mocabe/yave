@@ -3,14 +3,13 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/backend/default/system/frame_buffer_manager.hpp>
-#include <yave/support/id.hpp>
+#include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
+#include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
 
+#include <yave/support/id.hpp>
 #include <yave/rts/atomic.hpp>
 
-#include <yave/data/obj/frame_buffer_pool.hpp>
-
-namespace yave::backend::default_common {
+namespace yave {
 
   namespace {
 
@@ -46,7 +45,8 @@ namespace yave::backend::default_common {
   frame_buffer_manager::frame_buffer_manager(
     uint32_t width,
     uint32_t height,
-    const image_format& format)
+    const image_format& format,
+    const uuid& backend_id)
     : m_format {format}
     , m_width {width}
     , m_height {height}
@@ -54,7 +54,7 @@ namespace yave::backend::default_common {
     // create pool object
     m_pool = make_object<FrameBufferPool>(
       (void*)this,
-      yave::backend::default_common::backend_id,
+      backend_id,
       [](void* h) { return ((frame_buffer_manager*)h)->create(); },
       [](void* h, uid id) { return ((frame_buffer_manager*)h)->create(id); },
       [](void* h, uid id) { return ((frame_buffer_manager*)h)->ref(id); },

@@ -6,11 +6,11 @@
 #pragma once
 
 #include <yave/node/obj/frame_buffer.hpp>
+#include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
 
-#include <yave/data/obj/frame_buffer.hpp>
+#include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/node/obj/function.hpp>
 #include <yave/backend/default/system/config.hpp>
-#include <yave/backend/default/system/frame_buffer_manager.hpp>
 
 namespace yave {
 
@@ -40,8 +40,7 @@ namespace yave {
           PrimitiveContainer,
           FrameBufferConstructor>
     {
-      FrameBufferConstructorGetterFunction(
-        yave::backend::default_common::frame_buffer_manager& mngr)
+      FrameBufferConstructorGetterFunction(frame_buffer_manager& mngr)
         : manager {mngr}
       {
       }
@@ -51,7 +50,7 @@ namespace yave {
         return make_object<FrameBufferConstructor>(manager.get_pool_object());
       }
 
-      yave::backend::default_common::frame_buffer_manager& manager;
+      frame_buffer_manager& manager;
     };
 
   } // namespace backend::default_render
@@ -59,8 +58,7 @@ namespace yave {
   template <>
   struct bind_info_traits<FrameBufferConstructor, backend::tags::default_render>
   {
-    static bind_info
-      get_bind_info(yave::backend::default_common::frame_buffer_manager& mngr)
+    static bind_info get_bind_info(frame_buffer_manager& mngr)
     {
       return bind_info(
         "FrameBuffer",

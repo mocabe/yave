@@ -5,13 +5,11 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/data/lib/frame_buffer.hpp>
-#include <yave/data/obj/frame_buffer.hpp>
-
-#include <yave/backend/default/system/frame_buffer_manager.hpp>
+#include <yave/lib/frame_buffer/frame_buffer.hpp>
+#include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
+#include <yave/obj/frame_buffer/frame_buffer.hpp>
 
 using namespace yave;
-using namespace yave::backend::default_common;
 
 TEST_CASE("frame_buffer")
 {

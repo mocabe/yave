@@ -7,16 +7,14 @@
 
 #include <yave/config/config.hpp>
 #include <yave/data/lib/image_format.hpp>
-#include <yave/data/obj/frame_buffer_pool.hpp>
+#include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
 #include <yave/support/id.hpp>
 #include <yave/support/uuid.hpp>
-
-#include <yave/backend/default/system/config.hpp>
 
 #include <vector>
 #include <mutex>
 
-namespace yave::backend::default_common {
+namespace yave {
 
   class frame_buffer_manager
   {
@@ -25,7 +23,8 @@ namespace yave::backend::default_common {
     frame_buffer_manager(
       uint32_t width,
       uint32_t height,
-      const image_format& format);
+      const image_format& format,
+      const uuid& backend_id = uuid());
 
     /// copy ctor is deleted
     frame_buffer_manager(const frame_buffer_manager&) = delete;
@@ -72,6 +71,8 @@ namespace yave::backend::default_common {
 
   private:
     mutable std::mutex m_mtx;
+
+  private:
     std::vector<uid> m_id;
     std::vector<void*> m_data;
 

@@ -6,7 +6,7 @@
 #include <yave/node/scene/scene_graph.hpp>
 
 #include <yave/node/obj/function.hpp>
-#include <yave/data/obj/frame_buffer.hpp>
+#include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/node/obj/frame.hpp>
 #include <yave/node/obj/frame_buffer.hpp>
 #include <yave/node/obj/image_output.hpp>
@@ -556,8 +556,8 @@ namespace yave {
       Per-layer resources:
                                 (dst: empty)
     [frame] -> [visibility] --> |    |        |
-      [func] --------> | if | -> [compositor] ---> (out: empty)
-      [dst] ---------> |    |        |
+               [func] --------> | if | -> [compositor] ---> (out: empty)
+               [dst] ---------> |    |        |
                                [layer image output]
     */
     shared_layer_resource_handle m_image_output;  ///< image output node
@@ -846,6 +846,50 @@ namespace yave {
   {
     auto lck = _lock();
     _remove_layer(layer);
+  }
+
+  bool scene_graph::movable_into(
+    const layer_handle& from,
+    const layer_handle& to) const
+  {
+    auto lck = _lock();
+    assert(!"TODO");
+    // only movable into compos layer
+    return is_compos_layer(to) && m_graph.movable_into(from, to);
+  }
+
+  void scene_graph::move_into(const layer_handle& from, const layer_handle& to)
+  {
+    auto lck = _lock();
+    assert(!"TODO");
+  }
+
+  bool scene_graph::movable_below(
+    const layer_handle& from,
+    const layer_handle& to) const
+  {
+    auto lck = _lock();
+    assert(!"TODO");
+  }
+
+  void scene_graph::move_below(const layer_handle& from, const layer_handle& to)
+  {
+    auto lck = _lock();
+    assert(!"TODO");
+  }
+
+  bool scene_graph::movable_above(
+    const layer_handle& from,
+    const layer_handle& to) const
+  {
+    auto lck = _lock();
+    assert(!"TODO");
+  }
+
+  void scene_graph::move_above(const layer_handle& from, const layer_handle& to)
+  {
+    auto lck = _lock();
+    assert(!"TODO");
   }
 
   bool scene_graph::is_compos_layer(const layer_handle& layer) const

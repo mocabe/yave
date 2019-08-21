@@ -3,12 +3,9 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/rts/rts.hpp>
-#include <yave/data/obj/frame.hpp>
-#include <yave/data/obj/frame_buffer.hpp>
-#include <yave/node/obj/frame_buffer.hpp>
-#include <yave/backend/default/system/frame_buffer_manager.hpp>
+#include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
 #include <yave/backend/default/render/frame_buffer_constructor.hpp>
+
 #include <catch2/catch.hpp>
 
 using namespace yave;
