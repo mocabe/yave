@@ -5,7 +5,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/data/obj/time.hpp>
+#include <yave/obj/time/time.hpp>
 
 using namespace yave;
 

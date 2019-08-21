@@ -6,7 +6,7 @@
 #include <yave/node/core/primitive.hpp>
 #include <yave/node/obj/constructor.hpp>
 #include <yave/rts/eval.hpp>
-#include <yave/data/obj/string.hpp>
+#include <yave/obj/string/string.hpp>
 
 namespace yave {
 
