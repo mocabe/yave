@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/data/lib/image_blend.hpp>
+#include <yave/lib/image/image_blend.hpp>
 #include <yave/lib/selene/conversion.hpp>
 
 #include <selene/img/pixel/PixelTypeAliases.hpp>

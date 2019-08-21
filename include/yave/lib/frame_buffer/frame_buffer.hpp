@@ -7,7 +7,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/rts/object_ptr.hpp>
-#include <yave/data/lib/image_view.hpp>
+#include <yave/lib/image/image_view.hpp>
 #include <yave/support/id.hpp>
 
 namespace yave {

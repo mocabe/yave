@@ -7,8 +7,8 @@
 
 #include <yave/config/config.hpp>
 
-#include <yave/data/lib/sample_format.hpp>
-#include <yave/data/lib/pixel_format.hpp>
+#include <yave/lib/image/sample_format.hpp>
+#include <yave/lib/image/pixel_format.hpp>
 
 namespace yave {
 
@@ -30,10 +30,10 @@ namespace yave {
   static_assert(sizeof(image_format) == sizeof(uint32_t));
 
   // clang-format off
-  constexpr image_format image_format::Unknown  = {pixel_format::Unknown, sample_format::Unknown, 0};
-  constexpr image_format image_format::RGBA8UI  = {pixel_format::RGBA, sample_format::UnsignedInteger, 1};
-  constexpr image_format image_format::RGBA16UI = {pixel_format::RGBA, sample_format::UnsignedInteger, 2};
-  constexpr image_format image_format::RGBA32F  = {pixel_format::RGBA, sample_format::FloatingPoint,   4};
+  constexpr image_format image_format::Unknown  = {pixel_format::Unknown, sample_format::Unknown,         0};
+  constexpr image_format image_format::RGBA8UI  = {pixel_format::RGBA,    sample_format::UnsignedInteger, 1};
+  constexpr image_format image_format::RGBA16UI = {pixel_format::RGBA,    sample_format::UnsignedInteger, 2};
+  constexpr image_format image_format::RGBA32F  = {pixel_format::RGBA,    sample_format::FloatingPoint,   4};
   // clang-format on
 
   /// operator==

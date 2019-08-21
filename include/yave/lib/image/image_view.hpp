@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/data/lib/image_format.hpp>
-#include <yave/data/lib/image.hpp>
+#include <yave/lib/image/image_format.hpp>
+#include <yave/lib/image/image.hpp>
 
 namespace yave {
 

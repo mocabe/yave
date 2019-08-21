@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/data/lib/image_view.hpp>
-#include <yave/data/lib/blend_operation.hpp>
+#include <yave/lib/image/image_view.hpp>
+#include <yave/lib/image/blend_operation.hpp>
 
 namespace yave {
 
