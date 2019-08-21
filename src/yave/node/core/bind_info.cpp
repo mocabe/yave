@@ -7,7 +7,7 @@
 #include <yave/data/obj/primitive.hpp>
 #include <yave/rts/eval.hpp>
 
-#include <yave/data/obj/frame.hpp>
+#include <yave/obj/frame/frame.hpp>
 
 #include <algorithm>
 

@@ -9,7 +9,7 @@
 #include <yave/rts/to_string.hpp>
 #include <yave/support/log.hpp>
 
-#include <yave/data/obj/frame.hpp>
+#include <yave/obj/frame/frame.hpp>
 
 #include <yave/node/support/socket_instance_manager.hpp>
 

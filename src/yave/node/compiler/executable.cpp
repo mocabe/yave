@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/compiler/executable.hpp>
-#include <yave/data/obj/frame.hpp>
+#include <yave/obj/frame/frame.hpp>
 
 #include <yave/rts/rts.hpp>
 

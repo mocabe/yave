@@ -6,7 +6,7 @@
 #include <catch2/catch.hpp>
 
 #include <yave/node/obj/constructor.hpp>
-#include <yave/data/obj/frame.hpp>
+#include <yave/obj/frame/frame.hpp>
 #include <yave/backend/default/render/primitive_constructor.hpp>
 #include <yave/rts/eval.hpp>
 
