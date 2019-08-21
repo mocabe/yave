@@ -7,7 +7,7 @@
 
 #include <yave/rts/rts.hpp>
 #include <yave/node/core/get_info.hpp>
-#include <yave/data/obj/primitive.hpp>
+#include <yave/obj/primitive/primitive.hpp>
 
 namespace yave {
 
