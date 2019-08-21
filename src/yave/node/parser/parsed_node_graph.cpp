@@ -7,7 +7,7 @@
 
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/rts/function.hpp>
-#include <yave/data/obj/frame.hpp>
+#include <yave/obj/frame/frame.hpp>
 
 #include <yave/node/support/socket_instance_manager.hpp>
 #include <yave/node/obj/function.hpp>

@@ -1,24 +1,24 @@
-# yave::imgui
+# yave::lib::imgui
 
-add_library(yave-imgui imgui_context.cpp)
-add_library(yave::imgui ALIAS yave-imgui)
+add_library(yave-lib-imgui imgui_context.cpp)
+add_library(yave::lib::imgui ALIAS yave-lib-imgui)
 
-target_include_directories(yave-imgui PRIVATE ${YAVE_INCLUDE_DIR})
-target_compile_options(yave-imgui PRIVATE ${YAVE_COMPILE_FLAGS})
-target_link_options(yave-imgui PRIVATE ${YAVE_LINK_FLAGS})
-target_link_libraries(yave-imgui PRIVATE yave::support::log)
-target_link_libraries(yave-imgui PRIVATE Boost::boost)
-target_link_libraries(yave-imgui PRIVATE Boost::filesystem)
-target_link_libraries(yave-imgui PRIVATE Boost::disable_autolinking)
+target_include_directories(yave-lib-imgui PRIVATE ${YAVE_INCLUDE_DIR})
+target_compile_options(yave-lib-imgui PRIVATE ${YAVE_COMPILE_FLAGS})
+target_link_options(yave-lib-imgui PRIVATE ${YAVE_LINK_FLAGS})
+target_link_libraries(yave-lib-imgui PRIVATE yave::support::log)
+target_link_libraries(yave-lib-imgui PRIVATE Boost::boost)
+target_link_libraries(yave-lib-imgui PRIVATE Boost::filesystem)
+target_link_libraries(yave-lib-imgui PRIVATE Boost::disable_autolinking)
 
 if(YAVE_COMPILER_GNU)
   # <experimental/filesystem>
-  target_link_libraries(yave-imgui PRIVATE stdc++fs)
+  target_link_libraries(yave-lib-imgui PRIVATE stdc++fs)
 endif()
 
-target_link_libraries(yave-imgui PUBLIC yave::glfw)
-target_link_libraries(yave-imgui PUBLIC yave::vulkan)
-target_link_libraries(yave-imgui PUBLIC imgui-glfw-vulkan)
+target_link_libraries(yave-lib-imgui PUBLIC yave::lib::glfw)
+target_link_libraries(yave-lib-imgui PUBLIC yave::lib::vulkan)
+target_link_libraries(yave-lib-imgui PUBLIC imgui-glfw-vulkan)
 
 # Add commands to compile shaders
 add_custom_command(
@@ -34,9 +34,9 @@ add_custom_command(
 
 # Add command to copy shaders into lib directory
 add_custom_command(
-  TARGET yave-imgui POST_BUILD
-  COMMAND cp -f frag.spv $<TARGET_FILE_DIR:yave-imgui>/frag.spv & true
-  COMMAND cp -f vert.spv $<TARGET_FILE_DIR:yave-imgui>/vert.spv & true
+  TARGET yave-lib-imgui POST_BUILD
+  COMMAND cp -f frag.spv $<TARGET_FILE_DIR:yave-lib-imgui>/frag.spv & true
+  COMMAND cp -f vert.spv $<TARGET_FILE_DIR:yave-lib-imgui>/vert.spv & true
 )
 
 # And custom targets for commands
@@ -53,8 +53,8 @@ add_custom_target(
 add_library(yave-imgui-shaders INTERFACE)
 add_dependencies(yave-imgui-shaders yave-imgui-vert)
 add_dependencies(yave-imgui-shaders yave-imgui-frag)
-target_compile_definitions(yave-imgui-shaders INTERFACE "-DYAVE_IMGUI_VERT_SHADER=$<TARGET_FILE_DIR:yave-imgui>/vert.spv")
-target_compile_definitions(yave-imgui-shaders INTERFACE "-DYAVE_IMGUI_FRAG_SHADER=$<TARGET_FILE_DIR:yave-imgui>/frag.spv")
+target_compile_definitions(yave-imgui-shaders INTERFACE "-DYAVE_IMGUI_VERT_SHADER=$<TARGET_FILE_DIR:yave-lib-imgui>/vert.spv")
+target_compile_definitions(yave-imgui-shaders INTERFACE "-DYAVE_IMGUI_FRAG_SHADER=$<TARGET_FILE_DIR:yave-lib-imgui>/frag.spv")
 
 # And dependencies for target... CMake is easy isn't it?
-target_link_libraries(yave-imgui PRIVATE yave-imgui-shaders)
+target_link_libraries(yave-lib-imgui PRIVATE yave-imgui-shaders)

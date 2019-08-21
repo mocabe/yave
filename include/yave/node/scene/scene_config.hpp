@@ -6,8 +6,8 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/data/lib/time.hpp>
-#include <yave/data/lib/image_format.hpp>
+#include <yave/lib/time/time.hpp>
+#include <yave/lib/image/image_format.hpp>
 
 namespace yave {
 

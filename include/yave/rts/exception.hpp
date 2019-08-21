@@ -8,7 +8,7 @@
 #include <yave/rts/box.hpp>
 #include <yave/rts/object_cast.hpp>
 
-#include <yave/data/obj/string.hpp>
+#include <yave/obj/string/string.hpp>
 
 #include <exception>
 

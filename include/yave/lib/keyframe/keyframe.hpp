@@ -6,8 +6,8 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/data/lib/time.hpp>
-#include <yave/data/lib/iterator.hpp>
+#include <yave/lib/time/time.hpp>
+#include <yave/lib/util/iterator.hpp>
 
 #include <vector>
 #include <iterator>

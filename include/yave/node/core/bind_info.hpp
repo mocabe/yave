@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/data/obj/primitive.hpp>
+#include <yave/obj/primitive/primitive.hpp>
 #include <yave/rts/object_ptr.hpp>
 #include <yave/node/core/node_info.hpp>
 

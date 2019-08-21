@@ -6,7 +6,7 @@
 #include <catch2/catch.hpp>
 
 #include <yave/node/obj/function.hpp>
-#include <yave/data/obj/primitive.hpp>
+#include <yave/obj/primitive/primitive.hpp>
 
 using namespace yave;
 

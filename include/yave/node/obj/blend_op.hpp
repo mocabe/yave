@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/data/lib/blend_operation.hpp>
+#include <yave/lib/image/blend_operation.hpp>
 #include <yave/node/core/get_info.hpp>
 
 namespace yave {
