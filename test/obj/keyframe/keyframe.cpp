@@ -35,7 +35,11 @@ TEST_CASE("Keyframe")
 
     SECTION("init")
     {
-      REQUIRE(kf->find_value(0) == 0.f);
+      REQUIRE(kf->find_value(0).value == 0.f);
+      REQUIRE(kf->find_value(0).cp_left.time == time::zero());
+      REQUIRE(kf->find_value(0).cp_right.time == time::zero());
+      REQUIRE(kf->find_value(0).cp_right.value == 0);
+      REQUIRE(kf->find_value(0).cp_left.value == 0);
     }
   }
 
