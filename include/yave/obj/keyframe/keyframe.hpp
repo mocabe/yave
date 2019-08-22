@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/lib/keyframe/keyframe.hpp>
+#include <yave/lib/keyframe/float.hpp>
 #include <yave/rts/box.hpp>
 
 namespace yave {
@@ -14,10 +15,10 @@ namespace yave {
   template <class T>
   using Keyframe = Box<keyframe<T>>;
 
-  /// Object type of keyframe<int32_t>
-  using KeyframeInt = Keyframe<int32_t>;
-  /// Object type of keyframe<float>
-  using KeyframeFloat = Keyframe<float>;
+  /// Object type of keyframe<int64_t>
+  using KeyframeInt = Keyframe<int64_t>;
+  /// Object type of keyframe<kf_float_handles>
+  using KeyframeFloat = Keyframe<kf_float_handles>;
   /// Object type of keyframe<bool>
   using KeyframeBool = Keyframe<bool>;
 
