@@ -17,7 +17,7 @@ namespace yave {
     /// Control point for KeyframeFloat
     struct control_point
     {
-      /// time axis position
+      /// relative time axis position
       time time;
       /// value
       double value;
