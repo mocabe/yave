@@ -1,1 +1,1 @@
-YAVE_Test(keyframe keyframe)
+YAVE_Test(keyframe obj)
