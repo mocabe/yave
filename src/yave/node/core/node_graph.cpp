@@ -300,10 +300,7 @@ namespace yave {
         output_sockets.emplace_back(m_g[s].name());
     }
 
-    auto ret = node_info(n.name(), input_sockets, output_sockets);
-
-    if (n.is_prim())
-      assert(ret.is_prim());
+    auto ret = node_info(n.name(), input_sockets, output_sockets, n.is_prim());
 
     return ret;
   }
