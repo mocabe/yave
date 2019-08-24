@@ -84,9 +84,10 @@ TEST_CASE("node_graph control")
     REQUIRE(ng.exists(n2));
     REQUIRE(ng.nodes().size() == 2);
 
-    node_info prim_info {"prim test node", {}, {"value"}};
-    REQUIRE(prim_info.is_prim());
+    node_info prim_info {"prim test node", {}, {"value"}, true};
     auto n3 = ng.add(prim_info);
+    REQUIRE(prim_info.is_prim());
+    REQUIRE(ng.is_primitive(n3));
     REQUIRE(n3);
     REQUIRE(ng.exists(n3));
     REQUIRE(ng.nodes().size() == 3);
@@ -226,7 +227,6 @@ TEST_CASE("node_graph control")
     {
       node_info info1 {"test node", {}, {"output"}};
       node_info info2 {"test node", {"input"}, {"output"}};
-      REQUIRE(info1.is_prim());
 
       auto n1 = ng.add(info1);
       auto n2 = ng.add(info2);
@@ -244,7 +244,6 @@ TEST_CASE("node_graph control")
   {
     node_info info1 {"test node", {}, {"output"}};
     node_info info2 {"test node", {"input"}, {"output", "2"}};
-    REQUIRE(info1.is_prim());
 
     auto n1 = ng.add(info1);
     auto n2 = ng.add(info2);

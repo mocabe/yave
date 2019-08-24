@@ -21,7 +21,7 @@ namespace yave {
     {
       using value_type = typename T::value_type;
       auto name        = get_primitive_name(primitive_t {value_type {}});
-      return node_info(name, {}, {"value"});
+      return node_info(name, {}, {"value"}, /*.is_prim=*/true);
     }
   };
 

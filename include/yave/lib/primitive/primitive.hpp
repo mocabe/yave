@@ -8,6 +8,7 @@
 #include <yave/config/config.hpp>
 #include <yave/rts/atomic.hpp>
 #include <yave/lib/string/string.hpp>
+#include <yave/lib/keyframe/alias.hpp>
 
 #include <yave/support/overloaded.hpp>
 
@@ -30,7 +31,10 @@ namespace yave {
       double,
       float,
       bool,
-      yave::string>;
+      yave::string,
+      kf_int_t,
+      kf_bool_t,
+      kf_float_t>;
 
   /// Type trait for primitive types.
   template <class T>
@@ -57,6 +61,9 @@ namespace yave {
   YAVE_DECL_PRIMITIVE_TYPENAME(float, Float);
   YAVE_DECL_PRIMITIVE_TYPENAME(bool, Bool);
   YAVE_DECL_PRIMITIVE_TYPENAME(yave::string, String);
+  YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_int_t, KeyframeInt);
+  YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_float_t, KeyframeFloat);
+  YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_bool_t, KeyframeBool);
 
 #undef YAVE_DECL_PRIMITIVE_TYPENAME
 

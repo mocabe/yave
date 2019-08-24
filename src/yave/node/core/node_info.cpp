@@ -49,10 +49,12 @@ namespace yave {
   node_info::node_info(
     std::string name,
     std::vector<std::string> input_sockets,
-    std::vector<std::string> output_sockets)
+    std::vector<std::string> output_sockets,
+    bool is_prim)
     : m_name {std::move(name)}
     , m_input_sockets {std::move(input_sockets)}
     , m_output_sockets {std::move(output_sockets)}
+    , m_is_prim {is_prim}
   {
     // check
     validate_node_info(m_name, m_input_sockets, m_output_sockets);
@@ -92,7 +94,7 @@ namespace yave {
 
   bool node_info::is_prim() const
   {
-    return m_input_sockets.empty() && m_output_sockets.size() == 1;
+    return m_is_prim;
   }
 
   bool operator==(const node_info& lhs, const node_info& rhs)
