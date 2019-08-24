@@ -5,22 +5,17 @@
 
 #pragma once
 
-#include <yave/lib/keyframe/keyframe.hpp>
-#include <yave/lib/keyframe/float.hpp>
+#include <yave/lib/keyframe/alias.hpp>
 #include <yave/rts/box.hpp>
 
 namespace yave {
 
-  /// Templated keyframe object
-  template <class T>
-  using Keyframe = Box<keyframe<T>>;
-
   /// Object type of keyframe<int64_t>
-  using KeyframeInt = Keyframe<int64_t>;
+  using KeyframeInt = Box<kf_int_t>;
   /// Object type of keyframe<kf_float_handles>
-  using KeyframeFloat = Keyframe<kf_float_handles>;
+  using KeyframeFloat = Box<kf_float_t>;
   /// Object type of keyframe<bool>
-  using KeyframeBool = Keyframe<bool>;
+  using KeyframeBool = Box<kf_bool_t>;
 
 } // namespace yave
 
