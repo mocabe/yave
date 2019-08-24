@@ -9,6 +9,7 @@
 #include <yave/node/core/bind_info.hpp>
 #include <yave/support/overloaded.hpp>
 #include <yave/obj/primitive/primitive.hpp>
+#include <yave/obj/keyframe/keyframe.hpp>
 
 #include <mutex>
 
