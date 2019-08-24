@@ -142,5 +142,34 @@ TEST_CASE("keyframe")
         REQUIRE(*iter == zero);
       }
     }
+
+    SECTION("operator=")
+    {
+      SECTION("copy")
+      {
+        auto tmp = kf;
+        REQUIRE(tmp.size() == 1);
+        REQUIRE(kf.size() == 1);
+      }
+
+      SECTION("move")
+      {
+        auto tmp = std::move(kf);
+        REQUIRE(kf.empty());
+        REQUIRE(tmp.size() == 1);
+      }
+
+      SECTION("self copy")
+      {
+        kf = kf;
+        REQUIRE(kf.size() == 1);
+      }
+
+      SECTION("self move")
+      {
+        kf = std::move(kf);
+        REQUIRE(kf.size() == 1);
+      }
+    }
   }
 }

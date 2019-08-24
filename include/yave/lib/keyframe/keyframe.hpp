@@ -59,19 +59,30 @@ namespace yave {
     /// Move keyframe
     keyframe(keyframe&& other) noexcept
     {
-      m_keys   = nullptr;
-      m_values = nullptr;
+      m_keys   = new k_t[1] {time::max()};
+      m_values = new v_t[1];
       m_size   = 0;
-
-      std::swap(m_keys, other.m_keys);
-      std::swap(m_values, other.m_values);
-      std::swap(m_size, other.m_size);
+      swap(other);
     }
 
     ~keyframe()
     {
       delete[] m_keys;
       delete[] m_values;
+    }
+
+    keyframe& operator=(const keyframe& other)
+    {
+      auto tmp = other;
+      swap(tmp);
+      return *this;
+    }
+
+    keyframe& operator=(keyframe&& other) noexcept
+    {
+      auto tmp = std::move(other);
+      swap(tmp);
+      return *this;
     }
 
     /// empty?
@@ -270,6 +281,14 @@ namespace yave {
 
       delete[] new_keys;
       delete[] new_values;
+    }
+
+    /// Swap to other instance
+    void swap(keyframe& other) noexcept
+    {
+      std::swap(m_size, other.m_size);
+      std::swap(m_keys, other.m_keys);
+      std::swap(m_values, other.m_values);
     }
 
   private:
