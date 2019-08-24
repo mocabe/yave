@@ -7,12 +7,11 @@
 
 #include <yave/config/config.hpp>
 #include <yave/lib/time/time.hpp>
-#include <yave/lib/keyframe/keyframe.hpp>
 
 namespace yave {
 
   /// Data struct for KeyframeFloat
-  struct kf_float_handles
+  struct kf_float_data
   {
     /// Control point for KeyframeFloat
     struct control_point
