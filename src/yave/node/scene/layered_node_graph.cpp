@@ -189,7 +189,6 @@ namespace yave {
     const layer_handle& from,
     const layer_handle& to) const
   {
-
     if (!_exists(from) || !_exists(to))
       return false;
 
@@ -203,6 +202,10 @@ namespace yave {
 
     // cannot move layer into it's child
     if (_is_child(from, to))
+      return false;
+
+    // canont move layer into current parent
+    if (_access(from).parent == to)
       return false;
 
     return true;

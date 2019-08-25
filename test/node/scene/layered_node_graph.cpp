@@ -169,7 +169,7 @@ TEST_CASE("layered_node_graph")
     auto l1 = graph.add_layer(root);
 
     REQUIRE(!graph.movable_into(l1, l1));
-    REQUIRE(graph.movable_into(l1, root));
+    REQUIRE(!graph.movable_into(l1, root));
 
     graph.move_into(l1, root);
     REQUIRE(graph.get_sublayers(root)[0] == l1);
@@ -177,7 +177,7 @@ TEST_CASE("layered_node_graph")
     auto l2 = graph.add_layer(l1);
 
     REQUIRE(!graph.movable_into(l1, l2));
-    REQUIRE(graph.movable_into(l2, l1));
+    REQUIRE(!graph.movable_into(l2, l1));
     REQUIRE(graph.movable_into(l2, root));
 
     /*
