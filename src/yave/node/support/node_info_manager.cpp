@@ -120,7 +120,8 @@ namespace yave {
       if (*iter->second == info) {
         Info(g_info_mngr_logger, "Removed node_info: {}", iter->second->name());
         m_info.erase(iter++);
-      }
+      } else
+        ++iter;
     }
   }
 
