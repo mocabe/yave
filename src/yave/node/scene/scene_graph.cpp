@@ -961,6 +961,12 @@ namespace yave {
     }
   }
 
+  auto scene_graph::get_parent(const layer_handle& layer) const -> layer_handle
+  {
+    auto lck = _lock();
+    return m_graph.get_parent(layer);
+  }
+
   auto scene_graph::get_sublayers(const layer_handle& layer) const
     -> std::vector<layer_handle>
   {

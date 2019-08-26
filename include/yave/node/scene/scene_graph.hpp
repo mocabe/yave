@@ -101,6 +101,10 @@ namespace yave {
     /// set new visibility state
     void set_visibility(const layer_handle& layer, bool visibility);
 
+    /// Get parent layer
+    [[nodiscard]]
+    auto get_parent(const layer_handle& layer) const -> layer_handle;
+
     /// Get list of sublayers
     [[nodiscard]]
     auto get_sublayers(const layer_handle& layer) const
