@@ -864,15 +864,30 @@ namespace yave {
     const layer_handle& to) const
   {
     auto lck = _lock();
-    assert(!"TODO");
-    // only movable into compos layer
-    return is_compos_layer(to) && m_graph.movable_into(from, to);
+
+    // Move image layer into different compos layer, or move compos layer and
+    // it's child layers into different compos layer.
+    if (m_graph.movable_into(from, to)) {
+      if (auto attr = _get_layer_attribute(to))
+        return attr->is_compos_layer();
+    }
+    return false;
   }
 
   void scene_graph::move_into(const layer_handle& from, const layer_handle& to)
   {
     auto lck = _lock();
-    assert(!"TODO");
+
+    auto p = m_graph.get_parent(from);
+
+    // Move layer.
+    m_graph.move_into(from, to);
+
+    // Rebuild sublayer connections.
+    if (auto attr = _get_layer_attribute(p))
+      attr->rebuild_sublayer_connections();
+    if (auto attr = _get_layer_attribute(to))
+      attr->rebuild_sublayer_connections();
   }
 
   bool scene_graph::movable_below(
@@ -880,13 +895,23 @@ namespace yave {
     const layer_handle& to) const
   {
     auto lck = _lock();
-    assert(!"TODO");
+    return m_graph.movable_below(from, to);
   }
 
   void scene_graph::move_below(const layer_handle& from, const layer_handle& to)
   {
     auto lck = _lock();
-    assert(!"TODO");
+
+    auto p1 = m_graph.get_parent(from);
+    auto p2 = m_graph.get_parent(to);
+
+    m_graph.move_below(from, to);
+
+    // rebuild sublayer connections
+    if (auto attr = _get_layer_attribute(p1))
+      attr->rebuild_sublayer_connections();
+    if (auto attr = _get_layer_attribute(p2))
+      attr->rebuild_sublayer_connections();
   }
 
   bool scene_graph::movable_above(
@@ -894,13 +919,22 @@ namespace yave {
     const layer_handle& to) const
   {
     auto lck = _lock();
-    assert(!"TODO");
+    return m_graph.movable_above(from, to);
   }
 
   void scene_graph::move_above(const layer_handle& from, const layer_handle& to)
   {
     auto lck = _lock();
-    assert(!"TODO");
+
+    auto p1 = m_graph.get_parent(from);
+    auto p2 = m_graph.get_parent(to);
+
+    m_graph.move_above(from, to);
+
+    if (auto attr = _get_layer_attribute(p1))
+      attr->rebuild_sublayer_connections();
+    if (auto attr = _get_layer_attribute(p2))
+      attr->rebuild_sublayer_connections();
   }
 
   bool scene_graph::is_compos_layer(const layer_handle& layer) const
