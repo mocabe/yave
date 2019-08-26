@@ -36,11 +36,11 @@ namespace yave {
   /// between private resources, and inter-layer connections of sublayers.
   /// There're two types of layer; image layer and composition layer. Image
   /// layer uses it's image output for rendering content on the layer.
-  /// Composition layer is used for blending all sublayers and inheritable
-  /// resources for sublayer nodes. All layers which have sublayer(s) are
-  /// composition layer, otherwise it's image layer.
-  /// Each layer has it's own layer compositor and blending function to
-  /// represent how it will be blended with other layers.
+  /// Composition layer is used for blending all sublayers and managing
+  /// inheritable resources for sublayer nodes. All layers which have
+  /// sublayer(s) are composition layer, otherwise it's image layer. Each layer
+  /// has it's own layer compositor and blending function to represent how it
+  /// will be blended with other layers.
   struct scene_graph::layer_attribute
   {
     layer_attribute(
@@ -555,9 +555,9 @@ namespace yave {
     /*
       Per-layer resources:
                                 (dst: empty)
-    [frame] -> [visibility] --> |    |        |
-               [func] --------> | if | -> [compositor] ---> (out: empty)
-               [dst] ---------> |    |        |
+    [frame] -> [visibility] -> |             |
+               [func] -------> | if| -> [compositor] ---> (out: empty)
+               [dst] --------> |             |
                                [layer image output]
     */
     shared_layer_resource_handle m_image_output;  ///< image output node
