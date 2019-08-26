@@ -74,7 +74,7 @@ namespace yave {
           throw std::runtime_error("Failed to create layer image output");
       }
       {
-        auto info       = get_node_info<Keyframe<Bool>>();
+        auto info       = get_node_info<KeyframeBool>();
         m_visibility_kv = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_visibility_kv)
@@ -153,7 +153,7 @@ namespace yave {
 
       // visibility -> if [cond]
       {
-        auto vis          = get_node_info<Keyframe<Bool>>();
+        auto vis          = get_node_info<KeyframeBool>();
         auto bif          = get_node_info<IfNode>();
         m_c_visibility_if = m_graph.connect(
           m_visibility_kv.get(),
@@ -191,7 +191,7 @@ namespace yave {
 
       // frame -> visibility
       {
-        auto vis             = get_node_info<Keyframe<Bool>>();
+        auto vis             = get_node_info<KeyframeBool>();
         auto fb              = get_node_info<FrameConstructor>();
         m_c_frame_visibility = m_graph.connect(
           m_frame.get(),
