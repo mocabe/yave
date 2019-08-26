@@ -791,10 +791,18 @@ namespace yave {
 
     assert(l == m_graph.get_sublayers(layer).back());
 
-    auto* pInfo = _add_layer_attribute(l, type);
-
-    if (!pInfo)
+    // add layer attribute
+    {
+      auto attr = _add_layer_attribute(l, type);
+      if (!attr)
       throw std::runtime_error("Failed to add layer attribute");
+    }
+
+    // rebuild sublayers of parent
+    {
+      if (auto attr = _get_layer_attribute(layer))
+        attr->rebuild_sublayer_connections();
+    }
 
     return l;
   }
@@ -834,10 +842,15 @@ namespace yave {
       return;
     }
 
-    // destroy
-
+    // remove attribute
     m_layer_attributes.erase(itr);
+
+    auto parent = m_graph.get_parent(layer);
     m_graph.remove_layer(layer);
+
+    // rebuild sublayers of parent
+    if (auto attr = _get_layer_attribute(parent))
+      attr->rebuild_sublayer_connections();
   }
 
   void scene_graph::remove_layer(const layer_handle& layer)
