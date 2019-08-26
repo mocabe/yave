@@ -122,13 +122,6 @@ namespace yave {
         if (!m_frame)
           throw std::runtime_error("Failed to create frame");
       }
-      {
-        m_blend_func_info = get_blend_op_node_info(m_blend_op);
-        m_blend_func      = m_graph.add_resource_shared(
-          m_blend_func_info.name(), m_layer, layer_resource_scope::Private);
-        if (!m_blend_func)
-          throw std::runtime_error("Failed to create blend func");
-      }
 
       /* build connections */
 
