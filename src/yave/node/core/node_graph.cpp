@@ -198,7 +198,14 @@ namespace yave {
             if (m_g.n_dst_edges(d) != 0) {
               Error(
                 g_logger,
-                "Failed to connect sockets: Multiple input is not allowed.");
+                "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
+                m_g[info.src_node().descriptor()].name(),
+                to_string(info.src_node().id()),
+                info.src_socket(),
+                m_g[info.dst_node().descriptor()].name(),
+                to_string(info.dst_node().id()),
+                info.dst_socket());
+              Error(g_logger, "Multiple input is not allowed.");
               return nullptr;
             }
 
@@ -210,7 +217,14 @@ namespace yave {
             if (!_find_loop(info.src_node()).empty()) {
               Error(
                 g_logger,
-                "Failed to connect sockets: Closed loop is not allowed.");
+                "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
+                m_g[info.src_node().descriptor()].name(),
+                to_string(info.src_node().id()),
+                info.src_socket(),
+                m_g[info.dst_node().descriptor()].name(),
+                to_string(info.dst_node().id()),
+                info.dst_socket());
+              Error(g_logger, "Closed loop is not allowed.");
               m_g.remove_edge(new_edge);
               return nullptr;
             }
@@ -242,16 +256,21 @@ namespace yave {
 
     // check handler
     if (!_exists(h)) {
-      Warning(g_logger, "node_graph::disconnect() on invalid node handle.");
+      Warning(
+        g_logger,
+        "node_graph::disconnect() on invalid node handle: id={}",
+        h.id().data);
       return;
     }
 
     auto info = _get_info(h);
     Info(
       g_logger,
-      "Disconnecting: src={}::{} dst={}::{}",
+      "Disconnecting: src='{}'({})::{} dst='{}'({})::{}",
+      m_g[info->src_node().descriptor()].name(),
       to_string(info->src_node().id()),
       info->src_socket(),
+      m_g[info->dst_node().descriptor()].name(),
       to_string(info->dst_node().id()),
       info->dst_socket());
 
