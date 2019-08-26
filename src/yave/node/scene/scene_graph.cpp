@@ -205,7 +205,7 @@ namespace yave {
 
       // sublayer connection
       {
-        connect_sublayers();
+        rebuild_sublayer_connections();
 
         if (is_image_layer())
           assert(m_c_sublayers.empty());
@@ -240,9 +240,13 @@ namespace yave {
       // No need to remove shared resources
     }
 
-    void connect_sublayers()
+    void rebuild_sublayer_connections()
     {
-      Info(g_logger, "Rebuilding sublayer connections...");
+      Info(
+        g_logger,
+        "Rebuilding sublayer connections at '{}'#{}",
+        *m_graph.get_layer_name(m_layer),
+        m_layer.id().data);
 
       if (is_image_layer()) {
         Warning(
@@ -659,6 +663,7 @@ namespace yave {
 
     // connect root layer to global out
     {
+      Info(g_logger, "Building connections for root layer");
       auto compos_info = get_node_info<LayerCompositor>();
       auto io_info     = get_node_info<LayerImageOutput>();
       auto fb_info     = get_node_info<FrameBufferConstructor>();
