@@ -20,11 +20,11 @@ YAVE is currently under development. Following components are implemented so far
 Recent development tasks:
 - [x] layer tree implementation (
     + `layered_node_graph`
-- [ ] per-layer resource control implementation 
+- [x] per-layer resource control implementation 
     + `scene_graph`
         + [x] basic interface and resuorce control
-        + [ ] move_* functions
-        + [ ] tests
+        + [x] move_* functions
+        + [ ] more testing
 - [ ] key-frame object implementation
     + `keyframe`
         + [x] add node info
