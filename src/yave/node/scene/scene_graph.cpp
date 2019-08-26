@@ -308,7 +308,7 @@ namespace yave {
               prev->m_empty_fb.get(),
               fb.output_sockets()[0],
               prev->m_compositor.get(),
-              compos.input_sockets()[0]);
+              compos.input_sockets()[1]);
 
             if (!c)
               throw std::runtime_error(
