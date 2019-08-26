@@ -878,9 +878,6 @@ namespace yave {
   {
     auto lck = _lock();
 
-    if (!m_graph.movable_into(from, to))
-      return;
-
     auto p = m_graph.get_parent(from);
 
     // Move layer.
@@ -905,9 +902,6 @@ namespace yave {
   {
     auto lck = _lock();
 
-    if (!m_graph.movable_below(from, to))
-      return;
-
     auto p1 = m_graph.get_parent(from);
     auto p2 = m_graph.get_parent(to);
 
@@ -931,9 +925,6 @@ namespace yave {
   void scene_graph::move_above(const layer_handle& from, const layer_handle& to)
   {
     auto lck = _lock();
-
-    if (!m_graph.movable_above(from, to))
-      return;
 
     auto p1 = m_graph.get_parent(from);
     auto p2 = m_graph.get_parent(to);
