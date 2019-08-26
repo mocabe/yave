@@ -10,17 +10,17 @@ using namespace yave;
 
 TEST_CASE("scene_graph")
 {
+  scene_graph graph;
+  auto root = graph.root();
+
   SECTION("layer control")
   {
-    scene_graph graph;
-
     /// owning resources    - automatic resources
     ///                     - manual resources
     /// inherited resources - visible resources
     ///                     - inherited resource references
 
     /// initial root node is empty compos layer
-    auto root = graph.root();
     REQUIRE(root);
     REQUIRE(graph.exists(root));
     // compos
@@ -93,6 +93,147 @@ TEST_CASE("scene_graph")
       REQUIRE(graph.get_resources(l1).empty());
       REQUIRE(graph.get_resources_owning(l1).empty());
       REQUIRE(graph.get_resources_reference(l1).empty());
+    }
+  }
+
+  SECTION("move functions")
+  {
+    SECTION("default")
+    {
+      REQUIRE(!graph.movable_into(root, root));
+      REQUIRE(!graph.movable_below(root, root));
+      REQUIRE(!graph.movable_above(root, root));
+    }
+
+    SECTION("move into")
+    {
+      SECTION("image")
+      {
+        auto l1 = graph.add_layer(root, layer_type::image);
+        REQUIRE(!graph.movable_into(l1, root));
+        REQUIRE(!graph.movable_into(root, l1));
+      }
+      SECTION("compos")
+      {
+        auto l1 = graph.add_layer(root, layer_type::compos);
+        REQUIRE(!graph.movable_into(l1, root));
+        REQUIRE(!graph.movable_into(root, l1));
+      }
+
+      SECTION("move")
+      {
+        /* move single layer */
+
+        auto l1 = graph.add_layer(root, layer_type::image);
+        auto l2 = graph.add_layer(root, layer_type::compos);
+
+        REQUIRE(graph.movable_into(l1, l2));
+        REQUIRE(!graph.movable_into(l2, l1));
+
+        graph.move_into(l1, l2);
+
+        REQUIRE(graph.exists(l1));
+        REQUIRE(graph.exists(l2));
+
+        REQUIRE(graph.get_parent(l1) == l2);
+        REQUIRE(graph.get_parent(l2) == root);
+
+        /* move nested layer */
+
+        auto l3 = graph.add_layer(root, layer_type::compos);
+        auto l4 = graph.add_layer(l3, layer_type::image);
+
+        graph.move_into(l2, l3);
+
+        REQUIRE(graph.get_sublayers(l3)[0] == l4);
+        REQUIRE(graph.get_sublayers(l3)[1] == l2);
+        REQUIRE(graph.get_parent(l1) == l2);
+        REQUIRE(graph.get_parent(l2) == l3);
+      }
+    }
+
+    SECTION("move above")
+    {
+      SECTION("image")
+      {
+        auto l1 = graph.add_layer(root, layer_type::image);
+        REQUIRE(!graph.movable_above(l1, root));
+        REQUIRE(!graph.movable_above(root, l1));
+
+        auto l2 = graph.add_layer(root, layer_type::image);
+        REQUIRE(graph.movable_above(l1, l2));
+        REQUIRE(graph.movable_above(l2, l1));
+      }
+      SECTION("compos")
+      {
+        auto l1 = graph.add_layer(root, layer_type::compos);
+        REQUIRE(!graph.movable_above(l1, root));
+        REQUIRE(!graph.movable_above(root, l1));
+
+        auto l2 = graph.add_layer(root, layer_type::compos);
+        REQUIRE(graph.movable_above(l1, l2));
+        REQUIRE(graph.movable_above(l2, l1));
+      }
+      SECTION("move")
+      {
+        auto l1 = graph.add_layer(root, layer_type::image);
+        auto l2 = graph.add_layer(root, layer_type::compos);
+
+        REQUIRE(graph.get_sublayers(root)[0] == l1);
+        REQUIRE(graph.get_sublayers(root)[1] == l2);
+
+        REQUIRE(graph.movable_above(l1, l2));
+        REQUIRE(graph.movable_above(l2, l1));
+        graph.move_above(l1, l2);
+
+        REQUIRE(graph.get_sublayers(root)[0] == l2);
+        REQUIRE(graph.get_sublayers(root)[1] == l1);
+
+        auto l3 = graph.add_layer(l2, layer_type::image);
+
+        graph.move_above(l2, l1);
+        REQUIRE(graph.get_sublayers(root)[0] == l1);
+        REQUIRE(graph.get_sublayers(root)[1] == l2);
+        REQUIRE(graph.get_parent(l3) == l2);
+      }
+    }
+
+    SECTION("move below")
+    {
+      SECTION("image")
+      {
+        auto l1 = graph.add_layer(root, layer_type::image);
+        REQUIRE(!graph.movable_below(l1, root));
+        REQUIRE(!graph.movable_below(root, l1));
+      }
+      SECTION("compos")
+      {
+        auto l1 = graph.add_layer(root, layer_type::compos);
+        REQUIRE(!graph.movable_below(l1, root));
+        REQUIRE(!graph.movable_below(root, l1));
+      }
+      SECTION("move")
+      {
+        auto l1 = graph.add_layer(root, layer_type::image);
+        auto l2 = graph.add_layer(root, layer_type::compos);
+
+        REQUIRE(graph.get_sublayers(root)[0] == l1);
+        REQUIRE(graph.get_sublayers(root)[1] == l2);
+
+        REQUIRE(graph.movable_below(l1, l2));
+        REQUIRE(graph.movable_below(l2, l1));
+        graph.move_below(l2, l1);
+
+        REQUIRE(graph.get_sublayers(root)[0] == l2);
+        REQUIRE(graph.get_sublayers(root)[1] == l1);
+
+        auto l3 = graph.add_layer(l2, layer_type::image);
+
+        graph.move_below(l1, l2);
+        REQUIRE(graph.get_sublayers(root)[0] == l1);
+        REQUIRE(graph.get_sublayers(root)[1] == l2);
+        REQUIRE(graph.get_parent(l3) == l2);
+      }
     }
   }
 }
