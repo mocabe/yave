@@ -548,7 +548,7 @@ namespace yave {
 
     Info(
       g_logger,
-      "Moving '{}'#{} below '{}'#{}",
+      "Moving '{}'#{} above '{}'#{}",
       _access(from).name,
       _access(from).id.data,
       _access(to).name,
@@ -568,7 +568,7 @@ namespace yave {
       }
     }
 
-    // insert move under target.
+    // insert move above target.
     {
       auto& parent = _access_parent(to);
       for (auto iter = parent.sublayers.begin(); iter != parent.sublayers.end();
