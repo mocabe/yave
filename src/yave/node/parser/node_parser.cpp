@@ -12,14 +12,16 @@
 
 namespace {
 
+  // logger
   std::shared_ptr<spdlog::logger> g_logger;
 
+  // init
   void init_logger()
   {
     [[maybe_unused]] static auto init = [] {
       g_logger = yave::add_logger("node_parser");
       return 1;
-    };
+    }();
   }
 } // namespace
 
