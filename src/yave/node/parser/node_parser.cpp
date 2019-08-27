@@ -237,7 +237,7 @@ namespace yave {
 
     impl.rec(graph, root, m_errors);
 
-    if (!m_errors.empty())
+    if (m_errors.empty())
       return {{std::move(graph), root}};
 
     return std::nullopt;
