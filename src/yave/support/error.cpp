@@ -185,4 +185,13 @@ namespace yave {
     m_errors.clear();
   }
 
+  error_list error_list::clone() const
+  {
+    error_list ret;
+    for (auto&& e : m_errors) {
+      ret.m_errors.push_back(e.clone());
+    }
+    return ret;
+  }
+
 } // namespace yave

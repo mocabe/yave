@@ -183,6 +183,9 @@ namespace yave {
     /// Clear error list
     void clear();
 
+    /// Clone errors
+    [[nodiscard]] error_list clone() const;
+
   private:
     std::vector<error> m_errors;
   };
