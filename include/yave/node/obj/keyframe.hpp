@@ -47,7 +47,7 @@ namespace yave {
   YAVE_DECL_KEYFRAME_SUGAR(KeyframeFloat);
   YAVE_DECL_KEYFRAME_SUGAR(KeyframeBool);
 
-  std::vector<node_info> get_keyframe_node_info_list()
+  inline std::vector<node_info> get_keyframe_node_info_list()
   {
     return {/* extractors */
             get_node_info<KeyframeIntValueExtractor>(),
