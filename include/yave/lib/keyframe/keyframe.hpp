@@ -332,6 +332,29 @@ namespace yave {
       delete[] new_values;
     }
 
+    friend bool operator==(const keyframe& lhs, const keyframe& rhs)
+    {
+      if (lhs.m_size != rhs.m_size)
+        return false;
+
+      auto s = lhs.m_size;
+
+      for (size_t i = 0; i < s; ++i) {
+        if (lhs.m_keys[i] != rhs.m_keys[i])
+          return false;
+      }
+      for (size_t i = 0; i < s; ++i) {
+        if (lhs.m_values[i] != rhs.m_values[i])
+          return false;
+      }
+      return true;
+    }
+
+    friend bool operator!=(const keyframe& lhs, const keyframe& rhs)
+    {
+      return !(lhs == rhs);
+    }
+
   private:
     // value
     //   |               v[1]-----(v[size] -> v[1])

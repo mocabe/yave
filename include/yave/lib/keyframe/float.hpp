@@ -30,4 +30,29 @@ namespace yave {
     double value;
   };
 
+  inline bool operator==(
+    const kf_float_data::control_point& lhs,
+    const kf_float_data::control_point& rhs)
+  {
+    return lhs.time == rhs.time && lhs.value == rhs.time;
+  }
+
+  inline bool operator!=(
+    const kf_float_data::control_point& lhs,
+    const kf_float_data::control_point& rhs)
+  {
+    return !(lhs == rhs);
+  }
+
+  inline bool operator==(const kf_float_data& lhs, const kf_float_data& rhs)
+  {
+    return lhs.cp_left == rhs.cp_left && lhs.cp_right == rhs.cp_right &&
+           lhs.value == rhs.value;
+  }
+
+  inline bool operator!=(const kf_float_data& lhs, const kf_float_data& rhs)
+  {
+    return !(lhs == rhs);
+  }
+
 } // namespace yave
