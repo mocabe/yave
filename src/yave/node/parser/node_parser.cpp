@@ -53,17 +53,33 @@ namespace yave {
     m_errors.clear();
 
     tmp = _extract(graph, root);
-    if (!tmp)
+    if (!tmp) {
+      Error(g_logger, "Failed to extract prime tree:");
+      for (auto&& e : m_errors) {
+        Error(g_logger, "error: {}", e.message());
+      }
       return std::nullopt;
+    }
 
     tmp = _desugar(std::move(*tmp));
-    if (!tmp)
+    if (!tmp) {
+      Error(g_logger, "Failed to desugar prime tree");
+      for (auto&& e : m_errors) {
+        Error(g_logger, "error: {}", e.message());
+      }
       return std::nullopt;
+    }
 
     tmp = _parse(std::move(*tmp));
-    if (!tmp)
+    if (!tmp) {
+      Error(g_logger, "Failed to parse prime tree");
+      for (auto&& e : m_errors) {
+        Error(g_logger, "error: {}", e.message());
+      }
       return std::nullopt;
+    }
 
+    Info(g_logger, "Successfully parsed primary tree in node_graph");
     return *tmp;
   }
 
