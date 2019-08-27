@@ -39,10 +39,6 @@ namespace yave {
       if (
         !_has_unique_names(input_sockets) || !_has_unique_names(output_sockets))
         throw std::invalid_argument("Socket names should be unique");
-
-      if (input_sockets.empty() && output_sockets.size() != 1)
-        throw std::invalid_argument(
-          "Multiple output sockets with empty input socket is not allowed");
     }
   } // namespace
 
