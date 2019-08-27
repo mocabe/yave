@@ -4,6 +4,7 @@
 //
 
 #include <yave/node/parser/desugar_keyframe.hpp>
+#include <yave/node/parser/errors.hpp>
 #include <yave/node/obj/constructor.hpp>
 
 namespace yave {
