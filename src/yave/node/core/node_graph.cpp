@@ -31,7 +31,7 @@ namespace yave {
     init_logger();
   }
 
-  node_graph::~node_graph()
+  node_graph::~node_graph() noexcept
   {
   }
 
