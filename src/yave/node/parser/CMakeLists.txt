@@ -3,6 +3,7 @@
 add_library(yave-node-parser
   node_parser.cpp
   errors.cpp
+  desugar_keyframe.cpp
   parsed_connection_info.cpp
   parsed_node_info.cpp
   parsed_node_property.cpp
