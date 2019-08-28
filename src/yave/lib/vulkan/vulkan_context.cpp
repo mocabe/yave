@@ -350,9 +350,9 @@ namespace {
     vk::InstanceCreateInfo info;
     info.flags                   = flags;
     info.pApplicationInfo        = &appInfo;
-    info.enabledLayerCount       = lNames.size();
+    info.enabledLayerCount       = (uint32_t)lNames.size();
     info.ppEnabledLayerNames     = lNames.data();
-    info.enabledExtensionCount   = eNames.size();
+    info.enabledExtensionCount   = (uint32_t)eNames.size();
     info.ppEnabledExtensionNames = eNames.data();
 
     // create instance
@@ -492,7 +492,7 @@ namespace {
 
     auto properties = physicalDevice.getQueueFamilyProperties();
 
-    for (size_t i = 0; i < properties.size(); ++i) {
+    for (uint32_t i = 0; i < properties.size(); ++i) {
       if (properties[i].queueFlags & vk::QueueFlagBits::eGraphics)
         return i;
     }
@@ -516,8 +516,7 @@ namespace {
     Warning(g_vulkan_logger, "Graphics queue does not support presentation.");
 
     auto queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
-    for (size_t index = 0; index < queueFamilyProperties.size(); ++index) {
-
+    for (uint32_t index = 0; index < queueFamilyProperties.size(); ++index) {
       auto support = glfwGetPhysicalDevicePresentationSupport(
         instance, physicalDevice, index);
 
@@ -612,11 +611,11 @@ namespace {
     vk::DeviceCreateInfo info;
     info.flags                   = vk::DeviceCreateFlags();
     info.pQueueCreateInfos       = createInfoList.data();
-    info.queueCreateInfoCount    = createInfoList.size();
+    info.queueCreateInfoCount    = (uint32_t)createInfoList.size();
     info.ppEnabledLayerNames     = lNames.data();
-    info.enabledLayerCount       = lNames.size();
+    info.enabledLayerCount       = (uint32_t)lNames.size();
     info.ppEnabledExtensionNames = eNames.data();
-    info.enabledExtensionCount   = eNames.size();
+    info.enabledExtensionCount   = (uint32_t)eNames.size();
     info.pEnabledFeatures = nullptr; // TODO: enable only reauired features.
 
     return physicalDevice.createDeviceUnique(info);
@@ -885,7 +884,7 @@ namespace {
       vk::FramebufferCreateInfo info;
       info.flags           = vk::FramebufferCreateFlags();
       info.renderPass      = render_pass;
-      info.attachmentCount = attachments.size();
+      info.attachmentCount = (uint32_t)attachments.size();
       info.pAttachments    = attachments.data();
       info.width           = swapchainExtent.width;
       info.height          = swapchainExtent.height;
@@ -948,7 +947,7 @@ namespace {
 
     std::vector<vk::SubpassDescription> subpass(1);
     subpass[0].pipelineBindPoint    = vk::PipelineBindPoint::eGraphics;
-    subpass[0].colorAttachmentCount = colorAttachmentRef.size();
+    subpass[0].colorAttachmentCount = (uint32_t)colorAttachmentRef.size();
     subpass[0].pColorAttachments    = colorAttachmentRef.data();
 
     // forward resource to caller with std::make_*
@@ -978,15 +977,15 @@ namespace {
     vk::RenderPassCreateInfo info;
 
     auto attachments     = getRenderPassColorAttachments(swapchain_format);
-    info.attachmentCount = attachments.size();
+    info.attachmentCount = (uint32_t)attachments.size();
     info.pAttachments    = attachments.data();
 
     auto [subpasses, subpassesResource] = getSubpasses();
-    info.subpassCount                   = subpasses.size();
+    info.subpassCount                   = (uint32_t)subpasses.size();
     info.pSubpasses                     = subpasses.data();
 
     auto dependency      = getSubpassDependency();
-    info.dependencyCount = dependency.size();
+    info.dependencyCount = (uint32_t)dependency.size();
     info.pDependencies   = dependency.data();
 
     return device.createRenderPassUnique(info);
@@ -1612,9 +1611,9 @@ namespace yave::vulkan {
     /* submit current command buffers */
     {
       vk::SubmitInfo submitInfo;
-      submitInfo.waitSemaphoreCount   = waitSemaphores.size();
+      submitInfo.waitSemaphoreCount   = (uint32_t)waitSemaphores.size();
       submitInfo.pWaitSemaphores      = waitSemaphores.data();
-      submitInfo.signalSemaphoreCount = signalSemaphores.size();
+      submitInfo.signalSemaphoreCount = (uint32_t)signalSemaphores.size();
       submitInfo.pSignalSemaphores    = signalSemaphores.data();
       submitInfo.pWaitDstStageMask    = &waitStage;
       submitInfo.commandBufferCount   = 1;
@@ -1633,7 +1632,7 @@ namespace yave::vulkan {
     /* present result */
     {
       vk::PresentInfoKHR presentInfo;
-      presentInfo.waitSemaphoreCount = signalSemaphores.size();
+      presentInfo.waitSemaphoreCount = (uint32_t)signalSemaphores.size();
       presentInfo.pWaitSemaphores    = signalSemaphores.data();
       presentInfo.swapchainCount     = 1;
       presentInfo.pSwapchains        = &m_pimpl->swapchain.get();
