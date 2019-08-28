@@ -823,25 +823,25 @@ namespace yave {
     if (!_exists(node))
       return {};
 
-    std::vector<node_handle> visited_nodes;
+    for (auto&& n : m_g.nodes()) {
+      assert(m_g[n].is_unvisited());
+    }
+
     std::vector<node_handle> stack;
 
     auto visit = [&](const node_handle& n) {
-      visited_nodes.push_back(n);
+      m_g[n.descriptor()].set_visited();
       stack.push_back(n);
     };
 
     auto visited = [&](const node_handle& n) {
-      for (auto&& vn : visited_nodes)
-        if (vn == n)
-          return true;
-      return false;
+      return m_g[n.descriptor()].is_visited();
     };
-
-    visit(node);
 
     // loop
     std::vector<node_handle> ret;
+
+    visit(node);
 
     while (!stack.empty()) {
 
@@ -876,6 +876,11 @@ namespace yave {
 
       if (stop)
         break;
+    }
+
+    // clear mark
+    for (auto&& n : m_g.nodes()) {
+      m_g[n].set_unvisited();
     }
 
     return ret;
