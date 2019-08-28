@@ -258,7 +258,7 @@ namespace yave {
           std::vector<connection_handle> inputs;
           for (auto&& s : m_g.sockets(current.descriptor())) {
             for (auto&& e : m_g.dst_edges(s)) {
-              inputs.emplace_back(e, m_g.id(e));
+              inputs.emplace_back(e, uid {m_g.id(e)});
             }
           }
 
