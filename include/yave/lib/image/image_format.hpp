@@ -30,10 +30,10 @@ namespace yave {
   static_assert(sizeof(image_format) == sizeof(uint32_t));
 
   // clang-format off
-  constexpr image_format image_format::Unknown  = {pixel_format::Unknown, sample_format::Unknown,         0};
-  constexpr image_format image_format::RGBA8UI  = {pixel_format::RGBA,    sample_format::UnsignedInteger, 1};
-  constexpr image_format image_format::RGBA16UI = {pixel_format::RGBA,    sample_format::UnsignedInteger, 2};
-  constexpr image_format image_format::RGBA32F  = {pixel_format::RGBA,    sample_format::FloatingPoint,   4};
+  inline constexpr image_format image_format::Unknown  = {pixel_format::Unknown, sample_format::Unknown,         0};
+  inline constexpr image_format image_format::RGBA8UI  = {pixel_format::RGBA,    sample_format::UnsignedInteger, 1};
+  inline constexpr image_format image_format::RGBA16UI = {pixel_format::RGBA,    sample_format::UnsignedInteger, 2};
+  inline constexpr image_format image_format::RGBA32F  = {pixel_format::RGBA,    sample_format::FloatingPoint,   4};
   // clang-format on
 
   /// operator==
