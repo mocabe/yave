@@ -142,34 +142,34 @@ TEST_CASE("RGBA_8U")
     auto& A_B  = *src.data(PixelIndex(0), PixelIndex(1));
     auto& A_AB = *src.data(PixelIndex(1), PixelIndex(1));
 
-    A_0[0] = 0;
-    A_0[3] = 0;
+    A_0[0] = 0.f;
+    A_0[3] = 0.f;
 
-    A_A[0] = 0.42;
-    A_A[3] = 1.0;
+    A_A[0] = 0.42f;
+    A_A[3] = 1.f;
 
-    A_B[0] = 0;
-    A_B[3] = 0;
+    A_B[0] = 0.f;
+    A_B[3] = 0.f;
 
-    A_AB[0] = 0.42;
-    A_AB[3] = 1.0;
+    A_AB[0] = 0.42f;
+    A_AB[3] = 1.f;
 
     auto& B_0  = *dst.data(PixelIndex(0), PixelIndex(0));
     auto& B_A  = *dst.data(PixelIndex(1), PixelIndex(0));
     auto& B_B  = *dst.data(PixelIndex(0), PixelIndex(1));
     auto& B_AB = *dst.data(PixelIndex(1), PixelIndex(1));
 
-    B_0[0] = 0;
-    B_0[3] = 0;
+    B_0[0] = 0.f;
+    B_0[3] = 0.f;
 
-    B_A[0] = 0;
-    B_A[3] = 0;
+    B_A[0] = 0.f;
+    B_A[3] = 0.f;
 
-    B_B[0] = 0.24;
-    B_B[3] = 1.0;
+    B_B[0] = 0.24f;
+    B_B[3] = 1.f;
 
-    B_AB[0] = 0.24;
-    B_AB[3] = 1.0;
+    B_AB[0] = 0.24f;
+    B_AB[3] = 1.f;
 
     SECTION("over")
     {

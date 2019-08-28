@@ -78,10 +78,12 @@ namespace yave {
 
     PixelT ret;
 
-    ret[0] = 0.5f + std::clamp(std::pow(Or, 1.f / gamma), 0.f, scale);
-    ret[1] = 0.5f + std::clamp(std::pow(Og, 1.f / gamma), 0.f, scale);
-    ret[2] = 0.5f + std::clamp(std::pow(Ob, 1.f / gamma), 0.f, scale);
-    ret[3] = 0.5f + std::clamp(Oa * scale, 0.f, scale); // scale back alpha
+    // clang-format off
+    ret[0] = static_cast<value_type>(0.5f + std::clamp(std::pow(Or, 1.f / gamma), 0.f, scale));
+    ret[1] = static_cast<value_type>(0.5f + std::clamp(std::pow(Og, 1.f / gamma), 0.f, scale));
+    ret[2] = static_cast<value_type>(0.5f + std::clamp(std::pow(Ob, 1.f / gamma), 0.f, scale));
+    ret[3] = static_cast<value_type>(0.5f + std::clamp(Oa * scale, 0.f, scale)); // scale back alpha
+    // clang-format on
 
     return ret;
   }
