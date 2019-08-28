@@ -34,7 +34,7 @@ namespace yave {
     const kf_float_data::control_point& lhs,
     const kf_float_data::control_point& rhs)
   {
-    return lhs.time == rhs.time && lhs.value == rhs.time;
+    return lhs.time == rhs.time && lhs.value == rhs.value;
   }
 
   inline bool operator!=(
