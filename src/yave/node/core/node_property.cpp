@@ -10,12 +10,14 @@ namespace yave {
   node_property::node_property(const std::string& name, const primitive_t& prim)
     : m_name {name}
     , m_prim {make_object<PrimitiveContainer>(prim)}
+    , m_visited {0}
   {
   }
 
   node_property::node_property(const std::string& name, std::monostate)
     : m_name {name}
     , m_prim {std::nullopt}
+    , m_visited {0}
   {
   }
 

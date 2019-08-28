@@ -356,6 +356,29 @@ TEST_CASE("node_graph control")
     REQUIRE(vector_eq(ng.roots(), std::vector {n4}));
   }
 
+  SECTION("dfs")
+  {
+    auto info1 = node_info("n1", {"0", "1", "2"}, {"0"}, true);
+    auto info2 = node_info("n2", {}, {"0"}, true);
+
+    auto n1 = ng.add(info1, 1);
+    auto n2 = ng.add(info2, 2);
+    auto n3 = ng.add(info2);
+
+    auto c1 = ng.connect(n2, "0", n1, "0");
+    auto c2 = ng.connect(n2, "0", n1, "2");
+    auto c3 = ng.connect(n3, "0", n1, "1");
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+    REQUIRE(c3);
+
+    int count = 0;
+    ng.depth_first_search(n1, [&](auto&&) { ++count; });
+
+    REQUIRE(count == 3);
+  }
+
   SECTION("diff")
   {
     auto info11 = node_info {"test11", {"input"}, {"output"}};

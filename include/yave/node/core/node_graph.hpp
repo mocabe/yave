@@ -228,52 +228,59 @@ namespace yave {
     if (!_exists(node))
       return;
 
-    std::vector<node_handle> visited_nodes;
+    for (auto&& n : m_g.nodes()) {
+      assert(m_g[n].is_unvisited());
+    }
+
     std::vector<node_handle> stack;
 
     auto visit = [&](const node_handle& n) {
-      visited_nodes.push_back(n);
+      m_g[n.descriptor()].set_visited();
       stack.push_back(n);
     };
 
     auto visited = [&](const node_handle& n) {
-      for (auto&& vn : visited_nodes)
-        if (vn == n)
-          return true;
-      return false;
+      return m_g[n.descriptor()].is_visited();
     };
 
-    // visit first node
-    visit(node);
-    if (std::forward<Lambda>(lambda)(node))
-      return;
+    [&] {
+      // visit first node
+      visit(node);
+      if (std::forward<Lambda>(lambda)(node))
+        return;
 
-    // main loop
-    while (!stack.empty()) {
+      // main loop
+      while (!stack.empty()) {
 
-      auto current = stack.back();
+        auto current = stack.back();
 
-      bool stop = [&] {
-        std::vector<connection_handle> inputs;
-        for (auto&& s : m_g.sockets(current.descriptor())) {
-          for (auto&& e : m_g.dst_edges(s)) {
-            inputs.emplace_back(e, m_g.id(e));
+        bool stop = [&] {
+          std::vector<connection_handle> inputs;
+          for (auto&& s : m_g.sockets(current.descriptor())) {
+            for (auto&& e : m_g.dst_edges(s)) {
+              inputs.emplace_back(e, uid {m_g.id(e)});
+            }
           }
-        }
 
-        for (auto&& c : inputs) {
-          auto next = _get_info(c)->src_node();
-          if (!visited(next)) {
-            visit(next);
-            return std::forward<Lambda>(lambda)(node);
+          for (auto&& c : inputs) {
+            auto next = _get_info(c)->src_node();
+            if (!visited(next)) {
+              visit(next);
+              return std::forward<Lambda>(lambda)(node);
+            }
           }
-        }
-        stack.pop_back();
-        return false;
-      }();
+          stack.pop_back();
+          return false;
+        }();
 
-      if (stop)
-        break;
+        if (stop)
+          break;
+      }
+    }();
+
+    // clear mark
+    for (auto&& n : m_g.nodes()) {
+      m_g[n].set_unvisited();
     }
   }
 
