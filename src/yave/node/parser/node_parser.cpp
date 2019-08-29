@@ -189,42 +189,33 @@ namespace yave {
 
     Info(g_logger, "Desugar parsed graph from {}", root.id().data);
 
-    struct
-    {
-      void rec(node_graph& g, const node_handle& n, error_list& e)
+    auto ns = graph.nodes();
+
+    for (auto&& n : ns) {
+      auto info = graph.get_info(n);
+      assert(info);
+
+      // desugar pass
       {
-        auto info = g.get_info(n);
-
-        // desugar pass
-        {
-          if (info == get_node_info<KeyframeInt>()) {
-            desugar_KeyframeInt(g, n, e);
-          }
-
-          if (info == get_node_info<KeyframeFloat>()) {
-            desugar_KeyframeFloat(g, n, e);
-          }
-
-          if (info == get_node_info<KeyframeBool>()) {
-            desugar_KeyframeBool(g, n, e);
-          }
+        if (info == get_node_info<KeyframeInt>()) {
+          desugar_KeyframeInt(graph, n, m_errors);
         }
 
-        // traverse
-        for (auto&& c : g.input_connections(n)) {
-          rec(g, g.get_info(c)->src_node(), e);
+        if (info == get_node_info<KeyframeFloat>()) {
+          desugar_KeyframeFloat(graph, n, m_errors);
+        }
+
+        if (info == get_node_info<KeyframeBool>()) {
+          desugar_KeyframeBool(graph, n, m_errors);
         }
       }
-    } impl;
-
-    impl.rec(graph, root, m_errors);
+    }
 
     if (m_errors.empty())
       return {{std::move(graph), root}};
 
     return std::nullopt;
   }
-
 
   auto node_parser::_parse(parsed_node_graph&& parsed_graph)
     -> std::optional<parsed_node_graph>
@@ -246,26 +237,16 @@ namespace yave {
       throw std::invalid_argument("Invalid root node handle");
     }
 
-    struct
-    {
-      void rec(const node_graph& g, const node_handle& n, error_list& e)
+    auto ns = graph.nodes();
+
+    for (auto&& n : ns) {
+      // parse pass
       {
-        auto inputs = g.input_connections(n);
-
-        if (inputs.empty() && !g.is_primitive(n)) {
-          e.push_back(make_error<parse_error::no_sufficient_input>(n));
-          return;
-        }
-
-        for (auto&& c : inputs) {
-          auto info = g.get_info(c);
-          assert(info);
-          rec(g, info->src_node(), e);
+        if (graph.input_connections(n).empty() && !graph.is_primitive(n)) {
+          m_errors.push_back(make_error<parse_error::no_sufficient_input>(n));
         }
       }
-    } impl;
-
-    impl.rec(graph, root, m_errors);
+    }
 
     if (m_errors.empty())
       return {{std::move(graph), root}};
