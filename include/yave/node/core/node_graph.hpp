@@ -188,12 +188,19 @@ namespace yave {
       root_of(const node_handle& node) const;
 
     /// DFS until return true.
-    template <class Lambda>
-    void depth_first_search_until(const node_handle& node, Lambda&& lambda) const;
+    /// \param node starting node
+    /// \param on_visit function object which takes current node as `const
+    /// node_handle&`, current path as `const std::vector<node_handle>&`, and
+    /// returns bool to stop/continue traversing. will be called once on each
+    /// node found in tree.
+    /// \param on_visited
+    template <class Lambda1>
+    void depth_first_search_until(const node_handle& node, Lambda1&& on_visit)
+      const;
 
-    /// DFS whole tree.
+    /// DFS
     template <class Lambda>
-    void depth_first_search(const node_handle& node, Lambda&& lambda) const;
+    void depth_first_search(const node_handle& node, Lambda&& on_visit) const;
 
     /// clear graph
     void clear();
@@ -206,6 +213,11 @@ namespace yave {
     std::optional<node_info> _get_info(const node_handle&) const;
     std::vector<node_handle> _root_of(const node_handle&) const;
     std::unique_lock<std::mutex> _lock() const;
+    template <class Lambda1, class Lambda2>
+    void _depth_first_search_until(
+      const node_handle& node,
+      Lambda1&& on_visit,
+      Lambda2&& on_visited) const;
 
   private:
     /// graph
@@ -218,13 +230,12 @@ namespace yave {
 
   /* impl */
 
-  template <class Lambda>
-  void node_graph::depth_first_search_until(
+  template <class Lambda1, class Lambda2>
+  void node_graph::_depth_first_search_until(
     const yave::node_handle& node,
-    Lambda&& lambda) const
+    Lambda1&& on_visit,
+    Lambda2&& on_visited) const
   {
-    auto lck = _lock();
-
     if (!_exists(node))
       return;
 
@@ -232,51 +243,73 @@ namespace yave {
       assert(m_g[n].is_unvisited());
     }
 
-    std::vector<node_handle> stack;
+    // * stack variables *
+    // n_stack: path from start to current node.
+    // i_stack: extra info to store next index to visit.
+    auto n_stack = std::vector<node_handle> {};
+    auto i_stack = std::vector<size_t> {};
 
     auto visit = [&](const node_handle& n) {
       m_g[n.descriptor()].set_visited();
-      stack.push_back(n);
+      i_stack.back() += 1;
+      n_stack.push_back(n);
+      i_stack.push_back(0);
     };
 
     auto visited = [&](const node_handle& n) {
       return m_g[n.descriptor()].is_visited();
     };
 
-    [&] {
-      // visit first node
-      visit(node);
-      if (std::forward<Lambda>(lambda)(node))
+    auto call_lambda = [](
+                         auto&& lambda,
+                         const node_handle& node,
+                         const std::vector<node_handle>& path) {
+      return lambda(node, path);
+    };
+
+    // visit first node, init stacks.
+    {
+      m_g[node.descriptor()].set_visited();
+      n_stack.push_back(node);
+      i_stack.push_back(0);
+      if (call_lambda(on_visit, node, n_stack)) {
+        m_g[node.descriptor()].set_unvisited();
         return;
+      }
+    }
 
-      // main loop
-      while (!stack.empty()) {
+    // main loop
+    while (!n_stack.empty()) {
 
-        auto current = stack.back();
+      auto current_node  = n_stack.back();
+      auto current_index = i_stack.back();
 
-        bool stop = [&] {
-          std::vector<connection_handle> inputs;
-          for (auto&& s : m_g.sockets(current.descriptor())) {
-            for (auto&& e : m_g.dst_edges(s)) {
-              inputs.emplace_back(e, uid {m_g.id(e)});
-            }
-          }
-
-          for (auto&& c : inputs) {
-            auto next = _get_info(c)->src_node();
+      bool stop = [&] {
+        auto sockets = m_g.sockets(current_node.descriptor());
+        for (size_t i = current_index; i < sockets.size(); ++i) {
+          auto& s = sockets[i];
+          for (auto&& e : m_g.dst_edges(s)) {
+            assert(m_g.nodes(m_g.src(e)).size() == 1);
+            auto n    = m_g.nodes(m_g.src(e))[0];
+            auto next = node_handle(n, uid {m_g.id(n)});
+            // not visited yet
             if (!visited(next)) {
               visit(next);
-              return std::forward<Lambda>(lambda)(node);
+              return call_lambda(on_visit, next, n_stack);
             }
+            // already visited
+            if (call_lambda(on_visited, next, n_stack))
+              return true;
           }
-          stack.pop_back();
-          return false;
-        }();
+        }
+        n_stack.pop_back();
+        i_stack.pop_back();
+        return false;
+      }();
 
-        if (stop)
-          break;
-      }
-    }();
+      if (stop)
+        break;
+    }
 
     // clear mark
     for (auto&& n : m_g.nodes()) {
@@ -284,15 +317,31 @@ namespace yave {
     }
   }
 
+  template <class Lambda1>
+  void node_graph::depth_first_search_until(
+    const node_handle& node,
+    Lambda1&& on_visit) const
+  {
+    auto lck = _lock();
+    return _depth_first_search_until(
+      node, std::forward<Lambda1>(on_visit), [](auto&&, auto&&) {
+        return false;
+      });
+  }
+
   template <class Lambda>
   void node_graph::depth_first_search(
     const yave::node_handle& node,
     Lambda&& lambda) const
   {
-    return depth_first_search_until(node, [&](auto&& n) {
-      std::forward<Lambda>(lambda)(n);
-      return false;
-    });
+    auto lck = _lock();
+    return _depth_first_search_until(
+      node,
+      [&](const node_handle& n, const std::vector<node_handle>& path) {
+        std::forward<Lambda>(lambda)(n, path);
+        return false;
+      },
+      [](auto&&, auto&&) { return false; });
   }
 
 } // namespace yave

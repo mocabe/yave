@@ -374,7 +374,7 @@ TEST_CASE("node_graph control")
     REQUIRE(c3);
 
     int count = 0;
-    ng.depth_first_search(n1, [&](auto&&) { ++count; });
+    ng.depth_first_search(n1, [&](auto&&, auto&&) { ++count; });
 
     REQUIRE(count == 3);
   }

@@ -823,65 +823,21 @@ namespace yave {
     if (!_exists(node))
       return {};
 
-    for (auto&& n : m_g.nodes()) {
-      assert(m_g[n].is_unvisited());
-    }
-
-    std::vector<node_handle> stack;
-
-    auto visit = [&](const node_handle& n) {
-      m_g[n.descriptor()].set_visited();
-      stack.push_back(n);
-    };
-
-    auto visited = [&](const node_handle& n) {
-      return m_g[n.descriptor()].is_visited();
-    };
-
-    // loop
     std::vector<node_handle> ret;
 
-    visit(node);
-
-    while (!stack.empty()) {
-
-      auto current = stack.back();
-
-      bool stop = [&] {
-        std::vector<connection_handle> inputs;
-        for (auto&& s : m_g.sockets(current.descriptor())) {
-          for (auto&& e : m_g.dst_edges(s)) {
-            inputs.emplace_back(e, uid {m_g.id(e)});
+    _depth_first_search_until(
+      node,
+      [](auto&&, auto&&) { return false; },
+      [&ret](const node_handle& node, const std::vector<node_handle>& path) {
+        // find closed loop
+        for (auto iter = path.begin(); iter != path.end(); ++iter) {
+          if (*iter == node) {
+            ret = {iter, path.end()};
+            return true;
           }
         }
-
-        for (auto&& c : inputs) {
-          auto next = _get_info(c)->src_node();
-          if (visited(next)) {
-            // find closed loop
-            for (auto iter = stack.begin(); iter != stack.end(); ++iter) {
-              if (*iter == next) {
-                ret = {iter, stack.end()};
-                return true;
-              }
-            }
-          } else {
-            visit(next);
-            return false;
-          }
-        }
-        stack.pop_back();
         return false;
-      }();
-
-      if (stop)
-        break;
-    }
-
-    // clear mark
-    for (auto&& n : m_g.nodes()) {
-      m_g[n].set_unvisited();
-    }
+      });
 
     return ret;
   }
