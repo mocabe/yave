@@ -17,6 +17,10 @@ namespace yave {
   /// Polymorphic error info interface.
   class error_info_base
   {
+  protected:
+    error_info_base()                       = default;
+    error_info_base(const error_info_base&) = default;
+
   public:
     /// Generate error message.
     virtual std::string message() const = 0;
