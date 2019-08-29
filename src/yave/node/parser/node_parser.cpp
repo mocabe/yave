@@ -100,66 +100,80 @@ namespace yave {
       throw std::invalid_argument("Invalid root node handle");
     }
 
-    struct
-    {
-      void rec(
-        const node_graph& g,
-        const node_handle& hg,
-        node_graph& r, // ref
-        const node_handle& hr,
-        error_list& e) // ref
-      {
-        auto inputs = g.input_connections(hg);
+    auto ns = std::vector<node_handle> {};
 
-        // TODO: Improve performance and prevent stack overflow
+    // list nodes in tree.
+    graph.depth_first_search(
+      root, [&](const node_handle& n, auto&&) { ns.push_back(n); });
 
-        for (auto&& c : inputs) {
-          auto c_info   = *g.get_info(c);
-          auto src      = c_info.src_node();
-          auto src_info = *g.get_info(src);
-
-          Info(g_logger, "Extract node {}({})", src_info.name(), src.id().data);
-
-          // copy src node to `r` and connect to it
-          auto child = src_info.is_prim()
-                         ? r.add(src_info, *g.get_primitive(src))
-                         : r.add(src_info);
-
-          if (!child) {
-            e.push_back(
-              make_error<parse_error::unexpected_error>("Failed to copy node"));
-            throw std::runtime_error("Failed to copy prime tree");
-          }
-
-          auto rc =
-            r.connect(child, c_info.src_socket(), hr, c_info.dst_socket());
-
-          if (!rc) {
-            e.push_back(make_error<parse_error::unexpected_error>(
-              "Failed to connect copied nodes"));
-            throw std::runtime_error("Failed to copy prime tree");
-          }
-
-          // recursively call on child nodes
-          rec(g, src, r, child, e);
-        }
-      }
-    } impl;
-
+    // result node_graph
     node_graph ret;
-
-    // copy root node
+    // root of ret
     node_handle ret_root;
-    {
-      auto info = graph.get_info(root);
+
+    // collection of relation between old and new nodes.
+    std::map<uid, node_handle> n_map;
+
+    // copy nodes
+    for (auto&& n : ns) {
+      auto info = graph.get_info(n);
       assert(info);
-      Info(g_logger, "Extract node {}({})", info->name(), root.id().data);
-      auto prim = graph.get_primitive(root);
-      ret_root  = prim ? ret.add(*info, *prim) : ret.add(*info);
-      assert(ret_root);
+
+      auto cpy = info->is_prim() ? ret.add(*info, *graph.get_primitive(n))
+                                 : ret.add(*info);
+
+      if (!cpy) {
+        m_errors.push_back(
+          make_error<parse_error::unexpected_error>("Failed to copy node"));
+        throw std::runtime_error("Failed to copy prime tree");
+      }
+
+      n_map.emplace(n.id(), cpy);
+
+      if (n == root)
+        ret_root = cpy;
     }
 
-    impl.rec(graph, root, ret, ret_root, m_errors);
+    if (!ret_root) {
+      m_errors.push_back(make_error<parse_error::unexpected_error>(
+        "Could not find new root node"));
+      throw std::runtime_error("Failed to copy prime tree");
+    }
+
+    // copy connections
+    for (auto&& n : ns) {
+      auto cs = graph.input_connections(n);
+      for (auto&& c : cs) {
+        auto info = graph.get_info(c);
+        assert(info);
+
+        auto src = info->src_node();
+        auto dst = info->dst_node();
+
+        assert(dst == n);
+
+        auto src_itr = n_map.find(src.id());
+        auto dst_itr = n_map.find(dst.id());
+
+        if (src_itr == n_map.end() || dst_itr == n_map.end()) {
+          m_errors.push_back(make_error<parse_error::unexpected_error>(
+            "Could not find copied node"));
+          throw std::runtime_error("Failed to copy prime tree");
+        }
+
+        auto cpy = ret.connect(
+          src_itr->second,
+          info->src_socket(),
+          dst_itr->second,
+          info->dst_socket());
+
+        if (!cpy) {
+          m_errors.push_back(make_error<parse_error::unexpected_error>(
+            "Failed to connect copied nodes"));
+          throw std::runtime_error("Failed to copy prime tree");
+        }
+      }
+    }
 
     if (m_errors.empty())
       return {{std::move(ret), ret_root}};
