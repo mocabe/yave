@@ -109,7 +109,7 @@ namespace yave {
           throw std::runtime_error("Failed to create blend dst");
       }
       {
-        auto info    = get_node_info<LayerCompositor>();
+        auto info    = get_node_info<node::LayerCompositor>();
         m_compositor = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_compositor)
@@ -128,7 +128,7 @@ namespace yave {
       // image output [out] -> compositor[src]
       {
         auto io       = get_node_info<LayerImageOutput>();
-        auto compos   = get_node_info<LayerCompositor>();
+        auto compos   = get_node_info<node::LayerCompositor>();
         m_c_io_compos = m_graph.connect(
           m_image_output.get(),
           io.output_sockets()[0],
@@ -141,7 +141,7 @@ namespace yave {
       // if -> compos [func]
       {
         auto bif      = get_node_info<IfNode>();
-        auto compos   = get_node_info<LayerCompositor>();
+        auto compos   = get_node_info<node::LayerCompositor>();
         m_c_if_compos = m_graph.connect(
           m_blend_if.get(),
           bif.output_sockets()[0],
@@ -267,7 +267,7 @@ namespace yave {
 
         // connect sublayers
 
-        auto compos    = get_node_info<LayerCompositor>();
+        auto compos    = get_node_info<node::LayerCompositor>();
         auto sublayers = m_graph.get_sublayers(m_layer);
 
         if (sublayers.empty()) {
@@ -493,7 +493,7 @@ namespace yave {
       if (m_is_visible == visibility)
         return;
 
-      auto dst_info = get_node_info<LayerCompositor>();
+      auto dst_info = get_node_info<node::LayerCompositor>();
 
       if (visibility) {
         assert(m_graph.exists(m_c_dst_compos));
@@ -610,7 +610,7 @@ namespace yave {
         throw std::runtime_error("Failed to register frame buffer info");
 
       // layer compositor
-      if (!m_graph.register_node_info(get_node_info<LayerCompositor>()))
+      if (!m_graph.register_node_info(get_node_info<node::LayerCompositor>()))
         throw std::runtime_error("Failed to register compositor info");
 
       // blend ops
@@ -666,7 +666,7 @@ namespace yave {
     // connect root layer to global out
     {
       Info(g_logger, "Building connections for root layer");
-      auto compos_info = get_node_info<LayerCompositor>();
+      auto compos_info = get_node_info<node::LayerCompositor>();
       auto io_info     = get_node_info<LayerImageOutput>();
       auto fb_info     = get_node_info<FrameBufferConstructor>();
 

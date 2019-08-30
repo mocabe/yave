@@ -35,7 +35,7 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<LayerCompositor, backend::tags::default_render>
+  struct bind_info_traits<node::LayerCompositor, backend::tags::default_render>
   {
     static bind_info get_bind_info()
     {

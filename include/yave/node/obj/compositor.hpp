@@ -9,12 +9,14 @@
 
 namespace yave {
 
-  /// Layer compositor node
-  struct LayerCompositor;
+  namespace node {
+    /// Layer compositor node
+    struct LayerCompositor;
+  } // namespace node
 
   // info traits
   template <>
-  struct node_info_traits<LayerCompositor>
+  struct node_info_traits<node::LayerCompositor>
   {
     static node_info get_node_info()
     {
