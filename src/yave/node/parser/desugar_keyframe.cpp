@@ -16,15 +16,15 @@ namespace yave {
 
     auto prim = g.get_primitive(n);
     assert(prim);
-    auto keyframe =
-      g.add(get_node_info<PrimitiveConstructor<KeyframeT>>(), *prim);
-    auto extractor = g.add(get_node_info<KeyframeTValueExtractor>());
-
-    assert(prim);
-    assert(extractor);
 
     auto kf_info = get_node_info<KeyframeT>();
     auto ex_info = get_node_info<KeyframeTValueExtractor>();
+
+    auto keyframe  = g.add(kf_info, *prim);
+    auto extractor = g.add(ex_info);
+
+    assert(prim);
+    assert(extractor);
 
     // kf -> ex
     {
@@ -94,17 +94,22 @@ namespace yave {
 
   void desugar_KeyframeInt(node_graph& g, const node_handle& n, error_list& e)
   {
-    return desugar_KeyframeT<KeyframeInt, KeyframeIntValueExtractor>(g, n, e);
+    return desugar_KeyframeT<
+      node::KeyframeInt,
+      node::KeyframeIntValueExtractor>(g, n, e);
   }
 
   void desugar_KeyframeFloat(node_graph& g, const node_handle& n, error_list& e)
   {
-    return desugar_KeyframeT<KeyframeFloat, KeyframeFloatValueExtractor>(
-      g, n, e);
+    return desugar_KeyframeT<
+      node::KeyframeFloat,
+      node::KeyframeFloatValueExtractor>(g, n, e);
   }
 
   void desugar_KeyframeBool(node_graph& g, const node_handle& n, error_list& e)
   {
-    return desugar_KeyframeT<KeyframeBool, KeyframeBoolValueExtractor>(g, n, e);
+    return desugar_KeyframeT<
+      node::KeyframeBool,
+      node::KeyframeBoolValueExtractor>(g, n, e);
   }
 } // namespace yave

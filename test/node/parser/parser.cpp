@@ -88,7 +88,7 @@ TEST_CASE("node_parser _desugar")
 
   SECTION("keyframe")
   {
-    auto info = get_node_info<KeyframeInt>();
+    auto info = get_node_info<node::KeyframeInt>();
 
     auto kf = graph.add(info, 42);
 
@@ -100,7 +100,7 @@ TEST_CASE("node_parser _desugar")
 
     SECTION("with input")
     {
-      auto frame_info = get_node_info<FrameConstructor>();
+      auto frame_info = get_node_info<node::Frame>();
       auto frame      = graph.add(frame_info);
       auto c          = graph.connect(
         frame, frame_info.output_sockets()[0], kf, info.input_sockets()[0]);
