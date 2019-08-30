@@ -86,7 +86,7 @@ namespace yave {
   auto node_parser::_extract(const node_graph& graph, const node_handle& root)
     -> std::optional<parsed_node_graph>
   {
-    Info(g_logger, "Extracting prime tree from {}", root.id().data);
+    Info(g_logger, "Extracting prime tree from {}", to_string(root.id()));
 
     if (!root) {
       m_errors.push_back(
@@ -187,7 +187,7 @@ namespace yave {
     auto graph = std::move(parsed_graph.graph);
     auto root  = std::move(parsed_graph.root);
 
-    Info(g_logger, "Desugar parsed graph from {}", root.id().data);
+    Info(g_logger, "Desugar parsed graph from {}", to_string(root.id()));
 
     auto ns = graph.nodes();
 
@@ -223,7 +223,7 @@ namespace yave {
     auto graph = std::move(parsed_graph.graph);
     auto root  = std::move(parsed_graph.root);
 
-    Info(g_logger, "Parse prime tree from {}", root.id().data);
+    Info(g_logger, "Parse prime tree from {}", to_string(root.id()));
 
     if (!root) {
       m_errors.push_back(
