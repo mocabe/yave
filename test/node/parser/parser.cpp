@@ -9,7 +9,7 @@
 #include <yave/node/support/node_info_manager.hpp>
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/rts/rts.hpp>
-#include <yave/node/obj/function.hpp>
+#include <yave/node/core/function.hpp>
 #include <yave/node/obj/instance_getter.hpp>
 
 #include <yave/backend/default/render/primitive_constructor.hpp>

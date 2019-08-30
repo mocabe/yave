@@ -5,7 +5,7 @@
 
 #include <yave/node/scene/scene_graph.hpp>
 
-#include <yave/node/obj/function.hpp>
+#include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/node/obj/frame.hpp>
 #include <yave/node/obj/frame_buffer.hpp>

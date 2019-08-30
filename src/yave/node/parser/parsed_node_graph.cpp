@@ -10,7 +10,7 @@
 #include <yave/obj/frame/frame.hpp>
 
 #include <yave/node/support/socket_instance_manager.hpp>
-#include <yave/node/obj/function.hpp>
+#include <yave/node/core/function.hpp>
 
 #include <cassert>
 
