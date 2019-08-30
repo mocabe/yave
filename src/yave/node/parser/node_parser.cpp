@@ -197,19 +197,11 @@ namespace yave {
 
       // desugar pass
       {
-        if (info == get_node_info<node::KeyframeInt>()) {
           desugar_KeyframeInt(graph, n, m_errors);
-        }
-
-        if (info == get_node_info<node::KeyframeFloat>()) {
           desugar_KeyframeFloat(graph, n, m_errors);
-        }
-
-        if (info == get_node_info<node::KeyframeBool>()) {
           desugar_KeyframeBool(graph, n, m_errors);
         }
       }
-    }
 
     if (m_errors.empty())
       return {{std::move(graph), root}};

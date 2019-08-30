@@ -12,7 +12,8 @@ namespace yave {
   template <class KeyframeT, class KeyframeTValueExtractor>
   void desugar_KeyframeT(node_graph& g, const node_handle& n, error_list& e)
   {
-    assert(g.get_info(n) == get_node_info<KeyframeT>());
+    if (g.get_info(n) != get_node_info<KeyframeT>())
+      return;
 
     auto prim = g.get_primitive(n);
     assert(prim);
