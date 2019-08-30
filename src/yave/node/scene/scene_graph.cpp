@@ -57,7 +57,7 @@ namespace yave {
       Info(
         g_logger,
         "Initializing layer attribute for layer {}",
-        m_layer.id().data);
+        to_string(m_layer.id()));
 
       // layer is visible by default
       m_is_visible = true;
@@ -222,7 +222,9 @@ namespace yave {
     ~layer_attribute()
     {
       Info(
-        g_logger, "Destroying layer attribute of layer {} ", m_layer.id().data);
+        g_logger,
+        "Destroying layer attribute of layer {} ",
+        to_string(m_layer.id()));
 
       // destroy connections
       {
@@ -246,7 +248,7 @@ namespace yave {
         g_logger,
         "Rebuilding sublayer connections at '{}'#{}",
         *m_graph.get_layer_name(m_layer),
-        m_layer.id().data);
+        to_string(m_layer.id()));
 
       if (is_image_layer()) {
         Warning(
@@ -360,7 +362,7 @@ namespace yave {
 
     void set_blend_op(blend_operation op)
     {
-      Info("Set new blend operation to layer {}", m_layer.id().data);
+      Info("Set new blend operation to layer {}", to_string(m_layer.id()));
 
       if (m_blend_op == op)
         return;
@@ -448,7 +450,7 @@ namespace yave {
           g_logger,
           "Tried to add reference to layer resource which is not accesible "
           "from this layer {}. Ignored.",
-          m_layer.id().data);
+          to_string(m_layer.id()));
 
         return false;
       }
@@ -467,8 +469,8 @@ namespace yave {
               g_logger,
               "Added new reference to the resource {} which belongs to the "
               "layer {}",
-              handle.id().data,
-              layer.id().data);
+              to_string(handle.id()),
+              to_string(layer.id()));
 
             return true;
           }
@@ -725,7 +727,9 @@ namespace yave {
 
     if (!b) {
       Error(
-        g_logger, "Failed to add new scene layer info: id={}", layer.id().data);
+        g_logger,
+        "Failed to add new scene layer info: id={}",
+        to_string(layer.id()));
 
       throw std::runtime_error("Failed to add layer info");
     }

@@ -259,7 +259,7 @@ namespace yave {
       Warning(
         g_logger,
         "node_graph::disconnect() on invalid node handle: id={}",
-        h.id().data);
+        to_string(h.id()));
       return;
     }
 

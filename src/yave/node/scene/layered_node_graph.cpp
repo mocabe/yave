@@ -386,7 +386,7 @@ namespace yave {
       l->name,
       l->id.data,
       _access(target).name,
-      target.id().data);
+      to_string(target.id()));
 
     return _get_handle(l);
   }
@@ -409,7 +409,7 @@ namespace yave {
       g_logger,
       "Removing layer {}#{} and sublayers",
       _access(layer).name,
-      layer.id().data);
+      to_string(layer.id()));
 
     auto rm = std::remove_if(
       parent.sublayers.begin(), parent.sublayers.end(), [&](auto& sub) {
@@ -735,9 +735,9 @@ namespace yave {
       Info(
         g_logger,
         "Moved layer resource {} from {} to {}",
-        res.id().data,
-        from.id().data,
-        to.id().data);
+        to_string(res.id()),
+        to_string(from.id()),
+        to_string(to.id()));
     }
   }
 
