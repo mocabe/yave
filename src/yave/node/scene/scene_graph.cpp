@@ -67,7 +67,7 @@ namespace yave {
 
       /* init resources */
       {
-        auto info      = get_node_info<LayerImageOutput>();
+        auto info      = get_node_info<node::LayerImageOutput>();
         m_image_output = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_image_output)
@@ -127,7 +127,7 @@ namespace yave {
 
       // image output [out] -> compositor[src]
       {
-        auto io       = get_node_info<LayerImageOutput>();
+        auto io       = get_node_info<node::LayerImageOutput>();
         auto compos   = get_node_info<node::LayerCompositor>();
         m_c_io_compos = m_graph.connect(
           m_image_output.get(),
@@ -273,7 +273,7 @@ namespace yave {
         if (sublayers.empty()) {
 
           auto fb = get_node_info<node::FrameBuffer>();
-          auto io = get_node_info<LayerImageOutput>();
+          auto io = get_node_info<node::LayerImageOutput>();
 
           auto c = m_graph.connect(
             m_empty_fb.get(),
@@ -340,7 +340,7 @@ namespace yave {
 
           // connect top layer output to image output of this layer
           {
-            auto io = get_node_info<LayerImageOutput>();
+            auto io = get_node_info<node::LayerImageOutput>();
 
             // compos out -> image out
             auto c = m_graph.connect(
@@ -602,7 +602,7 @@ namespace yave {
         throw std::runtime_error("Failed to register frame ctor info");
 
       // layer io
-      if (!m_graph.register_node_info(get_node_info<LayerImageOutput>()))
+      if (!m_graph.register_node_info(get_node_info<node::LayerImageOutput>()))
         throw std::runtime_error("Failed to register image io info");
 
       // layer fb
@@ -628,7 +628,7 @@ namespace yave {
 
     // Add global image output (private)
     {
-      auto info = get_node_info<LayerImageOutput>();
+      auto info = get_node_info<node::LayerImageOutput>();
       auto res  = m_graph.add_resource(
         info.name(), root(), layer_resource_scope::Private);
 
@@ -667,7 +667,7 @@ namespace yave {
     {
       Info(g_logger, "Building connections for root layer");
       auto compos_info = get_node_info<node::LayerCompositor>();
-      auto io_info     = get_node_info<LayerImageOutput>();
+      auto io_info     = get_node_info<node::LayerImageOutput>();
       auto fb_info     = get_node_info<node::FrameBuffer>();
 
       m_c_fb_root = m_graph.connect(

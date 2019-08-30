@@ -9,11 +9,13 @@
 
 namespace yave {
 
-  /// Layer image output
-  struct LayerImageOutput;
+  namespace node {
+    /// Layer image output
+    struct LayerImageOutput;
+  } // namespace node
 
   template <>
-  struct node_info_traits<LayerImageOutput>
+  struct node_info_traits<node::LayerImageOutput>
   {
     static node_info get_node_info()
     {
