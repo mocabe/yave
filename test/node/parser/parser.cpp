@@ -4,11 +4,13 @@
 //
 
 #include <yave/node/parser/node_parser.hpp>
+#include <yave/node/obj/keyframe.hpp>
+#include <yave/node/obj/frame.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
 
-TEST_CASE("node_parser unit test")
+TEST_CASE("node_parser _extract")
 {
   node_graph graph;
   node_parser parser;
@@ -75,6 +77,37 @@ TEST_CASE("node_parser unit test")
       auto parsed = parser.parse(graph, norm);
       REQUIRE(parsed);
       REQUIRE(parsed->graph.nodes().size() == 2);
+    }
+  }
+}
+
+TEST_CASE("node_parser _desugar")
+{
+  node_graph graph;
+  node_parser parser;
+
+  SECTION("keyframe")
+  {
+    auto info = get_node_info<KeyframeInt>();
+
+    auto kf = graph.add(info, 42);
+
+    SECTION("single")
+    {
+      auto parsed = parser.parse(graph, kf);
+      REQUIRE(!parsed);
+    }
+
+    SECTION("with input")
+    {
+      auto frame_info = get_node_info<FrameConstructor>();
+      auto frame      = graph.add(frame_info);
+      auto c          = graph.connect(
+        frame, frame_info.output_sockets()[0], kf, info.input_sockets()[0]);
+      REQUIRE(c);
+
+      auto parsed = parser.parse(graph, kf);
+      REQUIRE(parsed);
     }
   }
 }
