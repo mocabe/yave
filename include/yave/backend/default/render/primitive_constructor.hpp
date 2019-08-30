@@ -73,7 +73,7 @@ namespace yave {
 
   template <class T>
   struct bind_info_traits<
-    PrimitiveConstructor<T>,
+    node::PrimitiveConstructor<T>,
     backend::tags::default_render>
   {
     static bind_info get_bind_info()
