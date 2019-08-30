@@ -170,7 +170,7 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<BlendOpSrc, backend::tags::default_render>
+  struct bind_info_traits<node::BlendOpSrc, backend::tags::default_render>
   {
     static bind_info get_bind_info()
     {
@@ -185,7 +185,7 @@ namespace yave {
   };
 
   template <>
-  struct bind_info_traits<BlendOpDst, backend::tags::default_render>
+  struct bind_info_traits<node::BlendOpDst, backend::tags::default_render>
   {
     static bind_info get_bind_info()
     {
@@ -200,7 +200,7 @@ namespace yave {
   };
 
   template <>
-  struct bind_info_traits<BlendOpOver, backend::tags::default_render>
+  struct bind_info_traits<node::BlendOpOver, backend::tags::default_render>
   {
     static node_info get_node_info()
     {
@@ -219,7 +219,7 @@ namespace yave {
   };
 
   template <>
-  struct bind_info_traits<BlendOpIn, backend::tags::default_render>
+  struct bind_info_traits<node::BlendOpIn, backend::tags::default_render>
   {
     static bind_info get_bind_info()
     {
@@ -234,7 +234,7 @@ namespace yave {
   };
 
   template <>
-  struct bind_info_traits<BlendOpOut, backend::tags::default_render>
+  struct bind_info_traits<node::BlendOpOut, backend::tags::default_render>
   {
     static bind_info get_bind_info()
     {
@@ -249,7 +249,7 @@ namespace yave {
   };
 
   template <>
-  struct bind_info_traits<BlendOpAdd, backend::tags::default_render>
+  struct bind_info_traits<node::BlendOpAdd, backend::tags::default_render>
   {
     static bind_info get_bind_info()
     {

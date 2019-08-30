@@ -102,7 +102,7 @@ namespace yave {
           throw std::runtime_error("Failed to create blend func");
       }
       {
-        auto info   = get_node_info<BlendOpDst>();
+        auto info   = get_node_info<node::BlendOpDst>();
         m_blend_dst = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_blend_dst)
@@ -178,7 +178,7 @@ namespace yave {
 
       // blend dst -> if [else]
       {
-        auto dst   = get_node_info<BlendOpDst>();
+        auto dst   = get_node_info<node::BlendOpDst>();
         auto bif   = get_node_info<IfNode>();
         m_c_dst_if = m_graph.connect(
           m_blend_dst.get(),
@@ -514,7 +514,7 @@ namespace yave {
         assert(!m_graph.exists(m_c_dst_compos));
         assert(m_graph.exists(m_c_if_compos));
         m_graph.disconnect(m_c_if_compos);
-        auto src_info = get_node_info<BlendOpDst>();
+        auto src_info = get_node_info<node::BlendOpDst>();
 
         m_c_dst_compos = m_graph.connect(
           m_blend_dst.get(),
