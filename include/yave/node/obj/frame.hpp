@@ -9,12 +9,13 @@
 
 namespace yave {
 
-  /// Pesudo primitive node for frame.
-  struct FrameConstructor;
+  namespace node {
+    /// Pesudo primitive node for frame.
+    struct Frame;
+  } // namespace noed
 
-  // info traits
   template <>
-  struct node_info_traits<FrameConstructor>
+  struct node_info_traits<node::Frame>
   {
     static node_info get_node_info()
     {

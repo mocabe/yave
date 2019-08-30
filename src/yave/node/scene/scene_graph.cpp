@@ -116,7 +116,7 @@ namespace yave {
           throw std::runtime_error("Failed to create compositor");
       }
       {
-        auto info = get_node_info<FrameConstructor>();
+        auto info = get_node_info<node::Frame>();
         m_frame   = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_frame)
@@ -192,7 +192,7 @@ namespace yave {
       // frame -> visibility
       {
         auto vis             = get_node_info<node::KeyframeBool>();
-        auto fb              = get_node_info<FrameConstructor>();
+        auto fb              = get_node_info<node::Frame>();
         m_c_frame_visibility = m_graph.connect(
           m_frame.get(),
           fb.output_sockets()[0],
@@ -598,7 +598,7 @@ namespace yave {
         throw std::runtime_error("Failed to register primitive node info");
 
       // frame
-      if (!m_graph.register_node_info(get_node_info<FrameConstructor>()))
+      if (!m_graph.register_node_info(get_node_info<node::Frame>()))
         throw std::runtime_error("Failed to register frame ctor info");
 
       // layer io
