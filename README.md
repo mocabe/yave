@@ -28,15 +28,19 @@ Recent development tasks:
 - [ ] key-frame object implementation
     + `keyframe`
         + [x] add node info
-        + [ ] implement value type
+        + [x] implement value type
+        + [x] integrate to primitive types
+        + [ ] float interpolation
         + [ ] backend object impl
-        + [ ] integrate to primitive types
+- [ ] parser rework
+    + `node_parser`
+        + [ ] rewrite
+        + [ ] tests
+- [ ] compiler rework
 - [ ] improve test structure
     + [ ] remove tests for obsolete classes
     + [ ] restructure tests based on backends
-- [ ] parser rework
-- [ ] compiler rework
-- [ ] async command interfaec
+- [ ] async command interface
 
 Other personal projects I want to merge in the future if possible:
 - modern NURBS library 
