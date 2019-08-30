@@ -20,6 +20,9 @@ namespace yave {
       g.add(get_node_info<PrimitiveConstructor<KeyframeT>>(), *prim);
     auto extractor = g.add(get_node_info<KeyframeTValueExtractor>());
 
+    assert(prim);
+    assert(extractor);
+
     auto kf_info = get_node_info<KeyframeT>();
     auto ex_info = get_node_info<KeyframeTValueExtractor>();
 
@@ -38,8 +41,20 @@ namespace yave {
       }
     }
 
-    // inputs -> ex[1]
-    for (auto&& ic : g.input_connections(n)) {
+    auto inputs = g.input_connections(n);
+
+    // report missing 
+    if (inputs.empty()) {
+      e.push_back(make_error<parse_error::no_sufficient_input>(n));
+      g.remove(keyframe);
+      g.remove(extractor);
+      return;
+    }
+
+    assert(inputs.size() == 1);
+
+    // input -> ex[1]
+    for (auto&& ic : inputs) {
       auto ic_info = g.get_info(ic);
       assert(ic_info);
       auto c = g.connect(
@@ -72,6 +87,9 @@ namespace yave {
         throw std::runtime_error("Failed to connect nodes");
       }
     }
+
+    // remove original node
+    g.remove(n);
   }
 
   void desugar_KeyframeInt(node_graph& g, const node_handle& n, error_list& e)
