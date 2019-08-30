@@ -27,7 +27,7 @@ namespace yave {
     {
       auto c = g.connect(
         keyframe,
-        kf_info.input_sockets()[0],
+        kf_info.output_sockets()[0],
         extractor,
         ex_info.input_sockets()[0]);
 
