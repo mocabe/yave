@@ -94,14 +94,22 @@ namespace yave {
   node_handle
     node_graph::add(const yave::node_info& info, const primitive_t& prim)
   {
+    return add_with_id(info, uid::random_generate(), prim);
+  }
+
+  node_handle node_graph::add_with_id(
+    const yave::node_info& info,
+    const uid& id,
+    const primitive_t& prim)
+  {
     auto lck = _lock();
 
     // add node
     auto node = [&]() {
       if (info.is_prim())
-        return m_g.add_node(info.name(), prim);
+        return m_g.add_node_with_id(id.data, info.name(), prim);
       else
-        return m_g.add_node(info.name(), std::monostate {});
+        return m_g.add_node_with_id(id.data, info.name(), std::monostate {});
     }();
 
     if (!node)

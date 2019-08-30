@@ -51,6 +51,14 @@ namespace yave {
     [[nodiscard]] node_handle
       add(const node_info& info, const primitive_t& prim = {});
 
+    /// Add new node which has specified ID value.
+    /// Mainly for copying exising node from other instance of node_graph
+    /// without changing ID.
+    [[nodiscard]] node_handle add_with_id(
+      const node_info& info,
+      const uid& id,
+      const primitive_t& prim = {});
+
     /// Remove node from graph.
     /// Destroy the node, all sockets connected to the node, and all edges
     /// connected to these sockets.
