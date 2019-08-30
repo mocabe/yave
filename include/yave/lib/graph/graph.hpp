@@ -739,14 +739,35 @@ namespace yave::graph {
       assert(empty());
     }
 
+    /// Add node with id.
+    /// \param id Unique ID of new node.
+    /// \param args Args to initialize property.
+    /// \returns descriptor of new node.
+    template <class... Args>
+    [[nodiscard]] node_descriptor_type
+      add_node_with_id(const id_type &id, Args &&... args)
+    {
+      return _create_n(id, std::forward<Args>(args)...);
+    }
+
     /// Add node.
-    /// \param args Args to initialize property
-    /// \returns descriptor of new node
+    /// \param args Args to initialize property.
+    /// \returns descriptor of new node.
     template <class... Args>
     [[nodiscard]] node_descriptor_type add_node(Args &&... args)
     {
-      // add node
-      return _create_n(_random_id_gen(), std::forward<Args>(args)...);
+      return add_node_with_id(_random_id_gen(), std::forward<Args>(args)...);
+    }
+
+    /// Add socket with id.
+    /// \param id Unique ID for new socket.
+    /// \param args Args to initialize property.
+    /// \returns descriptor of new socket.
+    template <class... Args>
+    [[nodiscard]] socket_descriptor_type
+      add_socket_with_id(const id_type &id, Args &&... args)
+    {
+      return _create_s(id, std::forward<Args>(args)...);
     }
 
     /// Add socket.
@@ -755,18 +776,19 @@ namespace yave::graph {
     template <class... Args>
     [[nodiscard]] socket_descriptor_type add_socket(Args &&... args)
     {
-      // add socket
-      return _create_s(_random_id_gen(), std::forward<Args>(args)...);
+      return add_socket_with_id(_random_id_gen(), std::forward<Args>(args)...);
     }
 
     /// Add edge.
-    /// \param src source socket
-    /// \param dst destination socket
-    /// \param args Args to initialize property class
+    /// \param src source socket.
+    /// \param dst destination socket.
+    /// \param Unique ID for new edge.
+    /// \param args Args to initialize property class.
     template <class... Args>
-    [[nodiscard]] edge_descriptor_type add_edge(
+    [[nodiscard]] edge_descriptor_type add_edge_with_id(
       const socket_descriptor_type &src,
       const socket_descriptor_type &dst,
+      const id_type &id,
       Args &&... args)
     {
       if (!exists(src))
@@ -784,8 +806,7 @@ namespace yave::graph {
           throw std::runtime_error("edge already exists");
       }
 
-      auto e =
-        _create_e(_random_id_gen(), src, dst, std::forward<Args>(args)...);
+      auto e = _create_e(id, src, dst, std::forward<Args>(args)...);
 
       // set edge to sockets
       bool r1 [[maybe_unused]] = _access(src).set_src_edge(e);
@@ -793,6 +814,20 @@ namespace yave::graph {
       assert(r1 && r2);
 
       return e;
+    }
+
+    /// Add edge.
+    /// \param src source socket.
+    /// \param dst destination socket.
+    /// \param args Args to initialize property class.
+    template <class... Args>
+    [[nodiscard]] edge_descriptor_type add_edge(
+      const socket_descriptor_type &src,
+      const socket_descriptor_type &dst,
+      Args &&... args)
+    {
+      return add_edge_with_id(
+        src, dst, _random_id_gen(), std::forward<Args>(args)...);
     }
 
     /// Remove node.
