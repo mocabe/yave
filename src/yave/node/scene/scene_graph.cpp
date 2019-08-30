@@ -81,7 +81,7 @@ namespace yave {
           throw std::runtime_error("Failed to create layer visibility kv");
       }
       {
-        auto info  = get_node_info<FrameBufferConstructor>();
+        auto info  = get_node_info<node::FrameBuffer>();
         m_empty_fb = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_empty_fb)
@@ -272,7 +272,7 @@ namespace yave {
 
         if (sublayers.empty()) {
 
-          auto fb = get_node_info<FrameBufferConstructor>();
+          auto fb = get_node_info<node::FrameBuffer>();
           auto io = get_node_info<LayerImageOutput>();
 
           auto c = m_graph.connect(
@@ -300,7 +300,7 @@ namespace yave {
             else
               throw std::runtime_error("Could not find layer attribute");
 
-            auto fb = get_node_info<FrameBufferConstructor>();
+            auto fb = get_node_info<node::FrameBuffer>();
 
             // connect empty as first sublayer dst
             auto c = m_graph.connect(
@@ -606,7 +606,7 @@ namespace yave {
         throw std::runtime_error("Failed to register image io info");
 
       // layer fb
-      if (!m_graph.register_node_info(get_node_info<FrameBufferConstructor>()))
+      if (!m_graph.register_node_info(get_node_info<node::FrameBuffer>()))
         throw std::runtime_error("Failed to register frame buffer info");
 
       // layer compositor
@@ -647,7 +647,7 @@ namespace yave {
 
     // Add empty frame buffer (inherit)
     {
-      auto info = get_node_info<FrameBufferConstructor>();
+      auto info = get_node_info<node::FrameBuffer>();
       auto res  = m_graph.add_resource(
         info.name(), root(), layer_resource_scope::Inherit);
 
@@ -668,7 +668,7 @@ namespace yave {
       Info(g_logger, "Building connections for root layer");
       auto compos_info = get_node_info<node::LayerCompositor>();
       auto io_info     = get_node_info<LayerImageOutput>();
-      auto fb_info     = get_node_info<FrameBufferConstructor>();
+      auto fb_info     = get_node_info<node::FrameBuffer>();
 
       m_c_fb_root = m_graph.connect(
         m_empty_frame_buffer,

@@ -16,8 +16,8 @@ TEST_CASE("frame_buffer")
 {
   frame_buffer_manager mngr {(uint32_t)-1, (uint32_t)-1, image_format::RGBA32F};
 
-  auto info = get_node_info<FrameBufferConstructor>();
-  auto bind = get_bind_info<FrameBufferConstructor, default_render>(mngr);
+  auto info = get_node_info<node::FrameBuffer>();
+  auto bind = get_bind_info<node::FrameBuffer, default_render>(mngr);
 
   REQUIRE(info.name() == bind.name());
   REQUIRE(info.input_sockets() == bind.input_sockets());

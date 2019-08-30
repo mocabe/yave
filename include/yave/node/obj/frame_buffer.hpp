@@ -9,11 +9,13 @@
 
 namespace yave {
 
-  /// Frame buffer constructor
-  struct FrameBufferConstructor;
+  namespace node {
+    /// Frame buffer constructor
+    struct FrameBuffer;
+  } // namespace node
 
   template <>
-  struct node_info_traits<FrameBufferConstructor>
+  struct node_info_traits<node::FrameBuffer>
   {
     static node_info get_node_info()
     {
