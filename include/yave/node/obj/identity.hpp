@@ -9,10 +9,13 @@
 
 namespace yave {
 
-  struct Identity;
+  namespace node {
+    /// Id function
+    struct Identity;
+  } // namespace node
 
   template <>
-  struct node_info_traits<Identity>
+  struct node_info_traits<node::Identity>
   {
     static node_info get_node_info()
     {

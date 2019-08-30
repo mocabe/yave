@@ -15,7 +15,7 @@ namespace yave {
     return std::visit(
       overloaded {[&](const auto& p) {
         using value_type = std::decay_t<decltype(p)>;
-        return get_node_info<PrimitiveConstructor<Box<value_type>>>();
+        return get_node_info<node::PrimitiveConstructor<Box<value_type>>>();
       }},
       v);
   }

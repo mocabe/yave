@@ -13,13 +13,21 @@ namespace yave {
 
   /* Keyframe value extractors */
 
-  struct KeyframeIntValueExtractor;
-  struct KeyframeFloatValueExtractor;
-  struct KeyframeBoolValueExtractor;
+  namespace node {
+
+    struct KeyframeIntValueExtractor;
+    struct KeyframeFloatValueExtractor;
+    struct KeyframeBoolValueExtractor;
+
+    struct KeyframeInt;
+    struct KeyframeFloat;
+    struct KeyframeBool;
+
+  } // namespace node
 
 #define YAVE_DECL_KEYFRAME_EXTRACTOR(TYPE)                 \
   template <>                                              \
-  struct node_info_traits<TYPE>                            \
+  struct node_info_traits<node::TYPE>                      \
   {                                                        \
     static node_info get_node_info()                       \
     {                                                      \
@@ -33,14 +41,15 @@ namespace yave {
 
   /* Keyframe syntax sugars */
 
-#define YAVE_DECL_KEYFRAME_SUGAR(TYPE)                                      \
-  template <>                                                               \
-  struct node_info_traits<TYPE>                                             \
-  {                                                                         \
-    static node_info get_node_info()                                        \
-    {                                                                       \
-      return node_info(#TYPE "1", {"frame"}, {"value"}, /*.is_prim=*/true); \
-    }                                                                       \
+#define YAVE_DECL_KEYFRAME_SUGAR(TYPE)                           \
+  template <>                                                    \
+  struct node_info_traits<node::TYPE>                            \
+  {                                                              \
+    static node_info get_node_info()                             \
+    {                                                            \
+      return node_info(                                          \
+        #TYPE "Sugar", {"frame"}, {"value"}, /*.is_prim=*/true); \
+    }                                                            \
   }
 
   YAVE_DECL_KEYFRAME_SUGAR(KeyframeInt);
@@ -50,12 +59,12 @@ namespace yave {
   inline std::vector<node_info> get_keyframe_node_info_list()
   {
     return {/* extractors */
-            get_node_info<KeyframeIntValueExtractor>(),
-            get_node_info<KeyframeFloatValueExtractor>(),
-            get_node_info<KeyframeBoolValueExtractor>(),
+            get_node_info<node::KeyframeIntValueExtractor>(),
+            get_node_info<node::KeyframeFloatValueExtractor>(),
+            get_node_info<node::KeyframeBoolValueExtractor>(),
             /* sugars */
-            get_node_info<KeyframeInt>(),
-            get_node_info<KeyframeBool>(),
-            get_node_info<KeyframeFloat>()};
+            get_node_info<node::KeyframeInt>(),
+            get_node_info<node::KeyframeBool>(),
+            get_node_info<node::KeyframeFloat>()};
   }
 } // namespace yave

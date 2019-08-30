@@ -10,32 +10,34 @@
 
 namespace yave {
 
-  struct BlendOpSrc;
-  struct BlendOpDst;
-  struct BlendOpOver;
-  struct BlendOpIn;
-  struct BlendOpOut;
-  struct BlendOpAdd;
+  namespace node {
+    struct BlendOpSrc;
+    struct BlendOpDst;
+    struct BlendOpOver;
+    struct BlendOpIn;
+    struct BlendOpOut;
+    struct BlendOpAdd;
+  } // namespace node
 
   /// Get node info from blend_operation
   node_info get_blend_op_node_info(blend_operation op)
   {
     switch (op) {
       case blend_operation::src:
-        return get_node_info<BlendOpSrc>();
+        return get_node_info<node::BlendOpSrc>();
       case blend_operation::dst:
-        return get_node_info<BlendOpDst>();
+        return get_node_info<node::BlendOpDst>();
       case blend_operation::over:
-        return get_node_info<BlendOpOver>();
+        return get_node_info<node::BlendOpOver>();
       case blend_operation::in:
-        return get_node_info<BlendOpIn>();
+        return get_node_info<node::BlendOpIn>();
       case blend_operation::out:
-        return get_node_info<BlendOpOut>();
+        return get_node_info<node::BlendOpOut>();
       case blend_operation::add:
-        return get_node_info<BlendOpAdd>();
+        return get_node_info<node::BlendOpAdd>();
     }
     // default: alpha overlay
-    return get_node_info<BlendOpOver>();
+    return get_node_info<node::BlendOpOver>();
   }
 
   /// Get bind info from blend_operation
@@ -44,20 +46,20 @@ namespace yave {
   {
     switch (op) {
       case blend_operation::src:
-        return get_bind_info<BlendOpSrc, BackendTag>();
+        return get_bind_info<node::BlendOpSrc, BackendTag>();
       case blend_operation::dst:
-        return get_bind_info<BlendOpDst, BackendTag>();
+        return get_bind_info<node::BlendOpDst, BackendTag>();
       case blend_operation::over:
-        return get_bind_info<BlendOpOver, BackendTag>();
+        return get_bind_info<node::BlendOpOver, BackendTag>();
       case blend_operation::in:
-        return get_bind_info<BlendOpIn, BackendTag>();
+        return get_bind_info<node::BlendOpIn, BackendTag>();
       case blend_operation::out:
-        return get_bind_info<BlendOpOut, BackendTag>();
+        return get_bind_info<node::BlendOpOut, BackendTag>();
       case blend_operation::add:
-        return get_bind_info<BlendOpAdd, BackendTag>();
+        return get_bind_info<node::BlendOpAdd, BackendTag>();
     }
     // default: alpha overlay
-    return get_bind_info<BlendOpOver, BackendTag>();
+    return get_bind_info<node::BlendOpOver, BackendTag>();
   }
 
   /// Get list of node info from blend_operation
@@ -90,7 +92,7 @@ namespace yave {
   }
 
   template <>
-  struct node_info_traits<BlendOpSrc>
+  struct node_info_traits<node::BlendOpSrc>
   {
     static node_info get_node_info()
     {
@@ -99,7 +101,7 @@ namespace yave {
   };
 
   template <>
-  struct node_info_traits<BlendOpDst>
+  struct node_info_traits<node::BlendOpDst>
   {
     static node_info get_node_info()
     {
@@ -108,7 +110,7 @@ namespace yave {
   };
 
   template <>
-  struct node_info_traits<BlendOpOver>
+  struct node_info_traits<node::BlendOpOver>
   {
     static node_info get_node_info()
     {
@@ -117,7 +119,7 @@ namespace yave {
   };
 
   template <>
-  struct node_info_traits<BlendOpIn>
+  struct node_info_traits<node::BlendOpIn>
   {
     static node_info get_node_info()
     {
@@ -126,7 +128,7 @@ namespace yave {
   };
 
   template <>
-  struct node_info_traits<BlendOpOut>
+  struct node_info_traits<node::BlendOpOut>
   {
     static node_info get_node_info()
     {
@@ -135,7 +137,7 @@ namespace yave {
   };
 
   template <>
-  struct node_info_traits<BlendOpAdd>
+  struct node_info_traits<node::BlendOpAdd>
   {
     static node_info get_node_info()
     {

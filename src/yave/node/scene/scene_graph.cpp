@@ -67,28 +67,28 @@ namespace yave {
 
       /* init resources */
       {
-        auto info      = get_node_info<LayerImageOutput>();
+        auto info      = get_node_info<node::LayerImageOutput>();
         m_image_output = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_image_output)
           throw std::runtime_error("Failed to create layer image output");
       }
       {
-        auto info       = get_node_info<KeyframeBool>();
+        auto info       = get_node_info<node::KeyframeBool>();
         m_visibility_kv = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_visibility_kv)
           throw std::runtime_error("Failed to create layer visibility kv");
       }
       {
-        auto info  = get_node_info<FrameBufferConstructor>();
+        auto info  = get_node_info<node::FrameBuffer>();
         m_empty_fb = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_empty_fb)
           throw std::runtime_error("Failed to create empty frame buffer");
       }
       {
-        auto info  = get_node_info<IfNode>();
+        auto info  = get_node_info<node::If>();
         m_blend_if = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_blend_if)
@@ -102,21 +102,21 @@ namespace yave {
           throw std::runtime_error("Failed to create blend func");
       }
       {
-        auto info   = get_node_info<BlendOpDst>();
+        auto info   = get_node_info<node::BlendOpDst>();
         m_blend_dst = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_blend_dst)
           throw std::runtime_error("Failed to create blend dst");
       }
       {
-        auto info    = get_node_info<LayerCompositor>();
+        auto info    = get_node_info<node::LayerCompositor>();
         m_compositor = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_compositor)
           throw std::runtime_error("Failed to create compositor");
       }
       {
-        auto info = get_node_info<FrameConstructor>();
+        auto info = get_node_info<node::Frame>();
         m_frame   = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_frame)
@@ -127,8 +127,8 @@ namespace yave {
 
       // image output [out] -> compositor[src]
       {
-        auto io       = get_node_info<LayerImageOutput>();
-        auto compos   = get_node_info<LayerCompositor>();
+        auto io       = get_node_info<node::LayerImageOutput>();
+        auto compos   = get_node_info<node::LayerCompositor>();
         m_c_io_compos = m_graph.connect(
           m_image_output.get(),
           io.output_sockets()[0],
@@ -140,8 +140,8 @@ namespace yave {
 
       // if -> compos [func]
       {
-        auto bif      = get_node_info<IfNode>();
-        auto compos   = get_node_info<LayerCompositor>();
+        auto bif      = get_node_info<node::If>();
+        auto compos   = get_node_info<node::LayerCompositor>();
         m_c_if_compos = m_graph.connect(
           m_blend_if.get(),
           bif.output_sockets()[0],
@@ -153,8 +153,8 @@ namespace yave {
 
       // visibility -> if [cond]
       {
-        auto vis          = get_node_info<KeyframeBool>();
-        auto bif          = get_node_info<IfNode>();
+        auto vis          = get_node_info<node::KeyframeBool>();
+        auto bif          = get_node_info<node::If>();
         m_c_visibility_if = m_graph.connect(
           m_visibility_kv.get(),
           vis.output_sockets()[0],
@@ -166,7 +166,7 @@ namespace yave {
 
       //  func -> if [then]
       {
-        auto bif    = get_node_info<IfNode>();
+        auto bif    = get_node_info<node::If>();
         m_c_func_if = m_graph.connect(
           m_blend_func.get(),
           m_blend_func_info.output_sockets()[0],
@@ -178,8 +178,8 @@ namespace yave {
 
       // blend dst -> if [else]
       {
-        auto dst   = get_node_info<BlendOpDst>();
-        auto bif   = get_node_info<IfNode>();
+        auto dst   = get_node_info<node::BlendOpDst>();
+        auto bif   = get_node_info<node::If>();
         m_c_dst_if = m_graph.connect(
           m_blend_dst.get(),
           dst.output_sockets()[0],
@@ -191,8 +191,8 @@ namespace yave {
 
       // frame -> visibility
       {
-        auto vis             = get_node_info<KeyframeBool>();
-        auto fb              = get_node_info<FrameConstructor>();
+        auto vis             = get_node_info<node::KeyframeBool>();
+        auto fb              = get_node_info<node::Frame>();
         m_c_frame_visibility = m_graph.connect(
           m_frame.get(),
           fb.output_sockets()[0],
@@ -267,13 +267,13 @@ namespace yave {
 
         // connect sublayers
 
-        auto compos    = get_node_info<LayerCompositor>();
+        auto compos    = get_node_info<node::LayerCompositor>();
         auto sublayers = m_graph.get_sublayers(m_layer);
 
         if (sublayers.empty()) {
 
-          auto fb = get_node_info<FrameBufferConstructor>();
-          auto io = get_node_info<LayerImageOutput>();
+          auto fb = get_node_info<node::FrameBuffer>();
+          auto io = get_node_info<node::LayerImageOutput>();
 
           auto c = m_graph.connect(
             m_empty_fb.get(),
@@ -300,7 +300,7 @@ namespace yave {
             else
               throw std::runtime_error("Could not find layer attribute");
 
-            auto fb = get_node_info<FrameBufferConstructor>();
+            auto fb = get_node_info<node::FrameBuffer>();
 
             // connect empty as first sublayer dst
             auto c = m_graph.connect(
@@ -340,7 +340,7 @@ namespace yave {
 
           // connect top layer output to image output of this layer
           {
-            auto io = get_node_info<LayerImageOutput>();
+            auto io = get_node_info<node::LayerImageOutput>();
 
             // compos out -> image out
             auto c = m_graph.connect(
@@ -382,7 +382,7 @@ namespace yave {
 
       // rebuild connections
       {
-        auto bif    = get_node_info<IfNode>();
+        auto bif    = get_node_info<node::If>();
         m_c_func_if = m_graph.connect(
           m_blend_func.get(),
           m_blend_func_info.output_sockets()[0],
@@ -493,13 +493,13 @@ namespace yave {
       if (m_is_visible == visibility)
         return;
 
-      auto dst_info = get_node_info<LayerCompositor>();
+      auto dst_info = get_node_info<node::LayerCompositor>();
 
       if (visibility) {
         assert(m_graph.exists(m_c_dst_compos));
         assert(!m_graph.exists(m_c_if_compos));
         m_graph.disconnect(m_c_dst_compos);
-        auto src_info = get_node_info<IfNode>();
+        auto src_info = get_node_info<node::If>();
 
         m_c_if_compos = m_graph.connect(
           m_blend_if.get(),
@@ -514,7 +514,7 @@ namespace yave {
         assert(!m_graph.exists(m_c_dst_compos));
         assert(m_graph.exists(m_c_if_compos));
         m_graph.disconnect(m_c_if_compos);
-        auto src_info = get_node_info<BlendOpDst>();
+        auto src_info = get_node_info<node::BlendOpDst>();
 
         m_c_dst_compos = m_graph.connect(
           m_blend_dst.get(),
@@ -598,19 +598,19 @@ namespace yave {
         throw std::runtime_error("Failed to register primitive node info");
 
       // frame
-      if (!m_graph.register_node_info(get_node_info<FrameConstructor>()))
+      if (!m_graph.register_node_info(get_node_info<node::Frame>()))
         throw std::runtime_error("Failed to register frame ctor info");
 
       // layer io
-      if (!m_graph.register_node_info(get_node_info<LayerImageOutput>()))
+      if (!m_graph.register_node_info(get_node_info<node::LayerImageOutput>()))
         throw std::runtime_error("Failed to register image io info");
 
       // layer fb
-      if (!m_graph.register_node_info(get_node_info<FrameBufferConstructor>()))
+      if (!m_graph.register_node_info(get_node_info<node::FrameBuffer>()))
         throw std::runtime_error("Failed to register frame buffer info");
 
       // layer compositor
-      if (!m_graph.register_node_info(get_node_info<LayerCompositor>()))
+      if (!m_graph.register_node_info(get_node_info<node::LayerCompositor>()))
         throw std::runtime_error("Failed to register compositor info");
 
       // blend ops
@@ -628,7 +628,7 @@ namespace yave {
 
     // Add global image output (private)
     {
-      auto info = get_node_info<LayerImageOutput>();
+      auto info = get_node_info<node::LayerImageOutput>();
       auto res  = m_graph.add_resource(
         info.name(), root(), layer_resource_scope::Private);
 
@@ -647,7 +647,7 @@ namespace yave {
 
     // Add empty frame buffer (inherit)
     {
-      auto info = get_node_info<FrameBufferConstructor>();
+      auto info = get_node_info<node::FrameBuffer>();
       auto res  = m_graph.add_resource(
         info.name(), root(), layer_resource_scope::Inherit);
 
@@ -666,9 +666,9 @@ namespace yave {
     // connect root layer to global out
     {
       Info(g_logger, "Building connections for root layer");
-      auto compos_info = get_node_info<LayerCompositor>();
-      auto io_info     = get_node_info<LayerImageOutput>();
-      auto fb_info     = get_node_info<FrameBufferConstructor>();
+      auto compos_info = get_node_info<node::LayerCompositor>();
+      auto io_info     = get_node_info<node::LayerImageOutput>();
+      auto fb_info     = get_node_info<node::FrameBuffer>();
 
       m_c_fb_root = m_graph.connect(
         m_empty_frame_buffer,

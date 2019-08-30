@@ -34,7 +34,8 @@ namespace yave {
     return std::visit(
       overloaded {[](const auto& p) {
         using value_type = std::decay_t<decltype(p)>;
-        return object_type<PrimitiveConstructor<Box<value_type>>>();
+        return object_type<
+          backend::default_render::PrimitiveConstructor<Box<value_type>>>();
       }},
       v);
   }
@@ -47,7 +48,7 @@ namespace yave {
       overloaded {[&](const auto& p) {
         using value_type = std::decay_t<decltype(p)>;
         return get_bind_info<
-          PrimitiveConstructor<Box<value_type>>,
+          node::PrimitiveConstructor<Box<value_type>>,
           backend::tags::default_render>();
       }},
       v);
