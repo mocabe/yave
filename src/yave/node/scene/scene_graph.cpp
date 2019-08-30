@@ -88,7 +88,7 @@ namespace yave {
           throw std::runtime_error("Failed to create empty frame buffer");
       }
       {
-        auto info  = get_node_info<IfNode>();
+        auto info  = get_node_info<node::If>();
         m_blend_if = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_blend_if)
@@ -140,7 +140,7 @@ namespace yave {
 
       // if -> compos [func]
       {
-        auto bif      = get_node_info<IfNode>();
+        auto bif      = get_node_info<node::If>();
         auto compos   = get_node_info<node::LayerCompositor>();
         m_c_if_compos = m_graph.connect(
           m_blend_if.get(),
@@ -154,7 +154,7 @@ namespace yave {
       // visibility -> if [cond]
       {
         auto vis          = get_node_info<KeyframeBool>();
-        auto bif          = get_node_info<IfNode>();
+        auto bif          = get_node_info<node::If>();
         m_c_visibility_if = m_graph.connect(
           m_visibility_kv.get(),
           vis.output_sockets()[0],
@@ -166,7 +166,7 @@ namespace yave {
 
       //  func -> if [then]
       {
-        auto bif    = get_node_info<IfNode>();
+        auto bif    = get_node_info<node::If>();
         m_c_func_if = m_graph.connect(
           m_blend_func.get(),
           m_blend_func_info.output_sockets()[0],
@@ -179,7 +179,7 @@ namespace yave {
       // blend dst -> if [else]
       {
         auto dst   = get_node_info<node::BlendOpDst>();
-        auto bif   = get_node_info<IfNode>();
+        auto bif   = get_node_info<node::If>();
         m_c_dst_if = m_graph.connect(
           m_blend_dst.get(),
           dst.output_sockets()[0],
@@ -382,7 +382,7 @@ namespace yave {
 
       // rebuild connections
       {
-        auto bif    = get_node_info<IfNode>();
+        auto bif    = get_node_info<node::If>();
         m_c_func_if = m_graph.connect(
           m_blend_func.get(),
           m_blend_func_info.output_sockets()[0],
@@ -499,7 +499,7 @@ namespace yave {
         assert(m_graph.exists(m_c_dst_compos));
         assert(!m_graph.exists(m_c_if_compos));
         m_graph.disconnect(m_c_dst_compos);
-        auto src_info = get_node_info<IfNode>();
+        auto src_info = get_node_info<node::If>();
 
         m_c_if_compos = m_graph.connect(
           m_blend_if.get(),
