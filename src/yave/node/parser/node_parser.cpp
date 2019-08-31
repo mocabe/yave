@@ -119,8 +119,9 @@ namespace yave {
       auto info = graph.get_info(n);
       assert(info);
 
-      auto cpy = info->is_prim() ? ret.add(*info, *graph.get_primitive(n))
-                                 : ret.add(*info);
+      auto cpy = info->is_prim()
+                   ? ret.add_with_id(*info, n.id(), *graph.get_primitive(n))
+                   : ret.add_with_id(*info, n.id());
 
       if (!cpy) {
         m_errors.push_back(
@@ -130,8 +131,10 @@ namespace yave {
 
       n_map.emplace(n.id(), cpy);
 
-      if (n == root)
+      // root node
+      if (n == root) {
         ret_root = cpy;
+    }
     }
 
     if (!ret_root) {
