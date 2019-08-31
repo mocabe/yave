@@ -80,7 +80,12 @@ namespace yave {
     const descriptor_handle<D>& lhs,
     const descriptor_handle<D>& rhs) noexcept
   {
-    return lhs.id() == rhs.id();
+    if (lhs.id() == rhs.id()) {
+      // comparing node handle from different node_graph instances
+      assert(lhs.descriptor() == rhs.descriptor());
+      return true;
+    }
+    return false;
   }
 
   /// operator!=
@@ -89,7 +94,7 @@ namespace yave {
     const descriptor_handle<D>& lhs,
     const descriptor_handle<D>& rhs) noexcept
   {
-    return lhs.id() != rhs.id();
+    return !(lhs == rhs);
   }
 
   /// operator<
