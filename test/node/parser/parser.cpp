@@ -6,6 +6,7 @@
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/obj/keyframe.hpp>
 #include <yave/node/obj/frame.hpp>
+#include <yave/node/obj/identity.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
@@ -27,7 +28,7 @@ TEST_CASE("node_parser _extract")
 
     REQUIRE(parsed);
     REQUIRE(parsed->graph.nodes().size() == 1);
-    REQUIRE(parsed->graph.nodes()[0] == parsed->root);
+    REQUIRE(parsed->graph.nodes()[0].id() == parsed->root.id());
 
     auto parsed_root = parsed->graph.nodes()[0];
     REQUIRE(parsed->graph.get_info(parsed_root) == prim_info);
@@ -86,15 +87,22 @@ TEST_CASE("node_parser _desugar")
   node_graph graph;
   node_parser parser;
 
+  // Use dummy top node to prevent root node is changed by desugar pass.
+  auto id_info = get_node_info<node::Identity>();
+  auto id      = graph.add(id_info);
+
   SECTION("keyframe")
   {
-    auto info = get_node_info<node::KeyframeInt>();
+    auto kf_info = get_node_info<node::KeyframeInt>();
+    auto kf      = graph.add(kf_info, 42);
 
-    auto kf = graph.add(info, 42);
+    // kf -> id
+    REQUIRE(graph.connect(
+      kf, kf_info.output_sockets()[0], id, id_info.input_sockets()[0]));
 
     SECTION("single")
     {
-      auto parsed = parser.parse(graph, kf);
+      auto parsed = parser.parse(graph, id);
       REQUIRE(!parsed);
     }
 
@@ -102,11 +110,12 @@ TEST_CASE("node_parser _desugar")
     {
       auto frame_info = get_node_info<node::Frame>();
       auto frame      = graph.add(frame_info);
-      auto c          = graph.connect(
-        frame, frame_info.output_sockets()[0], kf, info.input_sockets()[0]);
-      REQUIRE(c);
 
-      auto parsed = parser.parse(graph, kf);
+      // frame -> kf (-> id)
+      REQUIRE(graph.connect(
+        frame, frame_info.output_sockets()[0], kf, kf_info.input_sockets()[0]));
+
+      auto parsed = parser.parse(graph, id);
       REQUIRE(parsed);
     }
   }
