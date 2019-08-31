@@ -73,9 +73,15 @@ namespace yave {
 
     // ex -> outputs
     for (auto&& oc : g.output_connections(n)) {
+
+      // info of output of target
       auto oc_info = g.get_info(oc);
       assert(oc_info);
 
+      // disconnect current output to prevent multiple input on connected nodes.
+      g.disconnect(oc);
+
+      // build connection
       auto c = g.connect(
         extractor,
         ex_info.output_sockets()[0],
