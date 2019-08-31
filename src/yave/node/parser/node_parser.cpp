@@ -206,6 +206,9 @@ namespace yave {
         }
       }
 
+    // Need to put dummy node if root node can be replaced in desugar pass.
+    assert(graph.exists(root));
+
     if (m_errors.empty())
       return {{std::move(graph), root}};
 
