@@ -19,7 +19,8 @@ namespace yave {
   {
     static node_info get_node_info()
     {
-      return node_info("Frame", {}, {"value"});
+      // pseudo primitive
+      return node_info("Frame", {}, {"value"}, true);
     }
   };
 } // namespace yave
