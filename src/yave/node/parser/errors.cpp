@@ -4,30 +4,19 @@
 //
 
 #include <yave/node/parser/errors.hpp>
-
 #include <fmt/format.h>
 
 namespace yave {
 
-  // TODO: formatted error messages.
-
-  std::string parse_errors::no_sufficient_input::message() const
+  std::string parse_error::no_sufficient_input::message() const
   {
-    return "No sufficient input connections on non primitive node";
+    return fmt::format(
+      "No sufficient input connections on non primitive node: id={}",
+      to_string(m_node.id()));
   }
 
-  std::string parse_errors::no_valid_overloading::message() const
+  std::string parse_error::unexpected_error::message() const
   {
-    return "No Valid Overloading";
-  }
-
-  std::string parse_errors::ambiguous_overloading::message() const
-  {
-    return "Ambigusou overloading";
-  }
-
-  std::string parse_errors::type_missmatch::message() const
-  {
-    return "Type missmatch";
+    return fmt::format("Unexpected parse error occured: msg={}", m_msg);
   }
 }
