@@ -38,44 +38,6 @@ namespace yave {
   struct ObjectProxy;
 
   // ------------------------------------------
-  // has_specifier
-
-  namespace detail {
-
-    template <class T, class = void>
-    struct has_specifier_impl
-    {
-      static constexpr auto value = false_c;
-    };
-
-    template <class T>
-    struct has_specifier_impl<T, std::void_t<decltype(T::specifier)>>
-    {
-      static constexpr auto value = true_c;
-    };
-
-  } // namespace detail
-
-  template <class T>
-  [[nodiscard]] constexpr auto has_specifier()
-  {
-    return detail::has_specifier_impl<T>::value;
-  }
-
-  // ------------------------------------------
-  // get_specifier
-
-  template <class T>
-  [[nodiscard]] constexpr auto get_specifier(meta_type<T> = {})
-  {
-    if constexpr (has_specifier<T>())
-      return T::specifier;
-    else
-      // lift
-      return type_c<object<T>>;
-  }
-
-  // ------------------------------------------
   // is_specifier
 
   template <class T>
@@ -116,7 +78,7 @@ namespace yave {
       return type_c<forall<T>>;
     else
       // object
-      return get_specifier(t);
+      return type_c<object<T>>;
   }
 
   template <class... Ts>

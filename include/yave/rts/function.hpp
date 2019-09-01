@@ -288,9 +288,8 @@ namespace yave {
       sizeof...(Ts) > 1,
       "Closure should have argument and return type");
 
-    /// specifier
-    static constexpr auto specifier =
-      normalize_specifier(type_c<closure<Ts...>>);
+    /// term
+    static constexpr auto term = get_term<closure<Ts...>>();
 
     /// Ctor
     Function() noexcept

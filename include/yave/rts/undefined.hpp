@@ -11,7 +11,9 @@ namespace yave {
 
   /// Undefined
   ///
-  /// null objects are treated as instances of Undefined.
+  /// Null objects are treated as instances of Undefined.
+  /// Undefined should not have definition. get_term() has special case for it
+  /// to return `tm_value<Undefined>` as a term of Undefined.
   struct Undefined;
 
 } // namespace yave

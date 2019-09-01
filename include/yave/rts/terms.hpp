@@ -75,10 +75,15 @@ namespace yave {
   template <class T>
   [[nodiscard]] constexpr auto get_term(meta_type<T> = {})
   {
-    if constexpr (has_specifier<T>()) {
-      return get_term(get_proxy_type(normalize_specifier(get_specifier<T>())));
-    } else if constexpr (has_term<T>()) {
+    if constexpr (has_term<T>()) {
+      // normal term
       return T::term;
+    } else if constexpr (is_specifier(type_c<T>)) {
+      // specifier -> term
+      return get_term(get_proxy_type(normalize_specifier(type_c<T>)));
+    } else if constexpr (std::is_same_v<T, struct Undefined>) {
+      // special case for Undefined
+      return type_c<tm_value<struct Undefined>>;
     } else
       static_assert(false_v<T>, "T should have either term or specifier");
   }
@@ -326,10 +331,10 @@ namespace yave {
   // ------------------------------------------
   // make_tm_closure
 
-  template <class... Ts>
-  [[nodiscard]] constexpr auto make_tm_closure(meta_type<Ts>...)
+  template <class... Terms>
+  [[nodiscard]] constexpr auto make_tm_closure(meta_type<Terms>...)
   {
-    return type_c<tm_closure<Ts...>>;
+    return type_c<tm_closure<Terms...>>;
   }
 
   // ------------------------------------------
