@@ -52,7 +52,8 @@ namespace yave {
       , m_graph {graph}
       , m_map {map}
       , m_layer_type {type}
-      , m_blend_func_info {get_blend_op_node_info(blend_operation::over)}
+      , m_blend_op {blend_operation::over} // default blend op
+      , m_blend_func_info {get_blend_op_getter_node_info(m_blend_op)}
     {
       Info(
         g_logger,
@@ -61,9 +62,6 @@ namespace yave {
 
       // layer is visible by default
       m_is_visible = true;
-
-      // layer blending is alpha-blending by default
-      m_blend_op = blend_operation::over;
 
       /* init resources */
       {
@@ -95,14 +93,14 @@ namespace yave {
           throw std::runtime_error("Failed to create blend if");
       }
       {
-        auto info    = get_blend_op_node_info(m_blend_op);
+        auto info    = get_blend_op_getter_node_info(m_blend_op);
         m_blend_func = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_blend_func)
           throw std::runtime_error("Failed to create blend func");
       }
       {
-        auto info   = get_node_info<node::BlendOpDst>();
+        auto info   = get_node_info<node::BlendOpSrcGetter>();
         m_blend_dst = m_graph.add_resource_shared(
           info.name(), m_layer, layer_resource_scope::Private);
         if (!m_blend_dst)
@@ -178,7 +176,7 @@ namespace yave {
 
       // blend dst -> if [else]
       {
-        auto dst   = get_node_info<node::BlendOpDst>();
+        auto dst   = get_node_info<node::BlendOpDstGetter>();
         auto bif   = get_node_info<node::If>();
         m_c_dst_if = m_graph.connect(
           m_blend_dst.get(),
@@ -372,7 +370,7 @@ namespace yave {
 
       // rebuild blend func
       {
-        m_blend_func_info = get_blend_op_node_info(op);
+        m_blend_func_info = get_blend_op_getter_node_info(op);
         m_blend_func      = m_graph.add_resource_shared(
           m_blend_func_info.name(), m_layer, layer_resource_scope::Private);
 
@@ -514,7 +512,7 @@ namespace yave {
         assert(!m_graph.exists(m_c_dst_compos));
         assert(m_graph.exists(m_c_if_compos));
         m_graph.disconnect(m_c_if_compos);
-        auto src_info = get_node_info<node::BlendOpDst>();
+        auto src_info = get_node_info<node::BlendOpDstGetter>();
 
         m_c_dst_compos = m_graph.connect(
           m_blend_dst.get(),
@@ -615,6 +613,8 @@ namespace yave {
 
       // blend ops
       if (!m_graph.register_node_info(get_blend_op_node_info_list()))
+        throw std::runtime_error("Failed to register blend op info");
+      if (!m_graph.register_node_info(get_blend_op_getter_node_info_list()))
         throw std::runtime_error("Failed to register blend op info");
 
       // keyframes
