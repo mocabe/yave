@@ -9,6 +9,9 @@
 
 namespace yave {
 
+  // ------------------------------------------
+  // meta_type
+
   /// meta_type
   template <class T>
   struct meta_type
@@ -37,7 +40,8 @@ namespace yave {
     return !(lhs == rhs);
   }
 
-  /// meta bool
+  // ------------------------------------------
+  // bool constants
 
   /// true_c
   static constexpr std::true_type true_c {};

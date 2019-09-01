@@ -45,50 +45,6 @@ namespace yave {
   };
 
   // ------------------------------------------
-  // has_term
-
-  namespace detail {
-
-    template <class T, class = void>
-    struct has_term_impl
-    {
-      static constexpr auto value = false_c;
-    };
-
-    template <class T>
-    struct has_term_impl<T, std::void_t<decltype(T::term)>>
-    {
-      static constexpr auto value = true_c;
-    };
-
-  } // namespace detail
-
-  template <class T>
-  [[nodiscard]] constexpr auto has_term()
-  {
-    return detail::has_term_impl<T>::value;
-  }
-
-  // ------------------------------------------
-  // get_term
-
-  template <class T>
-  [[nodiscard]] constexpr auto get_term(meta_type<T> = {})
-  {
-    if constexpr (has_term<T>()) {
-      // normal term
-      return T::term;
-    } else if constexpr (is_specifier(type_c<T>)) {
-      // specifier -> term
-      return get_term(get_proxy_type(normalize_specifier(type_c<T>)));
-    } else if constexpr (std::is_same_v<T, struct Undefined>) {
-      // special case for Undefined
-      return type_c<tm_value<struct Undefined>>;
-    } else
-      static_assert(false_v<T>, "T should have either term or specifier");
-  }
-
-  // ------------------------------------------
   // Term accessors
 
   template <class T1, class T2>
@@ -144,6 +100,53 @@ namespace yave {
       return sizeof...(Ts);
     }
   };
+
+  // ------------------------------------------
+  // has_term
+
+  namespace detail {
+
+    template <class T, class = void>
+    struct has_term_impl
+    {
+      static constexpr auto value = false_c;
+    };
+
+    template <class T>
+    struct has_term_impl<T, std::void_t<decltype(T::term)>>
+    {
+      static constexpr auto value = true_c;
+    };
+
+  } // namespace detail
+
+  template <class T>
+  [[nodiscard]] constexpr auto has_term()
+  {
+    return detail::has_term_impl<T>::value;
+  }
+
+  // ------------------------------------------
+  // get_term
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_term(meta_type<T> = {})
+  {
+    if constexpr (has_term<T>()) {
+      // normal term
+      return T::term;
+    } else if constexpr (is_specifier(type_c<T>)) {
+      // specifier -> term
+      return get_term(get_proxy_type(normalize_specifier(type_c<T>)));
+    } else
+      static_assert(false_v<T>, "T should have either term or specifier");
+  }
+
+  /// Special case for value type Undefined.
+  [[nodiscard]] constexpr auto get_term(meta_type<struct Undefined> = {})
+  {
+    return type_c<tm_value<struct Undefined>>;
+  }
 
   // ------------------------------------------
   // is_tm_apply

@@ -46,7 +46,7 @@ namespace yave {
   template <class Tag>
   struct error_type
   {
-    constexpr auto tag() const
+    [[nodiscard]] constexpr auto tag() const
     {
       return type_c<Tag>;
     }
@@ -105,7 +105,7 @@ namespace yave {
   };
 
   template <class T1, class T2>
-  constexpr auto make_arrow(meta_type<T1>, meta_type<T2>)
+  [[nodiscard]] constexpr auto make_arrow(meta_type<T1>, meta_type<T2>)
   {
     return type_c<arrow<T1, T2>>;
   }
@@ -124,7 +124,7 @@ namespace yave {
   };
 
   template <class T1, class T2>
-  constexpr auto make_tyarrow(meta_type<T1>, meta_type<T2>)
+  [[nodiscard]] constexpr auto make_tyarrow(meta_type<T1>, meta_type<T2>)
   {
     return type_c<tyarrow<T1, T2>>;
   }
@@ -139,7 +139,7 @@ namespace yave {
   };
 
   template <class Tag>
-  constexpr auto make_value(meta_type<Tag>)
+  [[nodiscard]] constexpr auto make_value(meta_type<Tag>)
   {
     return type_c<value<Tag>>;
   }
@@ -154,7 +154,7 @@ namespace yave {
   };
 
   template <class Tag>
-  constexpr auto make_var(meta_type<Tag>)
+  [[nodiscard]] constexpr auto make_var(meta_type<Tag>)
   {
     return type_c<var<Tag>>;
   }
@@ -169,7 +169,7 @@ namespace yave {
   };
 
   template <class Tag>
-  constexpr auto make_varvalue(meta_type<Tag>)
+  [[nodiscard]] constexpr auto make_varvalue(meta_type<Tag>)
   {
     return type_c<varvalue<Tag>>;
   }
@@ -184,7 +184,7 @@ namespace yave {
   };
 
   template <class T1, class T2, class Other>
-  constexpr auto
+  [[nodiscard]] constexpr auto
     make_unsolvable_constraints(meta_type<T1>, meta_type<T2>, Other)
   {
     return type_c<
@@ -192,13 +192,13 @@ namespace yave {
   }
 
   template <class T1, class T2, class Other>
-  constexpr auto make_type_missmatch(meta_type<T1>, meta_type<T2>, Other)
+  [[nodiscard]] constexpr auto make_type_missmatch(meta_type<T1>, meta_type<T2>, Other)
   {
     return type_c<error_type<error_tags::type_missmatch<T1, T2, Other>>>;
   }
 
   template <class Var, class Other>
-  constexpr auto make_circular_constraints(meta_type<Var>, Other)
+  [[nodiscard]] constexpr auto make_circular_constraints(meta_type<Var>, Other)
   {
     return type_c<error_type<error_tags::circular_constraints<Var, Other>>>;
   }
@@ -219,13 +219,13 @@ namespace yave {
   };
 
   template <class T>
-  constexpr auto is_error_type(meta_type<T>)
+  [[nodiscard]] constexpr auto is_error_type(meta_type<T>)
   {
     return is_error_type_impl<T>::value;
   }
 
   template <class T>
-  constexpr auto is_error_type(T)
+  [[nodiscard]] constexpr auto is_error_type(T)
   {
     return std::false_type {};
   }
@@ -246,7 +246,7 @@ namespace yave {
   };
 
   template <class T>
-  constexpr auto is_type_missmatch(meta_type<T>)
+  [[nodiscard]] constexpr auto is_type_missmatch(meta_type<T>)
   {
     return is_type_missmatch_impl<T>::value;
   }
@@ -268,7 +268,7 @@ namespace yave {
   };
 
   template <class T>
-  constexpr auto is_unsolvable_constraints(meta_type<T>)
+  [[nodiscard]] constexpr auto is_unsolvable_constraints(meta_type<T>)
   {
     return is_unsolvable_constraints_impl<T>::value;
   }
@@ -290,7 +290,7 @@ namespace yave {
   };
 
   template <class T>
-  constexpr auto is_circular_constraints(meta_type<T>)
+  [[nodiscard]] constexpr auto is_circular_constraints(meta_type<T>)
   {
     return is_circular_constraints_impl<T>::value;
   }
@@ -311,7 +311,7 @@ namespace yave {
   };
 
   template <class T>
-  constexpr auto is_unknown_error(meta_type<T>)
+  [[nodiscard]] constexpr auto is_unknown_error(meta_type<T>)
   {
     return is_unknown_error_impl<T>::value;
   }
@@ -332,7 +332,7 @@ namespace yave {
   };
 
   template <class T>
-  constexpr auto is_value_type(meta_type<T>)
+  [[nodiscard]] constexpr auto is_value_type(meta_type<T>)
   {
     return is_value_type_impl<T>::value;
   }
@@ -353,7 +353,7 @@ namespace yave {
   };
 
   template <class T>
-  constexpr auto is_arrow_type(meta_type<T>)
+  [[nodiscard]] constexpr auto is_arrow_type(meta_type<T>)
   {
     return is_arrow_type_impl<T>::value;
   }
@@ -374,7 +374,7 @@ namespace yave {
   };
 
   template <class T>
-  constexpr auto is_var_type(meta_type<T>)
+  [[nodiscard]] constexpr auto is_var_type(meta_type<T>)
   {
     return is_var_type_impl<T>::value;
   }
@@ -395,7 +395,7 @@ namespace yave {
   };
 
   template <class T>
-  constexpr auto is_varvalue_type(meta_type<T>)
+  [[nodiscard]] constexpr auto is_varvalue_type(meta_type<T>)
   {
     return is_varvalue_type_impl<T>::value;
   }
@@ -415,7 +415,7 @@ namespace yave {
   // nextgen
 
   template <size_t N>
-  constexpr auto nextgen(meta_type<taggen<N>>)
+  [[nodiscard]] constexpr auto nextgen(meta_type<taggen<N>>)
   {
     return type_c<taggen<N + 1>>;
   }
@@ -424,13 +424,13 @@ namespace yave {
   // genvar
 
   template <size_t N>
-  constexpr auto gen_var(meta_type<taggen<N>>)
+  [[nodiscard]] constexpr auto gen_var(meta_type<taggen<N>>)
   {
     return type_c<var<taggen<N>>>;
   }
 
   template <size_t N>
-  constexpr auto gen_tm_var(meta_type<taggen<N>>)
+  [[nodiscard]] constexpr auto gen_tm_var(meta_type<taggen<N>>)
   {
     return type_c<tm_var<taggen<N>>>;
   }

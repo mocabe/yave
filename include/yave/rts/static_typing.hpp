@@ -21,7 +21,7 @@ namespace yave {
   /// \param ar type map of substitution
   /// \param type type to apply substitution
   template <class TyT1Tag, class TyT2, class T>
-  constexpr auto
+  [[nodiscard]] constexpr auto
     subst(meta_type<tyarrow<var<TyT1Tag>, TyT2>> ar, meta_type<T> type)
   {
     (void)ar;
@@ -48,7 +48,8 @@ namespace yave {
 
   /// Process list of type substitution
   template <class... TyArrow, class Ty>
-  constexpr auto subst_all(meta_tuple<TyArrow...> tyarrows, meta_type<Ty> type)
+  [[nodiscard]] constexpr auto
+    subst_all(meta_tuple<TyArrow...> tyarrows, meta_type<Ty> type)
   {
     if constexpr (empty(tyarrows))
       return type;
@@ -71,18 +72,18 @@ namespace yave {
   template <class T1, class T2>
   struct meta_type<constr<T1, T2>>
   {
-    constexpr auto t1() const
+    [[nodiscard]] constexpr auto t1() const
     {
       return type_c<T1>;
     }
-    constexpr auto t2() const
+    [[nodiscard]] constexpr auto t2() const
     {
       return type_c<T2>;
     }
   };
 
   template <class T1, class T2>
-  constexpr auto make_constr(meta_type<T1>, meta_type<T2>)
+  [[nodiscard]] constexpr auto make_constr(meta_type<T1>, meta_type<T2>)
   {
     return type_c<constr<T1, T2>>;
   }
@@ -92,7 +93,7 @@ namespace yave {
 
   /// Type substitution on type constraint
   template <class TyT1, class TyT2, class T1, class T2>
-  constexpr auto
+  [[nodiscard]] constexpr auto
     subst_constr(meta_type<tyarrow<TyT1, TyT2>> a, meta_type<constr<T1, T2>>)
   {
     auto t1 = subst(a, type_c<T1>);
@@ -105,7 +106,7 @@ namespace yave {
 
   /// Process list of type substitution on a type constraint
   template <class TyT1, class TyT2, class... Cs>
-  constexpr auto
+  [[nodiscard]] constexpr auto
     subst_constr_all(meta_type<tyarrow<TyT1, TyT2>> a, meta_tuple<Cs...>)
   {
     (void)a;
@@ -135,7 +136,7 @@ namespace yave {
 
   /// compose substitution
   template <class... TyArrows, class TyT1, class TyT2>
-  constexpr auto compose_subst(
+  [[nodiscard]] constexpr auto compose_subst(
     meta_tuple<TyArrows...> tyarrows,
     meta_type<tyarrow<TyT1, TyT2>> a)
   {
@@ -156,7 +157,7 @@ namespace yave {
 
   /// "Occurs check" algorithm
   template <class X, class T>
-  constexpr auto occurs(meta_type<X> x, meta_type<T> t)
+  [[nodiscard]] constexpr auto occurs(meta_type<X> x, meta_type<T> t)
   {
     (void)x;
     (void)t;
@@ -239,7 +240,7 @@ namespace yave {
 
   /// emit static_assert for static type check errors
   template <class T>
-  constexpr auto unify_assert(T type)
+  [[nodiscard]] constexpr auto unify_assert(T type)
   {
     constexpr auto tag = type.tag();
     if constexpr (is_type_missmatch(tag)) {
@@ -279,7 +280,7 @@ namespace yave {
   /// \return `meta_set` of `constr` or `error_type` on failure(when
   /// `enable_assert` is `false_type`).
   template <bool B, class... Cs>
-  constexpr auto
+  [[nodiscard]] constexpr auto
     unify(meta_tuple<Cs...> cs, std::bool_constant<B> enable_assert)
   {
     (void)cs;
@@ -310,7 +311,7 @@ namespace yave {
   /// \param to a type going to replace
   /// \param term term tree
   template <class From, class To, class Term>
-  constexpr auto
+  [[nodiscard]] constexpr auto
     subst_term(meta_type<From> from, meta_type<To> to, meta_type<Term> term)
   {
     (void)from;
@@ -375,7 +376,7 @@ namespace yave {
 
   /// create fresh polymorphoc closure
   template <class Term, class Gen>
-  constexpr auto genpoly(meta_type<Term> term, meta_type<Gen> gen)
+  [[nodiscard]] constexpr auto genpoly(meta_type<Term> term, meta_type<Gen> gen)
   {
     return genpoly_impl(term, gen, term);
   }
@@ -501,7 +502,7 @@ namespace yave {
   /// \param term term
   /// \param enable_assert option to control `static_assert`
   template <class Term, bool Assert = true>
-  constexpr auto
+  [[nodiscard]] constexpr auto
     type_of(meta_type<Term> term, std::bool_constant<Assert> enable_assert = {})
   {
     auto p = type_of_impl(term, gen_c<0>, enable_assert);
