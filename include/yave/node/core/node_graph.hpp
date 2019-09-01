@@ -270,9 +270,9 @@ namespace yave {
 
     auto call_lambda = [](
                          auto&& lambda,
-                         const node_handle& node,
-                         const std::vector<node_handle>& path) {
-      return lambda(node, path);
+                         const node_handle& n,
+                         const std::vector<node_handle>& p) {
+      return lambda(n, p);
     };
 
     // visit first node, init stacks.

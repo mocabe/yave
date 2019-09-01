@@ -836,11 +836,11 @@ namespace yave {
     _depth_first_search_until(
       node,
       [](auto&&, auto&&) { return false; },
-      [&ret](const node_handle& node, const std::vector<node_handle>& path) {
+      [&ret](const node_handle& n, const std::vector<node_handle>& pth) {
         // find closed loop
-        for (auto iter = path.begin(); iter != path.end(); ++iter) {
-          if (*iter == node) {
-            ret = {iter, path.end()};
+        for (auto iter = pth.begin(); iter != pth.end(); ++iter) {
+          if (*iter == n) {
+            ret = {iter, pth.end()};
             return true;
           }
         }
