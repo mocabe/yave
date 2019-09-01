@@ -34,19 +34,14 @@ Recent development tasks:
         + [ ] backend object impl
 - [ ] parser rework
     + `node_parser`
-        + [ ] rewrite
-        + [ ] tests
+        + [x] rewrite basic interface
+        + [x] basic tests
+        + [ ] `scene_graph` integration tests
 - [ ] compiler rework
+    + `node_compiler`
+        + [ ] basic impl
+        + [ ] tests
 - [ ] improve test structure
     + [ ] remove tests for obsolete classes
     + [ ] restructure tests based on backends
 - [ ] async command interface
-
-Other personal projects I want to merge in the future if possible:
-- modern NURBS library 
-  + [ ] v2
-- modern audio I/O library
-  + [x] `WASAPI` backend basic
-  + [ ] `WASAPI` backend streams
-  + [ ] `PulseAudio` backend things
-  + [ ] Adopting `std::audio` proposal
