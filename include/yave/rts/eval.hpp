@@ -81,7 +81,7 @@ namespace yave {
         if (unlikely(!has_arrow_type(app))) {
           throw eval_error::bad_apply();
         }
-        if (unlikely(capp->arity() == 0)) {
+        if (unlikely(capp->arity == 0)) {
           throw eval_error::too_many_arguments();
         }
 
@@ -93,7 +93,7 @@ namespace yave {
           auto cpap = static_cast<const Closure<>*>(pap.get());
 
           // push argument
-          auto arity       = --cpap->arity();
+          auto arity       = --cpap->arity;
           cpap->arg(arity) = arg;
 
           // call code()

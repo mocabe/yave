@@ -52,7 +52,7 @@ namespace yave {
   struct Closure : Object
   {
     /// Arity of this closure.
-    mutable uint64_t m_arity;
+    mutable uint64_t arity;
 
     /// Get number of args
     auto n_args() const noexcept
@@ -69,16 +69,12 @@ namespace yave {
     /// get nth argument
     auto& arg(uint64_t n) const noexcept
     {
-      using arg_type = typename decltype(Closure1::m_args)::value_type;
-      constexpr uint64_t offset = offset_of_member(&Closure1::m_args);
+      using arg_type = typename decltype(Closure1::args)::value_type;
+      // offset to first element of argument buffer
+      constexpr uint64_t offset = offset_of_member(&Closure1::args);
       static_assert(offset % sizeof(arg_type) == 0);
+      // manually calc offset to avoid UB
       return ((arg_type*)this)[offset / sizeof(arg_type) + n];
-    }
-
-    ///  get arity
-    auto& arity() const noexcept
-    {
-      return m_arity;
     }
   };
 
@@ -97,11 +93,11 @@ namespace yave {
     auto& nth_arg() const noexcept
     {
       static_assert(Arg < N, "Invalid index of argument");
-      return m_args[N - Arg - 1];
+      return args[N - Arg - 1];
     }
 
     /// args
-    mutable std::array<object_ptr<const Object>, N> m_args = {};
+    mutable std::array<object_ptr<const Object>, N> args = {};
   };
 
   // ------------------------------------------
@@ -306,9 +302,9 @@ namespace yave {
       : ClosureN<sizeof...(Ts) - 1> {{
                                        {static_cast<const object_info_table*>(
                                          &info_table_initializer::info_table)},
-                                       other.m_arity,
+                                       other.arity,
                                      },
-                                     other.m_args}
+                                     other.args}
     {
     }
 
@@ -317,25 +313,25 @@ namespace yave {
       : ClosureN<sizeof...(Ts) - 1> {{
                                        {static_cast<const object_info_table*>(
                                          &info_table_initializer::info_table)},
-                                       std::move(other.m_arity),
+                                       std::move(other.arity),
                                      },
-                                     std::move(other.m_args)}
+                                     std::move(other.args)}
     {
     }
 
     /// operator=
     Function& operator=(const Function& other) noexcept
     {
-      m_arity = other.m_arity;
-      m_args  = other.m_args;
+      arity = other.arity;
+      args  = other.args;
       return *this;
     }
 
     /// operator=
     Function& operator=(Function&& other) noexcept
     {
-      m_arity = std::move(other.m_arity);
-      m_args  = std::move(other.m_args);
+      arity = std::move(other.arity);
+      args  = std::move(other.args);
       return *this;
     }
 
@@ -383,13 +379,12 @@ namespace yave {
   private:
     // You Can't See Me!
     using base = ClosureN<sizeof...(Ts) - 1>;
-    using base::nth_arg;
-    using base::arg;
-    using base::n_args;
     using base::arity;
+    using base::n_args;
     using base::code;
-    using base::m_arity;
-    using base::m_args;
+    using base::arg;
+    using base::args;
+    using base::nth_arg;
 
     /// check signature of code()
     void check_code()

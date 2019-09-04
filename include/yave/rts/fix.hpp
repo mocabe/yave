@@ -28,7 +28,7 @@ namespace yave {
 
       // check arity for safety
       auto c = static_cast<const Closure<>*>(_get_storage(f).get());
-      if (unlikely(c->arity() == 0)) {
+      if (unlikely(c->arity == 0)) {
         throw eval_error::bad_fix();
       }
 
@@ -38,7 +38,7 @@ namespace yave {
         auto cc  = static_cast<const Closure<>*>(_get_storage(pap).get());
 
         // build self-referencing closure
-        auto arity     = --cc->arity();
+        auto arity     = --cc->arity;
         cc->arg(arity) = pap;
 
         // avoid memory leak
