@@ -135,9 +135,19 @@ namespace yave {
     auto get_image_output(const layer_handle& layer) const 
       -> layer_resource_handle;
 
+  public: /* node_graph interface */
+    /// node_graph and meta info of scene 
+    struct node_graph_output 
+    {
+      /// node_graph
+      node_graph graph;
+      /// image output root
+      node_handle image_root;
+    };
+
     /// Get copy of current node graph.
     [[nodiscard]]
-    auto get_node_graph() const -> const node_graph&;
+    auto get_node_graph() const -> node_graph_output;
 
     private: 
       struct layer_attribute;

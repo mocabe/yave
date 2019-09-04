@@ -1045,9 +1045,13 @@ namespace yave {
     return {};
   }
 
-  auto scene_graph::get_node_graph() const -> const node_graph&
+  auto scene_graph::get_node_graph() const -> node_graph_output
   {
-    return m_graph.get_managed_node_graph().get_node_graph();
+    auto lck = _lock();
+    return {
+      m_graph.get_managed_node_graph().get_node_graph(), // graph
+      m_image_output                                     // image_root
+    };
   }
 
 } // namespace yave
