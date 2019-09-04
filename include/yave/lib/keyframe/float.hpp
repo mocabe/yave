@@ -17,7 +17,7 @@ namespace yave {
     struct control_point
     {
       /// relative time axis position
-      time time;
+      yave::time time;
       /// value
       double value;
     };
