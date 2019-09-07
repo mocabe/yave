@@ -20,8 +20,8 @@ namespace yave {
     if (auto apply = value_cast_if<Apply>(obj)) {
       auto& apply_storage = _get_storage(*apply);
       // return cached value
-      if (apply_storage.evaluated()) {
-        return apply_storage.get_cache();
+      if (apply_storage.is_result()) {
+        return apply_storage.get_result();
       }
       // create new apply
       return make_object<Apply>(
@@ -29,18 +29,6 @@ namespace yave {
         copy_apply_graph(apply_storage.arg()));
     }
     return obj;
-  }
-
-  /// clear apply cache
-  inline void clear_apply_cache(const object_ptr<const Object>& obj)
-  {
-    if (auto app = value_cast_if<Apply>(obj)) {
-      auto& storage = _get_storage(*app);
-      if (storage.evaluated())
-        storage.clear_cache();
-      clear_apply_cache(storage.app());
-      clear_apply_cache(storage.arg());
-    }
   }
 
   namespace detail {
@@ -61,17 +49,16 @@ namespace yave {
         auto& apply_storage = _get_storage(*apply);
 
         // graph reduction
-        if (apply_storage.evaluated()) {
-          return apply_storage.get_cache();
+        if (apply_storage.is_result()) {
+          return apply_storage.get_result();
         }
 
         // whnf
-        auto app = eval_obj(apply_storage.app());
+        auto app  = eval_obj(apply_storage.app());
+        auto capp = static_cast<const Closure<>*>(app.get());
 
         // alias: argument
         const auto& arg = apply_storage.arg();
-        // alias: app closure
-        auto capp = static_cast<const Closure<>*>(app.get());
 
         /*
           These exceptions should not triggered on well-typed input. Just
@@ -85,29 +72,22 @@ namespace yave {
           throw eval_error::too_many_arguments();
         }
 
-        // clone closure and apply
-        auto ret = [&] {
-          // clone
-          auto pap = clone(app);
-          // alias: pap closure
-          auto cpap = static_cast<const Closure<>*>(pap.get());
+        // clone if it's not pap
+        auto pap  = (capp->is_pap()) ? std::move(app) : clone(app);
+        auto cpap = static_cast<const Closure<>*>(pap.get());
 
-          // push argument
-          auto arity       = --cpap->arity;
-          cpap->arg(arity) = arg;
+        // push argument
+        auto arity       = --cpap->arity;
+        cpap->arg(arity) = arg;
 
-          // call code()
-          if (unlikely(arity == 0)) {
-            return eval_obj(cpap->code());
-          }
-
-          return pap;
-        }();
-
-        // set cache
-        apply_storage.set_cache(ret);
-
-        return ret;
+        // call code()
+        if (unlikely(arity == 0)) {
+          auto ret = eval_obj(cpap->call());
+          // set cache
+          apply_storage.set_result(ret);
+          return ret;
+        }
+        return pap;
       }
       return obj;
     }

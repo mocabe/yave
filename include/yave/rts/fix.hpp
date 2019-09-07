@@ -14,8 +14,9 @@ namespace yave {
 
   namespace detail {
     class Fix_X;
-  }
+  } // namespace detail
 
+  /// Implementation of Y using self referencing apply node.
   // fix: (a -> a) -> a.
   // fix f = let x = f x in x
   struct Fix
@@ -23,38 +24,22 @@ namespace yave {
   {
     return_type code() const
     {
-      // reduce argument closure
-      object_ptr<const Object> f = eval_arg<0>();
+      auto f = eval_arg<0>();
+      auto c = reinterpret_cast<const Closure<>*>(_get_storage(f).get());
 
-      // check arity for safety
-      auto c = static_cast<const Closure<>*>(_get_storage(f).get());
       if (unlikely(c->arity == 0)) {
         throw eval_error::bad_fix();
       }
 
-      auto ret = [&] {
-        // create return value
-        auto pap = clone(f);
-        auto cc  = static_cast<const Closure<>*>(_get_storage(pap).get());
+      // self referencing apply node; app=@(f, app)
+      auto app = make_object<Apply>(std::move(f), /*app*/ nullptr);
+      _get_storage(*app).arg() = app;
 
-        // build self-referencing closure
-        auto arity     = --cc->arity;
-        cc->arg(arity) = pap;
+      // avoid memory leak
+      _get_storage(app).decrement_refcount();
 
-        // avoid memory leak
-        cc->refcount.fetch_sub();
-
-        // eval
-        if (unlikely(arity == 0))
-          return detail::eval_obj(cc->code());
-
-        return pap;
-      }();
-
-      // return
       return static_object_cast<const VarValueProxy<detail::Fix_X>>(
-        std::move(ret));
+        std::move(app));
     }
   };
-
 } // namespace yave

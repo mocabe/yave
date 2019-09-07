@@ -60,10 +60,10 @@ namespace yave {
       return static_cast<const closure_info_table*>(info_table)->n_args;
     }
 
-    /// Execute core with vtable function
-    auto code() const noexcept
+    /// PAP?
+    bool is_pap() const noexcept
     {
-      return static_cast<const closure_info_table*>(info_table)->code(this);
+      return n_args() != arity;
     }
 
     /// get nth argument
@@ -75,6 +75,13 @@ namespace yave {
       static_assert(offset % sizeof(arg_type) == 0);
       // manually calc offset to avoid UB
       return ((arg_type*)this)[offset / sizeof(arg_type) + n];
+    }
+
+  public: /* can modify mutable members */
+    /// Execute core with vtable function
+    auto call() const noexcept
+    {
+      return static_cast<const closure_info_table*>(info_table)->code(this);
     }
   };
 
@@ -381,7 +388,7 @@ namespace yave {
     using base = ClosureN<sizeof...(Ts) - 1>;
     using base::arity;
     using base::n_args;
-    using base::code;
+    using base::call;
     using base::arg;
     using base::args;
     using base::nth_arg;
