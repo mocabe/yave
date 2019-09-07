@@ -57,9 +57,6 @@ namespace yave {
         auto app  = eval_obj(apply_storage.app());
         auto capp = static_cast<const Closure<>*>(app.get());
 
-        // alias: argument
-        const auto& arg = apply_storage.arg();
-
         /*
           These exceptions should not triggered on well-typed input. Just
           leaving it here to avoid catastrophic heap corruption when something
@@ -76,9 +73,9 @@ namespace yave {
         auto pap  = (capp->is_pap()) ? std::move(app) : clone(app);
         auto cpap = static_cast<const Closure<>*>(pap.get());
 
-        // push argument
-        auto arity       = --cpap->arity;
-        cpap->arg(arity) = arg;
+        // push spine stack
+        auto arity             = --cpap->arity;
+        cpap->vertebral(arity) = apply;
 
         // call code()
         if (unlikely(arity == 0)) {

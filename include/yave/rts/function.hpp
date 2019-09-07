@@ -66,15 +66,21 @@ namespace yave {
       return n_args() != arity;
     }
 
-    /// get nth argument
-    auto& arg(uint64_t n) const noexcept
+    /// get nth vertebral
+    auto& vertebral(uint64_t n) const noexcept
     {
-      using arg_type = typename decltype(Closure1::args)::value_type;
+      using arg_type = typename decltype(Closure1::spine)::value_type;
       // offset to first element of argument buffer
-      constexpr uint64_t offset = offset_of_member(&Closure1::args);
+      constexpr uint64_t offset = offset_of_member(&Closure1::spine);
       static_assert(offset % sizeof(arg_type) == 0);
       // manually calc offset to avoid UB
       return ((arg_type*)this)[offset / sizeof(arg_type) + n];
+    }
+
+    /// get nth argument
+    auto& arg(uint64_t n) const noexcept
+    {
+      return _get_storage(*vertebral(n)).arg();
     }
 
   public: /* can modify mutable members */
@@ -100,11 +106,12 @@ namespace yave {
     auto& nth_arg() const noexcept
     {
       static_assert(Arg < N, "Invalid index of argument");
-      return args[N - Arg - 1];
+      auto& app = spine[N - Arg - 1];
+      return _get_storage(*app).arg();
     }
 
     /// args
-    mutable std::array<object_ptr<const Object>, N> args = {};
+    mutable std::array<object_ptr<const Apply>, N> spine = {};
   };
 
   // ------------------------------------------
@@ -311,7 +318,7 @@ namespace yave {
                                          &info_table_initializer::info_table)},
                                        other.arity,
                                      },
-                                     other.args}
+                                     other.spine}
     {
     }
 
@@ -322,7 +329,7 @@ namespace yave {
                                          &info_table_initializer::info_table)},
                                        std::move(other.arity),
                                      },
-                                     std::move(other.args)}
+                                     std::move(other.spine)}
     {
     }
 
@@ -330,7 +337,7 @@ namespace yave {
     Function& operator=(const Function& other) noexcept
     {
       arity = other.arity;
-      args  = other.args;
+      spine = other.spine;
       return *this;
     }
 
@@ -338,7 +345,7 @@ namespace yave {
     Function& operator=(Function&& other) noexcept
     {
       arity = std::move(other.arity);
-      args  = std::move(other.args);
+      spine = std::move(other.spine);
       return *this;
     }
 
@@ -390,7 +397,7 @@ namespace yave {
     using base::n_args;
     using base::call;
     using base::arg;
-    using base::args;
+    using base::spine;
     using base::nth_arg;
 
     /// check signature of code()
