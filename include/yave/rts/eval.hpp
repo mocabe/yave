@@ -80,7 +80,7 @@ namespace yave {
 
       if (auto apply = value_cast_if<Apply>(obj)) {
 
-        auto apply_storage = _get_storage(*apply);
+        auto& apply_storage = _get_storage(*apply);
 
         // when we don't have any arguments to apply in stack and apply node has
         // already evaluated, we can directly return cached result. if we can
