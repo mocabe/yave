@@ -59,12 +59,14 @@ TEST_CASE("eval")
       auto term = f << new Int(42) << new Int(24);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 66);
+      REQUIRE(*value_cast<Int>(eval(term)) == 66);
     }
 
     SECTION("3")
     {
       auto term = f << new Int(42) << (f << new Int(24) << new Int(24));
       REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 90);
       REQUIRE(*value_cast<Int>(eval(term)) == 90);
     }
 
@@ -74,6 +76,7 @@ TEST_CASE("eval")
                     << (f << new Int(42) << new Int(24));
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 132);
+      REQUIRE(*value_cast<Int>(eval(term)) == 132);
     }
 
     SECTION("5")
@@ -82,6 +85,18 @@ TEST_CASE("eval")
       auto term = part << new Int(24);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 66);
+      REQUIRE(*value_cast<Int>(eval(term)) == 66);
+    }
+
+    SECTION("6")
+    {
+      auto app = f << new Int(42) << new Int(24);
+      (void)eval(app); // result will be cached
+      auto term = f << app << app;
+      REQUIRE(type_of(app));
+      REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 132);
+      REQUIRE(*value_cast<Int>(eval(term)) == 132);
     }
   }
 
@@ -179,9 +194,7 @@ TEST_CASE("eval")
 
       return_type code() const
       {
-        static const auto fix  = make_object<Fix>();
-        static const auto impl = make_object<Impl>();
-        return fix << impl << arg<0>();
+        return make_object<Fix>() << make_object<Impl>() << arg<0>();
       }
     };
 
@@ -189,7 +202,7 @@ TEST_CASE("eval")
 
     SECTION("0")
     {
-      auto term = fib << new Int(10);
+      auto term = fib << new Int(30);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 55);
     }
