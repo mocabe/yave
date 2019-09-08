@@ -22,6 +22,15 @@ YAVE_DECL_TYPE(Bool, "7ba340e7-8c41-41bc-a1f9-bea2a2db077d");
 
 TEST_CASE("eval")
 {
+  SECTION("value")
+  {
+    SECTION("i")
+    {
+      auto i = make_object<Int>();
+      REQUIRE(i == eval(i));
+    }
+  }
+
   SECTION("smpl")
   {
     struct F : Function<F, Int, Int, Int>
@@ -33,6 +42,11 @@ TEST_CASE("eval")
     };
 
     auto f = make_object<F>();
+
+    SECTION("0")
+    {
+      REQUIRE(object_ptr<const Object>(f) == object_ptr<const Object>(eval(f)));
+    }
 
     SECTION("1")
     {
@@ -60,6 +74,14 @@ TEST_CASE("eval")
                     << (f << new Int(42) << new Int(24));
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 132);
+    }
+
+    SECTION("5")
+    {
+      auto part = eval(f << new Int(42));
+      auto term = part << new Int(24);
+      REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 66);
     }
   }
 
