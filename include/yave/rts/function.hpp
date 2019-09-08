@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/support/offset_of_member.hpp>
+#include <yave/rts/closure.hpp>
 
 #include <yave/rts/static_typing.hpp>
 #include <yave/rts/dynamic_typing.hpp>
@@ -18,6 +18,7 @@
 #include <yave/rts/value_cast.hpp>
 
 #include <yave/obj/string/string.hpp>
+#include <yave/support/offset_of_member.hpp>
 
 namespace yave {
 
@@ -26,99 +27,6 @@ namespace yave {
     inline auto eval_obj(const object_ptr<const Object>& obj)
       -> object_ptr<const Object>;
   } // namespace detail
-
-  // ------------------------------------------
-  // Closure
-
-  // forward decl
-  template <uint64_t N>
-  struct ClosureN;
-
-  template <class Closure1 = ClosureN<1>>
-  struct Closure;
-
-  /// Info table for closure
-  struct closure_info_table : object_info_table
-  {
-    /// Number of arguments
-    const uint64_t n_args;
-    /// vtable for code
-    object_ptr<const Object> (*code)(const Closure<>*) noexcept;
-  };
-
-  /// Trait class for Object::obj_name for closure objects.
-  template <class T>
-  struct closure_type_traits
-  {
-    /// Object::obj_name can be used for ID of closures.
-    static constexpr const char name[] = "00000000-0000-0000-0000-000000000000";
-  };
-
-  template <class Closure1>
-  struct Closure : Object
-  {
-    /// Arity of this closure.
-    mutable uint64_t arity;
-
-    /// Get number of args
-    auto n_args() const noexcept
-    {
-      return static_cast<const closure_info_table*>(info_table)->n_args;
-    }
-
-    /// PAP?
-    bool is_pap() const noexcept
-    {
-      return n_args() != arity;
-    }
-
-    /// get nth vertebrae
-    auto& vertebrae(uint64_t n) const noexcept
-    {
-      using arg_type = typename decltype(Closure1::spine)::value_type;
-      // offset to first element of argument buffer
-      constexpr uint64_t offset = offset_of_member(&Closure1::spine);
-      static_assert(offset % sizeof(arg_type) == 0);
-      // manually calc offset to avoid UB
-      return ((arg_type*)this)[offset / sizeof(arg_type) + n];
-    }
-
-    /// get nth argument
-    auto& arg(uint64_t n) const noexcept
-    {
-      return _get_storage(*vertebrae(n)).arg();
-    }
-
-  public: /* can modify mutable members */
-    /// Execute core with vtable function
-    auto call() const noexcept
-    {
-      return static_cast<const closure_info_table*>(info_table)->code(this);
-    }
-  };
-
-  /** \brief ClosureN
-   * Contains static size array for incoming arguments.
-   * Arguments will be filled from back to front.
-   * So, first argument of closure will be LAST element of array for arguments.
-   * If all arguments are passed, arity becomes zero and the closure is ready to
-   * execute code.
-   */
-  template <uint64_t N>
-  struct ClosureN : Closure<>
-  {
-    /// get raw arg
-    template <uint64_t Arg>
-    auto& nth_arg() const noexcept
-    {
-      static_assert(Arg < N, "Invalid index of argument");
-      auto& app = spine[N - Arg - 1];
-      return _get_storage(*app).arg();
-    }
-
-    /// args
-    mutable std::array<object_ptr<const Apply>, N> spine = {};
-  };
 
   // ------------------------------------------
   // vtbl_code_func
@@ -184,7 +92,7 @@ namespace yave {
       assert(!value_cast_if<Exception>(ret));
 
     // call self update method
-    return _this->_self_update(ret);
+    return _this->_self_update(std::move(ret));
   }
 
   // ------------------------------------------
@@ -400,7 +308,7 @@ namespace yave {
     }
 
     /// default memoize handler
-    auto _self_update(const object_ptr<const Object>& result) const noexcept
+    auto _self_update(object_ptr<const Object> result) const noexcept
       -> object_ptr<const Object>
     {
       auto cthis = reinterpret_cast<const Closure<>*>(this);

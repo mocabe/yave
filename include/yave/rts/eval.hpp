@@ -75,36 +75,44 @@ namespace yave {
 
       if (auto apply = value_cast_if<Apply>(obj)) {
 
+        auto apply_storage = _get_storage(*apply);
+
+        // assume PAP is cached when we have argument left in stack
+        if (stack.empty() && apply_storage.is_result())
+          return apply_storage.get_result();
+
         // build stack and get bottom closure
-        auto bottom  = build_spine_stack(obj, stack);
-        auto cbottom = reinterpret_cast<const Closure<>*>(bottom.get());
+        auto bottom = build_spine_stack(obj, stack);
 
         assert(has_arrow_type(bottom));
 
-        // not enough arguments!
-        if (stack.size() < cbottom->n_args()) {
-          // return current root
-          return obj;
-        }
-
-        // clone closure when it possibly have mutable members
+        // clone bottom closure
         auto fun  = clone(bottom);
         auto cfun = reinterpret_cast<const Closure<>*>(fun.get());
 
-        assert(has_arrow_type(fun));
+        // when stack size is not enough, return PAP
+        if (unlikely(stack.size() < cfun->arity)) {
+          for (size_t i = 0; i < stack.size(); ++i) {
+            cfun->vertebrae(cfun->arity - stack.size() + i) =
+              std::move(stack[i]);
+          }
+          cfun->arity -= stack.size();
+          return fun;
+        }
 
         // base of stack
-        auto base_iter = stack.end() - cfun->n_args();
+        auto base_iter = stack.end() - cfun->arity;
 
         // dump stack into closure
-        for (size_t i = 0; i < cfun->n_args(); ++i) {
+        for (size_t i = 0; i < cfun->arity; ++i) {
           cfun->vertebrae(i) = std::move(*(base_iter + i));
         }
+        cfun->arity = 0;
 
         // call code
         auto result = cfun->call();
 
-        // unwind stack
+        // unwind stack consumed
         stack.erase(base_iter, stack.end());
 
         return eval_spine(std::move(result), stack);

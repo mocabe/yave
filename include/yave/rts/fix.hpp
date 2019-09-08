@@ -24,31 +24,54 @@ namespace yave {
   {
     return_type code() const
     {
-      auto f     = eval_arg<0>();
-      auto cf    = reinterpret_cast<const Closure<>*>(_get_storage(f).get());
-      auto cthis = reinterpret_cast<const Closure<>*>(this);
+      // reduce argument closure
+      object_ptr<const Object> f = eval_arg<0>();
+      auto cf                    = reinterpret_cast<const Closure<>*>(f.get());
 
+      assert(has_arrow_type(f));
+
+      // check arity for safety
       if (unlikely(cf->arity == 0)) {
         throw eval_error::bad_fix();
       }
 
-      auto& app = cthis->vertebrae(0);
+      auto ret = [&] {
+        // create return value
+        auto pap   = clone(f);
+        auto cpap  = reinterpret_cast<const Closure<>*>(pap.get());
+        auto cthis = reinterpret_cast<const Closure<>*>(this);
 
-      _get_storage(*app).app() = std::move(f);
-      _get_storage(*app).arg() = app;
+        auto& app = cthis->vertebrae(0);
 
-      // avoid memory leak
-      _get_storage(app).decrement_refcount();
+        // build self-referencing closure
+        auto arity             = --cpap->arity;
+        cpap->vertebrae(arity) = app;
 
+        // avoid memory leak
+        _get_storage(app).decrement_refcount();
+
+        // eval
+        if (unlikely(arity == 0))
+          return detail::eval_obj(cpap->call());
+
+        return pap;
+      }();
+
+      // return
       return static_object_cast<const VarValueProxy<detail::Fix_X>>(
-        std::move(app));
+        std::move(ret));
     }
 
-    auto _self_update(const object_ptr<const Object>& result) const noexcept
-      -> const object_ptr<const Object>&
+    auto _self_update(object_ptr<const Object> result) const noexcept
+      -> object_ptr<const Object>
     {
-      // bypass
-      return result;
+      // set cache
+      auto cthis = reinterpret_cast<const Closure<>*>(this);
+      auto& app  = cthis->vertebrae(0);
+      _get_storage(*app).set_result(std::move(result));
+
+      // return @
+      return app;
     }
   };
 } // namespace yave
