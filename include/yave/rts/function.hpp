@@ -72,8 +72,8 @@ namespace yave {
       return n_args() != arity;
     }
 
-    /// get nth vertebral
-    auto& vertebral(uint64_t n) const noexcept
+    /// get nth vertebrae
+    auto& vertebrae(uint64_t n) const noexcept
     {
       using arg_type = typename decltype(Closure1::spine)::value_type;
       // offset to first element of argument buffer
@@ -86,7 +86,7 @@ namespace yave {
     /// get nth argument
     auto& arg(uint64_t n) const noexcept
     {
-      return _get_storage(*vertebral(n)).arg();
+      return _get_storage(*vertebrae(n)).arg();
     }
 
   public: /* can modify mutable members */
@@ -405,7 +405,7 @@ namespace yave {
     {
       auto ret   = detail::eval_obj(result);
       auto cthis = reinterpret_cast<const Closure<>*>(this);
-      _get_storage(*cthis->vertebral(0)).set_result(ret);
+      _get_storage(*cthis->vertebrae(0)).set_result(ret);
       return ret;
     }
 
@@ -415,6 +415,8 @@ namespace yave {
     using base::arity;
     using base::n_args;
     using base::call;
+    using base::vertebrae;
+    using base::is_pap;
     using base::arg;
     using base::spine;
     using base::nth_arg;

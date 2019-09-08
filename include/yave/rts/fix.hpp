@@ -32,7 +32,7 @@ namespace yave {
         throw eval_error::bad_fix();
       }
 
-      auto& app = cthis->vertebral(0);
+      auto& app = cthis->vertebrae(0);
 
       _get_storage(*app).app() = std::move(f);
       _get_storage(*app).arg() = app;

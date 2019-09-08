@@ -75,7 +75,7 @@ namespace yave {
 
         // push spine stack
         auto arity             = --cpap->arity;
-        cpap->vertebral(arity) = std::move(apply);
+        cpap->vertebrae(arity) = std::move(apply);
 
         // call code()
         if (unlikely(arity == 0)) {
