@@ -403,10 +403,9 @@ namespace yave {
     auto _self_update(const object_ptr<const Object>& result) const noexcept
       -> object_ptr<const Object>
     {
-      auto ret   = detail::eval_obj(result);
       auto cthis = reinterpret_cast<const Closure<>*>(this);
-      _get_storage(*cthis->vertebrae(0)).set_result(ret);
-      return ret;
+      _get_storage(*cthis->vertebrae(0)).set_result(result);
+      return result;
     }
 
   private:
