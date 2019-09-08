@@ -34,13 +34,13 @@ namespace yave {
   namespace detail {
 
     [[nodiscard]] inline auto build_spine_stack(
-      const object_ptr<const Object>& obj,
+      object_ptr<const Object> obj,
       std::vector<object_ptr<const Apply>>& stack) -> object_ptr<const Object>
     {
       // we, hopeless C++ programmers, manually optimize tailcalls because
       // compilers sometimes not smart enough to do that for us.
 
-      auto next = obj;
+      auto next = std::move(obj);
 
       for (;;) {
 
@@ -55,7 +55,7 @@ namespace yave {
             continue;
           }
 
-          if (stack.empty())
+          if (unlikely(stack.empty()))
             stack.reserve(8);
 
           // push vertebrae
@@ -70,70 +70,76 @@ namespace yave {
     };
 
     [[nodiscard]] inline auto eval_spine(
-      const object_ptr<const Object>& obj,
+      object_ptr<const Object> obj,
       std::vector<object_ptr<const Apply>>& stack) -> object_ptr<const Object>
     {
-      // detect exception
-      if (unlikely(has_exception_tag(obj)))
-        throw result_error::exception_result(
-          clear_pointer_tag(get_tagged_exception(obj)));
+      auto next = std::move(obj);
 
-      if (auto apply = value_cast_if<Apply>(obj)) {
+      for (;;) {
 
-        auto& apply_storage = _get_storage(*apply);
+        // detect exception
+        if (unlikely(has_exception_tag(next)))
+          throw result_error::exception_result(
+            clear_pointer_tag(get_tagged_exception(next)));
 
-        // when we don't have any arguments to apply in stack and apply node has
-        // already evaluated, we can directly return cached result. if we can
-        // guarantee cached results are only PAP or values, we actually don't
-        // need to call eval_spine() on these results.
-        if (unlikely(stack.empty() && apply_storage.is_result()))
-          return apply_storage.get_result();
+        if (auto apply = value_cast_if<Apply>(next)) {
 
-        // build stack and get bottom closure
-        auto bottom = build_spine_stack(obj, stack);
+          auto& apply_storage = _get_storage(*apply);
 
-        assert(has_arrow_type(bottom));
+          // when we don't have any arguments to apply in stack and apply node
+          // has already evaluated, we can directly return cached result. if we
+          // can guarantee cached results are only PAP or values, we actually
+          // don't need to call eval_spine() on these results.
+          if (unlikely(stack.empty() && apply_storage.is_result()))
+            return apply_storage.get_result();
 
-        // clone bottom closure
-        auto fun  = clone(bottom);
-        auto cfun = reinterpret_cast<const Closure<>*>(fun.get());
+          // build stack and get bottom closure
+          auto bottom = build_spine_stack(std::move(next), stack);
 
-        // when stack size is not enough, return PAP
-        if (unlikely(stack.size() < cfun->arity)) {
-          for (size_t i = 0; i < stack.size(); ++i) {
-            cfun->vertebrae(cfun->arity - stack.size() + i) =
-              std::move(stack[i]);
+          assert(has_arrow_type(bottom));
+
+          // clone bottom closure
+          auto fun   = clone(bottom);
+          auto cfun  = reinterpret_cast<const Closure<>*>(fun.get());
+          auto arity = cfun->arity;
+
+          // when stack size is not enough, return PAP
+          if (unlikely(stack.size() < arity)) {
+            for (size_t i = 0; i < stack.size(); ++i) {
+              cfun->vertebrae(arity - stack.size() + i) = std::move(stack[i]);
+            }
+            cfun->arity -= stack.size();
+            return fun;
           }
-          cfun->arity -= stack.size();
-          return fun;
+
+          // base of stack
+          auto base_iter = stack.end() - arity;
+
+          // dump stack into closure
+          for (size_t i = 0; i < arity; ++i) {
+            cfun->vertebrae(i) = std::move(*(base_iter + i));
+          }
+          cfun->arity = 0;
+
+          // call code
+          auto result = cfun->call();
+
+          // unwind stack consumed
+          stack.erase(base_iter, stack.end());
+
+          next = std::move(result);
+          continue;
         }
-
-        // base of stack
-        auto base_iter = stack.end() - cfun->arity;
-
-        // dump stack into closure
-        for (size_t i = 0; i < cfun->arity; ++i) {
-          cfun->vertebrae(i) = std::move(*(base_iter + i));
-        }
-        cfun->arity = 0;
-
-        // call code
-        auto result = cfun->call();
-
-        // unwind stack consumed
-        stack.erase(base_iter, stack.end());
-
-        return eval_spine(std::move(result), stack);
+        return next;
       }
-      return obj;
     }
 
     /// evaluate apply tree
-    [[nodiscard]] inline auto eval_obj(const object_ptr<const Object>& obj)
+    [[nodiscard]] inline auto eval_obj(object_ptr<const Object> obj)
       -> object_ptr<const Object>
     {
       std::vector<object_ptr<const Apply>> stack;
-      return eval_spine(obj, stack);
+      return eval_spine(std::move(obj), stack);
     }
   } // namespace detail
 
@@ -158,7 +164,7 @@ namespace yave {
       using To =
         std::add_const_t<typename decltype(guess_object_type(type))::type>;
       // cast to resutn type
-      return static_object_cast<To>(result);
+      return static_object_cast<To>(std::move(result));
     } else {
       // fallback to object_ptr<>
       return result;

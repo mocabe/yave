@@ -52,7 +52,7 @@ namespace yave {
 
         // eval
         if (unlikely(arity == 0))
-          return detail::eval_obj(cpap->call());
+          return cpap->call();
 
         return pap;
       }();

@@ -24,7 +24,7 @@ namespace yave {
 
   namespace detail {
     // fwd
-    inline auto eval_obj(const object_ptr<const Object>& obj)
+    inline auto eval_obj(object_ptr<const Object> obj)
       -> object_ptr<const Object>;
   } // namespace detail
 
@@ -46,7 +46,7 @@ namespace yave {
         assert(r);
 
         // only cache PAP or values (see comments in eval_spine()).
-        return detail::eval_obj(r);
+        return detail::eval_obj(std::move(r));
 
         // type_error
       } catch (const bad_value_cast& e) {
