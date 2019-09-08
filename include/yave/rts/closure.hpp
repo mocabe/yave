@@ -102,12 +102,13 @@ namespace yave {
     auto nth_arg() const noexcept
     {
       static_assert(Arg < N, "Invalid index of argument");
-      auto& app = spine[N - Arg - 1];
+      auto& app     = spine[N - Arg - 1];
+      auto& storage = _get_storage(*app);
 
-      if (_get_storage(*app).is_result())
-        return _get_storage(*app).get_result();
+      if (storage.is_result())
+        return storage.get_result();
       else
-        return _get_storage(*app).arg();
+        return storage.arg();
     }
 
     /// args

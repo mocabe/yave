@@ -55,9 +55,6 @@ namespace yave {
             continue;
           }
 
-          if (unlikely(stack.empty()))
-            stack.reserve(8);
-
           // push vertebrae
           stack.push_back(apply);
 
@@ -102,13 +99,14 @@ namespace yave {
           auto fun   = clone(bottom);
           auto cfun  = reinterpret_cast<const Closure<>*>(fun.get());
           auto arity = cfun->arity;
+          auto size  = stack.size();
 
           // when stack size is not enough, return PAP
-          if (unlikely(stack.size() < arity)) {
-            for (size_t i = 0; i < stack.size(); ++i) {
-              cfun->vertebrae(arity - stack.size() + i) = std::move(stack[i]);
+          if (unlikely(size < arity)) {
+            for (size_t i = 0; i < size; ++i) {
+              cfun->vertebrae(arity - size + i) = std::move(stack[i]);
             }
-            cfun->arity -= stack.size();
+            cfun->arity -= size;
             return fun;
           }
 
