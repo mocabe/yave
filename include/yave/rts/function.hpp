@@ -21,6 +21,12 @@
 
 namespace yave {
 
+  namespace detail {
+    // fwd
+    inline auto eval_obj(const object_ptr<const Object>& obj)
+      -> object_ptr<const Object>;
+  } // namespace detail
+
   // ------------------------------------------
   // Closure
 
@@ -119,11 +125,13 @@ namespace yave {
 
   /// vrtable function to call code()
   template <class T>
-  object_ptr<const Object> vtbl_code_func(const Closure<>* _this) noexcept
+  object_ptr<const Object> vtbl_code_func(const Closure<>* _cthis) noexcept
   {
+    auto _this = static_cast<const T*>(_cthis);
+
     auto ret = [&]() -> object_ptr<const Object> {
       try {
-        auto r = (static_cast<const T*>(_this)->exception_handler()).value();
+        auto r = _this->_handle_exception().value();
         assert(r);
         return r;
 
@@ -175,7 +183,8 @@ namespace yave {
     if (!has_exception_tag(ret))
       assert(!value_cast_if<Exception>(ret));
 
-    return ret;
+    // call self update method
+    return _this->_self_update(ret);
   }
 
   // ------------------------------------------
@@ -372,7 +381,7 @@ namespace yave {
       static_assert(std::is_standard_layout_v<To>);
       auto obj = ClosureN<sizeof...(Ts) - 1>::template nth_arg<N>();
       assert(obj);
-      return static_object_cast<To>(obj);
+      return static_object_cast<To>(std::move(obj));
     }
 
     /// evaluate N'th argument and take result
@@ -385,9 +394,19 @@ namespace yave {
 
   public:
     /// default exception handler
-    exception_handler_return_type exception_handler() const
+    auto _handle_exception() const -> exception_handler_return_type
     {
       return static_cast<const T*>(this)->code();
+    }
+
+    /// default memoize handler
+    auto _self_update(const object_ptr<const Object>& result) const noexcept
+      -> object_ptr<const Object>
+    {
+      auto ret   = detail::eval_obj(result);
+      auto cthis = reinterpret_cast<const Closure<>*>(this);
+      _get_storage(*cthis->vertebral(0)).set_result(ret);
+      return ret;
     }
 
   private:

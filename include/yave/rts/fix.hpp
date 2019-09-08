@@ -24,15 +24,17 @@ namespace yave {
   {
     return_type code() const
     {
-      auto f = eval_arg<0>();
-      auto c = reinterpret_cast<const Closure<>*>(_get_storage(f).get());
+      auto f     = eval_arg<0>();
+      auto cf    = reinterpret_cast<const Closure<>*>(_get_storage(f).get());
+      auto cthis = reinterpret_cast<const Closure<>*>(this);
 
-      if (unlikely(c->arity == 0)) {
+      if (unlikely(cf->arity == 0)) {
         throw eval_error::bad_fix();
       }
 
-      // self referencing apply node; app=@(f, app)
-      auto app = make_object<Apply>(std::move(f), /*app*/ nullptr);
+      auto& app = cthis->vertebral(0);
+
+      _get_storage(*app).app() = std::move(f);
       _get_storage(*app).arg() = app;
 
       // avoid memory leak
@@ -40,6 +42,13 @@ namespace yave {
 
       return static_object_cast<const VarValueProxy<detail::Fix_X>>(
         std::move(app));
+    }
+
+    auto _self_update(const object_ptr<const Object>& result) const noexcept
+      -> const object_ptr<const Object>&
+    {
+      // bypass
+      return result;
     }
   };
 } // namespace yave

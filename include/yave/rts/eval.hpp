@@ -70,20 +70,18 @@ namespace yave {
         }
 
         // clone if it's not pap
-        auto pap  = (capp->is_pap()) ? std::move(app) : clone(app);
+        auto pap  = (likely(capp->is_pap())) ? std::move(app) : clone(app);
         auto cpap = static_cast<const Closure<>*>(pap.get());
 
         // push spine stack
         auto arity             = --cpap->arity;
-        cpap->vertebral(arity) = apply;
+        cpap->vertebral(arity) = std::move(apply);
 
         // call code()
         if (unlikely(arity == 0)) {
-          auto ret = eval_obj(cpap->call());
-          // set cache
-          apply_storage.set_result(ret);
-          return ret;
+          return eval_obj(cpap->call());
         }
+
         return pap;
       }
       return obj;
