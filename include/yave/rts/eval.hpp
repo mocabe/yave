@@ -33,58 +33,91 @@ namespace yave {
 
   namespace detail {
 
-    /// evaluate apply tree
-    [[nodiscard]] inline auto eval_obj(const object_ptr<const Object>& obj)
-      -> object_ptr<const Object>
+    [[nodiscard]] inline auto build_spine_stack(
+      const object_ptr<const Object>& obj,
+      std::vector<object_ptr<const Apply>>& stack) -> object_ptr<const Object>
+    {
+      auto next = obj;
+      for (;;) {
+        if (auto apply = value_cast_if<Apply>(next)) {
+
+          auto& apply_storage = _get_storage(*apply);
+
+          // graph reduction
+          if (apply_storage.is_result()) {
+            // assume Exception is not cached
+            next = apply_storage.get_result();
+            continue;
+          }
+
+          if (stack.empty())
+            stack.reserve(8);
+
+          // push apply node itself (not argument!)
+          stack.push_back(apply);
+
+          next = apply_storage.app();
+          continue;
+        }
+        // bottom
+        return next;
+      }
+    };
+
+    [[nodiscard]] inline auto eval_spine(
+      const object_ptr<const Object>& obj,
+      std::vector<object_ptr<const Apply>>& stack) -> object_ptr<const Object>
     {
       // detect exception
       if (unlikely(has_exception_tag(obj)))
         throw result_error::exception_result(
           clear_pointer_tag(get_tagged_exception(obj)));
 
-      // apply
       if (auto apply = value_cast_if<Apply>(obj)) {
 
-        // alias: internal storage
-        auto& apply_storage = _get_storage(*apply);
+        // build stack and get bottom closure
+        auto bottom  = build_spine_stack(obj, stack);
+        auto cbottom = reinterpret_cast<const Closure<>*>(bottom.get());
 
-        // graph reduction
-        if (apply_storage.is_result()) {
-          return apply_storage.get_result();
+        assert(has_arrow_type(bottom));
+
+        // not enough arguments!
+        if (stack.size() < cbottom->n_args()) {
+          // return current root
+          return obj;
         }
 
-        // whnf
-        auto app  = eval_obj(apply_storage.app());
-        auto capp = static_cast<const Closure<>*>(app.get());
+        // clone closure when it possibly have mutable members
+        auto fun  = clone(bottom);
+        auto cfun = reinterpret_cast<const Closure<>*>(fun.get());
 
-        /*
-          These exceptions should not triggered on well-typed input. Just
-          leaving it here to avoid catastrophic heap corruption when something
-          went totally wrong.
-        */
-        if (unlikely(!has_arrow_type(app))) {
-          throw eval_error::bad_apply();
-        }
-        if (unlikely(capp->arity == 0)) {
-          throw eval_error::too_many_arguments();
+        assert(has_arrow_type(fun));
+
+        // base of stack
+        auto base_iter = stack.end() - cfun->n_args();
+
+        // dump stack into closure
+        for (size_t i = 0; i < cfun->n_args(); ++i) {
+          cfun->vertebrae(i) = std::move(*(base_iter + i));
         }
 
-        // clone if it's not pap
-        auto pap  = (likely(capp->is_pap())) ? std::move(app) : clone(app);
-        auto cpap = static_cast<const Closure<>*>(pap.get());
+        // call code
+        auto result = cfun->call();
 
-        // push spine stack
-        auto arity             = --cpap->arity;
-        cpap->vertebrae(arity) = std::move(apply);
+        // unwind stack
+        stack.erase(base_iter, stack.end());
 
-        // call code()
-        if (unlikely(arity == 0)) {
-          return eval_obj(cpap->call());
-        }
-
-        return pap;
+        return eval_spine(std::move(result), stack);
       }
       return obj;
+    }
+
+    /// evaluate apply tree
+    [[nodiscard]] inline auto eval_obj(const object_ptr<const Object>& obj)
+      -> object_ptr<const Object>
+    {
+      std::vector<object_ptr<const Apply>> stack;
+      return eval_spine(obj, stack);
     }
   } // namespace detail
 
