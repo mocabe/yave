@@ -121,6 +121,42 @@ TEST_CASE("eval")
     }
   }
 
+  SECTION("ho2")
+  {
+    struct F : Function<F, closure<Int, Int, Int>, Int, closure<Int, Int>>
+    {
+      return_type code() const
+      {
+        return arg<0>() << arg<1>();
+      }
+    };
+
+    struct G : Function<G, Int, Int, Int>
+    {
+      return_type code() const
+      {
+        return arg<1>();
+      }
+    };
+
+    auto f = make_object<F>();
+    auto g = make_object<G>();
+
+    SECTION("0")
+    {
+      auto part = eval(f << g << new Int(2019));
+
+      auto t1 = part << new Int(42);
+      auto t2 = part << new Int(24);
+
+      REQUIRE(type_of(t1));
+      REQUIRE(type_of(t2));
+
+      REQUIRE(*value_cast<Int>(eval(t1)) == 42);
+      REQUIRE(*value_cast<Int>(eval(t2)) == 24);
+    }
+  }
+
   SECTION("rec")
   {
     struct Fib : Function<Fib, Int, Int>
