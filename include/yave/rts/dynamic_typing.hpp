@@ -12,6 +12,7 @@
 #include <yave/rts/utility.hpp>
 #include <yave/rts/undefined.hpp>
 #include <yave/rts/object_util.hpp>
+#include <yave/rts/closure.hpp>
 
 #include <vector>
 
@@ -417,9 +418,13 @@ namespace yave {
         // Apply
         if (auto apply = value_cast_if<const Apply>(obj)) {
           auto& apply_storage = _get_storage(*apply);
-          auto _t1            = rec_app(apply_storage.app());
-          auto _t2            = rec(apply_storage.arg());
-          auto _t             = genvar();
+          // cached
+          if (apply_storage.is_result()) {
+            return rec(apply_storage.get_result());
+          }
+          auto _t1 = rec_app(apply_storage.app());
+          auto _t2 = rec(apply_storage.arg());
+          auto _t  = genvar();
           auto c =
             std::vector {Constr {_t1, make_object<Type>(arrow_type {_t2, _t})}};
           auto s = unify(std::move(c), obj);
@@ -431,9 +436,16 @@ namespace yave {
         // var -> var
         if (has_var_type(obj))
           return get_type(obj);
-        // arrow -> genpoly arrow
-        if (has_arrow_type(obj))
+        // arrow -> arrow or PAP
+        if (has_arrow_type(obj)) {
+          auto c = reinterpret_cast<const Closure<>*>(obj.get());
+          // pap: return root apply node
+          if (c->is_pap()) {
+            return rec(c->vertebrae(0));
+          }
+          // arrow: get_type
           return get_type(obj);
+        }
 
         unreachable();
       }

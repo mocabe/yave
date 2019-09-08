@@ -20,8 +20,8 @@ namespace yave {
     if (auto apply = value_cast_if<Apply>(obj)) {
       auto& apply_storage = _get_storage(*apply);
       // return cached value
-      if (apply_storage.evaluated()) {
-        return apply_storage.get_cache();
+      if (apply_storage.is_result()) {
+        return apply_storage.get_result();
       }
       // create new apply
       return make_object<Apply>(
@@ -31,85 +31,115 @@ namespace yave {
     return obj;
   }
 
-  /// clear apply cache
-  inline void clear_apply_cache(const object_ptr<const Object>& obj)
-  {
-    if (auto app = value_cast_if<Apply>(obj)) {
-      auto& storage = _get_storage(*app);
-      if (storage.evaluated())
-        storage.clear_cache();
-      clear_apply_cache(storage.app());
-      clear_apply_cache(storage.arg());
-    }
-  }
-
   namespace detail {
 
-    /// evaluate apply tree
-    [[nodiscard]] inline auto eval_obj(const object_ptr<const Object>& obj)
-      -> object_ptr<const Object>
+    [[nodiscard]] inline auto build_spine_stack(
+      object_ptr<const Object> obj,
+      std::vector<object_ptr<const Apply>>& stack) -> object_ptr<const Object>
     {
-      // detect exception
-      if (unlikely(has_exception_tag(obj)))
-        throw result_error::exception_result(
-          clear_pointer_tag(get_tagged_exception(obj)));
+      // we, hopeless C++ programmers, manually optimize tailcalls because
+      // compilers sometimes not smart enough to do that for us.
 
-      // apply
-      if (auto apply = value_cast_if<Apply>(obj)) {
+      auto next = std::move(obj);
 
-        // alias: internal storage
-        auto& apply_storage = _get_storage(*apply);
+      for (;;) {
 
-        // graph reduction
-        if (apply_storage.evaluated()) {
-          return apply_storage.get_cache();
-        }
+        if (auto apply = value_cast_if<Apply>(next)) {
 
-        // whnf
-        auto app = eval_obj(apply_storage.app());
+          auto& apply_storage = _get_storage(*apply);
 
-        // alias: argument
-        const auto& arg = apply_storage.arg();
-        // alias: app closure
-        auto capp = static_cast<const Closure<>*>(app.get());
-
-        /*
-          These exceptions should not triggered on well-typed input. Just
-          leaving it here to avoid catastrophic heap corruption when something
-          went totally wrong.
-        */
-        if (unlikely(!has_arrow_type(app))) {
-          throw eval_error::bad_apply();
-        }
-        if (unlikely(capp->arity == 0)) {
-          throw eval_error::too_many_arguments();
-        }
-
-        // clone closure and apply
-        auto ret = [&] {
-          // clone
-          auto pap = clone(app);
-          // alias: pap closure
-          auto cpap = static_cast<const Closure<>*>(pap.get());
-
-          // push argument
-          auto arity       = --cpap->arity;
-          cpap->arg(arity) = arg;
-
-          // call code()
-          if (unlikely(arity == 0)) {
-            return eval_obj(cpap->code());
+          // graph reduction
+          if (apply_storage.is_result()) {
+            // assume Exception is not cached
+            next = apply_storage.get_result();
+            continue;
           }
 
-          return pap;
-        }();
+          if (unlikely(stack.empty()))
+            stack.reserve(8);
 
-        // set cache
-        apply_storage.set_cache(ret);
+          // push vertebrae
+          stack.push_back(apply);
 
-        return ret;
+          next = apply_storage.app();
+          continue;
+        }
+        // bottom
+        return next;
       }
-      return obj;
+    };
+
+    [[nodiscard]] inline auto eval_spine(
+      object_ptr<const Object> obj,
+      std::vector<object_ptr<const Apply>>& stack) -> object_ptr<const Object>
+    {
+      auto next = std::move(obj);
+
+      for (;;) {
+
+        // detect exception
+        if (unlikely(has_exception_tag(next)))
+          throw result_error::exception_result(
+            clear_pointer_tag(get_tagged_exception(next)));
+
+        if (auto apply = value_cast_if<Apply>(next)) {
+
+          auto& apply_storage = _get_storage(*apply);
+
+          // when we don't have any arguments to apply in stack and apply node
+          // has already evaluated, we can directly return cached result. if we
+          // can guarantee cached results are only PAP or values, we actually
+          // don't need to call eval_spine() on these results.
+          if (unlikely(stack.empty() && apply_storage.is_result()))
+            return apply_storage.get_result();
+
+          // build stack and get bottom closure
+          auto bottom = build_spine_stack(std::move(next), stack);
+
+          assert(has_arrow_type(bottom));
+
+          // clone bottom closure
+          auto fun   = clone(bottom);
+          auto cfun  = reinterpret_cast<const Closure<>*>(fun.get());
+          auto arity = cfun->arity;
+
+          // when stack size is not enough, return PAP
+          if (unlikely(stack.size() < arity)) {
+            for (size_t i = 0; i < stack.size(); ++i) {
+              cfun->vertebrae(arity - stack.size() + i) = std::move(stack[i]);
+            }
+            cfun->arity -= stack.size();
+            return fun;
+          }
+
+          // base of stack
+          auto base_iter = stack.end() - arity;
+
+          // dump stack into closure
+          for (size_t i = 0; i < arity; ++i) {
+            cfun->vertebrae(i) = std::move(*(base_iter + i));
+          }
+          cfun->arity = 0;
+
+          // call code
+          auto result = cfun->call();
+
+          // unwind stack consumed
+          stack.erase(base_iter, stack.end());
+
+          next = std::move(result);
+          continue;
+        }
+        return next;
+      }
+    }
+
+    /// evaluate apply tree
+    [[nodiscard]] inline auto eval_obj(object_ptr<const Object> obj)
+      -> object_ptr<const Object>
+    {
+      std::vector<object_ptr<const Apply>> stack;
+      return eval_spine(std::move(obj), stack);
     }
   } // namespace detail
 
@@ -134,7 +164,7 @@ namespace yave {
       using To =
         std::add_const_t<typename decltype(guess_object_type(type))::type>;
       // cast to resutn type
-      return static_object_cast<To>(result);
+      return static_object_cast<To>(std::move(result));
     } else {
       // fallback to object_ptr<>
       return result;

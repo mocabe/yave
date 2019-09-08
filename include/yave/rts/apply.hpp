@@ -22,46 +22,39 @@ namespace yave {
     {
     }
 
-    const auto& app() const noexcept
+    auto& app() const noexcept
     {
-      assert(!evaluated());
+      assert(!is_result());
       return m_app;
     }
 
-    const auto& arg() const noexcept
+    auto& arg() const noexcept
     {
-      assert(!evaluated());
+      assert(!is_result());
       return m_arg;
     }
 
-    bool evaluated() const noexcept
+    bool is_result() const noexcept
     {
-      return static_cast<bool>(m_cache);
+      return m_app == nullptr;
     }
 
     /// get cache of object
-    auto get_cache() const noexcept
+    auto get_result() const noexcept
     {
-      assert(evaluated());
-      return m_cache;
+      assert(is_result());
+      return m_arg;
     }
 
     /// set cache of object
-    void set_cache(const object_ptr<const Object>& obj) const noexcept
+    void set_result(const object_ptr<const Object>& obj) const noexcept
     {
-      assert(!evaluated());
-      m_cache = obj;
-    }
-
-    /// clear cache
-    void clear_cache() const noexcept
-    {
-      m_cache = nullptr;
+      assert(!is_result());
+      m_app = nullptr;
+      m_arg = obj;
     }
 
   private:
-    /// cache
-    mutable object_ptr<const Object> m_cache;
     /// closure
     mutable object_ptr<const Object> m_app;
     /// argument

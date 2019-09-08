@@ -22,6 +22,15 @@ YAVE_DECL_TYPE(Bool, "7ba340e7-8c41-41bc-a1f9-bea2a2db077d");
 
 TEST_CASE("eval")
 {
+  SECTION("value")
+  {
+    SECTION("i")
+    {
+      auto i = make_object<Int>();
+      REQUIRE(i == eval(i));
+    }
+  }
+
   SECTION("smpl")
   {
     struct F : Function<F, Int, Int, Int>
@@ -34,9 +43,16 @@ TEST_CASE("eval")
 
     auto f = make_object<F>();
 
+    SECTION("0")
+    {
+      REQUIRE(object_ptr<const Object>(f) == object_ptr<const Object>(eval(f)));
+    }
+
     SECTION("1")
     {
       auto term = f << new Int(42);
+      REQUIRE(type_of(term));
+      (void)eval(term);
       REQUIRE(type_of(term));
     }
 
@@ -45,12 +61,14 @@ TEST_CASE("eval")
       auto term = f << new Int(42) << new Int(24);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 66);
+      REQUIRE(*value_cast<Int>(eval(term)) == 66);
     }
 
     SECTION("3")
     {
       auto term = f << new Int(42) << (f << new Int(24) << new Int(24));
       REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 90);
       REQUIRE(*value_cast<Int>(eval(term)) == 90);
     }
 
@@ -59,6 +77,27 @@ TEST_CASE("eval")
       auto term = f << (f << new Int(42) << new Int(24))
                     << (f << new Int(42) << new Int(24));
       REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 132);
+      REQUIRE(*value_cast<Int>(eval(term)) == 132);
+    }
+
+    SECTION("5")
+    {
+      auto part = eval(f << new Int(42));
+      auto term = part << new Int(24);
+      REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 66);
+      REQUIRE(*value_cast<Int>(eval(term)) == 66);
+    }
+
+    SECTION("6")
+    {
+      auto app = f << new Int(42) << new Int(24);
+      (void)eval(app); // result will be cached
+      auto term = f << app << app;
+      REQUIRE(type_of(app));
+      REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 132);
       REQUIRE(*value_cast<Int>(eval(term)) == 132);
     }
   }
@@ -99,6 +138,43 @@ TEST_CASE("eval")
     }
   }
 
+  SECTION("ho2")
+  {
+    struct F : Function<F, closure<Int, Int, Int>, Int, closure<Int, Int>>
+    {
+      return_type code() const
+      {
+        return arg<0>() << arg<1>();
+      }
+    };
+
+    struct G : Function<G, Int, Int, Int>
+    {
+      return_type code() const
+      {
+        return arg<1>();
+      }
+    };
+
+    auto f = make_object<F>();
+    auto g = make_object<G>();
+
+    SECTION("0")
+    {
+      auto part = f << g << new Int(2019);
+      (void)eval(part);
+
+      auto t1 = part << new Int(42);
+      auto t2 = part << new Int(24);
+
+      REQUIRE(type_of(t1));
+      REQUIRE(type_of(t2));
+
+      REQUIRE(*value_cast<Int>(eval(t1)) == 42);
+      REQUIRE(*value_cast<Int>(eval(t2)) == 24);
+    }
+  }
+
   SECTION("rec")
   {
     struct Fib : Function<Fib, Int, Int>
@@ -121,9 +197,7 @@ TEST_CASE("eval")
 
       return_type code() const
       {
-        static const auto fix  = make_object<Fix>();
-        static const auto impl = make_object<Impl>();
-        return fix << impl << arg<0>();
+        return make_object<Fix>() << make_object<Impl>() << arg<0>();
       }
     };
 
@@ -132,6 +206,8 @@ TEST_CASE("eval")
     SECTION("0")
     {
       auto term = fib << new Int(10);
+      REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 55);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 55);
     }

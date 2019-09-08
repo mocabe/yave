@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/support/offset_of_member.hpp>
+#include <yave/rts/closure.hpp>
 
 #include <yave/rts/static_typing.hpp>
 #include <yave/rts/dynamic_typing.hpp>
@@ -18,102 +18,37 @@
 #include <yave/rts/value_cast.hpp>
 
 #include <yave/obj/string/string.hpp>
+#include <yave/support/offset_of_member.hpp>
 
 namespace yave {
 
-  // ------------------------------------------
-  // Closure
-
-  // forward decl
-  template <uint64_t N>
-  struct ClosureN;
-
-  template <class Closure1 = ClosureN<1>>
-  struct Closure;
-
-  /// Info table for closure
-  struct closure_info_table : object_info_table
-  {
-    /// Number of arguments
-    const uint64_t n_args;
-    /// vtable for code
-    object_ptr<const Object> (*code)(const Closure<>*) noexcept;
-  };
-
-  /// Trait class for Object::obj_name for closure objects.
-  template <class T>
-  struct closure_type_traits
-  {
-    /// Object::obj_name can be used for ID of closures.
-    static constexpr const char name[] = "00000000-0000-0000-0000-000000000000";
-  };
-
-  template <class Closure1>
-  struct Closure : Object
-  {
-    /// Arity of this closure.
-    mutable uint64_t arity;
-
-    /// Get number of args
-    auto n_args() const noexcept
-    {
-      return static_cast<const closure_info_table*>(info_table)->n_args;
-    }
-
-    /// Execute core with vtable function
-    auto code() const noexcept
-    {
-      return static_cast<const closure_info_table*>(info_table)->code(this);
-    }
-
-    /// get nth argument
-    auto& arg(uint64_t n) const noexcept
-    {
-      using arg_type = typename decltype(Closure1::args)::value_type;
-      // offset to first element of argument buffer
-      constexpr uint64_t offset = offset_of_member(&Closure1::args);
-      static_assert(offset % sizeof(arg_type) == 0);
-      // manually calc offset to avoid UB
-      return ((arg_type*)this)[offset / sizeof(arg_type) + n];
-    }
-  };
-
-  /** \brief ClosureN
-   * Contains static size array for incoming arguments.
-   * Arguments will be filled from back to front.
-   * So, first argument of closure will be LAST element of array for arguments.
-   * If all arguments are passed, arity becomes zero and the closure is ready to
-   * execute code.
-   */
-  template <uint64_t N>
-  struct ClosureN : Closure<>
-  {
-    /// get raw arg
-    template <uint64_t Arg>
-    auto& nth_arg() const noexcept
-    {
-      static_assert(Arg < N, "Invalid index of argument");
-      return args[N - Arg - 1];
-    }
-
-    /// args
-    mutable std::array<object_ptr<const Object>, N> args = {};
-  };
+  namespace detail {
+    // fwd
+    inline auto eval_obj(object_ptr<const Object> obj)
+      -> object_ptr<const Object>;
+  } // namespace detail
 
   // ------------------------------------------
   // vtbl_code_func
 
   /// vrtable function to call code()
   template <class T>
-  object_ptr<const Object> vtbl_code_func(const Closure<>* _this) noexcept
+  object_ptr<const Object> vtbl_code_func(const Closure<>* _cthis) noexcept
   {
-    auto ret = [&]() -> object_ptr<const Object> {
-      try {
-        auto r = (static_cast<const T*>(_this)->exception_handler()).value();
-        assert(r);
-        return r;
+    auto _this = static_cast<const T*>(_cthis);
 
-        // bad_value_cast
+    auto ret = [&]() -> object_ptr<const Object> {
+
+      try {
+
+        // calls code() inside.
+        auto r = _this->_handle_exception().value();
+        assert(r);
+
+        // only cache PAP or values (see comments in eval_spine()).
+        return detail::eval_obj(std::move(r));
+
+        // type_error
       } catch (const bad_value_cast& e) {
         return add_exception_tag(to_Exception(e));
 
@@ -161,7 +96,8 @@ namespace yave {
     if (!has_exception_tag(ret))
       assert(!value_cast_if<Exception>(ret));
 
-    return ret;
+    // call self update method
+    return _this->_self_update(std::move(ret));
   }
 
   // ------------------------------------------
@@ -304,7 +240,7 @@ namespace yave {
                                          &info_table_initializer::info_table)},
                                        other.arity,
                                      },
-                                     other.args}
+                                     other.spine}
     {
     }
 
@@ -315,7 +251,7 @@ namespace yave {
                                          &info_table_initializer::info_table)},
                                        std::move(other.arity),
                                      },
-                                     std::move(other.args)}
+                                     std::move(other.spine)}
     {
     }
 
@@ -323,7 +259,7 @@ namespace yave {
     Function& operator=(const Function& other) noexcept
     {
       arity = other.arity;
-      args  = other.args;
+      spine = other.spine;
       return *this;
     }
 
@@ -331,7 +267,7 @@ namespace yave {
     Function& operator=(Function&& other) noexcept
     {
       arity = std::move(other.arity);
-      args  = std::move(other.args);
+      spine = std::move(other.spine);
       return *this;
     }
 
@@ -358,7 +294,7 @@ namespace yave {
       static_assert(std::is_standard_layout_v<To>);
       auto obj = ClosureN<sizeof...(Ts) - 1>::template nth_arg<N>();
       assert(obj);
-      return static_object_cast<To>(obj);
+      return static_object_cast<To>(std::move(obj));
     }
 
     /// evaluate N'th argument and take result
@@ -369,11 +305,20 @@ namespace yave {
       return eval(this->template arg<N>());
     }
 
-  public:
-    /// default exception handler
-    exception_handler_return_type exception_handler() const
+  public: /* customization points */
+    /// default exception handler.
+    auto _handle_exception() const -> exception_handler_return_type
     {
       return static_cast<const T*>(this)->code();
+    }
+
+    /// default self-update function.
+    auto _self_update(object_ptr<const Object> result) const noexcept
+      -> object_ptr<const Object>
+    {
+      auto cthis = reinterpret_cast<const Closure<>*>(this);
+      _get_storage(*cthis->vertebrae(0)).set_result(result);
+      return result;
     }
 
   private:
@@ -381,9 +326,11 @@ namespace yave {
     using base = ClosureN<sizeof...(Ts) - 1>;
     using base::arity;
     using base::n_args;
-    using base::code;
+    using base::call;
+    using base::vertebrae;
+    using base::is_pap;
     using base::arg;
-    using base::args;
+    using base::spine;
     using base::nth_arg;
 
     /// check signature of code()
