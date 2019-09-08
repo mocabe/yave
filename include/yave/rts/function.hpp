@@ -38,12 +38,17 @@ namespace yave {
     auto _this = static_cast<const T*>(_cthis);
 
     auto ret = [&]() -> object_ptr<const Object> {
+
       try {
+
+        // calls code() inside.
         auto r = _this->_handle_exception().value();
         assert(r);
-        return r;
 
-        // bad_value_cast
+        // only cache PAP or values (see comments in eval_spine()).
+        return detail::eval_obj(r);
+
+        // type_error
       } catch (const bad_value_cast& e) {
         return add_exception_tag(to_Exception(e));
 
@@ -300,14 +305,14 @@ namespace yave {
       return eval(this->template arg<N>());
     }
 
-  public:
-    /// default exception handler
+  public: /* customization points */
+    /// default exception handler.
     auto _handle_exception() const -> exception_handler_return_type
     {
       return static_cast<const T*>(this)->code();
     }
 
-    /// default memoize handler
+    /// default self-update function.
     auto _self_update(object_ptr<const Object> result) const noexcept
       -> object_ptr<const Object>
     {

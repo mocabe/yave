@@ -52,6 +52,8 @@ TEST_CASE("eval")
     {
       auto term = f << new Int(42);
       REQUIRE(type_of(term));
+      (void)eval(term);
+      REQUIRE(type_of(term));
     }
 
     SECTION("2")
@@ -159,7 +161,8 @@ TEST_CASE("eval")
 
     SECTION("0")
     {
-      auto part = eval(f << g << new Int(2019));
+      auto part = f << g << new Int(2019);
+      (void)eval(part);
 
       auto t1 = part << new Int(42);
       auto t2 = part << new Int(24);
@@ -202,7 +205,9 @@ TEST_CASE("eval")
 
     SECTION("0")
     {
-      auto term = fib << new Int(30);
+      auto term = fib << new Int(10);
+      REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 55);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 55);
     }

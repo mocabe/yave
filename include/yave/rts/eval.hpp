@@ -37,8 +37,13 @@ namespace yave {
       const object_ptr<const Object>& obj,
       std::vector<object_ptr<const Apply>>& stack) -> object_ptr<const Object>
     {
+      // we, hopeless C++ programmers, manually optimize tailcalls because
+      // compilers sometimes not smart enough to do that for us.
+
       auto next = obj;
+
       for (;;) {
+
         if (auto apply = value_cast_if<Apply>(next)) {
 
           auto& apply_storage = _get_storage(*apply);
@@ -53,7 +58,7 @@ namespace yave {
           if (stack.empty())
             stack.reserve(8);
 
-          // push apply node itself (not argument!)
+          // push vertebrae
           stack.push_back(apply);
 
           next = apply_storage.app();
@@ -77,8 +82,11 @@ namespace yave {
 
         auto apply_storage = _get_storage(*apply);
 
-        // assume PAP is cached when we have argument left in stack
-        if (stack.empty() && apply_storage.is_result())
+        // when we don't have any arguments to apply in stack and apply node has
+        // already evaluated, we can directly return cached result. if we can
+        // guarantee cached results are only PAP or values, we actually don't
+        // need to call eval_spine() on these results.
+        if (unlikely(stack.empty() && apply_storage.is_result()))
           return apply_storage.get_result();
 
         // build stack and get bottom closure
