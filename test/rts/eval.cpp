@@ -173,6 +173,24 @@ TEST_CASE("eval")
       REQUIRE(*value_cast<Int>(eval(t1)) == 42);
       REQUIRE(*value_cast<Int>(eval(t2)) == 24);
     }
+
+    SECTION("1")
+    {
+      struct H : Function<H, closure<Int, Int, Int>, Int, closure<Int, Int>>
+      {
+        return_type code() const
+        {
+          // direct PAP return
+          return eval(arg<0>() << arg<1>());
+        }
+      };
+
+      auto h    = make_object<H>();
+      auto term = h << g << new Int(0) << new Int(42);
+
+      REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 42);
+    }
   }
 
   SECTION("rec")
@@ -210,6 +228,24 @@ TEST_CASE("eval")
       REQUIRE(*value_cast<Int>(eval(term)) == 55);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 55);
+    }
+
+    SECTION("1")
+    {
+      struct Add : Function<Add, Int, Int, Int>
+      {
+        return_type code() const
+        {
+          return new Int(*eval_arg<0>() + *eval_arg<1>());
+        }
+      };
+
+      auto add    = make_object<Add>();
+      auto shared = fib << new Int(10);
+      auto term   = add << shared << shared;
+
+      REQUIRE(type_of(term));
+      REQUIRE(*value_cast<Int>(eval(term)) == 55 * 2);
     }
   }
 }
