@@ -25,17 +25,16 @@ namespace yave {
     return_type code() const
     {
       // reduce argument closure
-      object_ptr<const Object> f = eval_arg<0>();
-      auto cf                    = reinterpret_cast<const Closure<>*>(f.get());
+      auto f  = eval_arg<0>();
+      auto cf = reinterpret_cast<const Closure<>*>(f.get());
 
       assert(has_arrow_type(f));
 
       // check arity for safety
-      if (unlikely(cf->arity == 0)) {
+      if (unlikely(cf->arity == 0))
         throw eval_error::bad_fix();
-      }
 
-      auto ret = [&] {
+      auto ret = [&]() -> object_ptr<const Object> {
         // create return value
         auto pap   = clone(f);
         auto cpap  = reinterpret_cast<const Closure<>*>(pap.get());

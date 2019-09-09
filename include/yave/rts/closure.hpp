@@ -74,7 +74,7 @@ namespace yave {
     }
 
     /// get nth argument
-    auto& arg(uint64_t n) const noexcept
+    const auto& arg(uint64_t n) const noexcept
     {
       return _get_storage(*vertebrae(n)).arg();
     }

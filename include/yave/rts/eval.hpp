@@ -56,7 +56,7 @@ namespace yave {
           }
 
           // push vertebrae
-          stack.push_back(apply);
+          stack.push_back(std::move(apply));
 
           next = apply_storage.app();
           continue;
@@ -64,7 +64,7 @@ namespace yave {
         // bottom
         return next;
       }
-    };
+    }
 
     [[nodiscard]] inline auto eval_spine(
       object_ptr<const Object> obj,
