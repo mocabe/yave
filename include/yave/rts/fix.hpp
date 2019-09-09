@@ -24,53 +24,30 @@ namespace yave {
   {
     return_type code() const
     {
-      // reduce argument closure
-      auto f  = eval_arg<0>();
-      auto cf = reinterpret_cast<const Closure<>*>(f.get());
+      auto f     = eval_arg<0>();
+      auto cf    = reinterpret_cast<const Closure<>*>(f.get());
+      auto cthis = reinterpret_cast<const Closure<>*>(this);
 
-      assert(has_arrow_type(f));
-
-      // check arity for safety
-      if (unlikely(cf->arity == 0))
+      if (cf->arity == 0)
         throw eval_error::bad_fix();
 
-      auto ret = [&]() -> object_ptr<const Object> {
-        // create return value
-        auto pap   = clone(f);
-        auto cpap  = reinterpret_cast<const Closure<>*>(pap.get());
-        auto cthis = reinterpret_cast<const Closure<>*>(this);
+      auto& app = cthis->vertebrae(0);
 
-        auto& app = cthis->vertebrae(0);
+      // build self referencing apply node
+      _get_storage(*app).app() = std::move(f);
+      _get_storage(*app).arg() = app;
 
-        // build self-referencing closure
-        auto arity             = --cpap->arity;
-        cpap->vertebrae(arity) = app;
+      // avoid memory leak
+      _get_storage(app).decrement_refcount();
 
-        // avoid memory leak
-        _get_storage(app).decrement_refcount();
-
-        // eval
-        if (unlikely(arity == 0))
-          return cpap->call();
-
-        return pap;
-      }();
-
-      // return
-      return static_object_cast<const VarValueProxy<detail::Fix_X>>(
-        std::move(ret));
+      return static_object_cast<const VarValueProxy<detail::Fix_X>>(app);
     }
 
     auto _self_update(object_ptr<const Object> result) const noexcept
       -> object_ptr<const Object>
     {
-      // set cache
-      auto cthis = reinterpret_cast<const Closure<>*>(this);
-      auto& app  = cthis->vertebrae(0);
-      _get_storage(*app).set_result(std::move(result));
-
-      // return @
-      return app;
+      // bypass
+      return result;
     }
   };
 } // namespace yave
