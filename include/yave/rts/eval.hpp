@@ -66,34 +66,31 @@ namespace yave {
       }
     }
 
-    [[nodiscard]] inline auto eval_spine(
-      object_ptr<const Object> obj,
-      std::vector<object_ptr<const Apply>>& stack) -> object_ptr<const Object>
+    [[nodiscard]] inline auto eval_spine(object_ptr<const Object> obj)
+      -> object_ptr<const Object>
     {
-      auto next = std::move(obj);
+      if (auto apply = value_cast_if<Apply>(obj)) {
 
-      for (;;) {
+        auto& apply_storage = _get_storage(*apply);
 
-        // detect exception
-        if (unlikely(has_exception_tag(next)))
-          throw result_error::exception_result(
-            clear_pointer_tag(get_tagged_exception(next)));
+        // when we don't have any arguments to apply in stack and apply node
+        // has already evaluated, we can directly return cached result. if we
+        // can guarantee cached results are only PAP or values, we actually
+        // don't need to call eval_spine() on these results.
+        if (apply_storage.is_result())
+          return apply_storage.get_result();
 
-        if (auto apply = value_cast_if<Apply>(next)) {
+        // spine stack
+        std::vector<object_ptr<const Apply>> stack;
 
-          auto& apply_storage = _get_storage(*apply);
+        // build stack and get bottom closure
+        stack.push_back(std::move(apply));
+        auto bottom = build_spine_stack(apply_storage.app(), stack);
 
-          // when we don't have any arguments to apply in stack and apply node
-          // has already evaluated, we can directly return cached result. if we
-          // can guarantee cached results are only PAP or values, we actually
-          // don't need to call eval_spine() on these results.
-          if (unlikely(stack.empty() && apply_storage.is_result()))
-            return apply_storage.get_result();
+        for (;;) {
 
-          // build stack and get bottom closure
-          auto bottom = build_spine_stack(std::move(apply), stack);
-
-          assert(has_arrow_type(bottom));
+          if (!has_arrow_type(bottom))
+            throw eval_error::bad_apply();
 
           // clone bottom closure
           auto fun   = clone(bottom);
@@ -125,19 +122,28 @@ namespace yave {
           // unwind stack consumed
           stack.erase(base_iter, stack.end());
 
-          next = std::move(result);
+          // detect exception
+          if (unlikely(has_exception_tag(result)))
+            throw result_error::exception_result(
+              clear_pointer_tag(get_tagged_exception(result)));
+
+          // completed
+          if (stack.empty())
+            return result;
+
+          // loop
+          bottom = std::move(result);
           continue;
         }
-        return next;
       }
+      return obj;
     }
 
     /// evaluate apply tree
     [[nodiscard]] inline auto eval_obj(object_ptr<const Object> obj)
       -> object_ptr<const Object>
     {
-      std::vector<object_ptr<const Apply>> stack;
-      return eval_spine(std::move(obj), stack);
+      return eval_spine(std::move(obj));
     }
   } // namespace detail
 
