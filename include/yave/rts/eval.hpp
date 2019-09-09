@@ -91,7 +91,7 @@ namespace yave {
             return apply_storage.get_result();
 
           // build stack and get bottom closure
-          auto bottom = build_spine_stack(std::move(next), stack);
+          auto bottom = build_spine_stack(std::move(apply), stack);
 
           assert(has_arrow_type(bottom));
 
