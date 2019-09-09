@@ -46,7 +46,10 @@ namespace yave {
         assert(r);
 
         // only cache PAP or values (see comments in eval_spine()).
-        return detail::eval_obj(std::move(r));
+        r = detail::eval_obj(std::move(r));
+
+        // call self update method
+        return _this->_self_update(std::move(r));
 
         // type_error
       } catch (const bad_value_cast& e) {
@@ -92,12 +95,12 @@ namespace yave {
 
     // vtbl_code_func should not return Undefined value
     assert(ret);
+
     // exception object retuned fron vtbl_code_func should have pointer tag
     if (!has_exception_tag(ret))
       assert(!value_cast_if<Exception>(ret));
 
-    // call self update method
-    return _this->_self_update(std::move(ret));
+    return ret;
   }
 
   // ------------------------------------------
