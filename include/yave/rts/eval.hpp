@@ -98,23 +98,18 @@ namespace yave {
           auto arity = cfun->arity;
           auto size  = stack.size();
 
-          // when stack size is not enough, return PAP
-          if (unlikely(size < arity)) {
-            for (size_t i = 0; i < size; ++i) {
-              cfun->vertebrae(arity - size + i) = std::move(stack[i]);
-            }
-            cfun->arity -= size;
+          auto asmin     = std::min(arity, size);
+          auto base_iter = stack.end() - asmin;
+
+          // dump to local stack
+          for (size_t i = 0; i < asmin; ++i) {
+            cfun->vertebrae(arity - asmin + i) = std::move(*(base_iter + i));
+          }
+          cfun->arity -= asmin;
+
+          // not enough arguments; return PAP
+          if (asmin != arity)
             return fun;
-          }
-
-          // base of stack
-          auto base_iter = stack.end() - arity;
-
-          // dump stack into closure
-          for (size_t i = 0; i < arity; ++i) {
-            cfun->vertebrae(i) = std::move(*(base_iter + i));
-          }
-          cfun->arity = 0;
 
           // call code
           auto result = cfun->call();
