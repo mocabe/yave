@@ -40,7 +40,8 @@ namespace yave {
       // avoid memory leak
       _get_storage(app).decrement_refcount();
 
-      return static_object_cast<const VarValueProxy<detail::Fix_X>>(app);
+      return static_object_cast<const VarValueProxy<detail::Fix_X>>(
+        object_ptr<const Object>(app));
     }
 
     auto _self_update(object_ptr<const Object> result) const noexcept
