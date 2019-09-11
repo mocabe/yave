@@ -160,15 +160,12 @@ namespace yave {
       : index {other.index}
     {
       // copy union
-      if (other.index == value_index) {
+      if (other.index == value_index)
         value = other.value;
-      }
-      if (other.index == arrow_index) {
+      if (other.index == arrow_index)
         arrow = other.arrow;
-      }
-      if (other.index == var_index) {
+      if (other.index == var_index)
         var = other.var;
-      }
     }
 
     /// Destructor
@@ -193,7 +190,7 @@ namespace yave {
       } else if constexpr (std::is_same_v<std::decay_t<T>, var_type>) {
         return var_index;
       } else {
-        static_assert(false_v<T>);
+        static_assert(false_v<T>, "Invalid type of type value union");
       }
     }
 
@@ -300,7 +297,7 @@ namespace yave {
       auto&& ref = std::forward<T>(v).var;
       return ref;
     } else {
-      static_assert(false_v<Idx>, "Invalid index for TypeValue");
+      static_assert(false_v<Idx>, "Invalid index of type value union");
     }
   }
 

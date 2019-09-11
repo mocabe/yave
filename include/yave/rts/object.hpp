@@ -16,13 +16,7 @@
 
 namespace yave {
 
-  // value type
-  struct value_type;
-  // arrow type
-  struct arrow_type;
-  // type variable
-  struct var_type;
-  // TypeValue
+  // value of runtime type
   class type_value;
 
   // object info table
