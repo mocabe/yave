@@ -5,27 +5,41 @@
 
 #pragma once
 
-#include <yave/node/parser/parsed_node_graph.hpp>
 #include <yave/node/compiler/executable.hpp>
+#include <yave/node/compiler/errors.hpp>
+#include <yave/node/parser/node_parser.hpp>
+#include <yave/node/support/bind_info_manager.hpp>
 
 namespace yave {
 
   class node_compiler
   {
-  public:
-    /// Ctor
-    node_compiler(const parsed_node_graph& parsed_graph);
-    /// Generate executable from parsed node graph.
-    executable compile(const parsed_node_handle& root) const;
+    node_compiler();
 
-    /// Lock.
-    std::unique_lock<std::mutex> lock() const;
+    /// Compile parsed graph
+    auto compile(const parsed_node_graph& input, const bind_info_manager& bim)
+      -> std::optional<executable>;
 
-  private:
-    const parsed_node_graph& m_parsed_graph;
+    /// Get last errors
+    auto get_errors() const -> error_list;
 
   private:
-    /// mutex
+    /// Optimize parsed graph
+    auto _optimize(const parsed_node_graph& parsed_graph)
+      -> std::optional<parsed_node_graph>;
+    /// Resolve overloadings and generate apply tree
+    auto _generate(parsed_node_graph& graph, const bind_info_manager& bim)
+      -> std::optional<executable>;
+    /// Verbose type check
+    auto _verbose_check(const executable& exe) -> bool;
+
+  private:
+    auto _lock() const -> std::unique_lock<std::mutex>;
+
+  private:
     mutable std::mutex m_mtx;
+
+  private:
+    error_list m_errors;
   };
 } // namespace yave
