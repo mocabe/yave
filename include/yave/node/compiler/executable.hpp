@@ -28,6 +28,9 @@ namespace yave {
     /// Get type.
     object_ptr<const Type> type() const;
 
+    /// Get object.
+    object_ptr<const Object> object() const;
+
     /// Execute.
     object_ptr<const Object> execute(frame frame);
 

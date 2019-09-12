@@ -49,6 +49,11 @@ namespace yave {
     return m_type;
   }
 
+  object_ptr<const Object> executable::object() const
+  {
+    return m_obj;
+  }
+
   object_ptr<const Object> executable::execute(yave::frame frame)
   {
     auto app = m_obj << make_object<Frame>(frame);
