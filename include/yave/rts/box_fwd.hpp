@@ -183,6 +183,9 @@ namespace yave {
     /// info table initializer
     struct info_table_initializer
     {
+      // check m_value's offset
+      static_assert(offset_of_member(&Box::m_value) == sizeof(Object));
+
       /// static object info table
       alignas(32) inline static const object_info_table info_table {
         object_type<Box>(),            //

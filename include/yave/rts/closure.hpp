@@ -101,7 +101,10 @@ namespace yave {
     template <uint64_t Arg>
     auto nth_arg() const noexcept
     {
+      static_assert(offset_of_member(&Closure<>::arity) == sizeof(Object));
+      static_assert(offset_of_member(&ClosureN::spine) == sizeof(Closure<>));
       static_assert(Arg < N, "Invalid index of argument");
+
       auto& app     = spine[N - Arg - 1];
       auto& storage = _get_storage(*app);
 
