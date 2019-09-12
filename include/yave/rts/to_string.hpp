@@ -7,6 +7,7 @@
 
 #include <yave/rts/type_gen.hpp>
 #include <yave/rts/object_util.hpp>
+#include <yave/rts/dynamic_typing.hpp>
 
 #include <vector>
 #include <string>
