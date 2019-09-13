@@ -45,6 +45,10 @@ TEST_CASE("error_info")
   {
     struct MyError : error_info<MyError>
     {
+      std::string message() const override
+      {
+        return "error_info";
+      }
     };
 
     auto err = make_error<MyError>();

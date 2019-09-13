@@ -36,11 +36,6 @@ namespace yave {
   template <class Derived>
   struct error_info : error_info_base
   {
-    virtual std::string message() const override
-    {
-      return "error_info";
-    }
-
     virtual const std::type_info& type() const override
     {
       return typeid(Derived);
@@ -49,10 +44,6 @@ namespace yave {
     virtual std::unique_ptr<error_info_base> clone() const override
     {
       return std::make_unique<Derived>(*static_cast<const Derived*>(this));
-    }
-
-    virtual ~error_info() noexcept override
-    {
     }
   };
 
