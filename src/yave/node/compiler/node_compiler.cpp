@@ -186,11 +186,10 @@ namespace yave {
           if (inputs.empty())
             inputs_str = "(no input)";
 
-          Info(g_logger, "Parsing node in prime tree");
-          Info(g_logger, "| name: {}({})", node_info->name());
-          Info(g_logger, "| connected input sockets: {}", to_string(node.id()));
-          Info(g_logger, "| connected input sockets: {}", inputs_str);
-          Info(g_logger, "| output socket: {}", socket);
+          Info(g_logger, "[ Type checking node: id={} ]", to_string(node.id()));
+          Info(g_logger, "- name: {}", node_info->name());
+          Info(g_logger, "- connected input sockets: {}", inputs_str);
+          Info(g_logger, "- output socket: {}", socket);
         }
 
         std::vector<std::shared_ptr<const bind_info>> overloadings;
@@ -226,11 +225,11 @@ namespace yave {
 
           Error(
             g_logger,
-            "Typing node {}({})#{} failed:",
+            "[ Typing node {}({})#{} failed ]",
             node_info->name(),
             to_string(node.id()),
             socket);
-          Error(g_logger, "| (No overloading for current input connections)");
+          Error(g_logger, "- (No overloading for current input connections)");
 
           return {nullptr, object_type<Undefined>(), nullptr};
         }
@@ -239,7 +238,7 @@ namespace yave {
         {
           Info(
             g_logger,
-            "Overloadings at {}({})#{}:",
+            "[ Overloadings at {}({})#{} ]",
             node_info->name(),
             to_string(node.id()),
             socket);
@@ -252,7 +251,7 @@ namespace yave {
               str += "(no input)";
             str += fmt::format("-> {}", o->output_socket());
 
-            Info(g_logger, "| {}", str);
+            Info(g_logger, "- {}", str);
           }
         }
 
@@ -292,12 +291,12 @@ namespace yave {
 
           Info(
             g_logger,
-            "Type check at node: {}({})#{}",
+            "[ Type check at node: {}({})#{} ]",
             node_info->name(),
             to_string(node.id()),
             socket);
-          Info(g_logger, "| input types: {}", input_types_str);
-          Info(g_logger, "| generalized type: {}", to_string(generalized_tp));
+          Info(g_logger, "- input types: {}", input_types_str);
+          Info(g_logger, "- generalized type: {}", to_string(generalized_tp));
         }
 
         // type of target node tree.
@@ -331,15 +330,15 @@ namespace yave {
             {
               Error(
                 g_logger,
-                "Type check on prime tree failed at {}({})#{}:",
+                "[ Type check on prime tree failed at {}({})#{} ]",
                 node_info->name(),
                 to_string(node.id()),
                 socket);
-              Error(g_logger, "| on socket: {}", inputs[i]);
-              Error(g_logger, "| error type: type_missmatch");
-              Error(g_logger, "| socket type: {}", to_string(input_types[i]));
-              Error(g_logger, "| expected: {}", to_string(e.expected()));
-              Error(g_logger, "| provided: {}", to_string(e.provided()));
+              Error(g_logger, "- on socket: {}", inputs[i]);
+              Error(g_logger, "- error type: type_missmatch");
+              Error(g_logger, "- socket type: {}", to_string(input_types[i]));
+              Error(g_logger, "- expected: {}", to_string(e.expected()));
+              Error(g_logger, "- provided: {}", to_string(e.provided()));
             }
 
             auto flat = flatten(generalized_tp);
@@ -355,13 +354,13 @@ namespace yave {
             {
               Error(
                 g_logger,
-                "Type check on prime tree failed at {}({})#{}:",
+                "[ Type check on prime tree failed at {}({})#{} ]",
                 node_info->name(),
                 to_string(node.id()),
                 socket);
-              Error(g_logger, "| on socket: {}", inputs[i]);
-              Error(g_logger, "| error type: unification failed");
-              Error(g_logger, "| socket type: {}", to_string(input_types[i]));
+              Error(g_logger, "- on socket: {}", inputs[i]);
+              Error(g_logger, "- error type: unification failed");
+              Error(g_logger, "- socket type: {}", to_string(input_types[i]));
             }
 
             return {nullptr, generalized_tp, nullptr};
@@ -371,12 +370,12 @@ namespace yave {
         {
           Info(
             g_logger,
-            "Infered type of node: {}({})#{}",
+            "[ Infered type of node: {}({})#{} ]",
             node_info->name(),
             to_string(node.id()),
             socket);
-          Info(g_logger, "| node_tp: {}", to_string(node_tp));
-          Info(g_logger, "| tmp_tp: {}", to_string(tmp_tp));
+          Info(g_logger, "- node_tp: {}", to_string(node_tp));
+          Info(g_logger, "- tmp_tp: {}", to_string(tmp_tp));
         }
 
         struct hit_info
@@ -410,11 +409,11 @@ namespace yave {
           {
             Info(
               g_logger,
-              "Type check on prime tree failed at {}({})#{}:",
+              "[ Type check on prime tree failed at {}({})#{} ]",
               node_info->name(),
               to_string(node.id()),
               socket);
-            Info(g_logger, "| (No valid overloading found.)");
+            Info(g_logger, "- (No valid overloading found.)");
           }
 
           return {nullptr, object_type<Undefined>(), nullptr};
@@ -432,11 +431,11 @@ namespace yave {
               {
                 Error(
                   g_logger,
-                  "Overloading resolution failed at {}({})#{}:",
+                  "[ Overloading resolution failed at {}({})#{} ]",
                   node_info->name(),
                   to_string(node.id()),
                   socket);
-                Error(g_logger, "| (Ambiguous overloadings)");
+                Error(g_logger, "- (Ambiguous overloadings)");
               }
 
               return {nullptr, object_type<Undefined>(), nullptr};
@@ -448,11 +447,11 @@ namespace yave {
         {
           Info(
             g_logger,
-            "Type of node at {}({})#{} in prime tree successfully deduced:",
+            "[ Type of node at {}({})#{} in prime tree successfully deduced ]",
             node_info->name(),
             to_string(node.id()),
             socket);
-          Info(g_logger, "| {}", to_string(ret.result_tp));
+          Info(g_logger, "- {}", to_string(ret.result_tp));
         }
 
         // add instance cache
