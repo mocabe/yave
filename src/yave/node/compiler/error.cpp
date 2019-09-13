@@ -27,4 +27,9 @@ namespace yave::compile_error {
       to_string(m_expected),
       to_string(m_provided));
   }
+
+  std::string unexpected_error::message() const
+  {
+    return fmt::format("Unexpected compile error occured: msg = {}", m_msg);
+  }
 }

@@ -489,10 +489,12 @@ namespace yave {
 
   auto node_compiler::_verbose_check(const executable& exe) -> bool
   {
+    // TODO: better check and output.
     try {
       return static_cast<bool>(type_of(exe.object()));
     } catch (...) {
-      // TODO
+      m_errors.push_back(make_error<compile_error::unexpected_error>(
+        "Verbose type check failed"));
       return false;
     }
   }

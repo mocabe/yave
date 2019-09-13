@@ -129,5 +129,19 @@ namespace yave {
       object_ptr<const Type> m_provided;
     };
 
+    /// Unexpected compile error
+    struct unexpected_error : error_info<unexpected_error>
+    {
+      unexpected_error(const std::string& msg)
+        : m_msg {msg}
+      {
+      }
+
+      [[nodiscard]] virtual std::string message() const override;
+
+    private:
+      std::string m_msg;
+    };
+
   } // namespace compile_error
 } // namespace yave
