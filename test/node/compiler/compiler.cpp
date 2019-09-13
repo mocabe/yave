@@ -28,7 +28,7 @@ struct node_info_traits<Add>
 {
   static node_info get_node_info()
   {
-    node_info("add", {"x", "y"}, {"out"});
+    return node_info("add", {"x", "y"}, {"out"});
   }
 };
 
@@ -42,24 +42,82 @@ struct bind_info_traits<Add, test_backend>
   }
 };
 
-TEST_CASE("node_compiler")
+TEST_CASE("add x y", "[node_compiler]")
 {
   node_compiler compiler;
   node_graph graph;
   bind_info_manager bim;
 
-  SECTION("add")
-  {
-    auto add = graph.add(get_node_info<Add>());
-    auto i1  = graph.add(get_node_info<node::Int>());
-    auto i2  = graph.add(get_node_info<node::Int>());
+  auto add = graph.add(get_node_info<Add>());
+  auto i1  = graph.add(get_node_info<node::Int>());
+  auto i2  = graph.add(get_node_info<node::Int>());
 
-    auto c1 = graph.connect(i1, "value", add, "x");
-    auto c2 = graph.connect(i2, "value", add, "y");
+  REQUIRE(add);
+  REQUIRE(i1);
+  REQUIRE(i2);
 
-    bim.add(get_bind_info<Add, test_backend>());
-    bim.add(get_bind_info<node::Int, backend::tags::default_render>());
+  auto c1 = graph.connect(i1, "value", add, "x");
+  auto c2 = graph.connect(i2, "value", add, "y");
 
-    auto exe = compiler.compile({graph, add}, bim);
-  }
+  REQUIRE(c1);
+  REQUIRE(c2);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+
+  auto exe = compiler.compile({std::move(graph), add}, bim);
+}
+
+TEST_CASE("add x x", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto add = graph.add(get_node_info<Add>());
+  auto i   = graph.add(get_node_info<node::Int>());
+
+  REQUIRE(add);
+  REQUIRE(i);
+
+  auto c1 = graph.connect(i, "value", add, "x");
+  auto c2 = graph.connect(i, "value", add, "y");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+
+  auto exe = compiler.compile({std::move(graph), add}, bim);
+}
+
+TEST_CASE("add (add x x) x", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto add1 = graph.add(get_node_info<Add>());
+  auto add2 = graph.add(get_node_info<Add>());
+  auto i   = graph.add(get_node_info<node::Int>());
+
+  REQUIRE(add1);
+  REQUIRE(add2);
+  REQUIRE(i);
+
+  auto c1 = graph.connect(add2, "out", add1, "x");
+  auto c2 = graph.connect(i, "value", add1, "y");
+  auto c3 = graph.connect(i, "value", add2, "x");
+  auto c4 = graph.connect(i, "value", add2, "y");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+  REQUIRE(c3);
+  REQUIRE(c4);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+
+  auto exe = compiler.compile({std::move(graph), add1}, bim);
 }
