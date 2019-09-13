@@ -93,10 +93,8 @@ namespace yave {
     Assumes prime tree is already successfully parsed by node_parser.
     We use socket_instance_manager to collect all node instances attached to
     specific node/socket combination to share instance objects across multiple
-    inputs. Instance manager should be given by caller, and it's instance tables
-    should be valid for current node graph (otherwise result parsed_node_graph
-    will be constructed by invalid instances thus may crash whole program on
-    execution).
+    inputs. 
+
     Type checking each node is done by following algorithm:
     1. Type check all input sockets.
     2. Find bindings which have exactly same input arguments to current active
@@ -112,12 +110,10 @@ namespace yave {
     struct
     {
       // Recursive implementation of node type checker.
-      // Recursively type check nodes while building return node graph.
-      // Returns type of node tree.
       socket_instance rec(
-        const node_handle& node,      /* target tree */
-        const std::string& socket,    /* target tree */
-        const node_graph& graph,      /* graph*/
+        const node_handle& node,      /* target node */
+        const std::string& socket,    /* target socket */
+        const node_graph& graph,      /* graph */
         const bind_info_manager& bim, /* bind info */
         socket_instance_manager& sim, /* instance cache table (ref) */
         error_list& errors)           /* error list (ref) */
@@ -173,8 +169,9 @@ namespace yave {
               break;
             }
           }
-        }
+        } 
 
+        // input type list (for convenient)
         std::vector<object_ptr<const Type>> input_types;
 
         for (auto&& inst : input_instances) {
@@ -182,21 +179,18 @@ namespace yave {
         }
 
         // log
-        std::string inputs_str;
-        for (auto&& i : inputs) inputs_str += fmt::format("{} ", i);
-        if (inputs.empty())
-          inputs_str = "(no input)";
+        {
+          std::string inputs_str;
+          for (auto&& i : inputs) inputs_str += fmt::format("{} ", i);
+          if (inputs.empty())
+            inputs_str = "(no input)";
 
-        Info(
-          g_logger,
-          "Parsing node in prime tree:\n"
-          "| name: {}({})\n"
-          "| connected input sockets: {}\n"
-          "| output socket: {}",
-          node_info->name(),
-          to_string(node.id()),
-          inputs_str,
-          socket);
+          Info(g_logger, "Parsing node in prime tree");
+          Info(g_logger, "| name: {}({})", node_info->name());
+          Info(g_logger, "| connected input sockets: {}", to_string(node.id()));
+          Info(g_logger, "| connected input sockets: {}", inputs_str);
+          Info(g_logger, "| output socket: {}", socket);
+        }
 
         std::vector<std::shared_ptr<const bind_info>> overloadings;
 
@@ -231,35 +225,35 @@ namespace yave {
 
           Error(
             g_logger,
-            "Typing node {}({})#{} failed:\n"
-            "| (No overloading for current input connections)",
+            "Typing node {}({})#{} failed:",
             node_info->name(),
             to_string(node.id()),
             socket);
+          Error(g_logger, "| (No overloading for current input connections)");
 
           return {nullptr, object_type<Undefined>(), nullptr};
         }
 
         // log
-        std::string overloadings_str;
-        for (auto&& o : overloadings) {
-          overloadings_str += "| ";
-          for (auto&& i : o->input_sockets())
-            overloadings_str += fmt::format("{} ", i);
-          if (o->input_sockets().empty())
-            overloadings_str += "(no input)";
-          overloadings_str += fmt::format("-> {}\n", o->output_socket());
-        }
-        overloadings_str.pop_back();
+        {
+          Info(
+            g_logger,
+            "Overloadings at {}({})#{}:",
+            node_info->name(),
+            to_string(node.id()),
+            socket);
 
-        Info(
-          g_logger,
-          "Overloadings at {}({})#{}:\n"
-          "{}",
-          node_info->name(),
-          to_string(node.id()),
-          socket,
-          overloadings_str);
+          for (auto&& o : overloadings) {
+
+            std::string str;
+            for (auto&& i : o->input_sockets()) str += fmt::format("{} ", i);
+            if (o->input_sockets().empty())
+              str += "(no input)";
+            str += fmt::format("-> {}", o->output_socket());
+
+            Info(g_logger, "| {}", str);
+          }
+        }
 
         // get overloading instances
         std::vector<object_ptr<const Object>> overloading_instances;
@@ -287,23 +281,23 @@ namespace yave {
         auto generalized_tp = generalize(overloading_types);
 
         // log
-        std::string input_types_str;
-        for (auto&& it : input_types) {
-          input_types_str += fmt::format("{}, ", to_string(it));
-        }
-        if (input_types.empty())
-          input_types_str = "(no input type)";
+        {
+          std::string input_types_str;
+          for (auto&& it : input_types) {
+            input_types_str += fmt::format("{}, ", to_string(it));
+          }
+          if (input_types.empty())
+            input_types_str = "(no input type)";
 
-        Info(
-          g_logger,
-          "Type check at node: {}({})#{}\n"
-          "| input types: {}\n"
-          "| generalized type: {}",
-          node_info->name(),
-          to_string(node.id()),
-          socket,
-          input_types_str,
-          to_string(generalized_tp));
+          Info(
+            g_logger,
+            "Type check at node: {}({})#{}",
+            node_info->name(),
+            to_string(node.id()),
+            socket);
+          Info(g_logger, "| input types: {}", input_types_str);
+          Info(g_logger, "| generalized type: {}", to_string(generalized_tp));
+        }
 
         // type of target node tree.
         auto node_tp = generalized_tp;
@@ -333,21 +327,19 @@ namespace yave {
             errors.push_back(make_error<compile_error::type_missmatch>(
               node, inputs[i], e.expected(), e.provided()));
 
-            Error(
-              g_logger,
-              "Type check on prime tree failed at {}({})#{}:\n"
-              "| on socket: {}\n"
-              "| error type: type_missmatch\n"
-              "| socket type: {}\n"
-              "| expected: {}\n"
-              "| provided: {}",
-              node_info->name(),
-              to_string(node.id()),
-              socket,
-              inputs[i],
-              to_string(input_types[i]),
-              to_string(e.expected()),
-              to_string(e.provided()));
+            {
+              Error(
+                g_logger,
+                "Type check on prime tree failed at {}({})#{}:",
+                node_info->name(),
+                to_string(node.id()),
+                socket);
+              Error(g_logger, "| on socket: {}", inputs[i]);
+              Error(g_logger, "| error type: type_missmatch");
+              Error(g_logger, "| socket type: {}", to_string(input_types[i]));
+              Error(g_logger, "| expected: {}", to_string(e.expected()));
+              Error(g_logger, "| provided: {}", to_string(e.provided()));
+            }
 
             auto flat = flatten(generalized_tp);
             assert(flat.size() >= 2);
@@ -359,32 +351,32 @@ namespace yave {
             errors.push_back(make_error<compile_error::no_valid_overloading>(
               node, overloadings));
 
-            Error(
-              g_logger,
-              "Type check on prime tree failed at {}({})#{}:\n"
-              "| on socket: {}\n"
-              "| error type: unification failed\n"
-              "| socket type: {}",
-              node_info->name(),
-              to_string(node.id()),
-              socket,
-              inputs[i],
-              to_string(input_types[i]));
+            {
+              Error(
+                g_logger,
+                "Type check on prime tree failed at {}({})#{}:",
+                node_info->name(),
+                to_string(node.id()),
+                socket);
+              Error(g_logger, "| on socket: {}", inputs[i]);
+              Error(g_logger, "| error type: unification failed");
+              Error(g_logger, "| socket type: {}", to_string(input_types[i]));
+            }
 
             return {nullptr, generalized_tp, nullptr};
           }
         }
 
-        Info(
-          g_logger,
-          "Infered type of node: {}({})#{}\n"
-          "| node_tp: {}\n"
-          "| tmp_tp: {}",
-          node_info->name(),
-          to_string(node.id()),
-          socket,
-          to_string(node_tp),
-          to_string(tmp_tp));
+        {
+          Info(
+            g_logger,
+            "Infered type of node: {}({})#{}",
+            node_info->name(),
+            to_string(node.id()),
+            socket);
+          Info(g_logger, "| node_tp: {}", to_string(node_tp));
+          Info(g_logger, "| tmp_tp: {}", to_string(tmp_tp));
+        }
 
         struct hit_info
         {
@@ -414,13 +406,15 @@ namespace yave {
           errors.push_back(make_error<compile_error::no_valid_overloading>(
             node, overloadings));
 
-          Info(
-            g_logger,
-            "Type check on prime tree failed at {}({})#{}:\n"
-            "| (No valid overloading found.)",
-            node_info->name(),
-            to_string(node.id()),
-            socket);
+          {
+            Info(
+              g_logger,
+              "Type check on prime tree failed at {}({})#{}:",
+              node_info->name(),
+              to_string(node.id()),
+              socket);
+            Info(g_logger, "| (No valid overloading found.)");
+          }
 
           return {nullptr, object_type<Undefined>(), nullptr};
         }
@@ -434,13 +428,15 @@ namespace yave {
               errors.push_back(make_error<compile_error::ambiguous_overloading>(
                 node, overloadings));
 
-              Error(
-                g_logger,
-                "Overloading resolution failed at {}({})#{}:\n"
-                "| (Ambiguous overloadings)",
-                node_info->name(),
-                to_string(node.id()),
-                socket);
+              {
+                Error(
+                  g_logger,
+                  "Overloading resolution failed at {}({})#{}:",
+                  node_info->name(),
+                  to_string(node.id()),
+                  socket);
+                Error(g_logger, "| (Ambiguous overloadings)");
+              }
 
               return {nullptr, object_type<Undefined>(), nullptr};
             }
@@ -448,14 +444,15 @@ namespace yave {
           }
         }
 
-        Info(
-          g_logger,
-          "Type of node at {}({})#{} in prime tree successfully deduced:\n"
-          "| {}",
-          node_info->name(),
-          to_string(node.id()),
-          socket,
-          to_string(ret.result_tp));
+        {
+          Info(
+            g_logger,
+            "Type of node at {}({})#{} in prime tree successfully deduced:",
+            node_info->name(),
+            to_string(node.id()),
+            socket);
+          Info(g_logger, "| {}", to_string(ret.result_tp));
+        }
 
         // add instance cache
 
