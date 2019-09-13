@@ -3,118 +3,63 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/core/node_tree.hpp>
-#include <yave/node/support/socket_instance_manager.hpp>
 #include <yave/node/compiler/node_compiler.hpp>
-#include <yave/node/parser/node_parser.hpp>
-#include <yave/node/obj/function.hpp>
-#include <yave/node/obj/instance_getter.hpp>
-#include <yave/rts/rts.hpp>
+#include <yave/node/scene/scene_graph.hpp>
+#include <yave/node/core/function.hpp>
+#include <yave/backend/default/render/primitive_constructor.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
 
-TEST_CASE("node_parser")
+class test_backend
 {
-  node_graph graph;
-  node_info_manager info_mngr(get_primitive_node_info_list());
-  bind_info_manager bind_mngr(get_primitive_bind_info_list());
-  node_parser parser(graph, bind_mngr);
+};
 
-  SECTION("Int")
+struct Add : NodeFunction<Add, Int, Int, Int>
+{
+  return_type code() const
   {
-    auto Int_info = info_mngr.find("Int");
-    auto Int_bind = bind_mngr.find("Int");
-
-    REQUIRE(Int_info);
-    REQUIRE(Int_bind.size() == 1);
-
-    auto n = graph.add(*Int_info);
-    graph.set_primitive(n, {(int)42});
-
-    {
-      // should be Frame->Int
-      socket_instance_manager sim;
-      auto [parsed_graph, errors] = parser.type_prime_tree(n, "value", sim);
-      REQUIRE(parsed_graph);
-      REQUIRE(errors.empty());
-      REQUIRE(sim.size() == 1);
-      REQUIRE(parsed_graph->nodes().size() == 1);
-      REQUIRE(parsed_graph->roots().size() == 1);
-      REQUIRE(same_type(
-        parsed_graph->get_info(parsed_graph->nodes().front())->type(),
-        get_primitive_type(int(0))));
-
-      node_compiler compiler {*parsed_graph};
-      auto exe = compiler.compile(parsed_graph->roots().front());
-      auto result = exe.execute({0});
-      REQUIRE(*value_cast<Int>(result) == 42);
-
-      graph.set_primitive(n, {(int)24});
-      exe    = compiler.compile(parsed_graph->roots().front());
-      result = exe.execute({0});
-      REQUIRE(*value_cast<Int>(result) == 24);
-    }
+    return new Int(*eval_arg<0>() + *eval_arg<1>());
   }
+};
 
-  SECTION("Simple Plus")
+template <>
+struct node_info_traits<Add>
+{
+  static node_info get_node_info()
   {
-    struct PlusInt : NodeFunction<PlusInt, Int, Int, Int>
-    {
-      return_type code() const
-      {
-        return new Int(*eval_arg<0>() + *eval_arg<1>());
-      }
-    };
+    node_info("add", {"x", "y"}, {"out"});
+  }
+};
 
-    node_info info {"PlusInt", {"x", "y"}, {"value"}};
-    bind_info bind {"PlusInt",
-                    {"x", "y"},
-                    "value",
-                    make_object<InstanceGetterFunction<PlusInt>>(),
-                    "x + y"};
+template <>
+struct bind_info_traits<Add, test_backend>
+{
+  static bind_info get_bind_info()
+  {
+    return bind_info(
+      "add", {"x", "y"}, "out", make_object<InstanceGetterFunction<Add>>(), "");
+  }
+};
 
-    REQUIRE(info_mngr.add(info));
-    REQUIRE(bind_mngr.add(bind));
+TEST_CASE("node_compiler")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
 
-    auto Int_info = info_mngr.find("Int");
-    auto Int_bind = bind_mngr.find("Int");
+  SECTION("add")
+  {
+    auto add = graph.add(get_node_info<Add>());
+    auto i1  = graph.add(get_node_info<node::Int>());
+    auto i2  = graph.add(get_node_info<node::Int>());
 
-    REQUIRE(Int_info);
+    auto c1 = graph.connect(i1, "value", add, "x");
+    auto c2 = graph.connect(i2, "value", add, "y");
 
-    auto plus = graph.add(info);
-    auto i1   = graph.add(*Int_info);
-    auto i2   = graph.add(*Int_info);
+    bim.add(get_bind_info<Add, test_backend>());
+    bim.add(get_bind_info<node::Int, backend::tags::default_render>());
 
-    auto c1 = graph.connect(i1, "value", plus, "x");
-    auto c2 = graph.connect(i2, "value", plus, "y");
-
-    REQUIRE(c1);
-    REQUIRE(c2);
-
-    REQUIRE(graph.exists(c1));
-    REQUIRE(graph.exists(c2));
-
-    graph.set_primitive(i1, {(int)42});
-    graph.set_primitive(i2, {(int)24});
-
-    {
-      socket_instance_manager sim;
-      auto [parsed_graph, errors] = parser.type_prime_tree(plus, "value", sim);
-      REQUIRE(errors.empty());
-      REQUIRE(parsed_graph);
-      REQUIRE(parsed_graph->nodes().size() == 3);
-      REQUIRE(parsed_graph->roots().size() == 1);
-      REQUIRE(sim.size() == 3);
-      REQUIRE(same_type(
-        parsed_graph->get_info(parsed_graph->roots().front())->type(),
-        object_type<closure<Frame, Int>>()));
-
-      node_compiler compiler {*parsed_graph};
-      auto exe    = compiler.compile(parsed_graph->roots().front());
-      auto result = exe.execute({0});
-
-      REQUIRE(*value_cast<Int>(result) == 66);
-    }
+    auto exe = compiler.compile({graph, add}, bim);
   }
 }
