@@ -72,7 +72,6 @@ namespace yave::graph {
     Property,
     default_graph_trait_tag>
   {
-
     // value type
     using value_type = ValueType<GraphTraits>;
     // descriptor type
@@ -94,9 +93,12 @@ namespace yave::graph {
       if (descriptor == nullptr)
         return false;
 
-      auto found = std::find(c.begin(), c.end(), descriptor);
+      auto lb = std::lower_bound(c.begin(), c.end(), descriptor);
 
-      if (found != c.end())
+      if (lb == c.end())
+        return false;
+
+      if (*lb == descriptor)
         return true;
 
       return false;
@@ -110,13 +112,14 @@ namespace yave::graph {
     static inline void
       destroy(container_type &c, const descriptor_type &descriptor) noexcept
     {
-      auto tail = std::remove_if(c.begin(), c.end(), [&](descriptor_type dsc) {
-        return dsc == descriptor;
-      });
+      auto lb = std::lower_bound(c.begin(), c.end(), descriptor);
 
-      if (tail != c.end()) {
-        c.erase(tail, c.end());
-        delete (descriptor);
+      if (lb == c.end())
+        return;
+
+      if (*lb == descriptor) {
+        c.erase(lb);
+        delete descriptor;
       }
     }
 
@@ -127,7 +130,8 @@ namespace yave::graph {
     static inline descriptor_type create(container_type &c, Args &&... args)
     {
       value_type *v = new value_type(std::forward<Args>(args)...);
-      c.push_back(v);
+      auto lb       = std::lower_bound(c.begin(), c.end(), v);
+      c.insert(lb, v);
       return v;
     }
 
