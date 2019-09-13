@@ -19,25 +19,25 @@ namespace yave {
 
     /* aliases */
 
-    using Int8  = PrimitiveConstructor<Int8>;
-    using Int16 = PrimitiveConstructor<Int16>;
-    using Int32 = PrimitiveConstructor<Int32>;
-    using Int64 = PrimitiveConstructor<Int64>;
+    using Int8  = PrimitiveConstructor<yave::Int8>;
+    using Int16 = PrimitiveConstructor<yave::Int16>;
+    using Int32 = PrimitiveConstructor<yave::Int32>;
+    using Int64 = PrimitiveConstructor<yave::Int64>;
 
-    using UInt8  = PrimitiveConstructor<UInt8>;
-    using UInt16 = PrimitiveConstructor<UInt16>;
-    using UInt32 = PrimitiveConstructor<UInt32>;
-    using UInt64 = PrimitiveConstructor<UInt64>;
+    using UInt8  = PrimitiveConstructor<yave::UInt8>;
+    using UInt16 = PrimitiveConstructor<yave::UInt16>;
+    using UInt32 = PrimitiveConstructor<yave::UInt32>;
+    using UInt64 = PrimitiveConstructor<yave::UInt64>;
 
-    using Int   = PrimitiveConstructor<Int32>;
-    using Long  = PrimitiveConstructor<Int64>;
-    using UInt  = PrimitiveConstructor<UInt32>;
-    using ULong = PrimitiveConstructor<UInt64>;
+    using Int   = PrimitiveConstructor<yave::Int32>;
+    using Long  = PrimitiveConstructor<yave::Int64>;
+    using UInt  = PrimitiveConstructor<yave::UInt32>;
+    using ULong = PrimitiveConstructor<yave::UInt64>;
 
-    using Float  = PrimitiveConstructor<Float>;
-    using Double = PrimitiveConstructor<Double>;
-    using Bool   = PrimitiveConstructor<Bool>;
-    using String = PrimitiveConstructor<String>;
+    using Float  = PrimitiveConstructor<yave::Float>;
+    using Double = PrimitiveConstructor<yave::Double>;
+    using Bool   = PrimitiveConstructor<yave::Bool>;
+    using String = PrimitiveConstructor<yave::String>;
 
     // Keyframe* have special definitions, so don't add them.
 
