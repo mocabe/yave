@@ -80,7 +80,7 @@ namespace yave {
     }
 
     Info(g_logger, "Successfully parsed primary tree in node_graph");
-    return *tmp;
+    return tmp;
   }
 
   auto node_parser::_extract(const node_graph& graph, const node_handle& root)

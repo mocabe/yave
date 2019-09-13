@@ -9,6 +9,7 @@
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/rts/generalize.hpp>
 #include <yave/rts/to_string.hpp>
+#include <yave/rts/value_cast.hpp>
 
 namespace {
 
@@ -44,14 +45,14 @@ namespace yave {
   }
 
   auto node_compiler::compile(
-    const parsed_node_graph& parsed_graph,
+    parsed_node_graph&& parsed_graph,
     const bind_info_manager& bim) -> std::optional<executable>
   {
     auto lck = _lock();
 
     m_errors.clear();
 
-    auto ng = _optimize(parsed_graph);
+    auto ng = _optimize(std::move(parsed_graph));
     if (!ng) {
       Error(g_logger, "Failed to optmize parsed node graph");
       for (auto&& e : m_errors) {
@@ -81,11 +82,11 @@ namespace yave {
     return exe;
   }
 
-  auto node_compiler::_optimize(const parsed_node_graph& parsed_graph)
+  auto node_compiler::_optimize(parsed_node_graph&& parsed_graph)
     -> std::optional<parsed_node_graph>
   {
     // TODO...
-    return parsed_graph;
+    return std::move(parsed_graph);
   }
 
   /*
@@ -104,7 +105,7 @@ namespace yave {
     5. Decide the single most specialized binding from valid bindings.
    */
   auto node_compiler::_generate(
-    parsed_node_graph& parsed_graph,
+    const parsed_node_graph& parsed_graph,
     const bind_info_manager& bim) -> std::optional<executable>
   {
     struct
@@ -471,8 +472,6 @@ namespace yave {
     auto root_socket = root_info.output_sockets()[0];
     auto sim         = socket_instance_manager();
 
-    assert(root_info.output_sockets().size() == 1);
-
     auto root_instance =
       impl.rec(root_node, root_socket, graph, bim, sim, m_errors);
 
@@ -482,7 +481,7 @@ namespace yave {
     }
     // fail
     return std::nullopt;
-  } // namespace yave
+  }
 
   auto node_compiler::_verbose_check(const executable& exe) -> bool
   {

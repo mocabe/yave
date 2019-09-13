@@ -14,10 +14,11 @@ namespace yave {
 
   class node_compiler
   {
+  public:
     node_compiler();
 
     /// Compile parsed graph
-    auto compile(const parsed_node_graph& input, const bind_info_manager& bim)
+    auto compile(parsed_node_graph&& input, const bind_info_manager& bim)
       -> std::optional<executable>;
 
     /// Get last errors
@@ -25,10 +26,10 @@ namespace yave {
 
   private:
     /// Optimize parsed graph
-    auto _optimize(const parsed_node_graph& parsed_graph)
+    auto _optimize(parsed_node_graph&& parsed_graph)
       -> std::optional<parsed_node_graph>;
     /// Resolve overloadings and generate apply tree
-    auto _generate(parsed_node_graph& graph, const bind_info_manager& bim)
+    auto _generate(const parsed_node_graph& graph, const bind_info_manager& bim)
       -> std::optional<executable>;
     /// Verbose type check
     auto _verbose_check(const executable& exe) -> bool;
