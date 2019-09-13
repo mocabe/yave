@@ -8,6 +8,7 @@
 #include <yave/rts/box_fwd.hpp>
 #include <yave/rts/type_value.hpp>
 #include <yave/rts/specifiers.hpp>
+#include <yave/rts/id_util.hpp>
 
 #include <yave/support/offset_of_member.hpp>
 
@@ -71,61 +72,11 @@ namespace yave {
     // ------------------------------------------
     // value type
 
-    /// read UUID from constexpr char array
-    [[nodiscard]] constexpr std::array<char, 16>
-      read_uuid_from_constexpr_string(char const (&str)[37])
-    {
-      // ex) 707186a4-f043-4a08-8223-e03fe9c1b0ea\0
-
-      char hex[32] {};
-      size_t hex_idx = 0;
-
-      // for gcc constexpr bug workaround
-      bool fail = false;
-
-      // read hex
-      for (auto&& c : str) {
-        if (c == '-' || c == '\0') {
-          continue;
-        }
-        if ('0' <= c && c <= '9') {
-          hex[hex_idx] = static_cast<char>(c - '0');
-          ++hex_idx;
-          continue;
-        }
-        if ('a' <= c && c <= 'f') {
-          hex[hex_idx] = static_cast<char>(c - 'a' + 10);
-          ++hex_idx;
-          continue;
-        }
-        if ('A' <= c && c <= 'F') {
-          hex[hex_idx] = static_cast<char>(c - 'A' + 10);
-          ++hex_idx;
-          continue;
-        }
-        fail = true;
-        break; // failed to parse UUID
-      }
-
-      if (fail)
-        throw;
-
-      std::array<char, 16> ret {};
-
-      // convert to value
-      for (size_t i = 0; i < 16; ++i) {
-        auto upper = 2 * i;
-        auto lower = 2 * i + 1;
-        ret[i]     = static_cast<char>(hex[upper] * 16 + hex[lower]);
-      }
-      return ret;
-    }
-
     /// get buffer for value type
     template <class T>
     constexpr const std::array<char, 16> value_type_uuid()
     {
-      return read_uuid_from_constexpr_string(
+      return detail::read_uuid_from_constexpr_string(
         object_type_traits<typename decltype(type_c<T>.tag())::type>::uuid);
     }
 

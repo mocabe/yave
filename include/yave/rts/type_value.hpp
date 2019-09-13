@@ -6,8 +6,8 @@
 #pragma once
 
 #include <yave/rts/object_ptr.hpp>
+#include <yave/rts/id_util.hpp>
 
-#include <yave/support/id.hpp>
 #include <yave/support/offset_of_member.hpp>
 
 #include <array>
@@ -52,28 +52,10 @@ namespace yave {
 
     ret += v.name;
 
-    ret.reserve(ret.capacity() + 38);
+    ret.reserve(ret.capacity() + 10);
 
     ret += '(';
-
-    auto _toc = [](uint32_t v) -> char {
-      if (v >= 10)
-        return static_cast<char>('a' + (v - 10));
-      else
-        return static_cast<char>('0' + v);
-    };
-
-    for (auto i = 0; i < 16; ++i) {
-      uint32_t lo = 0x0F & v.data->operator[](i);
-      uint32_t hi = 0x0F & v.data->operator[](i) >> 4;
-
-      ret += _toc(lo);
-      ret += _toc(hi);
-
-      if (i == 3 || i == 5 || i == 7 || i == 9)
-        ret += '-';
-    }
-
+    ret += detail::uuid_to_string_short(*v.data);
     ret += ')';
 
     return ret;
@@ -105,26 +87,9 @@ namespace yave {
 
   [[nodiscard]] inline std::string to_string(const var_type& v)
   {
-    std::string ret;
-    ret.reserve(16);
-
     std::array<uint8_t, 8> buff;
     std::memcpy(&buff, &v.id, 8);
-
-    auto _toc = [](uint32_t i) -> char {
-      if (i >= 10)
-        return static_cast<char>('a' + (i - 10));
-      else
-        return static_cast<char>('0' + i);
-    };
-
-    for (size_t i = 0; i < buff.size(); ++i) {
-      uint32_t low = 0x0F & buff[i];
-      uint32_t hi  = 0x0F & buff[i] >> 4;
-      ret += _toc(low);
-      ret += _toc(hi);
-    }
-    return ret;
+    return detail::id_to_string_short(buff);
   }
 
   // ------------------------------------------
