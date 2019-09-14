@@ -199,12 +199,9 @@ namespace yave::graph {
     /// generate random ID for graph objects.
     static id_type random_generate()
     {
-      auto seed =
-        std::chrono::high_resolution_clock::now().time_since_epoch().count();
-
-      auto gen = std::mt19937_64(seed);
-
-      return gen();
+      static auto mt = std::mt19937_64(
+        std::chrono::high_resolution_clock::now().time_since_epoch().count());
+      return id_type(mt());
     }
   };
 
