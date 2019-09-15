@@ -42,19 +42,19 @@ namespace yave {
 
     /// find instance
     std::optional<socket_instance>
-      find(const node_handle& node, const std::string& socket) const;
+      find(const uid& id, const std::string& socket) const;
 
     /// add instance
     void add(
-      const node_handle& node,
+      const uid& id,
       const std::string& socket,
       const socket_instance& socket_instance);
 
     /// remove instance
-    void remove(const node_handle& node, const std::string& socket);
+    void remove(const uid& id, const std::string& socket);
 
     /// remove instances
-    void remove(const node_handle& node);
+    void remove(const uid& id);
 
     /// lock
     [[nodiscard]] std::unique_lock<std::mutex> lock() const;
@@ -74,7 +74,7 @@ namespace yave {
 
   private:
     /// map
-    std::multimap<node_handle, instanceTable> m_map;
+    std::multimap<uid, instanceTable> m_map;
     /// mutex
     mutable std::mutex m_mtx;
   };
