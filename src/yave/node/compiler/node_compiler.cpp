@@ -190,32 +190,37 @@ namespace yave {
           Info(g_logger, "- name: {}", node_info->name());
           Info(g_logger, "- connected input sockets: {}", inputs_str);
           Info(g_logger, "- output socket: {}", socket);
+          Info(g_logger, "- registered overloadings: {}", node_binds.size());
         }
 
         std::vector<std::shared_ptr<const bind_info>> overloadings;
 
         // find bindings which are compatible with current input sockets.
         for (auto&& b : node_binds) {
-          if (
-            b->output_socket() == socket &&
-            b->input_sockets().size() == inputs.size()) {
-            bool supports_current_inputs = [&] {
-              for (auto&& bi : b->input_sockets()) {
-                bool bi_in_inputs = [&] {
-                  for (auto&& i : inputs) {
-                    if (i == bi)
-                      return true;
-                  }
-                  return false;
-                }();
-                if (!bi_in_inputs)
-                  return false;
-              }
-              return true;
-            }();
-            if (supports_current_inputs)
-              overloadings.push_back(b);
+
+          auto bis = b->input_sockets();
+          auto bos = b->output_socket();
+
+          if (bos != socket) {
+            continue;
           }
+
+          if (bis.size() != inputs.size())
+            continue;
+
+          auto match = [&]() {
+            for (size_t i = 0; i < inputs.size(); ++i) {
+              if (bis[i] != inputs[i]) {
+                return false;
+              }
+            }
+            return true;
+          }();
+
+          if (!match)
+            continue;
+
+          overloadings.push_back(b);
         }
 
         if (overloadings.empty()) {
