@@ -43,6 +43,37 @@ struct bind_info_traits<Add, test_backend>
   }
 };
 
+struct AddD : NodeFunction<AddD, Double, Double, Double>
+{
+  return_type code() const
+  {
+    return new Double(*eval_arg<0>() + *eval_arg<1>());
+  }
+};
+
+template <>
+struct node_info_traits<AddD>
+{
+  static node_info get_node_info()
+  {
+    return node_info("add", {"x", "y"}, {"out"});
+  }
+};
+
+template <>
+struct bind_info_traits<AddD, test_backend>
+{
+  static bind_info get_bind_info()
+  {
+    return bind_info(
+      "add",
+      {"x", "y"},
+      "out",
+      make_object<InstanceGetterFunction<AddD>>(),
+      "");
+  }
+};
+
 TEST_CASE("add x y", "[node_compiler]")
 {
   node_compiler compiler;
@@ -240,4 +271,82 @@ TEST_CASE("if b x d", "[node_compiler]")
   REQUIRE(bim.add(get_bind_info<node::If, backend::tags::default_render>()));
 
   REQUIRE(!compiler.compile({std::move(graph), _if}, bim));
+}
+
+TEST_CASE("add<int> x y", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto add = graph.add(get_node_info<Add>());
+  auto i   = graph.add(get_node_info<node::Int>());
+
+  REQUIRE(add);
+  REQUIRE(i);
+
+  auto c1 = graph.connect(i, "value", add, "x");
+  auto c2 = graph.connect(i, "value", add, "y");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<AddD, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+
+  REQUIRE(compiler.compile({std::move(graph), add}, bim));
+}
+
+TEST_CASE("add<double> x y", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto add = graph.add(get_node_info<Add>());
+  auto d   = graph.add(get_node_info<node::Double>());
+
+  REQUIRE(add);
+  REQUIRE(d);
+
+  auto c1 = graph.connect(d, "value", add, "x");
+  auto c2 = graph.connect(d, "value", add, "y");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<AddD, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
+
+  REQUIRE(compiler.compile({std::move(graph), add}, bim));
+}
+
+TEST_CASE("add<?> x y", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto add = graph.add(get_node_info<Add>());
+  auto i   = graph.add(get_node_info<node::Int>());
+  auto d   = graph.add(get_node_info<node::Double>());
+
+  REQUIRE(add);
+  REQUIRE(i);
+  REQUIRE(d);
+
+  auto c1 = graph.connect(i, "value", add, "x");
+  auto c2 = graph.connect(d, "value", add, "y");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<AddD, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
+
+  REQUIRE(!compiler.compile({std::move(graph), add}, bim));
 }
