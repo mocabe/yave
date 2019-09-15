@@ -176,6 +176,7 @@ TEST_CASE("add x d", "[node_compiler]")
 
   REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
   REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
 
   REQUIRE(!compiler.compile({std::move(graph), add}, bim));
 }
@@ -208,6 +209,7 @@ TEST_CASE("add (add x d) x", "[node_compiler]")
 
   REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
   REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
 
   REQUIRE(!compiler.compile({std::move(graph), add1}, bim));
 }
@@ -239,6 +241,43 @@ TEST_CASE("if b x y", "[node_compiler]")
   REQUIRE(bim.add(get_bind_info<node::If, backend::tags::default_render>()));
 
   REQUIRE(compiler.compile({std::move(graph), _if}, bim));
+}
+
+TEST_CASE("if b (if b x y) z", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto if1 = graph.add(get_node_info<node::If>());
+  auto if2 = graph.add(get_node_info<node::If>());
+  auto i   = graph.add(get_node_info<node::Int>());
+  auto b   = graph.add(get_node_info<node::Bool>());
+
+  REQUIRE(if1);
+  REQUIRE(if2);
+  REQUIRE(i);
+  REQUIRE(b);
+
+  auto c1 = graph.connect(b, "value", if1, "cond");
+  auto c2 = graph.connect(if2, "out", if1, "then");
+  auto c3 = graph.connect(b, "value", if2, "cond");
+  auto c4 = graph.connect(i, "value", if2, "then");
+  auto c5 = graph.connect(i, "value", if2, "else");
+  auto c6 = graph.connect(i, "value", if1, "else");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+  REQUIRE(c3);
+  REQUIRE(c4);
+  REQUIRE(c5);
+  REQUIRE(c6);
+
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Bool, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::If, backend::tags::default_render>()));
+
+  REQUIRE(compiler.compile({std::move(graph), if1}, bim));
 }
 
 TEST_CASE("if b x d", "[node_compiler]")
