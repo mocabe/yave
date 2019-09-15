@@ -61,7 +61,16 @@ namespace yave {
       return std::nullopt;
     }
 
-    auto exe = _generate(*ng, bim);
+    auto sim = _type(*ng, bim);
+    if (!sim) {
+      Error(g_logger, "Failed to type node graph");
+      for (auto&& e : m_errors) {
+        Error(g_logger, "error: {}", e.message());
+      }
+      return std::nullopt;
+    }
+
+    auto exe = _generate(*ng, *sim);
     if (!exe) {
       Error(g_logger, "Failed to generate apply graph");
       for (auto&& e : m_errors) {
@@ -70,7 +79,7 @@ namespace yave {
       return std::nullopt;
     }
 
-    auto succ = _verbose_check(*exe);
+    auto succ = _verbose_check(*ng, *sim, *exe);
     if (!succ) {
       Error(g_logger, "Verbose check failed");
       for (auto&& e : m_errors) {
@@ -104,14 +113,14 @@ namespace yave {
     4. Type check to generalized type, and collect valid bindings.
     5. Decide the single most specialized binding from valid bindings.
    */
-  auto node_compiler::_generate(
+  auto node_compiler::_type(
     const parsed_node_graph& parsed_graph,
-    const bind_info_manager& bim) -> std::optional<executable>
+    const bind_info_manager& bim) -> std::optional<socket_instance_manager>
   {
     struct
     {
       // Recursive implementation of node type checker.
-      socket_instance rec(
+      object_ptr<const Type> rec(
         const node_handle& node,      /* target node */
         const std::string& socket,    /* target socket */
         const node_graph& graph,      /* graph */
@@ -125,7 +134,7 @@ namespace yave {
         const auto& node_is = node_info->input_sockets();
 
         // when already in cache
-        if (auto inst = sim.find(node, socket)) {
+        if (auto inst = sim.find(node.id(), socket)) {
 
           Info(
             g_logger,
@@ -134,7 +143,7 @@ namespace yave {
             to_string(node.id()),
             socket);
 
-          return *inst;
+          return inst->type;
         }
 
         if (std::find(node_os.begin(), node_os.end(), socket) == node_os.end())
@@ -159,24 +168,18 @@ namespace yave {
           input_connections.push_back(*info);
         }
 
-        std::vector<socket_instance> input_instances;
+        // input type list
+        std::vector<object_ptr<const Type>> input_types;
 
         // recursively parse tree
         for (auto&& i : inputs) {
           for (auto&& ic : input_connections) {
             if (ic.dst_socket() == i) {
-              input_instances.push_back(
+              input_types.push_back(
                 rec(ic.src_node(), ic.src_socket(), graph, bim, sim, errors));
               break;
             }
           }
-        } 
-
-        // input type list (for convenient)
-        std::vector<object_ptr<const Type>> input_types;
-
-        for (auto&& inst : input_instances) {
-          input_types.push_back(inst.type);
         }
 
         // log
@@ -236,7 +239,7 @@ namespace yave {
             socket);
           Error(g_logger, "- (No overloading for current input connections)");
 
-          return {nullptr, object_type<Undefined>(), nullptr};
+          return object_type<Undefined>();
         }
 
         // log
@@ -349,7 +352,7 @@ namespace yave {
             auto flat = flatten(generalized_tp);
             assert(flat.size() >= 2);
 
-            return {nullptr, flat.back(), nullptr};
+            return flat.back();
 
           } catch (type_error::type_error&) {
 
@@ -368,7 +371,7 @@ namespace yave {
               Error(g_logger, "- socket type: {}", to_string(input_types[i]));
             }
 
-            return {nullptr, generalized_tp, nullptr};
+            return generalized_tp;
           }
         }
 
@@ -421,7 +424,7 @@ namespace yave {
             Info(g_logger, "- (No valid overloading found.)");
           }
 
-          return {nullptr, object_type<Undefined>(), nullptr};
+          return object_type<Undefined>();
         }
 
         auto ret = hits.front();
@@ -443,7 +446,7 @@ namespace yave {
                 Error(g_logger, "- (Ambiguous overloadings)");
               }
 
-              return {nullptr, object_type<Undefined>(), nullptr};
+              return object_type<Undefined>();
             }
             ret = hits[i];
           }
@@ -462,11 +465,11 @@ namespace yave {
         // add instance cache
 
         sim.add(
-          node,
+          node.id(),
           socket,
           socket_instance {ret.instance, ret.result_tp, ret.bind});
 
-        return {ret.instance, ret.result_tp, ret.bind};
+        return ret.result_tp;
       }
     } impl;
 
@@ -478,23 +481,113 @@ namespace yave {
 
     auto root_instance =
       impl.rec(root_node, root_socket, graph, bim, sim, m_errors);
-
+    
     // success
     if (m_errors.empty()) {
-      return {{root_instance.instance, root_instance.type}};
+      return {std::move(sim)};
     }
     // fail
     return std::nullopt;
   }
 
-  auto node_compiler::_verbose_check(const executable& exe) -> bool
+  auto node_compiler::_generate(
+    const parsed_node_graph& parsed_graph,
+    const socket_instance_manager& sim) -> std::optional<executable>
   {
-    // TODO: better check and output.
+    struct
+    {
+      auto rec(
+        const node_handle& node,
+        const std::string& socket,
+        const node_graph& graph,
+        const socket_instance_manager& sim) -> object_ptr<const Object>
+      {
+        auto info = graph.get_info(node);
+        assert(info);
+
+        std::vector<object_ptr<const Object>> inputs;
+
+        // recursively build apply graph
+        for (auto&& ic : graph.input_connections(node)) {
+          auto cinfo = graph.get_info(ic);
+          assert(cinfo);
+          inputs.push_back(
+            rec(cinfo->src_node(), cinfo->src_socket(), graph, sim));
+        }
+
+        auto inst = sim.find(node.id(), socket);
+
+        if (!inst)
+          return nullptr;
+
+        object_ptr<const Object> app = inst->instance;
+
+        for (auto&& in : inputs) {
+          if (in) {
+            // apply
+            app = app << in;
+          }
+        }
+
+        if (!inputs.empty() && app == inst->instance)
+          assert(false);
+
+        return app;
+      }
+    } impl;
+
+    auto& graph = parsed_graph.graph;
+    auto& root  = parsed_graph.root;
+
+    auto root_info = graph.get_info(root);
+
+    assert(root_info);
+    assert(root_info->output_sockets().size() == 1);
+
+    auto app       = impl.rec(root, root_info->output_sockets()[0], graph, sim);
+    auto root_inst = sim.find(root.id(), root_info->output_sockets()[0]);
+
+    assert(root_inst);
+
+    return {{std::move(app), root_inst->type}};
+  }
+
+  auto node_compiler::_verbose_check(
+    const parsed_node_graph& parsed_graph,
+    const socket_instance_manager& sim,
+    const executable& exe) -> bool
+  {
     try {
-      return static_cast<bool>(type_of(exe.object()));
-    } catch (...) {
+      auto tp = type_of(exe.object());
+      Info(g_logger, "[ Verbose check result ]");
+      Info(g_logger, "- type of apply graph: {}", to_string(tp));
+
+      auto& graph = parsed_graph.graph;
+      auto& root  = parsed_graph.root;
+
+      auto inst =
+        sim.find(root.id(), graph.get_info(root)->output_sockets().at(0));
+
+      Info(g_logger, "- type of root node:   {}", to_string(inst->type));
+
+      if (same_type(tp, inst->type)) {
+        return true;
+      }
+
+      Error(g_logger, "[ Verbose check failed ]");
+      Error(g_logger, "- Apply graph has different type to the type of root");
       m_errors.push_back(make_error<compile_error::unexpected_error>(
-        "Verbose type check failed"));
+        "Generated apply graph is invalid"));
+
+      return false;
+
+    } catch (...) {
+
+      Error(g_logger, "[ Verbose check failed ]");
+      Error(g_logger, "- Exception thrown while checking result");
+      m_errors.push_back(make_error<compile_error::unexpected_error>(
+        "Exception thrown while checking result"));
+
       return false;
     }
   }

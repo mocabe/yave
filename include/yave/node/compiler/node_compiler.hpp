@@ -9,6 +9,7 @@
 #include <yave/node/compiler/errors.hpp>
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/support/bind_info_manager.hpp>
+#include <yave/node/support/socket_instance_manager.hpp>
 
 namespace yave {
 
@@ -28,11 +29,18 @@ namespace yave {
     /// Optimize parsed graph
     auto _optimize(parsed_node_graph&& parsed_graph)
       -> std::optional<parsed_node_graph>;
-    /// Resolve overloadings and generate apply tree
-    auto _generate(const parsed_node_graph& graph, const bind_info_manager& bim)
-      -> std::optional<executable>;
+    /// Resolve overloadings and check type
+    auto _type(const parsed_node_graph& graph, const bind_info_manager& bim)
+      -> std::optional<socket_instance_manager>;
+    /// Generate apply graph
+    auto _generate(
+      const parsed_node_graph& graph,
+      const socket_instance_manager& sim) -> std::optional<executable>;
     /// Verbose type check
-    auto _verbose_check(const executable& exe) -> bool;
+    auto _verbose_check(
+      const parsed_node_graph& pasred_graph,
+      const socket_instance_manager& sim,
+      const executable& executable) -> bool;
 
   private:
     auto _lock() const -> std::unique_lock<std::mutex>;
