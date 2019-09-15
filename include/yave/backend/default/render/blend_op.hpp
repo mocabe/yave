@@ -169,97 +169,27 @@ namespace yave {
 
   } // namespace backend::default_render
 
-  template <>
-  struct bind_info_traits<node::BlendOpSrc, backend::tags::default_render>
-  {
-    static bind_info get_bind_info()
-    {
-      return bind_info(
-        "BlendOpSrc",
-        {"src", "dst"},
-        "out",
-        make_object<
-          InstanceGetterFunction<backend::default_render::BlendOpSrc>>(),
-        "BlendOpSrc");
-    }
-  };
+#define YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(TYPE)                     \
+  template <>                                                                 \
+  struct bind_info_traits<node::TYPE, backend::tags::default_render>          \
+  {                                                                           \
+    auto info = get_node_info<node::TYPE>();                                  \
+    static bind_info get_bind_info()                                          \
+    {                                                                         \
+      return bind_info(                                                       \
+        info.name(),                                                          \
+        info.input_sockets(),                                                 \
+        info.output_sockets()[0],                                             \
+        make_object<InstanceGetterFunction<backend::default_render::TYPE>>(), \
+        info.name());                                                         \
+    }                                                                         \
+  }
 
-  template <>
-  struct bind_info_traits<node::BlendOpDst, backend::tags::default_render>
-  {
-    static bind_info get_bind_info()
-    {
-      return bind_info(
-        "BlendOpDst",
-        {"src", "dst"},
-        "out",
-        make_object<
-          InstanceGetterFunction<backend::default_render::BlendOpDst>>(),
-        "BlendOpDst");
-    }
-  };
+  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpSrc);
+  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpDst);
+  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpOver);
+  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpIn);
+  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpOut);
+  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpAdd);
 
-  template <>
-  struct bind_info_traits<node::BlendOpOver, backend::tags::default_render>
-  {
-    static node_info get_node_info()
-    {
-      return node_info("BlendOpOver", {"src", "dst"}, {"out"});
-    }
-    static bind_info get_bind_info()
-    {
-      return bind_info(
-        "BlendOpOver",
-        {"src", "dst"},
-        "out",
-        make_object<
-          InstanceGetterFunction<backend::default_render::BlendOpOver>>(),
-        "BlendOpOver");
-    }
-  };
-
-  template <>
-  struct bind_info_traits<node::BlendOpIn, backend::tags::default_render>
-  {
-    static bind_info get_bind_info()
-    {
-      return bind_info(
-        "BlendOpIn",
-        {"src", "dst"},
-        "out",
-        make_object<
-          InstanceGetterFunction<backend::default_render::BlendOpIn>>(),
-        "BlendOpIn");
-    }
-  };
-
-  template <>
-  struct bind_info_traits<node::BlendOpOut, backend::tags::default_render>
-  {
-    static bind_info get_bind_info()
-    {
-      return bind_info(
-        "BlendOpOut",
-        {"src", "dst"},
-        "out",
-        make_object<
-          InstanceGetterFunction<backend::default_render::BlendOpOut>>(),
-        "BlendOpOut");
-    }
-  };
-
-  template <>
-  struct bind_info_traits<node::BlendOpAdd, backend::tags::default_render>
-  {
-    static bind_info get_bind_info()
-    {
-      return bind_info(
-        "BlendOpAdd",
-        {"src", "dst"},
-        "out",
-        make_object<
-          InstanceGetterFunction<backend::default_render::BlendOpAdd>>(),
-        "BlendOpAdd");
-    }
-  };
 } // namespace yave

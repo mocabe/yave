@@ -39,13 +39,14 @@ namespace yave {
   {
     static bind_info get_bind_info()
     {
+      auto info = get_node_info<node::LayerCompositor>();
       return bind_info(
-        "LayerCompositor",
-        {"src", "dst", "blend op"},
-        "out",
+        info.name(),
+        info.input_sockets(),
+        info.output_sockets()[0],
         make_object<
           InstanceGetterFunction<backend::default_render::LayerCompositor>>(),
-        "LayerCompositor");
+        info.name() + ": composite layer outputs");
     }
   };
 

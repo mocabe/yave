@@ -55,7 +55,7 @@ namespace yave {
     };
   } // namespace backend::default_render
 
-#define YAVE_DECL_KEYFRAME_BIND_INFO(TYPE)                     \
+#define YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(TYPE)                     \
   template <>                                                  \
   struct bind_info_traits<TYPE, backend::tags::default_render> \
   {                                                            \
@@ -76,8 +76,8 @@ namespace yave {
     }                                                          \
   }
 
-  YAVE_DECL_KEYFRAME_BIND_INFO(KeyframeIntValueExtractor);
-  YAVE_DECL_KEYFRAME_BIND_INFO(KeyframeFloatValueExtractor);
-  YAVE_DECL_KEYFRAME_BIND_INFO(KeyframeBoolValueExtractor);
+  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeIntValueExtractor);
+  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeFloatValueExtractor);
+  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeBoolValueExtractor);
 
 } // namespace yave

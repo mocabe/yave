@@ -7,8 +7,8 @@
 
 #include <yave/node/obj/control_flow.hpp>
 
-#include <yave/node/obj/function.hpp>
-#include <yave/data/obj/primitive.hpp>
+#include <yave/node/core/function.hpp>
+#include <yave/node/obj/constructor.hpp>
 #include <yave/backend/default/system/config.hpp>
 
 namespace yave {
@@ -16,16 +16,11 @@ namespace yave {
   namespace backend::default_render {
 
     namespace detail {
-      struct IfNode_X;
+      struct If_X;
     }
 
     /// If
-    struct IfNode : NodeFunction<
-                      IfNode,
-                      Bool,
-                      detail::IfNode_X,
-                      detail::IfNode_X,
-                      detail::IfNode_X>
+    struct If : NodeFunction<If, Bool, detail::If_X, detail::If_X, detail::If_X>
     {
       return_type code() const
       {
@@ -39,16 +34,17 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<IfNode, backend::tags::default_render>
+  struct bind_info_traits<node::If, backend::tags::default_render>
   {
     static bind_info get_bind_info()
     {
+      auto info = get_node_info<node::If>();
       return {
-        "If",
-        {"cond", "then", "else"},
-        "out",
-        make_object<InstanceGetterFunction<backend::default_render::IfNode>>(),
-        "IfNode"};
+        info.name(),
+        info.input_sockets(),
+        info.output_sockets()[0],
+        make_object<InstanceGetterFunction<backend::default_render::If>>(),
+        info.name()};
     }
   };
 } // namespace yave

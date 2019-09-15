@@ -33,13 +33,14 @@ namespace yave {
   {
     static bind_info get_bind_info()
     {
+      auto info = get_node_info<node::LayerImageOutput>();
       return bind_info(
-        "LayerImageOutput",
-        {"in"},
-        "out",
+        info.name(),
+        info.input_sockets(),
+        info.output_sockets()[0],
         make_object<
           InstanceGetterFunction<backend::default_render::LayerImageOutput>>(),
-        "Image output node for layers.");
+        info.name() + ": Image output node for layers");
     }
   };
 }

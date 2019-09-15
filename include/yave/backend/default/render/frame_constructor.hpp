@@ -8,7 +8,7 @@
 #include <yave/node/obj/frame.hpp>
 
 #include <yave/rts/rts.hpp>
-#include <yave/data/obj/frame.hpp>
+#include <yave/obj/frame/frame.hpp>
 #include <yave/node/obj/instance_getter.hpp>
 #include <yave/backend/default/system/config.hpp>
 
@@ -28,17 +28,18 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<FrameConstructor, backend::tags::default_render>
+  struct bind_info_traits<node::Frame, backend::tags::default_render>
   {
     static bind_info get_bind_info()
     {
+      auto info = get_node_info<node::Frame>();
       return bind_info(
-        "Frame",
-        {},
-        "value",
+        info.name(),
+        info.input_sockets(),
+        info.output_sockets()[0],
         make_object<
           InstanceGetterFunction<backend::default_render::FrameConstructor>>(),
-        "FrameConstructor");
+        info.name());
     }
   };
 

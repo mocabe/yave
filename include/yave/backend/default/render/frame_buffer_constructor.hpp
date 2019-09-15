@@ -60,14 +60,15 @@ namespace yave {
   {
     static bind_info get_bind_info(frame_buffer_manager& mngr)
     {
+      auto info = get_node_info<node::FrameBuffer>();
       return bind_info(
-        "FrameBuffer",
-        {},
-        "value",
+        info.name(),
+        info.input_sockets(),
+        info.output_sockets()[0],
         make_object<
           yave::backend::default_render::FrameBufferConstructorGetterFunction>(
           mngr),
-        "FrameBufferConstructor");
+        info.name());
     }
   };
 } // namespace yave

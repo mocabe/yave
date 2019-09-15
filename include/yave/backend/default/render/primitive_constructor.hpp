@@ -79,15 +79,14 @@ namespace yave {
     static bind_info get_bind_info()
     {
       using value_type = typename T::value_type;
-      auto name        = get_primitive_name(primitive_t {value_type {}});
-
+      auto info        = get_node_info<node::PrimitiveConstructor<T>>();
       return bind_info(
-        name,
-        {},
-        "value",
+        info.name(),
+        info.input_sockets(),
+        info.output_sockets()[0],
         make_object<
           backend::default_render::PrimitiveGetterFunction<value_type>>(),
-        name,
+        info.name(),
         true);
     }
   };
