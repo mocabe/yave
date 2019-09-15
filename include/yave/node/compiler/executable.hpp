@@ -26,10 +26,10 @@ namespace yave {
     executable& operator=(executable&& exe);
 
     /// Get type.
-    [[nodiscard]] auto type() const -> object_ptr<const Type>;
+    [[nodiscard]] auto type() const -> const object_ptr<const Type>&;
 
     /// Get object.
-    [[nodiscard]] auto object() const -> object_ptr<const Object>;
+    [[nodiscard]] auto object() const -> const object_ptr<const Object>&;
 
     /// Execute.
     [[nodiscard]] auto execute(frame frame) -> object_ptr<const Object>;
