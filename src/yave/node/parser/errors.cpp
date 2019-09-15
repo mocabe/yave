@@ -12,7 +12,7 @@ namespace yave {
   {
     return fmt::format(
       "No sufficient input connections on non primitive node: id={}",
-      to_string(m_node.id()));
+      to_string(m_id));
   }
 
   std::string parse_error::unexpected_error::message() const

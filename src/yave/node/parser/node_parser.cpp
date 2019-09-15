@@ -241,7 +241,8 @@ namespace yave {
       // parse pass
       {
         if (graph.input_connections(n).empty() && !graph.is_primitive(n)) {
-          m_errors.push_back(make_error<parse_error::no_sufficient_input>(n));
+          m_errors.push_back(
+            make_error<parse_error::no_sufficient_input>(n.id()));
         }
       }
     }

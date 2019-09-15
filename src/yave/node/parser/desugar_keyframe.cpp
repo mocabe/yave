@@ -44,9 +44,9 @@ namespace yave {
 
     auto inputs = g.input_connections(n);
 
-    // report missing 
+    // report missing
     if (inputs.empty()) {
-      e.push_back(make_error<parse_error::no_sufficient_input>(n));
+      e.push_back(make_error<parse_error::no_sufficient_input>(n.id()));
       g.remove(keyframe);
       g.remove(extractor);
       return;

@@ -17,26 +17,28 @@ namespace yave {
 
   namespace parse_error {
 
+    /// No sufficient inputs for non-primitive node
     struct no_sufficient_input : error_info<no_sufficient_input>
     {
-      no_sufficient_input(const node_handle& node)
-        : m_node {node}
+      no_sufficient_input(const uid& id)
+        : m_id {id}
       {
       }
 
-      /// Error message.
-      [[nodiscard]] virtual std::string message() const override;
+      /// Error message
+      [[nodiscard]] auto message() const -> std::string override;
 
-      /// Get node.
-      [[nodiscard]] const node_handle& node() const
+      /// Get node ID
+      [[nodiscard]] auto id() const -> const uid&
       {
-        return m_node;
+        return m_id;
       }
 
     private:
-      node_handle m_node;
+      uid m_id ;
     };
 
+    /// Unexpected parser error
     struct unexpected_error : error_info<unexpected_error>
     {
       unexpected_error(const std::string& msg)
@@ -44,8 +46,8 @@ namespace yave {
       {
       }
 
-      /// Error message.
-      [[nodiscard]] virtual std::string message() const override;
+      /// Error message
+      [[nodiscard]] auto message() const -> std::string override;
 
     private:
       std::string m_msg;
