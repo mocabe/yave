@@ -94,16 +94,16 @@ namespace yave {
     return _exists(h);
   }
 
-  node_handle
-    node_graph::add(const yave::node_info& info, const primitive_t& prim)
+  auto node_graph::add(const yave::node_info& info, const primitive_t& prim)
+    -> node_handle
   {
     return add_with_id(info, uid::random_generate(), prim);
   }
 
-  node_handle node_graph::add_with_id(
+  auto node_graph::add_with_id(
     const yave::node_info& info,
     const uid& id,
-    const primitive_t& prim)
+    const primitive_t& prim) -> node_handle
   {
     auto lck = _lock();
 
@@ -171,17 +171,17 @@ namespace yave {
     m_g.remove_node(node.descriptor());
   }
 
-  connection_handle node_graph::connect(
+  auto node_graph::connect(
     const node_handle& src_node,
     const std::string& src_socket,
     const node_handle& dst_node,
-    const std::string& dst_socket)
+    const std::string& dst_socket) -> connection_handle
   {
     return connect(
       yave::connection_info {src_node, src_socket, dst_node, dst_socket});
   }
 
-  connection_handle node_graph::connect(const connection_info& info)
+  auto node_graph::connect(const connection_info& info) -> connection_handle
   {
     auto lck = _lock();
 
@@ -289,7 +289,8 @@ namespace yave {
     m_g.remove_edge(h.descriptor());
   }
 
-  std::vector<node_handle> node_graph::nodes(const std::string& name) const
+  auto node_graph::nodes(const std::string& name) const
+    -> std::vector<node_handle>
   {
     auto lck = _lock();
 
@@ -300,7 +301,7 @@ namespace yave {
     return ret;
   }
 
-  std::vector<node_handle> node_graph::nodes() const
+  auto node_graph::nodes() const -> std::vector<node_handle>
   {
     auto lck = _lock();
 
@@ -309,7 +310,8 @@ namespace yave {
     return ret;
   }
 
-  std::optional<node_info> node_graph::_get_info(const node_handle& h) const
+  auto node_graph::_get_info(const node_handle& h) const
+    -> std::optional<node_info>
   {
     // check handler
     if (!_exists(h)) {
@@ -335,13 +337,15 @@ namespace yave {
     return ret;
   }
 
-  std::optional<node_info> node_graph::get_info(const node_handle& h) const
+  auto node_graph::get_info(const node_handle& h) const
+    -> std::optional<node_info>
   {
     auto lck = _lock();
     return _get_info(h);
   }
 
-  std::optional<std::string> node_graph::get_name(const node_handle& node) const
+  auto node_graph::get_name(const node_handle& node) const
+    -> std::optional<std::string>
   {
     auto lck = _lock();
 
@@ -404,7 +408,7 @@ namespace yave {
     return false;
   }
 
-  std::vector<connection_handle> node_graph::input_connections() const
+  auto node_graph::input_connections() const -> std::vector<connection_handle>
   {
     auto lck = _lock();
 
@@ -422,7 +426,7 @@ namespace yave {
     return ret;
   }
 
-  std::vector<connection_handle> node_graph::output_connections() const
+  auto node_graph::output_connections() const -> std::vector<connection_handle>
   {
     auto lck = _lock();
 
@@ -440,9 +444,9 @@ namespace yave {
     return ret;
   }
 
-  std::vector<connection_handle> node_graph::input_connections(
+  auto node_graph::input_connections(
     const node_handle& h,
-    const std::string& socket) const
+    const std::string& socket) const -> std::vector<connection_handle>
   {
     auto lck = _lock();
 
@@ -465,9 +469,9 @@ namespace yave {
     return ret;
   }
 
-  std::vector<connection_handle> node_graph::output_connections(
+  auto node_graph::output_connections(
     const node_handle& h,
-    const std::string& socket) const
+    const std::string& socket) const -> std::vector<connection_handle>
   {
     auto lck = _lock();
 
@@ -490,8 +494,8 @@ namespace yave {
     return ret;
   }
 
-  bool
-    node_graph::has_connection(const node_handle& h, const std::string& s) const
+  bool node_graph::has_connection(const node_handle& h, const std::string& s)
+    const
   {
     auto lck = _lock();
 
@@ -514,8 +518,8 @@ namespace yave {
     return false;
   }
 
-  std::vector<connection_handle>
-    node_graph::connections(const node_handle& h) const
+  auto node_graph::connections(const node_handle& h) const
+    -> std::vector<connection_handle>
   {
     auto lck = _lock();
 
@@ -538,9 +542,8 @@ namespace yave {
     return ret;
   }
 
-  std::vector<connection_handle> node_graph::connections(
-    const node_handle& h,
-    const std::string& socket) const
+  auto node_graph::connections(const node_handle& h, const std::string& socket)
+    const -> std::vector<connection_handle>
   {
     auto lck = _lock();
 
@@ -564,8 +567,8 @@ namespace yave {
     return ret;
   }
 
-  std::vector<connection_handle>
-    node_graph::input_connections(const node_handle& h) const
+  auto node_graph::input_connections(const node_handle& h) const
+    -> std::vector<connection_handle>
   {
     auto lck = _lock();
 
@@ -587,8 +590,8 @@ namespace yave {
     return ret;
   }
 
-  std::vector<connection_handle>
-    node_graph::output_connections(const node_handle& h) const
+  auto node_graph::output_connections(const node_handle& h) const
+    -> std::vector<connection_handle>
   {
     auto lck = _lock();
 
@@ -611,7 +614,7 @@ namespace yave {
     return ret;
   }
 
-  std::vector<connection_handle> node_graph::connections() const
+  auto node_graph::connections() const -> std::vector<connection_handle>
   {
     auto lck = _lock();
 
@@ -624,8 +627,8 @@ namespace yave {
     return ret;
   }
 
-  std::optional<connection_info>
-    node_graph::_get_info(const connection_handle& h) const
+  auto node_graph::_get_info(const connection_handle& h) const
+    -> std::optional<connection_info>
   {
     if (!_exists(h)) {
       Warning(
@@ -648,14 +651,15 @@ namespace yave {
       m_g[dst].name()};                                  //
   }
 
-  std::optional<connection_info>
-    node_graph::get_info(const connection_handle& h) const
+  auto node_graph::get_info(const connection_handle& h) const
+    -> std::optional<connection_info>
   {
     auto lck = _lock();
     return _get_info(h);
   }
 
-  std::vector<std::string> node_graph::input_sockets(const node_handle& h) const
+  auto node_graph::input_sockets(const node_handle& h) const
+    -> std::vector<std::string>
   {
     auto lck = _lock();
 
@@ -673,8 +677,8 @@ namespace yave {
     return ret;
   }
 
-  std::vector<std::string>
-    node_graph::output_sockets(const node_handle& h) const
+  auto node_graph::output_sockets(const node_handle& h) const
+    -> std::vector<std::string>
   {
     auto lck = _lock();
 
@@ -704,8 +708,8 @@ namespace yave {
     return m_g[h.descriptor()].is_prim();
   }
 
-  std::optional<primitive_t>
-    node_graph::get_primitive(const node_handle& h) const
+  auto node_graph::get_primitive(const node_handle& h) const
+    -> std::optional<primitive_t>
   {
     auto lck = _lock();
 
@@ -736,8 +740,8 @@ namespace yave {
     m_g[h.descriptor()].set_prim(prim);
   }
 
-  object_ptr<const PrimitiveContainer>
-    node_graph::get_primitive_container(const node_handle& node) const
+  auto node_graph::get_primitive_container(const node_handle& node) const
+    -> object_ptr<const PrimitiveContainer>
   {
     auto lck = _lock();
 
@@ -756,7 +760,7 @@ namespace yave {
     return m_default_container;
   }
 
-  std::vector<node_handle> node_graph::roots() const
+  auto node_graph::roots() const -> std::vector<node_handle>
   {
     auto lck = _lock();
 
@@ -778,7 +782,8 @@ namespace yave {
     return ret;
   }
 
-  std::vector<node_handle> node_graph::_root_of(const node_handle& node) const
+  auto node_graph::_root_of(const node_handle& node) const
+    -> std::vector<node_handle>
   {
     if (!_exists(node)) {
       Warning(g_logger, "node_graph::root_of() on invalid node handle.");
@@ -820,7 +825,8 @@ namespace yave {
     return ret;
   }
 
-  std::vector<node_handle> node_graph::root_of(const node_handle& node) const
+  auto node_graph::root_of(const node_handle& node) const
+    -> std::vector<node_handle>
   {
     auto lck = _lock();
     return _root_of(node);
@@ -832,7 +838,8 @@ namespace yave {
     m_g.clear();
   }
 
-  std::vector<node_handle> node_graph::_find_loop(const node_handle& node) const
+  auto node_graph::_find_loop(const node_handle& node) const
+    -> std::vector<node_handle>
   {
     if (!_exists(node))
       return {};
@@ -856,7 +863,7 @@ namespace yave {
     return ret;
   }
 
-  std::unique_lock<std::mutex> node_graph::_lock() const
+  auto node_graph::_lock() const -> std::unique_lock<std::mutex>
   {
     return std::unique_lock(m_mtx);
   }

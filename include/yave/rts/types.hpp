@@ -184,15 +184,20 @@ namespace yave {
   };
 
   template <class T1, class T2, class Other>
-  [[nodiscard]] constexpr auto
-    make_unsolvable_constraints(meta_type<T1>, meta_type<T2>, Other)
+  [[nodiscard]] constexpr auto make_unsolvable_constraints(
+    meta_type<T1>,
+    meta_type<T2>,
+    Other)
   {
     return type_c<
       error_type<error_tags::unsolvable_constraints<T1, T2, Other>>>;
   }
 
   template <class T1, class T2, class Other>
-  [[nodiscard]] constexpr auto make_type_missmatch(meta_type<T1>, meta_type<T2>, Other)
+  [[nodiscard]] constexpr auto make_type_missmatch(
+    meta_type<T1>,
+    meta_type<T2>,
+    Other)
   {
     return type_c<error_type<error_tags::type_missmatch<T1, T2, Other>>>;
   }

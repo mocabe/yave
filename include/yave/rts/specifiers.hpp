@@ -114,8 +114,8 @@ namespace yave {
   // get_argument_proxy_type
 
   template <class... Ts>
-  [[nodiscard]] constexpr auto
-    get_argument_proxy_type(meta_type<closure<Ts...>>)
+  [[nodiscard]] constexpr auto get_argument_proxy_type(
+    meta_type<closure<Ts...>>)
   {
     return type_c<ClosureArgumentProxy<typename decltype(
       get_argument_proxy_type(type_c<Ts>))::type...>>;
@@ -153,8 +153,9 @@ namespace yave {
 
   /// append to ClosureProxy
   template <class... Ts, class T>
-  [[nodiscard]] constexpr auto
-    append(meta_type<T>, meta_type<ClosureProxy<Ts...>>)
+  [[nodiscard]] constexpr auto append(
+    meta_type<T>,
+    meta_type<ClosureProxy<Ts...>>)
   {
     return type_c<ClosureProxy<Ts..., T>>;
   }

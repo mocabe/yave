@@ -14,12 +14,10 @@
 
 namespace yave {
 
-  // clang-format off
-
   class managed_node_graph
   {
   public:
-  // Construct empty node tree.
+    // Construct empty node tree.
     managed_node_graph();
     /// Copy constructor (deleted).
     managed_node_graph(const managed_node_graph&);
@@ -34,102 +32,103 @@ namespace yave {
 
   public:
     /// register new node info
-    [[nodiscard]]
-    bool register_node_info(const node_info& info);
+    [[nodiscard]] bool register_node_info(const node_info& info);
     /// unregister node info
     void unregister_node_info(const node_info& info);
 
     /// register new node info
-    [[nodiscard]]
-    bool register_node_info(const std::vector<node_info>& info);
+    [[nodiscard]] bool register_node_info(const std::vector<node_info>& info);
     /// unregister node info
     void unregister_node_info(const std::vector<node_info>& info);
 
   public:
     /// exist?
-    [[nodiscard]]
-    bool exists(const node_handle& node) const;
+    [[nodiscard]] bool exists(const node_handle& node) const;
     /// exist?
-    [[nodiscard]]
-    bool exists(const connection_handle& connection) const;
+    [[nodiscard]] bool exists(const connection_handle& connection) const;
 
   public:
     /// create new node
-    [[nodiscard]]
-    node_handle create(const std::string& name);
+    [[nodiscard]] auto create(const std::string& name) -> node_handle;
+
     /// create new node
-    [[nodiscard]]
-    shared_node_handle create_shared(const std::string& name);
+    [[nodiscard]] auto create_shared(const std::string& name)
+
+      -> shared_node_handle;
     /// destroy node
-    void        destroy(const node_handle& handle);
+    void destroy(const node_handle& handle);
 
     /// connect sockets
-    [[nodiscard]]
-    connection_handle connect(const node_handle& src_n, const std::string& src_s, const node_handle& dst_n, const std::string& dst_s);
+    [[nodiscard]] auto connect(
+      const node_handle& src_n,
+      const std::string& src_s,
+      const node_handle& dst_n,
+      const std::string& dst_s) -> connection_handle;
+
     /// disconnect sockets
-    void              disconnect(const connection_handle& handle);
+    void disconnect(const connection_handle& handle);
 
   public:
     /// list nodes
-    [[nodiscard]]
-    std::vector<node_handle>       nodes() const;
+    [[nodiscard]] auto nodes() const -> std::vector<node_handle>;
     /// list connections
-    [[nodiscard]]
-    std::vector<connection_handle> connections() const;
+    [[nodiscard]] auto connections() const -> std::vector<connection_handle>;
     /// list connections
-    [[nodiscard]]
-    std::vector<connection_handle> connections(const node_handle& node) const;
+    [[nodiscard]] auto connections(const node_handle& node) const
+      -> std::vector<connection_handle>;
     /// list connections
-    [[nodiscard]]
-    std::vector<connection_handle> connections(const node_handle& node, const std::string& socket) const;
+    [[nodiscard]] auto connections(
+      const node_handle& node,
+      const std::string& socket) const -> std::vector<connection_handle>;
 
     /// list input connections
-    [[nodiscard]]
-    std::vector<connection_handle> input_connections() const;
+    [[nodiscard]] auto input_connections() const
+      -> std::vector<connection_handle>;
     /// list input connections
-    [[nodiscard]]
-    std::vector<connection_handle> input_connections(const node_handle& node) const;
+    [[nodiscard]] auto input_connections(const node_handle& node) const
+      -> std::vector<connection_handle>;
     /// list input connections
-    [[nodiscard]]
-    std::vector<connection_handle> input_connections(const node_handle& node, const std::string& socket) const;
+    [[nodiscard]] auto input_connections(
+      const node_handle& node,
+      const std::string& socket) const -> std::vector<connection_handle>;
 
     /// list input connections
-    [[nodiscard]]
-    std::vector<connection_handle> output_connections() const;
+    [[nodiscard]] auto output_connections() const
+      -> std::vector<connection_handle>;
     /// list input connections
-    [[nodiscard]]
-    std::vector<connection_handle> output_connections(const node_handle& node) const;
+    [[nodiscard]] auto output_connections(const node_handle& node) const
+      -> std::vector<connection_handle>;
     /// list input connections
-    [[nodiscard]]
-    std::vector<connection_handle> output_connections(const node_handle& node, const std::string& socket) const;
+    [[nodiscard]] auto output_connections(
+      const node_handle& node,
+      const std::string& socket) const -> std::vector<connection_handle>;
 
     /// get node info
-    [[nodiscard]]
-    std::optional<node_info>       get_info(const node_handle& node) const;
+    [[nodiscard]] auto get_info(const node_handle& node) const
+      -> std::optional<node_info>;
 
     /// get connection info
-    [[nodiscard]]
-    std::optional<connection_info> get_info(const connection_handle& connection) const;
+    [[nodiscard]] auto get_info(const connection_handle& connection) const
+      -> std::optional<connection_info>;
 
     /// primitive?
-    [[nodiscard]]
-    std::optional<primitive_t>     get_primitive(const node_handle& node) const;
+    [[nodiscard]] auto get_primitive(const node_handle& node) const
+      -> std::optional<primitive_t>;
 
     /// set primitive
-    [[nodiscard]] 
-    bool                           set_primitive(const node_handle& node, const primitive_t& prim);
+    [[nodiscard]] bool set_primitive(
+      const node_handle& node,
+      const primitive_t& prim);
 
     /// clear
-    void                           clear();
+    void clear();
 
     /// Get node graph copy
-    [[nodiscard]] 
-    const node_graph&              get_node_graph() const;
+    [[nodiscard]] auto get_node_graph() const -> const node_graph&;
 
   private:
-    node_graph        m_ng;
+    node_graph m_ng;
     node_info_manager m_nim;
   };
 
-  // clang-format on
-}
+} // namespace yave

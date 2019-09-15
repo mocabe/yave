@@ -30,8 +30,9 @@ namespace yave {
     const char* name;
 
     /// compare two value types
-    [[nodiscard]] static bool
-      equal(const value_type& lhs, const value_type& rhs) noexcept
+    [[nodiscard]] static bool equal(
+      const value_type& lhs,
+      const value_type& rhs) noexcept
     {
       if constexpr (has_SSE) {
         // assume 16 byte alignment

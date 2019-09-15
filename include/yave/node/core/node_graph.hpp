@@ -48,16 +48,16 @@ namespace yave {
     /// \returns Non-null handle of new node.
     /// \throws std::bad_alloc, std::runtime_error and other exceptions which
     /// can be thrown from edge_property constructors.
-    [[nodiscard]] node_handle
-      add(const node_info& info, const primitive_t& prim = {});
+    [[nodiscard]] auto add(const node_info& info, const primitive_t& prim = {})
+      -> node_handle;
 
     /// Add new node which has specified ID value.
     /// Mainly for copying exising node from other instance of node_graph
     /// without changing ID.
-    [[nodiscard]] node_handle add_with_id(
+    [[nodiscard]] auto add_with_id(
       const node_info& info,
       const uid& id,
-      const primitive_t& prim = {});
+      const primitive_t& prim = {}) -> node_handle;
 
     /// Remove node from graph.
     /// Destroy the node, all sockets connected to the node, and all edges
@@ -71,15 +71,16 @@ namespace yave {
     /// null handle.
     /// \returns Handle of connection (can be null handle).
     /// \throws std::bad_alloc
-    [[nodiscard]] connection_handle connect(const connection_info& info);
+    [[nodiscard]] auto connect(const connection_info& info)
+      -> connection_handle;
 
     /// Connect sockets.
     /// See `connect(const connection_info&)`.
-    [[nodiscard]] connection_handle connect(
+    [[nodiscard]] auto connect(
       const node_handle& src_node,
       const std::string& src_socket,
       const node_handle& dst_node,
-      const std::string& dst_socket);
+      const std::string& dst_socket) -> connection_handle;
 
     /// Disconnect sockets.
     /// \throws should not throw exception.
@@ -87,29 +88,32 @@ namespace yave {
 
     /// Find nodes from name.
     /// \returns Empty vector when not found.
-    [[nodiscard]] std::vector<node_handle> nodes(const std::string& name) const;
+    [[nodiscard]] auto nodes(const std::string& name) const
+      -> std::vector<node_handle>;
 
     /// Get list of nodes.
-    [[nodiscard]] std::vector<node_handle> nodes() const;
+    [[nodiscard]] auto nodes() const -> std::vector<node_handle>;
 
     /// Get node info from handle.
     /// \returns std::nullopt when the node did not exist.
-    [[nodiscard]] std::optional<node_info>
-      get_info(const node_handle& node) const;
+    [[nodiscard]] auto get_info(const node_handle& node) const
+      -> std::optional<node_info>;
 
     /// Get node name from handle.
     /// \returns std::nullopt when the node did not exist.
-    [[nodiscard]] std::optional<std::string>
-      get_name(const node_handle& node) const;
+    [[nodiscard]] auto get_name(const node_handle& node) const
+      -> std::optional<std::string>;
 
     /// Check if the node has a socket with the name.
-    [[nodiscard]] bool
-      has_socket(const node_handle& node, const std::string& socket) const;
+    [[nodiscard]] bool has_socket(
+      const node_handle& node,
+      const std::string& socket) const;
 
     /// Check if socket type is input.
     /// \returns false when the socket does not exist.
-    [[nodiscard]] bool
-      is_input_socket(const node_handle& node, const std::string& socket) const;
+    [[nodiscard]] bool is_input_socket(
+      const node_handle& node,
+      const std::string& socket) const;
 
     /// Check if socket type is output.
     /// \returns false when the socket does not exist.
@@ -120,65 +124,69 @@ namespace yave {
     /// List all input connections.
     /// \returns Result should be same to connections(), but order of handles
     /// may differ.
-    [[nodiscard]] std::vector<connection_handle> input_connections() const;
+    [[nodiscard]] auto input_connections() const
+      -> std::vector<connection_handle>;
 
     /// Get list of input connections to the node.
-    [[nodiscard]] std::vector<connection_handle>
-      input_connections(const node_handle& node) const;
+    [[nodiscard]] auto input_connections(const node_handle& node) const
+      -> std::vector<connection_handle>;
 
     /// Find input connection to the node.
-    [[nodiscard]] std::vector<connection_handle> input_connections(
+    [[nodiscard]] auto input_connections(
       const node_handle& node,
-      const std::string& socket) const;
+      const std::string& socket) const -> std::vector<connection_handle>;
 
     /// List all output connections.
     /// \returns Result should be same to connections(), but order of handles
     /// may differ.
-    [[nodiscard]] std::vector<connection_handle> output_connections() const;
+    [[nodiscard]] auto output_connections() const
+      -> std::vector<connection_handle>;
 
     /// Get list of output connections from the node.
-    [[nodiscard]] std::vector<connection_handle>
-      output_connections(const node_handle& node) const;
+    [[nodiscard]] auto output_connections(const node_handle& node) const
+      -> std::vector<connection_handle>;
 
     /// Find output connection from the node.
-    [[nodiscard]] std::vector<connection_handle> output_connections(
+    [[nodiscard]] auto output_connections(
+      const node_handle& node,
+      const std::string& socket) const -> std::vector<connection_handle>;
+
+    /// Get all connections.
+    [[nodiscard]] auto connections() const -> std::vector<connection_handle>;
+
+    /// Get list of all connections from/to the node.
+    [[nodiscard]] auto connections(const node_handle& node) const
+      -> std::vector<connection_handle>;
+
+    /// Get list of input/output connections from specific socket of the node.
+    [[nodiscard]] auto connections(
+      const node_handle& node,
+      const std::string& socket) const -> std::vector<connection_handle>;
+
+    /// Check if connection exists.
+    [[nodiscard]] bool has_connection(
       const node_handle& node,
       const std::string& socket) const;
 
-    /// Get all connections.
-    [[nodiscard]] std::vector<connection_handle> connections() const;
-
-    /// Get list of all connections from/to the node.
-    [[nodiscard]] std::vector<connection_handle>
-      connections(const node_handle& node) const;
-
-    /// Get list of input/output connections from specific socket of the node.
-    [[nodiscard]] std::vector<connection_handle>
-      connections(const node_handle& node, const std::string& socket) const;
-
-    /// Check if connection exists.
-    [[nodiscard]] bool
-      has_connection(const node_handle& node, const std::string& socket) const;
-
     /// Get connection info of all connections from/to the node.
-    [[nodiscard]] std::optional<connection_info>
-      get_info(const connection_handle& node) const;
+    [[nodiscard]] auto get_info(const connection_handle& node) const
+      -> std::optional<connection_info>;
 
     /// Get list of input sockets attached to the node.
-    [[nodiscard]] std::vector<std::string>
-      input_sockets(const node_handle& node) const;
+    [[nodiscard]] auto input_sockets(const node_handle& node) const
+      -> std::vector<std::string>;
 
     /// Get list of output sockets attached to the node.
-    [[nodiscard]] std::vector<std::string>
-      output_sockets(const node_handle& node) const;
+    [[nodiscard]] auto output_sockets(const node_handle& node) const
+      -> std::vector<std::string>;
 
     /// Primitive node?
     [[nodiscard]] bool is_primitive(const node_handle& node) const;
 
     /// Get primitive value.
     /// \returns std::nullopt when `node` is not primitive node.
-    [[nodiscard]] std::optional<primitive_t>
-      get_primitive(const node_handle& node) const;
+    [[nodiscard]] auto get_primitive(const node_handle& node) const
+      -> std::optional<primitive_t>;
 
     /// Set primitive value.
     /// When `is_primitive(prim_node) == false`, no effect.
@@ -187,15 +195,15 @@ namespace yave {
     /// Get primitive container object.
     /// If `node` is not primitive, retuens pointer to default initialized
     /// primitive container.
-    object_ptr<const PrimitiveContainer>
-      get_primitive_container(const node_handle& node) const;
+    [[nodiscard]] auto get_primitive_container(const node_handle& node) const
+      -> object_ptr<const PrimitiveContainer>;
 
     /// Get list of root nodes.
-    [[nodiscard]] std::vector<node_handle> roots() const;
+    [[nodiscard]] auto roots() const -> std::vector<node_handle>;
 
     /// Get root of ancestor tree of specific node.
-    [[nodiscard]] std::vector<node_handle>
-      root_of(const node_handle& node) const;
+    [[nodiscard]] auto root_of(const node_handle& node) const
+      -> std::vector<node_handle>;
 
     /// DFS until return true.
     /// \param node starting node
@@ -216,13 +224,18 @@ namespace yave {
     void clear();
 
   private: /* non locking helpers */
-    bool _exists(const node_handle&) const;
-    bool _exists(const connection_handle&) const;
-    std::vector<node_handle> _find_loop(const node_handle&) const;
-    std::optional<connection_info> _get_info(const connection_handle&) const;
-    std::optional<node_info> _get_info(const node_handle&) const;
-    std::vector<node_handle> _root_of(const node_handle&) const;
-    std::unique_lock<std::mutex> _lock() const;
+    [[nodiscard]] bool _exists(const node_handle&) const;
+    [[nodiscard]] bool _exists(const connection_handle&) const;
+    [[nodiscard]] auto _find_loop(const node_handle&) const
+      -> std::vector<node_handle>;
+    [[nodiscard]] auto _get_info(const connection_handle&) const
+      -> std::optional<connection_info>;
+    [[nodiscard]] auto _get_info(const node_handle&) const
+      -> std::optional<node_info>;
+    [[nodiscard]] auto _root_of(const node_handle&) const
+      -> std::vector<node_handle>;
+    [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
+
     template <class Lambda1, class Lambda2>
     void _depth_first_search_until(
       const node_handle& node,
@@ -232,7 +245,7 @@ namespace yave {
   private:
     /// graph
     graph_t m_g;
-  
+
   private:
     /// default initialized PrimitiveContainer
     object_ptr<const PrimitiveContainer> m_default_container;

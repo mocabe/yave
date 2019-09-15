@@ -50,14 +50,14 @@ namespace yave {
       bool is_const = true);
 
     /// Get name.
-    [[nodiscard]] const std::string& name() const;
+    [[nodiscard]] auto name() const -> const std::string&;
 
     /// Set name.
     void set_name(const std::string& name);
 
     /// Get input sockets.
     /// Socket names are sorted.
-    [[nodiscard]] const std::vector<std::string>& input_sockets() const;
+    [[nodiscard]] auto input_sockets() const -> const std::vector<std::string>&;
 
     /// Set input sockets.
     /// \param sockets Should have unique and sorted names. When not sorted,
@@ -65,17 +65,18 @@ namespace yave {
     void set_input_sockets(const std::vector<std::string>& sockets);
 
     /// Get output socket.
-    [[nodiscard]] const std::string& output_socket() const;
+    [[nodiscard]] auto output_socket() const -> const std::string&;
 
     /// Set output socket.
     void set_output_socket(const std::string& socket);
 
     /// Get instance function.
-    [[nodiscard]] const object_ptr<const Object>& get_instance_func() const;
+    [[nodiscard]] auto get_instance_func() const
+      -> const object_ptr<const Object>&;
 
     /// Set instance function.
-    /// \param func A non-null managed pointer to an object (closure) which has
-    /// type (Primitive -> T).
+    /// \param func A non-null managed pointer to an object (closure) which
+    /// has type (Primitive -> T).
     void set_instance_func(const object_ptr<const Object>& func);
 
     /// Check constness.
@@ -92,8 +93,9 @@ namespace yave {
     void set_description(const std::string& d);
 
     /// Get instance by calling instance function.
-    [[nodiscard]] object_ptr<const Object>
-      get_instance(const object_ptr<const PrimitiveContainer>& prim) const;
+    [[nodiscard]] auto get_instance(
+      const object_ptr<const PrimitiveContainer>& prim) const
+      -> object_ptr<const Object>;
 
     /// Check if this bind matches to node_info.
     [[nodiscard]] bool is_bind_of(const node_info& info) const;

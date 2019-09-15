@@ -387,8 +387,9 @@ namespace yave {
   namespace detail {
 
     template <class Term, class Target>
-    constexpr auto
-      closure_term_export_impl(meta_type<Term> term, meta_type<Target> target)
+    constexpr auto closure_term_export_impl(
+      meta_type<Term> term,
+      meta_type<Target> target)
     {
       if constexpr (is_tm_varvalue(term)) {
         return subst_term(term, make_tm_var(term.tag()), target);

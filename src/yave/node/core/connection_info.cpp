@@ -19,22 +19,22 @@ namespace yave {
   {
   }
 
-  node_handle connection_info::src_node() const
+  auto connection_info::src_node() const -> const node_handle&
   {
     return m_src_node;
   }
 
-  const std::string& connection_info::src_socket() const
+  auto connection_info::src_socket() const -> const std::string&
   {
     return m_src_socket;
   }
 
-  node_handle connection_info::dst_node() const
+  auto connection_info::dst_node() const -> const node_handle&
   {
     return m_dst_node;
   }
 
-  const std::string& connection_info::dst_socket() const
+  auto connection_info::dst_socket() const -> const std::string&
   {
     return m_dst_socket;
   }

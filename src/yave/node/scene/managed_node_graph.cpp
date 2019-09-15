@@ -55,8 +55,8 @@ namespace yave {
   {
   }
 
-  managed_node_graph& managed_node_graph::
-    operator=(const managed_node_graph& other)
+  managed_node_graph& managed_node_graph::operator=(
+    const managed_node_graph& other)
   {
     auto lck2 = other.m_nim.lock();
 
@@ -66,8 +66,8 @@ namespace yave {
     return *this;
   }
 
-  managed_node_graph& managed_node_graph::
-    operator=(managed_node_graph&& other) noexcept
+  managed_node_graph& managed_node_graph::operator=(
+    managed_node_graph&& other) noexcept
   {
     auto lck2 = other.m_nim.lock();
 
@@ -91,8 +91,8 @@ namespace yave {
     return m_nim.remove(info);
   }
 
-  bool
-    managed_node_graph::register_node_info(const std::vector<node_info>& info)
+  bool managed_node_graph::register_node_info(
+    const std::vector<node_info>& info)
   {
     auto lck = m_nim.lock();
 
@@ -119,8 +119,8 @@ namespace yave {
     return false;
   }
 
-  void
-    managed_node_graph::unregister_node_info(const std::vector<node_info>& info)
+  void managed_node_graph::unregister_node_info(
+    const std::vector<node_info>& info)
   {
     auto lck = m_nim.lock();
 
@@ -142,7 +142,7 @@ namespace yave {
 
   /* create/connect */
 
-  node_handle managed_node_graph::create(const std::string& name)
+  auto managed_node_graph::create(const std::string& name) -> node_handle
   {
     auto lck1 = m_nim.lock();
 
@@ -154,7 +154,8 @@ namespace yave {
     return m_ng.add(*info);
   }
 
-  shared_node_handle managed_node_graph::create_shared(const std::string& name)
+  auto managed_node_graph::create_shared(const std::string& name)
+    -> shared_node_handle
   {
     return shared_node_handle(m_ng, create(name));
   }
@@ -164,11 +165,11 @@ namespace yave {
     return m_ng.remove(handle);
   }
 
-  connection_handle managed_node_graph::connect(
+  auto managed_node_graph::connect(
     const node_handle& src_n,
     const std::string& src_s,
     const node_handle& dst_n,
-    const std::string& dst_s)
+    const std::string& dst_s) -> connection_handle
   {
     return m_ng.connect(src_n, src_s, dst_n, dst_s);
   }
@@ -180,79 +181,81 @@ namespace yave {
 
   /* stats */
 
-  std::vector<node_handle> managed_node_graph::nodes() const
+  auto managed_node_graph::nodes() const -> std::vector<node_handle>
   {
     return m_ng.nodes();
   }
 
-  std::vector<connection_handle> managed_node_graph::connections() const
+  auto managed_node_graph::connections() const -> std::vector<connection_handle>
   {
     return m_ng.connections();
   }
 
-  std::vector<connection_handle>
-    managed_node_graph::connections(const node_handle& node) const
+  auto managed_node_graph::connections(const node_handle& node) const
+    -> std::vector<connection_handle>
   {
     return m_ng.connections(node);
   }
 
-  std::vector<connection_handle> managed_node_graph::connections(
+  auto managed_node_graph::connections(
     const node_handle& node,
-    const std::string& socket) const
+    const std::string& socket) const -> std::vector<connection_handle>
   {
     return m_ng.connections(node, socket);
   }
 
-  std::vector<connection_handle> managed_node_graph::input_connections() const
+  auto managed_node_graph::input_connections() const
+    -> std::vector<connection_handle>
   {
     return m_ng.input_connections();
   }
 
-  std::vector<connection_handle>
-    managed_node_graph::input_connections(const node_handle& node) const
+  auto managed_node_graph::input_connections(const node_handle& node) const
+    -> std::vector<connection_handle>
   {
     return m_ng.input_connections(node);
   }
 
-  std::vector<connection_handle> managed_node_graph::input_connections(
+  auto managed_node_graph::input_connections(
     const node_handle& node,
-    const std::string& socket) const
+    const std::string& socket) const -> std::vector<connection_handle>
   {
     return m_ng.input_connections(node, socket);
   }
 
-  std::vector<connection_handle> managed_node_graph::output_connections() const
+  auto managed_node_graph::output_connections() const
+    -> std::vector<connection_handle>
   {
     return m_ng.output_connections();
   }
 
-  std::vector<connection_handle>
-    managed_node_graph::output_connections(const node_handle& node) const
+  auto managed_node_graph::output_connections(const node_handle& node) const
+    -> std::vector<connection_handle>
   {
     return m_ng.output_connections(node);
   }
 
-  std::vector<connection_handle> managed_node_graph::output_connections(
+  auto managed_node_graph::output_connections(
     const node_handle& node,
-    const std::string& socket) const
+    const std::string& socket) const -> std::vector<connection_handle>
   {
     return m_ng.output_connections(node, socket);
   }
 
-  std::optional<node_info>
-    managed_node_graph::get_info(const node_handle& node) const
+  auto managed_node_graph::get_info(const node_handle& node) const
+    -> std::optional<node_info>
   {
     return m_ng.get_info(node);
   }
 
-  std::optional<connection_info>
-    managed_node_graph::get_info(const connection_handle& connection) const
+  auto managed_node_graph::get_info(const connection_handle& connection) const
+    -> std::optional<connection_info>
   {
     return m_ng.get_info(connection);
   }
 
-  std::optional<primitive_t>
-    managed_node_graph::get_primitive(const node_handle& node) const
+  auto managed_node_graph::get_primitive(const node_handle& node) const
+    -> std::optional<primitive_t>
   {
     return m_ng.get_primitive(node);
   }
@@ -282,7 +285,7 @@ namespace yave {
     m_nim.clear();
   }
 
-  const node_graph& managed_node_graph::get_node_graph() const
+  auto managed_node_graph::get_node_graph() const -> const node_graph&
   {
     return m_ng;
   }

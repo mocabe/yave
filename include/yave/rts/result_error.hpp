@@ -49,9 +49,8 @@ namespace yave {
   // ------------------------------------------
   // conversion
 
-  [[nodiscard]] inline auto
-    to_Exception(const result_error::exception_result& e)
-      -> object_ptr<const Exception>
+  [[nodiscard]] inline auto to_Exception(
+    const result_error::exception_result& e) -> object_ptr<const Exception>
   {
     // forward
     return e.exception();

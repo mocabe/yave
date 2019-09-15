@@ -177,9 +177,8 @@ namespace yave {
       make_object<TypeError>(type_error_type::unknown, nullptr, nullptr));
   }
 
-  [[nodiscard]] inline auto
-    to_Exception(const type_error::circular_constraint& e)
-      -> object_ptr<Exception>
+  [[nodiscard]] inline auto to_Exception(
+    const type_error::circular_constraint& e) -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(),

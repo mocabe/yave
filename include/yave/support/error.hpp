@@ -23,11 +23,11 @@ namespace yave {
 
   public:
     /// Generate error message.
-    virtual std::string message() const = 0;
+    virtual auto message() const -> std::string = 0;
     /// type info
-    virtual const std::type_info& type() const = 0;
+    virtual auto type() const -> const std::type_info& = 0;
     /// clone this error
-    virtual std::unique_ptr<error_info_base> clone() const = 0;
+    virtual auto clone() const -> std::unique_ptr<error_info_base> = 0;
     /// dtor
     virtual ~error_info_base() noexcept;
   };
@@ -36,12 +36,13 @@ namespace yave {
   template <class Derived>
   struct error_info : error_info_base
   {
-    virtual const std::type_info& type() const override
+    [[nodiscard]] auto type() const -> const std::type_info& override
     {
       return typeid(Derived);
     }
 
-    virtual std::unique_ptr<error_info_base> clone() const override
+    [[nodiscard]] auto clone() const
+      -> std::unique_ptr<error_info_base> override
     {
       return std::make_unique<Derived>(*static_cast<const Derived*>(this));
     }
@@ -77,23 +78,23 @@ namespace yave {
     /// Initialize from success
     error& operator=(const class success&);
 
+    /// operator bool
+    [[nodiscard]] explicit operator bool() const;
+
     /// Get pointer to errorInfo.
-    [[nodiscard]] const error_info_base* info() const;
+    [[nodiscard]] auto info() const -> const error_info_base*;
 
     /// success?
     [[nodiscard]] bool is_success() const;
 
-    /// operator bool
-    [[nodiscard]] explicit operator bool() const;
-
     /// Get error message
-    [[nodiscard]] std::string message() const;
+    [[nodiscard]] auto message() const -> std::string;
 
     /// Get type_info
-    [[nodiscard]] const std::type_info& type() const;
+    [[nodiscard]] auto type() const -> const std::type_info&;
 
     /// Clone
-    [[nodiscard]] error clone() const;
+    [[nodiscard]] auto clone() const -> error;
 
   private:
     std::unique_ptr<const error_info_base> m_error_info;
@@ -152,22 +153,22 @@ namespace yave {
     [[nodiscard]] bool empty() const;
 
     /// operator[]
-    [[nodiscard]] const error& operator[](size_t index) const;
+    [[nodiscard]] auto operator[](size_t index) const -> const error&;
 
     /// at
-    [[nodiscard]] const error& at(size_t index) const;
+    [[nodiscard]] auto at(size_t index) const -> const error&;
 
     /// begin
-    [[nodiscard]] const_iterator begin() const;
+    [[nodiscard]] auto begin() const -> const_iterator;
 
     /// end
-    [[nodiscard]] const_iterator end() const;
+    [[nodiscard]] auto end() const -> const_iterator;
 
     /// begin
-    [[nodiscard]] iterator begin();
+    [[nodiscard]] auto begin() -> iterator;
 
     /// end
-    [[nodiscard]] iterator end();
+    [[nodiscard]] auto end() -> iterator;
 
     /// Erase element.
     void erase(const_iterator position);
@@ -179,7 +180,7 @@ namespace yave {
     void clear();
 
     /// Clone errors
-    [[nodiscard]] error_list clone() const;
+    [[nodiscard]] auto clone() const -> error_list;
 
   private:
     std::vector<error> m_errors;
@@ -187,7 +188,7 @@ namespace yave {
 
   /// Make error from new ErrorInfo instance.
   template <class ErrorInfoT, class... Args>
-  error make_error(Args&&... args)
+  [[nodiscard]] auto make_error(Args&&... args) -> error
   {
     return error(std::make_unique<ErrorInfoT>(std::forward<Args>(args)...));
   }

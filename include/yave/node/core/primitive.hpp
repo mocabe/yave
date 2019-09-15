@@ -17,13 +17,14 @@ namespace yave {
 
   /// make primitive
   template <class T, class... Arg>
-  [[nodiscard]] primitive_t make_primitive(Arg&&... args)
+  [[nodiscard]] auto make_primitive(Arg&&... args) -> primitive_t
   {
     return primitive_t(T {std::forward<Arg>(args)...});
   }
 
   /// get primitive node name
-  [[nodiscard]] constexpr const char* get_primitive_name(const primitive_t& v)
+  [[nodiscard]] constexpr auto get_primitive_name(const primitive_t& v) -> const
+    char*
   {
     return visit(
       overloaded {([](auto t) constexpr {
@@ -32,26 +33,26 @@ namespace yave {
       v);
   }
 
-
   /// get primitive name list
-  [[nodiscard]] std::vector<std::string> get_primitive_name_list();
+  [[nodiscard]] auto get_primitive_name_list() -> std::vector<std::string>;
 
   /// get primitive node info
-  [[nodiscard]] node_info get_primitive_node_info(const primitive_t& v);
+  [[nodiscard]] auto get_primitive_node_info(const primitive_t& v) -> node_info;
 
   /// get primitive info list
-  [[nodiscard]] std::vector<node_info> get_primitive_node_info_list();
+  [[nodiscard]] auto get_primitive_node_info_list() -> std::vector<node_info>;
 
   /// get primitive bind info
   template <class BackendTag>
-  [[nodiscard]] bind_info get_primitive_bind_info(const primitive_t& v);
+  [[nodiscard]] auto get_primitive_bind_info(const primitive_t& v) -> bind_info;
 
   /// get primitive bind list
   template <class BackendTag>
-  [[nodiscard]] std::vector<bind_info> get_primitive_bind_info_list();
+  [[nodiscard]] auto get_primitive_bind_info_list() -> std::vector<bind_info>;
 
   /// get type of primitive object
   template <class BackendTag>
-  [[nodiscard]] object_ptr<const Type> get_primitive_type(const primitive_t& v);
+  [[nodiscard]] auto get_primitive_type(const primitive_t& v)
+    -> object_ptr<const Type>;
 
 } // namespace yave

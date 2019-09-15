@@ -103,7 +103,7 @@ namespace yave {
     Assumes prime tree is already successfully parsed by node_parser.
     We use socket_instance_manager to collect all node instances attached to
     specific node/socket combination to share instance objects across multiple
-    inputs. 
+    inputs.
 
     Type checking each node is done by following algorithm:
     1. Type check all input sockets.
@@ -474,7 +474,7 @@ namespace yave {
 
     auto root_instance =
       impl.rec(root_node, root_socket, graph, bim, sim, m_errors);
-    
+
     // success
     if (m_errors.empty()) {
       return {std::move(sim)};

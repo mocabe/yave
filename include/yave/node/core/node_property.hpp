@@ -23,14 +23,14 @@ namespace yave {
     node_property(const std::string& name, std::monostate);
 
     /// Check primitive node.
-    bool is_prim() const;
+    [[nodiscard]] bool is_prim() const;
 
     /// Get node name.
-    [[nodiscard]] const std::string& name() const;
+    [[nodiscard]] auto name() const -> const std::string&;
 
     /// Get primitive value.
     /// \requires is_prim() == true
-    [[nodiscard]] std::optional<primitive_t> get_prim() const;
+    [[nodiscard]] auto get_prim() const -> std::optional<primitive_t>;
 
     /// Set primitive value.
     void set_prim(const primitive_t& prim);
@@ -39,16 +39,17 @@ namespace yave {
     void ser_prim(std::nullopt_t);
 
     /// Get shared primitive container.
-    [[nodiscard]] object_ptr<PrimitiveContainer> get_shared_prim() const;
+    [[nodiscard]] auto get_shared_prim() const
+      -> object_ptr<PrimitiveContainer>;
 
     /// visited?
-    bool is_visited() const
+    [[nodiscard]] bool is_visited() const
     {
       return m_visited == 1;
     }
 
     /// unvisited?
-    bool is_unvisited() const
+    [[nodiscard]] bool is_unvisited() const
     {
       return m_visited == 0;
     }

@@ -39,7 +39,6 @@ namespace yave {
     auto _this = static_cast<const T*>(_cthis);
 
     auto ret = [&]() -> object_ptr<const Object> {
-
       try {
 
         // calls code() inside.

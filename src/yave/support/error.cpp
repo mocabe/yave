@@ -140,32 +140,32 @@ namespace yave {
     return m_errors.empty();
   }
 
-  const error& error_list::operator[](size_t index) const
+  auto error_list::operator[](size_t index) const -> const error&
   {
     return m_errors[index];
   }
 
-  const error& error_list::at(size_t index) const
+  auto error_list::at(size_t index) const -> const error&
   {
     return m_errors.at(index);
   }
 
-  typename error_list::const_iterator error_list::begin() const
+  auto error_list::begin() const -> const_iterator
   {
     return m_errors.cbegin();
   }
 
-  typename error_list::iterator error_list::begin()
+  auto error_list::begin() -> iterator
   {
     return m_errors.begin();
   }
 
-  typename error_list::const_iterator error_list::end() const
+  auto error_list::end() const -> const_iterator
   {
     return m_errors.cend();
   }
 
-  typename error_list::iterator error_list::end()
+  auto error_list::end() -> iterator
   {
     return m_errors.end();
   }
@@ -185,7 +185,7 @@ namespace yave {
     m_errors.clear();
   }
 
-  error_list error_list::clone() const
+  auto error_list::clone() const -> error_list
   {
     error_list ret;
     for (auto&& e : m_errors) {

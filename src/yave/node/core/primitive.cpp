@@ -10,7 +10,7 @@
 
 namespace yave {
 
-  node_info get_primitive_node_info(const primitive_t& v)
+  auto get_primitive_node_info(const primitive_t& v) -> node_info
   {
     return std::visit(
       overloaded {[&](const auto& p) {
@@ -34,7 +34,7 @@ namespace yave {
     }
   } // namespace
 
-  std::vector<std::string> get_primitive_name_list()
+  auto get_primitive_name_list() -> std::vector<std::string>
   {
     std::vector<std::string> ret;
     primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
@@ -42,7 +42,7 @@ namespace yave {
     return ret;
   }
 
-  std::vector<node_info> get_primitive_node_info_list()
+  auto get_primitive_node_info_list() -> std::vector<node_info>
   {
     std::vector<node_info> ret;
     primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(

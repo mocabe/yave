@@ -70,12 +70,12 @@ namespace yave {
     }
   }
 
-  const std::string& bind_info::name() const
+  auto bind_info::name() const -> const std::string&
   {
     return m_name;
   }
 
-  const std::vector<std::string>& bind_info::input_sockets() const
+  auto bind_info::input_sockets() const -> const std::vector<std::string>&
   {
     return m_input_sockets;
   }
@@ -89,7 +89,7 @@ namespace yave {
     std::swap(tmp, m_input_sockets);
   }
 
-  const std::string& bind_info::output_socket() const
+  auto bind_info::output_socket() const -> const std::string&
   {
     return m_output_socket;
   }
@@ -99,7 +99,7 @@ namespace yave {
     m_output_socket = socket;
   }
 
-  const object_ptr<const Object>& bind_info::get_instance_func() const
+  auto bind_info::get_instance_func() const -> const object_ptr<const Object>&
   {
     return m_get_instance_func;
   }
@@ -141,7 +141,7 @@ namespace yave {
     m_is_const = b;
   }
 
-  const std::string& bind_info::description() const
+  auto bind_info::description() const -> const std::string&
   {
     return m_description;
   }
@@ -151,8 +151,8 @@ namespace yave {
     m_description = d;
   }
 
-  object_ptr<const Object> bind_info::get_instance(
-    const object_ptr<const PrimitiveContainer>& prim) const
+  auto bind_info::get_instance(const object_ptr<const PrimitiveContainer>& prim)
+    const -> object_ptr<const Object>
   {
     auto app = m_get_instance_func << prim;
     return eval(app);

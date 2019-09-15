@@ -100,8 +100,8 @@ namespace yave {
       e.what(), make_object<EvalError>(eval_error_type::bad_apply));
   }
 
-  [[nodiscard]] inline auto to_Exception(const eval_error::too_many_arguments& e)
-      -> object_ptr<Exception>
+  [[nodiscard]] inline auto to_Exception(
+    const eval_error::too_many_arguments& e) -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(), make_object<EvalError>(eval_error_type::too_may_arguments));

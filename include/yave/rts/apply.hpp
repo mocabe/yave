@@ -75,16 +75,14 @@ namespace yave {
     {
     }
 
-    [[nodiscard]] friend inline auto
-      _get_storage(const apply_object_value& v) noexcept
-      -> const apply_object_value_storage&
+    [[nodiscard]] friend inline auto _get_storage(
+      const apply_object_value& v) noexcept -> const apply_object_value_storage&
     {
       return v.m_storage;
     }
 
-    [[nodiscard]] friend inline auto
-      _get_storage(apply_object_value& v) noexcept
-      -> apply_object_value_storage&
+    [[nodiscard]] friend inline auto _get_storage(
+      apply_object_value& v) noexcept -> apply_object_value_storage&
     {
       return v.m_storage;
     }

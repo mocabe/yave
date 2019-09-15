@@ -23,16 +23,16 @@ namespace yave {
       const std::string& dst_socket);
 
     /// Get source node.
-    [[nodiscard]] node_handle src_node() const;
+    [[nodiscard]] auto src_node() const -> const node_handle&;
 
     /// Get socket of source node.
-    [[nodiscard]] const std::string& src_socket() const;
+    [[nodiscard]] auto src_socket() const -> const std::string&;
 
     /// Get dest node.
-    [[nodiscard]] node_handle dst_node() const;
+    [[nodiscard]] auto dst_node() const -> const node_handle&;
 
     /// Get socket of dest noed.
-    [[nodiscard]] const std::string& dst_socket() const;
+    [[nodiscard]] auto dst_socket() const -> const std::string&;
 
     friend bool
       operator==(const connection_info& lhs, const connection_info& rhs);

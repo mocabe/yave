@@ -56,7 +56,7 @@ namespace yave {
     validate_node_info(m_name, m_input_sockets, m_output_sockets);
   }
 
-  const std::string& node_info::name() const
+  auto node_info::name() const -> const std::string&
   {
     return m_name;
   }
@@ -66,12 +66,12 @@ namespace yave {
     m_name = name;
   }
 
-  const std::vector<std::string>& node_info::input_sockets() const
+  auto node_info::input_sockets() const -> const std::vector<std::string>&
   {
     return m_input_sockets;
   }
 
-  const std::vector<std::string>& node_info::output_sockets() const
+  auto node_info::output_sockets() const -> const std::vector<std::string>&
   {
     return m_output_sockets;
   }

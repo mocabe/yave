@@ -55,8 +55,8 @@ namespace yave {
   // ------------------------------------------
   // conversion
 
-  [[nodiscard]] inline object_ptr<Exception>
-    to_Exception(const bad_value_cast& e)
+  [[nodiscard]] inline object_ptr<Exception> to_Exception(
+    const bad_value_cast& e)
   {
     return make_object<Exception>(
       e.what(), make_object<BadValueCast>(e.from(), e.to()));

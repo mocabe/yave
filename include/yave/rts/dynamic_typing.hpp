@@ -187,9 +187,9 @@ namespace yave {
   }
 
   /// emulate type-substitution
-  [[nodiscard]] inline auto
-    subst_type(const TyArrow& ta, const object_ptr<const Type>& in)
-      -> object_ptr<const Type>
+  [[nodiscard]] inline auto subst_type(
+    const TyArrow& ta,
+    const object_ptr<const Type>& in) -> object_ptr<const Type>
   {
     struct
     {
@@ -253,16 +253,17 @@ namespace yave {
   }
 
   /// subst_constr
-  [[nodiscard]] inline auto
-    subst_constr(const TyArrow& ta, const Constr& constr) -> Constr
+  [[nodiscard]] inline auto subst_constr(
+    const TyArrow& ta,
+    const Constr& constr) -> Constr
   {
     return {subst_type(ta, constr.t1), subst_type(ta, constr.t2)};
   }
 
   /// subst_constr_all
-  [[nodiscard]] inline auto
-    subst_constr_all(const TyArrow& ta, const std::vector<Constr>& cs)
-      -> std::vector<Constr>
+  [[nodiscard]] inline auto subst_constr_all(
+    const TyArrow& ta,
+    const std::vector<Constr>& cs) -> std::vector<Constr>
   {
     auto ret = std::vector<Constr> {};
     ret.reserve(cs.size());
@@ -271,8 +272,9 @@ namespace yave {
   }
 
   /// occurs
-  [[nodiscard]] inline bool
-    occurs(const object_ptr<const Type>& x, const object_ptr<const Type>& t)
+  [[nodiscard]] inline bool occurs(
+    const object_ptr<const Type>& x,
+    const object_ptr<const Type>& t)
   {
     if (get_if<value_type>(t.value()))
       return false;
@@ -287,9 +289,9 @@ namespace yave {
   /// unify
   /// \param cs Type constraints
   /// \param src Source node (for error handling)
-  [[nodiscard]] inline auto
-    unify(const std::vector<Constr>& cs, const object_ptr<const Object>& src)
-      -> std::vector<TyArrow>
+  [[nodiscard]] inline auto unify(
+    const std::vector<Constr>& cs,
+    const object_ptr<const Object>& src) -> std::vector<TyArrow>
   {
     struct
     {

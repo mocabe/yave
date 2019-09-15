@@ -25,13 +25,13 @@ namespace yave {
   };
 
   template <class T>
-  node_info get_node_info()
+  [[nodiscard]] auto get_node_info() -> node_info
   {
     return node_info_traits<T>::get_node_info();
   }
 
   template <class T, class BackendTag, class... Args>
-  bind_info get_bind_info(Args&&... args)
+  [[nodiscard]] auto get_bind_info(Args&&... args) -> bind_info
   {
     auto info = bind_info_traits<T, BackendTag>::get_bind_info(
       std::forward<Args>(args)...);

@@ -26,12 +26,12 @@ namespace yave {
     return m_prim.has_value();
   }
 
-  const std::string& node_property::name() const
+  auto node_property::name() const -> const std::string&
   {
     return m_name;
   }
 
-  std::optional<primitive_t> node_property::get_prim() const
+  auto node_property::get_prim() const -> std::optional<primitive_t>
   {
     if (is_prim())
       return m_prim.value()->get();
@@ -50,7 +50,7 @@ namespace yave {
     m_prim = std::nullopt;
   }
 
-  object_ptr<PrimitiveContainer> node_property::get_shared_prim() const
+  auto node_property::get_shared_prim() const -> object_ptr<PrimitiveContainer>
   {
     if (is_prim())
       return m_prim.value();

@@ -38,8 +38,9 @@ namespace yave {
   };
 
   template <class... Ts1, class... Ts2>
-  [[nodiscard]] constexpr auto
-    make_set_impl(meta_tuple<Ts1...> tuple, meta_tuple<Ts2...> rest)
+  [[nodiscard]] constexpr auto make_set_impl(
+    meta_tuple<Ts1...> tuple,
+    meta_tuple<Ts2...> rest)
   {
     if constexpr (empty(rest))
       return tuple;
@@ -75,15 +76,17 @@ namespace yave {
   static constexpr auto set_c = make_set(tuple_c<Ts...>);
 
   template <class... Ts1, class... Ts2>
-  [[nodiscard]] constexpr auto
-    operator==(meta_set<Ts1...> s1, meta_set<Ts2...> s2)
+  [[nodiscard]] constexpr auto operator==(
+    meta_set<Ts1...> s1,
+    meta_set<Ts2...> s2)
   {
     return equal(s1, s2);
   }
 
   template <class... Ts1, class... Ts2>
-  [[nodiscard]] constexpr auto
-    operator!=(meta_set<Ts1...> s1, meta_set<Ts2...> s2)
+  [[nodiscard]] constexpr auto operator!=(
+    meta_set<Ts1...> s1,
+    meta_set<Ts2...> s2)
   {
     return std::bool_constant<!(s1 == s2)> {};
   }
@@ -92,8 +95,10 @@ namespace yave {
   // includes
 
   template <class T1, class T2, size_t... S>
-  [[nodiscard]] constexpr auto
-    set_includes_impl(T1 t1, T2 t2, std::index_sequence<S...>)
+  [[nodiscard]] constexpr auto set_includes_impl(
+    T1 t1,
+    T2 t2,
+    std::index_sequence<S...>)
   {
     (void)t1;
     (void)t2;
@@ -105,8 +110,9 @@ namespace yave {
   }
 
   template <class... Ts1, class... Ts2>
-  [[nodiscard]] constexpr auto
-    includes(meta_set<Ts1...> t1, meta_set<Ts2...> t2)
+  [[nodiscard]] constexpr auto includes(
+    meta_set<Ts1...> t1,
+    meta_set<Ts2...> t2)
   {
     return set_includes_impl(
       make_tuple(t1), make_tuple(t2), std::make_index_sequence<t1.size()>());

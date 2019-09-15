@@ -29,7 +29,7 @@ namespace yave {
     return !m_is_input;
   }
 
-  const std::string& socket_property::name() const
+  auto socket_property::name() const -> const std::string&
   {
     return m_name;
   }

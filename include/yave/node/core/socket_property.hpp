@@ -40,7 +40,7 @@ namespace yave {
     [[nodiscard]] bool is_output() const;
 
     /// Get name of socket.
-    [[nodiscard]] const std::string& name() const;
+    [[nodiscard]] auto name() const -> const std::string&;
 
   private:
     /// name of socket

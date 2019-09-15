@@ -24,8 +24,9 @@ namespace yave {
   static constexpr meta_tuple<Ts...> tuple_c {};
 
   template <class... Ts1, class... Ts2>
-  [[nodiscard]] constexpr auto
-    equal(meta_tuple<Ts1...> t1, meta_tuple<Ts2...> t2)
+  [[nodiscard]] constexpr auto equal(
+    meta_tuple<Ts1...> t1,
+    meta_tuple<Ts2...> t2)
   {
     if constexpr (std::is_same_v<decltype(t1), decltype(t2)>)
       return true_c;
@@ -35,16 +36,18 @@ namespace yave {
 
   /// operator==
   template <class... Ts1, class... Ts2>
-  [[nodiscard]] constexpr auto
-    operator==(meta_tuple<Ts1...> t1, meta_tuple<Ts2...> t2)
+  [[nodiscard]] constexpr auto operator==(
+    meta_tuple<Ts1...> t1,
+    meta_tuple<Ts2...> t2)
   {
     return equal(t1, t2);
   }
 
   /// operaotr!=
   template <class... Ts1, class... Ts2>
-  [[nodiscard]] constexpr auto
-    operator!=(meta_tuple<Ts1...> t1, meta_tuple<Ts2...> t2)
+  [[nodiscard]] constexpr auto operator!=(
+    meta_tuple<Ts1...> t1,
+    meta_tuple<Ts2...> t2)
   {
     return std::bool_constant<!(t1 == t2)> {};
   }

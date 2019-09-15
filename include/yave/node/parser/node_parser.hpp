@@ -39,25 +39,28 @@ namespace yave {
     node_parser();
 
     /// Parser node tree.
-    auto parse(const node_graph& input, const node_handle& root)
+    [[nodiscard]] auto parse(const node_graph& input, const node_handle& root)
       -> std::optional<parsed_node_graph>;
 
     /// Get last errors.
-    auto get_errors() const -> error_list;
+    [[nodiscard]] auto get_errors() const -> error_list;
 
   private:
     /// Extract prime tree.
-    auto _extract(const node_graph& input, const node_handle& root)
-      -> std::optional<parsed_node_graph>;
+    [[nodiscard]] auto _extract(
+      const node_graph& input,
+      const node_handle& root) -> std::optional<parsed_node_graph>;
+
     /// Remove all syntax sugars.
-    auto _desugar(parsed_node_graph&& parsed_graph)
+    [[nodiscard]] auto _desugar(parsed_node_graph&& parsed_graph)
       -> std::optional<parsed_node_graph>;
+
     /// Validate prime tree.
-    auto _parse(parsed_node_graph&& parsed_graph)
+    [[nodiscard]] auto _parse(parsed_node_graph&& parsed_graph)
       -> std::optional<parsed_node_graph>;
 
   private:
-    auto _lock() const -> std::unique_lock<std::mutex>;
+    [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
 
   private:
     mutable std::mutex m_mtx;

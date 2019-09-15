@@ -29,19 +29,20 @@ namespace yave {
       bool is_prim = false);
 
     /// name
-    [[nodiscard]] const std::string& name() const;
+    [[nodiscard]] auto name() const -> const std::string&;
 
     /// set name
     void set_name(const std::string& name);
 
     /// input sockets
-    [[nodiscard]] const std::vector<std::string>& input_sockets() const;
+    [[nodiscard]] auto input_sockets() const -> const std::vector<std::string>&;
 
     /// set input sockets
     void set_input_sockets(const std::vector<std::string>& sockets);
 
     /// output sockets
-    [[nodiscard]] const std::vector<std::string>& output_sockets() const;
+    [[nodiscard]] auto output_sockets() const
+      -> const std::vector<std::string>&;
 
     /// set output sockets
     void set_output_sockets(const std::vector<std::string>& sockets);

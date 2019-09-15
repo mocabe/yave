@@ -56,15 +56,14 @@ namespace yave {
     return e;
   }
 
-  [[nodiscard]] inline bool
-    has_exception_tag(const object_ptr<const Object>& obj) noexcept
+  [[nodiscard]] inline bool has_exception_tag(
+    const object_ptr<const Object>& obj) noexcept
   {
     return _get_storage(obj).is_exception();
   }
 
-  [[nodiscard]] inline auto
-    get_tagged_exception(const object_ptr<const Object>& obj) noexcept
-    -> object_ptr<const Exception>
+  [[nodiscard]] inline auto get_tagged_exception(
+    const object_ptr<const Object>& obj) noexcept -> object_ptr<const Exception>
   {
     assert(has_exception_tag(obj));
     return static_object_cast<const Exception>(obj);

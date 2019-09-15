@@ -203,7 +203,7 @@ namespace yave {
 
       // image layer: connect empty fb to image out
       if (is_image_layer()) {
-          assert(m_c_sublayers.empty());
+        assert(m_c_sublayers.empty());
 
         auto io = get_node_info<node::LayerImageOutput>();
         auto fb = get_node_info<node::FrameBuffer>();
@@ -256,7 +256,7 @@ namespace yave {
         // disconnect per-layer resource connections
         for (auto&& c : m_c_resources) {
           m_graph.disconnect(c);
-      }
+        }
       }
 
       // No need to remove shared resources
@@ -446,8 +446,9 @@ namespace yave {
       return ret;
     }
 
-    layer_resource_handle
-      add_resource(const std::string& name, layer_resource_scope scope)
+    layer_resource_handle add_resource(
+      const std::string& name,
+      layer_resource_scope scope)
     {
       auto res = m_graph.add_resource_shared(name, m_layer, scope);
       if (res) {
@@ -821,7 +822,7 @@ namespace yave {
     {
       auto attr = _add_layer_attribute(l, type);
       if (!attr)
-      throw std::runtime_error("Failed to add layer attribute");
+        throw std::runtime_error("Failed to add layer attribute");
     }
 
     // rebuild sublayers of parent

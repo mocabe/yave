@@ -233,8 +233,9 @@ namespace yave {
 
   /// operator==
   template <class T, class U>
-  [[nodiscard]] bool
-    operator==(const object_ptr<T>& lhs, const object_ptr<U>& rhs) noexcept
+  [[nodiscard]] bool operator==(
+    const object_ptr<T>& lhs,
+    const object_ptr<U>& rhs) noexcept
   {
     return lhs.get() == rhs.get();
   }
@@ -255,8 +256,9 @@ namespace yave {
 
   /// operator!=
   template <class T, class U>
-  [[nodiscard]] bool
-    operator!=(const object_ptr<T>& lhs, const object_ptr<U>& rhs) noexcept
+  [[nodiscard]] bool operator!=(
+    const object_ptr<T>& lhs,
+    const object_ptr<U>& rhs) noexcept
   {
     return lhs.get() != rhs.get();
   }

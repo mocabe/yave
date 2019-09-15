@@ -260,8 +260,8 @@ namespace yave {
     m_root       = std::move(other.m_root);
   }
 
-  layered_node_graph& layered_node_graph::
-    operator=(layered_node_graph&& other) noexcept
+  layered_node_graph& layered_node_graph::operator=(
+    layered_node_graph&& other) noexcept
   {
     auto lck1    = other._lock();
     auto lck2    = _lock();
@@ -758,9 +758,8 @@ namespace yave {
     return ret;
   }
 
-  auto
-    layered_node_graph::get_inherited_resources(const layer_handle& layer) const
-    -> std::vector<layer_resource_handle>
+  auto layered_node_graph::get_inherited_resources(
+    const layer_handle& layer) const -> std::vector<layer_resource_handle>
   {
     auto lck = _lock();
 
@@ -902,14 +901,14 @@ namespace yave {
     return m_node_graph.unregister_node_info(info);
   }
 
-  bool
-    layered_node_graph::register_node_info(const std::vector<node_info>& info)
+  bool layered_node_graph::register_node_info(
+    const std::vector<node_info>& info)
   {
     return m_node_graph.register_node_info(info);
   }
 
-  void
-    layered_node_graph::unregister_node_info(const std::vector<node_info>& info)
+  void layered_node_graph::unregister_node_info(
+    const std::vector<node_info>& info)
   {
     return m_node_graph.unregister_node_info(info);
   }

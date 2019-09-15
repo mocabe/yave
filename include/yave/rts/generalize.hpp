@@ -11,9 +11,8 @@ namespace yave {
 
   /// Anti-unification.
   /// \param ts Not-empty list of types
-  [[nodiscard]] inline auto
-    generalize(const std::vector<object_ptr<const Type>>& ts)
-      -> object_ptr<const Type>
+  [[nodiscard]] inline auto generalize(
+    const std::vector<object_ptr<const Type>>& ts) -> object_ptr<const Type>
   {
     // generalization table
     struct _table
