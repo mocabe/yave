@@ -263,20 +263,13 @@ namespace yave {
           }
         }
 
-        // get overloading instances
         std::vector<object_ptr<const Object>> overloading_instances;
-        // dummy container for non-primitive nodes
-        static object_ptr<PrimitiveContainer> dummy_container =
-          make_object<PrimitiveContainer>();
 
+        // get overloading instances
         for (auto&& o : overloadings) {
-          if (node_info->is_prim()) {
-            auto p = graph.get_primitive_container(node);
-            assert(p);
-            overloading_instances.push_back(o->get_instance(p));
-          } else {
-            overloading_instances.push_back(o->get_instance(dummy_container));
-          }
+          auto p = graph.get_primitive_container(node);
+          assert(p);
+          overloading_instances.push_back(o->get_instance(p));
         }
 
         // get overloading types

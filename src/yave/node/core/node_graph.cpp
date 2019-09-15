@@ -29,6 +29,7 @@ namespace yave {
     , m_mtx {}
   {
     init_logger();
+    m_default_container = make_object<PrimitiveContainer>();
   }
 
   node_graph::~node_graph() noexcept
@@ -38,15 +39,17 @@ namespace yave {
   node_graph::node_graph(const node_graph& other)
     : m_mtx {}
   {
-    auto lck = other._lock();
-    m_g      = other.m_g.clone();
+    auto lck            = other._lock();
+    m_g                 = other.m_g.clone();
+    m_default_container = other.m_default_container;
   }
 
   node_graph::node_graph(node_graph&& other) noexcept
     : m_mtx {}
   {
-    auto lck = other._lock();
-    m_g      = std::move(other.m_g);
+    auto lck            = other._lock();
+    m_g                 = std::move(other.m_g);
+    m_default_container = std::move(other.m_default_container);
   }
 
   node_graph& node_graph::operator=(const node_graph& other)
@@ -733,21 +736,24 @@ namespace yave {
     m_g[h.descriptor()].set_prim(prim);
   }
 
-  object_ptr<PrimitiveContainer>
+  object_ptr<const PrimitiveContainer>
     node_graph::get_primitive_container(const node_handle& node) const
   {
     auto lck = _lock();
+
+    assert(m_default_container);
 
     if (!_exists(node)) {
       Warning(
         g_logger,
         "node_graph::get_primitive_container() on invalid node handle.");
-      return nullptr;
+      return m_default_container;
     }
 
     if (m_g[node.descriptor()].is_prim())
       return m_g[node.descriptor()].get_shared_prim();
-    return nullptr;
+
+    return m_default_container;
   }
 
   std::vector<node_handle> node_graph::roots() const

@@ -184,8 +184,10 @@ namespace yave {
     /// When `is_primitive(prim_node) == false`, no effect.
     void set_primitive(const node_handle& prim_node, const primitive_t& prim);
 
-    /// Get shared primitive object
-    object_ptr<PrimitiveContainer>
+    /// Get primitive container object.
+    /// If `node` is not primitive, retuens pointer to default initialized
+    /// primitive container.
+    object_ptr<const PrimitiveContainer>
       get_primitive_container(const node_handle& node) const;
 
     /// Get list of root nodes.
@@ -230,6 +232,10 @@ namespace yave {
   private:
     /// graph
     graph_t m_g;
+  
+  private:
+    /// default initialized PrimitiveContainer
+    object_ptr<const PrimitiveContainer> m_default_container;
 
   private:
     /// mutex
