@@ -14,7 +14,7 @@
 namespace yave {
 
   namespace {
-    auto has_unique_name = [](auto& names) {
+    auto has_unique_name = [](auto names) {
       // sort
       std::sort(names.begin(), names.end());
       // unique
