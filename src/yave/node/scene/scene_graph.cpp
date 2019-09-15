@@ -1070,10 +1070,22 @@ namespace yave {
   auto scene_graph::get_node_graph() const -> node_graph_output
   {
     auto lck = _lock();
-    return {
-      m_graph.get_managed_node_graph().get_node_graph(), // graph
-      m_image_output                                     // image_root
-    };
+
+    auto graph_copy = m_graph.get_managed_node_graph().get_node_graph();
+
+    node_handle new_root;
+
+    for (auto&& n : graph_copy.nodes()) {
+      if (n.id() == m_image_output.id()) {
+        new_root = n;
+        break;
+      }
+    }
+
+    if (!new_root)
+      throw std::runtime_error("Could not find root node in copied node_graph");
+
+    return {std::move(graph_copy), new_root};
   }
 
 } // namespace yave
