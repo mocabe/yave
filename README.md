@@ -25,6 +25,16 @@ Recent development tasks:
         + [x] basic interface and resuorce control
         + [x] move_* functions
         + [ ] more testing
+- [x] parser rework
+    + `node_parser`
+        + [x] basic implementation
+        + [x] basic tests
+        + [ ] `scene_graph` integration tests
+- [x] compiler rework
+    + `node_compiler`
+        + [x] basic implementation
+        + [x] tests
+        + [ ] `scene_graph` integration tests
 - [ ] key-frame object implementation
     + `keyframe`
         + [x] add node info
@@ -32,15 +42,6 @@ Recent development tasks:
         + [x] integrate to primitive types
         + [ ] float interpolation
         + [ ] backend object impl
-- [ ] parser rework
-    + `node_parser`
-        + [x] rewrite basic interface
-        + [x] basic tests
-        + [ ] `scene_graph` integration tests
-- [ ] compiler rework
-    + `node_compiler`
-        + [ ] basic impl
-        + [ ] tests
 - [ ] improve test structure
     + [ ] remove tests for obsolete classes
     + [ ] restructure tests based on backends

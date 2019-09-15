@@ -44,12 +44,17 @@ namespace yave {
     return *this;
   }
 
-  object_ptr<const Type> executable::type() const
+  auto executable::type() const -> const object_ptr<const Type>&
   {
     return m_type;
   }
 
-  object_ptr<const Object> executable::execute(yave::frame frame)
+  auto executable::object() const -> const object_ptr<const Object>&
+  {
+    return m_obj;
+  }
+
+  auto executable::execute(yave::frame frame) -> object_ptr<const Object>
   {
     auto app = m_obj << make_object<Frame>(frame);
     return eval(app);

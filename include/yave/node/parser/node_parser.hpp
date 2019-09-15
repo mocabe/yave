@@ -18,6 +18,17 @@ namespace yave {
     node_graph graph;
     /// root of parsed graph
     node_handle root;
+
+    parsed_node_graph(node_graph&& g, node_handle r)
+      : graph {std::move(g)}
+      , root {std::move(r)}
+    {
+    }
+
+    parsed_node_graph(const parsed_node_graph&) = delete;
+    parsed_node_graph(parsed_node_graph&&)      = default;
+    parsed_node_graph& operator=(parsed_node_graph&&) = default;
+    parsed_node_graph& operator=(const parsed_node_graph&) = delete;
   };
 
   /// Parse node graph and generate data for compiler stage.

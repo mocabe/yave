@@ -3,118 +3,389 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/core/node_tree.hpp>
-#include <yave/node/support/socket_instance_manager.hpp>
 #include <yave/node/compiler/node_compiler.hpp>
-#include <yave/node/parser/node_parser.hpp>
-#include <yave/node/obj/function.hpp>
-#include <yave/node/obj/instance_getter.hpp>
-#include <yave/rts/rts.hpp>
+#include <yave/node/scene/scene_graph.hpp>
+#include <yave/node/core/function.hpp>
+#include <yave/backend/default/render/primitive_constructor.hpp>
+#include <yave/backend/default/render/control_flow.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
 
-TEST_CASE("node_parser")
+class test_backend
 {
+};
+
+struct Add : NodeFunction<Add, Int, Int, Int>
+{
+  return_type code() const
+  {
+    return new Int(*eval_arg<0>() + *eval_arg<1>());
+  }
+};
+
+template <>
+struct node_info_traits<Add>
+{
+  static node_info get_node_info()
+  {
+    return node_info("add", {"x", "y"}, {"out"});
+  }
+};
+
+template <>
+struct bind_info_traits<Add, test_backend>
+{
+  static bind_info get_bind_info()
+  {
+    return bind_info(
+      "add", {"x", "y"}, "out", make_object<InstanceGetterFunction<Add>>(), "");
+  }
+};
+
+struct AddD : NodeFunction<AddD, Double, Double, Double>
+{
+  return_type code() const
+  {
+    return new Double(*eval_arg<0>() + *eval_arg<1>());
+  }
+};
+
+template <>
+struct node_info_traits<AddD>
+{
+  static node_info get_node_info()
+  {
+    return node_info("add", {"x", "y"}, {"out"});
+  }
+};
+
+template <>
+struct bind_info_traits<AddD, test_backend>
+{
+  static bind_info get_bind_info()
+  {
+    return bind_info(
+      "add",
+      {"x", "y"},
+      "out",
+      make_object<InstanceGetterFunction<AddD>>(),
+      "");
+  }
+};
+
+TEST_CASE("add x y", "[node_compiler]")
+{
+  node_compiler compiler;
   node_graph graph;
-  node_info_manager info_mngr(get_primitive_node_info_list());
-  bind_info_manager bind_mngr(get_primitive_bind_info_list());
-  node_parser parser(graph, bind_mngr);
+  bind_info_manager bim;
 
-  SECTION("Int")
-  {
-    auto Int_info = info_mngr.find("Int");
-    auto Int_bind = bind_mngr.find("Int");
+  auto add = graph.add(get_node_info<Add>());
+  auto i1  = graph.add(get_node_info<node::Int>());
+  auto i2  = graph.add(get_node_info<node::Int>());
 
-    REQUIRE(Int_info);
-    REQUIRE(Int_bind.size() == 1);
+  REQUIRE(add);
+  REQUIRE(i1);
+  REQUIRE(i2);
 
-    auto n = graph.add(*Int_info);
-    graph.set_primitive(n, {(int)42});
+  auto c1 = graph.connect(i1, "value", add, "x");
+  auto c2 = graph.connect(i2, "value", add, "y");
 
-    {
-      // should be Frame->Int
-      socket_instance_manager sim;
-      auto [parsed_graph, errors] = parser.type_prime_tree(n, "value", sim);
-      REQUIRE(parsed_graph);
-      REQUIRE(errors.empty());
-      REQUIRE(sim.size() == 1);
-      REQUIRE(parsed_graph->nodes().size() == 1);
-      REQUIRE(parsed_graph->roots().size() == 1);
-      REQUIRE(same_type(
-        parsed_graph->get_info(parsed_graph->nodes().front())->type(),
-        get_primitive_type(int(0))));
+  REQUIRE(c1);
+  REQUIRE(c2);
 
-      node_compiler compiler {*parsed_graph};
-      auto exe = compiler.compile(parsed_graph->roots().front());
-      auto result = exe.execute({0});
-      REQUIRE(*value_cast<Int>(result) == 42);
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
 
-      graph.set_primitive(n, {(int)24});
-      exe    = compiler.compile(parsed_graph->roots().front());
-      result = exe.execute({0});
-      REQUIRE(*value_cast<Int>(result) == 24);
-    }
-  }
+  REQUIRE(compiler.compile({std::move(graph), add}, bim));
+}
 
-  SECTION("Simple Plus")
-  {
-    struct PlusInt : NodeFunction<PlusInt, Int, Int, Int>
-    {
-      return_type code() const
-      {
-        return new Int(*eval_arg<0>() + *eval_arg<1>());
-      }
-    };
+TEST_CASE("add x x", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
 
-    node_info info {"PlusInt", {"x", "y"}, {"value"}};
-    bind_info bind {"PlusInt",
-                    {"x", "y"},
-                    "value",
-                    make_object<InstanceGetterFunction<PlusInt>>(),
-                    "x + y"};
+  auto add = graph.add(get_node_info<Add>());
+  auto i   = graph.add(get_node_info<node::Int>());
 
-    REQUIRE(info_mngr.add(info));
-    REQUIRE(bind_mngr.add(bind));
+  REQUIRE(add);
+  REQUIRE(i);
 
-    auto Int_info = info_mngr.find("Int");
-    auto Int_bind = bind_mngr.find("Int");
+  auto c1 = graph.connect(i, "value", add, "x");
+  auto c2 = graph.connect(i, "value", add, "y");
 
-    REQUIRE(Int_info);
+  REQUIRE(c1);
+  REQUIRE(c2);
 
-    auto plus = graph.add(info);
-    auto i1   = graph.add(*Int_info);
-    auto i2   = graph.add(*Int_info);
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
 
-    auto c1 = graph.connect(i1, "value", plus, "x");
-    auto c2 = graph.connect(i2, "value", plus, "y");
+  REQUIRE(compiler.compile({std::move(graph), add}, bim));
+}
 
-    REQUIRE(c1);
-    REQUIRE(c2);
+TEST_CASE("add (add x x) x", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
 
-    REQUIRE(graph.exists(c1));
-    REQUIRE(graph.exists(c2));
+  auto add1 = graph.add(get_node_info<Add>());
+  auto add2 = graph.add(get_node_info<Add>());
+  auto i   = graph.add(get_node_info<node::Int>());
 
-    graph.set_primitive(i1, {(int)42});
-    graph.set_primitive(i2, {(int)24});
+  REQUIRE(add1);
+  REQUIRE(add2);
+  REQUIRE(i);
 
-    {
-      socket_instance_manager sim;
-      auto [parsed_graph, errors] = parser.type_prime_tree(plus, "value", sim);
-      REQUIRE(errors.empty());
-      REQUIRE(parsed_graph);
-      REQUIRE(parsed_graph->nodes().size() == 3);
-      REQUIRE(parsed_graph->roots().size() == 1);
-      REQUIRE(sim.size() == 3);
-      REQUIRE(same_type(
-        parsed_graph->get_info(parsed_graph->roots().front())->type(),
-        object_type<closure<Frame, Int>>()));
+  auto c1 = graph.connect(add2, "out", add1, "x");
+  auto c2 = graph.connect(i, "value", add1, "y");
+  auto c3 = graph.connect(i, "value", add2, "x");
+  auto c4 = graph.connect(i, "value", add2, "y");
 
-      node_compiler compiler {*parsed_graph};
-      auto exe    = compiler.compile(parsed_graph->roots().front());
-      auto result = exe.execute({0});
+  REQUIRE(c1);
+  REQUIRE(c2);
+  REQUIRE(c3);
+  REQUIRE(c4);
 
-      REQUIRE(*value_cast<Int>(result) == 66);
-    }
-  }
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+
+  REQUIRE(compiler.compile({std::move(graph), add1}, bim));
+}
+
+TEST_CASE("add x d", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto add = graph.add(get_node_info<Add>());
+  auto i   = graph.add(get_node_info<node::Int>());
+  auto d   = graph.add(get_node_info<node::Double>());
+
+  REQUIRE(add);
+  REQUIRE(i);
+  REQUIRE(d);
+
+  auto c1 = graph.connect(i, "value", add, "x");
+  auto c2 = graph.connect(d, "value", add, "y");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
+
+  REQUIRE(!compiler.compile({std::move(graph), add}, bim));
+}
+
+TEST_CASE("add (add x d) x", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto add1 = graph.add(get_node_info<Add>());
+  auto add2 = graph.add(get_node_info<Add>());
+  auto i    = graph.add(get_node_info<node::Int>());
+  auto d    = graph.add(get_node_info<node::Double>());
+
+  REQUIRE(add1);
+  REQUIRE(add2);
+  REQUIRE(i);
+  REQUIRE(d);
+
+  auto c1 = graph.connect(add2, "out", add1, "x");
+  auto c2 = graph.connect(i, "value", add1, "y");
+  auto c3 = graph.connect(i, "value", add2, "x");
+  auto c4 = graph.connect(d, "value", add2, "y");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+  REQUIRE(c3);
+  REQUIRE(c4);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
+
+  REQUIRE(!compiler.compile({std::move(graph), add1}, bim));
+}
+
+TEST_CASE("if b x y", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto _if = graph.add(get_node_info<node::If>());
+  auto i   = graph.add(get_node_info<node::Int>());
+  auto b   = graph.add(get_node_info<node::Bool>());
+
+  REQUIRE(_if);
+  REQUIRE(i);
+  REQUIRE(b);
+
+  auto c1 = graph.connect(b, "value", _if, "cond");
+  auto c2 = graph.connect(i, "value", _if, "then");
+  auto c3 = graph.connect(i, "value", _if, "else");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+  REQUIRE(c3);
+
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Bool, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::If, backend::tags::default_render>()));
+
+  REQUIRE(compiler.compile({std::move(graph), _if}, bim));
+}
+
+TEST_CASE("if b (if b x y) z", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto if1 = graph.add(get_node_info<node::If>());
+  auto if2 = graph.add(get_node_info<node::If>());
+  auto i   = graph.add(get_node_info<node::Int>());
+  auto b   = graph.add(get_node_info<node::Bool>());
+
+  REQUIRE(if1);
+  REQUIRE(if2);
+  REQUIRE(i);
+  REQUIRE(b);
+
+  auto c1 = graph.connect(b, "value", if1, "cond");
+  auto c2 = graph.connect(if2, "out", if1, "then");
+  auto c3 = graph.connect(b, "value", if2, "cond");
+  auto c4 = graph.connect(i, "value", if2, "then");
+  auto c5 = graph.connect(i, "value", if2, "else");
+  auto c6 = graph.connect(i, "value", if1, "else");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+  REQUIRE(c3);
+  REQUIRE(c4);
+  REQUIRE(c5);
+  REQUIRE(c6);
+
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Bool, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::If, backend::tags::default_render>()));
+
+  REQUIRE(compiler.compile({std::move(graph), if1}, bim));
+}
+
+TEST_CASE("if b x d", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto _if = graph.add(get_node_info<node::If>());
+  auto i   = graph.add(get_node_info<node::Int>());
+  auto d   = graph.add(get_node_info<node::Double>());
+  auto b   = graph.add(get_node_info<node::Bool>());
+
+  REQUIRE(_if);
+  REQUIRE(i);
+  REQUIRE(d);
+  REQUIRE(b);
+
+  auto c1 = graph.connect(b, "value", _if, "cond");
+  auto c2 = graph.connect(i, "value", _if, "then");
+  auto c3 = graph.connect(d, "value", _if, "else");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+  REQUIRE(c3);
+
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Bool, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::If, backend::tags::default_render>()));
+
+  REQUIRE(!compiler.compile({std::move(graph), _if}, bim));
+}
+
+TEST_CASE("add<int> x y", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto add = graph.add(get_node_info<Add>());
+  auto i   = graph.add(get_node_info<node::Int>());
+
+  REQUIRE(add);
+  REQUIRE(i);
+
+  auto c1 = graph.connect(i, "value", add, "x");
+  auto c2 = graph.connect(i, "value", add, "y");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<AddD, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+
+  REQUIRE(compiler.compile({std::move(graph), add}, bim));
+}
+
+TEST_CASE("add<double> x y", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto add = graph.add(get_node_info<Add>());
+  auto d   = graph.add(get_node_info<node::Double>());
+
+  REQUIRE(add);
+  REQUIRE(d);
+
+  auto c1 = graph.connect(d, "value", add, "x");
+  auto c2 = graph.connect(d, "value", add, "y");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<AddD, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
+
+  REQUIRE(compiler.compile({std::move(graph), add}, bim));
+}
+
+TEST_CASE("add<?> x y", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto add = graph.add(get_node_info<Add>());
+  auto i   = graph.add(get_node_info<node::Int>());
+  auto d   = graph.add(get_node_info<node::Double>());
+
+  REQUIRE(add);
+  REQUIRE(i);
+  REQUIRE(d);
+
+  auto c1 = graph.connect(i, "value", add, "x");
+  auto c2 = graph.connect(d, "value", add, "y");
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+
+  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<AddD, test_backend>()));
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
+
+  REQUIRE(!compiler.compile({std::move(graph), add}, bim));
 }
