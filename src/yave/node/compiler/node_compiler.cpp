@@ -229,7 +229,7 @@ namespace yave {
         if (overloadings.empty()) {
 
           errors.push_back(make_error<compile_error::no_valid_overloading>(
-            node.id(), overloadings));
+            node.id(), socket, overloadings));
 
           Error(
             g_logger,
@@ -357,7 +357,7 @@ namespace yave {
           } catch (type_error::type_error&) {
 
             errors.push_back(make_error<compile_error::no_valid_overloading>(
-              node.id(), overloadings));
+              node.id(), socket, overloadings));
 
             {
               Error(
@@ -412,7 +412,7 @@ namespace yave {
         if (hits.empty()) {
 
           errors.push_back(make_error<compile_error::no_valid_overloading>(
-            node.id(), overloadings));
+            node.id(), socket, overloadings));
 
           {
             Info(
@@ -434,7 +434,7 @@ namespace yave {
 
               // TODO: better error info
               errors.push_back(make_error<compile_error::ambiguous_overloading>(
-                node.id(), overloadings));
+                node.id(), socket, overloadings));
 
               {
                 Error(
