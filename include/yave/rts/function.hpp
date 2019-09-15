@@ -33,7 +33,8 @@ namespace yave {
 
   /// vrtable function to call code()
   template <class T>
-  object_ptr<const Object> vtbl_code_func(const Closure<>* _cthis) noexcept
+  auto vtbl_code_func(const Closure<>* _cthis) noexcept
+    -> object_ptr<const Object>
   {
     auto _this = static_cast<const T*>(_cthis);
 
@@ -159,7 +160,7 @@ namespace yave {
     return_type_checker(nullptr_t) = delete;
 
     /// value
-    auto&& value() && noexcept
+    auto value() && noexcept -> auto&&
     {
       return std::move(m_value);
     }
@@ -203,7 +204,7 @@ namespace yave {
       exception_handler_return_type_checker&&) = delete;
 
     /// value
-    auto&& value() && noexcept
+    auto value() && noexcept -> auto&&
     {
       return std::move(m_value);
     }

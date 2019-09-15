@@ -64,7 +64,7 @@ namespace yave {
       }
 
       /// get source node
-      [[nodiscard]] const object_ptr<const Object>& src() const
+      [[nodiscard]] auto src() const -> const object_ptr<const Object>&
       {
         return m_src;
       }
@@ -87,7 +87,7 @@ namespace yave {
       }
 
       /// var
-      [[nodiscard]] const object_ptr<const Type>& var() const
+      [[nodiscard]] auto var() const -> const object_ptr<const Type>&
       {
         return m_var;
       }
@@ -111,13 +111,13 @@ namespace yave {
       }
 
       /// expected
-      [[nodiscard]] const object_ptr<const Type>& expected() const
+      [[nodiscard]] auto expected() const -> const object_ptr<const Type>&
       {
         return m_expected;
       }
 
       /// provided
-      [[nodiscard]] const object_ptr<const Type>& provided() const
+      [[nodiscard]] auto provided() const -> const object_ptr<const Type>&
       {
         return m_provided;
       }
@@ -146,13 +146,13 @@ namespace yave {
       }
 
       /// expected
-      [[nodiscard]] const object_ptr<const Type>& expected() const
+      [[nodiscard]] auto expected() const -> const object_ptr<const Type>&
       {
         return m_expected;
       }
 
       /// result
-      [[nodiscard]] const object_ptr<const Type>& result() const
+      [[nodiscard]] auto result() const -> const object_ptr<const Type>&
       {
         return m_result;
       }
@@ -169,16 +169,17 @@ namespace yave {
   // ------------------------------------------
   // Type errors
 
-  [[nodiscard]] inline object_ptr<Exception>
-    to_Exception(const type_error::type_error& e)
+  [[nodiscard]] inline auto to_Exception(const type_error::type_error& e)
+    -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(),
       make_object<TypeError>(type_error_type::unknown, nullptr, nullptr));
   }
 
-  [[nodiscard]] inline object_ptr<Exception>
+  [[nodiscard]] inline auto
     to_Exception(const type_error::circular_constraint& e)
+      -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(),
@@ -186,8 +187,8 @@ namespace yave {
         type_error_type::circular_constraints, nullptr, e.var()));
   }
 
-  [[nodiscard]] inline object_ptr<Exception>
-    to_Exception(const type_error::type_missmatch& e)
+  [[nodiscard]] inline auto to_Exception(const type_error::type_missmatch& e)
+    -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(),
@@ -195,8 +196,8 @@ namespace yave {
         type_error_type::type_missmatch, e.expected(), e.provided()));
   }
 
-  [[nodiscard]] inline object_ptr<Exception>
-    to_Exception(const type_error::bad_type_check& e)
+  [[nodiscard]] inline auto to_Exception(const type_error::bad_type_check& e)
+    -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(),

@@ -22,25 +22,25 @@ namespace yave {
     {
     }
 
-    auto& app() const noexcept
+    [[nodiscard]] auto& app() const noexcept
     {
       assert(!is_result());
       return m_app;
     }
 
-    auto& arg() const noexcept
+    [[nodiscard]] auto& arg() const noexcept
     {
       assert(!is_result());
       return m_arg;
     }
 
-    bool is_result() const noexcept
+    [[nodiscard]] bool is_result() const noexcept
     {
       return m_app == nullptr;
     }
 
     /// get cache of object
-    auto get_result() const noexcept
+    [[nodiscard]] auto get_result() const noexcept
     {
       assert(is_result());
       return m_arg;
@@ -75,14 +75,16 @@ namespace yave {
     {
     }
 
-    [[nodiscard]] friend inline const apply_object_value_storage&
+    [[nodiscard]] friend inline auto
       _get_storage(const apply_object_value& v) noexcept
+      -> const apply_object_value_storage&
     {
       return v.m_storage;
     }
 
-    [[nodiscard]] friend inline apply_object_value_storage&
+    [[nodiscard]] friend inline auto
       _get_storage(apply_object_value& v) noexcept
+      -> apply_object_value_storage&
     {
       return v.m_storage;
     }

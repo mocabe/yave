@@ -19,8 +19,8 @@ namespace yave {
   /// dynamically cast object to specified value type.
   /// \throws bad_value_cast when fail.
   template <class T, class U>
-  [[nodiscard]] object_ptr<propagate_const_t<T, U>>
-    value_cast(const object_ptr<U>& obj)
+  [[nodiscard]] auto value_cast(const object_ptr<U>& obj)
+    -> object_ptr<propagate_const_t<T, U>>
   {
     if (likely(obj && has_type<T>(obj))) {
       using To = typename decltype(
@@ -35,8 +35,8 @@ namespace yave {
   /// dynamically cast object to specified value type.
   /// \throws bad_value_cast when fail.
   template <class T, class U>
-  [[nodiscard]] object_ptr<propagate_const_t<T, U>>
-    value_cast(object_ptr<U>&& obj)
+  [[nodiscard]] auto value_cast(object_ptr<U>&& obj)
+    -> object_ptr<propagate_const_t<T, U>>
   {
     if (likely(obj && has_type<T>(obj))) {
       using To = typename decltype(
@@ -51,8 +51,8 @@ namespace yave {
   /// dynamically cast object to specified value type.
   /// \returns nullptr when fail.
   template <class T, class U>
-  [[nodiscard]] object_ptr<propagate_const_t<T, U>>
-    value_cast_if(const object_ptr<U>& obj) noexcept
+  [[nodiscard]] auto value_cast_if(const object_ptr<U>& obj) noexcept
+    -> object_ptr<propagate_const_t<T, U>>
   {
     if (likely(obj && has_type<T>(obj))) {
       using To = typename decltype(
@@ -67,8 +67,8 @@ namespace yave {
   /// dynamically cast object to specified value type.
   /// \returns nullptr when fail.
   template <class T, class U>
-  [[nodiscard]] object_ptr<propagate_const_t<T, U>>
-    value_cast_if(object_ptr<U>&& obj) noexcept
+  [[nodiscard]] auto value_cast_if(object_ptr<U>&& obj) noexcept
+    -> object_ptr<propagate_const_t<T, U>>
   {
     if (likely(obj && has_type<T>(obj))) {
       using To = typename decltype(

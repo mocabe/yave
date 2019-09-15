@@ -18,13 +18,12 @@ namespace yave {
   class object_ptr
   {
     // internal storage access
-    template <class U>                             //
-    friend object_ptr_storage&                     //
-      _get_storage(object_ptr<U>&) noexcept;       //
-                                                   //
-    template <class U>                             //
-    friend const object_ptr_storage&               //
-      _get_storage(const object_ptr<U>&) noexcept; //
+    template <class U>
+    friend auto _get_storage(object_ptr<U>& ptr) noexcept
+      -> object_ptr_storage&;
+    template <class U>
+    friend auto _get_storage(const object_ptr<U>& ptr) noexcept
+      -> const object_ptr_storage&;
 
   public:
     // value type
@@ -83,7 +82,7 @@ namespace yave {
     }
 
     /// get address of object
-    [[nodiscard]] pointer get() const noexcept
+    [[nodiscard]] auto get() const noexcept -> pointer
     {
       return reinterpret_cast<pointer>(
         const_cast<propagate_const_t<Object*, pointer>>(m_storage.get()));
@@ -105,7 +104,7 @@ namespace yave {
 
     /// use_count
     /// \requires not null.
-    [[nodiscard]] uint64_t use_count() const noexcept
+    [[nodiscard]] auto use_count() const noexcept -> uint64_t
     {
       return m_storage.use_count();
     }
@@ -119,7 +118,7 @@ namespace yave {
 
     /// release pointer
     /// \effects get() return nullptr after call
-    [[nodiscard]] pointer release() noexcept
+    [[nodiscard]] auto release() noexcept -> pointer
     {
       auto tmp  = get();
       m_storage = {nullptr};
@@ -133,8 +132,8 @@ namespace yave {
     }
 
     /// operator=
-    object_ptr<element_type>&
-      operator=(const object_ptr<element_type>& obj) noexcept
+    auto operator=(const object_ptr<element_type>& obj) noexcept
+      -> object_ptr<element_type>&
     {
       object_ptr(obj).swap(*this);
       return *this;
@@ -142,14 +141,16 @@ namespace yave {
 
     /// operator=
     template <class U>
-    object_ptr<element_type>& operator=(const object_ptr<U>& obj) noexcept
+    auto operator=(const object_ptr<U>& obj) noexcept
+      -> object_ptr<element_type>&
     {
       object_ptr(obj).swap(*this);
       return *this;
     }
 
     /// operator=
-    object_ptr<element_type>& operator=(object_ptr<element_type>&& obj) noexcept
+    auto operator=(object_ptr<element_type>&& obj) noexcept
+      -> object_ptr<element_type>&
     {
       object_ptr(std::move(obj)).swap(*this);
       return *this;
@@ -157,7 +158,7 @@ namespace yave {
 
     /// operator=
     template <class U>
-    object_ptr<element_type>& operator=(object_ptr<U>&& obj) noexcept
+    auto operator=(object_ptr<U>&& obj) noexcept -> object_ptr<element_type>&
     {
       object_ptr(std::move(obj)).swap(*this);
       return *this;
@@ -279,16 +280,16 @@ namespace yave {
 
   /// internal storage accessor
   template <class U>
-  [[nodiscard]] object_ptr_storage& //
-    _get_storage(object_ptr<U>& obj) noexcept
+  [[nodiscard]] auto _get_storage(object_ptr<U>& obj) noexcept
+    -> object_ptr_storage&
   {
     return obj.m_storage;
   }
 
   /// internal storage accessor
   template <class U>
-  [[nodiscard]] const object_ptr_storage& //
-    _get_storage(const object_ptr<U>& obj) noexcept
+  [[nodiscard]] auto _get_storage(const object_ptr<U>& obj) noexcept
+    -> const object_ptr_storage&
   {
     return obj.m_storage;
   }
@@ -315,7 +316,7 @@ namespace yave {
   // misc
 
   template <class T>
-  [[nodiscard]] object_ptr<T> clear_pointer_tag(object_ptr<T> obj)
+  [[nodiscard]] auto clear_pointer_tag(object_ptr<T> obj) -> object_ptr<T>
   {
     _get_storage(obj).clear_pointer_tag();
     return obj;

@@ -19,8 +19,8 @@ namespace yave {
   namespace detail {
     /// get string represents type
     template <size_t MaxDepth>
-    [[nodiscard]] std::string
-      to_string_impl(const object_ptr<const Type>& type, size_t depth)
+    auto to_string_impl(const object_ptr<const Type>& type, size_t depth)
+      -> std::string
     {
       if (depth > MaxDepth)
         return "[...]";
@@ -51,7 +51,8 @@ namespace yave {
 
   /// convert type to string
   template <size_t MaxDepth = 48>
-  [[nodiscard]] std::string to_string(const object_ptr<const Type>& type)
+  [[nodiscard]] auto to_string(const object_ptr<const Type>& type)
+    -> std::string
   {
     return detail::to_string_impl<MaxDepth>(type, 1);
   }

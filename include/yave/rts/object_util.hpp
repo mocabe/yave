@@ -14,8 +14,8 @@ namespace yave {
   /// \brief get **RAW** type of the object
   /// \notes return type of `Undefined` when !obj.
   /// \notes use type_of() to get actual type of terms.
-  [[nodiscard]] inline object_ptr<const Type>
-    get_type(const object_ptr<const Object>& obj)
+  [[nodiscard]] inline auto get_type(const object_ptr<const Object>& obj)
+    -> object_ptr<const Type>
   {
     if (obj)
       return _get_storage(obj).info_table()->obj_type;
@@ -25,7 +25,8 @@ namespace yave {
 
   /// \brief get object name in info-table.
   /// \notes return name of `Undefined` when !obj.
-  [[nodiscard]] inline const char* get_name(const object_ptr<const Object>& obj)
+  [[nodiscard]] inline auto get_name(const object_ptr<const Object>& obj)
+    -> const char*
   {
     if (obj)
       return _get_storage(obj).info_table()->obj_name;
@@ -35,7 +36,8 @@ namespace yave {
 
   /// \brief get size of object.
   /// \notes return 0 when !obj.
-  [[nodiscard]] inline uint64_t get_size(const object_ptr<const Object>& obj)
+  [[nodiscard]] inline auto get_size(const object_ptr<const Object>& obj)
+    -> uint64_t
   {
     if (obj)
       return _get_storage(obj).info_table()->obj_size;

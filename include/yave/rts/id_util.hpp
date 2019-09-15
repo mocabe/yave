@@ -18,8 +18,9 @@ namespace yave {
   namespace detail {
 
     /// read UUID from constexpr char array
-    constexpr std::array<char, 16>
+    [[nodiscard]] constexpr auto
       read_uuid_from_constexpr_string(char const (&str)[37])
+        -> std::array<char, 16>
     {
       // ex) 707186a4-f043-4a08-8223-e03fe9c1b0ea\0
 
@@ -70,8 +71,8 @@ namespace yave {
     // Convert UUID to string.
     // full : n=16
     // short: n=4
-    inline std::string
-      uuid_to_string_impl(const std::array<char, 16>& uuid, size_t n)
+    inline auto uuid_to_string_impl(const std::array<char, 16>& uuid, size_t n)
+      -> std::string
     {
       std::string ret;
 
@@ -100,13 +101,15 @@ namespace yave {
     }
 
     /// Convert UUID to short string
-    inline std::string uuid_to_string_short(const std::array<char, 16>& uuid)
+    [[nodiscard]] inline std::string
+      uuid_to_string_short(const std::array<char, 16>& uuid)
     {
       return uuid_to_string_impl(uuid, 4);
     }
 
     /// Convert full UUID to string
-    inline std::string uuid_to_string_full(const std::array<char, 16>& uuid)
+    [[nodiscard]] inline std::string
+      uuid_to_string_full(const std::array<char, 16>& uuid)
     {
       return uuid_to_string_impl(uuid, 16);
     }
@@ -121,8 +124,8 @@ namespace yave {
     // Convert 64bit ID to string.
     // short: n=4
     // long: n=8
-    inline std::string
-      id_to_string_impl(const std::array<uint8_t, 8>& id, size_t n)
+    inline auto id_to_string_impl(const std::array<uint8_t, 8>& id, size_t n)
+      -> std::string
     {
       auto _toc = [](uint32_t i) -> char {
         if (i >= 10)
@@ -145,13 +148,15 @@ namespace yave {
     }
 
     /// Convert 64bit ID to short string.
-    inline std::string id_to_string_short(const std::array<uint8_t, 8>& id)
+    [[nodiscard]] inline std::string
+      id_to_string_short(const std::array<uint8_t, 8>& id)
     {
       return id_to_string_impl(id, 4);
     }
 
     /// Convert full 64bit ID to string.
-    inline std::string id_to_string_full(const std::array<uint8_t, 8>& id)
+    [[nodiscard]] inline std::string
+      id_to_string_full(const std::array<uint8_t, 8>& id)
     {
       return id_to_string_impl(id, 8);
     }

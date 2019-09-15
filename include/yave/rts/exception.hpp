@@ -48,7 +48,8 @@ namespace yave {
   // helper
 
   template <class T>
-  [[nodiscard]] object_ptr<T> add_exception_tag(object_ptr<T> e) noexcept
+  [[nodiscard]] inline auto add_exception_tag(object_ptr<T> e) noexcept
+    -> object_ptr<T>
   {
     _get_storage(e).set_pointer_tag(
       object_ptr_storage::pointer_tags::exception);
@@ -61,8 +62,9 @@ namespace yave {
     return _get_storage(obj).is_exception();
   }
 
-  [[nodiscard]] inline object_ptr<const Exception>
+  [[nodiscard]] inline auto
     get_tagged_exception(const object_ptr<const Object>& obj) noexcept
+    -> object_ptr<const Exception>
   {
     assert(has_exception_tag(obj));
     return static_object_cast<const Exception>(obj);
@@ -71,8 +73,8 @@ namespace yave {
   // ------------------------------------------
   // conversion
 
-  [[nodiscard]] inline object_ptr<Exception>
-    to_Exception(const std::exception& e)
+  [[nodiscard]] inline auto to_Exception(const std::exception& e)
+    -> object_ptr<Exception>
   {
     return make_object<Exception>(e.what(), object_ptr(nullptr));
   }

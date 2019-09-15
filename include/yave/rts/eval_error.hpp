@@ -79,29 +79,29 @@ namespace yave {
   // ------------------------------------------
   // conversion
 
-  [[nodiscard]] inline object_ptr<Exception>
-    to_Exception(const eval_error::eval_error& e)
+  [[nodiscard]] inline auto to_Exception(const eval_error::eval_error& e)
+    -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(), make_object<EvalError>(eval_error_type::unknown));
   }
 
-  [[nodiscard]] inline object_ptr<Exception>
-    to_Exception(const eval_error::bad_fix& e)
+  [[nodiscard]] inline auto to_Exception(const eval_error::bad_fix& e)
+    -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(), make_object<EvalError>(eval_error_type::bad_fix));
   }
 
-  [[nodiscard]] inline object_ptr<Exception>
-    to_Exception(const eval_error::bad_apply& e)
+  [[nodiscard]] inline auto to_Exception(const eval_error::bad_apply& e)
+    -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(), make_object<EvalError>(eval_error_type::bad_apply));
   }
 
-  [[nodiscard]] inline object_ptr<Exception>
-    to_Exception(const eval_error::too_many_arguments& e)
+  [[nodiscard]] inline auto to_Exception(const eval_error::too_many_arguments& e)
+      -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(), make_object<EvalError>(eval_error_type::too_may_arguments));

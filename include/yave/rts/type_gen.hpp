@@ -74,7 +74,7 @@ namespace yave {
 
     /// get buffer for value type
     template <class T>
-    constexpr const std::array<char, 16> value_type_uuid()
+    constexpr auto value_type_uuid() -> std::array<char, 16>
     {
       return detail::read_uuid_from_constexpr_string(
         object_type_traits<typename decltype(type_c<T>.tag())::type>::uuid);
@@ -82,7 +82,7 @@ namespace yave {
 
     /// get friendly name of value type.
     template <class T>
-    constexpr const char* value_type_name()
+    constexpr auto value_type_name() -> const char*
     {
       return object_type_traits<typename decltype(type_c<T>.tag())::type>::name;
     }
@@ -178,7 +178,7 @@ namespace yave {
 
   /// object type generator
   template <class T>
-  [[nodiscard]] object_ptr<const Type> object_type()
+  [[nodiscard]] auto object_type() -> object_ptr<const Type>
   {
     constexpr auto spec = normalize_specifier(type_c<T>);
     constexpr auto tp   = get_proxy_type(spec);
@@ -192,7 +192,7 @@ namespace yave {
   // guess_object_type
 
   template <class T, class... Ts>
-  constexpr auto guess_object_type_closure(
+  [[nodiscard]] constexpr auto guess_object_type_closure(
     meta_type<T> type,
     meta_type<ClosureProxy<Ts...>> result)
   {
@@ -207,7 +207,7 @@ namespace yave {
   /// Guess C++ type of a type.
   /// Unknown types will be converted into proxy.
   template <class T>
-  constexpr auto guess_object_type(meta_type<T> type)
+  [[nodiscard]] constexpr auto guess_object_type(meta_type<T> type)
   {
     if constexpr (is_arrow_type(type)) {
       return guess_object_type_closure(type, type_c<ClosureProxy<>>);

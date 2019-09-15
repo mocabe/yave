@@ -18,7 +18,7 @@ namespace yave {
   /// \notes Reference count of new object will be set to 1.
   /// \requires not null.
   template <class T>
-  [[nodiscard]] object_ptr<T> clone(const object_ptr<T>& obj)
+  [[nodiscard]] auto clone(const object_ptr<T>& obj) -> object_ptr<T>
   {
     assert(obj);
 

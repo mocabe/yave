@@ -94,11 +94,11 @@ namespace yave {
   template <class T1, class T2>
   struct meta_type<arrow<T1, T2>>
   {
-    constexpr auto t1() const
+    [[nodiscard]] constexpr auto t1() const
     {
       return type_c<T1>;
     }
-    constexpr auto t2() const
+    [[nodiscard]] constexpr auto t2() const
     {
       return type_c<T2>;
     }
@@ -113,11 +113,11 @@ namespace yave {
   template <class T1, class T2>
   struct meta_type<tyarrow<T1, T2>>
   {
-    constexpr auto t1() const
+    [[nodiscard]] constexpr auto t1() const
     {
       return type_c<T1>;
     }
-    constexpr auto t2() const
+    [[nodiscard]] constexpr auto t2() const
     {
       return type_c<T2>;
     }
@@ -132,7 +132,7 @@ namespace yave {
   template <class Tag>
   struct meta_type<value<Tag>>
   {
-    constexpr auto tag() const
+    [[nodiscard]] constexpr auto tag() const
     {
       return type_c<Tag>;
     }
@@ -147,7 +147,7 @@ namespace yave {
   template <class Tag>
   struct meta_type<var<Tag>>
   {
-    constexpr auto tag() const
+    [[nodiscard]] constexpr auto tag() const
     {
       return type_c<Tag>;
     }
@@ -162,7 +162,7 @@ namespace yave {
   template <class Tag>
   struct meta_type<varvalue<Tag>>
   {
-    constexpr auto tag() const
+    [[nodiscard]] constexpr auto tag() const
     {
       return type_c<Tag>;
     }
@@ -177,7 +177,7 @@ namespace yave {
   template <class Tag>
   struct meta_type<error_type<Tag>>
   {
-    constexpr auto tag() const
+    [[nodiscard]] constexpr auto tag() const
     {
       return type_c<Tag>;
     }

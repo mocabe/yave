@@ -51,19 +51,19 @@ namespace yave {
     mutable uint64_t arity;
 
     /// Get number of args
-    auto n_args() const noexcept
+    [[nodiscard]] auto n_args() const noexcept
     {
       return static_cast<const closure_info_table*>(info_table)->n_args;
     }
 
     /// PAP?
-    bool is_pap() const noexcept
+    [[nodiscard]] bool is_pap() const noexcept
     {
       return n_args() != arity;
     }
 
     /// get nth vertebrae
-    auto& vertebrae(uint64_t n) const noexcept
+    [[nodiscard]] auto& vertebrae(uint64_t n) const noexcept
     {
       using arg_type = typename decltype(Closure1::spine)::value_type;
       // offset to first element of argument buffer
@@ -74,14 +74,14 @@ namespace yave {
     }
 
     /// get nth argument
-    const auto& arg(uint64_t n) const noexcept
+    [[nodiscard]] auto arg(uint64_t n) const noexcept -> const auto&
     {
       return _get_storage(*vertebrae(n)).arg();
     }
 
   public: /* can modify mutable members */
     /// Execute core with vtable function
-    auto call() const noexcept
+    [[nodiscard]] auto call() const noexcept
     {
       return static_cast<const closure_info_table*>(info_table)->code(this);
     }
@@ -99,7 +99,7 @@ namespace yave {
   {
     /// get raw arg
     template <uint64_t Arg>
-    auto nth_arg() const noexcept
+    [[nodiscard]] auto nth_arg() const noexcept
     {
       static_assert(offset_of_member(&Closure<>::arity) == sizeof(Object));
       static_assert(offset_of_member(&ClosureN::spine) == sizeof(Closure<>));

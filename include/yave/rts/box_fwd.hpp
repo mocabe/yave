@@ -42,7 +42,7 @@ namespace yave {
 
   // forward decl
   template <class T>
-  object_ptr<const Type> object_type();
+  auto object_type() -> object_ptr<const Type>;
 
   /// \brief vtable function to delete object
   ///
@@ -64,7 +64,7 @@ namespace yave {
   /// \returns pointer to generated object.
   /// \notes return nullptr when allocation/initialization failed.
   template <class T>
-  Object *vtbl_clone_func(const Object *obj) noexcept
+  auto vtbl_clone_func(const Object *obj) noexcept -> Object *
   {
     try {
       auto p = static_cast<const T *>(obj);
@@ -164,13 +164,13 @@ namespace yave {
     }
 
     /// value getter
-    value_type &value() noexcept
+    auto value() noexcept -> value_type &
     {
       return m_value;
     }
 
     /// value getter
-    const value_type &value() const noexcept
+    auto value() const noexcept -> const value_type &
     {
       return m_value;
     }

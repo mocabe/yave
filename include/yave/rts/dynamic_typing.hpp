@@ -20,11 +20,11 @@ namespace yave {
 
   // fwd
   template <class T, class U>
-  [[nodiscard]] object_ptr<propagate_const_t<T, U>>
-    value_cast_if(const object_ptr<U>& obj) noexcept;
+  [[nodiscard]] auto value_cast_if(const object_ptr<U>& obj) noexcept
+    -> object_ptr<propagate_const_t<T, U>>;
   template <class T, class U>
-  [[nodiscard]] object_ptr<propagate_const_t<T, U>>
-    value_cast_if(object_ptr<U>&& obj) noexcept;
+  [[nodiscard]] auto value_cast_if(object_ptr<U>&& obj) noexcept
+    -> object_ptr<propagate_const_t<T, U>>;
 
   // ------------------------------------------
   // Utils

@@ -35,7 +35,7 @@ namespace yave {
       }
 
       /// exception
-      [[nodiscard]] const object_ptr<const Exception>& exception() const
+      [[nodiscard]] auto exception() const -> const object_ptr<const Exception>&
       {
         return m_exception;
       }
@@ -49,15 +49,16 @@ namespace yave {
   // ------------------------------------------
   // conversion
 
-  [[nodiscard]] inline object_ptr<const Exception>
+  [[nodiscard]] inline auto
     to_Exception(const result_error::exception_result& e)
+      -> object_ptr<const Exception>
   {
     // forward
     return e.exception();
   }
 
-  [[nodiscard]] inline object_ptr<const Exception>
-    to_Exception(const result_error::result_error& e)
+  [[nodiscard]] inline auto to_Exception(const result_error::result_error& e)
+    -> object_ptr<const Exception>
   {
     return make_object<Exception>(
       make_object<String>(e.what()), make_object<String>(""));

@@ -46,7 +46,7 @@ namespace yave {
   };
 
   /// to_string
-  [[nodiscard]] inline std::string to_string(const value_type& v)
+  [[nodiscard]] inline auto to_string(const value_type& v) -> std::string
   {
     std::string ret;
 
@@ -76,7 +76,7 @@ namespace yave {
     /// unique id for VarTpye object
     uint64_t id;
 
-    [[nodiscard]] static var_type random_generate()
+    [[nodiscard]] static auto random_generate() -> var_type
     {
       // MinGW workaround: use <chrono> instead of random_device.
       static std::mt19937_64 mt(
@@ -85,7 +85,7 @@ namespace yave {
     }
   };
 
-  [[nodiscard]] inline std::string to_string(const var_type& v)
+  [[nodiscard]] inline auto to_string(const var_type& v) -> std::string
   {
     std::array<uint8_t, 8> buff;
     std::memcpy(&buff, &v.id, 8);
@@ -146,7 +146,7 @@ namespace yave {
     }
 
     template <class T>
-    [[nodiscard]] static constexpr uint64_t type_index()
+    [[nodiscard]] static constexpr auto type_index() -> uint64_t
     {
       if constexpr (std::is_same_v<std::decay_t<T>, value_type>) {
         return value_index;
@@ -183,10 +183,14 @@ namespace yave {
   /// Base class for TypeValue
   class type_value : type_value_storage
   {
-    friend const type_value_storage& _get_storage(const type_value&) noexcept;
-    friend type_value_storage& _get_storage(type_value&) noexcept;
-    friend const type_value_storage&& _get_storage(const type_value&&) noexcept;
-    friend type_value_storage&& _get_storage(type_value&&) noexcept;
+    friend auto _get_storage(const type_value&) noexcept //
+      -> const type_value_storage&;
+    friend auto _get_storage(type_value&) noexcept //
+      -> type_value_storage&;
+    friend auto _get_storage(const type_value&&) noexcept //
+      -> const type_value_storage&&;
+    friend auto _get_storage(type_value&&) noexcept //
+      -> type_value_storage&&;
 
     using base = type_value_storage;
 
@@ -218,25 +222,26 @@ namespace yave {
   // ------------------------------------------
   // _get_storage
 
-  [[nodiscard]] inline const type_value_storage&
-    _get_storage(const type_value& v) noexcept
+  [[nodiscard]] inline auto _get_storage(const type_value& v) noexcept
+    -> const type_value_storage&
   {
     return v;
   }
 
-  [[nodiscard]] inline type_value_storage& _get_storage(type_value& v) noexcept
+  [[nodiscard]] inline auto _get_storage(type_value& v) noexcept
+    -> type_value_storage&
   {
     return v;
   }
 
-  [[nodiscard]] inline const type_value_storage&&
-    _get_storage(const type_value&& v) noexcept
+  [[nodiscard]] inline auto _get_storage(const type_value&& v) noexcept
+    -> const type_value_storage&&
   {
     return std::move(v);
   }
 
-  [[nodiscard]] inline type_value_storage&&
-    _get_storage(type_value&& v) noexcept
+  [[nodiscard]] inline auto _get_storage(type_value&& v) noexcept
+    -> type_value_storage&&
   {
     return std::move(v);
   }
@@ -250,7 +255,7 @@ namespace yave {
     std::enable_if_t<
       std::is_same_v<std::decay_t<T>, type_value_storage>,
       nullptr_t>* = nullptr>
-  [[nodiscard]] constexpr decltype(auto) _access(T&& v) noexcept
+  [[nodiscard]] constexpr auto _access(T&& v) noexcept -> decltype(auto)
   {
     if constexpr (Idx == type_value_storage::value_index) {
       auto&& ref = std::forward<T>(v).value;
@@ -272,7 +277,7 @@ namespace yave {
     std::enable_if_t<
       std::is_same_v<std::decay_t<T>, type_value_storage>,
       nullptr_t>* = nullptr>
-  [[nodiscard]] constexpr decltype(auto) _get(T&& v)
+  [[nodiscard]] constexpr auto _get(T&& v) -> decltype(auto)
   {
     if (v.index != Idx)
       throw std::bad_cast();
@@ -316,8 +321,8 @@ namespace yave {
 
   /// std::get_if() equivalent
   template <class T>
-  [[nodiscard]] constexpr std::add_pointer_t<const T>
-    get_if(const type_value* val) noexcept
+  [[nodiscard]] constexpr auto get_if(const type_value* val) noexcept
+    -> std::add_pointer_t<const T>
   {
     constexpr auto Idx = type_value_storage::type_index<T>();
     if (val && Idx == _get_storage(*val).index)
@@ -327,7 +332,8 @@ namespace yave {
 
   /// std::get_if() equivalent
   template <class T>
-  [[nodiscard]] constexpr std::add_pointer_t<T> get_if(type_value* val) noexcept
+  [[nodiscard]] constexpr auto get_if(type_value* val) noexcept
+    -> std::add_pointer_t<T>
   {
     constexpr auto Idx = type_value_storage::type_index<T>();
     if (val && Idx == _get_storage(*val).index)

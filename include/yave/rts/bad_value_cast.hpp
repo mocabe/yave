@@ -23,13 +23,13 @@ namespace yave {
     }
 
     /// get from
-    [[nodiscard]] const object_ptr<const Type>& from() const
+    [[nodiscard]] auto from() const -> const object_ptr<const Type>&
     {
       return m_from;
     }
 
     /// get to
-    [[nodiscard]] const object_ptr<const Type>& to() const
+    [[nodiscard]] auto to() const -> const object_ptr<const Type>&
     {
       return m_to;
     }
