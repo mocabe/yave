@@ -201,12 +201,28 @@ namespace yave {
           throw std::runtime_error("Failed to connect nodes");
       }
 
-      // sublayer connection
-      {
-        rebuild_sublayer_connections();
-
-        if (is_image_layer())
+      // image layer: connect empty fb to image out
+      if (is_image_layer()) {
           assert(m_c_sublayers.empty());
+
+        auto io = get_node_info<node::LayerImageOutput>();
+        auto fb = get_node_info<node::FrameBuffer>();
+
+        auto c = m_graph.connect(
+          m_empty_fb.get(),
+          fb.output_sockets()[0],
+          m_image_output.get(),
+          io.input_sockets()[0]);
+
+        if (!c)
+          throw std::runtime_error("Failed to initialize empty image layer");
+
+        m_c_resources.push_back(c);
+      }
+
+      // compos layer: sublayer connection
+      if (is_compos_layer()) {
+        rebuild_sublayer_connections();
       }
 
       // set visible resources
@@ -232,9 +248,15 @@ namespace yave {
         m_graph.disconnect(m_c_visibility_if);
         m_graph.disconnect(m_c_func_if);
         m_graph.disconnect(m_c_dst_if);
+
+        // disconnect sublayers
         for (auto&& c : m_c_sublayers) {
           m_graph.disconnect(c);
         }
+        // disconnect per-layer resource connections
+        for (auto&& c : m_c_resources) {
+          m_graph.disconnect(c);
+      }
       }
 
       // No need to remove shared resources
@@ -576,8 +598,8 @@ namespace yave {
     connection_handle m_c_dst_if;
     connection_handle m_c_frame_visibility;
     std::vector<connection_handle> m_c_sublayers;
+    std::vector<connection_handle> m_c_resources;
 
-  private:
   private:
     /// list of owning resources which is visible from user side
     std::vector<shared_layer_resource_handle> m_resources;
