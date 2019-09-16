@@ -41,8 +41,7 @@ namespace yave {
 
           // create new apply node
           object_ptr<const Object> new_app = make_object<Apply>(
-            copy_apply_graph(apply_storage.app()),
-            copy_apply_graph(apply_storage.arg()));
+            rec(apply_storage.app(), map), rec(apply_storage.arg(), map));
 
           map.emplace(apply, new_app);
           return new_app;

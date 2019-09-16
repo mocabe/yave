@@ -269,7 +269,8 @@ TEST_CASE("copy_apply_graph", "[rts][eval]")
   auto f2 = make_object<F>();
   auto i  = make_object<Int>();
 
-  auto app = f1 << (f2 << i << i) << i;
+  auto sub = f2 << i << i;
+  auto app = f1 << (f2 << sub << i) << (f2 << sub << i);
 
   SECTION("")
   {
@@ -279,7 +280,7 @@ TEST_CASE("copy_apply_graph", "[rts][eval]")
     {
       REQUIRE_NOTHROW(type_of(app));
       REQUIRE_NOTHROW(eval(app));
-      REQUIRE(count == 2);
+      REQUIRE(count == 4);
     }
 
     SECTION("copy before eval")
@@ -288,9 +289,9 @@ TEST_CASE("copy_apply_graph", "[rts][eval]")
       REQUIRE_NOTHROW(type_of(copy));
       REQUIRE_NOTHROW(eval(app));
       REQUIRE_NOTHROW(eval(copy));
-      REQUIRE(count == 4);
+      REQUIRE(count == 8);
       REQUIRE_NOTHROW(eval(copy));
-      REQUIRE(count == 4);
+      REQUIRE(count == 8);
     }
 
     SECTION("copy after eval")
@@ -298,7 +299,7 @@ TEST_CASE("copy_apply_graph", "[rts][eval]")
       REQUIRE_NOTHROW(eval(app));
       auto copy = copy_apply_graph(app);
       REQUIRE_NOTHROW(copy);
-      REQUIRE(count == 2);
+      REQUIRE(count == 4);
     }
   }
 }
