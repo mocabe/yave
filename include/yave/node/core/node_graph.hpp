@@ -372,37 +372,3 @@ namespace yave {
   }
 
 } // namespace yave
-
-namespace yave {
-
-  struct NodesDiff
-  {
-    /// not changed
-    std::vector<node_handle> not_changed;
-    /// removed
-    std::vector<node_handle> removed;
-    /// added
-    std::vector<node_handle> added;
-  };
-
-  struct ConnectionsDiff
-  {
-    /// not changed
-    std::vector<connection_handle> not_changed;
-    /// removed
-    std::vector<connection_handle> removed;
-    /// added
-    std::vector<connection_handle> added;
-  };
-
-  /// Calculate diff
-  [[nodiscard]] NodesDiff nodes_diff(
-    const std::vector<node_handle>& prev_nodes,
-    const std::vector<node_handle>& nodes);
-
-  /// Calculate diff
-  [[nodiscard]] ConnectionsDiff connections_diff(
-    const std::vector<connection_handle>& prev_connections,
-    const std::vector<connection_handle>& connections);
-
-} // namespace yave
