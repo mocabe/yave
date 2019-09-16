@@ -13,9 +13,9 @@ namespace yave {
   struct frame
   {
     /// Time point of frame
-    yave::time time;
-    /// Lendth of current frame
-    yave::time length;
+    yave::time time_point;
+    /// Duration of current frame
+    yave::time duration;
   };
 
 } // namespace yave
