@@ -178,7 +178,7 @@ namespace yave {
 
   /// object type generator
   template <class T>
-  [[nodiscard]] auto object_type() -> object_ptr<const Type>
+  [[nodiscard]] auto object_type() noexcept -> object_ptr<const Type>
   {
     constexpr auto spec = normalize_specifier(type_c<T>);
     constexpr auto tp   = get_proxy_type(spec);

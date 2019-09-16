@@ -42,7 +42,7 @@ namespace yave {
 
   // forward decl
   template <class T>
-  auto object_type() -> object_ptr<const Type>;
+  [[nodiscard]] auto object_type() noexcept -> object_ptr<const Type>;
 
   /// \brief vtable function to delete object
   ///
