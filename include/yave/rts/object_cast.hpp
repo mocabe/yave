@@ -11,7 +11,8 @@ namespace yave {
 
   /// static object cast (possibly unsafe)
   template <class T, class U>
-  [[nodiscard]] auto static_object_cast(const object_ptr<U>& o) -> object_ptr<T>
+  [[nodiscard]] auto static_object_cast(const object_ptr<U>& o) noexcept
+    -> object_ptr<T>
   {
     // add refcount
     if (likely(o && !o.is_static()))
@@ -32,7 +33,8 @@ namespace yave {
 
   /// static object cast (possibly unsafe)
   template <class T, class U>
-  [[nodiscard]] auto static_object_cast(object_ptr<U>&& o) -> object_ptr<T>
+  [[nodiscard]] auto static_object_cast(object_ptr<U>&& o) noexcept
+    -> object_ptr<T>
   {
     static_assert(
       std::is_base_of_v<T, U> || // upcast
