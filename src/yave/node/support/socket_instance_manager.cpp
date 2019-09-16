@@ -34,6 +34,7 @@ namespace yave {
     : m_map {other.m_map}
     , m_mtx {}
   {
+    auto lck = other._lock();
   }
 
   socket_instance_manager::socket_instance_manager(
@@ -41,11 +42,15 @@ namespace yave {
     : m_map {std::move(other.m_map)}
     , m_mtx {}
   {
+    auto lck = other._lock();
   }
 
   socket_instance_manager& socket_instance_manager::
     operator=(const socket_instance_manager& other)
   {
+    auto lck1 = _lock();
+    auto lck2 = other._lock();
+
     m_map = other.m_map;
     return *this;
   }
@@ -53,14 +58,18 @@ namespace yave {
   socket_instance_manager& socket_instance_manager::
     operator=(socket_instance_manager&& other)
   {
+    auto lck1 = _lock();
+    auto lck2 = other._lock();
+
     m_map = std::move(other.m_map);
     return *this;
   }
 
-  std::optional<socket_instance> socket_instance_manager::find(
-    const uid& id,
-    const std::string& socket) const
+  auto socket_instance_manager::find(const uid& id, const std::string& socket)
+    const -> std::optional<socket_instance>
   {
+    auto lck = _lock();
+
     auto [bgn, end] = m_map.equal_range(id);
     for (auto iter = bgn; iter != end; ++iter) {
       if (iter->second.socket == socket)
@@ -74,6 +83,8 @@ namespace yave {
     const std::string& socket,
     const socket_instance& socket_instance)
   {
+    auto lck = _lock();
+
     auto [bgn, end] = m_map.equal_range(id);
     for (auto iter = bgn; iter != end; ++iter) {
       if (iter->second.socket == socket) {
@@ -86,6 +97,8 @@ namespace yave {
 
   void socket_instance_manager::remove(const uid& id, const std::string& socket)
   {
+    auto lck = _lock();
+
     auto [bgn, end] = m_map.equal_range(id);
 
     auto iter = bgn;
@@ -99,23 +112,28 @@ namespace yave {
 
   void socket_instance_manager::remove(const uid& id)
   {
+    auto lck = _lock();
+
     auto [bgn, end] = m_map.equal_range(id);
     auto iter       = bgn;
     while (iter != end) m_map.erase(iter++);
   }
 
-  std::unique_lock<std::mutex> socket_instance_manager::lock() const
-  {
-    return std::unique_lock(m_mtx);
-  }
-
   void socket_instance_manager::clear()
   {
+    auto lck = _lock();
     m_map.clear();
   }
 
   size_t socket_instance_manager::size() const
   {
+    auto lck = _lock();
     return m_map.size();
   }
+
+  auto socket_instance_manager::_lock() const -> std::unique_lock<std::mutex>
+  {
+    return std::unique_lock(m_mtx);
+  }
+
 } // namespace yave

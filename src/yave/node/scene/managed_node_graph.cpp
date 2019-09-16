@@ -32,8 +32,6 @@ namespace yave {
     : m_ng {}
     , m_nim {}
   {
-    auto lck2 = other.m_nim.lock();
-
     auto ng  = other.m_ng;
     auto nim = other.m_nim;
 
@@ -45,8 +43,6 @@ namespace yave {
     : m_ng {}
     , m_nim {}
   {
-    auto lck2 = other.m_nim.lock();
-
     m_ng  = std::move(other.m_ng);
     m_nim = std::move(other.m_nim);
   }
@@ -58,8 +54,6 @@ namespace yave {
   managed_node_graph& managed_node_graph::operator=(
     const managed_node_graph& other)
   {
-    auto lck2 = other.m_nim.lock();
-
     m_ng  = other.m_ng;
     m_nim = other.m_nim;
 
@@ -69,8 +63,6 @@ namespace yave {
   managed_node_graph& managed_node_graph::operator=(
     managed_node_graph&& other) noexcept
   {
-    auto lck2 = other.m_nim.lock();
-
     m_ng  = std::move(other.m_ng);
     m_nim = std::move(other.m_nim);
 
@@ -81,21 +73,17 @@ namespace yave {
 
   bool managed_node_graph::register_node_info(const node_info& info)
   {
-    auto lck = m_nim.lock();
     return m_nim.add(info);
   }
 
   void managed_node_graph::unregister_node_info(const node_info& info)
   {
-    auto lck = m_nim.lock();
     return m_nim.remove(info);
   }
 
   bool managed_node_graph::register_node_info(
     const std::vector<node_info>& info)
   {
-    auto lck = m_nim.lock();
-
     std::vector<const node_info*> added;
 
     bool succ = [&] {
@@ -122,8 +110,6 @@ namespace yave {
   void managed_node_graph::unregister_node_info(
     const std::vector<node_info>& info)
   {
-    auto lck = m_nim.lock();
-
     for (auto&& i : info) {
       m_nim.remove(i);
     }
@@ -144,8 +130,6 @@ namespace yave {
 
   auto managed_node_graph::create(const std::string& name) -> node_handle
   {
-    auto lck1 = m_nim.lock();
-
     auto info = m_nim.find(name);
 
     if (!info)
@@ -279,8 +263,6 @@ namespace yave {
 
   void managed_node_graph::clear()
   {
-    auto lck2 = m_nim.lock();
-
     m_ng.clear();
     m_nim.clear();
   }

@@ -46,6 +46,39 @@ namespace yave {
     /// Add info
     [[nodiscard]] bool add(const bind_info& info);
 
+    /// Get list of info
+    [[nodiscard]] auto enumerate()
+      -> std::vector<std::shared_ptr<const info_type>>;
+
+    /// Find info
+    [[nodiscard]] auto find(const std::string& name) const
+      -> std::vector<std::shared_ptr<const info_type>>;
+
+    /// Find info
+    [[nodiscard]] auto find(
+      const std::string& name,
+      const std::vector<std::string>& input,
+      const std::string& output) const
+      -> std::vector<std::shared_ptr<const info_type>>;
+
+    /// Find info
+    [[nodiscard]] auto find(const bind_info& info) const
+      -> std::vector<std::shared_ptr<const info_type>>;
+
+    /// Find matched info
+    [[nodiscard]] auto get_binds(const node_info& info) const
+      -> std::vector<std::shared_ptr<const info_type>>;
+
+    /// Find matched info
+    [[nodiscard]] auto get_binds(
+      const std::string& name,
+      const std::vector<std::string>& input_sockets,
+      const std::vector<std::string>& output_sockets) const
+      -> std::vector<std::shared_ptr<const info_type>>;
+
+    /// Remove info
+    void remove(const bind_info& info);
+
     /// Remove info
     void remove(const std::string& name);
 
@@ -55,41 +88,12 @@ namespace yave {
       const std::vector<std::string>& input_sockets,
       const std::string& output_socket);
 
-    /// Remove info
-    void remove(const bind_info& info);
-
-    /// Get list of info
-    [[nodiscard]] std::vector<std::shared_ptr<const info_type>> enumerate();
-
-    /// Find info
-    [[nodiscard]] std::vector<std::shared_ptr<const info_type>>
-      find(const std::string& name) const;
-
-    /// Find info
-    [[nodiscard]] std::vector<std::shared_ptr<const info_type>> find(
-      const std::string& name,
-      const std::vector<std::string>& input,
-      const std::string& output) const;
-
-    /// Find info
-    [[nodiscard]] std::vector<std::shared_ptr<const info_type>>
-      find(const bind_info& info) const;
-
-    /// Find matched info
-    [[nodiscard]] std::vector<std::shared_ptr<const info_type>>
-      get_binds(const node_info& info) const;
-
-    /// Find matched info
-    [[nodiscard]] std::vector<std::shared_ptr<const info_type>> get_binds(
-      const std::string& name,
-      const std::vector<std::string>& input_sockets,
-      const std::vector<std::string>& output_sockets) const;
-
-    /// Lock
-    [[nodiscard]] std::unique_lock<std::mutex> lock() const;
-
     /// Clear
     void clear();
+
+  private:
+    /// Lock
+    [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
 
   private:
     /// map

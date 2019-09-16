@@ -45,29 +45,39 @@ namespace yave {
     : m_info {other.m_info}
     , m_mtx {}
   {
+    auto lck = other._lock();
   }
 
   node_info_manager::node_info_manager(node_info_manager&& other)
     : m_info {std::move(other.m_info)}
     , m_mtx {}
   {
+    auto lck = other._lock();
   }
 
   node_info_manager& node_info_manager::
     operator=(const node_info_manager& other)
   {
+    auto lck1 = _lock();
+    auto lck2 = other._lock();
+    
     m_info = other.m_info;
     return *this;
   }
 
   node_info_manager& node_info_manager::operator=(node_info_manager&& other)
   {
+    auto lck1 = _lock();
+    auto lck2 = other._lock();
+
     m_info = std::move(other.m_info);
     return *this;
   }
 
   bool node_info_manager::add(const info_type& info)
   {
+    auto lck = _lock();
+
     auto [it, succ] =
       m_info.emplace(info.name(), std::make_shared<info_type>(info));
 
@@ -101,6 +111,8 @@ namespace yave {
 
   void node_info_manager::remove(const std::string& name)
   {
+    auto lck = _lock();
+
     // find
     auto it = m_info.find(name);
     // not found
@@ -114,6 +126,8 @@ namespace yave {
 
   void node_info_manager::remove(const node_info& info)
   {
+    auto lck = _lock();
+
     auto iter = m_info.begin();
     auto end  = m_info.end();
     while (iter != end) {
@@ -127,12 +141,15 @@ namespace yave {
 
   bool node_info_manager::exists(const std::string& name) const
   {
+    auto lck = _lock();
     return m_info.find(name) != m_info.end();
   }
 
-  std::vector<std::shared_ptr<const node_info_manager::info_type>>
-    node_info_manager::enumerate()
+  auto node_info_manager::enumerate()
+    -> std::vector<std::shared_ptr<const info_type>>
   {
+    auto lck = _lock();
+
     std::vector<std::shared_ptr<const info_type>> ret;
     for (auto&& [name, ptr] : m_info) {
       assert(name == ptr->name());
@@ -141,23 +158,26 @@ namespace yave {
     return ret;
   }
 
-  std::shared_ptr<const node_info_manager::info_type>
-    node_info_manager::find(const std::string& name) const
+  auto node_info_manager::find(const std::string& name) const
+    -> std::shared_ptr<const info_type>
   {
+    auto lck = _lock();
+
     auto iter = m_info.find(name);
     if (iter == m_info.end())
       return nullptr;
     return iter->second;
   }
 
-  std::unique_lock<std::mutex> node_info_manager::lock() const
-  {
-    return std::unique_lock(m_mtx);
-  }
-
   void node_info_manager::clear()
   {
+    auto lck = _lock();
     m_info.clear();
+  }
+
+  auto node_info_manager::_lock() const -> std::unique_lock<std::mutex>
+  {
+    return std::unique_lock(m_mtx);
   }
 
 } // namespace yave

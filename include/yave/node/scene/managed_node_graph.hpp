@@ -33,11 +33,13 @@ namespace yave {
   public:
     /// register new node info
     [[nodiscard]] bool register_node_info(const node_info& info);
-    /// unregister node info
-    void unregister_node_info(const node_info& info);
 
     /// register new node info
     [[nodiscard]] bool register_node_info(const std::vector<node_info>& info);
+
+    /// unregister node info
+    void unregister_node_info(const node_info& info);
+
     /// unregister node info
     void unregister_node_info(const std::vector<node_info>& info);
 
@@ -53,10 +55,7 @@ namespace yave {
 
     /// create new node
     [[nodiscard]] auto create_shared(const std::string& name)
-
       -> shared_node_handle;
-    /// destroy node
-    void destroy(const node_handle& handle);
 
     /// connect sockets
     [[nodiscard]] auto connect(
@@ -65,17 +64,23 @@ namespace yave {
       const node_handle& dst_n,
       const std::string& dst_s) -> connection_handle;
 
+    /// destroy node
+    void destroy(const node_handle& handle);
+
     /// disconnect sockets
     void disconnect(const connection_handle& handle);
 
   public:
     /// list nodes
     [[nodiscard]] auto nodes() const -> std::vector<node_handle>;
+
     /// list connections
     [[nodiscard]] auto connections() const -> std::vector<connection_handle>;
+
     /// list connections
     [[nodiscard]] auto connections(const node_handle& node) const
       -> std::vector<connection_handle>;
+
     /// list connections
     [[nodiscard]] auto connections(
       const node_handle& node,
@@ -84,9 +89,11 @@ namespace yave {
     /// list input connections
     [[nodiscard]] auto input_connections() const
       -> std::vector<connection_handle>;
+
     /// list input connections
     [[nodiscard]] auto input_connections(const node_handle& node) const
       -> std::vector<connection_handle>;
+
     /// list input connections
     [[nodiscard]] auto input_connections(
       const node_handle& node,
@@ -95,9 +102,11 @@ namespace yave {
     /// list input connections
     [[nodiscard]] auto output_connections() const
       -> std::vector<connection_handle>;
+
     /// list input connections
     [[nodiscard]] auto output_connections(const node_handle& node) const
       -> std::vector<connection_handle>;
+
     /// list input connections
     [[nodiscard]] auto output_connections(
       const node_handle& node,
@@ -120,11 +129,11 @@ namespace yave {
       const node_handle& node,
       const primitive_t& prim);
 
-    /// clear
-    void clear();
-
     /// Get node graph copy
     [[nodiscard]] auto get_node_graph() const -> const node_graph&;
+
+    /// clear
+    void clear();
 
   private:
     node_graph m_ng;

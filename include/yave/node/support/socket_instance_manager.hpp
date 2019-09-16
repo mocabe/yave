@@ -41,8 +41,11 @@ namespace yave {
     socket_instance_manager& operator=(socket_instance_manager&& other);
 
     /// find instance
-    std::optional<socket_instance>
-      find(const uid& id, const std::string& socket) const;
+    auto find(const uid& id, const std::string& socket) const
+      -> std::optional<socket_instance>;
+
+    /// size
+    auto size() const -> size_t;
 
     /// add instance
     void add(
@@ -56,14 +59,12 @@ namespace yave {
     /// remove instances
     void remove(const uid& id);
 
-    /// lock
-    [[nodiscard]] std::unique_lock<std::mutex> lock() const;
-
     /// clear
     void clear();
 
-    /// size
-    size_t size() const;
+  private:
+    /// lock
+    [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
 
   private:
     struct instanceTable

@@ -44,6 +44,17 @@ namespace yave {
     /// Add info.
     [[nodiscard]] bool add(const info_type& info);
 
+    /// Check if the info exists.
+    [[nodiscard]] bool exists(const std::string& name) const;
+
+    /// Get list of info.
+    [[nodiscard]] auto enumerate()
+      -> std::vector<std::shared_ptr<const info_type>>;
+
+    /// Find info.
+    [[nodiscard]] auto find(const std::string& name) const
+      -> std::shared_ptr<const info_type>;
+
     /// Remove info.
     void remove(const std::string& name);
 
@@ -53,21 +64,12 @@ namespace yave {
     /// Remove info.
     void remove(const node_info& info);
 
-    /// Check if the info exists.
-    [[nodiscard]] bool exists(const std::string& name) const;
-
-    /// Get list of info.
-    [[nodiscard]] std::vector<std::shared_ptr<const info_type>> enumerate();
-
-    /// Find info.
-    [[nodiscard]] std::shared_ptr<const info_type>
-      find(const std::string& name) const;
-
-    /// Lock
-    [[nodiscard]] std::unique_lock<std::mutex> lock() const;
-
     /// Clear
     void clear();
+
+  private:
+    /// Lock
+    [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
 
   private:
     /// map
