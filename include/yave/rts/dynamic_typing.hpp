@@ -92,10 +92,10 @@ namespace yave {
         } else
           v.push_back(t);
       }
-    } _impl;
+    } impl;
 
     std::vector<object_ptr<const Type>> ret;
-    _impl.rec(tp, ret);
+    impl.rec(tp, ret);
     return ret;
   }
 
@@ -115,9 +115,6 @@ namespace yave {
   [[nodiscard]] inline auto copy_type(const object_ptr<const Type>& tp)
     -> object_ptr<const Type>
   {
-    if (!tp)
-      return tp;
-
     struct
     {
       auto rec(const object_ptr<const Type>& t) -> object_ptr<const Type>
@@ -134,9 +131,12 @@ namespace yave {
         }
         unreachable();
       }
-    } _impl;
+    } impl;
 
-    return _impl.rec(tp);
+    if (!tp)
+      return tp;
+
+    return impl.rec(tp);
   }
 
   /// check type equality
@@ -181,9 +181,9 @@ namespace yave {
         }
         unreachable();
       }
-    } _impl;
+    } impl;
 
-    return _impl.rec(lhs, rhs);
+    return impl.rec(lhs, rhs);
   }
 
   /// emulate type-substitution
@@ -219,9 +219,9 @@ namespace yave {
         }
         unreachable();
       }
-    } _impl;
+    } impl;
 
-    return _impl.rec(ta, in);
+    return impl.rec(ta, in);
   }
 
   /// apply all substitution
@@ -290,55 +290,46 @@ namespace yave {
   /// \param cs Type constraints
   /// \param src Source node (for error handling)
   [[nodiscard]] inline auto unify(
-    const std::vector<Constr>& cs,
+    const std::vector<Constr>& constrs,
     const object_ptr<const Object>& src) -> std::vector<TyArrow>
   {
-    struct
-    {
-      void operator()(
-        std::vector<Constr>& cs,
-        std::vector<TyArrow>& ta,
-        const object_ptr<const Object>& src)
-      {
-        while (!cs.empty()) {
-          auto c = cs.back();
-          cs.pop_back();
-          if (same_type(c.t1, c.t2))
-            continue;
-          if (is_var_type(c.t2)) {
-            if (likely(!occurs(c.t2, c.t1))) {
-              auto arr = TyArrow {c.t2, c.t1};
-              cs       = subst_constr_all(arr, cs);
-              compose_subst(ta, arr);
-              continue;
-            }
-            throw type_error::circular_constraint(src, c.t1);
-          }
-          if (is_var_type(c.t1)) {
-            if (likely(!occurs(c.t1, c.t2))) {
-              auto arr = TyArrow {c.t1, c.t2};
-              cs       = subst_constr_all(arr, cs);
-              compose_subst(ta, arr);
-              continue;
-            }
-            throw type_error::circular_constraint(src, c.t1);
-          }
-          if (auto arrow1 = get_if<arrow_type>(c.t1.value())) {
-            if (auto arrow2 = get_if<arrow_type>(c.t2.value())) {
-              cs.push_back({arrow1->captured, arrow2->captured});
-              cs.push_back({arrow1->returns, arrow2->returns});
-              continue;
-            }
-          }
-          throw type_error::type_missmatch(src, c.t1, c.t2);
+    auto cs = constrs;
+    auto ta = std::vector<TyArrow> {};
+
+    while (!cs.empty()) {
+      auto c = cs.back();
+      cs.pop_back();
+      if (same_type(c.t1, c.t2))
+        continue;
+      if (is_var_type(c.t2)) {
+        if (likely(!occurs(c.t2, c.t1))) {
+          auto arr = TyArrow {c.t2, c.t1};
+          cs       = subst_constr_all(arr, cs);
+          compose_subst(ta, arr);
+          continue;
+        }
+        throw type_error::circular_constraint(src, c.t1);
+      }
+      if (is_var_type(c.t1)) {
+        if (likely(!occurs(c.t1, c.t2))) {
+          auto arr = TyArrow {c.t1, c.t2};
+          cs       = subst_constr_all(arr, cs);
+          compose_subst(ta, arr);
+          continue;
+        }
+        throw type_error::circular_constraint(src, c.t1);
+      }
+      if (auto arrow1 = get_if<arrow_type>(c.t1.value())) {
+        if (auto arrow2 = get_if<arrow_type>(c.t2.value())) {
+          cs.push_back({arrow1->captured, arrow2->captured});
+          cs.push_back({arrow1->returns, arrow2->returns});
+          continue;
         }
       }
-    } _impl;
+      throw type_error::type_missmatch(src, c.t1, c.t2);
+    }
 
-    auto _cs = cs;
-    auto as  = std::vector<TyArrow> {};
-    _impl(_cs, as, src);
-    return as;
+    return ta;
   }
 
   /// generate new type variable
@@ -377,10 +368,10 @@ namespace yave {
 
         unreachable();
       }
-    } _impl;
+    } impl;
 
     auto vars = std::vector<object_ptr<const Type>> {};
-    _impl.rec(tp, vars);
+    impl.rec(tp, vars);
     return vars;
   }
 
@@ -451,9 +442,9 @@ namespace yave {
 
         unreachable();
       }
-    } _impl;
+    } impl;
 
-    return _impl.rec(obj);
+    return impl.rec(obj);
   }
 
   /// has_type
