@@ -44,9 +44,9 @@ namespace {
     }();
   }
 
-  vk::UniquePipelineLayout createImGuiPipelineLayout(
+  auto createImGuiPipelineLayout(
     const vk::DescriptorSetLayout& setLayout,
-    const vk::Device& device)
+    const vk::Device& device) -> vk::UniquePipelineLayout
   {
     // Push constants:
     // vec2 scale;
@@ -64,14 +64,15 @@ namespace {
     return device.createPipelineLayoutUnique(info);
   }
 
-  vk::UniquePipelineCache createPipelineCache(const vk::Device& device)
+  auto createPipelineCache(const vk::Device& device) -> vk::UniquePipelineCache
   {
     vk::PipelineCacheCreateInfo info;
     return device.createPipelineCacheUnique(info);
   }
 
-  vk::UniqueShaderModule
-    createShaderModule(const std::vector<char>& code, const vk::Device& device)
+  auto createShaderModule(
+    const std::vector<char>& code,
+    const vk::Device& device) -> vk::UniqueShaderModule
   {
     vk::ShaderModuleCreateInfo info;
     info.flags    = vk::ShaderModuleCreateFlags();
@@ -81,7 +82,7 @@ namespace {
     return device.createShaderModuleUnique(info);
   }
 
-  std::vector<char> loadShaderFile(const std::string& str_path)
+  auto loadShaderFile(const std::string& str_path) -> std::vector<char>
   {
     auto path = std::filesystem::u8path(str_path);
 
@@ -102,12 +103,12 @@ namespace {
     return ret;
   }
 
-  vk::UniquePipeline createImGuiPipeline(
+  auto createImGuiPipeline(
     const vk::Extent2D& swapchainExtent,
     const vk::RenderPass& renderPass,
     const vk::PipelineCache& pipelineCache,
     const vk::PipelineLayout& pipelineLayout,
-    const vk::Device& device)
+    const vk::Device& device) -> vk::UniquePipeline
   {
     /* shader stages */
 
@@ -255,7 +256,8 @@ namespace {
     return device.createGraphicsPipelineUnique(pipelineCache, info);
   }
 
-  vk::UniqueDescriptorPool createImGuiDescriptorPool(const vk::Device& device)
+  auto createImGuiDescriptorPool(const vk::Device& device)
+    -> vk::UniqueDescriptorPool
   {
     std::array poolSizes = {
       vk::DescriptorPoolSize {vk::DescriptorType::eSampler, 1000},
@@ -279,10 +281,10 @@ namespace {
     return device.createDescriptorPoolUnique(info);
   }
 
-  uint32_t findMemoryType(
+  auto findMemoryType(
     uint32_t typeFilter,
     vk::MemoryPropertyFlags properties,
-    const vk::PhysicalDevice& physicalDevice)
+    const vk::PhysicalDevice& physicalDevice) -> uint32_t
   {
     auto memProperties = physicalDevice.getMemoryProperties();
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i) {
@@ -295,11 +297,11 @@ namespace {
     throw std::runtime_error("Failed to find suitable memory type");
   }
 
-  std::tuple<vk::UniqueDeviceMemory, vk::UniqueImage, vk::UniqueImageView>
-    createImGuiFontTexture(
-      const yave::vulkan::vulkan_context::window_context& windowCtx,
-      const vk::PhysicalDevice& physicalDevice,
-      const vk::Device& device)
+  auto createImGuiFontTexture(
+    const yave::vulkan::vulkan_context::window_context& windowCtx,
+    const vk::PhysicalDevice& physicalDevice,
+    const vk::Device& device)
+    -> std::tuple<vk::UniqueDeviceMemory, vk::UniqueImage, vk::UniqueImageView>
   {
     /* get texture data */
     ImGuiIO& io = ImGui::GetIO();
@@ -448,7 +450,7 @@ namespace {
     return {std::move(imageMemory), std::move(image), std::move(imageView)};
   }
 
-  vk::UniqueSampler createImGuiFontSampler(const vk::Device& device)
+  auto createImGuiFontSampler(const vk::Device& device) -> vk::UniqueSampler
   {
     vk::SamplerCreateInfo info;
     info.magFilter     = vk::Filter::eLinear;
@@ -464,9 +466,9 @@ namespace {
     return device.createSamplerUnique(info);
   }
 
-  vk::UniqueDescriptorSetLayout createImGuiDescriptorSetLayout(
+  auto createImGuiDescriptorSetLayout(
     const vk::Sampler& sampler,
-    const vk::Device& device)
+    const vk::Device& device) -> vk::UniqueDescriptorSetLayout
   {
     vk::DescriptorSetLayoutBinding bind;
     bind.descriptorType     = vk::DescriptorType::eCombinedImageSampler;
@@ -481,10 +483,10 @@ namespace {
     return device.createDescriptorSetLayoutUnique(info);
   }
 
-  vk::UniqueDescriptorSet createImGuiDescriptorSet(
+  auto createImGuiDescriptorSet(
     const vk::DescriptorPool& pool,
     const vk::DescriptorSetLayout& layout,
-    const vk::Device& device)
+    const vk::Device& device) -> vk::UniqueDescriptorSet
   {
     vk::DescriptorSetAllocateInfo info;
     info.descriptorPool     = pool;
@@ -544,12 +546,12 @@ namespace {
     }
   }
 
-  ImTextureID toImTextureId(vk::DescriptorSet& dsc)
+  auto toImTextureId(vk::DescriptorSet& dsc) -> ImTextureID
   {
     return (ImTextureID)&dsc;
   }
 
-  const vk::DescriptorSet* fromImTextureId(const ImTextureID& tex)
+  auto fromImTextureId(const ImTextureID& tex) -> const vk::DescriptorSet*
   {
     return (const vk::DescriptorSet*)tex;
   }
@@ -723,22 +725,22 @@ namespace yave::imgui {
       // Leave all resources uninitialized. Use reisze() before using.
     }
 
-    vk::DeviceSize size() const
+    auto size() const -> vk::DeviceSize
     {
       return m_size;
     }
 
-    vk::DeviceSize capacity() const
+    auto capacity() const -> vk::DeviceSize
     {
       return m_capacity;
     }
 
-    vk::Buffer buffer() const
+    auto buffer() const -> vk::Buffer
     {
       return m_buffer.get();
     }
 
-    vk::DeviceMemory memory() const
+    auto memory() const -> vk::DeviceMemory
     {
       return m_memory.get();
     }
@@ -1034,74 +1036,75 @@ namespace yave::imgui {
     }
   }
 
-  ImTextureID imgui_context::get_texture_id(vk::DescriptorSet& tex) const
+  auto imgui_context::get_texture_id(vk::DescriptorSet& tex) const
+    -> ImTextureID
   {
     return toImTextureId(tex);
   }
 
-  const glfw::glfw_context& imgui_context::glfw_context() const
+  auto imgui_context::glfw_context() const -> const glfw::glfw_context&
   {
     return m_glfwCtx;
   }
 
-  const vulkan::vulkan_context& imgui_context::vulkan_context() const
+  auto imgui_context::vulkan_context() const -> const vulkan::vulkan_context&
   {
     return m_vulkanCtx;
   }
 
-  const vulkan::vulkan_context::window_context&
-    imgui_context::window_context() const
+  auto imgui_context::window_context() const
+    -> const vulkan::vulkan_context::window_context&
   {
     return m_windowCtx;
   }
 
-  vk::Sampler imgui_context::font_sampler() const
+  auto imgui_context::font_sampler() const -> vk::Sampler
   {
     return m_fontSampler.get();
   }
 
-  vk::DescriptorPool imgui_context::descriptor_pool() const
+  auto imgui_context::descriptor_pool() const -> vk::DescriptorPool
   {
     return m_descriptorPool.get();
   }
 
-  vk::DescriptorSetLayout imgui_context::descriptor_set_layout() const
+  auto imgui_context::descriptor_set_layout() const -> vk::DescriptorSetLayout
   {
     return m_descriptorSetLayout.get();
   }
 
-  vk::DescriptorSet imgui_context::descriptor_set() const
+  auto imgui_context::descriptor_set() const -> vk::DescriptorSet
   {
     return m_descriptorSet.get();
   }
 
-  vk::PipelineCache imgui_context::pipeline_cache() const
+  auto imgui_context::pipeline_cache() const -> vk::PipelineCache
   {
     return m_pipelineCache.get();
   }
 
-  vk::PipelineLayout imgui_context::pipeline_layout() const
+  auto imgui_context::pipeline_layout() const -> vk::PipelineLayout
   {
     return m_pipelineLayout.get();
   }
 
-  vk::Pipeline imgui_context::pipeline() const
+  auto imgui_context::pipeline() const -> vk::Pipeline
   {
     return m_pipeline.get();
   }
 
-  vk::DeviceMemory imgui_context::font_image_memory() const
+  auto imgui_context::font_image_memory() const -> vk::DeviceMemory
   {
     return m_fontImageMemory.get();
   }
 
-  vk::Image imgui_context::font_image() const
+  auto imgui_context::font_image() const -> vk::Image
   {
     return m_fontImage.get();
   }
 
-  vk::ImageView imgui_context::font_image_view() const
+  auto imgui_context::font_image_view() const -> vk::ImageView
   {
     return m_fontImageView.get();
   }
-} // namespace yave
+} // namespace yave::imgui

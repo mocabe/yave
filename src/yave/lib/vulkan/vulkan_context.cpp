@@ -193,7 +193,7 @@ namespace {
   /* Utility functions */
 
   /// create application info
-  vk::ApplicationInfo createApplicationInfo()
+  auto createApplicationInfo() -> vk::ApplicationInfo
   {
     return vk::ApplicationInfo(
       "yave::vulkan_context",
@@ -204,7 +204,8 @@ namespace {
   }
 
   /// enumerate extensions
-  std::vector<std::string> getInstanceExtensions(bool enableValidationLayer)
+  auto getInstanceExtensions(bool enableValidationLayer)
+    -> std::vector<std::string>
   {
     using namespace yave;
 
@@ -247,7 +248,7 @@ namespace {
   }
 
   /// enumerate layers
-  std::vector<std::string> getInstanceLayers(bool enableValidaitonLayer)
+  auto getInstanceLayers(bool enableValidaitonLayer) -> std::vector<std::string>
   {
     // validation layer
     static constexpr const char* validationLayer = ValidationLayerName;
@@ -316,7 +317,7 @@ namespace {
   }
 
   /// create instance
-  vk::UniqueInstance createInstance(bool enableValidationLayer)
+  auto createInstance(bool enableValidationLayer) -> vk::UniqueInstance
   {
     using namespace yave;
 
@@ -366,8 +367,9 @@ namespace {
   }
 
   /// create debug callback
-  vk::UniqueDebugReportCallbackEXT
-    createDebugReportCallback(bool enableValidationLayer, vk::Instance instance)
+  auto createDebugReportCallback(
+    bool enableValidationLayer,
+    vk::Instance instance) -> vk::UniqueDebugReportCallbackEXT
   {
     using namespace yave;
     assert(instance);
@@ -388,7 +390,7 @@ namespace {
   }
 
   /// get required device types
-  std::vector<vk::PhysicalDeviceType> getRequiredPhysicalDeviceTypes()
+  auto getRequiredPhysicalDeviceTypes() -> std::vector<vk::PhysicalDeviceType>
   {
     // allow any type of device
     return {vk::PhysicalDeviceType::eCpu,
@@ -399,7 +401,7 @@ namespace {
   }
 
   /// get required device features
-  vk::PhysicalDeviceFeatures getRequiredPhysicalDeviceFeatures()
+  auto getRequiredPhysicalDeviceFeatures() -> vk::PhysicalDeviceFeatures
   {
     vk::PhysicalDeviceFeatures features;
     features.geometryShader = VK_TRUE;
@@ -407,7 +409,7 @@ namespace {
   }
 
   /// get reuqired device queue flags
-  std::vector<vk::QueueFlagBits> getRequiredPhysicalDeviceQueueFlags()
+  auto getRequiredPhysicalDeviceQueueFlags() -> std::vector<vk::QueueFlagBits>
   {
     return {vk::QueueFlagBits::eGraphics};
   }
@@ -461,8 +463,8 @@ namespace {
   }
 
   /// find optimal physical device
-  uint32_t getOptimalPhysicalDeviceIndex(
-    const std::vector<vk::PhysicalDevice>& physicalDevices)
+  auto getOptimalPhysicalDeviceIndex(
+    const std::vector<vk::PhysicalDevice>& physicalDevices) -> uint32_t
   {
     uint32_t index = 0;
     for (; index < physicalDevices.size(); ++index) {
@@ -473,7 +475,7 @@ namespace {
   }
 
   /// create device
-  vk::PhysicalDevice acquirePhysicalDevice(vk::Instance instance)
+  auto acquirePhysicalDevice(vk::Instance instance) -> vk::PhysicalDevice
   {
     auto physicalDevices = instance.enumeratePhysicalDevices();
 
@@ -486,7 +488,8 @@ namespace {
     return physicalDevices[index];
   }
 
-  uint32_t getGraphicsQueueIndex(const vk::PhysicalDevice& physicalDevice)
+  auto getGraphicsQueueIndex(const vk::PhysicalDevice& physicalDevice)
+    -> uint32_t
   {
     using namespace yave;
 
@@ -500,10 +503,10 @@ namespace {
     throw std::runtime_error("Device does not support graphics queue");
   }
 
-  uint32_t getPresentQueueIndex(
+  auto getPresentQueueIndex(
     uint32_t graphicsQueueIndex,
     const vk::Instance& instance,
-    const vk::PhysicalDevice& physicalDevice)
+    const vk::PhysicalDevice& physicalDevice) -> uint32_t
   {
     using namespace yave;
 
@@ -527,7 +530,7 @@ namespace {
     throw std::runtime_error("Presentation is not supported on this device");
   }
 
-  std::vector<std::string> getDeviceExtensions()
+  auto getDeviceExtensions() -> std::vector<std::string>
   {
     static constexpr const char* extensions[] = {
       VK_KHR_SWAPCHAIN_EXTENSION_NAME, // for swapchain
@@ -540,15 +543,15 @@ namespace {
     return ret;
   }
 
-  std::vector<std::string> getDeviceLayers()
+  auto getDeviceLayers() -> std::vector<std::string>
   {
     return {};
   }
 
-  vk::UniqueDevice createDevice(
+  auto createDevice(
     uint32_t graphicsQueueIndex,
     uint32_t presentQueueIndex,
-    const vk::PhysicalDevice& physicalDevice)
+    const vk::PhysicalDevice& physicalDevice) -> vk::UniqueDevice
   {
     std::vector<uint32_t> queueFamilyIndicies = {graphicsQueueIndex,
                                                  presentQueueIndex};
@@ -621,14 +624,15 @@ namespace {
     return physicalDevice.createDeviceUnique(info);
   }
 
-  vk::Queue getDeviceQueue(uint32_t queueFamilyIndex, const vk::Device& device)
+  auto getDeviceQueue(uint32_t queueFamilyIndex, const vk::Device& device)
+    -> vk::Queue
   {
     // Assume only single queue is initialized.
     return device.getQueue(queueFamilyIndex, 0);
   }
 
-  vk::UniqueSurfaceKHR
-    createWindowSurface(GLFWwindow* window, const vk::Instance& instance)
+  auto createWindowSurface(GLFWwindow* window, const vk::Instance& instance)
+    -> vk::UniqueSurfaceKHR
   {
     VkSurfaceKHR surface;
 
@@ -645,7 +649,7 @@ namespace {
     return vk::UniqueSurfaceKHR(surface, deleter);
   }
 
-  vk::Extent2D getWindowExtent(GLFWwindow* window)
+  auto getWindowExtent(GLFWwindow* window) -> vk::Extent2D
   {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
@@ -658,8 +662,8 @@ namespace {
     return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
   }
 
-  vk::SurfaceFormatKHR
-    chooseSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& formats)
+  auto chooseSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& formats)
+    -> vk::SurfaceFormatKHR
   {
     using namespace yave;
 
@@ -685,8 +689,8 @@ namespace {
     return formats[0];
   }
 
-  vk::PresentModeKHR
-    choosePresentMode(const std::vector<vk::PresentModeKHR>& modes)
+  auto choosePresentMode(const std::vector<vk::PresentModeKHR>& modes)
+    -> vk::PresentModeKHR
   {
     for (auto&& mode : modes) {
       if (mode == vk::PresentModeKHR::eMailbox)
@@ -697,9 +701,9 @@ namespace {
     return vk::PresentModeKHR::eFifo;
   }
 
-  vk::Extent2D chooseSwapchainExtent(
+  auto chooseSwapchainExtent(
     vk::Extent2D windowSize,
-    const vk::SurfaceCapabilitiesKHR& capabilities)
+    const vk::SurfaceCapabilitiesKHR& capabilities) -> vk::Extent2D
   {
     vk::Extent2D extent = capabilities.currentExtent;
 
@@ -720,14 +724,16 @@ namespace {
     return extent;
   }
 
-  vk::SurfaceTransformFlagBitsKHR
-    chooseSwapchainPreTransform(const vk::SurfaceCapabilitiesKHR& capabilities)
+  auto chooseSwapchainPreTransform(
+    const vk::SurfaceCapabilitiesKHR& capabilities)
+    -> vk::SurfaceTransformFlagBitsKHR
   {
     return capabilities.currentTransform;
   }
 
-  vk::CompositeAlphaFlagBitsKHR chooseSwapchainCompositeAlpha(
+  auto chooseSwapchainCompositeAlpha(
     const vk::SurfaceCapabilitiesKHR& capabilities)
+    -> vk::CompositeAlphaFlagBitsKHR
   {
     using namespace yave;
 
@@ -743,7 +749,7 @@ namespace {
     return vk::CompositeAlphaFlagBitsKHR::eInherit;
   }
 
-  vk::UniqueSwapchainKHR createSwapchain(
+  auto createSwapchain(
     const vk::SurfaceKHR& surface,
     const vk::Extent2D windowExtent,
     uint32_t graphicsQueueIndex,
@@ -753,7 +759,7 @@ namespace {
     vk::SurfaceFormatKHR* out_format     = nullptr,
     vk::PresentModeKHR* out_present_mode = nullptr,
     vk::Extent2D* out_extent             = nullptr,
-    uint32_t* out_image_count            = nullptr)
+    uint32_t* out_image_count            = nullptr) -> vk::UniqueSwapchainKHR
   {
     if (!physicalDevice.getSurfaceSupportKHR(presentQueueIndex, surface)) {
       throw std::runtime_error(
@@ -826,7 +832,7 @@ namespace {
     return swapchain;
   }
 
-  vk::ComponentMapping chooseImageViewComponentMapping()
+  auto chooseImageViewComponentMapping() -> vk::ComponentMapping
   {
     return vk::ComponentMapping(
       vk::ComponentSwizzle::eIdentity,
@@ -835,16 +841,16 @@ namespace {
       vk::ComponentSwizzle::eIdentity);
   }
 
-  vk::ImageSubresourceRange chooseImageViewSubResourceRange()
+  auto chooseImageViewSubResourceRange() -> vk::ImageSubresourceRange
   {
     return vk::ImageSubresourceRange(
       vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
   }
 
-  std::vector<vk::UniqueImageView> createSwapchainImageViews(
+  auto createSwapchainImageViews(
     const vk::SwapchainKHR& swapchain,
     const vk::SurfaceFormatKHR& surface_format,
-    const vk::Device& device)
+    const vk::Device& device) -> std::vector<vk::UniqueImageView>
   {
     auto componentMapping = chooseImageViewComponentMapping();
     auto subResourceRange = chooseImageViewSubResourceRange();
@@ -868,11 +874,11 @@ namespace {
     return ret;
   }
 
-  std::vector<vk::UniqueFramebuffer> createFrameBuffers(
+  auto createFrameBuffers(
     const std::vector<vk::UniqueImageView>& image_views,
     const vk::RenderPass& render_pass,
     const vk::Extent2D swapchainExtent,
-    const vk::Device& device)
+    const vk::Device& device) -> std::vector<vk::UniqueFramebuffer>
   {
     std::vector<vk::UniqueFramebuffer> ret;
     ret.reserve(image_views.size());
@@ -896,8 +902,9 @@ namespace {
     return ret;
   }
 
-  std::array<vk::AttachmentDescription, 1>
-    getRenderPassColorAttachments(const vk::SurfaceFormatKHR& swapchain_format)
+  auto getRenderPassColorAttachments(
+    const vk::SurfaceFormatKHR& swapchain_format)
+    -> std::array<vk::AttachmentDescription, 1>
   {
     vk::AttachmentDescription colorAttachment;
 
@@ -929,7 +936,8 @@ namespace {
     return {colorAttachment};
   }
 
-  std::vector<vk::AttachmentReference> getRenderPassAttachmentReferences()
+  auto getRenderPassAttachmentReferences()
+    -> std::vector<vk::AttachmentReference>
   {
     vk::AttachmentReference colorAttachmentRef {};
     colorAttachmentRef.attachment = 0;
@@ -955,7 +963,7 @@ namespace {
       subpass, std::make_tuple(std::move(colorAttachmentRef)));
   }
 
-  std::array<vk::SubpassDependency, 1> getSubpassDependency()
+  auto getSubpassDependency() -> std::array<vk::SubpassDependency, 1>
   {
     vk::SubpassDependency dep;
     dep.srcSubpass    = VK_SUBPASS_EXTERNAL;
@@ -968,9 +976,9 @@ namespace {
     return {dep};
   }
 
-  vk::UniqueRenderPass createRenderPass(
+  auto createRenderPass(
     const vk::SurfaceFormatKHR& swapchain_format,
-    const vk::Device& device)
+    const vk::Device& device) -> vk::UniqueRenderPass
   {
     using namespace yave;
 
@@ -991,8 +999,8 @@ namespace {
     return device.createRenderPassUnique(info);
   }
 
-  vk::UniqueCommandPool
-    createCommandPool(uint32_t graphicsQueueIndex, const vk::Device& device)
+  auto createCommandPool(uint32_t graphicsQueueIndex, const vk::Device& device)
+    -> vk::UniqueCommandPool
   {
     vk::CommandPoolCreateInfo info;
     // allow vkResetCommandBuffer
@@ -1003,12 +1011,11 @@ namespace {
     return device.createCommandPoolUnique(info);
   }
 
-
-  std::vector<vk::UniqueCommandBuffer> createCommandBuffers(
+  auto createCommandBuffers(
     uint32_t size,
     const vk::CommandBufferLevel& level,
     const vk::CommandPool& commandPool,
-    const vk::Device& device)
+    const vk::Device& device) -> std::vector<vk::UniqueCommandBuffer>
   {
     vk::CommandBufferAllocateInfo info {};
     info.commandPool        = commandPool;
@@ -1018,15 +1025,15 @@ namespace {
     return device.allocateCommandBuffersUnique(info);
   }
 
-  vk::UniqueSemaphore createSemaphore(const vk::Device& device)
+  auto createSemaphore(const vk::Device& device) -> vk::UniqueSemaphore
   {
     vk::SemaphoreCreateInfo info;
     info.flags = vk::SemaphoreCreateFlags();
     return device.createSemaphoreUnique(info);
   }
 
-  std::vector<vk::UniqueSemaphore>
-    createSemaphores(uint32_t size, const vk::Device& device)
+  auto createSemaphores(uint32_t size, const vk::Device& device)
+    -> std::vector<vk::UniqueSemaphore>
   {
     std::vector<vk::UniqueSemaphore> ret;
     for (uint32_t i = 0; i < size; ++i) {
@@ -1035,18 +1042,18 @@ namespace {
     return ret;
   }
 
-  vk::UniqueFence
-    createFence(const vk::Device& device, const vk::FenceCreateFlags& flags)
+  auto createFence(const vk::Device& device, const vk::FenceCreateFlags& flags)
+    -> vk::UniqueFence
   {
     vk::FenceCreateInfo info;
     info.flags = flags;
     return device.createFenceUnique(info);
   }
 
-  std::vector<vk::UniqueFence> createFences(
+  auto createFences(
     uint32_t size,
     const vk::Device& device,
-    const vk::FenceCreateFlags& flags)
+    const vk::FenceCreateFlags& flags) -> std::vector<vk::UniqueFence>
   {
     std::vector<vk::UniqueFence> ret;
     for (uint32_t i = 0; i < size; ++i) {
@@ -1223,37 +1230,37 @@ namespace yave::vulkan {
     Info(g_vulkan_logger, "Destroying Vulkan context");
   }
 
-  vk::Instance vulkan_context::instance() const
+  auto vulkan_context::instance() const -> vk::Instance
   {
     return m_pimpl->instance.get();
   }
 
-  vk::PhysicalDevice vulkan_context::physical_device() const
+  auto vulkan_context::physical_device() const -> vk::PhysicalDevice
   {
     return m_pimpl->physicalDevice;
   }
 
-  vk::Device vulkan_context::device() const
+  auto vulkan_context::device() const -> vk::Device
   {
     return m_pimpl->device.get();
   }
 
-  uint32_t vulkan_context::graphics_queue_family_index() const
+  auto vulkan_context::graphics_queue_family_index() const -> uint32_t
   {
     return m_pimpl->graphicsQueueIndex;
   }
 
-  vk::Queue vulkan_context::graphics_queue() const
+  auto vulkan_context::graphics_queue() const -> vk::Queue
   {
     return m_pimpl->graphicsQueue;
   }
 
-  uint32_t vulkan_context::present_queue_family_index() const
+  auto vulkan_context::present_queue_family_index() const -> uint32_t
   {
     return m_pimpl->presentQueueIndex;
   }
 
-  vk::Queue vulkan_context::present_queue() const
+  auto vulkan_context::present_queue() const -> vk::Queue
   {
     return m_pimpl->presentQueue;
   }
@@ -1299,8 +1306,8 @@ namespace yave::vulkan {
     std::atomic<VkExtent2D> window_extent;
   };
 
-  vulkan_context::window_context vulkan_context::create_window_context(
-    glfw::unique_glfw_window& window) const
+  auto vulkan_context::create_window_context(
+    glfw::unique_glfw_window& window) const -> vulkan_context::window_context
   {
     Info(g_vulkan_logger, "Initializing window context");
 
@@ -1650,7 +1657,7 @@ namespace yave::vulkan {
     }
   }
 
-  vk::CommandBuffer vulkan_context::window_context::begin_record() const
+  auto vulkan_context::window_context::begin_record() const -> vk::CommandBuffer
   {
     auto buffer = m_pimpl->command_buffers[m_pimpl->frame_index].get();
 
@@ -1711,44 +1718,45 @@ namespace yave::vulkan {
     Info(g_vulkan_logger, "Destroying window context");
   }
 
-  GLFWwindow* vulkan_context::window_context::window() const
+  auto vulkan_context::window_context::window() const -> GLFWwindow*
   {
     assert(m_pimpl->window);
     return m_pimpl->window;
   }
 
-  vk::SurfaceKHR vulkan_context::window_context::surface() const
+  auto vulkan_context::window_context::surface() const -> vk::SurfaceKHR
   {
     assert(m_pimpl->surface);
     return m_pimpl->surface.get();
   }
 
-  vk::SwapchainKHR vulkan_context::window_context::swapchain() const
+  auto vulkan_context::window_context::swapchain() const -> vk::SwapchainKHR
   {
     assert(m_pimpl->swapchain);
     return m_pimpl->swapchain.get();
   }
 
-  vk::SurfaceFormatKHR vulkan_context::window_context::swapchain_format() const
+  auto vulkan_context::window_context::swapchain_format() const
+    -> vk::SurfaceFormatKHR
   {
     assert(m_pimpl->swapchain_format.format != vk::Format::eUndefined);
     return m_pimpl->swapchain_format;
   }
 
-  vk::Extent2D vulkan_context::window_context::swapchain_extent() const
+  auto vulkan_context::window_context::swapchain_extent() const -> vk::Extent2D
   {
     return m_pimpl->swapchain_extent;
   }
 
-  std::vector<vk::Image>
-    vulkan_context::window_context::swapchain_images() const
+  auto vulkan_context::window_context::swapchain_images() const
+    -> std::vector<vk::Image>
   {
     assert(!m_pimpl->swapchain_images.empty());
     return m_pimpl->swapchain_images;
   }
 
-  std::vector<vk::ImageView>
-    vulkan_context::window_context::swapchain_image_views() const
+  auto vulkan_context::window_context::swapchain_image_views() const
+    -> std::vector<vk::ImageView>
   {
     assert(!m_pimpl->swapchain_image_views.empty());
     std::vector<vk::ImageView> ret;
@@ -1758,8 +1766,8 @@ namespace yave::vulkan {
     return ret;
   }
 
-  std::vector<vk::Framebuffer>
-    vulkan_context::window_context::frame_buffers() const
+  auto vulkan_context::window_context::frame_buffers() const
+    -> std::vector<vk::Framebuffer>
   {
     assert(!m_pimpl->frame_buffers.empty());
     std::vector<vk::Framebuffer> ret;
@@ -1769,20 +1777,20 @@ namespace yave::vulkan {
     return ret;
   }
 
-  vk::RenderPass vulkan_context::window_context::render_pass() const
+  auto vulkan_context::window_context::render_pass() const -> vk::RenderPass
   {
     assert(m_pimpl->render_pass);
     return m_pimpl->render_pass.get();
   }
 
-  vk::CommandPool vulkan_context::window_context::command_pool() const
+  auto vulkan_context::window_context::command_pool() const -> vk::CommandPool
   {
     assert(m_pimpl->command_pool);
     return m_pimpl->command_pool.get();
   }
 
-  std::vector<vk::CommandBuffer>
-    vulkan_context::window_context::command_buffers() const
+  auto vulkan_context::window_context::command_buffers() const
+    -> std::vector<vk::CommandBuffer>
   {
     assert(!m_pimpl->command_buffers.empty());
     assert(m_pimpl->command_buffers.size() == m_pimpl->swapchain_image_count);
@@ -1814,16 +1822,16 @@ namespace yave::vulkan {
     m_pimpl->clearColor = std::array {r, g, b, a};
   }
 
-  single_time_command
-    vulkan_context::window_context::single_time_command() const
+  auto vulkan_context::window_context::single_time_command() const
+    -> vulkan::single_time_command
   {
     return {m_pimpl->context->device(),
             m_pimpl->context->graphics_queue(),
             m_pimpl->command_pool.get()};
   }
 
-  vulkan_context::window_context::command_recorder
-    vulkan_context::window_context::new_recorder()
+  auto vulkan_context::window_context::new_recorder()
+    -> vulkan_context::window_context::command_recorder
   {
     return command_recorder(this);
   }
@@ -1875,10 +1883,10 @@ namespace yave::vulkan {
   {
   }
 
-  vk::CommandBuffer
-    vulkan_context::window_context::command_recorder::command_buffer() const
+  auto vulkan_context::window_context::command_recorder::command_buffer() const
+    -> vk::CommandBuffer
   {
     return m_buffer;
   }
 
-} // namespace yave
+} // namespace yave::vulkan

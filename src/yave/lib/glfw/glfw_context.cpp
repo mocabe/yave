@@ -58,10 +58,10 @@ namespace yave::glfw {
     Info(g_glfw_logger, "Terminated GLFW");
   }
 
-  unique_glfw_window glfw_context::create_window(
+  auto glfw_context::create_window(
     uint32_t width,
     uint32_t height,
-    const char* title) const
+    const char* title) const -> unique_glfw_window
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 

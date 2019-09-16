@@ -22,6 +22,7 @@ namespace yave::glfw {
     void operator()(GLFWwindow* window) noexcept;
   };
 
+  /// Unique glfw window based on unique_ptr
   using unique_glfw_window = std::unique_ptr<GLFWwindow, glfw_window_deleter>;
 
   /// GLFW context
@@ -36,7 +37,8 @@ namespace yave::glfw {
   public:
     /// Create window
     [[nodiscard]] 
-    unique_glfw_window create_window(uint32_t width, uint32_t height, const char* name) const;
+    auto create_window(uint32_t width, uint32_t height, const char* name) const 
+      -> unique_glfw_window;
   
   public:
     /// poll events
@@ -66,4 +68,4 @@ namespace yave::glfw {
 
   // clang-format on
 
-} // namespace yave::vulkan
+} // namespace yave::glfw
