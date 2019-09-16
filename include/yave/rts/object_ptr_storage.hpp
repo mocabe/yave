@@ -112,15 +112,15 @@ namespace yave {
       return head()->refcount.load();
     }
 
-    /// increment refcount
-    void increment_refcount() noexcept
+    /// increment refcount (mutable)
+    void increment_refcount() const noexcept
     {
       if (likely(get() && !is_static()))
         head()->refcount.fetch_add();
     }
 
-    /// decrement refcount
-    void decrement_refcount() noexcept; // defined in object_ptr.hpp
+    /// decrement refcount (mutable)
+    void decrement_refcount() const noexcept; // defined in object_ptr.hpp
 
   public:
     /// Ctor

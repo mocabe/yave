@@ -16,7 +16,7 @@ namespace yave {
   {
     // add refcount
     if (likely(o && !o.is_static()))
-      _get_storage(o).head()->refcount.fetch_add();
+      _get_storage(o).increment_refcount();
 
     // to ensure safety of cast
     static_assert(

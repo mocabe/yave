@@ -209,7 +209,7 @@ namespace yave {
   // ------------------------------------------
   // object_ptr::~object_ptr()
 
-  inline void object_ptr_storage::decrement_refcount() noexcept
+  inline void object_ptr_storage::decrement_refcount() const noexcept
   {
     if (likely(get() && !is_static())) {
       if (head()->refcount.fetch_sub() == 1) {
