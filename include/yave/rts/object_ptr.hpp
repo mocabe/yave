@@ -237,7 +237,7 @@ namespace yave {
     const object_ptr<T>& lhs,
     const object_ptr<U>& rhs) noexcept
   {
-    return lhs.get() == rhs.get();
+    return _get_storage(lhs).get() == _get_storage(rhs).get();
   }
 
   /// operator==
@@ -260,7 +260,7 @@ namespace yave {
     const object_ptr<T>& lhs,
     const object_ptr<U>& rhs) noexcept
   {
-    return lhs.get() != rhs.get();
+    return _get_storage(lhs).get() != _get_storage(rhs).get();
   }
 
   /// operator!=
@@ -275,6 +275,98 @@ namespace yave {
   [[nodiscard]] bool operator!=(const object_ptr<T>& p, nullptr_t) noexcept
   {
     return static_cast<bool>(p);
+  }
+
+  /// operator<
+  template <class T, class U>
+  [[nodiscard]] bool operator<(
+    const object_ptr<T>& lhs,
+    const object_ptr<U>& rhs)
+  {
+    return _get_storage(lhs).get() < _get_storage(rhs).get();
+  }
+
+  /// operator<=
+  template <class T, class U>
+  [[nodiscard]] bool operator<=(
+    const object_ptr<T>& lhs,
+    const object_ptr<U>& rhs)
+  {
+    return !(lhs > rhs);
+  }
+
+  /// operator>
+  template <class T, class U>
+  [[nodiscard]] bool operator>(
+    const object_ptr<T>& lhs,
+    const object_ptr<U>& rhs)
+  {
+    return _get_storage(lhs).get() > _get_storage(rhs).get();
+  }
+
+  /// operator>=
+  template <class T, class U>
+  [[nodiscard]] bool operator>=(
+    const object_ptr<T>& lhs,
+    const object_ptr<U>& rhs)
+  {
+    return !(lhs < rhs);
+  }
+
+  /// operator<
+  template <class T>
+  [[nodiscard]] bool operator<(const object_ptr<T>& lhs, nullptr_t)
+  {
+    return std::less<const Object*>()(_get_storage(lhs).get(), nullptr);
+  }
+
+  /// operator<
+  template <class T>
+  [[nodiscard]] bool operator<(nullptr_t, const object_ptr<T>& rhs)
+  {
+    return std::less<const Object*>()(nullptr, _get_storage(rhs).get());
+  }
+
+  /// operator<=
+  template <class T>
+  [[nodiscard]] bool operator<=(const object_ptr<T>& lhs, nullptr_t)
+  {
+    return !(lhs > nullptr);
+  }
+
+  /// operator<=
+  template <class T>
+  [[nodiscard]] bool operator<=(nullptr_t, const object_ptr<T>& rhs)
+  {
+    return !(nullptr > rhs);
+  }
+
+  /// operator>
+  template <class T>
+  [[nodiscard]] bool operator>(const object_ptr<T>& lhs, nullptr_t)
+  {
+    return std::greater<const Object*>()(_get_storage(lhs).get(), nullptr);
+  }
+
+  /// operator>
+  template <class T>
+  [[nodiscard]] bool operator>(nullptr_t, const object_ptr<T>& rhs)
+  {
+    return std::greater<const Object*>()(nullptr, _get_storage(rhs).get());
+  }
+
+  /// operator>=
+  template <class T>
+  [[nodiscard]] bool operator>=(const object_ptr<T>& lhs, nullptr_t)
+  {
+    return !(lhs < nullptr);
+  }
+
+  /// operator>=
+  template <class T>
+  [[nodiscard]] bool operator>=(nullptr_t, const object_ptr<T>& rhs)
+  {
+    return !(nullptr < rhs);
   }
 
   // ------------------------------------------

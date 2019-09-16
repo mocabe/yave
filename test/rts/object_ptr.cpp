@@ -20,7 +20,7 @@ namespace yave {
 YAVE_DECL_TYPE(Int, "7d27665a-c56a-40d1-8e2e-844cb48de9e9");
 YAVE_DECL_TYPE(Double, "9cc69b38-8766-44f1-93e9-337cfb3d3bc5");
 
-TEST_CASE("pointer construct")
+TEST_CASE("pointer construct", "[rts][object_ptr]")
 {
   SECTION("pointer")
   {
@@ -120,7 +120,7 @@ TEST_CASE("pointer construct")
   }
 }
 
-TEST_CASE("operator bool")
+TEST_CASE("operator bool", "[rts][object_ptr]")
 {
   SECTION("pointer")
   {
@@ -133,7 +133,7 @@ TEST_CASE("operator bool")
   }
 }
 
-TEST_CASE("value_cast")
+TEST_CASE("value_cast", "[rts][object_ptr]")
 {
   SECTION("value_cast")
   {
@@ -146,5 +146,49 @@ TEST_CASE("value_cast")
     object_ptr<> i = make_object<Int>(42);
     REQUIRE(!value_cast_if<Double>(i));
     REQUIRE(*value_cast_if<Int>(i) == 42);
+  }
+}
+
+TEST_CASE("operators", "[rts][object_ptr]")
+{
+  object_ptr<Double> lhs;
+  object_ptr<Int> rhs;
+
+  REQUIRE_NOTHROW(lhs == rhs);
+  REQUIRE_NOTHROW(lhs != rhs);
+  REQUIRE_NOTHROW(lhs == nullptr);
+  REQUIRE_NOTHROW(nullptr == rhs);
+  REQUIRE_NOTHROW(lhs != nullptr);
+  REQUIRE_NOTHROW(nullptr != rhs);
+  REQUIRE_NOTHROW(lhs < rhs);
+  REQUIRE_NOTHROW(lhs <= rhs);
+  REQUIRE_NOTHROW(lhs > rhs);
+  REQUIRE_NOTHROW(lhs >= rhs);
+  REQUIRE_NOTHROW(nullptr < rhs);
+  REQUIRE_NOTHROW(nullptr <= rhs);
+  REQUIRE_NOTHROW(nullptr > rhs);
+  REQUIRE_NOTHROW(nullptr >= rhs);
+  REQUIRE_NOTHROW(lhs < nullptr);
+  REQUIRE_NOTHROW(lhs <= nullptr);
+  REQUIRE_NOTHROW(lhs > nullptr);
+  REQUIRE_NOTHROW(lhs >= nullptr);
+
+  REQUIRE(lhs == lhs);
+  REQUIRE(lhs <= lhs);
+  REQUIRE(lhs >= lhs);
+  REQUIRE(!(rhs != rhs));
+  REQUIRE(!(rhs < rhs));
+  REQUIRE(!(lhs > rhs));
+
+  if (lhs < rhs) {
+    REQUIRE(!(lhs >= rhs));
+  } else {
+    REQUIRE(lhs >= rhs);
+  }
+
+  if (lhs > rhs) {
+    REQUIRE(!(lhs <= rhs));
+  } else {
+    REQUIRE(lhs <= rhs);
   }
 }
