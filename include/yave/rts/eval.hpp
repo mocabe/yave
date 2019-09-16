@@ -10,24 +10,49 @@
 #include <yave/rts/eval_error.hpp>
 #include <yave/rts/result_error.hpp>
 
+#include <map>
+
 namespace yave {
 
   /// copy apply graph
   [[nodiscard]] inline auto copy_apply_graph(
-    const object_ptr<const Object>& obj) -> object_ptr<const Object>
+    const object_ptr<const Object>& root) -> object_ptr<const Object>
   {
-    if (auto apply = value_cast_if<Apply>(obj)) {
-      auto& apply_storage = _get_storage(*apply);
-      // return cached value
-      if (apply_storage.is_result()) {
-        return apply_storage.get_result();
+    using map_type =
+      std::map<object_ptr<const Object>, object_ptr<const Object>>;
+
+    struct
+    {
+      auto rec(const object_ptr<const Object>& obj, map_type& map)
+      {
+        // find new apply node
+        auto iter = map.find(obj);
+        if (iter != map.end())
+          return iter->second;
+
+        if (auto apply = value_cast_if<Apply>(obj)) {
+
+          auto& apply_storage = _get_storage(*apply);
+
+          // return cached value
+          if (apply_storage.is_result()) {
+            return apply_storage.get_result();
+          }
+
+          // create new apply node
+          object_ptr<const Object> new_app = make_object<Apply>(
+            copy_apply_graph(apply_storage.app()),
+            copy_apply_graph(apply_storage.arg()));
+
+          map.emplace(apply, new_app);
+          return new_app;
+        }
+        return obj;
       }
-      // create new apply
-      return make_object<Apply>(
-        copy_apply_graph(apply_storage.app()),
-        copy_apply_graph(apply_storage.arg()));
-    }
-    return obj;
+    } impl;
+
+    map_type apply_map;
+    return impl.rec(root, apply_map);
   }
 
   namespace detail {

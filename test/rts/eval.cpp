@@ -207,9 +207,9 @@ TEST_CASE("eval")
           if (*n < 2)
             return n;
 
-          auto l = eval(fib << new Int(*n - 1));
-          auto r = eval(fib << new Int(*n - 2));
-          return new Int(*value_cast<Int>(l) + *value_cast<Int>(r));
+          auto l = eval(fib << make_object<Int>(*n - 1));
+          auto r = eval(fib << make_object<Int>(*n - 2));
+          return make_object<Int>(*value_cast<Int>(l) + *value_cast<Int>(r));
         }
       };
 
@@ -246,6 +246,59 @@ TEST_CASE("eval")
 
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 55 * 2);
+    }
+  }
+}
+
+TEST_CASE("copy_apply_graph", "[rts][eval]")
+{
+  static int count = 0;
+
+  struct F : Function<F, Int, Int, Int>
+  {
+    return_type code() const
+    {
+      (void)eval_arg<0>();
+      (void)eval_arg<1>();
+      ++count;
+      return new Int(42);
+    }
+  };
+
+  auto f1 = make_object<F>();
+  auto f2 = make_object<F>();
+  auto i  = make_object<Int>();
+
+  auto app = f1 << (f2 << i << i) << i;
+
+  SECTION("")
+  {
+    count = 0;
+
+    SECTION("eval")
+    {
+      REQUIRE_NOTHROW(type_of(app));
+      REQUIRE_NOTHROW(eval(app));
+      REQUIRE(count == 2);
+    }
+
+    SECTION("copy before eval")
+    {
+      auto copy = copy_apply_graph(app);
+      REQUIRE_NOTHROW(type_of(copy));
+      REQUIRE_NOTHROW(eval(app));
+      REQUIRE_NOTHROW(eval(copy));
+      REQUIRE(count == 4);
+      REQUIRE_NOTHROW(eval(copy));
+      REQUIRE(count == 4);
+    }
+
+    SECTION("copy after eval")
+    {
+      REQUIRE_NOTHROW(eval(app));
+      auto copy = copy_apply_graph(app);
+      REQUIRE_NOTHROW(copy);
+      REQUIRE(count == 2);
     }
   }
 }
