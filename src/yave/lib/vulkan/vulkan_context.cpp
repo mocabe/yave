@@ -224,9 +224,14 @@ namespace {
       PlatformSurfaceExtensionName,  // for surface
     };
 
+    Info(
+      g_vulkan_logger, "Surface spec version: {}", PlatformSurfaceSpecVersion);
+
     // for validation layer
     static constexpr const char* debugReportExtension =
       DebugReportExtensionName;
+
+    Info(g_vulkan_logger, "Debug spec version: {}", DebugReportSpecVersion);
 
     std::vector<std::string> ret;
 
