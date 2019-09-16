@@ -32,39 +32,27 @@ namespace yave {
     /// \requires is_prim() == true
     [[nodiscard]] auto get_prim() const -> std::optional<primitive_t>;
 
+    /// Get shared primitive container.
+    [[nodiscard]] auto get_shared_prim() const
+      -> object_ptr<PrimitiveContainer>;
+
+    /// visited?
+    [[nodiscard]] bool is_visited() const;
+
+    /// unvisited?
+    [[nodiscard]] bool is_unvisited() const;
+
     /// Set primitive value.
     void set_prim(const primitive_t& prim);
 
     /// Unset primitive value.
     void ser_prim(std::nullopt_t);
 
-    /// Get shared primitive container.
-    [[nodiscard]] auto get_shared_prim() const
-      -> object_ptr<PrimitiveContainer>;
-
-    /// visited?
-    [[nodiscard]] bool is_visited() const
-    {
-      return m_visited == 1;
-    }
-
-    /// unvisited?
-    [[nodiscard]] bool is_unvisited() const
-    {
-      return m_visited == 0;
-    }
-
     /// Set as visited.
-    void set_visited() const
-    {
-      m_visited = 1;
-    }
+    void set_visited() const;
 
     /// Set as unvisited.
-    void set_unvisited() const
-    {
-      m_visited = 0;
-    }
+    void set_unvisited() const;
 
   private:
     /// Name of node.

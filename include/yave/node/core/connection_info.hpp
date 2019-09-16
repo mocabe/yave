@@ -34,11 +34,13 @@ namespace yave {
     /// Get socket of dest noed.
     [[nodiscard]] auto dst_socket() const -> const std::string&;
 
-    friend bool
-      operator==(const connection_info& lhs, const connection_info& rhs);
+    friend bool operator==(
+      const connection_info& lhs,
+      const connection_info& rhs);
 
-    friend bool
-      operator!=(const connection_info& lhs, const connection_info& rhs);
+    friend bool operator!=(
+      const connection_info& lhs,
+      const connection_info& rhs);
 
   private:
     /// source node
@@ -52,11 +54,13 @@ namespace yave {
   };
 
   /// operator==
-  [[nodiscard]] bool
-    operator==(const connection_info& lhs, const connection_info& rhs);
+  [[nodiscard]] bool operator==(
+    const connection_info& lhs,
+    const connection_info& rhs);
 
   /// operator!=
-  [[nodiscard]] bool
-    operator!=(const connection_info& lhs, const connection_info& rhs);
+  [[nodiscard]] bool operator!=(
+    const connection_info& lhs,
+    const connection_info& rhs);
 
 } // namespace yave

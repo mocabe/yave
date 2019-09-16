@@ -17,14 +17,13 @@ namespace yave {
 
   /// make primitive
   template <class T, class... Arg>
-  [[nodiscard]] auto make_primitive(Arg&&... args) -> primitive_t
+  [[nodiscard]] primitive_t make_primitive(Arg&&... args)
   {
     return primitive_t(T {std::forward<Arg>(args)...});
   }
 
   /// get primitive node name
-  [[nodiscard]] constexpr auto get_primitive_name(const primitive_t& v) -> const
-    char*
+  [[nodiscard]] constexpr const char* get_primitive_name(const primitive_t& v)
   {
     return visit(
       overloaded {([](auto t) constexpr {

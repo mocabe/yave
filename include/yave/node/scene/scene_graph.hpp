@@ -60,46 +60,52 @@ namespace yave {
     /// Remove layer and resources
     void remove_layer(const layer_handle& handle);
 
+  public:
     /// Movable into target layer?
     [[nodiscard]] bool movable_into(
       const layer_handle& frmo,
       const layer_handle& to) const;
-    /// Move layer as sublayer of target layer
-    void move_into(const layer_handle& from, const layer_handle& to);
 
     /// Movable into below target layer?
     [[nodiscard]] bool movable_below(
       const layer_handle& from,
       const layer_handle& to) const;
-    /// Move layer below specific layer
-    void move_below(const layer_handle& from, const layer_handle& to);
 
     /// Movable above target layer?
     [[nodiscard]] bool movable_above(
       const layer_handle& from,
       const layer_handle& to) const;
+
+    /// Move layer as sublayer of target layer
+    void move_into(const layer_handle& from, const layer_handle& to);
+
+    /// Move layer below specific layer
+    void move_below(const layer_handle& from, const layer_handle& to);
+
     /// Move layer above specific layer
     void move_above(const layer_handle& from, const layer_handle& to);
 
+  public:
     /// Compos layer?
     [[nodiscard]] bool is_compos_layer(const layer_handle& layer) const;
 
     /// Image  layer
     [[nodiscard]] bool is_image_layer(const layer_handle& layer) const;
 
+    /// visible?
+    [[nodiscard]] bool is_visible(const layer_handle& layer) const;
+
     /// Get name of layer
     [[nodiscard]] auto get_name(const layer_handle& layer) const
       -> std::optional<std::string>;
 
-    /// Set name of layer
-    void set_name(const layer_handle& layer, const std::string& name);
-
-    /// visible?
-    [[nodiscard]] bool is_visible(const layer_handle& layer) const;
-
     /// set new visibility state
     void set_visibility(const layer_handle& layer, bool visibility);
 
+    /// Set name of layer
+    void set_name(const layer_handle& layer, const std::string& name);
+
+  public:
     /// Get parent layer
     [[nodiscard]] auto get_parent(const layer_handle& layer) const
       -> layer_handle;

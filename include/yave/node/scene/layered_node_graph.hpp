@@ -103,37 +103,48 @@ namespace yave {
   public: /* layer control */
     /// Add new layer under target
     [[nodiscard]] auto add_layer(const layer_handle& target) -> layer_handle;
-    /// Remove layer and resources
-    void remove_layer(const layer_handle& target);
-    /// Set layer name
-    void set_layer_name(const layer_handle& layer, const std::string& name);
+
     /// Get layer name
     [[nodiscard]] auto get_layer_name(const layer_handle& layer) const
       -> std::optional<std::string>;
+
     /// Get sublayers
     [[nodiscard]] auto get_sublayers(const layer_handle& layer) const
       -> std::vector<layer_handle>;
+
     /// Get parent layer
     [[nodiscard]] auto get_parent(const layer_handle& layer) const
       -> layer_handle;
-    /// Move layer below target layer.
-    void move_below(const layer_handle& from, const layer_handle& to);
-    /// Move layer above taregt layer.
-    void move_above(const layer_handle& from, const layer_handle& to);
-    /// Move layer into target layer (as highest layer in it).
-    void move_into(const layer_handle& from, const layer_handle& to);
+
     /// Movable?
     [[nodiscard]] bool movable_below(
       const layer_handle& from,
       const layer_handle& to) const;
+
     /// Movable?
     [[nodiscard]] bool movable_above(
       const layer_handle& from,
       const layer_handle& to) const;
+
     /// Movable?
     [[nodiscard]] bool movable_into(
       const layer_handle& from,
       const layer_handle& to) const;
+
+    /// Remove layer and resources
+    void remove_layer(const layer_handle& target);
+
+    /// Set layer name
+    void set_layer_name(const layer_handle& layer, const std::string& name);
+
+    /// Move layer below target layer.
+    void move_below(const layer_handle& from, const layer_handle& to);
+
+    /// Move layer above taregt layer.
+    void move_above(const layer_handle& from, const layer_handle& to);
+
+    /// Move layer into target layer (as highest layer in it).
+    void move_into(const layer_handle& from, const layer_handle& to);
 
   public: /* layer resource control */
     /// Add new resource to the layer
@@ -141,40 +152,50 @@ namespace yave {
       const std::string& name,
       const layer_handle& layer,
       layer_resource_scope scope) -> layer_resource_handle;
+
     /// Add new resource to the layer
     [[nodiscard]] auto add_resource_shared(
       const std::string& name,
       const layer_handle& layer,
       layer_resource_scope scope) -> shared_layer_resource_handle;
-    /// Remove resource from layer
-    void remove_resource(const layer_resource_handle& node);
-    /// Move resources
-    void move_resource(const layer_resource_handle& r, const layer_handle& to);
+
     /// Get owning resources
     [[nodiscard]] auto get_owning_resources(const layer_handle& layer) const
       -> std::vector<layer_resource_handle>;
+
     /// Get external resources
     [[nodiscard]] auto get_inherited_resources(const layer_handle& layer) const
       -> std::vector<layer_resource_handle>;
+
+    /// Remove resource from layer
+    void remove_resource(const layer_resource_handle& node);
+
+    /// Move resources
+    void move_resource(const layer_resource_handle& r, const layer_handle& to);
 
   public: /* resource info */
     /// Get resource info
     [[nodiscard]] auto get_info(const layer_resource_handle& handle) const
       -> std::optional<layer_resource_info>;
+
     /// Set new scope for the resource
     void set_resource_scope(
       const layer_resource_handle& res,
       layer_resource_scope scope);
+
     /// Get current resource scope
     [[nodiscard]] auto get_resource_scope(const layer_resource_handle& res)
       -> std::optional<layer_resource_scope>;
+
     /// Set resource name
     void set_resource_name(
       const layer_resource_handle& res,
       const std::string& name);
+
     /// Get resource name
     [[nodiscard]] auto get_resource_name(const layer_resource_handle& res) const
       -> std::optional<std::string>;
+
     /// Get layer of resource
     [[nodiscard]] auto get_layer(const layer_resource_handle& res) const
       -> layer_handle;
@@ -182,11 +203,13 @@ namespace yave {
   public: /* node info */
     /// register new node info
     [[nodiscard]] bool register_node_info(const node_info& info);
-    /// unregister node info
-    void unregister_node_info(const node_info& info);
 
     /// register new node info
     [[nodiscard]] bool register_node_info(const std::vector<node_info>& info);
+
+    /// unregister node info
+    void unregister_node_info(const node_info& info);
+
     /// unregister node info
     void unregister_node_info(const std::vector<node_info>& info);
 
@@ -194,35 +217,40 @@ namespace yave {
     /// Access underlying node graph
     auto get_managed_node_graph() const -> const managed_node_graph&;
 
-  private:
-    std::unique_ptr<node_layer> m_root;
-
   private: /* non-locking internal functions */
     /// access layer with handle
     [[nodiscard]] auto _access(const layer_handle& layer) -> node_layer&;
+
     /// access layer with handle
     [[nodiscard]] auto _access(const layer_handle& layer) const
       -> const node_layer&;
+
     /// access parent layer with handle
     [[nodiscard]] auto _access_parent(const layer_handle& layer) -> node_layer&;
+
     /// exists?
     [[nodiscard]] bool _exists(const layer_handle& layer) const;
+
     /// child?
     [[nodiscard]] bool _is_child(
       const layer_handle& parent,
       const layer_handle& child) const;
+
     /// movable?
     [[nodiscard]] bool _movable_below(
       const layer_handle& from,
       const layer_handle& to) const;
+
     /// movable?
     [[nodiscard]] bool _movable_above(
       const layer_handle& from,
       const layer_handle& to) const;
+
     /// movable?
     [[nodiscard]] bool _movable_into(
       const layer_handle& from,
       const layer_handle& to) const;
+
     /// layer
     [[nodiscard]] auto _find_layer(const layer_resource_handle& node) const
       -> layer_handle;
@@ -233,6 +261,9 @@ namespace yave {
 
   private:
     managed_node_graph m_node_graph;
+
+  private:
+    std::unique_ptr<node_layer> m_root;
 
   private:
     mutable std::mutex m_mtx;

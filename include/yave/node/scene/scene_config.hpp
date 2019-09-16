@@ -11,8 +11,6 @@
 
 namespace yave {
 
-  // clang-format off
-
   class scene_config
   {
   public:
@@ -33,18 +31,18 @@ namespace yave {
       uint32_t sample_rate,
       image_format format);
 
-    ~scene_config() noexcept                               = default;
-    scene_config(const scene_config& other)                = default;
-    scene_config(scene_config&& other) noexcept            = default;
-    scene_config& operator=(const scene_config& other)     = default;
+    ~scene_config() noexcept                    = default;
+    scene_config(const scene_config& other)     = default;
+    scene_config(scene_config&& other) noexcept = default;
+    scene_config& operator=(const scene_config& other) = default;
     scene_config& operator=(scene_config&& other) noexcept = default;
 
-    [[nodiscard]] auto width() const noexcept               -> uint32_t;
-    [[nodiscard]] auto height() const noexcept              -> uint32_t;
-    [[nodiscard]] auto frame_rate() const noexcept          -> uint32_t;
-    [[nodiscard]] auto sample_rate() const noexcept         -> uint32_t;
-    [[nodiscard]] auto time_per_frame() const noexcept      -> time;
-    [[nodiscard]] auto time_per_sample() const noexcept     -> time;
+    [[nodiscard]] auto width() const noexcept -> uint32_t;
+    [[nodiscard]] auto height() const noexcept -> uint32_t;
+    [[nodiscard]] auto frame_rate() const noexcept -> uint32_t;
+    [[nodiscard]] auto sample_rate() const noexcept -> uint32_t;
+    [[nodiscard]] auto time_per_frame() const noexcept -> time;
+    [[nodiscard]] auto time_per_sample() const noexcept -> time;
     [[nodiscard]] auto frame_buffer_format() const noexcept -> image_format;
 
   private:
@@ -53,15 +51,13 @@ namespace yave {
 
   private:
     uint32_t m_frame_rate;
-    time     m_time_per_frame;
+    time m_time_per_frame;
 
   private:
     uint32_t m_sample_rate;
-    time     m_time_per_sample;
+    time m_time_per_sample;
 
   private:
     image_format m_frame_buffer_format;
   };
-
-  // clang-format on
-}
+} // namespace yave

@@ -35,19 +35,24 @@ namespace yave {
     shared_node_handle& operator=(const shared_node_handle&) = default;
     shared_node_handle& operator=(shared_node_handle&&) = default;
 
-    [[nodiscard]] node_handle get() const
+    [[nodiscard]] explicit operator bool() const noexcept
+    {
+      return static_cast<bool>(m_ptr);
+    }
+
+    [[nodiscard]] auto get() const -> node_handle
     {
       if (m_ptr)
         return m_ptr->handle;
       return nullptr;
     }
 
-    [[nodiscard]] node_handle operator*() const
+    [[nodiscard]] auto operator*() const -> node_handle
     {
       return get();
     }
 
-    [[nodiscard]] node_handle release()
+    [[nodiscard]] auto release() -> node_handle
     {
       if (m_ptr) {
         node_handle ret = nullptr;
@@ -58,12 +63,7 @@ namespace yave {
       return nullptr;
     }
 
-    [[nodiscard]] explicit operator bool() const noexcept
-    {
-      return static_cast<bool>(m_ptr);
-    }
-
-    [[nodiscard]] size_t use_count() const noexcept
+    [[nodiscard]] auto use_count() const noexcept -> size_t
     {
       return m_ptr.use_count();
     }

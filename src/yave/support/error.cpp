@@ -48,7 +48,7 @@ namespace yave {
     return *this;
   }
 
-  const error_info_base* error::info() const
+  auto error::info() const -> const error_info_base*
   {
     return m_error_info.get();
   }
@@ -63,19 +63,19 @@ namespace yave {
     return is_success();
   }
 
-  std::string error::message() const
+  auto error::message() const -> std::string
   {
     assert(m_error_info);
     return m_error_info->message();
   }
 
-  const std::type_info& error::type() const
+  auto error::type() const -> const std::type_info&
   {
     assert(m_error_info);
     return m_error_info->type();
   }
 
-  error error::clone() const
+  auto error::clone() const -> error
   {
     return m_error_info->clone();
   }

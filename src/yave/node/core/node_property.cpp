@@ -57,4 +57,24 @@ namespace yave {
     else
       return nullptr;
   }
+
+  bool node_property::is_visited() const
+  {
+    return m_visited == 1;
+  }
+
+  bool node_property::is_unvisited() const
+  {
+    return m_visited == 0;
+  }
+
+  void node_property::set_visited() const
+  {
+    m_visited = 1;
+  }
+
+  void node_property::set_unvisited() const
+  {
+    m_visited = 0;
+  }
 } // namespace yave

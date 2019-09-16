@@ -29,26 +29,28 @@ namespace yave {
       bool is_prim = false);
 
     /// name
-    [[nodiscard]] auto name() const -> const std::string&;
-
-    /// set name
-    void set_name(const std::string& name);
+    [[nodiscard]] auto name() const 
+      -> const std::string&;
 
     /// input sockets
-    [[nodiscard]] auto input_sockets() const -> const std::vector<std::string>&;
-
-    /// set input sockets
-    void set_input_sockets(const std::vector<std::string>& sockets);
+    [[nodiscard]] auto input_sockets() const 
+      -> const std::vector<std::string>&;
 
     /// output sockets
     [[nodiscard]] auto output_sockets() const
       -> const std::vector<std::string>&;
 
-    /// set output sockets
-    void set_output_sockets(const std::vector<std::string>& sockets);
-
     /// primitive?
     [[nodiscard]] bool is_prim() const;
+
+    /// set name
+    void set_name(const std::string& name);
+
+    /// set input sockets
+    void set_input_sockets(const std::vector<std::string>& sockets);
+
+    /// set output sockets
+    void set_output_sockets(const std::vector<std::string>& sockets);
 
   private:
     /// Unique name of node.
