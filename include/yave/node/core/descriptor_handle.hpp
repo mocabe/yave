@@ -106,6 +106,15 @@ namespace yave {
     return lhs.id() < rhs.id();
   }
 
+  /// operator<=
+  template <class D>
+  [[nodiscard]] constexpr bool operator<=(
+    const descriptor_handle<D>& lhs,
+    const descriptor_handle<D>& rhs) noexcept
+  {
+    return !(lhs > rhs);
+  }
+
   /// operator>
   template <class D>
   [[nodiscard]] constexpr bool operator>(
@@ -115,4 +124,12 @@ namespace yave {
     return lhs.id() > rhs.id();
   }
 
+  /// operator>=
+  template <class D>
+  [[nodiscard]] constexpr bool operator>=(
+    const descriptor_handle<D>& lhs,
+    const descriptor_handle<D>& rhs) noexcept
+  {
+    return !(lhs < rhs);
+  }
 } // namespace yave
