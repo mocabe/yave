@@ -25,7 +25,7 @@ struct Add : NodeFunction<Add, Int, Int, Int>
 };
 
 template <>
-struct node_info_traits<Add>
+struct yave::node_info_traits<Add>
 {
   static node_info get_node_info()
   {
@@ -34,7 +34,7 @@ struct node_info_traits<Add>
 };
 
 template <>
-struct bind_info_traits<Add, test_backend>
+struct yave::bind_info_traits<Add, test_backend>
 {
   static bind_info get_bind_info()
   {
@@ -52,7 +52,7 @@ struct AddD : NodeFunction<AddD, Double, Double, Double>
 };
 
 template <>
-struct node_info_traits<AddD>
+struct yave::node_info_traits<AddD>
 {
   static node_info get_node_info()
   {
@@ -61,7 +61,7 @@ struct node_info_traits<AddD>
 };
 
 template <>
-struct bind_info_traits<AddD, test_backend>
+struct yave::bind_info_traits<AddD, test_backend>
 {
   static bind_info get_bind_info()
   {
