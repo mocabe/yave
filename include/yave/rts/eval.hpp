@@ -43,7 +43,7 @@ namespace yave {
           object_ptr<const Object> new_app = make_object<Apply>(
             rec(apply_storage.app(), map), rec(apply_storage.arg(), map));
 
-          map.emplace(apply, new_app);
+          map.emplace(std::move(apply), new_app);
           return new_app;
         }
         return obj;
@@ -67,7 +67,7 @@ namespace yave {
 
       for (;;) {
 
-        if (auto apply = value_cast_if<Apply>(next)) {
+        if (auto apply = value_cast_if<Apply>(std::move(next))) {
 
           auto& apply_storage = _get_storage(*apply);
 
@@ -92,7 +92,8 @@ namespace yave {
     [[nodiscard]] inline auto eval_spine(object_ptr<const Object> obj)
       -> object_ptr<const Object>
     {
-      if (auto apply = value_cast_if<Apply>(obj)) {
+      // exploit value_cast_if does not modify rvalue ref on fail
+      if (auto apply = value_cast_if<Apply>(std::move(obj))) {
 
         auto& apply_storage = _get_storage(*apply);
 

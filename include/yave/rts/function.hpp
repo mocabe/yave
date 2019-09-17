@@ -46,6 +46,10 @@ namespace yave {
         assert(r);
 
         // only cache PAP or values (see comments in eval_spine()).
+        // TODO: Since we know return type at compile time, we can directly
+        // convert applications into PAP without loop by analyzing TApply tree.
+        // Same on other return types; we can bypass some of runtime type checks
+        // which may improve performance.
         r = detail::eval_obj(std::move(r));
 
         // call self update method
