@@ -1,6 +1,9 @@
 # yave::lib::imgui
 
-add_library(yave-lib-imgui imgui_context.cpp)
+add_library(yave-lib-imgui 
+  imgui_context.cpp
+  ext_invisible_button.cpp)
+
 add_library(yave::lib::imgui ALIAS yave-lib-imgui)
 
 target_include_directories(yave-lib-imgui PRIVATE ${YAVE_INCLUDE_DIR})
