@@ -30,3 +30,6 @@
 	path = external/selene
 	url = https://github.com/kmhofmann/selene.git
 	ignore = dirty
+[submodule "external/freetype2"]
+	path = external/freetype2
+	url = git://git.sv.nongnu.org/freetype/freetype2.git
