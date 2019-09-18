@@ -303,8 +303,9 @@ namespace {
     const vk::Device& device)
     -> std::tuple<vk::UniqueDeviceMemory, vk::UniqueImage, vk::UniqueImageView>
   {
-    /* get texture data */
     ImGuiIO& io = ImGui::GetIO();
+
+    /* get texture data */
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -839,6 +840,21 @@ namespace yave::imgui {
       Info(g_logger, "Initialized ImGui context");
     }
 
+    /* register fonts */
+    {
+      // Add default font
+      ImGuiIO& io = ImGui::GetIO();
+      io.Fonts->AddFontDefault();
+    }
+
+    /* build fonts with FreeType */
+    {
+      ImGuiIO& io = ImGui::GetIO();
+      auto flags  = ImGuiFreeType::NoHinting;
+      ImGuiFreeType::BuildFontAtlas(io.Fonts, flags);
+    }
+
+    /* prepare uploading font texture */
     {
       m_fontSampler = createImGuiFontSampler(m_vulkanCtx.device());
       Info(g_logger, "Created ImGui font sampler");

@@ -43,6 +43,9 @@ add_library(vulkan INTERFACE)
 target_include_directories(vulkan INTERFACE ${Vulkan_INCLUDE_DIRS})
 target_link_libraries(vulkan INTERFACE ${Vulkan_LIBRARIES})
 
+# FreeType
+find_package(Freetype REQUIRED)
+
 # imgui
 init_lib_cmake(imgui)
 
@@ -51,11 +54,15 @@ add_library(imgui
   external/imgui/imgui_widgets.cpp
   external/imgui/imgui_draw.cpp
   external/imgui/imgui_demo.cpp
+  external/imgui/misc/freetype/imgui_freetype.cpp
 )
 
 target_include_directories(imgui PUBLIC 
   external/imgui
+  external/imgui/misc/freetype
 )
+
+target_link_libraries(imgui PRIVATE Freetype::Freetype)
 
 add_library(imgui-glfw-vulkan 
   external/imgui/examples/imgui_impl_vulkan.cpp

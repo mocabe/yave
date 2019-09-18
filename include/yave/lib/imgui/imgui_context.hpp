@@ -8,6 +8,7 @@
 #include <yave/lib/vulkan/vulkan_context.hpp>
 
 #include <imgui.h>
+#include <imgui_freetype.h> // use freetype for font rendering
 #include <chrono>
 
 namespace yave::imgui {
