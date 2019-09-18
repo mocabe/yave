@@ -89,7 +89,11 @@ message(STATUS "Find package: boost")
 set(YAVE_BOOST_COMPONENTS random program_options filesystem)
 set (Boost_ARCHITECTURE "-x64")
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.70.0 COMPONENTS ${YAVE_BOOST_COMPONENTS})
+
+# Find existing boost installation
+if(NOT YAVE_COMPILER_MSVC)
+  find_package(Boost 1.70.0 COMPONENTS ${YAVE_BOOST_COMPONENTS})
+endif()
 
 if(NOT Boost_FOUND)
 
@@ -144,6 +148,6 @@ if(NOT Boost_FOUND)
   # Let FindBoost create Boost targets
   set(BOOST_ROOT "${YAVE_EXTERNAL_DIR}/boost" CACHE PATH "" FORCE)
   set(Boost_NO_SYSTEM_PATHS TRUE)
-  find_package(Boost COMPONENTS random program_options filesystem REQUIRED)
+  find_package(Boost COMPONENTS ${YAVE_BOOST_COMPONENTS} REQUIRED)
 
 endif()
