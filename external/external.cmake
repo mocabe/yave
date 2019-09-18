@@ -96,6 +96,11 @@ if(NOT YAVE_COMPILER_MSVC)
 endif()
 
 if(NOT Boost_FOUND)
+  set(BOOST_ROOT "${YAVE_EXTERNAL_DIR}/boost")
+  find_package(Boost 1.70.0 COMPONENTS ${YAVE_BOOST_COMPONENTS})
+endif()
+
+if(NOT Boost_FOUND)
 
   message(STATUS "Initializing submodule: boost")
   execute_process(COMMAND git submodule update --init --recursive --jobs 8 external/boost
@@ -146,7 +151,7 @@ if(NOT Boost_FOUND)
   endif()
   
   # Let FindBoost create Boost targets
-  set(BOOST_ROOT "${YAVE_EXTERNAL_DIR}/boost" CACHE PATH "" FORCE)
+  set(BOOST_ROOT "${YAVE_EXTERNAL_DIR}/boost")
   set(Boost_NO_SYSTEM_PATHS TRUE)
   find_package(Boost COMPONENTS ${YAVE_BOOST_COMPONENTS} REQUIRED)
 
