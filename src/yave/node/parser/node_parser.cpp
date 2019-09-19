@@ -111,9 +111,6 @@ namespace yave {
     // root of ret
     node_handle ret_root;
 
-    // collection of relation between old and new nodes.
-    std::map<uid, node_handle> n_map;
-
     // copy nodes
     for (auto&& n : ns) {
       auto info = graph.get_info(n);
@@ -128,8 +125,6 @@ namespace yave {
           make_error<parse_error::unexpected_error>("Failed to copy node"));
         throw std::runtime_error("Failed to copy prime tree");
       }
-
-      n_map.emplace(n.id(), cpy);
 
       // root node
       if (n == root) {
@@ -155,20 +150,17 @@ namespace yave {
 
         assert(dst == n);
 
-        auto src_itr = n_map.find(src.id());
-        auto dst_itr = n_map.find(dst.id());
+        auto src_cpy = ret.node(src.id());
+        auto dst_cpy = ret.node(dst.id());
 
-        if (src_itr == n_map.end() || dst_itr == n_map.end()) {
+        if (!src_cpy || !dst_cpy) {
           m_errors.push_back(make_error<parse_error::unexpected_error>(
             "Could not find copied node"));
           throw std::runtime_error("Failed to copy prime tree");
         }
 
-        auto cpy = ret.connect(
-          src_itr->second,
-          info->src_socket(),
-          dst_itr->second,
-          info->dst_socket());
+        auto cpy =
+          ret.connect(src_cpy, info->src_socket(), dst_cpy, info->dst_socket());
 
         if (!cpy) {
           m_errors.push_back(make_error<parse_error::unexpected_error>(
