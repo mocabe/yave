@@ -289,6 +289,18 @@ namespace yave {
     m_g.remove_edge(h.descriptor());
   }
 
+  auto node_graph::node(const uid& id) const -> node_handle
+  {
+    auto lck = _lock();
+
+    auto dsc = m_g.node(id.data);
+
+    if (!dsc)
+      return nullptr;
+
+    return node_handle(dsc, id);
+  }
+
   auto node_graph::nodes(const std::string& name) const
     -> std::vector<node_handle>
   {
@@ -612,6 +624,18 @@ namespace yave {
       Warning(
         g_logger, "Call for output_connections() with invalid socket name.");
     return ret;
+  }
+
+  auto node_graph::connection(const uid& id) const -> connection_handle
+  {
+    auto lck = _lock();
+
+    auto dsc = m_g.edge(id.data);
+
+    if (!dsc)
+      return nullptr;
+
+    return connection_handle(dsc, id);
   }
 
   auto node_graph::connections() const -> std::vector<connection_handle>

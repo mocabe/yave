@@ -6,14 +6,9 @@
 #pragma once
 
 #include <cassert>
-#include <exception>
 #include <stdexcept>
-#include <map>
-#include <memory>
 #include <vector>
-#include <utility>
 #include <algorithm>
-#include <string>
 #include <random>
 #include <chrono>
 
@@ -76,26 +71,42 @@ namespace yave::graph {
     using value_type = ValueType<GraphTraits>;
     // descriptor type
     using descriptor_type = value_type *;
-    // container type
-    using container_type = std::vector<descriptor_type>;
     // property type
     using property_type = Property;
     // inline property type
     using inline_property_type = Property;
+    // id type
+    using id_type = typename GraphTraits::id_type;
+
+    // container type
+    struct container_type
+    {
+      // Flat descriptor map.
+      std::vector<descriptor_type> dsc_map;
+
+      // Flat id map (and support vector).
+      // Support vector contains unordered descriptors which relates to Id in
+      // id_map of same index.
+      std::vector<id_type> id_map;
+      std::vector<descriptor_type> id_map_support;
+    };
 
     /// Check if a descriptor exists in a container.
     /// \param c Container
     /// \param descriptor descriptor
     /// \param return true when descriptor is valid and exists in the container
-    static inline bool
-      exists(const container_type &c, const descriptor_type &descriptor)
+    static inline bool exists(
+      const container_type &c,
+      const descriptor_type &descriptor)
     {
+      auto &map = c.dsc_map;
+
       if (descriptor == nullptr)
         return false;
 
-      auto lb = std::lower_bound(c.begin(), c.end(), descriptor);
+      auto lb = std::lower_bound(map.begin(), map.end(), descriptor);
 
-      if (lb == c.end())
+      if (lb == map.end())
         return false;
 
       if (*lb == descriptor)
@@ -104,35 +115,142 @@ namespace yave::graph {
       return false;
     }
 
+    /// Check if an Id exists in a container.
+    /// \param c Container
+    /// \param id id
+    /// \param return true when the id exists in the container
+    static inline bool exists(const container_type &c, const id_type &id)
+    {
+      auto &map = c.id_map;
+
+      auto lb = std::lower_bound(map.begin(), map.end(), id);
+
+      if (lb == c.end())
+        return false;
+
+      if (*lb == id)
+        return true;
+
+      return false;
+    }
+
+    /// Find descriptor from ID value.
+    /// \param c Container
+    /// \param id id
+    /// \returns nullptr when not found
+    static inline descriptor_type find_descriptor(
+      const container_type &c,
+      const id_type &id)
+    {
+      auto &map     = c.id_map;
+      auto &support = c.id_map_support;
+
+      auto lb = std::lower_bound(map.begin(), map.end(), id);
+
+      if (lb == map.end())
+        return nullptr;
+
+      if (*lb == id) {
+        auto d = std::distance(map.begin(), lb);
+        return support[d];
+      }
+
+      return nullptr;
+    }
+
     /// Destroy instance from a container.
     /// Descriptor will become invalid after calling this
     /// function.
     /// \param c Container
+    /// \param id Id
     /// \param descriptor Descriptor
-    static inline void
-      destroy(container_type &c, const descriptor_type &descriptor) noexcept
+    static inline void destroy(
+      container_type &c,
+      const descriptor_type &descriptor,
+      const id_type &id) noexcept
     {
-      auto lb = std::lower_bound(c.begin(), c.end(), descriptor);
+      // remove id
+      {
+        auto &map     = c.id_map;
+        auto &support = c.id_map_support;
+        auto lb       = std::lower_bound(map.begin(), map.end(), id);
+        auto dist     = std::distance(map.begin(), lb);
 
-      if (lb == c.end())
-        return;
+        if (lb == map.end())
+          return;
 
-      if (*lb == descriptor) {
-        c.erase(lb);
-        delete descriptor;
+        if (*lb == id) {
+          map.erase(lb);
+          support.erase(support.begin() + dist);
+        }
       }
+      // remove descriptor
+      {
+        auto &map = c.dsc_map;
+        auto lb   = std::lower_bound(map.begin(), map.end(), descriptor);
+
+        if (lb == map.end())
+          return;
+
+        if (*lb == descriptor) {
+          map.erase(lb);
+          delete descriptor;
+        }
+      }
+
+      assert(c.dsc_map.size() == c.id_map.size());
+      assert(c.id_map.size() == c.id_map_support.size());
     }
 
     /// Instance in a container and return descriptor.
     /// \param c Container
+    /// \param id Id of new value
     /// \param args Args for initialize value type
     template <class... Args>
-    static inline descriptor_type create(container_type &c, Args &&... args)
+    static inline descriptor_type create(
+      container_type &c,
+      const id_type &id,
+      Args &&... args)
     {
-      value_type *v = new value_type(std::forward<Args>(args)...);
-      auto lb       = std::lower_bound(c.begin(), c.end(), v);
-      c.insert(lb, v);
-      return v;
+      descriptor_type dsc = new value_type(id, std::forward<Args>(args)...);
+
+      // insert dsc
+      {
+        auto &map = c.dsc_map;
+        auto lb   = std::lower_bound(map.begin(), map.end(), dsc);
+        assert(lb == map.end() || *lb != dsc);
+        map.insert(lb, dsc);
+      }
+      // insert id
+      {
+        auto &map     = c.id_map;
+        auto &support = c.id_map_support;
+        auto lb       = std::lower_bound(map.begin(), map.end(), id);
+        auto dist     = std::distance(map.begin(), lb);
+        assert(lb == map.end() || *lb != id);
+        map.insert(lb, id);
+        support.insert(support.begin() + dist, dsc);
+      }
+
+      assert(c.dsc_map.size() == c.id_map.size());
+      assert(c.id_map.size() == c.id_map_support.size());
+
+      return dsc;
+    }
+
+    /// Get list of descriptors.
+    /// \param c Container
+    static inline const std::vector<descriptor_type> &descriptors(
+      const container_type &c)
+    {
+      return c.dsc_map;
+    }
+
+    /// Get list of IDs.
+    /// \param c Container
+    static inline const std::vector<id_type> &ids(const container_type &c)
+    {
+      return c.id_map;
     }
 
     /// Access function.
@@ -247,6 +365,11 @@ namespace yave::graph {
     using edge_property_type   = EdgeProperty;
     using socket_property_type = SocketProperty;
 
+    /* ID traits */
+
+    using id_traits = graph_id_traits<node_type, socket_type, edge_type>;
+    using id_type   = typename id_traits::id_type;
+
     /* container traits */
 
     using node_container_traits =
@@ -275,11 +398,6 @@ namespace yave::graph {
       typename edge_container_traits::descriptor_type;
     using socket_descriptor_type =
       typename socket_container_traits::descriptor_type;
-
-    /* ID traits */
-
-    using id_traits = graph_id_traits<node_type, socket_type, edge_type>;
-    using id_type   = typename id_traits::id_type;
   };
 
   /// \brief Node class.
@@ -960,9 +1078,9 @@ namespace yave::graph {
       return _access(descriptor).inline_property();
     }
 
-    // Descriptor access operator.
-    // \param descriptor descriptor of node
-    // \returns if success
+    /// Descriptor access operator.
+    /// \param descriptor descriptor of node
+    /// \returns if success
     [[nodiscard]] NodeProperty &at(const node_descriptor_type &descriptor)
     {
       return _at(descriptor).inline_property();
@@ -1033,20 +1151,20 @@ namespace yave::graph {
     }
 
     /// Get nodes.
-    [[nodiscard]] auto nodes() const
+    [[nodiscard]] std::vector<node_descriptor_type> nodes() const
     {
-      return m_nodes;
+      return _nodes();
     }
 
     /// Get node count.
     [[nodiscard]] auto n_nodes() const
     {
-      return m_nodes.size();
+      return _n_nodes();
     }
 
     /// Get nodes connected to the socket.
-    [[nodiscard]] std::vector<node_descriptor_type>
-      nodes(const socket_descriptor_type &descriptor) const
+    [[nodiscard]] std::vector<node_descriptor_type> nodes(
+      const socket_descriptor_type &descriptor) const
     {
       auto &s = _at(descriptor);
       return s.nodes();
@@ -1060,15 +1178,15 @@ namespace yave::graph {
     }
 
     /// Get sockets.
-    [[nodiscard]] auto sockets() const
+    [[nodiscard]] std::vector<socket_descriptor_type> sockets() const
     {
-      return m_sockets;
+      return _sockets();
     }
 
     /// Get socket count.
     [[nodiscard]] auto n_sockets() const
     {
-      return m_sockets.size();
+      return _n_sockets();
     }
 
     /// Get sockets connected to the node.
@@ -1087,15 +1205,15 @@ namespace yave::graph {
     }
 
     /// Get edges.
-    [[nodiscard]] auto edges() const
+    [[nodiscard]] std::vector<edge_descriptor_type> edges() const
     {
-      return m_edges;
+      return _edges();
     }
 
     /// Get edge count.
     [[nodiscard]] auto n_edges() const
     {
-      return m_edges.size();
+      return _n_edges();
     }
 
     /// Get src edges.
@@ -1170,31 +1288,19 @@ namespace yave::graph {
     /// Find node from id.
     [[nodiscard]] node_descriptor_type node(const id_type &id) const
     {
-      for (auto &&n : nodes()) {
-        if (_access(n).id() == id)
-          return n;
-      }
-      return nullptr;
+      return traits::node_container_traits::find_descriptor(m_nodes, id);
     }
 
     /// Get socket from id.
     [[nodiscard]] socket_descriptor_type socket(const id_type &id) const
     {
-      for (auto &&s : sockets()) {
-        if (_access(s).id() == id)
-          return s;
-      }
-      return nullptr;
+      return traits::socket_container_traits::find_descriptor(m_sockets, id);
     }
 
     /// Get edge from id.
     [[nodiscard]] edge_descriptor_type edge(const id_type &id) const
     {
-      for (auto &&e : edges()) {
-        if (_access(e).id() == id)
-          return e;
-      }
-      return nullptr;
+      return traits::edge_container_traits::find_descriptor(m_edges, id);
     }
 
     /// Clone graph
@@ -1202,33 +1308,28 @@ namespace yave::graph {
     {
       graph g;
 
-      std::map<id_type, node_descriptor_type> n_map;
-      std::map<id_type, socket_descriptor_type> s_map;
-
       for (auto &&n : nodes()) {
         // copy nodes
         auto dsc = g._create_n(id(n), _access(n).inline_property());
-        n_map.emplace(id(n), dsc);
         assert(dsc);
       }
 
       for (auto &&s : sockets()) {
         // copy socket
         auto dsc = g._create_s(id(s), _access(s).inline_property());
-        s_map.emplace(id(s), dsc);
         assert(dsc);
 
         // attach socket
         for (auto &&n : _access(s).nodes()) {
-          [[maybe_unused]] auto r = g.attach_socket(n_map.at(id(n)), dsc);
+          [[maybe_unused]] auto r = g.attach_socket(g.node(id(n)), dsc);
           assert(r);
         }
       }
 
       for (auto &&e : edges()) {
         // copy edges
-        auto s   = s_map.at(id(_access(e).src()));
-        auto d   = s_map.at(id(_access(e).dst()));
+        auto s   = g.socket(id(_access(e).src()));
+        auto d   = g.socket(id(_access(e).dst()));
         auto dsc = g._create_e(id(e), s, d, _access(e).inline_property());
         assert(dsc);
 
@@ -1260,10 +1361,11 @@ namespace yave::graph {
     }
 
     /// Empty
-    [[nodiscard]] bool empty()
+    [[nodiscard]] bool empty() const
     {
-      return (m_nodes.empty() && m_edges.empty() && m_sockets.empty());
+      return (_n_nodes() == 0 && _n_sockets() == 0 && _n_edges() == 0);
     }
+
 private:
     /// Create new node.
     /// \param id id for new node
@@ -1299,6 +1401,42 @@ private:
     id_type _random_id_gen()
     {
       return traits::id_traits::random_generate();
+    }
+
+    /// Get list of node descriptors.
+    inline const std::vector<node_descriptor_type> &_nodes() const
+    {
+      return traits::node_container_traits::descriptors(m_nodes);
+    }
+
+    /// Get size of nodes.
+    inline size_t _n_nodes() const
+    {
+      return _nodes().size();
+    }
+
+    /// Get list of socket descriptors.
+    inline const std::vector<socket_descriptor_type> &_sockets() const
+    {
+      return traits::socket_container_traits::descriptors(m_sockets);
+    }
+
+    /// Get size of sockets.
+    inline size_t _n_sockets() const
+    {
+      return _sockets().size();
+    }
+
+    /// Get list of edges descriptors.
+    inline const std::vector<edge_descriptor_type> &_edges() const
+    {
+      return traits::edge_container_traits::descriptors(m_edges);
+    }
+
+    /// Get size of edges.
+    inline size_t _n_edges() const
+    {
+      return _edges().size();
     }
 
     /// Node access.
@@ -1385,7 +1523,8 @@ private:
     /// \returns true if success
     void _destroy(const node_descriptor_type &descriptor) noexcept
     {
-      traits::node_container_traits::destroy(m_nodes, descriptor);
+      traits::node_container_traits::destroy(
+        m_nodes, descriptor, _access(descriptor).id());
     }
 
     /// Destroy edge.
@@ -1393,7 +1532,8 @@ private:
     /// \returns true if success
     void _destroy(const edge_descriptor_type &descriptor) noexcept
     {
-      traits::edge_container_traits::destroy(m_edges, descriptor);
+      traits::edge_container_traits::destroy(
+        m_edges, descriptor, _access(descriptor).id());
     }
 
     /// Destroy edge.
@@ -1401,7 +1541,8 @@ private:
     /// \returns true if success
     void _destroy(const socket_descriptor_type &descriptor) noexcept
     {
-      traits::socket_container_traits::destroy(m_sockets, descriptor);
+      traits::socket_container_traits::destroy(
+        m_sockets, descriptor, _access(descriptor).id());
     }
 
     /// list of node descriptors
