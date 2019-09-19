@@ -152,7 +152,7 @@ namespace yave::graph {
 
       auto lb = std::lower_bound(map.begin(), map.end(), id);
 
-      if (lb == c.end())
+      if (lb == map.end())
         return nullptr;
 
       if (*lb == id) {
@@ -1293,31 +1293,19 @@ namespace yave::graph {
     /// Find node from id.
     [[nodiscard]] node_descriptor_type node(const id_type &id) const
     {
-      for (auto &&n : nodes()) {
-        if (_access(n).id() == id)
-          return n;
-      }
-      return nullptr;
+      return traits::node_container_traits::find_descriptor(m_nodes, id);
     }
 
     /// Get socket from id.
     [[nodiscard]] socket_descriptor_type socket(const id_type &id) const
     {
-      for (auto &&s : sockets()) {
-        if (_access(s).id() == id)
-          return s;
-      }
-      return nullptr;
+      return traits::socket_container_traits::find_descriptor(m_sockets, id);
     }
 
     /// Get edge from id.
     [[nodiscard]] edge_descriptor_type edge(const id_type &id) const
     {
-      for (auto &&e : edges()) {
-        if (_access(e).id() == id)
-          return e;
-      }
-      return nullptr;
+      return traits::edge_container_traits::find_descriptor(m_edges, id);
     }
 
     /// Clone graph
@@ -1325,33 +1313,28 @@ namespace yave::graph {
     {
       graph g;
 
-      std::map<id_type, node_descriptor_type> n_map;
-      std::map<id_type, socket_descriptor_type> s_map;
-
       for (auto &&n : nodes()) {
         // copy nodes
         auto dsc = g._create_n(id(n), _access(n).inline_property());
-        n_map.emplace(id(n), dsc);
         assert(dsc);
       }
 
       for (auto &&s : sockets()) {
         // copy socket
         auto dsc = g._create_s(id(s), _access(s).inline_property());
-        s_map.emplace(id(s), dsc);
         assert(dsc);
 
         // attach socket
         for (auto &&n : _access(s).nodes()) {
-          [[maybe_unused]] auto r = g.attach_socket(n_map.at(id(n)), dsc);
+          [[maybe_unused]] auto r = g.attach_socket(g.node(id(n)), dsc);
           assert(r);
         }
       }
 
       for (auto &&e : edges()) {
         // copy edges
-        auto s   = s_map.at(id(_access(e).src()));
-        auto d   = s_map.at(id(_access(e).dst()));
+        auto s   = g.socket(id(_access(e).src()));
+        auto d   = g.socket(id(_access(e).dst()));
         auto dsc = g._create_e(id(e), s, d, _access(e).inline_property());
         assert(dsc);
 
