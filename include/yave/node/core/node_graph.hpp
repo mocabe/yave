@@ -86,6 +86,11 @@ namespace yave {
     /// \throws should not throw exception.
     void disconnect(const connection_handle& connection);
 
+    /// Find node from ID.
+    /// \param id id
+    /// \returns Null handle when not found
+    [[nodiscard]] auto node(const uid& id) const -> node_handle;
+
     /// Find nodes from name.
     /// \returns Empty vector when not found.
     [[nodiscard]] auto nodes(const std::string& name) const
@@ -150,6 +155,11 @@ namespace yave {
     [[nodiscard]] auto output_connections(
       const node_handle& node,
       const std::string& socket) const -> std::vector<connection_handle>;
+
+    /// Find connection handle from ID.
+    /// \param id id
+    /// \returns Null handle when not found
+    [[nodiscard]] auto connection(const uid& id) const -> connection_handle;
 
     /// Get all connections.
     [[nodiscard]] auto connections() const -> std::vector<connection_handle>;
