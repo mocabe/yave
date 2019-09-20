@@ -11,37 +11,6 @@
 
 namespace yave {
 
-  namespace {
-
-    // header of frame buffer
-    struct fb_head
-    {
-      uint8_t* mem;                       // pointer to allocated space.
-      uint8_t* buff;                      // pointer to image buffer.
-      atomic_refcount<uint64_t> refcount; // reference count.
-      uid id;                             // id (for debug).
-    };
-
-    fb_head* allocate_fb(size_t sz, uid id)
-    {
-      uint8_t* mem  = new uint8_t[sizeof(fb_head) + sz] {};
-      fb_head* head = new (mem) fb_head {mem, mem + sizeof(fb_head), 1U, id};
-      return head;
-    }
-
-    void deallocate_fb(fb_head* head)
-    {
-      auto* mem = head->mem;
-      head->~fb_head();
-      delete[] mem;
-    }
-
-    size_t byte_size(uint32_t width, uint32_t height, image_format fmt)
-    {
-      return (size_t)width * height * byte_per_pixel(fmt);
-    }
-  } // namespace
-
   frame_buffer_manager::frame_buffer_manager(
     uint32_t width,
     uint32_t height,
@@ -51,174 +20,64 @@ namespace yave {
     , m_width {width}
     , m_height {height}
   {
+    // clang-format off
+
     // create pool object
     m_pool = make_object<FrameBufferPool>(
       (void*)this,
       backend_id,
-      [](void* h) { return ((frame_buffer_manager*)h)->create(); },
-      [](void* h, uid id) { return ((frame_buffer_manager*)h)->create(id); },
-      [](void* h, uid id) { return ((frame_buffer_manager*)h)->ref(id); },
-      [](void* h, uid id) { return ((frame_buffer_manager*)h)->unref(id); },
-      [](void* h, uid id) { return ((frame_buffer_manager*)h)->get_data(id); },
-      [](const void* h) { return ((const frame_buffer_manager*)h)->format(); },
-      [](const void* h) { return ((const frame_buffer_manager*)h)->width(); },
-      [](const void* h) { return ((const frame_buffer_manager*)h)->height(); });
+      [](void* handle, uint64_t sz) noexcept -> uid { return ((frame_buffer_manager*)handle)->create(sz); },
+      [](void* handle, uid id) noexcept -> uid      { return ((frame_buffer_manager*)handle)->create_from(id); },
+      [](void* handle, uid id) noexcept -> void     { return ((frame_buffer_manager*)handle)->ref(id); },
+      [](void* handle, uid id) noexcept -> void     { return ((frame_buffer_manager*)handle)->unref(id); },
+      [](void* handle, uid id) noexcept -> uint64_t { return ((frame_buffer_manager*)handle)->use_count(id); },
+      [](void* handle, uid id) noexcept -> uint8_t* { return ((frame_buffer_manager*)handle)->data(id); },
+      [](void* handle, uid id) noexcept -> uint64_t { return ((frame_buffer_manager*)handle)->size(id); },
+      [](void* handle) noexcept -> uid              { return ((frame_buffer_manager*)handle)->create(); },
+      [](void* handle) noexcept -> image_format     { return ((frame_buffer_manager*)handle)->format(); },
+      [](void* handle) noexcept -> uint32_t         { return ((frame_buffer_manager*)handle)->width(); },
+      [](void* handle) noexcept -> uint32_t         { return ((frame_buffer_manager*)handle)->height(); },
+      [](void* handle) noexcept -> uint64_t         { return ((frame_buffer_manager*)handle)->byte_size(); });
+
+    // clang-format on
   }
 
   frame_buffer_manager::~frame_buffer_manager() noexcept
   {
-    assert(m_data.size() == m_id.size());
-    for (auto&& p : m_data) {
-      deallocate_fb((fb_head*)p);
-    }
   }
 
-  uid frame_buffer_manager::create()
+  uid frame_buffer_manager::create() noexcept
   {
-    uid id     = uid::random_generate();
-    auto* buff = allocate_fb(byte_size(m_width, m_height, m_format), id);
-    { // lock
-      std::lock_guard lck {m_mtx};
-      m_data.push_back(buff);
-      m_id.push_back(id);
-    }
-    assert(m_data.size() == m_id.size());
-    return id;
+    return buffer_manager::create(byte_size());
   }
 
-  uid frame_buffer_manager::create(const uint8_t* parent)
+  uid frame_buffer_manager::create_from(uid id) noexcept
   {
-    uid id     = uid::random_generate();
-    auto* buff = allocate_fb(byte_size(m_width, m_height, m_format), id);
-    if (parent)
-      std::memcpy(buff->buff, parent, byte_size(m_width, m_height, m_format));
-    { // lock
-      std::lock_guard lck {m_mtx};
-      m_data.push_back(buff);
-      m_id.push_back(id);
-    }
-    assert(m_data.size() == m_id.size());
-    return id;
+    return buffer_manager::create_from(id);
   }
 
-  uid frame_buffer_manager::create(uid parent)
-  {
-    assert(m_id.size() == m_data.size());
-    { // lock
-      std::lock_guard lck {m_mtx};
-      for (size_t i = 0; i < m_id.size(); ++i) {
-        if (m_id[i] == parent) {
-          assert(((fb_head*)m_data[i])->id == m_id[i]);
-          uid id     = uid::random_generate();
-          auto* buff = allocate_fb(byte_size(m_width, m_height, m_format), id);
-          m_data.push_back(buff);
-          m_id.push_back(id);
-          return id;
-        }
-      }
-    }
-    // fallback
-    return create();
-  }
-
-  void frame_buffer_manager::ref(uid id)
-  {
-    assert(m_id.size() == m_data.size());
-    { // lock
-      std::lock_guard lck {m_mtx};
-      for (size_t i = 0; i < m_id.size(); ++i) {
-        if (m_id[i] == id) {
-          assert(((fb_head*)m_data[i])->id == m_id[i]);
-          ((fb_head*)m_data[i])->refcount.fetch_add();
-          return;
-        }
-      }
-    }
-  }
-
-  void frame_buffer_manager::unref(uid id)
-  {
-    assert(m_id.size() == m_data.size());
-    { // lock
-      std::lock_guard lck {m_mtx};
-      for (size_t i = 0; i < m_id.size(); ++i) {
-        if (m_id[i] == id) {
-          assert(((fb_head*)m_data[i])->id == m_id[i]);
-          if (((fb_head*)m_data[i])->refcount.fetch_sub() == 1) {
-            std::atomic_thread_fence(std::memory_order_acquire);
-            deallocate_fb((fb_head*)m_data[i]);
-          }
-          m_data.erase(m_data.begin() + i);
-          m_id.erase(m_id.begin() + i);
-          return;
-        }
-      }
-    }
-  }
-
-  uint8_t* frame_buffer_manager::get_data(uid id)
-  {
-    assert(m_id.size() == m_data.size());
-    { // lock
-      std::lock_guard lck {m_mtx};
-      for (size_t i = 0; i < m_id.size(); ++i) {
-        if (m_id[i] == id) {
-          assert(((fb_head*)m_data[i])->id == m_id[i]);
-          return ((fb_head*)m_data[i])->buff;
-        }
-      }
-    }
-    return nullptr;
-  }
-
-  const uint8_t* frame_buffer_manager::get_data(uid id) const
-  {
-    assert(m_id.size() == m_data.size());
-    { // lock
-      std::lock_guard lck {m_mtx};
-      for (size_t i = 0; i < m_id.size(); ++i) {
-        if (m_id[i] == id) {
-          assert(((fb_head*)m_data[i])->id == m_id[i]);
-          return ((fb_head*)m_data[i])->buff;
-        }
-      }
-    }
-    return nullptr;
-  }
-
-  image_format frame_buffer_manager::format() const
+  auto frame_buffer_manager::format() const noexcept -> image_format
   {
     return m_format;
   }
 
-  uint32_t frame_buffer_manager::width() const
+  auto frame_buffer_manager::width() const noexcept -> uint32_t
   {
     return m_width;
   }
 
-  uint32_t frame_buffer_manager::height() const
+  auto frame_buffer_manager::height() const noexcept -> uint32_t
   {
     return m_height;
   }
 
-  size_t frame_buffer_manager::size() const
+  auto frame_buffer_manager::byte_size() const noexcept -> uint64_t
   {
-    assert(m_id.size() == m_data.size());
-    { // lock
-      std::lock_guard lck {m_mtx};
-      return m_id.size();
-    }
+    return byte_per_pixel(m_format) * m_width * m_height;
   }
 
-  std::vector<uid> frame_buffer_manager::buffers() const
-  {
-    { // lock
-      std::lock_guard lck {m_mtx};
-      return m_id;
-    }
-  }
-
-  object_ptr<FrameBufferPool> frame_buffer_manager::get_pool_object() const
+  auto frame_buffer_manager::get_pool_object() const noexcept
+    -> object_ptr<FrameBufferPool>
   {
     return m_pool;
   }
