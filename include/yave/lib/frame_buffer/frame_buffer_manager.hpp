@@ -7,6 +7,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/lib/image/image_format.hpp>
+#include <yave/lib/buffer/buffer_manager.hpp>
 #include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
 #include <yave/support/id.hpp>
 #include <yave/support/uuid.hpp>
@@ -16,7 +17,7 @@
 
 namespace yave {
 
-  class frame_buffer_manager
+  class frame_buffer_manager : public buffer_manager
   {
   public:
     /// ctor
@@ -26,55 +27,34 @@ namespace yave {
       const image_format& format,
       const uuid& backend_id = uuid());
 
-    /// copy ctor is deleted
-    frame_buffer_manager(const frame_buffer_manager&) = delete;
-
     /// dtor
     ~frame_buffer_manager() noexcept;
 
-    /// Create new framebuffer
-    uid create();
-    /// Copy to new framebuffer
-    uid create(const uint8_t* parent);
-    /// Copy to new framebuffer
-    uid create(uid parent);
-
-    /// Increase reference count.
-    void ref(uid id);
-    /// Decrease reference count.
-    void unref(uid id);
-
-    /// Get pointer to internal buffer.
-    uint8_t* get_data(uid id);
-    /// Get pointer to internal buffer.
-    const uint8_t* get_data(uid id) const;
+    /// create
+    [[nodiscard]] uid create() noexcept;
+    /// create from
+    [[nodiscard]] uid create_from(uid) noexcept;
 
     /// Get image format.
-    image_format format() const;
+    [[nodiscard]] auto format() const noexcept -> image_format;
     /// Get width of buffers.
-    uint32_t width() const;
-    /// Get height of buffers.
-    uint32_t height() const;
-
-    /// Get number of buffers.
-    size_t size() const;
-    /// Get list of buffers.
-    std::vector<uid> buffers() const;
+    [[nodiscard]] auto width() const noexcept -> uint32_t;
+    /// Get heightautoers.
+    [[nodiscard]] auto height() const noexcept -> uint32_t;
+    /// Get byte sautouffer
+    [[nodiscard]] auto byte_size() const noexcept -> uint64_t;
 
     /// Get proxy data
-    object_ptr<FrameBufferPool> get_pool_object() const;
+    [[nodiscard]] auto get_pool_object() const noexcept -> object_ptr<FrameBufferPool>;
+
+  private:
+    using buffer_manager::create;
+    using buffer_manager::get_pool_object;
 
   private:
     image_format m_format;
     uint32_t m_width;
     uint32_t m_height;
-
-  private:
-    mutable std::mutex m_mtx;
-
-  private:
-    std::vector<uid> m_id;
-    std::vector<void*> m_data;
 
   private:
     // proxy data for backend agnostic frame buffer management.

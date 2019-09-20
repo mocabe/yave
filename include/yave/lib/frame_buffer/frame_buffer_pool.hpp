@@ -7,6 +7,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/lib/image/image_format.hpp>
+#include <yave/lib/buffer/buffer_pool.hpp>
 #include <yave/support/id.hpp>
 #include <yave/support/uuid.hpp>
 
@@ -15,99 +16,81 @@
 
 namespace yave {
 
-  /// Proxy data structue for backend frame buffer pool.
-  class frame_buffer_pool
+  /// Frame buffer pool interface
+  struct frame_buffer_pool : buffer_pool
   {
   public:
     frame_buffer_pool(
       void* handle,
       uuid backend_id,
-      auto (*create0)(void*)->uid,
-      auto (*create1)(void*, uid)->uid,
-      void (*ref)(void*, uid),
-      void (*unref)(void*, uid),
-      auto (*get_data)(void*, uid)->uint8_t*,
-      auto (*format)(const void*)->image_format,
-      auto (*width)(const void*)->uint32_t,
-      auto (*height)(const void*)->uint32_t)
-      : m_handle {handle}
-      , m_backend_id {backend_id}
-      , m_create0 {create0}
-      , m_create1 {create1}
-      , m_ref {ref}
-      , m_unref {unref}
-      , m_get_data {get_data}
-      , m_format {format}
-      , m_width {width}
-      , m_height {height}
+      auto (*create)(void*, uint64_t) noexcept->uid,
+      auto (*create_from)(void*, uid) noexcept->uid,
+      void (*ref)(void*, uid) noexcept,
+      void (*unref)(void*, uid) noexcept,
+      auto (*get_use_count)(void* handle, uid id) noexcept->uint64_t,
+      auto (*get_data)(void*, uid) noexcept->uint8_t*,
+      auto (*get_size)(void*, uid) noexcept->uint64_t,
+      auto (*create_fb)(void*) noexcept->uid,
+      auto (*get_format)(void*) noexcept->image_format,
+      auto (*get_width)(void*) noexcept->uint32_t,
+      auto (*get_height)(void*) noexcept->uint32_t,
+      auto (*get_byte_size)(void*) noexcept->uint64_t)
+      : buffer_pool(
+          handle,
+          backend_id,
+          create,
+          create_from,
+          ref,
+          unref,
+          get_use_count,
+          get_data,
+          get_size)
+      , m_create_fb {create_fb}
+      , m_get_format {get_format}
+      , m_get_width {get_width}
+      , m_get_height {get_height}
+      , m_get_byte_size {get_byte_size}
     {
     }
 
-    frame_buffer_pool(const frame_buffer_pool&) = default;
-
-    frame_buffer_pool& operator=(const frame_buffer_pool&) = default;
-
-    auto handle() const -> void*
+    /// Create new buffer
+    auto create() const noexcept -> uid
     {
-      return m_handle;
+      return m_create_fb(m_handle);
     }
 
-    auto backend_id() const -> const uuid&
+    /// Get image format
+    auto format() const noexcept -> image_format
     {
-      return m_backend_id;
+      return m_get_format(m_handle);
     }
 
-    auto create() -> uid
+    /// Get width
+    auto width() const noexcept -> uint32_t
     {
-      return m_create0(m_handle);
+      return m_get_width(m_handle);
     }
 
-    auto create(const uid& parent) -> uid
+    /// Get height
+    auto height() const noexcept -> uint32_t
     {
-      return m_create1(m_handle, parent);
+      return m_get_height(m_handle);
     }
 
-    auto ref(const uid& id)
+    /// Get byte size of format
+    auto byte_size() const noexcept -> uint64_t
     {
-      return m_ref(m_handle, id);
+      return m_get_byte_size(m_handle);
     }
 
-    auto unref(const uid& id)
-    {
-      return m_unref(m_handle, id);
-    }
+  protected:
+    using buffer_pool::create;
 
-    auto get_data(const uid& id) -> uint8_t*
-    {
-      return m_get_data(m_handle, id);
-    }
-
-    auto format() const -> image_format
-    {
-      return m_format(m_handle);
-    }
-
-    auto width() const -> uint32_t
-    {
-      return m_width(m_handle);
-    }
-
-    auto height() const -> uint32_t
-    {
-      return m_height(m_handle);
-    }
-
-  private:
-    void* m_handle;
-    uuid m_backend_id;
-
-    auto (*m_create0)(void* handle) -> uid;
-    auto (*m_create1)(void* handle, uid parent) -> uid;
-    void (*m_ref)(void* handle, uid id);
-    void (*m_unref)(void* handle, uid id);
-    auto (*m_get_data)(void* handle, uid) -> uint8_t*;
-    auto (*m_format)(const void* handle) -> image_format;
-    auto (*m_width)(const void* handle) -> uint32_t;
-    auto (*m_height)(const void* handle) -> uint32_t;
+  protected:
+    auto (*m_create_fb)(void* handle) noexcept -> uid;
+    auto (*m_get_format)(void* handle) noexcept -> image_format;
+    auto (*m_get_width)(void* handle) noexcept -> uint32_t;
+    auto (*m_get_height)(void* handle) noexcept -> uint32_t;
+    auto (*m_get_byte_size)(void* handle) noexcept -> uint64_t;
   };
 }
