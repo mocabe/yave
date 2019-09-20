@@ -9,7 +9,7 @@
 
 using namespace yave::graph;
 
-TEST_CASE("Graph init")
+TEST_CASE("Graph init", "[lib][graph]")
 {
   SECTION("Graph<>")
   {
@@ -37,9 +37,8 @@ TEST_CASE("Graph init")
   }
 }
 
-TEST_CASE("Graph control")
+TEST_CASE("Graph control", "[lib][graph]")
 {
-
   graph<> g;
 
   SECTION("node")
@@ -184,7 +183,7 @@ TEST_CASE("Graph control")
   }
 }
 
-TEST_CASE("Graph property")
+TEST_CASE("Graph property", "[lib][graph]")
 {
   graph<std::string, int, int> g;
   auto n = g.add_node("test");
@@ -195,7 +194,7 @@ TEST_CASE("Graph property")
   REQUIRE(g[e] == 123);
 }
 
-TEST_CASE("Graph clone")
+TEST_CASE("Graph clone", "[lib][graph]")
 {
   graph<std::string, int, int> g;
   auto n  = g.add_node("test");
@@ -224,16 +223,16 @@ TEST_CASE("Graph clone")
 
   auto s = cpy.sockets(cpy.nodes()[0]);
   REQUIRE(cpy.sockets(cpy.nodes()[0]).size() == 2);
-  REQUIRE(cpy[s[0]] == 1);
-  REQUIRE(cpy[s[1]] == 2);
+  REQUIRE(cpy[s[0]] == g[g.sockets()[0]]);
+  REQUIRE(cpy[s[1]] == g[g.sockets()[1]]);
 
-  REQUIRE(cpy.src_edges(cpy.sockets()[0]).size() == 2);
-  REQUIRE(cpy.dst_edges(cpy.sockets()[0]).size() == 2);
-  REQUIRE(cpy.src_edges(cpy.sockets()[1]).size() == 1);
-  REQUIRE(cpy.dst_edges(cpy.sockets()[1]).size() == 1);
+  REQUIRE(cpy.src_edges(cpy.sockets()[0]).size() == g.src_edges(g.sockets()[0]).size());
+  REQUIRE(cpy.dst_edges(cpy.sockets()[0]).size() == g.dst_edges(g.sockets()[0]).size());
+  REQUIRE(cpy.src_edges(cpy.sockets()[1]).size() == g.src_edges(g.sockets()[1]).size());
+  REQUIRE(cpy.dst_edges(cpy.sockets()[1]).size() == g.dst_edges(g.sockets()[1]).size());
 }
 
-TEST_CASE("Graph id")
+TEST_CASE("Graph id", "[lib][graph]")
 {
   graph<> g;
   auto n = g.add_node();
