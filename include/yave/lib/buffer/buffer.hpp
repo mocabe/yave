@@ -119,7 +119,5 @@ namespace yave {
       if (m_id == uid())
         throw std::bad_alloc();
     }
-
-    using buffer_base::buffer_base;
   };
 }
