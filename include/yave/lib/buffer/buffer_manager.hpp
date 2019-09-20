@@ -10,9 +10,8 @@
 
 namespace yave {
 
-  /// Reference implementation of buffer protocol.
-  /// Does NO memory pool or other kind of optimizations.
-  /// Just allocate and register IDs and pointers.
+  /// Simple implementation of buffer pool interface.
+  /// Does NO memory pooling or any kind of optimization.
   class buffer_manager
   {
   public:
@@ -27,6 +26,7 @@ namespace yave {
     /// Dtor
     ~buffer_manager() noexcept;
 
+  public: /* BufferPool interface */
     /// create
     [[nodiscard]] uid create(uint64_t size) noexcept;
     /// create from

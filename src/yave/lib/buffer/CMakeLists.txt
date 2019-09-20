@@ -1,7 +1,6 @@
 # yave::lib::buffer
 
 add_library(yave-lib-buffer
-  buffer.cpp
   buffer_manager.cpp
 )
 

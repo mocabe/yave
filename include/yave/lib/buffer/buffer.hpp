@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/rts/object_ptr.hpp>
+#include <yave/obj/buffer/buffer_pool.hpp>
 #include <yave/support/id.hpp>
 
 namespace yave {
@@ -14,54 +14,112 @@ namespace yave {
   template <class T>
   struct Box; // fwd
 
-  class buffer;       // -> lib/buffer/buffer.hpp
-  struct buffer_pool; // -> lib/buffer/buffer_pool.hpp
+  struct buffer;      // -> lib/buffer/buffer.hpp
 
   using Buffer     = Box<buffer>;      // -> obj/buffer/buffer.hpp
-  using BufferPool = Box<buffer_pool>; // -> obj/buffer/buffer_pool.hpp
 
-  /// General buffer object value.
-  class buffer
+  /// CRTP base class for buffers
+  template <class Derived, class TBufferPool>
+  struct buffer_base
   {
-  public:
     /// deleted
-    buffer() = delete;
+    buffer_base() = delete;
     /// deleted
-    buffer(buffer&&) = delete;
+    buffer_base(buffer_base&&) = delete;
 
-    /// Initialize new buffer
-    buffer(const object_ptr<BufferPool>& pool, uint64_t size);
-    /// Initialize new buffer from exiting buffer
-    buffer(const object_ptr<BufferPool>& pool, uid id);
+    /// Initialize buffer pool.
+    /// \note This constructor does not initialize m_id to allow customization
+    /// in Derived class. Be careful.
+    explicit buffer_base(const object_ptr<TBufferPool>& pool)
+      : m_pool {pool}
+      , m_id {} // !!!
+    {
+    }
 
-    /// Copy ctor
-    buffer(const buffer& other);
+    /// Copy Ctor
+    buffer_base(const buffer_base& other)
+      : m_pool {other.m_pool}
+      , m_id {other.m_id}
+    {
+      m_pool->ref(m_id);
+    }
+
     /// Dtor
-    ~buffer() noexcept;
+    ~buffer_base() noexcept
+    {
+      m_pool->unref(m_id);
+    }
 
     /// Acquire new buffer object
-    [[nodiscard]] auto copy() const -> object_ptr<Buffer>;
+    auto copy() const -> object_ptr<Box<Derived>>
+    {
+      return make_object<Box<Derived>>(m_pool, m_pool->create_from(m_id));
+    }
 
     /// Get data pointer
-    [[nodiscard]] auto data() -> uint8_t*;
+    auto data() -> uint8_t*
+    {
+      return m_pool->get_data(m_id);
+    }
 
     /// Get data pointer
-    [[nodiscard]] auto data() const -> const uint8_t*;
+    auto data() const -> const uint8_t*
+    {
+      return m_pool->get_data(m_id);
+    }
 
-    /// Get size of this buffer
-    [[nodiscard]] auto size() const -> uint64_t;
+    /// Get buffer size
+    auto size() const -> uint64_t
+    {
+      return m_pool->get_size(m_id);
+    }
 
-    /// Get use count
-    [[nodiscard]] auto use_count() const -> uint64_t;
+    /// Get current use count
+    auto use_count() const -> uint64_t
+    {
+      return m_pool->get_use_count(m_id);
+    }
 
-    /// Get ID
-    [[nodiscard]] auto id() const -> uid;
+    /// Get ID of buffer
+    auto id() const -> uid
+    {
+      return m_id;
+    }
 
-    /// Get buffer pool
-    [[nodiscard]] auto pool() const -> object_ptr<BufferPool>;
+    /// Get buffer pool object
+    auto pool() const -> object_ptr<TBufferPool>
+    {
+      return m_pool;
+    }
 
-  private:
-    object_ptr<BufferPool> m_pool;
+  protected:
+    object_ptr<TBufferPool> m_pool;
     uid m_id;
+  };
+
+  /// General buffer object value.
+  struct buffer : buffer_base<buffer, BufferPool>
+  {
+    /// Initialize new buffer
+    buffer(const object_ptr<BufferPool>& pool, uint64_t size)
+      : buffer_base(pool)
+    {
+      m_id = pool->create(size);
+
+      if (m_id == uid())
+        throw std::bad_alloc();
+    }
+
+    /// Copy initialize from existing buffer ID
+    buffer(const object_ptr<BufferPool>& pool, uid id)
+      : buffer_base(pool)
+    {
+      m_id = m_pool->create_from(id);
+
+      if (m_id == uid())
+        throw std::bad_alloc();
+    }
+
+    using buffer_base::buffer_base;
   };
 }

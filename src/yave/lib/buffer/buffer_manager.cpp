@@ -122,30 +122,20 @@ namespace yave {
 
     auto lck = _lock();
 
+    // clang-format off
+
     m_pool = make_object<BufferPool>(
       (void*)this,
       m_backend_id,
-      [](void* handle, uint64_t size) noexcept {
-        return ((buffer_manager*)handle)->create(size);
-      },
-      [](void* handle, uid id) noexcept {
-        return ((buffer_manager*)handle)->create_from(id);
-      },
-      [](void* handle, uid id) noexcept {
-        return ((buffer_manager*)handle)->ref(id);
-      },
-      [](void* handle, uid id) noexcept {
-        return ((buffer_manager*)handle)->unref(id);
-      },
-      [](void* handle, uid id) noexcept {
-        return ((buffer_manager*)handle)->use_count(id);
-      },
-      [](void* handle, uid id) noexcept {
-        return ((buffer_manager*)handle)->data(id);
-      },
-      [](void* handle, uid id) noexcept {
-        return ((buffer_manager*)handle)->size(id);
-      });
+      [](void* handle, uint64_t size) noexcept { return ((buffer_manager*)handle)->create(size); },
+      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->create_from(id); },
+      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->ref(id); },
+      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->unref(id); },
+      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->use_count(id); },
+      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->data(id); },
+      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->size(id); });
+    
+    // clang-format off
   }
 
   buffer_manager::~buffer_manager() noexcept
