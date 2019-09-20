@@ -20,6 +20,10 @@ namespace yave {
 
   class frame_buffer_manager : public buffer_manager
   {
+  protected:
+    using buffer_manager::create;
+    using buffer_manager::get_pool_object;
+
   public:
     /// ctor
     frame_buffer_manager(
@@ -48,16 +52,12 @@ namespace yave {
     /// Get proxy data
     [[nodiscard]] auto get_pool_object() const noexcept -> object_ptr<FrameBufferPool>;
 
-  private:
-    using buffer_manager::create;
-    using buffer_manager::get_pool_object;
-
-  private:
+  protected:
     image_format m_format;
     uint32_t m_width;
     uint32_t m_height;
 
-  private:
+  protected:
     // proxy data for backend agnostic frame buffer management.
     object_ptr<FrameBufferPool> m_pool;
   };

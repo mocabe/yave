@@ -12,7 +12,7 @@ using namespace yave;
 
 TEST_CASE("", "[lib][frame_buffer]")
 {
-  frame_buffer_manager mng(-1, -1, image_format::RGBA8UI);
+  frame_buffer_manager mng((uint32_t)-1, (uint32_t)-1, image_format::RGBA8UI);
 }
 
 TEST_CASE("1", "[lib][frame_buffer]")

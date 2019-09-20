@@ -19,6 +19,9 @@ namespace yave {
   /// Frame buffer pool interface
   struct frame_buffer_pool : buffer_pool
   {
+  protected:
+    using buffer_pool::create;
+
   public:
     frame_buffer_pool(
       void* handle,
@@ -82,9 +85,6 @@ namespace yave {
     {
       return m_get_byte_size(m_handle);
     }
-
-  protected:
-    using buffer_pool::create;
 
   protected:
     auto (*m_create_fb)(void* handle) noexcept -> uid;

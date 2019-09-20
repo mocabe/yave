@@ -40,7 +40,7 @@ TEST_CASE("create 42", "[lib][buffer]")
 TEST_CASE("create -1", "[lib][buffer]")
 {
   buffer_manager mng;
-  auto id = mng.create(-1); // overflow
+  auto id = mng.create((uint64_t)-1); // overflow
   REQUIRE(id == uid());
   REQUIRE(mng.use_count(id) == 0);
   REQUIRE(mng.size(id) == 0);
