@@ -17,7 +17,6 @@ namespace yave {
   struct Box; // -> rts/box_fwd.hpp
 
   struct frame_buffer;      // -> lib/frame_buffer.hpp
-  struct frame_buffer_pool; // -> lib/frame_buffer_pool.hpp
 
   // -> obj/frame_buffer.hpp
   using FrameBuffer = Box<frame_buffer>;

@@ -7,6 +7,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/obj/buffer/buffer_pool.hpp>
+#include <yave/obj/buffer/buffer.hpp>
 
 namespace yave {
 
