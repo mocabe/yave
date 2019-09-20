@@ -34,8 +34,6 @@ namespace yave {
     frame_buffer(const object_ptr<FrameBufferPool>& pl, uid id);
     /// Copy ctor
     frame_buffer(const frame_buffer& other);
-    /// Move ctor
-    frame_buffer(frame_buffer&& other);
     /// Dtor
     ~frame_buffer() noexcept;
 

@@ -90,13 +90,13 @@ namespace yave {
       return m_get_size(m_handle, id);
     }
 
-  private: /* buffer pool info */
+  protected: /* buffer pool info */
     /// Handle to buffer pool object
     void* m_handle;
     /// Backend ID
     uuid m_backend_id;
 
-  private: /* buffer pool function pointers */
+  protected: /* buffer pool function pointers */
     /// Create new buffer of specified size.
     /// \note Should return valid (non-zero) ID even when `size == 0`.
     /// \note Should return 0 when allocation failed.
@@ -129,6 +129,7 @@ namespace yave {
 
     /// Get data pointer.
     /// \note Should return nullptr on invalid IDs.
+    /// \note Should return nullptr on zero sized buffers.
     /// \note Should return readable and writable pointer.
     /// \note Should be thread safe.
     auto (*m_get_data)(void* handle, uid) noexcept -> uint8_t*;

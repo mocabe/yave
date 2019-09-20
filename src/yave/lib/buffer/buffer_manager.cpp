@@ -6,6 +6,19 @@
 #include <yave/lib/buffer/buffer_manager.hpp>
 #include <yave/obj/buffer/buffer_pool.hpp>
 
+#include <yave/support/log.hpp>
+
+namespace {
+  std::shared_ptr<spdlog::logger> g_logger;
+
+  void init_logger()
+  {
+    [[maybe_unused]] static auto init = [] {
+      g_logger = yave::add_logger("buffer_manager");
+      return 1;
+    }();
+  }
+}
 namespace yave {
 
   namespace {
@@ -26,6 +39,10 @@ namespace yave {
     /// Allocate buffer
     buff_header* allocate_buffer(size_t size)
     {
+      // overflow
+      if (std::numeric_limits<size_t>::max() - sizeof(buff_header) < size)
+        return nullptr;
+
       uint8_t* mem = new (std::nothrow) uint8_t[sizeof(buff_header) + size] {};
 
       if (!mem)
@@ -33,6 +50,12 @@ namespace yave {
 
       buff_header* head =
         new (mem) buff_header {mem, mem + sizeof(buff_header), 1U, size};
+
+      Info(
+        g_logger,
+        "Allocated new buffer: size={}, addr={}",
+        size,
+        std::uintptr_t(mem));
 
       return head;
     }
@@ -42,6 +65,12 @@ namespace yave {
     {
       if (!head)
         return;
+
+      Info(
+        g_logger,
+        "Deallocate buffer: addr={}, size={}",
+        std::uintptr_t(head->mem),
+        head->size);
 
       auto* mem = head->mem;
       head->~buff_header();
@@ -74,15 +103,23 @@ namespace yave {
     auto lb   = std::lower_bound(m_id.begin(), m_id.end(), id);
     auto dist = std::distance(m_id.begin(), lb);
 
-    assert(*lb != id);
+    if (lb != m_id.end())
+      assert(*lb != id);
 
     m_id.insert(lb, id);
     m_data.insert(m_data.begin() + dist, data);
   }
 
+  buffer_manager::buffer_manager()
+    : buffer_manager(uuid())
+  {
+  }
+
   buffer_manager::buffer_manager(const uuid& backend_id)
     : m_backend_id {backend_id}
   {
+    init_logger();
+
     auto lck = _lock();
 
     m_pool = make_object<BufferPool>(
@@ -138,7 +175,7 @@ namespace yave {
   {
     auto lck = _lock();
 
-    auto parent = _find_data(parent_id);
+    auto parent = (buff_header*)_find_data(parent_id);
 
     if (!parent)
       return uid();
@@ -153,7 +190,7 @@ namespace yave {
       return uid();
 
     // copy data
-    std::memcpy(buff, parent, parent_size);
+    std::memcpy(buff->buff, parent->buff, parent_size);
 
     // register
     _insert(id, buff);
@@ -214,6 +251,9 @@ namespace yave {
     auto data = _find_data(id);
 
     if (!data)
+      return nullptr;
+
+    if (((buff_header*)data)->size == 0)
       return nullptr;
 
     return ((buff_header*)data)->buff;

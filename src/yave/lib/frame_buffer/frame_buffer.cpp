@@ -27,12 +27,6 @@ namespace yave {
     m_pool->ref(m_id);
   }
 
-  frame_buffer::frame_buffer(frame_buffer&& other)
-    : m_pool {other.m_pool}
-    , m_id {other.m_id}
-  {
-  }
-
   frame_buffer::~frame_buffer() noexcept
   {
     m_pool->unref(m_id);
