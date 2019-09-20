@@ -57,40 +57,55 @@ namespace yave {
     }
 
     /// Create new buffer
-    auto create() const noexcept -> uid
+    [[nodiscard]] auto create() const noexcept -> uid
     {
       return m_create_fb(m_handle);
     }
 
     /// Get image format
-    auto format() const noexcept -> image_format
+    [[nodiscard]] auto format() const noexcept -> image_format
     {
       return m_get_format(m_handle);
     }
 
     /// Get width
-    auto width() const noexcept -> uint32_t
+    [[nodiscard]] auto width() const noexcept -> uint32_t
     {
       return m_get_width(m_handle);
     }
 
     /// Get height
-    auto height() const noexcept -> uint32_t
+    [[nodiscard]] auto height() const noexcept -> uint32_t
     {
       return m_get_height(m_handle);
     }
 
     /// Get byte size of format
-    auto byte_size() const noexcept -> uint64_t
+    [[nodiscard]] auto byte_size() const noexcept -> uint64_t
     {
       return m_get_byte_size(m_handle);
     }
 
   protected:
+    /// Create new frame buffer
+    /// \note Should always create buffer of same size, format, etc.
+    /// \note Should return 0 when allocation failed.
     auto (*m_create_fb)(void* handle) noexcept -> uid;
+
+    /// Get format of frame buffer.
+    /// \note Should always return same format.
     auto (*m_get_format)(void* handle) noexcept -> image_format;
+
+    /// Get width of frame buffer.
+    /// \note Should return same value to current frame buffer size.
     auto (*m_get_width)(void* handle) noexcept -> uint32_t;
+
+    /// Get height of frame buffer.
+    /// \note Should return same value to current frame buffer size.
     auto (*m_get_height)(void* handle) noexcept -> uint32_t;
+
+    /// Get byte size of frame buffer.
+    /// \note Should return same value to cuurent frame buffer size.
     auto (*m_get_byte_size)(void* handle) noexcept -> uint64_t;
   };
-}
+} // namespace yave

@@ -18,6 +18,7 @@
 
 namespace yave {
 
+  /// Simple frame buffer factory base on buffer_manager
   class frame_buffer_manager : public buffer_manager
   {
   protected:

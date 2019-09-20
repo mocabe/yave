@@ -13,14 +13,6 @@
 
 namespace yave {
 
-  template <class T>
-  struct Box; // -> rts/box_fwd.hpp
-
-  struct frame_buffer;      // -> lib/frame_buffer.hpp
-
-  // -> obj/frame_buffer.hpp
-  using FrameBuffer = Box<frame_buffer>;
-
   /// Frame buffer object value.
   struct frame_buffer : buffer_base<frame_buffer, FrameBufferPool>
   {

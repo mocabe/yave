@@ -11,13 +11,6 @@
 
 namespace yave {
 
-  template <class T>
-  struct Box; // fwd
-
-  struct buffer;      // -> lib/buffer/buffer.hpp
-
-  using Buffer     = Box<buffer>;      // -> obj/buffer/buffer.hpp
-
   /// CRTP base class for buffers
   template <class Derived, class TBufferPool>
   struct buffer_base
