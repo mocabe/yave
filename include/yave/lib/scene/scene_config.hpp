@@ -51,10 +51,10 @@ namespace yave {
 
   private:
     uint32_t m_frame_rate;
-    time m_time_per_frame;
+    uint32_t m_sample_rate;
 
   private:
-    uint32_t m_sample_rate;
+    time m_time_per_frame;
     time m_time_per_sample;
 
   private:

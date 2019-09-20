@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/editor/scene_config.hpp>
+#include <yave/lib/scene/scene_config.hpp>
 #include <yave/support/log.hpp>
 
 namespace {
@@ -27,6 +27,8 @@ namespace yave {
     uint32_t sample_rate,
     image_format format)
   {
+    init_logger();
+
     if (width == 0 || height == 0) {
       Error(
         g_logger,
@@ -77,37 +79,37 @@ namespace yave {
     m_frame_buffer_format = format;
   }
 
-  uint32_t scene_config::width() const
+  uint32_t scene_config::width() const noexcept
   {
     return m_width;
   }
 
-  uint32_t scene_config::height() const
+  uint32_t scene_config::height() const noexcept
   {
     return m_height;
   }
 
-  uint32_t scene_config::frame_rate() const
+  uint32_t scene_config::frame_rate() const noexcept
   {
     return m_frame_rate;
   }
 
-  uint32_t scene_config::sample_rate() const
+  uint32_t scene_config::sample_rate() const noexcept
   {
     return m_sample_rate;
   }
 
-  time scene_config::time_per_frame() const
+  time scene_config::time_per_frame() const noexcept
   {
     return m_time_per_frame;
   }
 
-  time scene_config::time_per_sample() const
+  time scene_config::time_per_sample() const noexcept
   {
     return m_time_per_sample;
   }
 
-  image_format scene_config::frame_buffer_format() const
+  image_format scene_config::frame_buffer_format() const noexcept
   {
     return m_frame_buffer_format;
   }
