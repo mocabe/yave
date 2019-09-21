@@ -5,13 +5,12 @@
 
 #pragma once
 
+#include <yave/backend/default/config.hpp>
 #include <yave/node/obj/blend_op.hpp>
-
 #include <yave/node/obj/function.hpp>
 #include <yave/node/obj/compositor.hpp>
 #include <yave/data/lib/image_blend.hpp>
 #include <yave/data/obj/frame_buffer.hpp>
-#include <yave/backend/default/system/config.hpp>
 
 namespace yave {
 

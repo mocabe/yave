@@ -5,12 +5,11 @@
 
 #pragma once
 
+#include <yave/backend/default/config.hpp>
 #include <yave/node/obj/image_output.hpp>
-
 #include <yave/data/obj/frame_buffer.hpp>
 #include <yave/node/obj/function.hpp>
 #include <yave/node/obj/instance_getter.hpp>
-#include <yave/backend/default/system/config.hpp>
 
 namespace yave {
 
