@@ -116,6 +116,14 @@ namespace yave {
     {
       return lhs.m_pointer != rhs.m_pointer;
     }
+
+    /// FIXME: do these things better
+    friend inline difference_type operator-(
+      const iterator& lhs,
+      const iterator& rhs)
+    {
+      return lhs.m_pointer - rhs.m_pointer;
+    }
   };
 
 } // namespace yave
