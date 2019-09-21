@@ -1483,6 +1483,9 @@ namespace yave::vulkan {
 
     /* create new swapchain resources */
 
+    // reload extent to get accurate value at this point
+    newWindowExtent = m_pimpl->window_extent.load();
+
     m_pimpl->swapchain = createSwapchain(
       m_pimpl->surface.get(),
       newWindowExtent,
