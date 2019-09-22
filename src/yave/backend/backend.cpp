@@ -111,4 +111,14 @@ namespace yave {
   {
     return m_instance_id;
   }
+
+  auto backend::name() const -> std::string
+  {
+    return m_backend_info->name();
+  }
+
+  auto backend::backend_id() const -> uuid
+  {
+    return m_backend_info->backend_id();
+  }
 }

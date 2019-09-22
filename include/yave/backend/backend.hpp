@@ -41,6 +41,12 @@ namespace yave {
     /// Get instance ID
     [[nodiscard]] auto instance_id() const -> uid;
 
+    /// Get name of backend
+    [[nodiscard]] auto name() const -> std::string;
+
+    /// Get namespace UUID of backend
+    [[nodiscard]] auto backend_id() const -> uuid;
+
   private:
     object_ptr<const BackendInfo> m_backend_info;
 

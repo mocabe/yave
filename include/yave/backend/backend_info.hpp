@@ -26,7 +26,9 @@ namespace yave {
       // vector<string>
       std::vector<string> inputs_tmp;
       inputs_tmp.reserve(info.input_sockets().size());
-      for (auto&& name : info.input_sockets()) inputs_tmp.push_back(name);
+
+      for (auto&& name : info.input_sockets())
+        inputs_tmp.push_back(name);
 
       m_name          = info.name();
       m_inputs        = inputs_tmp;
@@ -36,22 +38,28 @@ namespace yave {
       m_is_const      = info.is_const();
     }
 
-    [[nodiscard]] auto name() const -> const string&
+    [[nodiscard]] auto name() const -> std::string
     {
       return m_name;
     }
 
-    [[nodiscard]] auto input_sockets() const -> const vector<string>&
+    [[nodiscard]] auto input_sockets() const -> std::vector<std::string>
     {
-      return m_inputs;
+      std::vector<std::string> tmp;
+      tmp.reserve(m_inputs.size());
+
+      for (auto&& s : m_inputs)
+        tmp.emplace_back(s);
+
+      return tmp;
     }
 
-    [[nodiscard]] auto output_socket() const -> const string&
+    [[nodiscard]] auto output_socket() const -> std::string
     {
       return m_output;
     }
 
-    [[nodiscard]] auto description() const -> const string&
+    [[nodiscard]] auto description() const -> std::string
     {
       return m_description;
     }
@@ -68,16 +76,12 @@ namespace yave {
 
     [[nodiscard]] bind_info bind_info() const
     {
-      std::vector<std::string> input_tmp;
-      input_tmp.reserve(m_inputs.size());
-      for (auto&& socket : m_inputs) input_tmp.push_back(socket);
-
-      return {m_name,
-              input_tmp,
-              m_output,
-              m_instanec_func,
-              m_description,
-              (bool)m_is_const};
+      return {name(),
+              input_sockets(),
+              output_socket(),
+              instance_func(),
+              description(),
+              is_const()};
     }
 
   private:
@@ -110,13 +114,17 @@ namespace yave {
   {
     // clang-format off
     backend_info(
+      const string& name,
+      const uuid& backend_id,
       void* handle,
       auto (*fp_init)(void* handle, const scene_config& config) noexcept->uid,
       void (*fp_deinit)(void* handle, uid instance) noexcept,
       bool (*fp_update)(void* handle, uid instance, const scene_config& config) noexcept,
       auto (*fp_get_config)(void* handle, uid instance) noexcept ->object_ptr<SceneConfig>,
       auto (*fp_get_binds)(void* handle, uid instance) noexcept ->object_ptr<BackendBindInfoList>)
-      : m_handle {handle}
+      : m_name {name}
+      , m_backend_id {backend_id}
+      , m_handle {handle}
       , m_fp_init {fp_init}
       , m_fp_deinit {fp_deinit}
       , m_fp_update {fp_update}
@@ -153,6 +161,20 @@ namespace yave {
     {
       return m_fp_get_binds(m_handle, instance);
     }
+
+    [[nodiscard]] auto name() const -> std::string
+    {
+      return m_name;
+    }
+
+    [[nodiscard]] auto backend_id() const -> const uuid&
+    {
+      return m_backend_id;
+    }
+
+  private:
+    string m_name;
+    uuid m_backend_id;
 
   private:
     void* m_handle;
