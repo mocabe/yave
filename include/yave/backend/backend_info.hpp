@@ -8,7 +8,8 @@
 #include <yave/config/config.hpp>
 #include <yave/lib/string/string.hpp>
 #include <yave/lib/vector/vector.hpp>
-#include <yave/lib/scene/scene_config.hpp>
+#include <yave/obj/scene/scene_config.hpp>
+#include <yave/node/core/bind_info.hpp>
 #include <yave/rts/box.hpp>
 #include <yave/support/id.hpp>
 
@@ -19,12 +20,73 @@ namespace yave {
   /// Keep data types as binary compatible as possible.
   struct backend_bind_info
   {
-    string name;                                // 16 byte
-    vector<string> inputs;                      // 16
-    vector<string> outputs;                     // 16
-    string description;                         // 16
-    object_ptr<const Object> get_instance_func; // 8
-    uint64_t _padding_;                         // 8
+    backend_bind_info(const bind_info& info)
+    {
+      // we need some code for conversion from std::vector<string> to
+      // vector<string>
+      std::vector<string> inputs_tmp;
+      inputs_tmp.reserve(info.input_sockets().size());
+      for (auto&& name : info.input_sockets()) inputs_tmp.push_back(name);
+
+      m_name          = info.name();
+      m_inputs        = inputs_tmp;
+      m_output        = info.output_socket();
+      m_instanec_func = info.get_instance_func();
+      m_description   = info.description();
+      m_is_const      = info.is_const();
+    }
+
+    [[nodiscard]] auto name() const -> const string&
+    {
+      return m_name;
+    }
+
+    [[nodiscard]] auto input_sockets() const -> const vector<string>&
+    {
+      return m_inputs;
+    }
+
+    [[nodiscard]] auto output_socket() const -> const string&
+    {
+      return m_output;
+    }
+
+    [[nodiscard]] auto description() const -> const string&
+    {
+      return m_description;
+    }
+
+    [[nodiscard]] auto instance_func() const -> const object_ptr<const Object>&
+    {
+      return m_instanec_func;
+    }
+
+    [[nodiscard]] bool is_const() const
+    {
+      return m_is_const;
+    }
+
+    [[nodiscard]] bind_info bind_info() const
+    {
+      std::vector<std::string> input_tmp;
+      input_tmp.reserve(m_inputs.size());
+      for (auto&& socket : m_inputs) input_tmp.push_back(socket);
+
+      return {m_name,
+              input_tmp,
+              m_output,
+              m_instanec_func,
+              m_description,
+              (bool)m_is_const};
+    }
+
+  private:
+    string m_name;                            // 16 byte
+    vector<string> m_inputs;                  // 16
+    string m_output;                          // 16
+    string m_description;                     // 16
+    object_ptr<const Object> m_instanec_func; // 8
+    uint64_t m_is_const;                      // 8 (including padding)
   };
 
   static_assert(sizeof(backend_bind_info) == 80);
@@ -46,14 +108,60 @@ namespace yave {
   /// backend info
   struct backend_info
   {
-    void* handle;
-
     // clang-format off
-    auto (*fp_init      )(void* handle, const scene_config& config) noexcept -> uid;
-    void (*fp_deinit    )(void* handle, uid instance) noexcept;
-    bool (*fp_update    )(void* handle, uid instance, const scene_config& config) noexcept;
-    auto (*fp_get_config)(void* handle, uid instance) noexcept -> object_ptr<SceneConfig>;
-    auto (*fp_get_binds )(void* handle, uid instance) noexcept -> object_ptr<BackendBindInfoList>;
+    backend_info(
+      void* handle,
+      auto (*fp_init)(void* handle, const scene_config& config) noexcept->uid,
+      void (*fp_deinit)(void* handle, uid instance) noexcept,
+      bool (*fp_update)(void* handle, uid instance, const scene_config& config) noexcept,
+      auto (*fp_get_config)(void* handle, uid instance) noexcept ->object_ptr<SceneConfig>,
+      auto (*fp_get_binds)(void* handle, uid instance) noexcept ->object_ptr<BackendBindInfoList>)
+      : m_handle {handle}
+      , m_fp_init {fp_init}
+      , m_fp_deinit {fp_deinit}
+      , m_fp_update {fp_update}
+      , m_fp_get_config {fp_get_config}
+      , m_fp_get_binds {fp_get_binds}
+    {
+    }
+    // clang-format on
+
+    [[nodiscard]] auto init(const scene_config& config) const noexcept -> uid
+    {
+      return m_fp_init(m_handle, config);
+    }
+
+    void deinit(uid instance) const noexcept
+    {
+      return m_fp_deinit(m_handle, instance);
+    }
+
+    [[nodiscard]] bool update(uid instance, const scene_config& config) const
+      noexcept
+    {
+      return m_fp_update(m_handle, instance, config);
+    }
+
+    [[nodiscard]] auto get_config(uid instance) const noexcept
+      -> object_ptr<SceneConfig>
+    {
+      return m_fp_get_config(m_handle, instance);
+    }
+
+    [[nodiscard]] auto get_binds(uid instance) const noexcept
+      -> object_ptr<BackendBindInfoList>
+    {
+      return m_fp_get_binds(m_handle, instance);
+    }
+
+  private:
+    void* m_handle;
+    // clang-format off
+    auto (*m_fp_init      )(void* handle, const scene_config& config) noexcept -> uid;
+    void (*m_fp_deinit    )(void* handle, uid instance) noexcept;
+    bool (*m_fp_update    )(void* handle, uid instance, const scene_config& config) noexcept;
+    auto (*m_fp_get_config)(void* handle, uid instance) noexcept -> object_ptr<SceneConfig>;
+    auto (*m_fp_get_binds )(void* handle, uid instance) noexcept -> object_ptr<BackendBindInfoList>;
     // clang-format on
   };
 
