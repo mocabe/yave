@@ -14,10 +14,14 @@ namespace yave {
   namespace backend::tags {
 
     /// backend tag for default render backend
-    struct default_render;
+    struct default_render
+    {
+    };
 
     /// backend tag for default preview backend
-    struct default_preview;
+    struct default_preview
+    {
+    };
 
   } // namespace backend::tags
 
