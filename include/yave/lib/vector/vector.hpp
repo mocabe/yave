@@ -22,21 +22,22 @@ namespace yave {
   /// push_back/resize are also not supported. Use std::vector for these
   /// operations.
   /// Supports conversion from/to std::vector.
-  /// TODO: Custom allocator support
-  template <class T>
+  template <class T, class Alloc = std::allocator<T>>
   class vector
   {
     static_assert(std::is_nothrow_move_constructible_v<T>);
     static_assert(std::is_nothrow_destructible_v<T>);
-    using allocator = std::allocator<T>;
 
   public:
+    // clang-format off
+    using allocator       = Alloc;
     using reference       = T&;
     using const_reference = const T&;
-    using pointer         = typename allocator::pointer;
-    using const_pointer   = typename allocator::const_pointer;
+    using pointer         = typename std::allocator_traits<Alloc>::pointer;
+    using const_pointer   = typename std::allocator_traits<Alloc>::const_pointer;
     using iterator        = yave::iterator<pointer, vector>;
     using const_iterator  = yave::iterator<const_pointer, vector>;
+    // clang-format on
 
   public:
     /// Default constructor
