@@ -142,9 +142,8 @@ namespace yave {
           stack.erase(base_iter, stack.end());
 
           // detect exception
-          if (unlikely(has_exception_tag(result)))
-            throw result_error::exception_result(
-              clear_pointer_tag(get_tagged_exception(result)));
+          if (auto excpt = value_cast_if<Exception>(result))
+            throw result_error::exception_result(excpt);
 
           // completed
           if (stack.empty())

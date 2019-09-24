@@ -45,31 +45,6 @@ namespace yave {
   using Exception = Box<exception_object_value>;
 
   // ------------------------------------------
-  // helper
-
-  template <class T>
-  [[nodiscard]] inline auto add_exception_tag(object_ptr<T> e) noexcept
-    -> object_ptr<T>
-  {
-    _get_storage(e).set_pointer_tag(
-      object_ptr_storage::pointer_tags::exception);
-    return e;
-  }
-
-  [[nodiscard]] inline bool has_exception_tag(
-    const object_ptr<const Object>& obj) noexcept
-  {
-    return _get_storage(obj).is_exception();
-  }
-
-  [[nodiscard]] inline auto get_tagged_exception(
-    const object_ptr<const Object>& obj) noexcept -> object_ptr<const Exception>
-  {
-    assert(has_exception_tag(obj));
-    return static_object_cast<const Exception>(obj);
-  }
-
-  // ------------------------------------------
   // conversion
 
   [[nodiscard]] inline auto to_Exception(const std::exception& e)

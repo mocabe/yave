@@ -57,52 +57,48 @@ namespace yave {
 
         // type_error
       } catch (const bad_value_cast& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
 
         // type_error
       } catch (const type_error::circular_constraint& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
       } catch (const type_error::type_missmatch& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
       } catch (const type_error::bad_type_check& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
       } catch (const type_error::type_error& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
 
         // result_error
       } catch (const result_error::exception_result& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
       } catch (const result_error::result_error& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
 
         // eval_error
       } catch (const eval_error::bad_fix& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
       } catch (const eval_error::bad_apply& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
       } catch (const eval_error::too_many_arguments& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
       } catch (const eval_error::eval_error& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
 
         // std::exception
       } catch (const std::exception& e) {
-        return add_exception_tag(to_Exception(e));
+        return to_Exception(e);
 
         // unknown
       } catch (...) {
-        return add_exception_tag(make_object<Exception>(
+        return make_object<Exception>(
           make_object<String>("Unknown exception thrown while evaluation"),
-          object_ptr(nullptr)));
+          object_ptr(nullptr));
       }
     }();
 
     // vtbl_code_func should not return Undefined value
     assert(ret);
-
-    // exception object retuned fron vtbl_code_func should have pointer tag
-    if (!has_exception_tag(ret))
-      assert(!value_cast_if<Exception>(ret));
 
     return ret;
   }
@@ -188,14 +184,12 @@ namespace yave {
     exception_handler_return_type_checker(object_ptr<U> e) noexcept
       : m_value {object_ptr<const Exception>(std::move(e))}
     {
-      m_value = add_exception_tag(std::move(m_value));
     }
 
     /// Exception ctor
     exception_handler_return_type_checker(const Exception* e) noexcept
       : exception_handler_return_type_checker(object_ptr(e))
     {
-      m_value = add_exception_tag(std::move(m_value));
     }
 
     // deleted
