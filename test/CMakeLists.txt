@@ -7,6 +7,8 @@ set(YAVE_TEST_LINK_FLAGS ${YAVE_LINK_FLAGS})
 # Catch2 lib
 add_library(yave-Catch2 catch.cpp)
 target_link_libraries(yave-Catch2 PUBLIC Catch2::Catch2)
+target_compile_options(yave-Catch2 PRIVATE ${YAVE_TEST_COMPILE_FLAGS})
+target_link_options(yave-Catch2 PRIVATE ${YAVE_TEST_LINK_FLAGS})
 
 # add test
 function (YAVE_Test NAME LABEL)
