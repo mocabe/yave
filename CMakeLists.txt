@@ -57,9 +57,7 @@ set(CMAKE_CXX_STANDARD 17)
 # ------------------------------------------
 # External
 
-if(YAVE_BUILD_TESTS)
   include(${YAVE_EXTERNAL_DIR}/external.cmake)
-endif()
 
 # ------------------------------------------
 # Compiler Flags
