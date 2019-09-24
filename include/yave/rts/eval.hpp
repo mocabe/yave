@@ -7,7 +7,6 @@
 
 #include <yave/rts/value_cast.hpp>
 #include <yave/rts/function.hpp>
-#include <yave/rts/eval_error.hpp>
 #include <yave/rts/result_error.hpp>
 
 #include <map>
@@ -113,8 +112,7 @@ namespace yave {
 
         for (;;) {
 
-          if (!has_arrow_type(bottom))
-            throw eval_error::bad_apply();
+          assert(has_arrow_type(bottom));
 
           // clone bottom closure
           auto fun   = clone(bottom);

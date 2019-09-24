@@ -28,8 +28,7 @@ namespace yave {
       auto cf    = reinterpret_cast<const Closure<>*>(f.get());
       auto cthis = reinterpret_cast<const Closure<>*>(this);
 
-      if (cf->arity == 0)
-        throw eval_error::bad_fix();
+      assert(cf->arity != 0);
 
       auto& app = cthis->vertebrae(0);
 

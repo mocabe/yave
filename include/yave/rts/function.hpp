@@ -11,7 +11,6 @@
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/rts/apply.hpp>
 #include <yave/rts/exception.hpp>
-#include <yave/rts/eval_error.hpp>
 #include <yave/rts/bad_value_cast.hpp>
 #include <yave/rts/result_error.hpp>
 #include <yave/rts/type_error.hpp>
@@ -73,16 +72,6 @@ namespace yave {
       } catch (const result_error::exception_result& e) {
         return to_Exception(e);
       } catch (const result_error::result_error& e) {
-        return to_Exception(e);
-
-        // eval_error
-      } catch (const eval_error::bad_fix& e) {
-        return to_Exception(e);
-      } catch (const eval_error::bad_apply& e) {
-        return to_Exception(e);
-      } catch (const eval_error::too_many_arguments& e) {
-        return to_Exception(e);
-      } catch (const eval_error::eval_error& e) {
         return to_Exception(e);
 
         // std::exception
