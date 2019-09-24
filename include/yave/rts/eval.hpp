@@ -73,8 +73,8 @@ namespace yave {
 
           // graph reduction
           if (apply_storage.is_result()) {
-            // assume Exception is not cached
             next = apply_storage.get_result();
+            assert(!value_cast_if<Exception>(next));
             continue;
           }
 
@@ -138,16 +138,16 @@ namespace yave {
           // call code
           auto result = cfun->call();
 
-          // unwind stack consumed
-          stack.erase(base_iter, stack.end());
-
           // detect exception
           if (auto excpt = value_cast_if<Exception>(result))
             throw result_error::exception_result(excpt);
 
           // completed
-          if (stack.empty())
+          if (stack.size() == arity)
             return result;
+
+          // unwind stack consumed
+          stack.erase(base_iter, stack.end());
 
           // loop
           bottom = std::move(result);
