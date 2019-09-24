@@ -94,6 +94,30 @@ namespace yave {
   /// runtime apply object
   using Apply = Box<apply_object_value>;
 
+  // Apply 
+  YAVE_DECL_TYPE(yave::Apply, "2db5ddcd-0d6d-4f2f-8fd5-7b30abfc68eb");
+
+  // tagged info table
+  template <>
+  struct Apply::info_table_initializer
+  {
+    /// get info table pointer
+    static const object_info_table* get_info_table()
+    {
+      // add apply tag
+      return detail::add_apply_tag(&info_table);
+    }
+
+  private:
+    /// static object info table
+    alignas(32) inline static const object_info_table info_table {
+      object_type<Apply>(),            //
+      sizeof(Apply),                   //
+      object_type_traits<Apply>::name, //
+      vtbl_destroy_func<Apply>,        //
+      vtbl_clone_func<Apply>};         //
+  };
+
   /// compile time apply object
   template <class App, class Arg>
   struct TApply : Apply
@@ -165,6 +189,3 @@ namespace yave {
   }
 
 } // namespace yave
-
-// Apply
-YAVE_DECL_TYPE(yave::Apply, "2db5ddcd-0d6d-4f2f-8fd5-7b30abfc68eb");

@@ -406,15 +406,4 @@ namespace yave {
     return object_ptr<T>(new T(std::forward<Args>(args)...));
   }
 
-  // ------------------------------------------
-  // misc
-
-  template <class T>
-  [[nodiscard]] auto clear_pointer_tag(object_ptr<T> obj) noexcept
-    -> object_ptr<T>
-  {
-    _get_storage(obj).clear_pointer_tag();
-    return obj;
-  }
-
 } // namespace yave

@@ -22,7 +22,18 @@ namespace yave {
   [[nodiscard]] auto value_cast(const object_ptr<U>& obj)
     -> object_ptr<propagate_const_t<T, U>>
   {
-    if (likely(obj && has_type<T>(obj))) {
+    // Apply
+    if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
+      if (likely(obj && _get_storage(obj).is_apply()))
+        return static_object_cast<propagate_const_t<Apply, U>>(obj);
+    }
+    // Exception
+    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
+      if (likely(obj && _get_storage(obj).is_exception()))
+        return static_object_cast<propagate_const_t<Exception, U>>(obj);
+    }
+    // general
+    else if (likely(obj && has_type<T>(obj))) {
       using To = typename decltype(
         get_object_type(normalize_specifier(type_c<T>)))::type;
       return static_object_cast<propagate_const_t<To, U>>(obj);
@@ -38,7 +49,19 @@ namespace yave {
   [[nodiscard]] auto value_cast(object_ptr<U>&& obj)
     -> object_ptr<propagate_const_t<T, U>>
   {
-    if (likely(obj && has_type<T>(obj))) {
+    // Apply
+    if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
+      if (likely(obj && _get_storage(obj).is_apply()))
+        return static_object_cast<propagate_const_t<Apply, U>>(std::move(obj));
+    }
+    // Exception
+    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
+      if (likely(obj && _get_storage(obj).is_exception()))
+        return static_object_cast<propagate_const_t<Exception, U>>(
+          std::move(obj));
+    }
+    // general
+    else if (likely(obj && has_type<T>(obj))) {
       using To = typename decltype(
         get_object_type(normalize_specifier(type_c<T>)))::type;
       return static_object_cast<propagate_const_t<To, U>>(std::move(obj));
@@ -54,7 +77,18 @@ namespace yave {
   [[nodiscard]] auto value_cast_if(const object_ptr<U>& obj) noexcept
     -> object_ptr<propagate_const_t<T, U>>
   {
-    if (likely(obj && has_type<T>(obj))) {
+    // Apply
+    if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
+      if (likely(obj && _get_storage(obj).is_apply()))
+        return static_object_cast<propagate_const_t<Apply, U>>(obj);
+    }
+    // Exception
+    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
+      if (likely(obj && _get_storage(obj).is_exception()))
+        return static_object_cast<propagate_const_t<Exception, U>>(obj);
+    }
+    // general
+    else if (likely(obj && has_type<T>(obj))) {
       using To = typename decltype(
         get_object_type(normalize_specifier(type_c<T>)))::type;
       return static_object_cast<propagate_const_t<To, U>>(obj);
@@ -70,7 +104,19 @@ namespace yave {
   [[nodiscard]] auto value_cast_if(object_ptr<U>&& obj) noexcept
     -> object_ptr<propagate_const_t<T, U>>
   {
-    if (likely(obj && has_type<T>(obj))) {
+    // Apply
+    if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
+      if (likely(obj && _get_storage(obj).is_apply()))
+        return static_object_cast<propagate_const_t<Apply, U>>(std::move(obj));
+    }
+    // Exception
+    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
+      if (likely(obj && _get_storage(obj).is_exception()))
+        return static_object_cast<propagate_const_t<Exception, U>>(
+          std::move(obj));
+    }
+    // general
+    else if (likely(obj && has_type<T>(obj))) {
       using To = typename decltype(
         get_object_type(normalize_specifier(type_c<T>)))::type;
       return static_object_cast<propagate_const_t<To, U>>(std::move(obj));

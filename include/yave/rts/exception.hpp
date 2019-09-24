@@ -44,30 +44,28 @@ namespace yave {
   /// Exception
   using Exception = Box<exception_object_value>;
 
-  // ------------------------------------------
-  // helper
+  // Exception
+  YAVE_DECL_TYPE(yave::Exception, "1a30465c-ee14-473e-bcb9-5ef2462d933f");
 
-  template <class T>
-  [[nodiscard]] inline auto add_exception_tag(object_ptr<T> e) noexcept
-    -> object_ptr<T>
+  // info table tag
+  template <>
+  struct Exception::info_table_initializer
   {
-    _get_storage(e).set_pointer_tag(
-      object_ptr_storage::pointer_tags::exception);
-    return e;
-  }
+    /// get info table pointer
+    static const object_info_table* get_info_table()
+    {
+      return detail::add_exception_tag(&info_table);
+    }
 
-  [[nodiscard]] inline bool has_exception_tag(
-    const object_ptr<const Object>& obj) noexcept
-  {
-    return _get_storage(obj).is_exception();
-  }
-
-  [[nodiscard]] inline auto get_tagged_exception(
-    const object_ptr<const Object>& obj) noexcept -> object_ptr<const Exception>
-  {
-    assert(has_exception_tag(obj));
-    return static_object_cast<const Exception>(obj);
-  }
+  private:
+    /// static object info table
+    alignas(32) inline static const object_info_table info_table {
+      object_type<Exception>(),            //
+      sizeof(Exception),                   //
+      object_type_traits<Exception>::name, //
+      vtbl_destroy_func<Exception>,        //
+      vtbl_clone_func<Exception>};         //
+  };
 
   // ------------------------------------------
   // conversion
@@ -79,6 +77,3 @@ namespace yave {
   }
 
 } // namespace yave
-
-// Exception
-YAVE_DECL_TYPE(yave::Exception, "1a30465c-ee14-473e-bcb9-5ef2462d933f");

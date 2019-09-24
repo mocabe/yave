@@ -108,7 +108,7 @@ namespace yave {
         !std::is_same_v<std::decay_t<U>, static_construct_t>>>
     constexpr Box(U &&u, Args &&... args) //
       noexcept(std::is_nothrow_constructible_v<T, U, Args...>)
-      : Object {&info_table_initializer::info_table}
+      : Object {info_table_initializer::get_info_table()}
       , m_value {std::forward<U>(u), std::forward<Args>(args)...}
     {
     }
@@ -126,7 +126,7 @@ namespace yave {
     /// Ctor
     constexpr Box() //
       noexcept(std::is_nothrow_constructible_v<T>)
-      : Object {&info_table_initializer::info_table}
+      : Object {info_table_initializer::get_info_table()}
       , m_value {}
     {
     }
@@ -134,7 +134,7 @@ namespace yave {
     /// Copy ctor
     constexpr Box(const Box &obj) //
       noexcept(std::is_nothrow_copy_constructible_v<T>)
-      : Object {&info_table_initializer::info_table}
+      : Object {info_table_initializer::get_info_table()}
       , m_value {obj.m_value}
     {
     }
@@ -142,7 +142,7 @@ namespace yave {
     /// Move ctor
     constexpr Box(Box &&obj) //
       noexcept(std::is_nothrow_move_constructible_v<T>)
-      : Object {&info_table_initializer::info_table}
+      : Object {info_table_initializer::get_info_table()}
       , m_value {std::move(obj.m_value)}
     {
     }
@@ -186,6 +186,13 @@ namespace yave {
       // check m_value's offset
       static_assert(offset_of_member(&Box::m_value) == sizeof(Object));
 
+      /// get info table pointer
+      static constexpr const object_info_table *get_info_table()
+      {
+        return &info_table;
+      }
+
+    private:
       /// static object info table
       alignas(32) inline static const object_info_table info_table {
         object_type<Box>(),            //
