@@ -24,8 +24,8 @@ namespace yave {
     exception_object_value(
       object_ptr<const String> msg,
       object_ptr<T> err) noexcept
-      : message {std::move(msg)}
-      , error_value {std::move(err)}
+      : m_message {std::move(msg)}
+      , m_error_value {std::move(err)}
     {
     }
 
@@ -35,10 +35,23 @@ namespace yave {
     {
     }
 
+    /// Get error message
+    [[nodiscard]] auto message() const -> std::string
+    {
+      return m_message->c_str();
+    }
+
+    /// Get error value object
+    [[nodiscard]] auto error() const -> object_ptr<const Object>
+    {
+      return m_error_value;
+    }
+
+  private:
     /// message
-    object_ptr<const String> message;
+    object_ptr<const String> m_message;
     /// pointer to error value
-    object_ptr<const Object> error_value;
+    object_ptr<const Object> m_error_value;
   };
 
   /// Exception
