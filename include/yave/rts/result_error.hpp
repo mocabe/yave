@@ -12,55 +12,34 @@ namespace yave {
   // ------------------------------------------
   // Result errors
 
-  namespace result_error {
-
-    /// result error
-    class result_error : public std::runtime_error
+  /// exception_result
+  class exception_result : public std::runtime_error
+  {
+  public:
+    exception_result(object_ptr<const Exception> e)
+      : runtime_error("Exception detected while evaluation")
+      , m_exception {std::move(e)}
     {
-    public:
-      result_error(const char* msg = "result_error")
-        : runtime_error(msg)
-      {
-      }
-    };
+    }
 
-    /// exception_result
-    class exception_result : public result_error
+    /// exception
+    [[nodiscard]] auto exception() const -> const object_ptr<const Exception>&
     {
-    public:
-      exception_result(object_ptr<const Exception> e)
-        : result_error("Exception detected while evaluation")
-        , m_exception {std::move(e)}
-      {
-      }
+      return m_exception;
+    }
 
-      /// exception
-      [[nodiscard]] auto exception() const -> const object_ptr<const Exception>&
-      {
-        return m_exception;
-      }
-
-    private:
-      object_ptr<const Exception> m_exception;
-    };
-
-  } // namespace result_error
+  private:
+    object_ptr<const Exception> m_exception;
+  };
 
   // ------------------------------------------
   // conversion
 
-  [[nodiscard]] inline auto to_Exception(
-    const result_error::exception_result& e) -> object_ptr<const Exception>
+  [[nodiscard]] inline auto to_Exception(const exception_result& e)
+    -> object_ptr<const Exception>
   {
     // forward
     return e.exception();
-  }
-
-  [[nodiscard]] inline auto to_Exception(const result_error::result_error& e)
-    -> object_ptr<const Exception>
-  {
-    return make_object<Exception>(
-      make_object<String>(e.what()), make_object<String>(""));
   }
 
 } // namespace yave

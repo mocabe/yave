@@ -138,7 +138,7 @@ namespace yave {
 
           // detect exception
           if (auto excpt = value_cast_if<Exception>(result))
-            throw result_error::exception_result(excpt);
+            throw exception_result(excpt);
 
           // completed
           if (stack.size() == arity)

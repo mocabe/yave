@@ -54,11 +54,11 @@ namespace yave {
         // call self update method
         return _this->_self_update(std::move(r));
 
-        // type_error
+        // cast error
       } catch (const bad_value_cast& e) {
         return to_Exception(e);
 
-        // type_error
+        // type error
       } catch (const type_error::circular_constraint& e) {
         return to_Exception(e);
       } catch (const type_error::type_missmatch& e) {
@@ -68,10 +68,8 @@ namespace yave {
       } catch (const type_error::type_error& e) {
         return to_Exception(e);
 
-        // result_error
-      } catch (const result_error::exception_result& e) {
-        return to_Exception(e);
-      } catch (const result_error::result_error& e) {
+        // result error
+      } catch (const exception_result& e) {
         return to_Exception(e);
 
         // std::exception

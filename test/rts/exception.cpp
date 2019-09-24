@@ -32,12 +32,12 @@ TEST_CASE("runtime_error", "[rts][exception]")
   SECTION("0")
   {
     auto app = f << i;
-    REQUIRE_THROWS_AS(eval(app), result_error::exception_result);
-    REQUIRE_THROWS_AS(eval(app), result_error::exception_result);
+    REQUIRE_THROWS_AS(eval(app), exception_result);
+    REQUIRE_THROWS_AS(eval(app), exception_result);
 
     try {
       (void)eval(app);
-    } catch (result_error::exception_result& e) {
+    } catch (exception_result& e) {
       REQUIRE(e.exception()->message() == "Hello, Exception!");
     }
   }
@@ -45,12 +45,12 @@ TEST_CASE("runtime_error", "[rts][exception]")
   SECTION("1")
   {
     auto app = f << (f << i);
-    REQUIRE_THROWS_AS(eval(app), result_error::exception_result);
-    REQUIRE_THROWS_AS(eval(app), result_error::exception_result);
+    REQUIRE_THROWS_AS(eval(app), exception_result);
+    REQUIRE_THROWS_AS(eval(app), exception_result);
 
     try {
       (void)eval(app);
-    } catch (result_error::exception_result& e) {
+    } catch (exception_result& e) {
       REQUIRE(e.exception()->message() == "Hello, Exception!");
     }
   }
@@ -76,12 +76,12 @@ TEST_CASE("unknown exception", "[rts][exception]")
   SECTION("0")
   {
     auto app = f << i;
-    REQUIRE_THROWS_AS(eval(app), result_error::exception_result);
-    REQUIRE_THROWS_AS(eval(app), result_error::exception_result);
+    REQUIRE_THROWS_AS(eval(app), exception_result);
+    REQUIRE_THROWS_AS(eval(app), exception_result);
 
     try {
       (void)eval(app);
-    } catch (result_error::exception_result& e) {
+    } catch (exception_result& e) {
       REQUIRE(!e.exception()->error());
     }
   }
@@ -89,12 +89,12 @@ TEST_CASE("unknown exception", "[rts][exception]")
   SECTION("1")
   {
     auto app = f << (f << i);
-    REQUIRE_THROWS_AS(eval(app), result_error::exception_result);
-    REQUIRE_THROWS_AS(eval(app), result_error::exception_result);
+    REQUIRE_THROWS_AS(eval(app), exception_result);
+    REQUIRE_THROWS_AS(eval(app), exception_result);
 
     try {
       (void)eval(app);
-    } catch (result_error::exception_result& e) {
+    } catch (exception_result& e) {
       REQUIRE(!e.exception()->error());
     }
   }
