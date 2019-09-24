@@ -50,12 +50,6 @@ namespace yave {
       return detail::has_apply_tag(head()->info_table);
     }
 
-    /// function?
-    [[nodiscard]] bool is_function()
-    {
-      return detail::has_function_tag(head()->info_table);
-    }
-
     /// static?
     [[nodiscard]] bool is_static() const noexcept
     {

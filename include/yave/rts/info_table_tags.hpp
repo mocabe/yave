@@ -25,8 +25,7 @@ namespace yave {
       //                        ^^^^^^^^^^
       vanilla      = 0,
       exception    = 1,                  // Exception
-      apply        = 2,                  // ApplyR
-      function     = 3,                  // Function<T, Ts...>
+      apply        = 2,                  // Apply
       extract_mask = 0x0000000000000007, // 0...0111
       clear_mask   = 0xFFFFFFFFFFFFFFF8, // 1...1000
     };
@@ -96,17 +95,5 @@ namespace yave {
       return check_info_table_tag(tagged, info_table_tags::apply);
     }
 
-    // Function
-
-    [[nodiscard]] inline const object_info_table* add_function_tag(
-      const object_info_table* info)
-    {
-      return add_info_table_tag(info, info_table_tags::function);
-    }
-
-    [[nodiscard]] inline bool has_function_tag(const object_info_table* tagged)
-    {
-      return check_info_table_tag(tagged, info_table_tags::function);
-    }
   } // namespace detail
 } // namespace yave
