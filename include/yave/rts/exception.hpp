@@ -44,6 +44,29 @@ namespace yave {
   /// Exception
   using Exception = Box<exception_object_value>;
 
+  // Exception
+  YAVE_DECL_TYPE(yave::Exception, "1a30465c-ee14-473e-bcb9-5ef2462d933f");
+
+  // info table tag
+  template <>
+  struct Exception::info_table_initializer
+  {
+    /// get info table pointer
+    static const object_info_table* get_info_table()
+    {
+      return detail::add_exception_tag(&info_table);
+    }
+
+  private:
+    /// static object info table
+    alignas(32) inline static const object_info_table info_table {
+      object_type<Exception>(),            //
+      sizeof(Exception),                   //
+      object_type_traits<Exception>::name, //
+      vtbl_destroy_func<Exception>,        //
+      vtbl_clone_func<Exception>};         //
+  };
+
   // ------------------------------------------
   // conversion
 
@@ -54,6 +77,3 @@ namespace yave {
   }
 
 } // namespace yave
-
-// Exception
-YAVE_DECL_TYPE(yave::Exception, "1a30465c-ee14-473e-bcb9-5ef2462d933f");

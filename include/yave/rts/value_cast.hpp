@@ -27,6 +27,11 @@ namespace yave {
       if (likely(obj && _get_storage(obj).is_apply()))
         return static_object_cast<propagate_const_t<Apply, U>>(obj);
     }
+    // Exception
+    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
+      if (likely(obj && _get_storage(obj).is_exception()))
+        return static_object_cast<propagate_const_t<Exception, U>>(obj);
+    }
     // general
     else if (likely(obj && has_type<T>(obj))) {
       using To = typename decltype(
@@ -48,6 +53,12 @@ namespace yave {
     if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
       if (likely(obj && _get_storage(obj).is_apply()))
         return static_object_cast<propagate_const_t<Apply, U>>(std::move(obj));
+    }
+    // Exception
+    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
+      if (likely(obj && _get_storage(obj).is_exception()))
+        return static_object_cast<propagate_const_t<Exception, U>>(
+          std::move(obj));
     }
     // general
     else if (likely(obj && has_type<T>(obj))) {
@@ -71,6 +82,11 @@ namespace yave {
       if (likely(obj && _get_storage(obj).is_apply()))
         return static_object_cast<propagate_const_t<Apply, U>>(obj);
     }
+    // Exception
+    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
+      if (likely(obj && _get_storage(obj).is_exception()))
+        return static_object_cast<propagate_const_t<Exception, U>>(obj);
+    }
     // general
     else if (likely(obj && has_type<T>(obj))) {
       using To = typename decltype(
@@ -92,6 +108,12 @@ namespace yave {
     if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
       if (likely(obj && _get_storage(obj).is_apply()))
         return static_object_cast<propagate_const_t<Apply, U>>(std::move(obj));
+    }
+    // Exception
+    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
+      if (likely(obj && _get_storage(obj).is_exception()))
+        return static_object_cast<propagate_const_t<Exception, U>>(
+          std::move(obj));
     }
     // general
     else if (likely(obj && has_type<T>(obj))) {
