@@ -21,11 +21,6 @@ option(YAVE_BUILD_TESTS "Build tests" ON)
 # Build type
 
 set(BUILD_SHARED_LIBS OFF)
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
-endif()
-
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # ------------------------------------------
@@ -57,12 +52,14 @@ set(CMAKE_CXX_STANDARD 17)
 # ------------------------------------------
 # External
 
-  include(${YAVE_EXTERNAL_DIR}/external.cmake)
+include(${YAVE_EXTERNAL_DIR}/external.cmake)
 
 # ------------------------------------------
 # Compiler Flags
 
 if(YAVE_COMPILER_MSVC)
+  # Remove /RTC1 from default set of compile flags.
+  set(CMAKE_CXX_FLAGS_DEBUG "/MDd /Zi /Ob0 /Od" CACHE STRING "" FORCE)
   set(YAVE_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4)
 else()
   set(YAVE_COMPILE_FLAGS -O0 -Wall -Wextra -g -pedantic)
