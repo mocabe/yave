@@ -33,12 +33,13 @@ namespace yave {
         return static_object_cast<propagate_const_t<Exception, U>>(obj);
     }
     // general
-    else if (likely(obj && has_type<T>(obj))) {
-      using To = typename decltype(
-        get_object_type(normalize_specifier(type_c<T>)))::type;
-      return static_object_cast<propagate_const_t<To, U>>(obj);
-    }
-    throw bad_value_cast(obj ? get_type(obj) : nullptr, object_type<T>());
+    else if constexpr (is_tm_value(get_term<T>())) {
+      if (likely(obj && has_type<T>(obj)))
+        return static_object_cast<propagate_const_t<T, U>>(obj);
+    } else
+      static_assert(false_v<T>, "T is not value type");
+
+    throw bad_value_cast(get_type(obj), object_type<T>());
   }
 
   /// value_cast
@@ -61,12 +62,13 @@ namespace yave {
           std::move(obj));
     }
     // general
-    else if (likely(obj && has_type<T>(obj))) {
-      using To = typename decltype(
-        get_object_type(normalize_specifier(type_c<T>)))::type;
-      return static_object_cast<propagate_const_t<To, U>>(std::move(obj));
-    }
-    throw bad_value_cast(obj ? get_type(obj) : nullptr, object_type<T>());
+    else if constexpr (is_tm_value(get_term<T>())) {
+      if (likely(obj && has_type<T>(obj)))
+        return static_object_cast<propagate_const_t<T, U>>(std::move(obj));
+    } else
+      static_assert(false_v<T>, "T is not value type");
+
+    throw bad_value_cast(get_type(obj), object_type<T>());
   }
 
   /// value_cast_if
@@ -88,11 +90,12 @@ namespace yave {
         return static_object_cast<propagate_const_t<Exception, U>>(obj);
     }
     // general
-    else if (likely(obj && has_type<T>(obj))) {
-      using To = typename decltype(
-        get_object_type(normalize_specifier(type_c<T>)))::type;
-      return static_object_cast<propagate_const_t<To, U>>(obj);
-    }
+    else if constexpr (is_tm_value(get_term<T>())) {
+      if (likely(obj && has_type<T>(obj)))
+        return static_object_cast<propagate_const_t<T, U>>(obj);
+    } else
+      static_assert(false_v<T>, "T is not value");
+
     return nullptr;
   }
 
@@ -116,11 +119,12 @@ namespace yave {
           std::move(obj));
     }
     // general
-    else if (likely(obj && has_type<T>(obj))) {
-      using To = typename decltype(
-        get_object_type(normalize_specifier(type_c<T>)))::type;
-      return static_object_cast<propagate_const_t<To, U>>(std::move(obj));
-    }
+    else if constexpr (is_tm_value(get_term<T>())) {
+      if (likely(obj && has_type<T>(obj)))
+        return static_object_cast<propagate_const_t<T, U>>(std::move(obj));
+    } else
+      static_assert(false_v<T>, "T is not value type");
+
     return nullptr;
   }
 
