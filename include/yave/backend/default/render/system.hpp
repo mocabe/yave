@@ -49,19 +49,20 @@ namespace yave::backend::default_render {
       -> object_ptr<const BackendInfo>;
 
   private:
-    bool m_initialized;
-
-  private:
     struct instance;
     std::vector<instance> m_instances;
 
   private: /* heleprs */
+    [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
     [[nodiscard]] auto _find_instance(const uid& id);
     [[nodiscard]] uid _create_instance(const scene_config& config);
     void _destroy_instance(const uid& id);
 
   private:
     object_ptr<const BackendInfo> m_backend_info;
+
+  private:
+    mutable std::mutex m_mtx;
   };
 
 } // namespace yave::backend::default_render

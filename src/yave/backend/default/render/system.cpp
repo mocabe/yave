@@ -38,6 +38,11 @@ namespace yave::backend::default_render {
     std::unique_ptr<frame_buffer_manager> fb_manager;
   };
 
+  auto backend::_lock() const -> std::unique_lock<std::mutex>
+  {
+    return std::unique_lock {m_mtx};
+  }
+
   auto backend::_find_instance(const uid& id)
   {
     return std::find_if(m_instances.begin(), m_instances.end(), [&](auto& e) {
@@ -85,13 +90,8 @@ namespace yave::backend::default_render {
   auto backend::init(const scene_config& config) noexcept -> uid
   {
     try {
-      if (m_initialized)
-        return uid();
-
-      auto id       = _create_instance(config);
-      m_initialized = true;
-      return id;
-
+      auto lck = _lock();
+      return _create_instance(config);
     } catch (...) {
       return uid();
     }
@@ -100,7 +100,9 @@ namespace yave::backend::default_render {
   void backend::deinit(uid id) noexcept
   {
     try {
-      if (!m_initialized)
+      auto lck = _lock();
+
+      if (_find_instance(id) == m_instances.end())
         return;
 
       _destroy_instance(id);
@@ -113,17 +115,17 @@ namespace yave::backend::default_render {
   bool backend::update(uid id, const scene_config& config) noexcept
   {
     try {
-      if (!m_initialized)
-        return false;
+      auto lck = _lock();
 
       auto iter = _find_instance(id);
 
-      if (iter != m_instances.end()) {
-        auto fbm = std::make_unique<frame_buffer_manager>(
-          config.width(), config.height(), config.frame_buffer_format());
-        iter->fb_manager = std::move(fbm);
-        iter->config     = config;
-      }
+      if (iter == m_instances.end())
+        return false;
+
+      auto fbm = std::make_unique<frame_buffer_manager>(
+        config.width(), config.height(), config.frame_buffer_format());
+      iter->fb_manager = std::move(fbm);
+      iter->config     = config;
       return true;
 
     } catch (...) {
@@ -134,11 +136,14 @@ namespace yave::backend::default_render {
   auto backend::get_config(uid id) noexcept -> object_ptr<SceneConfig>
   {
     try {
+      auto lck = _lock();
+
       auto iter = _find_instance(id);
-      if (iter != m_instances.end()) {
-        return make_object<SceneConfig>(iter->config);
-      }
-      return nullptr;
+      if (iter == m_instances.end())
+        return nullptr;
+
+      return make_object<SceneConfig>(iter->config);
+
     } catch (...) {
       return nullptr;
     }
@@ -146,6 +151,8 @@ namespace yave::backend::default_render {
 
   auto backend::get_binds(uid id) noexcept -> object_ptr<BackendBindInfoList>
   {
+    auto lck = _lock();
+
     auto iter = _find_instance(id);
 
     if (iter == m_instances.end())
@@ -207,6 +214,7 @@ namespace yave::backend::default_render {
   auto backend::get_backend_info() const noexcept
     -> object_ptr<const BackendInfo>
   {
+    auto lck = _lock();
     return m_backend_info;
   }
 
