@@ -134,7 +134,7 @@ namespace yave {
     }
 
     /// Conversion operator to std::vector
-    [[nodiscard]] explicit operator std::vector<T, allocator>() const
+    [[nodiscard]] operator std::vector<T, allocator>() const
     {
       return std::vector<T, allocator>(begin(), end());
     }
