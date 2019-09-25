@@ -207,7 +207,7 @@ namespace yave::backend::default_render {
       {
         // clang-format off
 
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::FrameBuffer, tags::default_render>(*(inst.fb_manager))));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::FrameBuffer, tags::default_render>(inst.fb_manager.get())));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpSrc, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpDst, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpOver, tags::default_render>()));
