@@ -91,8 +91,16 @@ namespace yave::backend::default_render {
   {
     try {
       auto lck = _lock();
-      return _create_instance(config);
+
+      auto id = _create_instance(config);
+      Info(g_logger, "Initialized new backend instance: id={}", to_string(id));
+      return id;
+
+    } catch (std::exception& e) {
+      Error(g_logger, "Failed to initialized backend instance: {}", e.what());
+      return uid();
     } catch (...) {
+      Error(g_logger, "Failed to initialized backend instance");
       return uid();
     }
   }
@@ -102,12 +110,19 @@ namespace yave::backend::default_render {
     try {
       auto lck = _lock();
 
-      if (_find_instance(id) == m_instances.end())
+      if (_find_instance(id) == m_instances.end()) {
+        Error(g_logger, "Failed to deinit backend: Invalid ID");
         return;
+      }
 
       _destroy_instance(id);
+      Info(g_logger, "Deinitialized backend: id={}", to_string(id));
 
+    } catch (std::exception& e) {
+      Error(g_logger, "Failed to deinit backend: {}", e.what());
+      return;
     } catch (...) {
+      Error(g_logger, "Failed to deinit backend");
       return;
     }
   }
@@ -119,16 +134,33 @@ namespace yave::backend::default_render {
 
       auto iter = _find_instance(id);
 
-      if (iter == m_instances.end())
+      if (iter == m_instances.end()) {
+        Error(g_logger, "Failed to update scene config: Invalid ID");
         return false;
+      }
 
       auto fbm = std::make_unique<frame_buffer_manager>(
         config.width(), config.height(), config.frame_buffer_format());
       iter->fb_manager = std::move(fbm);
       iter->config     = config;
+
+      Info(g_logger, "Updated scene config of instance {}", to_string(id));
+      Info(
+        g_logger,
+        "Current scene config: width={}, height={}, framerate={}, "
+        "samplerate={}",
+        config.width(),
+        config.height(),
+        config.frame_rate(),
+        config.sample_rate());
+
       return true;
 
+    } catch (std::exception& e) {
+      Error(g_logger, "Failed to update scene cofnig: {}", e.what());
+      return false;
     } catch (...) {
+      Error(g_logger, "Failed to update scene cofnig");
       return false;
     }
   }
@@ -139,66 +171,83 @@ namespace yave::backend::default_render {
       auto lck = _lock();
 
       auto iter = _find_instance(id);
-      if (iter == m_instances.end())
+      if (iter == m_instances.end()) {
+        Error(g_logger, "Failed to get scene config: Invalid ID");
         return nullptr;
+      }
 
       return make_object<SceneConfig>(iter->config);
 
+    } catch (std::exception& e) {
+      Error(g_logger, "Failed to get scene config: {}", e.what());
+      return nullptr;
     } catch (...) {
+      Error(g_logger, "Failed to get scene config");
       return nullptr;
     }
   }
 
   auto backend::get_binds(uid id) noexcept -> object_ptr<BackendBindInfoList>
   {
-    auto lck = _lock();
+    try {
+      auto lck = _lock();
 
-    auto iter = _find_instance(id);
+      auto iter = _find_instance(id);
 
-    if (iter == m_instances.end())
+      if (iter == m_instances.end()) {
+        Error(g_logger, "Failed to get bindings: Invalid ID");
+        return nullptr;
+      }
+
+      instance& inst = *iter;
+
+      std::vector<object_ptr<BackendBindInfo>> binds;
+
+      // add backends impl
+      {
+        // clang-format off
+
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::FrameBuffer, tags::default_render>(*(inst.fb_manager))));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpSrc, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpDst, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpOver, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpIn, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpOut, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpAdd, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerCompositor, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Frame, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerImageOutput, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeIntValue, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeFloatValue, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeBoolValue, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeIntValueExtractor, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeFloatValueExtractor , tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeBoolValueExtractor, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int8, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int16, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int32, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int64, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt8, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt16, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt32, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt64, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Float, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Double, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Bool, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::String, tags::default_render>()));
+
+        // clang-format on
+      }
+
+      return make_object<BackendBindInfoList>(binds);
+
+    } catch (std::exception& e) {
+      Error(g_logger, "Failed to get bindings: {}", e.what());
       return nullptr;
-
-    instance& inst = *iter;
-
-    std::vector<object_ptr<BackendBindInfo>> binds;
-
-    // add backends impl
-    {
-      // clang-format off
-
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::FrameBuffer, tags::default_render>(*(inst.fb_manager))));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpSrc, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpDst, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpOver, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpIn, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpOut, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpAdd, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerCompositor, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Frame, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerImageOutput, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeIntValue, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeFloatValue, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeBoolValue, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeIntValueExtractor, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeFloatValueExtractor , tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeBoolValueExtractor, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int8, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int16, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int32, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int64, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt8, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt16, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt32, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt64, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Float, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Double, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Bool, tags::default_render>()));
-      binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::String, tags::default_render>()));
-
-      // clang-format on
+    } catch (...) {
+      Error(g_logger, "Failed to get bindings");
+      return nullptr;
     }
-
-    return make_object<BackendBindInfoList>(binds);
   }
 
   auto backend::name() const noexcept -> std::string

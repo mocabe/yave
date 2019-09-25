@@ -39,11 +39,13 @@ namespace yave {
       m_is_const      = info.is_const();
     }
 
+    /// Get name
     [[nodiscard]] auto name() const -> std::string
     {
       return m_name;
     }
 
+    /// Get input sockets
     [[nodiscard]] auto input_sockets() const -> std::vector<std::string>
     {
       std::vector<std::string> tmp;
@@ -55,26 +57,31 @@ namespace yave {
       return tmp;
     }
 
+    /// Get output sockets
     [[nodiscard]] auto output_socket() const -> std::string
     {
       return m_output;
     }
 
+    /// Get description
     [[nodiscard]] auto description() const -> std::string
     {
       return m_description;
     }
 
+    /// Get instance generator function
     [[nodiscard]] auto instance_func() const -> const object_ptr<const Object>&
     {
       return m_instanec_func;
     }
 
+    /// Const?
     [[nodiscard]] bool is_const() const
     {
       return m_is_const;
     }
 
+    /// Convert to yave::bind info
     [[nodiscard]] bind_info bind_info() const
     {
       return {name(),
@@ -102,6 +109,7 @@ namespace yave {
   /// List of bind info
   struct backend_bind_info_list
   {
+    /// List of bind info
     vector<object_ptr<BackendBindInfo>> info_list; // 16
   };
 
@@ -135,49 +143,59 @@ namespace yave {
     }
     // clang-format on
 
+    /// Initialize new backend instance
     [[nodiscard]] auto init(const scene_config& config) const noexcept -> uid
     {
       return m_fp_init(m_handle, config);
     }
 
+    /// Deinitialize backend instance
     void deinit(uid instance) const noexcept
     {
       return m_fp_deinit(m_handle, instance);
     }
 
+    /// Update backend's scene config
     [[nodiscard]] bool update(uid instance, const scene_config& config) const
       noexcept
     {
       return m_fp_update(m_handle, instance, config);
     }
 
+    /// Get current scene config
     [[nodiscard]] auto get_config(uid instance) const noexcept
       -> object_ptr<SceneConfig>
     {
       return m_fp_get_config(m_handle, instance);
     }
 
+    /// Get list of backend bind info
     [[nodiscard]] auto get_binds(uid instance) const noexcept
       -> object_ptr<BackendBindInfoList>
     {
       return m_fp_get_binds(m_handle, instance);
     }
 
+    /// Get name of backend
     [[nodiscard]] auto name() const -> std::string
     {
       return m_name;
     }
 
+    /// Get UUID of backend
     [[nodiscard]] auto backend_id() const -> const uuid&
     {
       return m_backend_id;
     }
 
   private:
+    /// Name of this backend
     string m_name;
+    /// UUID of backend
     uuid m_backend_id;
 
   private:
+    /// Handle of backend manager
     void* m_handle;
 
     /// Initialize new backend instance.
