@@ -9,6 +9,7 @@
 #include <yave/lib/string/string.hpp>
 #include <yave/lib/vector/vector.hpp>
 #include <yave/obj/scene/scene_config.hpp>
+#include <yave/node/core/node_info.hpp>
 #include <yave/node/core/bind_info.hpp>
 #include <yave/rts/box.hpp>
 #include <yave/support/id.hpp>
@@ -178,13 +179,44 @@ namespace yave {
 
   private:
     void* m_handle;
-    // clang-format off
-    auto (*m_fp_init      )(void* handle, const scene_config& config) noexcept -> uid;
-    void (*m_fp_deinit    )(void* handle, uid instance) noexcept;
-    bool (*m_fp_update    )(void* handle, uid instance, const scene_config& config) noexcept;
-    auto (*m_fp_get_config)(void* handle, uid instance) noexcept -> object_ptr<SceneConfig>;
-    auto (*m_fp_get_binds )(void* handle, uid instance) noexcept -> object_ptr<BackendBindInfoList>;
-    // clang-format on
+
+    /// Initialize new backend instance.
+    /// \note Should return ID 0 on error, otherwise return non-zero instance
+    /// ID.
+    /// \note Should initialize frame buffer pool property to match scene
+    /// config.
+    auto (*m_fp_init)(void* handle, const scene_config& config) noexcept -> uid;
+
+    /// Deinitialize backend instance.
+    /// \note Should ignore when given instance ID is invalid.
+    /// \note Should not deallocate objects allocated from instance if they
+    /// still have reference counts left, but any operation on these objects
+    /// may result in undefined behaviour after this function.
+    void (*m_fp_deinit)(void* handle, uid instance) noexcept;
+
+    /// Update scene config.
+    /// \note Should return fasle on error or invalid ID.
+    /// \note Should property set or rebuild buffer managers to match new scene
+    /// config.
+    /// \note Any operations on object which are created before this function
+    /// may result in undefined behaviour after this function succeeded. Caller
+    /// should acquire new backend bindings through get_binds() function.
+    bool (*m_fp_update)(
+      void* handle,
+      uid instance,
+      const scene_config& config) noexcept;
+
+    /// Get current scene config.
+    /// \note Should return nullptr on fail, otherwise return current scene
+    /// config property.
+    auto (*m_fp_get_config)(void* handle, uid instance) noexcept
+      -> object_ptr<SceneConfig>;
+
+    /// Get list of backend bindings.
+    /// \note Should return nullptr on fail, otherwise return set of bindings
+    /// required to compile scene graph.
+    auto (*m_fp_get_binds)(void* handle, uid instance) noexcept
+      -> object_ptr<BackendBindInfoList>;
   };
 
   /// BackendInfo
