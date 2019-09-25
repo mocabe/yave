@@ -39,7 +39,10 @@ namespace yave {
     using Bool   = PrimitiveConstructor<yave::Bool>;
     using String = PrimitiveConstructor<yave::String>;
 
-    // Keyframe* have special definitions, so don't add them.
+    // Keyframe values (KeframeInt and others are dummy)
+    using KeyframeIntValue   = PrimitiveConstructor<yave::KeyframeInt>;
+    using KeyframeFloatValue = PrimitiveConstructor<yave::KeyframeInt>;
+    using KeyframeBoolValue  = PrimitiveConstructor<yave::KeyframeInt>;
 
   } // namespace node
 
