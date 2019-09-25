@@ -23,7 +23,8 @@ namespace yave {
         auto kf = eval_arg<0>();
         auto f  = eval_arg<1>();
         auto v  = kf->find_value(f->time_point);
-        return make_object<Int>(v);
+        // FIXME: return 64bit integer
+        return make_object<Int>(static_cast<int>(v));
       }
     };
 
@@ -48,7 +49,7 @@ namespace yave {
         auto f  = eval_arg<1>();
         auto v  = kf->find_value(f->time_point);
         // TODO: Interpolation using control points
-        return make_object<Float>(v);
+        return make_object<Float>(static_cast<float>(v.value));
       }
     };
   } // namespace backend::default_render
@@ -59,7 +60,7 @@ namespace yave {
   {                                                                  \
     static bind_info get_bind_info()                                 \
     {                                                                \
-      auto info = get_node_info<TYPE>();                             \
+      auto info = get_node_info<node::TYPE>();                       \
       auto name = info.name();                                       \
       auto is   = info.input_sockets();                              \
       auto os   = info.output_sockets();                             \

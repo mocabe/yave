@@ -7,10 +7,10 @@
 
 #include <yave/backend/default/config.hpp>
 #include <yave/node/obj/blend_op.hpp>
-#include <yave/node/obj/function.hpp>
+#include <yave/node/core/function.hpp>
 #include <yave/node/obj/compositor.hpp>
-#include <yave/data/lib/image_blend.hpp>
-#include <yave/data/obj/frame_buffer.hpp>
+#include <yave/lib/image/image_blend.hpp>
+#include <yave/obj/frame_buffer/frame_buffer.hpp>
 
 namespace yave {
 
@@ -19,7 +19,7 @@ namespace yave {
     struct BlendOpSrc
       : NodeFunction<BlendOpSrc, FrameBuffer, FrameBuffer, FrameBuffer>
     {
-      return_type code()
+      return_type code() const
       {
         return eval_arg<0>();
       }
@@ -28,7 +28,7 @@ namespace yave {
     struct BlendOpDst
       : NodeFunction<BlendOpDst, FrameBuffer, FrameBuffer, FrameBuffer>
     {
-      return_type code()
+      return_type code() const
       {
         return eval_arg<1>();
       }
@@ -172,9 +172,9 @@ namespace yave {
   template <>                                                                 \
   struct bind_info_traits<node::TYPE, backend::tags::default_render>          \
   {                                                                           \
-    auto info = get_node_info<node::TYPE>();                                  \
     static bind_info get_bind_info()                                          \
     {                                                                         \
+      auto info = get_node_info<node::TYPE>();                                \
       return bind_info(                                                       \
         info.name(),                                                          \
         info.input_sockets(),                                                 \
