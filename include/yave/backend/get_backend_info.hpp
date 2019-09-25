@@ -8,18 +8,18 @@
 #include <yave/config/config.hpp>
 #include <yave/backend/backend_info.hpp>
 
-namespace yave{
+namespace yave {
 
-  template <class Backend>
+  template <class BackendTag>
   struct backend_info_traits
   {
-    // static backend_info get_backend_info() { /* return your backend info */ }
+    // static object_ptr<const BackendInfo> get_backend_info() { ... }
   };
 
   /// Get backend info
-  template <class Backend>
-  backend_info get_backend_info()
+  template <class BackendTag>
+  [[nodiscard]] object_ptr<const BackendInfo> get_backend_info()
   {
-    return backend_info<Backend>::get_backend_info();
+    return backend_info<BackendTag>::get_backend_info();
   }
-}
+} // namespace yave
