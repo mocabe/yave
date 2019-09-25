@@ -137,6 +137,12 @@ namespace yave {
       _dealloc(m_ptr, m_size + 1);
     }
 
+    /// Conversion to std::string
+    [[nodiscard]] operator std::string() const
+    {
+      return std::string(c_str());
+    }
+
     /// Get C style string.
     [[nodiscard]] const char* c_str() const noexcept
     {
