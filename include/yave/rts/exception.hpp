@@ -57,8 +57,13 @@ namespace yave {
   /// Exception
   using Exception = Box<exception_object_value>;
 
-  // Exception
-  YAVE_DECL_TYPE(yave::Exception, "1a30465c-ee14-473e-bcb9-5ef2462d933f");
+  // type info of Exception
+  template <>
+  struct object_type_traits<yave::Exception>
+  {
+    static constexpr char name[] = "yave::Exception";
+    static constexpr char uuid[] = "1a30465c-ee14-473e-bcb9-5ef2462d933f";
+  };
 
   // info table tag
   template <>
