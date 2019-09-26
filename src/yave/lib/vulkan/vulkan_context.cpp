@@ -996,6 +996,7 @@ namespace {
     auto [subpasses, subpassesResource] = getSubpasses();
     info.subpassCount                   = (uint32_t)subpasses.size();
     info.pSubpasses                     = subpasses.data();
+    (void)subpassesResource;
 
     auto dependency      = getSubpassDependency();
     info.dependencyCount = (uint32_t)dependency.size();
