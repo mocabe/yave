@@ -82,7 +82,7 @@ namespace yave {
     }
 
     /// Convert to yave::bind info
-    [[nodiscard]] bind_info bind_info() const
+    [[nodiscard]] yave::bind_info bind_info() const
     {
       return {name(),
               input_sockets(),

@@ -7,7 +7,6 @@
 
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/node/scene/layered_node_graph.hpp>
-#include <yave/node/scene/scene_config.hpp>
 #include <yave/node/scene/layer_composition.hpp>
 
 namespace yave {

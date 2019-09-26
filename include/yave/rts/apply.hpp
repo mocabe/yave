@@ -94,8 +94,13 @@ namespace yave {
   /// runtime apply object
   using Apply = Box<apply_object_value>;
 
-  // Apply 
-  YAVE_DECL_TYPE(yave::Apply, "2db5ddcd-0d6d-4f2f-8fd5-7b30abfc68eb");
+  // type info of Apply
+  template <>
+  struct object_type_traits<yave::Apply>
+  {
+    static constexpr char name[] = "yave::Apply";
+    static constexpr char uuid[] = "2db5ddcd-0d6d-4f2f-8fd5-7b30abfc68eb";
+  };
 
   // tagged info table
   template <>
