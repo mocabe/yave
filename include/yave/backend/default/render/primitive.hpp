@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <yave/backend/default/config.hpp>
 #include <yave/node/core/primitive.hpp>
 #include <yave/backend/default/render/primitive_constructor.hpp>
 

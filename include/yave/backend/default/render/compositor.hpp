@@ -5,12 +5,11 @@
 
 #pragma once
 
+#include <yave/backend/default/config.hpp>
 #include <yave/node/obj/compositor.hpp>
-
-#include <yave/node/obj/function.hpp>
-#include <yave/data/obj/frame_buffer.hpp>
-#include <yave/node/obj/instance_getter.hpp>
-#include <yave/backend/default/system/config.hpp>
+#include <yave/node/core/function.hpp>
+#include <yave/obj/frame_buffer/frame_buffer.hpp>
+#include <yave/node/core/instance_getter.hpp>
 
 namespace yave {
 
@@ -20,9 +19,9 @@ namespace yave {
     struct LayerCompositor
       : NodeFunction<
           LayerCompositor,
-          FrameBuffer,                                         // src
-          FrameBuffer,                                         // dst
-          node_closure<FrameBuffer, FrameBuffer, FrameBuffer>, // blend op
+          FrameBuffer,                                    // src
+          FrameBuffer,                                    // dst
+          closure<FrameBuffer, FrameBuffer, FrameBuffer>, // blend op
           FrameBuffer>
     {
       return_type code() const

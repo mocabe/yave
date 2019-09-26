@@ -5,12 +5,11 @@
 
 #pragma once
 
+#include <yave/backend/default/config.hpp>
 #include <yave/node/obj/image_output.hpp>
-
-#include <yave/data/obj/frame_buffer.hpp>
-#include <yave/node/obj/function.hpp>
-#include <yave/node/obj/instance_getter.hpp>
-#include <yave/backend/default/system/config.hpp>
+#include <yave//obj/frame_buffer/frame_buffer.hpp>
+#include <yave/node/core/function.hpp>
+#include <yave/node/core/instance_getter.hpp>
 
 namespace yave {
 
@@ -29,7 +28,7 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<LayerImageOutput, backend::tags::default_render>
+  struct bind_info_traits<node::LayerImageOutput, backend::tags::default_render>
   {
     static bind_info get_bind_info()
     {
