@@ -6,37 +6,12 @@
 #pragma once
 
 #include <yave/lib/glfw/glfw_context.hpp>
+#include <yave/lib/vulkan/vulkan_util.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace yave::vulkan {
 
   // clang-format off
-
-  /// single time command
-  class single_time_command
-  {
-  public:
-    /// Create command buffer and start recording.
-    single_time_command(const vk::Device& device, const vk::Queue& queue, const vk::CommandPool& pool);
-    /// Move single time command.
-    single_time_command(single_time_command&& other) noexcept;
-    /// End command buffer and submit.
-    ~single_time_command();
-
-  public:
-    /// Get recording command buffer.
-    [[nodiscard]] auto command_buffer() const -> vk::CommandBuffer;
-
-  private:
-    single_time_command(const single_time_command&) = delete;
-  
-  private:
-    vk::Device              m_device;
-    vk::Queue               m_queue;
-    vk::CommandPool         m_pool;
-    vk::UniqueCommandBuffer m_buffer;
-    vk::UniqueFence         m_fence;
-  };
 
   /// Vulkan API context.
   class vulkan_context

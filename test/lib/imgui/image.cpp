@@ -29,29 +29,19 @@ int main()
     }
   }
 
-  auto view  = image.constant_view();
-  auto& wCtx = imgui.window_context();
-  auto& vCtx = imgui.vulkan_context();
+  auto view = image.constant_view();
 
-  auto [vImg, vView, vMem] = vulkan::upload_image(
-    view,
-    wCtx.command_pool(),
-    vCtx.graphics_queue(),
-    vCtx.physical_device(),
-    vCtx.device());
-
-  auto vDsc = vulkan::create_descriptor(
-    vView.get(),
-    imgui.descriptor_set_layout(),
-    imgui.descriptor_pool(),
-    vCtx.device());
-
-  auto set = vDsc.get();
+  auto tex = imgui.add_texture(
+    "tex",
+    {(uint32_t)view.width().value(), (uint32_t)view.width().value()},
+    view.total_bytes(),
+    view.byte_ptr());
 
   while (!imgui.window_context().should_close()) {
     imgui.begin();
     {
-      ImGui::Image(&set, {(float)layout.width.value(), (float)layout.height.value()});
+      ImGui::Image(
+        tex, {(float)layout.width.value(), (float)layout.height.value()});
     }
     imgui.end();
     imgui.render();

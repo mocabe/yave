@@ -679,6 +679,8 @@ namespace {
         auto dscToBind =
           cmd.TextureId ? *fromImTextureId(cmd.TextureId) : descriptorSet;
 
+        assert(dscToBind);
+
         commandBuffer.bindDescriptorSets(
           vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, dscToBind, {});
 
@@ -1122,5 +1124,90 @@ namespace yave::imgui {
   auto imgui_context::font_image_view() const -> vk::ImageView
   {
     return m_fontImageView.get();
+  }
+
+  class imgui_context::texture_data_holder
+  {
+  public:
+    texture_data_holder(
+      vk::UniqueImage img,
+      vk::UniqueImageView viw,
+      vk::UniqueDeviceMemory mem,
+      vk::UniqueDescriptorSet dsc)
+      : image {std::move(img)}
+      , view {std::move(viw)}
+      , memory {std::move(mem)}
+      , descriptor {std::move(dsc)}
+    {
+      rawDsc = descriptor.get();
+    }
+
+    vk::UniqueImage image;
+    vk::UniqueImageView view;
+    vk::UniqueDeviceMemory memory;
+    vk::UniqueDescriptorSet descriptor;
+    vk::DescriptorSet rawDsc; // for texture_type
+
+    ImTextureID get_texture()
+    {
+      return toImTextureId(rawDsc);
+    }
+  };
+
+  auto imgui_context::add_texture(
+    const std::string& name,
+    vk::Extent2D extent,
+    vk::DeviceSize byte_size,
+    const uint8_t* data) -> ImTextureID
+  {
+    assert(data);
+
+    if (m_textures.find(name) != m_textures.end()) {
+      Error(g_logger, "Failed to add texture data: Texute name already used");
+      return ImTextureID(nullptr);
+    }
+
+    auto device         = m_vulkanCtx.device();
+    auto physicalDevice = m_vulkanCtx.physical_device();
+    auto commandPool    = m_windowCtx.command_pool();
+    auto queue          = m_vulkanCtx.graphics_queue();
+
+    auto [image, view, memory] = vulkan::upload_image(
+      extent, byte_size, data, commandPool, queue, physicalDevice, device);
+
+    auto descriptor = vulkan::create_image_descriptor(
+      view.get(), m_descriptorSetLayout.get(), m_descriptorPool.get(), device);
+
+    auto texData = std::make_unique<texture_data_holder>(
+      std::move(image),
+      std::move(view),
+      std::move(memory),
+      std::move(descriptor));
+
+    auto [iter, succ] = m_textures.emplace(name, std::move(texData));
+
+    assert(succ);
+
+    return iter->second->get_texture();
+  }
+
+  auto imgui_context::find_texture(const std::string& name) const -> ImTextureID
+  {
+    auto iter = m_textures.find(name);
+
+    if (iter == m_textures.end())
+      return ImTextureID(nullptr);
+
+    return iter->second->get_texture();
+  }
+
+  void imgui_context::remove_texture(const std::string& name)
+  {
+    auto iter = m_textures.find(name);
+
+    if (iter == m_textures.end())
+      return;
+
+    m_textures.erase(iter);
   }
 } // namespace yave::imgui

@@ -3,12 +3,74 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/vulkan/vulkan_context.hpp>
+#include <yave/lib/vulkan/vulkan_util.hpp>  
 
 #include <selene/img/typed/ImageView.hpp>
 #include <selene/img/pixel/PixelTypeAliases.hpp>
 
 namespace yave::vulkan {
+
+  // -----------------------------------------
+  // single_time_command
+
+  single_time_command::single_time_command(single_time_command&& other) noexcept
+    : m_device {other.m_device}
+    , m_queue {other.m_queue}
+    , m_pool {other.m_pool}
+    , m_buffer {std::move(other.m_buffer)}
+  {
+  }
+
+  single_time_command::single_time_command(
+    const vk::Device& device,
+    const vk::Queue& queue,
+    const vk::CommandPool& pool)
+    : m_device {device}
+    , m_queue {queue}
+    , m_pool {pool}
+  {
+    // create command buffer
+    {
+      vk::CommandBufferAllocateInfo info {};
+      info.commandPool        = m_pool;
+      info.level              = vk::CommandBufferLevel::ePrimary;
+      info.commandBufferCount = 1;
+      m_buffer = std::move(m_device.allocateCommandBuffersUnique(info)[0]);
+    }
+
+    // fence
+    m_fence = m_device.createFenceUnique({});
+
+    // begin command buffer
+    vk::CommandBufferBeginInfo beginInfo;
+    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+    m_buffer->begin(beginInfo);
+  }
+
+  single_time_command::~single_time_command()
+  {
+    if (!m_buffer)
+      return;
+
+    // end command buffer
+    m_buffer->end();
+    // submit command buffer
+    vk::SubmitInfo submitInfo;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers    = &m_buffer.get();
+    m_queue.submit(submitInfo, m_fence.get());
+    // wait command submission
+    m_device.waitForFences(
+      m_fence.get(), VK_TRUE, std::numeric_limits<uint64_t>::max());
+  }
+
+  vk::CommandBuffer single_time_command::command_buffer() const
+  {
+    return m_buffer.get();
+  }
+
+  // -----------------------------------------
+  // upload_image
 
   /// Find memory type
   uint32_t find_memory_type(
@@ -29,23 +91,23 @@ namespace yave::vulkan {
 
   std::tuple<vk::UniqueImage, vk::UniqueImageView, vk::UniqueDeviceMemory>
     upload_image(
-      const sln::ConstantImageView<sln::PixelRGBA_8u>& inView,
+      const vk::Extent2D& extent,
+      const vk::DeviceSize& byte_size,
+      const uint8_t* data,
       const vk::CommandPool& commandPool,
       const vk::Queue queue,
       const vk::PhysicalDevice& physicalDevice,
       const vk::Device& device)
   {
-    assert(!inView.is_empty());
+    assert(data);
 
-    vk::Extent3D imageExtent {static_cast<uint32_t>(inView.width()),
-                              static_cast<uint32_t>(inView.height()),
-                              1};
+    vk::Extent3D imageExtent {extent, 1};
 
     /* create staging buffer */
     vk::UniqueBuffer buffer;
     {
       vk::BufferCreateInfo info;
-      info.size        = inView.total_bytes();
+      info.size        = byte_size;
       info.usage       = vk::BufferUsageFlagBits::eTransferSrc;
       info.sharingMode = vk::SharingMode::eExclusive;
 
@@ -113,8 +175,8 @@ namespace yave::vulkan {
 
     /* upload data */
     {
-      void* ptr = device.mapMemory(bufferMemory.get(), 0, inView.total_bytes());
-      std::memcpy(ptr, inView.data(), inView.total_bytes());
+      void* ptr = device.mapMemory(bufferMemory.get(), 0, byte_size);
+      std::memcpy(ptr, data, byte_size);
       device.unmapMemory(bufferMemory.get());
     }
 
@@ -185,7 +247,10 @@ namespace yave::vulkan {
     return {std::move(image), std::move(imageView), std::move(imageMemory)};
   }
 
-  vk::UniqueDescriptorSet create_descriptor(
+  // -----------------------------------------
+  // create_descriptor
+
+  vk::UniqueDescriptorSet create_image_descriptor(
     const vk::ImageView& image,
     const vk::DescriptorSetLayout& layout,
     const vk::DescriptorPool& pool,

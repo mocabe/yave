@@ -1073,57 +1073,6 @@ namespace {
 namespace yave::vulkan {
 
   // -----------------------------------------
-  // single_time_command
-
-  single_time_command::single_time_command(single_time_command&& other) noexcept
-    : m_device {other.m_device}
-    , m_queue {other.m_queue}
-    , m_pool {other.m_pool}
-    , m_buffer {std::move(other.m_buffer)}
-  {
-  }
-
-  single_time_command::single_time_command(
-    const vk::Device& device,
-    const vk::Queue& queue,
-    const vk::CommandPool& pool)
-    : m_device {device}
-    , m_queue {queue}
-    , m_pool {pool}
-  {
-    // create command buffer
-    m_buffer = std::move(createCommandBuffers(
-      1, vk::CommandBufferLevel::ePrimary, m_pool, m_device)[0]);
-    m_fence  = createFence(m_device, vk::FenceCreateFlags());
-    // begin command buffer
-    vk::CommandBufferBeginInfo beginInfo;
-    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-    m_buffer->begin(beginInfo);
-  }
-
-  single_time_command::~single_time_command()
-  {
-    if (!m_buffer)
-      return;
-
-    // end command buffer
-    m_buffer->end();
-    // submit command buffer
-    vk::SubmitInfo submitInfo;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers    = &m_buffer.get();
-    m_queue.submit(submitInfo, m_fence.get());
-    // wait command submission
-    m_device.waitForFences(
-      m_fence.get(), VK_TRUE, std::numeric_limits<uint64_t>::max());
-  }
-
-  vk::CommandBuffer single_time_command::command_buffer() const
-  {
-    return m_buffer.get();
-  }
-
-  // -----------------------------------------
   // vulkan_context
 
   class vulkan_context::impl

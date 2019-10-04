@@ -10,6 +10,9 @@
 #include <imgui.h>
 #include <imgui_freetype.h> // use freetype for font rendering
 #include <chrono>
+#include <map>
+#include <string>
+#include <memory>
 
 namespace yave::imgui {
 
@@ -58,6 +61,21 @@ namespace yave::imgui {
     [[nodiscard]] auto font_image() const            -> vk::Image;
     [[nodiscard]] auto font_image_view() const       -> vk::ImageView;
 
+  public: /* texture management */
+    /// Add texture data
+    [[nodiscard]] auto add_texture(
+      const std::string& name,
+      vk::Extent2D extent,
+      vk::DeviceSize byte_size,
+      const uint8_t* data) -> ImTextureID;
+
+    /// Find texture data from name
+    [[nodiscard]] auto find_texture(const std::string& name) const
+      -> ImTextureID;
+
+    /// Remove texture data
+    void remove_texture(const std::string& name);
+
   private:
     imgui_context(const imgui_context&) = delete;
 
@@ -85,6 +103,10 @@ namespace yave::imgui {
 
   private:
     std::chrono::high_resolution_clock::time_point m_lastTime;
+
+  private:
+    class texture_data_holder;
+    std::map<std::string, std::unique_ptr<texture_data_holder>> m_textures;
   };
 
   // clang-format on

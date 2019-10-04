@@ -5,24 +5,52 @@
 
 #pragma once
 
-#include <yave/lib/vulkan/vulkan_context.hpp>
-
-#include <selene/img/typed/ImageView.hpp>
-#include <selene/img/pixel/PixelTypeAliases.hpp>
+#include <vulkan/vulkan.hpp>
 
 namespace yave::vulkan {
 
-  /// Upload image to GPU.
+  /// single time command
+  class single_time_command
+  {
+  public:
+    /// Create command buffer and start recording.
+    single_time_command(
+      const vk::Device& device,
+      const vk::Queue& queue,
+      const vk::CommandPool& pool);
+    /// Move single time command.
+    single_time_command(single_time_command&& other) noexcept;
+    /// End command buffer and submit.
+    ~single_time_command();
+
+  public:
+    /// Get recording command buffer.
+    [[nodiscard]] auto command_buffer() const -> vk::CommandBuffer;
+
+  private:
+    single_time_command(const single_time_command&) = delete;
+
+  private:
+    vk::Device m_device;
+    vk::Queue m_queue;
+    vk::CommandPool m_pool;
+    vk::UniqueCommandBuffer m_buffer;
+    vk::UniqueFence m_fence;
+  };
+
+  /// Upload image to GPU
   auto upload_image(
-    const sln::ConstantImageView<sln::PixelRGBA_8u>& inView,
+    const vk::Extent2D& image_extent,
+    const vk::DeviceSize& byte_size,
+    const uint8_t* data,
     const vk::CommandPool& commandPool,
     const vk::Queue queue,
     const vk::PhysicalDevice& physicalDevice,
     const vk::Device& device)
     -> std::tuple<vk::UniqueImage, vk::UniqueImageView, vk::UniqueDeviceMemory>;
 
-  /// Create descriptor set from image view.
-  auto create_descriptor(
+  /// Create descriptor set from image view
+  auto create_image_descriptor(
     const vk::ImageView& image,
     const vk::DescriptorSetLayout& layout,
     const vk::DescriptorPool& pool,
