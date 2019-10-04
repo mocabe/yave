@@ -25,31 +25,43 @@ namespace yave {
 
     struct buff_header
     {
+      /// Reference count.
+      uint64_t refcount;
       /// Pointer to allocated memory area on which this object is constructed
       /// by placement new.
       uint8_t* mem;
       /// Pointer to head of variable length buffer constructed after header.
       uint8_t* buff;
-      /// Atomic reference count.
-      uint64_t refcount;
-      /// Allocated size.
+      /// Allocated buffer size (not include header).
+      /// Header size can be calculated by buff-mem.
       uint64_t size;
+      /// Alignment of allocated buffer.
+      uint64_t alignment;
     };
 
     /// Allocate buffer
-    buff_header* allocate_buffer(size_t size)
+    buff_header* allocate_buffer(size_t size, size_t alignment)
     {
       // overflow
       if (std::numeric_limits<size_t>::max() - sizeof(buff_header) < size)
         return nullptr;
 
-      uint8_t* mem = new (std::nothrow) uint8_t[sizeof(buff_header) + size] {};
+      auto aligned_header_size =
+        ((sizeof(buff_header) + alignment - 1) / alignment + 1) * alignment;
+
+      auto alloc_size = aligned_header_size + size;
+
+      uint8_t* mem = new (std::nothrow) uint8_t[alloc_size];
 
       if (!mem)
         return nullptr;
 
-      buff_header* head =
-        new (mem) buff_header {mem, mem + sizeof(buff_header), 1U, size};
+      // construct head
+      buff_header* head = new (mem)
+        buff_header {1U, mem, mem + aligned_header_size, size, alignment};
+
+      // construct rest of buffer
+      std::uninitialized_value_construct_n(head->buff, size);
 
       Info(
         g_logger,
@@ -146,12 +158,12 @@ namespace yave {
     }
   }
 
-  uid buffer_manager::create(uint64_t size) noexcept
+  uid buffer_manager::create(uint64_t size, uint64_t alignment) noexcept
   {
     auto lck   = _lock();
 
     uid id     = uid::random_generate();
-    auto* buff = allocate_buffer(size);
+    auto* buff = allocate_buffer(size, alignment);
 
     if (!buff)
       return uid();
@@ -174,7 +186,7 @@ namespace yave {
 
     // allocate new buffer
     auto id   = uid::random_generate();
-    auto buff = allocate_buffer(parent_size);
+    auto buff = allocate_buffer(parent_size, parent->alignment);
 
     if (!buff)
       return uid();

@@ -29,7 +29,9 @@ namespace yave {
 
   public: /* BufferPool interface */
     /// create
-    [[nodiscard]] uid create(uint64_t size) noexcept;
+    [[nodiscard]] uid create(
+      uint64_t size,
+      uint64_t alignment = alignof(uint8_t)) noexcept;
     /// create from
     [[nodiscard]] uid create_from(uid id) noexcept;
 
