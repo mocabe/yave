@@ -17,7 +17,7 @@ int main()
 {
   imgui_context imgui(true);
 
-  auto layout = sln::TypedLayout(sln::PixelLength(1280), sln::PixelLength(720));
+  auto layout = sln::TypedLayout(sln::PixelLength(800), sln::PixelLength(450));
   sln::ImageRGBA_8u image {layout};
 
   for (auto&& strd : image) {
@@ -31,10 +31,11 @@ int main()
 
   auto view = image.constant_view();
 
-  auto tex = imgui.add_texture(
+  static auto tex = imgui.add_texture(
     "tex",
-    {(uint32_t)view.width().value(), (uint32_t)view.width().value()},
+    {(uint32_t)view.width().value(), (uint32_t)view.height().value()},
     view.total_bytes(),
+    vk::Format::eR8G8B8A8Unorm,
     view.byte_ptr());
 
   while (!imgui.window_context().should_close()) {
@@ -48,4 +49,6 @@ int main()
   }
 
   imgui.vulkan_context().device().waitIdle();
+
+  imgui.remove_texture("tex");
 }

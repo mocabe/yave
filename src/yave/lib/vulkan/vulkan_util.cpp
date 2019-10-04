@@ -39,7 +39,10 @@ namespace yave::vulkan {
     }
 
     // fence
-    m_fence = m_device.createFenceUnique({});
+    {
+      vk::FenceCreateInfo info {};
+      m_fence = m_device.createFenceUnique(info);
+    }
 
     // begin command buffer
     vk::CommandBufferBeginInfo beginInfo;
@@ -93,6 +96,7 @@ namespace yave::vulkan {
     upload_image(
       const vk::Extent2D& extent,
       const vk::DeviceSize& byte_size,
+      const vk::Format& format,
       const uint8_t* data,
       const vk::CommandPool& commandPool,
       const vk::Queue queue,
@@ -136,7 +140,7 @@ namespace yave::vulkan {
     {
       vk::ImageCreateInfo info;
       info.imageType   = vk::ImageType::e2D;
-      info.format      = vk::Format::eR8G8B8A8Unorm;
+      info.format      = format;
       info.extent      = imageExtent;
       info.mipLevels   = 1;
       info.arrayLayers = 1;
@@ -239,7 +243,7 @@ namespace yave::vulkan {
       vk::ImageViewCreateInfo info;
       info.image            = image.get();
       info.viewType         = vk::ImageViewType::e2D;
-      info.format           = vk::Format::eR8G8B8A8Unorm;
+      info.format           = format;
       info.subresourceRange = subresourceRange;
       imageView             = device.createImageViewUnique(info);
     }

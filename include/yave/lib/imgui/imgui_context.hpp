@@ -65,8 +65,9 @@ namespace yave::imgui {
     /// Add texture data
     [[nodiscard]] auto add_texture(
       const std::string& name,
-      vk::Extent2D extent,
-      vk::DeviceSize byte_size,
+      const vk::Extent2D& extent,
+      const vk::DeviceSize& byte_size,
+      const vk::Format& format,
       const uint8_t* data) -> ImTextureID;
 
     /// Find texture data from name

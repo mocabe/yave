@@ -42,6 +42,7 @@ namespace yave::vulkan {
   auto upload_image(
     const vk::Extent2D& image_extent,
     const vk::DeviceSize& byte_size,
+    const vk::Format& format,
     const uint8_t* data,
     const vk::CommandPool& commandPool,
     const vk::Queue queue,

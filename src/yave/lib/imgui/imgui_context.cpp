@@ -1156,8 +1156,9 @@ namespace yave::imgui {
 
   auto imgui_context::add_texture(
     const std::string& name,
-    vk::Extent2D extent,
-    vk::DeviceSize byte_size,
+    const vk::Extent2D& extent,
+    const vk::DeviceSize& byte_size,
+    const vk::Format& format,
     const uint8_t* data) -> ImTextureID
   {
     assert(data);
@@ -1173,7 +1174,14 @@ namespace yave::imgui {
     auto queue          = m_vulkanCtx.graphics_queue();
 
     auto [image, view, memory] = vulkan::upload_image(
-      extent, byte_size, data, commandPool, queue, physicalDevice, device);
+      extent,
+      byte_size,
+      format,
+      data,
+      commandPool,
+      queue,
+      physicalDevice,
+      device);
 
     auto descriptor = vulkan::create_image_descriptor(
       view.get(), m_descriptorSetLayout.get(), m_descriptorPool.get(), device);
@@ -1187,6 +1195,13 @@ namespace yave::imgui {
     auto [iter, succ] = m_textures.emplace(name, std::move(texData));
 
     assert(succ);
+
+    Info(
+      g_logger,
+      "Added new texture \"{}\": width={}, height={}",
+      name,
+      extent.width,
+      extent.height);
 
     return iter->second->get_texture();
   }
@@ -1209,5 +1224,7 @@ namespace yave::imgui {
       return;
 
     m_textures.erase(iter);
+
+    Info(g_logger, "Destroyed texture \"{}\"", name);
   }
 } // namespace yave::imgui
