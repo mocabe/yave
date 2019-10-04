@@ -48,7 +48,9 @@ namespace yave {
 
   uid frame_buffer_manager::create() noexcept
   {
-    return buffer_manager::create(byte_size());
+    // Use channel size as alignment value, we can use much larger alignment
+    // for SIMD supoprt.
+    return buffer_manager::create(byte_size(), byte_per_channel(m_format));
   }
 
   uid frame_buffer_manager::create_from(uid id) noexcept
