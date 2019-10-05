@@ -110,9 +110,11 @@ namespace yave {
     // add node
     auto node = [&]() {
       if (info.is_prim())
-        return m_g.add_node_with_id(id.data, info.name(), prim);
+        return m_g.add_node_with_id(
+          id.data, node_property::primitive_construct_t {}, info.name(), prim);
       else
-        return m_g.add_node_with_id(id.data, info.name(), std::monostate {});
+        return m_g.add_node_with_id(
+          id.data, node_property::normal_construct_t {}, info.name());
     }();
 
     if (!node)

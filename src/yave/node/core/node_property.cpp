@@ -7,23 +7,51 @@
 
 namespace yave {
 
-  node_property::node_property(const std::string& name, const primitive_t& prim)
+  node_property::node_property(normal_construct_t, const std::string& name)
     : m_name {name}
-    , m_prim {make_object<PrimitiveContainer>(prim)}
-    , m_visited {0}
-  {
-  }
-
-  node_property::node_property(const std::string& name, std::monostate)
-    : m_name {name}
+    , m_type {node_type::normal}
     , m_prim {std::nullopt}
     , m_visited {0}
   {
   }
 
+  node_property::node_property(
+    primitive_construct_t,
+    const std::string& name,
+    const primitive_t& prim)
+    : m_name {name}
+    , m_type {node_type::primitive}
+    , m_prim {make_object<PrimitiveContainer>(prim)}
+    , m_visited {0}
+  {
+  }
+
+  node_property::node_property(interface_construct_t, const std::string& name)
+    : m_name {name}
+    , m_type {node_type::interface}
+    , m_prim {std::nullopt}
+    , m_visited {0}
+  {
+  }
+
+  bool node_property::is_normal() const
+  {
+    return m_type == node_type::normal;
+  }
+
   bool node_property::is_prim() const
   {
-    return m_prim.has_value();
+    return m_type == node_type::primitive;
+  }
+
+  bool node_property::is_interface() const
+  {
+    return m_type == node_type::interface;
+  }
+
+  node_type node_property::get_node_type() const
+  {
+    return m_type;
   }
 
   auto node_property::name() const -> const std::string&
@@ -60,21 +88,21 @@ namespace yave {
 
   bool node_property::is_visited() const
   {
-    return m_visited == 1;
+    return m_visited;
   }
 
   bool node_property::is_unvisited() const
   {
-    return m_visited == 0;
+    return !m_visited;
   }
 
   void node_property::set_visited() const
   {
-    m_visited = 1;
+    m_visited = true;
   }
 
   void node_property::set_unvisited() const
   {
-    m_visited = 0;
+    m_visited = false;
   }
 } // namespace yave
