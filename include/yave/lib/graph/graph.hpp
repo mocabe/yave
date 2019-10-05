@@ -1150,6 +1150,26 @@ namespace yave::graph {
       return false;
     }
 
+    /// Detach socket.
+    /// \param node node descriptor
+    /// \param socket socket descriptor
+    void detach_socket(
+      const node_descriptor_type &node,
+      const socket_descriptor_type &socket)
+    {
+      if (!(exists(node) && exists(socket)))
+        return;
+
+      for (auto n : _access(socket).nodes()) {
+        if (n == node) {
+          // delete link
+          _access(socket).unset_node(node);
+          _access(node).unset_socket(socket);
+          return;
+        }
+      }
+    }
+
     /// Get nodes.
     [[nodiscard]] std::vector<node_descriptor_type> nodes() const
     {
