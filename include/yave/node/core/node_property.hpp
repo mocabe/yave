@@ -13,17 +13,49 @@
 
 namespace yave {
 
+  /// Node type
+  enum class node_type
+  {
+    normal,
+    primitive,
+    interface,
+  };
+
   /// Node property class for node graph.
   class node_property
   {
   public:
-    /// Primitive ctor.
-    node_property(const std::string& name, const primitive_t& prim);
-    /// Non-primitive ctor.
-    node_property(const std::string& name, std::monostate);
+    struct normal_construct_t
+    {
+    };
 
-    /// Check primitive node.
+    struct primitive_construct_t
+    {
+    };
+
+    struct interface_construct_t
+    {
+    };
+
+  public:
+    /// Non-primitive ctor.
+    node_property(normal_construct_t, const std::string& name);
+    /// Primitive ctor.
+    node_property(
+      primitive_construct_t,
+      const std::string& name,
+      const primitive_t& prim);
+    /// Interface construct
+    node_property(interface_construct_t, const std::string& name);
+
+    /// Normal node?
+    [[nodiscard]] bool is_normal() const;
+    /// Primitive node?
     [[nodiscard]] bool is_prim() const;
+    /// Interface node?
+    [[nodiscard]] bool is_interface() const;
+    /// Get node type
+    [[nodiscard]] auto get_node_type() const -> node_type;
 
     /// Get node name.
     [[nodiscard]] auto name() const -> const std::string&;
@@ -57,11 +89,13 @@ namespace yave {
   private:
     /// Name of node.
     const std::string m_name;
+    /// Node type
+    node_type m_type;
     /// Primitive value.
     /// If the node is not primitive node, stores std::monostate.
     std::optional<object_ptr<PrimitiveContainer>> m_prim;
     /// marking variable for dfs
-    mutable uint8_t m_visited;
+    mutable bool m_visited;
   };
 
 } // namespace yave
