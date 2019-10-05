@@ -1163,7 +1163,7 @@ namespace yave::graph {
       for (auto n : _access(socket).nodes()) {
         if (n == node) {
 
-          assert([] {
+          assert([&] {
             for (auto &&s : _access(node).sockets())
               if (s == socket)
                 return true;
