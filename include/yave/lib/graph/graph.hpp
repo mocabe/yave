@@ -1162,6 +1162,14 @@ namespace yave::graph {
 
       for (auto n : _access(socket).nodes()) {
         if (n == node) {
+
+          assert([] {
+            for (auto &&s : _access(node).sockets())
+              if (s == socket)
+                return true;
+            return false;
+          }());
+
           // delete link
           _access(socket).unset_node(node);
           _access(node).unset_socket(socket);
