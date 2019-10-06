@@ -153,6 +153,99 @@ namespace yave {
     return handle;
   }
 
+  auto node_graph::add_interface_with_id(const std::string& name, const uid& id)
+    -> node_handle
+  {
+    auto lck = _lock();
+
+    auto node = m_g.add_node_with_id(
+      id.data, node_property::interface_construct_t {}, name);
+    return node_handle(node, {m_g.id(node)});
+  }
+
+  bool node_graph::attach_interface(
+    const node_handle& interface,
+    const node_handle& node,
+    const std::string& socket)
+  {
+    auto lck = _lock();
+
+    if (!_exists(interface) || !_exists(node))
+      return false;
+
+    if (!m_g[interface.descriptor()].is_interface()) {
+      Error(g_logger, "attach_interface(): Not interface node");
+      return false;
+    }
+
+    for (auto&& s : m_g.sockets(node.descriptor())) {
+
+      if (m_g[s].name() == socket) {
+
+        for (auto&& ss : m_g.sockets(interface.descriptor())) {
+
+          if (m_g.id(s) == m_g.id(ss)) {
+            assert(m_g[s].name() == m_g[ss].name());
+            assert(m_g[s].is_input() == m_g[ss].is_input());
+            Warning(g_logger, "attach_interface(): already attached");
+            return true; // already attached
+          }
+        }
+
+        if (!m_g.attach_socket(interface.descriptor(), s)) {
+          Error(g_logger, "attach_interface(): Failed to attach socket!");
+          return false;
+        }
+
+        Info(
+          g_logger,
+          "Attached interface: node={}({}), socket={}",
+          m_g[node.descriptor()].name(),
+          to_string(node.id()),
+          socket);
+
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void node_graph::detach_interface(
+    const node_handle& interface,
+    const node_handle& node,
+    const std::string& socket)
+  {
+    auto lck = _lock();
+
+    if (!_exists(interface) || !_exists(node))
+      return;
+
+    for (auto&& s : m_g.sockets(node.descriptor())) {
+
+      if (m_g[s].name() == socket) {
+
+        for (auto&& ss : m_g.sockets(interface.descriptor())) {
+
+          if (m_g.id(s) == m_g.id(ss)) {
+            assert(m_g[s].name() == m_g[ss].name());
+            assert(m_g[s].is_input() == m_g[ss].is_input());
+
+            // detach
+            m_g.detach_socket(interface.descriptor(), ss);
+
+            Info(
+              g_logger,
+              "Detached interface: node={}({}), socket={}",
+              m_g[node.descriptor()].name(),
+              to_string(node.id()),
+              socket);
+            return;
+          }
+        }
+      }
+    }
+  }
+
   void node_graph::remove(const node_handle& node)
   {
     auto lck = _lock();
