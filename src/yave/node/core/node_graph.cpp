@@ -122,8 +122,16 @@ namespace yave {
             info.name(),
             prim);
 
+        case node_type::interface:
+          if (!info.input_sockets().empty() || !info.output_sockets().empty()) {
+            throw std::runtime_error(
+              "Failed to create node: Interface node cannot have sockets");
+          }
+          return m_g.add_node_with_id(
+            id.data, node_property::interface_construct_t {}, info.name());
+
         default:
-          throw std::runtime_error("add_with_id(): Invalid node type");
+          throw std::runtime_error("Invalid node type");
       }
     }();
 
@@ -161,16 +169,6 @@ namespace yave {
       to_string(handle.id()));
 
     return handle;
-  }
-
-  auto node_graph::add_interface_with_id(const std::string& name, const uid& id)
-    -> node_handle
-  {
-    auto lck = _lock();
-
-    auto node = m_g.add_node_with_id(
-      id.data, node_property::interface_construct_t {}, name);
-    return node_handle(node, {m_g.id(node)});
   }
 
   bool node_graph::attach_interface(
