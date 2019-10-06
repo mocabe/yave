@@ -16,8 +16,8 @@ TEST_CASE("node_parser _extract")
   node_graph graph;
   node_parser parser;
 
-  auto prim_info = node_info("prim", {}, {"value"}, true);
-  auto norm_info = node_info("node", {"0", "1"}, {"0"}, false);
+  auto prim_info = node_info("prim", {}, {"value"}, node_type::primitive);
+  auto norm_info = node_info("node", {"0", "1"}, {"0"}, node_type::normal);
 
   SECTION("prim")
   {
