@@ -77,6 +77,16 @@ namespace yave::imgui {
     /// Remove texture data
     void remove_texture(const std::string& name);
 
+  public: /* misc */
+    /// Get clear color
+    auto get_clear_color() const -> std::array<float, 4>;
+    /// Set clear color
+    void set_clear_color(float r, float g, float b, float a);
+    /// Get FPS
+    auto get_fps() const -> uint32_t;
+    /// Set FPS
+    void set_fps(uint32_t fps);
+
   private:
     imgui_context(const imgui_context&) = delete;
 
@@ -108,6 +118,10 @@ namespace yave::imgui {
   private:
     class texture_data_holder;
     std::map<std::string, std::unique_ptr<texture_data_holder>> m_textures;
+
+  private:
+    std::array<float, 4> m_clear_color;
+    uint32_t m_fps;
   };
 
   // clang-format on

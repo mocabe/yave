@@ -923,6 +923,12 @@ namespace yave::imgui {
 
     // for rendering loop
     m_lastTime = std::chrono::high_resolution_clock::now();
+
+    // default clear color
+    set_clear_color(0.45f, 0.55f, 0.60f, 1.f);
+
+    // default fps
+    set_fps(60);
   }
 
   imgui_context::~imgui_context()
@@ -963,7 +969,8 @@ namespace yave::imgui {
 
     assert(drawData->Valid);
 
-    m_windowCtx.set_clear_color(0.45f, 0.55f, 0.60f, 1.f);
+    m_windowCtx.set_clear_color(
+      m_clear_color[0], m_clear_color[1], m_clear_color[2], m_clear_color[3]);
 
     /* Render with Vulkan */
     {
@@ -1043,7 +1050,7 @@ namespace yave::imgui {
 
     auto endTime         = std::chrono::high_resolution_clock::now();
     auto frameTime       = (endTime - m_lastTime);
-    auto frameTimeWindow = std::chrono::microseconds(16666);
+    auto frameTimeWindow = std::chrono::nanoseconds(1000000000) / m_fps;
     auto sleepTime       = frameTimeWindow - frameTime;
 
     if (sleepTime.count() > 0) {
@@ -1226,5 +1233,25 @@ namespace yave::imgui {
     m_textures.erase(iter);
 
     Info(g_logger, "Destroyed texture \"{}\"", name);
+  }
+
+  auto imgui::imgui_context::get_clear_color() const -> std::array<float, 4>
+  {
+    return m_clear_color;
+  }
+
+  void imgui::imgui_context::set_clear_color(float r, float g, float b, float a)
+  {
+    m_clear_color = {r, g, b, a};
+  }
+
+  auto imgui::imgui_context::get_fps() const -> uint32_t
+  {
+    return m_fps;
+  }
+
+  void imgui::imgui_context::set_fps(uint32_t fps)
+  {
+    m_fps = fps;
   }
 } // namespace yave::imgui
