@@ -20,7 +20,7 @@ namespace yave {
     static node_info get_node_info()
     {
       // pseudo primitive
-      return node_info("Frame", {}, {"value"}, true);
+      return node_info("Frame", {}, {"value"}, node_type::primitive);
     }
   };
 } // namespace yave

@@ -191,14 +191,14 @@ namespace yave {
   YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpOut);
   YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpAdd);
 
-#define YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(TYPE)         \
-  template <>                                             \
-  struct node_info_traits<node::TYPE##Getter>             \
-  {                                                       \
-    static node_info get_node_info()                      \
-    {                                                     \
-      return node_info(#TYPE "Getter", {}, {"op"}, true); \
-    }                                                     \
+#define YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(TYPE)                         \
+  template <>                                                             \
+  struct node_info_traits<node::TYPE##Getter>                             \
+  {                                                                       \
+    static node_info get_node_info()                                      \
+    {                                                                     \
+      return node_info(#TYPE "Getter", {}, {"op"}, node_type::primitive); \
+    }                                                                     \
   }
 
   YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(BlendOpSrc);
