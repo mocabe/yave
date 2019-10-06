@@ -54,20 +54,15 @@ namespace yave {
     /// Add new node which has specified ID value.
     /// Mainly for copying exising node from other instance of node_graph
     /// without changing ID.
+    /// \note If `info.is_normal()`, parameter `prim` will be ignored.
+    /// \note If `info.is_primitive()`, parameter `prim` will be used to
+    /// create internal primitive value.
+    /// \note If `info.is_interface()`, input and output sockets i `info` should
+    /// be empty.
     [[nodiscard]] auto add_with_id(
       const node_info& info,
       const uid& id,
       const primitive_t& prim = {}) -> node_handle;
-
-    /// Add new empty interface node.
-    /// Interface nodes share its sockets with existing ndoes, which is useful
-    /// to build grouping features.
-    /// \param name name of created interface node
-    /// \param id ID of new interface node
-    /// \returns nullptr on fail
-    [[nodiscard]] auto add_interface_with_id(
-      const std::string& name,
-      const uid& id) -> node_handle;
 
     /// Attach interface socket.
     /// When attached socket is destroyed, it will also be removed from
