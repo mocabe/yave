@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <yave/node/core/node_property.hpp>
 #include <string>
 #include <vector>
 
@@ -22,15 +23,15 @@ namespace yave {
     node_info(node_info&&)      = default;
     node_info& operator=(const node_info&) = default;
     node_info& operator=(node_info&&) = default;
+
     node_info(
       std::string name,
       std::vector<std::string> input_sockets,
       std::vector<std::string> output_sockets,
-      bool is_prim = false);
+      node_type = node_type::normal);
 
     /// name
-    [[nodiscard]] auto name() const 
-      -> const std::string&;
+    [[nodiscard]] auto name() const -> const std::string&;
 
     /// input sockets
     [[nodiscard]] auto input_sockets() const 
@@ -41,7 +42,11 @@ namespace yave {
       -> const std::vector<std::string>&;
 
     /// primitive?
-    [[nodiscard]] bool is_prim() const;
+    [[nodiscard]] bool is_primitive() const;
+    /// interface?
+    [[nodiscard]] bool is_interface() const;
+    /// node type
+    [[nodiscard]] auto type() const -> node_type;
 
     /// set name
     void set_name(const std::string& name);
@@ -59,8 +64,8 @@ namespace yave {
     std::vector<std::string> m_input_sockets;
     /// List of output sockets.
     std::vector<std::string> m_output_sockets;
-    /// enable primitive value for this node
-    bool m_is_prim;
+    /// node type
+    node_type m_type;
   };
 
   /// operator==

@@ -217,6 +217,13 @@ namespace yave {
     /// Primitive node?
     [[nodiscard]] bool is_primitive(const node_handle& node) const;
 
+    /// Interface node?
+    [[nodiscard]] bool is_interface(const node_handle& node) const;
+
+    /// Get node type
+    [[nodiscard]] auto get_type(const node_handle& node) const
+      -> std::optional<node_type>;
+
     /// Get primitive value.
     /// \returns std::nullopt when `node` is not primitive node.
     [[nodiscard]] auto get_primitive(const node_handle& node) const
@@ -231,6 +238,14 @@ namespace yave {
     /// primitive container.
     [[nodiscard]] auto get_primitive_container(const node_handle& node) const
       -> object_ptr<const PrimitiveContainer>;
+
+    /// Get interface output boundary
+    [[nodiscard]] auto get_interface_outputs(const node_handle& node) const
+      -> std::vector<node_handle>;
+
+    /// Get interface input boundary
+    [[nodiscard]] auto get_interface_inputs(const node_handle& node) const
+      -> std::vector<node_handle>;
 
     /// Get list of root nodes.
     [[nodiscard]] auto roots() const -> std::vector<node_handle>;
@@ -277,7 +292,7 @@ namespace yave {
       Lambda2&& on_visited) const;
 
   private:
-    /// graph
+    /// graph type
     graph_t m_g;
 
   private:

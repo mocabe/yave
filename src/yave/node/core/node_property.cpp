@@ -39,7 +39,7 @@ namespace yave {
     return m_type == node_type::normal;
   }
 
-  bool node_property::is_prim() const
+  bool node_property::is_primitive() const
   {
     return m_type == node_type::primitive;
   }
@@ -49,7 +49,7 @@ namespace yave {
     return m_type == node_type::interface;
   }
 
-  node_type node_property::get_node_type() const
+  node_type node_property::get_type() const
   {
     return m_type;
   }
@@ -59,28 +59,24 @@ namespace yave {
     return m_name;
   }
 
-  auto node_property::get_prim() const -> std::optional<primitive_t>
+  auto node_property::get_primitive() const -> std::optional<primitive_t>
   {
-    if (is_prim())
+    if (is_primitive())
       return m_prim.value()->get();
     else
       return std::nullopt;
   }
 
-  void node_property::set_prim(const primitive_t& prim)
+  void node_property::set_primitive(const primitive_t& prim)
   {
-    if (is_prim())
+    if (is_primitive())
       m_prim.value()->set(prim);
   }
 
-  void node_property::ser_prim(std::nullopt_t)
+  auto node_property::get_shared_primitive() const
+    -> object_ptr<PrimitiveContainer>
   {
-    m_prim = std::nullopt;
-  }
-
-  auto node_property::get_shared_prim() const -> object_ptr<PrimitiveContainer>
-  {
-    if (is_prim())
+    if (is_primitive())
       return m_prim.value();
     else
       return nullptr;
