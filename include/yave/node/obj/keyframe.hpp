@@ -41,15 +41,15 @@ namespace yave {
 
   /* Keyframe syntax sugars */
 
-#define YAVE_DECL_KEYFRAME_SUGAR(TYPE)                           \
-  template <>                                                    \
-  struct node_info_traits<node::TYPE>                            \
-  {                                                              \
-    static node_info get_node_info()                             \
-    {                                                            \
-      return node_info(                                          \
-        #TYPE "Sugar", {"frame"}, {"value"}, /*.is_prim=*/true); \
-    }                                                            \
+#define YAVE_DECL_KEYFRAME_SUGAR(TYPE)                              \
+  template <>                                                       \
+  struct node_info_traits<node::TYPE>                               \
+  {                                                                 \
+    static node_info get_node_info()                                \
+    {                                                               \
+      return node_info(                                             \
+        #TYPE "Sugar", {"frame"}, {"value"}, node_type::primitive); \
+    }                                                               \
   }
 
   YAVE_DECL_KEYFRAME_SUGAR(KeyframeInt);
