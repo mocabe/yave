@@ -116,7 +116,7 @@ namespace yave {
       auto info = graph.get_info(n);
       assert(info);
 
-      auto cpy = info->is_prim()
+      auto cpy = info->is_primitive()
                    ? ret.add_with_id(*info, n.id(), *graph.get_primitive(n))
                    : ret.add_with_id(*info, n.id());
 

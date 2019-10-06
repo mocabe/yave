@@ -253,7 +253,7 @@ namespace yave {
     if (!info)
       return false;
 
-    if (info->is_prim()) {
+    if (info->is_primitive()) {
       m_ng.set_primitive(node, prim);
       return true;
     }
