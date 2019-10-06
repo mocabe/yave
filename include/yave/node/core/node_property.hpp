@@ -51,21 +51,21 @@ namespace yave {
     /// Normal node?
     [[nodiscard]] bool is_normal() const;
     /// Primitive node?
-    [[nodiscard]] bool is_prim() const;
+    [[nodiscard]] bool is_primitive() const;
     /// Interface node?
     [[nodiscard]] bool is_interface() const;
     /// Get node type
-    [[nodiscard]] auto get_node_type() const -> node_type;
+    [[nodiscard]] auto get_type() const -> node_type;
 
     /// Get node name.
     [[nodiscard]] auto name() const -> const std::string&;
 
     /// Get primitive value.
     /// \requires is_prim() == true
-    [[nodiscard]] auto get_prim() const -> std::optional<primitive_t>;
+    [[nodiscard]] auto get_primitive() const -> std::optional<primitive_t>;
 
     /// Get shared primitive container.
-    [[nodiscard]] auto get_shared_prim() const
+    [[nodiscard]] auto get_shared_primitive() const
       -> object_ptr<PrimitiveContainer>;
 
     /// visited?
@@ -75,10 +75,7 @@ namespace yave {
     [[nodiscard]] bool is_unvisited() const;
 
     /// Set primitive value.
-    void set_prim(const primitive_t& prim);
-
-    /// Unset primitive value.
-    void ser_prim(std::nullopt_t);
+    void set_primitive(const primitive_t& prim);
 
     /// Set as visited.
     void set_visited() const;

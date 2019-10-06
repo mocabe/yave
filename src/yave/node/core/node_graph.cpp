@@ -109,12 +109,22 @@ namespace yave {
 
     // add node
     auto node = [&]() {
-      if (info.is_prim())
-        return m_g.add_node_with_id(
-          id.data, node_property::primitive_construct_t {}, info.name(), prim);
-      else
-        return m_g.add_node_with_id(
-          id.data, node_property::normal_construct_t {}, info.name());
+      switch (info.type()) {
+
+        case node_type::normal:
+          return m_g.add_node_with_id(
+            id.data, node_property::normal_construct_t {}, info.name());
+
+        case node_type::primitive:
+          return m_g.add_node_with_id(
+            id.data,
+            node_property::primitive_construct_t {},
+            info.name(),
+            prim);
+
+        default:
+          throw std::runtime_error("add_with_id(): Invalid node type");
+      }
     }();
 
     if (!node)
@@ -260,6 +270,13 @@ namespace yave {
       to_string(node.id()));
 
     for (auto&& s : m_g.sockets(node.descriptor())) {
+      // detach
+      m_g.detach_socket(node.descriptor(), s);
+      // delete socket if needed
+      for (auto&& n : m_g.nodes(s)) {
+        if (!m_g[n].is_interface())
+          continue;
+      }
       m_g.remove_socket(s);
     }
 
@@ -439,7 +456,7 @@ namespace yave {
         output_sockets.emplace_back(m_g[s].name());
     }
 
-    auto ret = node_info(n.name(), input_sockets, output_sockets, n.is_prim());
+    auto ret = node_info(n.name(), input_sockets, output_sockets, n.get_type());
 
     return ret;
   }
@@ -761,13 +778,32 @@ namespace yave {
 
     auto src_nodes = m_g.nodes(src);
     auto dst_nodes = m_g.nodes(dst);
-    assert(src_nodes.size() == 1);
-    assert(dst_nodes.size() == 1);
-    return connection_info {
-      node_handle(src_nodes[0], {m_g.id(src_nodes[0])}), //
-      m_g[src].name(),                                   //
-      node_handle(dst_nodes[0], {m_g.id(dst_nodes[0])}), //
-      m_g[dst].name()};                                  //
+
+    assert(src_nodes.size() >= 1);
+    assert(dst_nodes.size() >= 1);
+
+    assert(m_g[src_nodes[0]].is_normal());
+    assert(m_g[dst_nodes[0]].is_normal());
+
+    std::vector<node_handle> src_interfaces;
+    std::vector<node_handle> dst_interfaces;
+
+    for (size_t i = 1; i < src_nodes.size(); ++i) {
+      assert(m_g[src_nodes[i]].is_interface());
+      src_interfaces.emplace_back(src_nodes[i], uid {m_g.id(src_nodes[i])});
+    }
+
+    for (size_t i = 1; i < dst_nodes.size(); ++i) {
+      assert(m_g[dst_nodes[i]].is_interface());
+      dst_interfaces.emplace_back(dst_nodes[i], uid {m_g.id(dst_nodes[i])});
+    }
+
+    return connection_info {node_handle(src_nodes[0], {m_g.id(src_nodes[0])}),
+                            m_g[src].name(),
+                            node_handle(dst_nodes[0], {m_g.id(dst_nodes[0])}),
+                            m_g[dst].name(),
+                            src_interfaces,
+                            dst_interfaces};
   }
 
   auto node_graph::get_info(const connection_handle& h) const
@@ -824,7 +860,28 @@ namespace yave {
       return false;
     }
 
-    return m_g[h.descriptor()].is_prim();
+    return m_g[h.descriptor()].is_primitive();
+  }
+
+  bool node_graph::is_interface(const node_handle& node) const
+  {
+    auto lck = _lock();
+
+    if (_exists(node))
+      return false;
+
+    return m_g[node.descriptor()].is_interface();
+  }
+
+  auto node_graph::get_type(const node_handle& node) const
+    -> std::optional<node_type>
+  {
+    auto lck = _lock();
+
+    if (!_exists(node))
+      return std::nullopt;
+
+    return {m_g[node.descriptor()].get_type()};
   }
 
   auto node_graph::get_primitive(const node_handle& h) const
@@ -837,8 +894,8 @@ namespace yave {
       return std::nullopt;
     }
 
-    if (m_g[h.descriptor()].is_prim())
-      return m_g[h.descriptor()].get_prim();
+    if (m_g[h.descriptor()].is_primitive())
+      return m_g[h.descriptor()].get_primitive();
     return std::nullopt;
   }
 
@@ -851,12 +908,12 @@ namespace yave {
       return;
     }
 
-    if (!m_g[h.descriptor()].is_prim()) {
+    if (!m_g[h.descriptor()].is_primitive()) {
       Error(
         g_logger, "Cannot set primitive value to non-primitive node. Ignored.");
       return;
     }
-    m_g[h.descriptor()].set_prim(prim);
+    m_g[h.descriptor()].set_primitive(prim);
   }
 
   auto node_graph::get_primitive_container(const node_handle& node) const
@@ -873,8 +930,8 @@ namespace yave {
       return m_default_container;
     }
 
-    if (m_g[node.descriptor()].is_prim())
-      return m_g[node.descriptor()].get_shared_prim();
+    if (m_g[node.descriptor()].is_primitive())
+      return m_g[node.descriptor()].get_shared_primitive();
 
     return m_default_container;
   }

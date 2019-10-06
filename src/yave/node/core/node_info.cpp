@@ -46,11 +46,11 @@ namespace yave {
     std::string name,
     std::vector<std::string> input_sockets,
     std::vector<std::string> output_sockets,
-    bool is_prim)
+    node_type type)
     : m_name {std::move(name)}
     , m_input_sockets {std::move(input_sockets)}
     , m_output_sockets {std::move(output_sockets)}
-    , m_is_prim {is_prim}
+    , m_type {type}
   {
     // check
     validate_node_info(m_name, m_input_sockets, m_output_sockets);
@@ -88,9 +88,19 @@ namespace yave {
     validate_node_info(m_name, m_input_sockets, m_output_sockets);
   }
 
-  bool node_info::is_prim() const
+  bool node_info::is_primitive() const
   {
-    return m_is_prim;
+    return m_type == node_type::primitive;
+  }
+
+  bool node_info::is_interface() const
+  {
+    return m_type == node_type::interface;
+  }
+
+  auto node_info::type() const -> node_type
+  {
+    return m_type;
   }
 
   bool operator==(const node_info& lhs, const node_info& rhs)

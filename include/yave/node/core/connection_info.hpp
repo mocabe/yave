@@ -22,6 +22,14 @@ namespace yave {
       const node_handle& dst_node,
       const std::string& dst_socket);
 
+    connection_info(
+      const node_handle& src_node,
+      const std::string& src_socket,
+      const node_handle& dst_node,
+      const std::string& dst_socket,
+      const std::vector<node_handle>& src_interfaces,
+      const std::vector<node_handle>& dst_interfaces);
+
     /// Get source node.
     [[nodiscard]] auto src_node() const -> const node_handle&;
 
@@ -33,6 +41,14 @@ namespace yave {
 
     /// Get socket of dest noed.
     [[nodiscard]] auto dst_socket() const -> const std::string&;
+
+    /// Get interface nodes on src socket
+    [[nodiscard]] auto src_interfaces() const
+      -> const std::vector<node_handle>&;
+
+    /// Get interface nodes on dst socket
+    [[nodiscard]] auto dst_interfaces() const
+      -> const std::vector<node_handle>&;
 
     friend bool operator==(
       const connection_info& lhs,
@@ -51,6 +67,12 @@ namespace yave {
     node_handle m_dst_node;
     /// destination socket
     std::string m_dst_socket;
+
+  private:
+    /// interface nodes sharing src socket
+    std::vector<node_handle> m_src_interfaces;
+    /// interface nodes sharing dst socket
+    std::vector<node_handle> m_dst_interfaces;
   };
 
   /// operator==
