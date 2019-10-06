@@ -59,6 +59,30 @@ namespace yave {
       const uid& id,
       const primitive_t& prim = {}) -> node_handle;
 
+    /// Add new empty interface node.
+    /// Interface nodes share its sockets with existing ndoes, which is useful
+    /// to build grouping features.
+    /// \param name name of created interface node
+    /// \param id ID of new interface node
+    /// \returns nullptr on fail
+    [[nodiscard]] auto add_interface_with_id(
+      const std::string& name,
+      const uid& id) -> node_handle;
+
+    /// Attach interface socket.
+    /// When attached socket is destroyed, it will also be removed from
+    /// interface node.
+    [[nodiscard]] bool attach_interface(
+      const node_handle& interface,
+      const node_handle& node,
+      const std::string& socket);
+
+    /// Detach interface socket.
+    void detach_interface(
+      const node_handle& interface,
+      const node_handle& node,
+      const std::string& socket);
+
     /// Remove node from graph.
     /// Destroy the node, all sockets connected to the node, and all edges
     /// connected to these sockets.
