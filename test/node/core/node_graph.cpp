@@ -379,3 +379,95 @@ TEST_CASE("node_graph control")
     REQUIRE(count == 3);
   }
 }
+
+TEST_CASE("node_graph interface")
+{
+  node_graph ng;
+
+  node_info info1 = {"1", {"0"}, {"0"}};
+  node_info info2 = {"2", {"0", "1"}, {"0"}};
+
+  SECTION("init")
+  {
+    auto n1 = ng.add(info1);
+    REQUIRE(n1);
+
+    auto interface = ng.add({{"i"}, {}, {}, node_type::interface});
+
+    REQUIRE(interface);
+    REQUIRE(ng.exists(interface));
+    REQUIRE(ng.get_info(interface));
+    REQUIRE(ng.get_info(interface)->name() == "i");
+    REQUIRE(ng.get_info(interface)->input_sockets().empty());
+    REQUIRE(ng.get_info(interface)->output_sockets().empty());
+    REQUIRE(ng.get_info(interface)->type() == node_type::interface);
+
+    REQUIRE(ng.is_interface(interface));
+    REQUIRE(!ng.is_primitive(interface));
+
+    REQUIRE(ng.connections(interface).empty());
+    ng.remove(interface);
+
+    REQUIRE(!ng.exists(interface));
+  }
+
+  SECTION("attach")
+  {
+    auto n1 = ng.add(info1);
+    auto n2 = ng.add(info2);
+    REQUIRE(n1);
+    REQUIRE(n2);
+
+    auto i1 = ng.add({"i1", {}, {}, node_type::interface});
+
+    REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::input));
+    REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::input));
+    REQUIRE(ng.get_info(i1)->input_sockets().size() == 1);
+    REQUIRE(ng.get_info(i1)->output_sockets().empty());
+
+    REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::output));
+    REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::output));
+    REQUIRE(ng.get_info(i1)->input_sockets().size() == 1);
+    REQUIRE(ng.get_info(i1)->output_sockets().size() == 1);
+
+    REQUIRE(ng.input_sockets(i1).size() == 1);
+    REQUIRE(ng.output_sockets(i1).size() == 1);
+
+    REQUIRE(ng.connections(i1).empty());
+    REQUIRE(ng.input_connections(i1).empty());
+    REQUIRE(ng.output_connections(i1).empty());
+
+    SECTION("detach")
+    {
+      ng.detach_interface(i1, n1, "0", socket_type::input);
+      ng.detach_interface(i1, n1, "0", socket_type::input);
+      ng.detach_interface(i1, n1, "0", socket_type::output);
+      ng.detach_interface(i1, n1, "0", socket_type::output);
+
+      REQUIRE(ng.input_sockets(i1).empty());
+      REQUIRE(ng.output_sockets(i1).empty());
+    }
+
+    SECTION("remove")
+    {
+      ng.remove(n1);
+
+      // automatically detached
+      REQUIRE(ng.exists(i1));
+      REQUIRE(ng.input_sockets(i1).empty());
+      REQUIRE(ng.output_sockets(i1).empty());
+    }
+
+    SECTION("conn")
+    {
+      REQUIRE(ng.connect(n1, "0", n2, "0"));
+      REQUIRE(ng.output_connections(n1).size() == 1);
+      auto ci = ng.get_info(ng.output_connections(n1)[0]);
+      REQUIRE(ci);
+      REQUIRE(ci->src_node() == n1);
+      REQUIRE(ci->dst_node() == n2);
+      REQUIRE(ci->src_interfaces()[0] == i1);
+      REQUIRE(ci->dst_interfaces().empty());
+    }
+  }
+}
