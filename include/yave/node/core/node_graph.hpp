@@ -236,13 +236,11 @@ namespace yave {
     [[nodiscard]] auto get_primitive_container(const node_handle& node) const
       -> object_ptr<const PrimitiveContainer>;
 
-    /// Get interface output boundary
-    [[nodiscard]] auto get_interface_outputs(const node_handle& node) const
-      -> std::vector<node_handle>;
-
-    /// Get interface input boundary
-    [[nodiscard]] auto get_interface_inputs(const node_handle& node) const
-      -> std::vector<node_handle>;
+    /// Get list of interfaces attached to the socket
+    [[nodiscard]] auto interfaces(
+      const node_handle& node,
+      const std::string& socket,
+      const socket_type& type) const -> std::vector<node_handle>;
 
     /// Get list of root nodes.
     [[nodiscard]] auto roots() const -> std::vector<node_handle>;

@@ -769,6 +769,35 @@ namespace yave {
     return ret;
   }
 
+  auto node_graph::interfaces(
+    const node_handle& node,
+    const std::string& socket,
+    const socket_type& type) const -> std::vector<node_handle>
+  {
+    auto lck = _lock();
+
+    if (!_exists(node))
+      return {};
+
+    for (auto&& s : m_g.sockets(node.descriptor())) {
+
+      if (m_g[s].get_type() != type)
+        continue;
+
+      if (m_g[s].name() != socket)
+        continue;
+
+      std::vector<node_handle> ret;
+      auto ns = m_g.nodes(s);
+      for (size_t i = 1; i < ns.size(); ++i) {
+        assert(m_g[ns[i]].get_type() == node_type::interface);
+        ret.emplace_back(ns[i], uid {m_g.id(ns[i])});
+      }
+      return ret;
+    }
+    return {};
+  }
+
   auto node_graph::_get_info(const connection_handle& h) const
     -> std::optional<connection_info>
   {
