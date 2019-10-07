@@ -70,13 +70,15 @@ namespace yave {
     [[nodiscard]] bool attach_interface(
       const node_handle& interface,
       const node_handle& node,
-      const std::string& socket);
+      const std::string& socket,
+      const socket_type& type);
 
     /// Detach interface socket.
     void detach_interface(
       const node_handle& interface,
       const node_handle& node,
-      const std::string& socket);
+      const std::string& socket,
+      const socket_type& type);
 
     /// Remove node from graph.
     /// Destroy the node, all sockets connected to the node, and all edges
