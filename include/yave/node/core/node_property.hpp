@@ -87,7 +87,7 @@ namespace yave {
     /// Name of node.
     const std::string m_name;
     /// Node type
-    node_type m_type;
+    const node_type m_type;
     /// Primitive value.
     /// If the node is not primitive node, stores std::monostate.
     std::optional<object_ptr<PrimitiveContainer>> m_prim;

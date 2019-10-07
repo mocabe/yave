@@ -11,33 +11,28 @@
 
 namespace yave {
 
+  /// Socket type
+  enum class socket_type
+  {
+    input,
+    output,
+  };
+
   /// Socket property class for node graph.
   class socket_property
   {
   public:
-    /// input tag
-    struct input_t
-    {
-    };
-    /// output tag
-    struct output_t
-    {
-    };
-    /// input tag
-    static constexpr input_t input = {};
-    /// output tag
-    static constexpr output_t output = {};
-
-    /// Input ctor.
-    socket_property(const std::string& name, input_t);
-    /// Output ctor.
-    socket_property(const std::string& name, output_t);
+    /// Ctor
+    socket_property(const std::string& name, socket_type type);
 
     /// Check input.
     [[nodiscard]] bool is_input() const;
 
     /// Check output.
     [[nodiscard]] bool is_output() const;
+
+    /// Get socket type
+    [[nodiscard]] auto get_type() const -> socket_type;
 
     /// Get name of socket.
     [[nodiscard]] auto name() const -> const std::string&;
@@ -46,7 +41,7 @@ namespace yave {
     /// name of socket
     const std::string m_name;
     /// input or output
-    const bool m_is_input;
+    const socket_type m_type;
   };
 
 } // namespace yave

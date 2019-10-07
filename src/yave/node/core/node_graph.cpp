@@ -150,8 +150,8 @@ namespace yave {
     };
 
     try {
-      _attach_sockets(info.input_sockets(), socket_property::input);
-      _attach_sockets(info.output_sockets(), socket_property::output);
+      _attach_sockets(info.input_sockets(), socket_type::input);
+      _attach_sockets(info.output_sockets(), socket_type::output);
     } catch (...) {
       for (auto&& s : m_g.sockets(node)) {
         m_g.remove_socket(s);
@@ -174,7 +174,8 @@ namespace yave {
   bool node_graph::attach_interface(
     const node_handle& interface,
     const node_handle& node,
-    const std::string& socket)
+    const std::string& socket,
+    const socket_type& type)
   {
     auto lck = _lock();
 
@@ -187,6 +188,9 @@ namespace yave {
     }
 
     for (auto&& s : m_g.sockets(node.descriptor())) {
+
+      if (m_g[s].get_type() != type)
+        continue;
 
       if (m_g[s].name() == socket) {
 
@@ -221,7 +225,8 @@ namespace yave {
   void node_graph::detach_interface(
     const node_handle& interface,
     const node_handle& node,
-    const std::string& socket)
+    const std::string& socket,
+    const socket_type& type)
   {
     auto lck = _lock();
 
@@ -229,6 +234,9 @@ namespace yave {
       return;
 
     for (auto&& s : m_g.sockets(node.descriptor())) {
+
+      if (m_g[s].get_type() != type)
+        continue;
 
       if (m_g[s].name() == socket) {
 
@@ -865,7 +873,7 @@ namespace yave {
   {
     auto lck = _lock();
 
-    if (_exists(node))
+    if (!_exists(node))
       return false;
 
     return m_g[node.descriptor()].is_interface();
