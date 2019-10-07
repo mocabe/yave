@@ -424,11 +424,14 @@ TEST_CASE("node_graph interface")
     REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::input));
     REQUIRE(ng.get_info(i1)->input_sockets().size() == 1);
     REQUIRE(ng.get_info(i1)->output_sockets().empty());
+    REQUIRE(ng.interfaces(n1, "0", socket_type::input)[0] == i1);
+    REQUIRE(ng.interfaces(n1, "0", socket_type::output).empty());
 
     REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::output));
     REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::output));
     REQUIRE(ng.get_info(i1)->input_sockets().size() == 1);
     REQUIRE(ng.get_info(i1)->output_sockets().size() == 1);
+    REQUIRE(ng.interfaces(n1, "0", socket_type::output)[0] == i1);
 
     REQUIRE(ng.input_sockets(i1).size() == 1);
     REQUIRE(ng.output_sockets(i1).size() == 1);
@@ -446,6 +449,9 @@ TEST_CASE("node_graph interface")
 
       REQUIRE(ng.input_sockets(i1).empty());
       REQUIRE(ng.output_sockets(i1).empty());
+
+      REQUIRE(ng.interfaces(n1, "0", socket_type::input).empty());
+      REQUIRE(ng.interfaces(n1, "0", socket_type::output).empty());
     }
 
     SECTION("remove")
@@ -456,6 +462,8 @@ TEST_CASE("node_graph interface")
       REQUIRE(ng.exists(i1));
       REQUIRE(ng.input_sockets(i1).empty());
       REQUIRE(ng.output_sockets(i1).empty());
+      REQUIRE(ng.interfaces(n1, "0", socket_type::input).empty());
+      REQUIRE(ng.interfaces(n1, "0", socket_type::output).empty());
     }
 
     SECTION("conn")
