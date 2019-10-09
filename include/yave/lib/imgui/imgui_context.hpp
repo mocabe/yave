@@ -91,37 +91,8 @@ namespace yave::imgui {
     imgui_context(const imgui_context&) = delete;
 
   private:
-    glfw::glfw_context                     m_glfwCtx;
-    vulkan::vulkan_context                 m_vulkanCtx;
-    glfw::unique_glfw_window               m_window;
-    vulkan::vulkan_context::window_context m_windowCtx;
-
-  private:
-    vk::UniqueSampler             m_fontSampler;
-    vk::UniqueDescriptorPool      m_descriptorPool;
-    vk::UniqueDescriptorSetLayout m_descriptorSetLayout;
-    vk::UniqueDescriptorSet       m_descriptorSet;
-    vk::UniquePipelineCache       m_pipelineCache;
-    vk::UniquePipelineLayout      m_pipelineLayout;
-    vk::UniquePipeline            m_pipeline;
-    vk::UniqueDeviceMemory        m_fontImageMemory;
-    vk::UniqueImage               m_fontImage;
-    vk::UniqueImageView           m_fontImageView;
-
-  private:
-    std::vector<class ImGuiRenderBuffer> m_vertexBuffers;
-    std::vector<class ImGuiRenderBuffer> m_indexBuffers;
-
-  private:
-    std::chrono::high_resolution_clock::time_point m_lastTime;
-
-  private:
-    class texture_data_holder;
-    std::map<std::string, std::unique_ptr<texture_data_holder>> m_textures;
-
-  private:
-    std::array<float, 4> m_clear_color;
-    uint32_t m_fps;
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
   };
 
   // clang-format on
