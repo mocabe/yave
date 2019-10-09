@@ -817,44 +817,45 @@ namespace yave::imgui {
     m_memory   = std::move(mem);
   }
 
+  // fwd
   class ImGuiTextureDataHolder;
 
-  class imgui::imgui_context::impl
+  class imgui_context::impl
   {
     // clang-format off
   public:
     impl(bool enableValidation, uint32_t width, uint32_t height, const char* windowName);
 
   public:
-    glfw::glfw_context                     m_glfwCtx;
-    vulkan::vulkan_context                 m_vulkanCtx;
-    glfw::unique_glfw_window               m_window;
-    vulkan::vulkan_context::window_context m_windowCtx;
+    glfw::glfw_context                     glfwCtx;
+    vulkan::vulkan_context                 vulkanCtx;
+    glfw::unique_glfw_window               glfwWindow;
+    vulkan::vulkan_context::window_context windowCtx;
 
   public:
-    vk::UniqueSampler             m_fontSampler;
-    vk::UniqueDescriptorPool      m_descriptorPool;
-    vk::UniqueDescriptorSetLayout m_descriptorSetLayout;
-    vk::UniqueDescriptorSet       m_descriptorSet;
-    vk::UniquePipelineCache       m_pipelineCache;
-    vk::UniquePipelineLayout      m_pipelineLayout;
-    vk::UniquePipeline            m_pipeline;
-    vk::UniqueDeviceMemory        m_fontImageMemory;
-    vk::UniqueImage               m_fontImage;
-    vk::UniqueImageView           m_fontImageView;
+    vk::UniqueSampler             fontSampler;
+    vk::UniqueDescriptorPool      descriptorPool;
+    vk::UniqueDescriptorSetLayout descriptorSetLayout;
+    vk::UniqueDescriptorSet       descriptorSet;
+    vk::UniquePipelineCache       pipelineCache;
+    vk::UniquePipelineLayout      pipelineLayout;
+    vk::UniquePipeline            pipeline;
+    vk::UniqueDeviceMemory        fontImageMemory;
+    vk::UniqueImage               fontImage;
+    vk::UniqueImageView           fontImageView;
 
   public:
-    std::vector<class ImGuiRenderBuffer> m_vertexBuffers;
-    std::vector<class ImGuiRenderBuffer> m_indexBuffers;
+    std::vector<class ImGuiRenderBuffer> vertexBuffers;
+    std::vector<class ImGuiRenderBuffer> indexBuffers;
 
-    std::chrono::high_resolution_clock::time_point m_lastTime;
+    std::chrono::high_resolution_clock::time_point lastTime;
 
   public:
-    std::map<std::string, std::unique_ptr<ImGuiTextureDataHolder>> m_textures;
+    std::map<std::string, std::unique_ptr<ImGuiTextureDataHolder>> textures;
   
   public:
-    uint32_t m_fps;
-    std::array<float, 4> m_clearColor;
+    uint32_t fps;
+    std::array<float, 4> clearColor;
 
     // clang-format on
   };
@@ -864,10 +865,10 @@ namespace yave::imgui {
     uint32_t widt,
     uint32_t height,
     const char* windowName)
-    : m_glfwCtx {}
-    , m_vulkanCtx {m_glfwCtx, enableValidation}
-    , m_window {m_glfwCtx.create_window(widt, height, windowName)}
-    , m_windowCtx {m_vulkanCtx.create_window_context(m_window)}
+    : glfwCtx {}
+    , vulkanCtx {glfwCtx, enableValidation}
+    , glfwWindow {glfwCtx.create_window(widt, height, windowName)}
+    , windowCtx {vulkanCtx.create_window_context(glfwWindow)}
   {
   }
 
@@ -886,7 +887,7 @@ namespace yave::imgui {
       ImGui::StyleColorsDark();
 
       /* setup GLFW input binding */
-      ImGui_ImplGlfw_InitForVulkan(m_pimpl->m_window.get(), true);
+      ImGui_ImplGlfw_InitForVulkan(m_pimpl->glfwWindow.get(), true);
 
       /* setup vulkan binding */
       ImGuiIO& io            = ImGui::GetIO();
@@ -911,77 +912,75 @@ namespace yave::imgui {
 
     /* prepare uploading font texture */
     {
-      m_pimpl->m_fontSampler =
-        createImGuiFontSampler(m_pimpl->m_vulkanCtx.device());
+      m_pimpl->fontSampler =
+        createImGuiFontSampler(m_pimpl->vulkanCtx.device());
       Info(g_logger, "Created ImGui font sampler");
     }
 
     {
-      m_pimpl->m_descriptorPool =
-        createImGuiDescriptorPool(m_pimpl->m_vulkanCtx.device());
-      m_pimpl->m_descriptorSetLayout = createImGuiDescriptorSetLayout(
-        m_pimpl->m_fontSampler.get(), m_pimpl->m_vulkanCtx.device());
+      m_pimpl->descriptorPool =
+        createImGuiDescriptorPool(m_pimpl->vulkanCtx.device());
+      m_pimpl->descriptorSetLayout = createImGuiDescriptorSetLayout(
+        m_pimpl->fontSampler.get(), m_pimpl->vulkanCtx.device());
       Info(g_logger, "Created ImGui descriptor set");
     }
 
     {
-      m_pimpl->m_pipelineCache =
-        createPipelineCache(m_pimpl->m_vulkanCtx.device());
-      m_pimpl->m_pipelineLayout = createImGuiPipelineLayout(
-        m_pimpl->m_descriptorSetLayout.get(), m_pimpl->m_vulkanCtx.device());
-      m_pimpl->m_pipeline = createImGuiPipeline(
-        m_pimpl->m_windowCtx.swapchain_extent(),
-        m_pimpl->m_windowCtx.render_pass(),
-        m_pimpl->m_pipelineCache.get(),
-        m_pimpl->m_pipelineLayout.get(),
-        m_pimpl->m_vulkanCtx.device());
+      m_pimpl->pipelineCache = createPipelineCache(m_pimpl->vulkanCtx.device());
+      m_pimpl->pipelineLayout = createImGuiPipelineLayout(
+        m_pimpl->descriptorSetLayout.get(), m_pimpl->vulkanCtx.device());
+      m_pimpl->pipeline = createImGuiPipeline(
+        m_pimpl->windowCtx.swapchain_extent(),
+        m_pimpl->windowCtx.render_pass(),
+        m_pimpl->pipelineCache.get(),
+        m_pimpl->pipelineLayout.get(),
+        m_pimpl->vulkanCtx.device());
 
       Info(g_logger, "Created ImGui pipeline");
     }
 
     /* upload font texture */
     {
-      auto cmd = m_pimpl->m_windowCtx.single_time_command();
+      auto cmd = m_pimpl->windowCtx.single_time_command();
       auto [imageMemory, image, imageView] = createImGuiFontTexture(
-        m_pimpl->m_windowCtx,
-        m_pimpl->m_vulkanCtx.physical_device(),
-        m_pimpl->m_vulkanCtx.device());
-      m_pimpl->m_fontImageMemory = std::move(imageMemory);
-      m_pimpl->m_fontImage       = std::move(image);
-      m_pimpl->m_fontImageView   = std::move(imageView);
+        m_pimpl->windowCtx,
+        m_pimpl->vulkanCtx.physical_device(),
+        m_pimpl->vulkanCtx.device());
+      m_pimpl->fontImageMemory = std::move(imageMemory);
+      m_pimpl->fontImage       = std::move(image);
+      m_pimpl->fontImageView   = std::move(imageView);
 
       Info(g_logger, "Uploaded ImGui font texture");
     }
 
     /* create default descriptor set (font texture) */
     {
-      m_pimpl->m_descriptorSet = createImGuiDescriptorSet(
-        m_pimpl->m_descriptorPool.get(),
-        m_pimpl->m_descriptorSetLayout.get(),
-        m_pimpl->m_vulkanCtx.device());
+      m_pimpl->descriptorSet = createImGuiDescriptorSet(
+        m_pimpl->descriptorPool.get(),
+        m_pimpl->descriptorSetLayout.get(),
+        m_pimpl->vulkanCtx.device());
 
       vk::DescriptorImageInfo info;
-      info.sampler     = m_pimpl->m_fontSampler.get();
-      info.imageView   = m_pimpl->m_fontImageView.get();
+      info.sampler     = m_pimpl->fontSampler.get();
+      info.imageView   = m_pimpl->fontImageView.get();
       info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 
       vk::WriteDescriptorSet write;
-      write.dstSet          = m_pimpl->m_descriptorSet.get();
+      write.dstSet          = m_pimpl->descriptorSet.get();
       write.descriptorCount = 1;
       write.descriptorType  = vk::DescriptorType::eCombinedImageSampler;
       write.pImageInfo      = &info;
 
-      m_pimpl->m_vulkanCtx.device().updateDescriptorSets(write, {});
+      m_pimpl->vulkanCtx.device().updateDescriptorSets(write, {});
 
       // set font texture ID
-      ImGui::GetIO().Fonts->TexID =
-        toImTextureId(m_pimpl->m_descriptorSet.get());
+      ImGui::GetIO().Fonts->TexID = toImTextureId(m_pimpl->descriptorSet.get());
 
       Info(g_logger, "Updated ImGui descriptor set");
     }
 
     // for rendering loop
-    m_pimpl->m_lastTime = std::chrono::high_resolution_clock::now();
+    m_pimpl->lastTime = std::chrono::high_resolution_clock::now();
 
     // default clear color
     set_clear_color(0.45f, 0.55f, 0.60f, 1.f);
@@ -994,7 +993,7 @@ namespace yave::imgui {
   {
     Info(g_logger, "Destroying ImGui context");
     // wait idle
-    m_pimpl->m_vulkanCtx.device().waitIdle();
+    m_pimpl->vulkanCtx.device().waitIdle();
     // unbind GLFW
     ImGui_ImplGlfw_Shutdown();
     // destroy ImGui
@@ -1028,53 +1027,51 @@ namespace yave::imgui {
 
     assert(drawData->Valid);
 
-    m_pimpl->m_windowCtx.set_clear_color(
-      m_pimpl->m_clearColor[0],
-      m_pimpl->m_clearColor[1],
-      m_pimpl->m_clearColor[2],
-      m_pimpl->m_clearColor[3]);
+    m_pimpl->windowCtx.set_clear_color(
+      m_pimpl->clearColor[0],
+      m_pimpl->clearColor[1],
+      m_pimpl->clearColor[2],
+      m_pimpl->clearColor[3]);
 
     /* Render with Vulkan */
     {
       // begin new frame (use RAII recorder)
-      auto recorder      = m_pimpl->m_windowCtx.new_recorder();
+      auto recorder      = m_pimpl->windowCtx.new_recorder();
       auto commandBuffer = recorder.command_buffer();
 
       // device
-      auto physicalDevice = m_pimpl->m_vulkanCtx.physical_device();
-      auto device         = m_pimpl->m_vulkanCtx.device();
+      auto physicalDevice = m_pimpl->vulkanCtx.physical_device();
+      auto device         = m_pimpl->vulkanCtx.device();
 
       /* Resize buffers vector to match current in-flight frames */
       {
-        auto frameCount = m_pimpl->m_windowCtx.frame_index_count();
+        auto frameCount = m_pimpl->windowCtx.frame_index_count();
         // vertec buffer
-        if (m_pimpl->m_vertexBuffers.size() > frameCount) {
-          for (size_t i = 0; i < m_pimpl->m_vertexBuffers.size() - frameCount;
+        if (m_pimpl->vertexBuffers.size() > frameCount) {
+          for (size_t i = 0; i < m_pimpl->vertexBuffers.size() - frameCount;
                ++i)
-            m_pimpl->m_vertexBuffers.pop_back();
+            m_pimpl->vertexBuffers.pop_back();
         } else {
-          for (size_t i = 0; i < frameCount - m_pimpl->m_vertexBuffers.size();
+          for (size_t i = 0; i < frameCount - m_pimpl->vertexBuffers.size();
                ++i)
-            m_pimpl->m_vertexBuffers.emplace_back(
+            m_pimpl->vertexBuffers.emplace_back(
               vk::BufferUsageFlagBits::eVertexBuffer);
         }
         // index buffer
-        if (m_pimpl->m_indexBuffers.size() > frameCount) {
-          for (size_t i = 0; i < m_pimpl->m_indexBuffers.size() - frameCount;
-               ++i)
-            m_pimpl->m_indexBuffers.pop_back();
+        if (m_pimpl->indexBuffers.size() > frameCount) {
+          for (size_t i = 0; i < m_pimpl->indexBuffers.size() - frameCount; ++i)
+            m_pimpl->indexBuffers.pop_back();
         } else {
-          for (size_t i = 0; i < frameCount - m_pimpl->m_indexBuffers.size();
-               ++i)
-            m_pimpl->m_indexBuffers.emplace_back(
+          for (size_t i = 0; i < frameCount - m_pimpl->indexBuffers.size(); ++i)
+            m_pimpl->indexBuffers.emplace_back(
               vk::BufferUsageFlagBits::eIndexBuffer);
         }
       }
 
       auto& vertexBuffer =
-        m_pimpl->m_vertexBuffers[m_pimpl->m_windowCtx.frame_index()];
+        m_pimpl->vertexBuffers[m_pimpl->windowCtx.frame_index()];
       auto& indexBuffer =
-        m_pimpl->m_indexBuffers[m_pimpl->m_windowCtx.frame_index()];
+        m_pimpl->indexBuffers[m_pimpl->windowCtx.frame_index()];
 
       /* Resize vertex/index buffers */
       {
@@ -1096,38 +1093,37 @@ namespace yave::imgui {
       /* Initialize pipeline */
       initImGuiPipeline(
         drawData,
-        m_pimpl->m_pipelineLayout.get(),
-        m_pimpl->m_pipeline.get(),
+        m_pimpl->pipelineLayout.get(),
+        m_pimpl->pipeline.get(),
         vertexBuffer.buffer(),
         indexBuffer.buffer(),
-        m_pimpl->m_windowCtx.swapchain_extent(),
+        m_pimpl->windowCtx.swapchain_extent(),
         commandBuffer);
 
       /* Record draw commands */
       renderImGuiDrawData(
         drawData,
-        m_pimpl->m_descriptorSet.get(),
-        m_pimpl->m_pipelineLayout.get(),
-        m_pimpl->m_pipeline.get(),
+        m_pimpl->descriptorSet.get(),
+        m_pimpl->pipelineLayout.get(),
+        m_pimpl->pipeline.get(),
         vertexBuffer.buffer(),
         indexBuffer.buffer(),
-        m_pimpl->m_windowCtx.swapchain_extent(),
+        m_pimpl->windowCtx.swapchain_extent(),
         commandBuffer);
     }
 
     /* frame rate limiter */
 
-    auto endTime   = std::chrono::high_resolution_clock::now();
-    auto frameTime = (endTime - m_pimpl->m_lastTime);
-    auto frameTimeWindow =
-      std::chrono::nanoseconds(1000000000) / m_pimpl->m_fps;
-    auto sleepTime = frameTimeWindow - frameTime;
+    auto endTime         = std::chrono::high_resolution_clock::now();
+    auto frameTime       = (endTime - m_pimpl->lastTime);
+    auto frameTimeWindow = std::chrono::nanoseconds(1000000000) / m_pimpl->fps;
+    auto sleepTime       = frameTimeWindow - frameTime;
 
     if (sleepTime.count() > 0) {
-      m_pimpl->m_lastTime = endTime + sleepTime;
+      m_pimpl->lastTime = endTime + sleepTime;
       std::this_thread::sleep_for(sleepTime);
     } else {
-      m_pimpl->m_lastTime = endTime;
+      m_pimpl->lastTime = endTime;
     }
   }
 
@@ -1139,68 +1135,68 @@ namespace yave::imgui {
 
   auto imgui_context::glfw_context() const -> const glfw::glfw_context&
   {
-    return m_pimpl->m_glfwCtx;
+    return m_pimpl->glfwCtx;
   }
 
   auto imgui_context::vulkan_context() const -> const vulkan::vulkan_context&
   {
-    return m_pimpl->m_vulkanCtx;
+    return m_pimpl->vulkanCtx;
   }
 
   auto imgui_context::window_context() const
     -> const vulkan::vulkan_context::window_context&
   {
-    return m_pimpl-> m_windowCtx;
+    return m_pimpl->windowCtx;
   }
 
   auto imgui_context::font_sampler() const -> vk::Sampler
   {
-    return  m_pimpl->m_fontSampler.get();
+    return m_pimpl->fontSampler.get();
   }
 
   auto imgui_context::descriptor_pool() const -> vk::DescriptorPool
   {
-    return m_pimpl->m_descriptorPool.get();
+    return m_pimpl->descriptorPool.get();
   }
 
   auto imgui_context::descriptor_set_layout() const -> vk::DescriptorSetLayout
   {
-    return m_pimpl->m_descriptorSetLayout.get();
+    return m_pimpl->descriptorSetLayout.get();
   }
 
   auto imgui_context::descriptor_set() const -> vk::DescriptorSet
   {
-    return m_pimpl->m_descriptorSet.get();
+    return m_pimpl->descriptorSet.get();
   }
 
   auto imgui_context::pipeline_cache() const -> vk::PipelineCache
   {
-    return m_pimpl->m_pipelineCache.get();
+    return m_pimpl->pipelineCache.get();
   }
 
   auto imgui_context::pipeline_layout() const -> vk::PipelineLayout
   {
-    return m_pimpl->m_pipelineLayout.get();
+    return m_pimpl->pipelineLayout.get();
   }
 
   auto imgui_context::pipeline() const -> vk::Pipeline
   {
-    return m_pimpl->m_pipeline.get();
+    return m_pimpl->pipeline.get();
   }
 
   auto imgui_context::font_image_memory() const -> vk::DeviceMemory
   {
-    return m_pimpl->m_fontImageMemory.get();
+    return m_pimpl->fontImageMemory.get();
   }
 
   auto imgui_context::font_image() const -> vk::Image
   {
-    return m_pimpl->m_fontImage.get();
+    return m_pimpl->fontImage.get();
   }
 
   auto imgui_context::font_image_view() const -> vk::ImageView
   {
-    return m_pimpl->m_fontImageView.get();
+    return m_pimpl->fontImageView.get();
   }
 
   class ImGuiTextureDataHolder
@@ -1240,15 +1236,15 @@ namespace yave::imgui {
   {
     assert(data);
 
-    if (m_pimpl->m_textures.find(name) != m_pimpl->m_textures.end()) {
+    if (m_pimpl->textures.find(name) != m_pimpl->textures.end()) {
       Error(g_logger, "Failed to add texture data: Texute name already used");
       return ImTextureID(nullptr);
     }
 
-    auto device         = m_pimpl->m_vulkanCtx.device();
-    auto physicalDevice = m_pimpl->m_vulkanCtx.physical_device();
-    auto commandPool    = m_pimpl->m_windowCtx.command_pool();
-    auto queue          = m_pimpl->m_vulkanCtx.graphics_queue();
+    auto device         = m_pimpl->vulkanCtx.device();
+    auto physicalDevice = m_pimpl->vulkanCtx.physical_device();
+    auto commandPool    = m_pimpl->windowCtx.command_pool();
+    auto queue          = m_pimpl->vulkanCtx.graphics_queue();
 
     auto [image, view, memory] = vulkan::upload_image(
       extent,
@@ -1262,8 +1258,8 @@ namespace yave::imgui {
 
     auto descriptor = vulkan::create_image_descriptor(
       view.get(),
-      m_pimpl->m_descriptorSetLayout.get(),
-      m_pimpl->m_descriptorPool.get(),
+      m_pimpl->descriptorSetLayout.get(),
+      m_pimpl->descriptorPool.get(),
       device);
 
     auto texData = std::make_unique<ImGuiTextureDataHolder>(
@@ -1272,7 +1268,7 @@ namespace yave::imgui {
       std::move(memory),
       std::move(descriptor));
 
-    auto [iter, succ] = m_pimpl->m_textures.emplace(name, std::move(texData));
+    auto [iter, succ] = m_pimpl->textures.emplace(name, std::move(texData));
 
     assert(succ);
 
@@ -1288,9 +1284,9 @@ namespace yave::imgui {
 
   auto imgui_context::find_texture(const std::string& name) const -> ImTextureID
   {
-    auto iter = m_pimpl->m_textures.find(name);
+    auto iter = m_pimpl->textures.find(name);
 
-    if (iter == m_pimpl->m_textures.end())
+    if (iter == m_pimpl->textures.end())
       return ImTextureID(nullptr);
 
     return iter->second->get_texture();
@@ -1298,33 +1294,33 @@ namespace yave::imgui {
 
   void imgui_context::remove_texture(const std::string& name)
   {
-    auto iter = m_pimpl->m_textures.find(name);
+    auto iter = m_pimpl->textures.find(name);
 
-    if (iter == m_pimpl->m_textures.end())
+    if (iter == m_pimpl->textures.end())
       return;
 
-    m_pimpl->m_textures.erase(iter);
+    m_pimpl->textures.erase(iter);
 
     Info(g_logger, "Destroyed texture \"{}\"", name);
   }
 
   auto imgui::imgui_context::get_clear_color() const -> std::array<float, 4>
   {
-    return m_pimpl->m_clearColor;
+    return m_pimpl->clearColor;
   }
 
   void imgui::imgui_context::set_clear_color(float r, float g, float b, float a)
   {
-    m_pimpl->m_clearColor = {r, g, b, a};
+    m_pimpl->clearColor = {r, g, b, a};
   }
 
   auto imgui::imgui_context::get_fps() const -> uint32_t
   {
-    return m_pimpl->m_fps;
+    return m_pimpl->fps;
   }
 
   void imgui::imgui_context::set_fps(uint32_t fps)
   {
-    m_pimpl->m_fps = fps;
+    m_pimpl->fps = fps;
   }
 } // namespace yave::imgui
