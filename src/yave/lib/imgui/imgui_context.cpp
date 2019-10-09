@@ -298,7 +298,7 @@ namespace {
   }
 
   auto createImGuiFontTexture(
-    const yave::vulkan::vulkan_context::window_context& windowCtx,
+    const yave::vulkan::window_context& windowCtx,
     const vk::PhysicalDevice& physicalDevice,
     const vk::Device& device)
     -> std::tuple<vk::UniqueDeviceMemory, vk::UniqueImage, vk::UniqueImageView>
@@ -830,7 +830,7 @@ namespace yave::imgui {
     glfw::glfw_context                     glfwCtx;
     vulkan::vulkan_context                 vulkanCtx;
     glfw::unique_glfw_window               glfwWindow;
-    vulkan::vulkan_context::window_context windowCtx;
+    vulkan::window_context                 windowCtx;
 
   public:
     vk::UniqueSampler             fontSampler;
@@ -1143,8 +1143,7 @@ namespace yave::imgui {
     return m_pimpl->vulkanCtx;
   }
 
-  auto imgui_context::window_context() const
-    -> const vulkan::vulkan_context::window_context&
+  auto imgui_context::window_context() const -> const vulkan::window_context&
   {
     return m_pimpl->windowCtx;
   }

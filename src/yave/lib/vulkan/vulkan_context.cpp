@@ -1223,7 +1223,7 @@ namespace yave::vulkan {
   // -----------------------------------------
   // window_context
 
-  class vulkan_context::window_context::impl
+  class window_context::impl
   {
   public:
     impl() = default;
@@ -1262,7 +1262,7 @@ namespace yave::vulkan {
   };
 
   auto vulkan_context::create_window_context(
-    glfw::unique_glfw_window& window) const -> vulkan_context::window_context
+    glfw::unique_glfw_window& window) const -> window_context
   {
     Info(g_vulkan_logger, "Initializing window context");
 
@@ -1402,7 +1402,7 @@ namespace yave::vulkan {
     return ctx;
   }
 
-  void vulkan_context::window_context::rebuild_frame_buffers()
+  void window_context::rebuild_frame_buffers()
   {
     // new swapchain extent
     auto newWindowExtent = m_pimpl->window_extent.load();
@@ -1484,7 +1484,7 @@ namespace yave::vulkan {
       vk::FenceCreateFlagBits::eSignaled);
   }
 
-  void vulkan_context::window_context::begin_frame()
+  void window_context::begin_frame()
   {
     auto device = m_pimpl->context->device();
 
@@ -1561,7 +1561,7 @@ namespace yave::vulkan {
     }
   }
 
-  void vulkan_context::window_context::end_frame() const
+  void window_context::end_frame() const
   {
     auto graphicsQueue = m_pimpl->context->graphics_queue();
     auto presentQueue  = m_pimpl->context->present_queue();
@@ -1615,7 +1615,7 @@ namespace yave::vulkan {
     }
   }
 
-  auto vulkan_context::window_context::begin_record() const -> vk::CommandBuffer
+  auto window_context::begin_record() const -> vk::CommandBuffer
   {
     auto buffer = m_pimpl->command_buffers[m_pimpl->frame_index].get();
 
@@ -1645,7 +1645,7 @@ namespace yave::vulkan {
     return buffer;
   }
 
-  void vulkan_context::window_context::end_record(
+  void window_context::end_record(
     const vk::CommandBuffer& buffer) const
   {
     // end render pass
@@ -1654,18 +1654,18 @@ namespace yave::vulkan {
     buffer.end();
   }
 
-  vulkan_context::window_context::window_context()
+  window_context::window_context()
   {
     // m_pimpl will be initialized by vulkan_context.
   }
 
-  vulkan_context::window_context::window_context(
+  window_context::window_context(
     window_context&& other) noexcept
     : m_pimpl {std::move(other.m_pimpl)}
   {
   }
 
-  vulkan_context::window_context::~window_context() noexcept
+  window_context::~window_context() noexcept
   {
     using namespace yave;
 
@@ -1676,44 +1676,44 @@ namespace yave::vulkan {
     Info(g_vulkan_logger, "Destroying window context");
   }
 
-  auto vulkan_context::window_context::window() const -> GLFWwindow*
+  auto window_context::window() const -> GLFWwindow*
   {
     assert(m_pimpl->window);
     return m_pimpl->window;
   }
 
-  auto vulkan_context::window_context::surface() const -> vk::SurfaceKHR
+  auto window_context::surface() const -> vk::SurfaceKHR
   {
     assert(m_pimpl->surface);
     return m_pimpl->surface.get();
   }
 
-  auto vulkan_context::window_context::swapchain() const -> vk::SwapchainKHR
+  auto window_context::swapchain() const -> vk::SwapchainKHR
   {
     assert(m_pimpl->swapchain);
     return m_pimpl->swapchain.get();
   }
 
-  auto vulkan_context::window_context::swapchain_format() const
+  auto window_context::swapchain_format() const
     -> vk::SurfaceFormatKHR
   {
     assert(m_pimpl->swapchain_format.format != vk::Format::eUndefined);
     return m_pimpl->swapchain_format;
   }
 
-  auto vulkan_context::window_context::swapchain_extent() const -> vk::Extent2D
+  auto window_context::swapchain_extent() const -> vk::Extent2D
   {
     return m_pimpl->swapchain_extent;
   }
 
-  auto vulkan_context::window_context::swapchain_images() const
+  auto window_context::swapchain_images() const
     -> std::vector<vk::Image>
   {
     assert(!m_pimpl->swapchain_images.empty());
     return m_pimpl->swapchain_images;
   }
 
-  auto vulkan_context::window_context::swapchain_image_views() const
+  auto window_context::swapchain_image_views() const
     -> std::vector<vk::ImageView>
   {
     assert(!m_pimpl->swapchain_image_views.empty());
@@ -1724,7 +1724,7 @@ namespace yave::vulkan {
     return ret;
   }
 
-  auto vulkan_context::window_context::frame_buffers() const
+  auto window_context::frame_buffers() const
     -> std::vector<vk::Framebuffer>
   {
     assert(!m_pimpl->frame_buffers.empty());
@@ -1735,19 +1735,19 @@ namespace yave::vulkan {
     return ret;
   }
 
-  auto vulkan_context::window_context::render_pass() const -> vk::RenderPass
+  auto window_context::render_pass() const -> vk::RenderPass
   {
     assert(m_pimpl->render_pass);
     return m_pimpl->render_pass.get();
   }
 
-  auto vulkan_context::window_context::command_pool() const -> vk::CommandPool
+  auto window_context::command_pool() const -> vk::CommandPool
   {
     assert(m_pimpl->command_pool);
     return m_pimpl->command_pool.get();
   }
 
-  auto vulkan_context::window_context::command_buffers() const
+  auto window_context::command_buffers() const
     -> std::vector<vk::CommandBuffer>
   {
     assert(!m_pimpl->command_buffers.empty());
@@ -1760,18 +1760,18 @@ namespace yave::vulkan {
     return ret;
   }
 
-  bool vulkan_context::window_context::resized() const
+  bool window_context::resized() const
   {
     glfwPollEvents();
     return vk::Extent2D(m_pimpl->window_extent) != m_pimpl->swapchain_extent;
   }
 
-  bool vulkan_context::window_context::should_close() const
+  bool window_context::should_close() const
   {
     return glfwWindowShouldClose(m_pimpl->window);
   }
 
-  void vulkan_context::window_context::set_clear_color(
+  void window_context::set_clear_color(
     float r,
     float g,
     float b,
@@ -1780,7 +1780,7 @@ namespace yave::vulkan {
     m_pimpl->clearColor = std::array {r, g, b, a};
   }
 
-  auto vulkan_context::window_context::single_time_command() const
+  auto window_context::single_time_command() const
     -> vulkan::single_time_command
   {
     return {m_pimpl->context->device(),
@@ -1788,28 +1788,27 @@ namespace yave::vulkan {
             m_pimpl->command_pool.get()};
   }
 
-  auto vulkan_context::window_context::new_recorder()
-    -> vulkan_context::window_context::command_recorder
+  auto window_context::new_recorder() -> command_recorder
   {
     return command_recorder(this);
   }
 
-  uint32_t vulkan_context::window_context::swapchain_index() const
+  uint32_t window_context::swapchain_index() const
   {
     return m_pimpl->image_index;
   }
 
-  uint32_t vulkan_context::window_context::swapchain_index_count() const
+  uint32_t window_context::swapchain_index_count() const
   {
     return m_pimpl->swapchain_image_count;
   }
 
-  uint32_t vulkan_context::window_context::frame_index() const
+  uint32_t window_context::frame_index() const
   {
     return m_pimpl->frame_index;
   }
 
-  uint32_t vulkan_context::window_context::frame_index_count() const
+  uint32_t window_context::frame_index_count() const
   {
     return m_pimpl->swapchain_image_count;
   }
@@ -1817,15 +1816,14 @@ namespace yave::vulkan {
   // -----------------------------------------
   // command_recorder
 
-  vulkan_context::window_context::command_recorder::command_recorder(
-    window_context* window_ctx)
+  command_recorder::command_recorder(window_context* window_ctx)
     : m_window_ctx {window_ctx}
   {
     m_window_ctx->begin_frame();
     m_buffer = m_window_ctx->begin_record();
   }
 
-  vulkan_context::window_context::command_recorder::~command_recorder()
+  command_recorder::~command_recorder()
   {
     if (!m_window_ctx)
       return;
@@ -1834,15 +1832,13 @@ namespace yave::vulkan {
     m_window_ctx->end_frame();
   }
 
-  vulkan_context::window_context::command_recorder::command_recorder(
-    command_recorder&& other) noexcept
+  command_recorder::command_recorder(command_recorder&& other) noexcept
     : m_window_ctx {std::move(other.m_window_ctx)}
     , m_buffer {std::move(other.m_buffer)}
   {
   }
 
-  auto vulkan_context::window_context::command_recorder::command_buffer() const
-    -> vk::CommandBuffer
+  auto command_recorder::command_buffer() const -> vk::CommandBuffer
   {
     return m_buffer;
   }
