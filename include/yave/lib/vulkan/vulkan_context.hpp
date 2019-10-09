@@ -174,7 +174,7 @@ namespace yave::vulkan {
   public: /* window and surface helpers */
     /// Create new window context
     [[nodiscard]] 
-    window_context create_window_context(glfw::unique_glfw_window& window) const;
+    window_context create_window_context(glfw::glfw_window& window) const;
 
   private:
     class impl;

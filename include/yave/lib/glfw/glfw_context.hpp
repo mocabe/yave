@@ -10,20 +10,56 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include <memory>
-#include <unordered_map>
 
 namespace yave::glfw {
 
-  // clang-format off
+  class glfw_context;
+  class glfw_window;
 
-  struct glfw_window_deleter
+  /// GLFW window
+  class glfw_window
   {
-    void operator()(GLFWwindow* window) noexcept;
-  };
+    friend class glfw_context;
 
-  /// Unique glfw window based on unique_ptr
-  using unique_glfw_window = std::unique_ptr<GLFWwindow, glfw_window_deleter>;
+  public:
+    /// Move ctor
+    glfw_window(glfw_window&&) noexcept;
+    /// Dtor
+    ~glfw_window() noexcept;
+
+  public:
+    /// Get GLFWwindow
+    [[nodiscard]] auto get() const -> GLFWwindow*;
+
+  public:
+    // clang-format off
+
+    /// Add key-value pair of user data pointer.
+    /// \note Adding to existing key fails.
+    [[nodiscard]]
+    static bool add_user_data(
+      GLFWwindow* window,
+      const std::string& key,
+      void* data) noexcept;
+
+    /// Get window data
+    [[nodiscard]]
+    static void* get_user_data(
+      GLFWwindow* window,
+      const std::string& key) noexcept;
+
+    /// Remove window data
+    static void remove_user_data(GLFWwindow* window, const std::string& key) noexcept;
+
+    // clang-format on
+
+  private:
+    glfw_window(GLFWwindow* window);
+
+  private:
+    /// window
+    GLFWwindow* m_window;
+  };
 
   /// GLFW context
   class glfw_context
@@ -36,36 +72,16 @@ namespace yave::glfw {
 
   public:
     /// Create window
-    [[nodiscard]] 
-    auto create_window(uint32_t width, uint32_t height, const char* name) const 
-      -> unique_glfw_window;
-  
+    [[nodiscard]] auto create_window(
+      uint32_t width,
+      uint32_t height,
+      const char* name) const -> glfw_window;
+
   public:
     /// poll events
     void poll_events() const;
     /// wait events
     void wait_events() const;
   };
-
-  /// Window data stored in user pointer
-  class glfw_window_data
-  {
-  public:
-    /// Ctor
-    glfw_window_data();
-  
-  public:
-    /// Add new data pointer
-    [[nodiscard]] 
-    bool  add(const std::string& key, void* data);
-    /// Find data pointer
-    [[nodiscard]] 
-    void* find(const std::string& str) const;
-
-  private:
-    std::unordered_map<std::string, void*> m_map;
-  };
-
-  // clang-format on
 
 } // namespace yave::glfw

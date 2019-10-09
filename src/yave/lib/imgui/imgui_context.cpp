@@ -13,6 +13,7 @@
 #include <chrono>
 #include <thread>
 #include <fstream>
+#include <map>
 
 #if defined(YAVE_COMPILER_GCC) && __GNUC__ < 8
 #  include <experimental/filesystem>
@@ -829,7 +830,7 @@ namespace yave::imgui {
   public:
     glfw::glfw_context                     glfwCtx;
     vulkan::vulkan_context                 vulkanCtx;
-    glfw::unique_glfw_window               glfwWindow;
+    glfw::glfw_window                      glfwWindow;
     vulkan::window_context                 windowCtx;
 
   public:

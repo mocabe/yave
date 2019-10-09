@@ -9,10 +9,6 @@
 
 #include <imgui.h>
 #include <imgui_freetype.h> // use freetype for font rendering
-#include <chrono>
-#include <map>
-#include <string>
-#include <memory>
 
 namespace yave::imgui {
 

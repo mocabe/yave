@@ -1261,8 +1261,8 @@ namespace yave::vulkan {
     std::atomic<VkExtent2D> window_extent;
   };
 
-  auto vulkan_context::create_window_context(
-    glfw::unique_glfw_window& window) const -> window_context
+  auto vulkan_context::create_window_context(glfw::glfw_window& window) const
+    -> window_context
   {
     Info(g_vulkan_logger, "Initializing window context");
 
@@ -1276,35 +1276,25 @@ namespace yave::vulkan {
     // get window size
     impl->window_extent = getWindowExtent(window.get());
 
-    // set user data to window
-    auto* window_data =
-      (glfw::glfw_window_data*)glfwGetWindowUserPointer(window.get());
-
     // key for user data pointer of window context
-    static const char* wc_user_pointer_key = "window_context";
+    static constexpr const char* wd_key = "widnow_context";
 
-    // add data pointer
-    if (!window_data || !window_data->add(wc_user_pointer_key, impl.get())) {
+    // set user data
+    if (!glfw::glfw_window::add_user_data(window.get(), wd_key, impl.get())) {
       throw std::runtime_error("Failed to set window data");
     }
 
     // set window resize callback
     glfwSetFramebufferSizeCallback(
-      window.get(), [](GLFWwindow* window, int width, int height) {
-        // get window data container
-        auto* wd = (glfw::glfw_window_data*)glfwGetWindowUserPointer(window);
-        if (!wd)
-          return;
-
-        // get user data
-        auto* ctx = (window_context::impl*)(wd->find(wc_user_pointer_key));
-        if (!ctx)
-          return;
-
-        // set new window size
-        ctx->window_extent = {
-          static_cast<uint32_t>(std::clamp(0, width, width)),
-          static_cast<uint32_t>(std::clamp(0, height, height))};
+      window.get(), [](GLFWwindow * window, int width, int height) noexcept {
+        if (
+          auto* ctx = (window_context::impl*)glfw::glfw_window::get_user_data(
+            window, wd_key)) {
+          // set new window size
+          ctx->window_extent = {
+            static_cast<uint32_t>(std::clamp(0, width, width)),
+            static_cast<uint32_t>(std::clamp(0, height, height))};
+        }
       });
 
     // create surface
