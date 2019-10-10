@@ -43,6 +43,67 @@ namespace yave {
     /// unregister node info
     void unregister_node_info(const std::vector<node_info>& info);
 
+  public: /* node grouping features */
+    /// Create new group
+    /// \note All nodes should be in same level.
+    /// \note Creating group modifies underlying node_graph not just adding
+    /// interface nodes.
+    /// \note Nodes in group has level which is current depth of grouping.
+    /// \returns handle of interface node which represents new group.
+    auto group(const std::vector<node_handle>& nodes) -> node_handle;
+
+    /// Ungroup
+    void ungroup(const node_handle& node);
+
+    /// Group interface?
+    bool is_group(const node_handle& node) const;
+
+    /// Group member?
+    bool is_group_member(const node_handle& node) const;
+
+    /// Group output node?
+    bool is_group_output(const node_handle& node) const;
+
+    /// Group input node?
+    bool is_group_input(const node_handle& node) const;
+
+    /// Get parent group interface handler
+    auto get_group(const node_handle& node) const -> node_handle;
+
+    /// Get all nodes in group
+    auto get_members(const node_handle& node) const -> std::vector<node_handle>;
+
+    /// Get root group
+    auto root_group() const -> node_handle;
+
+    /// Add group input socket
+    /// \note index -1 treated as number of current sockets
+    /// \requires -1 <= index <= number of sockets
+    bool add_group_input(const std::string& socket, size_t index = -1);
+    /// Add group output socket
+    /// \note index -1 treated as number of current sockets
+    /// \requires -1 <= index <= number of sockets
+    bool add_group_output(const std::string& socket, size_t index = -1);
+
+    /// Change group input socket name
+    /// \requires index < number of sockets
+    bool set_group_input(const std::string& socket, size_t index);
+    /// Change group output socket name
+    /// \requires index < number of sockets
+    bool set_group_output(const std::string& socket, size_t index);
+
+    /// Remove group input socket
+    /// \note destroy all connections to the socket
+    void remove_group_input(const std::string& socket);
+    /// Remove group output socket
+    /// \note destroy all connections to the socket
+    void remove_group_output(const std::string& socket);
+
+    /// Remove group input socket
+    void move_group_input(const std::string& socket, size_t index);
+    /// Remove group output socket
+    void move_group_output(const std::string& socket, size_t index);
+
   public:
     /// exist?
     [[nodiscard]] bool exists(const node_handle& node) const;
