@@ -8,8 +8,8 @@
 #include <yave/node/compiler/executable.hpp>
 #include <yave/node/compiler/errors.hpp>
 #include <yave/node/parser/node_parser.hpp>
-#include <yave/node/support/bind_info_manager.hpp>
-#include <yave/node/support/socket_instance_manager.hpp>
+#include <yave/node/core/bind_info_manager.hpp>
+#include <yave/node/core/socket_instance_manager.hpp>
 
 namespace yave {
 

@@ -8,7 +8,12 @@ add_library(yave-node-core
   node_property.cpp
   socket_property.cpp
   connection_info.cpp
-  node_graph.cpp)
+  node_graph.cpp
+  managed_node_graph.cpp
+  node_info_manager.cpp
+  bind_info_manager.cpp
+  socket_instance_manager.cpp
+)
 
 add_library(yave::node::core ALIAS yave-node-core)
 
