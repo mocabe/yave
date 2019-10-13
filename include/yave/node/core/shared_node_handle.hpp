@@ -11,11 +11,15 @@
 
 namespace yave {
 
+  class managed_node_graph;
+
   /// Reference counted node handle.
   class shared_node_handle
   {
   public:
-    shared_node_handle(node_graph& node_graph, const node_handle& node_handle)
+    shared_node_handle(
+      managed_node_graph& node_graph,
+      const node_handle& node_handle)
     {
       if (node_handle)
         m_ptr = std::make_shared<_data>(node_graph, node_handle);
@@ -76,18 +80,9 @@ namespace yave {
   private:
     struct _data
     {
-      _data(node_graph& g, const node_handle& h)
-        : graph {g}
-        , handle {h}
-      {
-        assert(g.exists(h));
-      }
-      ~_data()
-      {
-        if (handle)
-          graph.remove(handle);
-      }
-      node_graph& graph;
+      _data(managed_node_graph& g, const node_handle& h);
+      ~_data();
+      managed_node_graph& graph;
       node_handle handle;
     };
 
