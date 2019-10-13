@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/node/core/shared_node_handle.hpp>
-#include <yave/node/scene/managed_node_graph.hpp>
+#include <yave/node/core/managed_node_graph.hpp>
 #include <yave/node/scene/layer_resource_info.hpp>
 
 #include <memory>

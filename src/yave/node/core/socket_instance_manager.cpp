@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/support/socket_instance_manager.hpp>
+#include <yave/node/core/socket_instance_manager.hpp>
 #include <yave/support/log.hpp>
 
 namespace {
