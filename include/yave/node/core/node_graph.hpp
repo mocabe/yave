@@ -286,15 +286,19 @@ namespace yave {
     [[nodiscard]] bool _exists(const node_handle&) const;
     [[nodiscard]] bool _exists(const socket_handle&) const;
     [[nodiscard]] bool _exists(const connection_handle&) const;
-    [[nodiscard]] auto _find_loop(const node_handle&) const
-      -> std::vector<node_handle>;
     [[nodiscard]] auto _get_info(const node_handle&) const
       -> std::optional<node_info>;
     [[nodiscard]] auto _get_info(const socket_handle&) const
       -> std::optional<socket_info>;
     [[nodiscard]] auto _get_info(const connection_handle&) const
       -> std::optional<connection_info>;
+    [[nodiscard]] auto _get_name(const node_handle&) const
+      -> std::optional<std::string>;
+    [[nodiscard]] auto _get_name(const socket_handle&) const
+      -> std::optional<std::string>;
     [[nodiscard]] auto _root_of(const node_handle&) const
+      -> std::vector<node_handle>;
+    [[nodiscard]] auto _find_loop(const node_handle&) const
       -> std::vector<node_handle>;
     [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
 

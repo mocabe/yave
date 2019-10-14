@@ -211,28 +211,36 @@ namespace yave {
     return _get_info(h);
   }
 
+  auto node_graph::_get_name(const node_handle& node) const
+    -> std::optional<std::string>
+  {
+    if (!_exists(node)) {
+      return std::nullopt;
+    }
+    return m_g[node.descriptor()].name();
+  }
+
   auto node_graph::get_name(const node_handle& node) const
     -> std::optional<std::string>
   {
     auto lck = _lock();
+    return _get_name(node);
+  }
 
-    if (!_exists(node)) {
-      Warning(g_logger, "node_graph::node_name() on invalid node handle.");
+  [[nodiscard]] auto node_graph::_get_name(const socket_handle& socket) const
+    -> std::optional<std::string>
+  {
+    if (!_exists(socket)) {
       return std::nullopt;
     }
-    return m_g[node.descriptor()].name();
+    return m_g[socket.descriptor()].name();
   }
 
   auto node_graph::get_name(const socket_handle& socket) const
     -> std::optional<std::string>
   {
     auto lck = _lock();
-
-    if (!_exists(socket)) {
-      Warning(g_logger, "node_graph::get_name() on invalid socket handle.");
-      return std::nullopt;
-    }
-    return m_g[socket.descriptor()].name();
+    return _get_name(socket);
   }
 
   auto node_graph::add(const yave::node_info& info, const primitive_t& prim)
@@ -340,25 +348,25 @@ namespace yave {
           if (m_g.id(s) == m_g.id(ss)) {
             assert(m_g[s].name() == m_g[ss].name());
             assert(m_g[s].is_input() == m_g[ss].is_input());
-            Warning(g_logger, "attach_interface(): already attached");
-            return true; // already attached
-          }
-        }
+        Warning(g_logger, "attach_interface(): already attached");
+        return true; // already attached
+      }
+    }
 
         if (!m_g.attach_socket(interface.descriptor(), s)) {
-          Error(g_logger, "attach_interface(): Failed to attach socket!");
-          return false;
-        }
+      Error(g_logger, "attach_interface(): Failed to attach socket!");
+      return false;
+    }
 
-        Info(
-          g_logger,
+    Info(
+      g_logger,
           "Attached interface: node={}({}), socket={}",
           m_g[node.descriptor()].name(),
           to_string(node.id()),
           socket);
 
-        return true;
-      }
+    return true;
+  }
     }
     return false;
   }
