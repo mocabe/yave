@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/core/socket_property.hpp>
+#include <yave/node/core/node_handle.hpp>
 
 namespace yave {
 
@@ -18,7 +19,7 @@ namespace yave {
     socket_info& operator=(const socket_info&) = default;
     socket_info& operator=(socket_info&&) = default;
 
-    socket_info(std::string name, socket_type type);
+    socket_info(std::string name, socket_type type, node_handle node);
 
     /// name
     [[nodiscard]] auto name() const -> const std::string&;
@@ -26,8 +27,12 @@ namespace yave {
     /// socket type
     [[nodiscard]] auto type() const -> socket_type;
 
+    /// Get node
+    [[nodiscard]] auto node() const -> const node_handle&;
+
   private:
     std::string m_name;
     socket_type m_type;
+    node_handle m_node;
   };
 }
