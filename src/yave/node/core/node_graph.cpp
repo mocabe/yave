@@ -322,13 +322,11 @@ namespace yave {
 
   bool node_graph::attach_interface(
     const node_handle& interface,
-    const node_handle& node,
-    const std::string& socket,
-    const socket_type& type)
+    const socket_handle& socket)
   {
     auto lck = _lock();
 
-    if (!_exists(interface) || !_exists(node))
+    if (!_exists(interface) || !_exists(socket))
       return false;
 
     if (!m_g[interface.descriptor()].is_interface()) {
@@ -336,77 +334,59 @@ namespace yave {
       return false;
     }
 
-    for (auto&& s : m_g.sockets(node.descriptor())) {
+    auto info = _get_info(socket);
+    assert(info);
 
-      if (m_g[s].get_type() != type)
-        continue;
-
-      if (m_g[s].name() == socket) {
-
-        for (auto&& ss : m_g.sockets(interface.descriptor())) {
-
-          if (m_g.id(s) == m_g.id(ss)) {
-            assert(m_g[s].name() == m_g[ss].name());
-            assert(m_g[s].is_input() == m_g[ss].is_input());
+    for (auto&& s : m_g.sockets(interface.descriptor())) {
+      if (socket.id().data == m_g.id(s)) {
         Warning(g_logger, "attach_interface(): already attached");
         return true; // already attached
       }
     }
 
-        if (!m_g.attach_socket(interface.descriptor(), s)) {
+    if (!m_g.attach_socket(interface.descriptor(), socket.descriptor())) {
       Error(g_logger, "attach_interface(): Failed to attach socket!");
       return false;
     }
 
     Info(
       g_logger,
-          "Attached interface: node={}({}), socket={}",
-          m_g[node.descriptor()].name(),
-          to_string(node.id()),
-          socket);
+      "Attached interface: node={}({}), socket={}({})",
+      *_get_name(info->node()),
+      to_string(info->node().id()),
+      info->name(),
+      to_string(socket.id()));
 
     return true;
-  }
-    }
-    return false;
   }
 
   void node_graph::detach_interface(
     const node_handle& interface,
-    const node_handle& node,
-    const std::string& socket,
-    const socket_type& type)
+    const socket_handle& socket)
   {
     auto lck = _lock();
 
-    if (!_exists(interface) || !_exists(node))
+    if (!_exists(interface) || !_exists(socket))
       return;
 
-    for (auto&& s : m_g.sockets(node.descriptor())) {
+    auto info = _get_info(socket);
+    assert(info);
 
-      if (m_g[s].get_type() != type)
-        continue;
+    for (auto&& s : m_g.sockets(interface.descriptor())) {
 
-      if (m_g[s].name() == socket) {
+      if (socket.id().data == m_g.id(s)) {
 
-        for (auto&& ss : m_g.sockets(interface.descriptor())) {
+        // detach
+        m_g.detach_socket(interface.descriptor(), s);
 
-          if (m_g.id(s) == m_g.id(ss)) {
-            assert(m_g[s].name() == m_g[ss].name());
-            assert(m_g[s].is_input() == m_g[ss].is_input());
-
-            // detach
-            m_g.detach_socket(interface.descriptor(), ss);
-
-            Info(
-              g_logger,
-              "Detached interface: node={}({}), socket={}",
-              m_g[node.descriptor()].name(),
-              to_string(node.id()),
-              socket);
-            return;
-          }
-        }
+        Info(
+          g_logger,
+          "Detached interface: node={}({}), socket={}({})",
+          *_get_name(info->node()),
+          to_string(info->node().id()),
+          info->name(),
+          to_string(socket.id()));
+        return;
       }
     }
   }
@@ -1141,4 +1121,4 @@ namespace yave {
     return std::unique_lock(m_mtx);
   }
 
-} // namespace yave
+  } // namespace yave
