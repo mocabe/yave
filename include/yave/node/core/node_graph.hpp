@@ -7,8 +7,10 @@
 
 #include <yave/node/core/graph_definition.hpp>
 #include <yave/node/core/node_handle.hpp>
+#include <yave/node/core/socket_handle.hpp>
 #include <yave/node/core/connection_handle.hpp>
 #include <yave/node/core/node_info.hpp>
+#include <yave/node/core/socket_info.hpp>
 #include <yave/node/core/connection_info.hpp>
 
 #include <optional>
@@ -42,7 +44,34 @@ namespace yave {
     [[nodiscard]] bool exists(const node_handle& node) const;
 
     /// exists
+    [[nodiscard]] bool exists(const socket_handle& socket) const;
+
+    /// exists
     [[nodiscard]] bool exists(const connection_handle& connection) const;
+
+    /// Get node info from handle.
+    /// \returns std::nullopt when the node did not exist.
+    [[nodiscard]] auto get_info(const node_handle& node) const
+      -> std::optional<node_info>;
+
+    /// Get socket info from handle.
+    /// \returns std::nullopt when the socket did not exist.
+    [[nodiscard]] auto get_info(const socket_handle& node) const
+      -> std::optional<socket_info>;
+
+    /// Get connection info of all connections from/to the node.
+    [[nodiscard]] auto get_info(const connection_handle& node) const
+      -> std::optional<connection_info>;
+
+    /// Get node name from handle.
+    /// \returns std::nullopt when the node did not exist.
+    [[nodiscard]] auto get_name(const node_handle& node) const
+      -> std::optional<std::string>;
+
+    /// Get node name for handle.
+    /// \returns std::nullopt when the socket did not exist.
+    [[nodiscard]] auto get_name(const socket_handle& socket) const
+      -> std::optional<std::string>;
 
     /// Add new node.
     /// \returns Non-null handle of new node.
@@ -120,16 +149,6 @@ namespace yave {
     /// Get list of nodes.
     [[nodiscard]] auto nodes() const -> std::vector<node_handle>;
 
-    /// Get node info from handle.
-    /// \returns std::nullopt when the node did not exist.
-    [[nodiscard]] auto get_info(const node_handle& node) const
-      -> std::optional<node_info>;
-
-    /// Get node name from handle.
-    /// \returns std::nullopt when the node did not exist.
-    [[nodiscard]] auto get_name(const node_handle& node) const
-      -> std::optional<std::string>;
-
     /// Check if the node has a socket with the name.
     [[nodiscard]] bool has_socket(
       const node_handle& node,
@@ -199,10 +218,6 @@ namespace yave {
       const node_handle& node,
       const std::string& socket) const;
 
-    /// Get connection info of all connections from/to the node.
-    [[nodiscard]] auto get_info(const connection_handle& node) const
-      -> std::optional<connection_info>;
-
     /// Get list of input sockets attached to the node.
     [[nodiscard]] auto input_sockets(const node_handle& node) const
       -> std::vector<std::string>;
@@ -269,13 +284,16 @@ namespace yave {
 
   private: /* non locking helpers */
     [[nodiscard]] bool _exists(const node_handle&) const;
+    [[nodiscard]] bool _exists(const socket_handle&) const;
     [[nodiscard]] bool _exists(const connection_handle&) const;
     [[nodiscard]] auto _find_loop(const node_handle&) const
       -> std::vector<node_handle>;
-    [[nodiscard]] auto _get_info(const connection_handle&) const
-      -> std::optional<connection_info>;
     [[nodiscard]] auto _get_info(const node_handle&) const
       -> std::optional<node_info>;
+    [[nodiscard]] auto _get_info(const socket_handle&) const
+      -> std::optional<socket_info>;
+    [[nodiscard]] auto _get_info(const connection_handle&) const
+      -> std::optional<connection_info>;
     [[nodiscard]] auto _root_of(const node_handle&) const
       -> std::vector<node_handle>;
     [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;

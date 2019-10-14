@@ -94,6 +94,147 @@ namespace yave {
     return _exists(h);
   }
 
+  bool node_graph::_exists(const socket_handle& h) const
+  {
+    return h.has_value() && m_g.exists(h.descriptor()) &&
+           h.id() == uid {m_g.id(h.descriptor())};
+  }
+
+  bool node_graph::exists(const socket_handle& h) const
+  {
+    auto lck = _lock();
+    return _exists(h);
+  }
+
+  auto node_graph::_get_info(const node_handle& h) const
+    -> std::optional<node_info>
+  {
+    // check handler
+    if (!_exists(h)) {
+      return std::nullopt;
+    }
+
+    // node
+    auto& n = m_g[h.descriptor()];
+
+    std::vector<std::string> input_sockets;
+    std::vector<std::string> output_sockets;
+
+    for (auto&& s : m_g.sockets(h.descriptor())) {
+      if (m_g[s].is_input())
+        input_sockets.emplace_back(m_g[s].name());
+      else
+        output_sockets.emplace_back(m_g[s].name());
+    }
+
+    auto ret = node_info(n.name(), input_sockets, output_sockets, n.get_type());
+
+    return ret;
+  }
+
+  auto node_graph::get_info(const node_handle& h) const
+    -> std::optional<node_info>
+  {
+    auto lck = _lock();
+    return _get_info(h);
+  }
+
+  auto node_graph::_get_info(const socket_handle& h) const
+    -> std::optional<socket_info>
+  {
+    if (_exists(h)) {
+      return std::nullopt;
+    }
+
+    assert(!m_g.nodes(h.descriptor()).empty());
+
+    const auto& s = m_g[h.descriptor()];
+    const auto& n = m_g.nodes(h.descriptor())[0];
+
+    return socket_info(s.name(), s.get_type(), node_handle {n, {m_g.id(n)}});
+  }
+
+  auto node_graph::get_info(const socket_handle& h) const
+    -> std::optional<socket_info>
+  {
+    auto lck = _lock();
+    return _get_info(h);
+  }
+
+  auto node_graph::_get_info(const connection_handle& h) const
+    -> std::optional<connection_info>
+  {
+    if (!_exists(h)) {
+      Warning(
+        g_logger,
+        "node_graph::connection_info() on invalid connection handle.");
+      return std::nullopt;
+    }
+
+    auto src = m_g.src(h.descriptor());
+    auto dst = m_g.dst(h.descriptor());
+
+    auto src_nodes = m_g.nodes(src);
+    auto dst_nodes = m_g.nodes(dst);
+
+    assert(src_nodes.size() >= 1);
+    assert(dst_nodes.size() >= 1);
+
+    assert(m_g[src_nodes[0]].is_normal());
+    assert(m_g[dst_nodes[0]].is_normal());
+
+    std::vector<node_handle> src_interfaces;
+    std::vector<node_handle> dst_interfaces;
+
+    for (size_t i = 1; i < src_nodes.size(); ++i) {
+      assert(m_g[src_nodes[i]].is_interface());
+      src_interfaces.emplace_back(src_nodes[i], uid {m_g.id(src_nodes[i])});
+    }
+
+    for (size_t i = 1; i < dst_nodes.size(); ++i) {
+      assert(m_g[dst_nodes[i]].is_interface());
+      dst_interfaces.emplace_back(dst_nodes[i], uid {m_g.id(dst_nodes[i])});
+    }
+
+    return connection_info {node_handle(src_nodes[0], {m_g.id(src_nodes[0])}),
+                            m_g[src].name(),
+                            node_handle(dst_nodes[0], {m_g.id(dst_nodes[0])}),
+                            m_g[dst].name(),
+                            src_interfaces,
+                            dst_interfaces};
+  }
+
+  auto node_graph::get_info(const connection_handle& h) const
+    -> std::optional<connection_info>
+  {
+    auto lck = _lock();
+    return _get_info(h);
+  }
+
+  auto node_graph::get_name(const node_handle& node) const
+    -> std::optional<std::string>
+  {
+    auto lck = _lock();
+
+    if (!_exists(node)) {
+      Warning(g_logger, "node_graph::node_name() on invalid node handle.");
+      return std::nullopt;
+    }
+    return m_g[node.descriptor()].name();
+  }
+
+  auto node_graph::get_name(const socket_handle& socket) const
+    -> std::optional<std::string>
+  {
+    auto lck = _lock();
+
+    if (!_exists(socket)) {
+      Warning(g_logger, "node_graph::get_name() on invalid socket handle.");
+      return std::nullopt;
+    }
+    return m_g[socket.descriptor()].name();
+  }
+
   auto node_graph::add(const yave::node_info& info, const primitive_t& prim)
     -> node_handle
   {
@@ -436,54 +577,9 @@ namespace yave {
     auto lck = _lock();
 
     std::vector<node_handle> ret;
-    for (auto&& n : m_g.nodes()) ret.emplace_back(n, uid {m_g.id(n)});
+    for (auto&& n : m_g.nodes())
+      ret.emplace_back(n, uid {m_g.id(n)});
     return ret;
-  }
-
-  auto node_graph::_get_info(const node_handle& h) const
-    -> std::optional<node_info>
-  {
-    // check handler
-    if (!_exists(h)) {
-      Warning(g_logger, "node_graph::node_info() on invalid node handle.");
-      return std::nullopt;
-    }
-
-    // node
-    auto& n = m_g[h.descriptor()];
-
-    std::vector<std::string> input_sockets;
-    std::vector<std::string> output_sockets;
-
-    for (auto&& s : m_g.sockets(h.descriptor())) {
-      if (m_g[s].is_input())
-        input_sockets.emplace_back(m_g[s].name());
-      else
-        output_sockets.emplace_back(m_g[s].name());
-    }
-
-    auto ret = node_info(n.name(), input_sockets, output_sockets, n.get_type());
-
-    return ret;
-  }
-
-  auto node_graph::get_info(const node_handle& h) const
-    -> std::optional<node_info>
-  {
-    auto lck = _lock();
-    return _get_info(h);
-  }
-
-  auto node_graph::get_name(const node_handle& node) const
-    -> std::optional<std::string>
-  {
-    auto lck = _lock();
-
-    if (!_exists(node)) {
-      Warning(g_logger, "NodeGrpah::node_name() on invalid node handle.");
-      return std::nullopt;
-    }
-    return m_g[node.descriptor()].name();
   }
 
   bool node_graph::has_socket(const node_handle& h, const std::string& socket)
@@ -593,7 +689,8 @@ namespace yave {
         auto dst_edges = m_g.dst_edges(s);
         if (m_g[s].is_output())
           assert(dst_edges.empty());
-        for (auto&& e : dst_edges) ret.emplace_back(e, uid {m_g.id(e)});
+        for (auto&& e : dst_edges)
+          ret.emplace_back(e, uid {m_g.id(e)});
       }
     }
     return ret;
@@ -618,7 +715,8 @@ namespace yave {
         auto src_edges = m_g.src_edges(s);
         if (m_g[s].is_input())
           assert(src_edges.empty());
-        for (auto&& e : src_edges) ret.emplace_back(e, uid {m_g.id(e)});
+        for (auto&& e : src_edges)
+          ret.emplace_back(e, uid {m_g.id(e)});
       }
     }
     return ret;
@@ -666,8 +764,10 @@ namespace yave {
       assert(
         (m_g[s].is_input() && src_edges.empty()) ||
         (m_g[s].is_output() && dst_edges.empty()));
-      for (auto&& e : src_edges) ret.emplace_back(e, uid {m_g.id(e)});
-      for (auto&& e : dst_edges) ret.emplace_back(e, uid {m_g.id(e)});
+      for (auto&& e : src_edges)
+        ret.emplace_back(e, uid {m_g.id(e)});
+      for (auto&& e : dst_edges)
+        ret.emplace_back(e, uid {m_g.id(e)});
     }
     return ret;
   }
@@ -688,8 +788,10 @@ namespace yave {
       if (m_g[s].name() == socket) {
         auto src_edges = m_g.src_edges(s);
         auto dst_edges = m_g.dst_edges(s);
-        for (auto&& e : src_edges) ret.emplace_back(e, uid {m_g.id(e)});
-        for (auto&& e : dst_edges) ret.emplace_back(e, uid {m_g.id(e)});
+        for (auto&& e : src_edges)
+          ret.emplace_back(e, uid {m_g.id(e)});
+        for (auto&& e : dst_edges)
+          ret.emplace_back(e, uid {m_g.id(e)});
       }
     }
     if (ret.empty())
@@ -736,7 +838,8 @@ namespace yave {
     for (auto&& s : sockets) {
       auto src_edges = m_g.src_edges(s);
       assert((m_g[s].is_input() && src_edges.empty()) || m_g[s].is_output());
-      for (auto&& e : src_edges) ret.emplace_back(e, uid {m_g.id(e)});
+      for (auto&& e : src_edges)
+        ret.emplace_back(e, uid {m_g.id(e)});
     }
     if (ret.empty())
       Warning(
@@ -763,7 +866,8 @@ namespace yave {
     std::vector<connection_handle> ret;
     for (auto&& n : m_g.nodes()) {
       for (auto&& s : m_g.sockets(n)) {
-        for (auto&& e : m_g.src_edges(s)) ret.emplace_back(e, uid {m_g.id(e)});
+        for (auto&& e : m_g.src_edges(s))
+          ret.emplace_back(e, uid {m_g.id(e)});
       }
     }
     return ret;
@@ -796,56 +900,6 @@ namespace yave {
       return ret;
     }
     return {};
-  }
-
-  auto node_graph::_get_info(const connection_handle& h) const
-    -> std::optional<connection_info>
-  {
-    if (!_exists(h)) {
-      Warning(
-        g_logger,
-        "node_graph::connection_info() on invalid connection handle.");
-      return std::nullopt;
-    }
-
-    auto src = m_g.src(h.descriptor());
-    auto dst = m_g.dst(h.descriptor());
-
-    auto src_nodes = m_g.nodes(src);
-    auto dst_nodes = m_g.nodes(dst);
-
-    assert(src_nodes.size() >= 1);
-    assert(dst_nodes.size() >= 1);
-
-    assert(m_g[src_nodes[0]].is_normal());
-    assert(m_g[dst_nodes[0]].is_normal());
-
-    std::vector<node_handle> src_interfaces;
-    std::vector<node_handle> dst_interfaces;
-
-    for (size_t i = 1; i < src_nodes.size(); ++i) {
-      assert(m_g[src_nodes[i]].is_interface());
-      src_interfaces.emplace_back(src_nodes[i], uid {m_g.id(src_nodes[i])});
-    }
-
-    for (size_t i = 1; i < dst_nodes.size(); ++i) {
-      assert(m_g[dst_nodes[i]].is_interface());
-      dst_interfaces.emplace_back(dst_nodes[i], uid {m_g.id(dst_nodes[i])});
-    }
-
-    return connection_info {node_handle(src_nodes[0], {m_g.id(src_nodes[0])}),
-                            m_g[src].name(),
-                            node_handle(dst_nodes[0], {m_g.id(dst_nodes[0])}),
-                            m_g[dst].name(),
-                            src_interfaces,
-                            dst_interfaces};
-  }
-
-  auto node_graph::get_info(const connection_handle& h) const
-    -> std::optional<connection_info>
-  {
-    auto lck = _lock();
-    return _get_info(h);
   }
 
   auto node_graph::input_sockets(const node_handle& h) const
