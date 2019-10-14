@@ -4,10 +4,11 @@ add_library(yave-node-core
   primitive.cpp
   bind_info.cpp
   node_info.cpp
+  socket_info.cpp
+  connection_info.cpp
   edge_property.cpp
   node_property.cpp
   socket_property.cpp
-  connection_info.cpp
   node_graph.cpp
   managed_node_graph.cpp
   node_info_manager.cpp
