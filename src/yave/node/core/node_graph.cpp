@@ -506,48 +506,6 @@ namespace yave {
       dst_socket);
   }
 
-  auto node_graph::connect(const connection_info& info) -> connection_handle
-  {
-    auto lck = _lock();
-
-    // check handler
-    if (!_exists(info.src_node()) || !_exists(info.dst_node())) {
-      Error(g_logger, "Failed to connect sockets: Invalid node descriptor");
-      return {nullptr};
-    }
-    if (!_exists(info.src_socket()) || !_exists(info.dst_socket())) {
-      Error(g_logger, "Failed to connect sockets: Invalid socket descriptor");
-      return {nullptr};
-    }
-
-    // check nodes
-    {
-      auto s    = info.src_socket().descriptor();
-      auto ns   = m_g.nodes(s);
-      auto iter = std::find(ns.begin(), ns.end(), info.src_node().descriptor());
-      if (iter == ns.end()) {
-        Error(
-          g_logger,
-          "Failed to connect sockets: Invalid node-socket combination");
-        return {nullptr};
-      }
-    }
-    {
-      auto d    = info.dst_socket().descriptor();
-      auto ns   = m_g.nodes(d);
-      auto iter = std::find(ns.begin(), ns.end(), info.dst_node().descriptor());
-      if (iter == ns.end()) {
-        Error(
-          g_logger,
-          "Failed to connect sockets: Invalid node-socket combination");
-        return {nullptr};
-      }
-    }
-
-    return _connect(
-      info.src_node(), info.src_socket(), info.dst_node(), info.dst_socket());
-  }
-
   void node_graph::disconnect(const connection_handle& h)
   {
     auto lck = _lock();
@@ -575,59 +533,6 @@ namespace yave {
 
     // remove edge
     m_g.remove_edge(h.descriptor());
-  }
-
-  void node_graph::disconnect(const connection_info& info)
-  {
-    auto lck = _lock();
-
-    if (!_exists(info.src_socket()) || !_exists(info.dst_socket())) {
-      Error(g_logger, "disconnect(): Invalid socket handle");
-      return;
-    }
-
-    if (!_exists(info.src_node()) || !_exists(info.dst_node())) {
-      Error(g_logger, "disconnect(): Invalid node handle");
-      return;
-    }
-
-    auto s = info.src_socket().descriptor();
-    auto d  = info.dst_socket().descriptor();
-    auto sn = info.src_node().descriptor();
-    auto dn = info.dst_node().descriptor();
-
-    {
-      auto ns   = m_g.nodes(s);
-      auto iter = std::find(ns.begin(), ns.end(), sn);
-      if (iter == ns.end()) {
-        Error(g_logger, "disconnect(): Invalid node-socket combination");
-        return;
-      }
-    }
-    {
-      auto ns   = m_g.nodes(d);
-      auto iter = std::find(ns.begin(), ns.end(), dn);
-      if (iter == ns.end()) {
-        Error(g_logger, "disconnect(): Invalid node-socket combination");
-        return;
-      }
-    }
-
-    for (auto&& e : m_g.dst_edges(d)) {
-      if (m_g.src(e) == s) {
-        Info(
-          g_logger,
-          "Disconnecting: src='{}'({})::{} dst='{}'({})::{}",
-          _get_name(info.src_node()),
-          to_string(info.src_node().id()),
-          _get_name(info.src_socket()),
-          _get_name(info.dst_node()),
-          to_string(info.dst_node().id()),
-          _get_name(info.dst_socket()));
-        m_g.remove_edge(e);
-        return;
-      }
-    }
   }
 
   auto node_graph::node(const uid& id) const -> node_handle
