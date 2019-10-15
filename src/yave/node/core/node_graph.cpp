@@ -197,9 +197,9 @@ namespace yave {
     }
 
     return connection_info {node_handle(src_nodes[0], {m_g.id(src_nodes[0])}),
-                            m_g[src].name(),
+                            socket_handle(src, {m_g.id(src)}),
                             node_handle(dst_nodes[0], {m_g.id(dst_nodes[0])}),
-                            m_g[dst].name(),
+                            socket_handle(dst, {m_g.id(dst)}),
                             src_interfaces,
                             dst_interfaces};
   }
@@ -420,9 +420,9 @@ namespace yave {
 
   auto node_graph::connect(
     const node_handle& src_node,
-    const std::string& src_socket,
+    const socket_handle& src_socket,
     const node_handle& dst_node,
-    const std::string& dst_socket) -> connection_handle
+    const socket_handle& dst_socket) -> connection_handle
   {
     return connect(
       yave::connection_info {src_node, src_socket, dst_node, dst_socket});
@@ -437,12 +437,16 @@ namespace yave {
       Error(g_logger, "Failed to connect sockets: Invalid node descriptor.");
       return nullptr;
     }
+    if (!_exists(info.src_socket()) || !_exists(info.dst_socket())) {
+      Error(g_logger, "Failed to connect sockets: Invalid socket descriptor.");
+      return nullptr;
+    }
 
-    // check socket name
+    // check sockets
     for (auto&& s : m_g.sockets(info.src_node().descriptor())) {
-      if (m_g[s].name() == info.src_socket() && m_g[s].is_output()) {
+      if (s == info.src_socket().descriptor() && m_g[s].is_output()) {
         for (auto&& d : m_g.sockets(info.dst_node().descriptor())) {
-          if (m_g[d].name() == info.dst_socket() && m_g[d].is_input()) {
+          if (d == info.dst_socket().descriptor() && m_g[d].is_input()) {
             // already exists
             for (auto&& e : m_g.dst_edges(d))
               if (m_g.src(e) == s) {
@@ -457,12 +461,12 @@ namespace yave {
               Error(
                 g_logger,
                 "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
-                m_g[info.src_node().descriptor()].name(),
+                *_get_name(info.src_node()),
                 to_string(info.src_node().id()),
-                info.src_socket(),
-                m_g[info.dst_node().descriptor()].name(),
+                *_get_name(info.src_socket()),
+                *_get_name(info.dst_node()),
                 to_string(info.dst_node().id()),
-                info.dst_socket());
+                *_get_name(info.dst_socket()));
               Error(g_logger, "Multiple input is not allowed.");
               return nullptr;
             }
@@ -476,12 +480,12 @@ namespace yave {
               Error(
                 g_logger,
                 "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
-                m_g[info.src_node().descriptor()].name(),
+                *_get_name(info.src_node()),
                 to_string(info.src_node().id()),
-                info.src_socket(),
-                m_g[info.dst_node().descriptor()].name(),
+                *_get_name(info.src_socket()),
+                *_get_name(info.dst_node()),
                 to_string(info.dst_node().id()),
-                info.dst_socket());
+                *_get_name(info.dst_socket()));
               Error(g_logger, "Closed loop is not allowed.");
               m_g.remove_edge(new_edge);
               return nullptr;
@@ -490,12 +494,12 @@ namespace yave {
             Info(
               g_logger,
               "Connected socket: src=\"{}\"({})::{}, dst=\"{}\"({})::{}",
-              m_g[info.src_node().descriptor()].name(),
+              *_get_name(info.src_node()),
               to_string(info.src_node().id()),
-              info.src_socket(),
-              m_g[info.dst_node().descriptor()].name(),
+              *_get_name(info.src_socket()),
+              *_get_name(info.dst_node()),
               to_string(info.dst_node().id()),
-              info.dst_socket());
+              *_get_name(info.dst_socket()));
 
             return connection_handle(new_edge, {m_g.id(new_edge)});
           }
