@@ -39,24 +39,21 @@ TEST_CASE("node_graph init")
   REQUIRE(ng.nodes().empty());
   REQUIRE(ng.nodes("").empty());
 
+  REQUIRE(!ng.get_info(connection_handle()));
+  REQUIRE(!ng.get_info(socket_handle()));
   REQUIRE(!ng.get_info(node_handle()));
+
+  REQUIRE(!ng.get_name(socket_handle()));
   REQUIRE(!ng.get_name(node_handle()));
 
-  REQUIRE(!ng.has_socket(node_handle(), ""));
-  REQUIRE(!ng.is_input_socket(node_handle(), ""));
-  REQUIRE(!ng.is_output_socket(node_handle(), ""));
+  REQUIRE(!ng.is_input_socket(socket_handle()));
+  REQUIRE(!ng.is_output_socket(socket_handle()));
 
   REQUIRE(ng.input_connections(node_handle()).empty());
   REQUIRE(ng.output_connections(node_handle()).empty());
-  REQUIRE(ng.input_connections(node_handle(), "").empty());
-  REQUIRE(ng.output_connections(node_handle(), "").empty());
+  REQUIRE(ng.connections(socket_handle()).empty());
 
   REQUIRE(ng.connections().empty());
-  REQUIRE(ng.connections(node_handle()).empty());
-  REQUIRE(ng.connections(node_handle(), "").empty());
-
-  REQUIRE(!ng.has_connection(node_handle(), ""));
-  REQUIRE(!ng.get_info(connection_handle()));
 
   REQUIRE(ng.input_sockets(node_handle()).empty());
   REQUIRE(ng.output_sockets(node_handle()).empty());
@@ -119,27 +116,25 @@ TEST_CASE("node_graph control")
     auto n2 = ng.add(info);
     auto n3 = ng.add(info);
 
-    REQUIRE(ng.connect(n1, "output1", n2, "input1"));
-    REQUIRE(ng.connect(n2, "output1", n3, "input1"));
-    REQUIRE(!ng.connect(n3, "output1", n1, "input1"));
+    REQUIRE(ng.connect(ng.output_sockets(n1)[0], ng.input_sockets(n2)[0]));
+    REQUIRE(ng.connect(ng.output_sockets(n2)[0], ng.input_sockets(n3)[0]));
+    REQUIRE(!ng.connect(ng.output_sockets(n3)[0], ng.input_sockets(n1)[0]));
 
-    REQUIRE(ng.input_connections().size() == 2);
-    REQUIRE(ng.input_connections().size() == ng.connections().size());
-
+    REQUIRE(ng.connections().size() == 2);
     REQUIRE(ng.nodes("test node").size() == 3);
 
     ng.remove(n2);
 
     REQUIRE(ng.nodes("test node").size() == 2);
-    REQUIRE(ng.input_connections(n3, "intput1").empty());
-    REQUIRE(ng.output_connections(n3, "output1").empty());
-    REQUIRE(ng.output_connections(n1, "output1").empty());
-    REQUIRE(ng.input_connections(n1, "input1").empty());
+    REQUIRE(ng.connections(ng.input_sockets(n3)[0]).empty());
+    REQUIRE(ng.connections(ng.output_sockets(n3)[0]).empty());
+    REQUIRE(ng.connections(ng.output_sockets(n1)[0]).empty());
+    REQUIRE(ng.connections(ng.input_sockets(n1)[0]).empty());
 
     ng.remove(n1);
     REQUIRE(ng.nodes("test node").size() == 1);
-    REQUIRE(ng.input_connections(n3, "intput1").empty());
-    REQUIRE(ng.input_connections(n3, "output1").empty());
+    REQUIRE(ng.connections(ng.input_sockets(n3)[0]).empty());
+    REQUIRE(ng.connections(ng.output_sockets(n3)[0]).empty()); //???
 
     ng.remove(n3);
     REQUIRE(ng.nodes("test node").empty());
@@ -152,30 +147,29 @@ TEST_CASE("node_graph control")
     auto n2 = ng.add(info);
     REQUIRE(n1);
     REQUIRE(n2);
-    connection_info ci {n1, "output", n2, "input"};
+    connection_info ci {
+      n1, ng.output_sockets(n1)[0], n2, ng.input_sockets(n2)[0]};
     REQUIRE(ng.connect(ci));
     REQUIRE(ng.connect(ci));
     REQUIRE(ng.connect(ci) == ng.connect(ci));
 
     REQUIRE(ng.connections().size() == 1);
-    REQUIRE(ng.input_connections().size() == 1);
-    REQUIRE(ng.output_connections().size() == 1);
-    REQUIRE(ng.connections() == ng.output_connections());
-    REQUIRE(ng.connections() == ng.input_connections());
 
-    REQUIRE(!ng.has_connection(n1, "input"));
-    REQUIRE(ng.has_connection(n1, "output"));
-    REQUIRE(!ng.has_connection(n2, "output"));
-    REQUIRE(ng.has_connection(n2, "input"));
+    REQUIRE(!ng.has_connection(ng.input_sockets(n1)[0]));
+    REQUIRE(ng.has_connection(ng.output_sockets(n1)[0]));
+    REQUIRE(!ng.has_connection(ng.output_sockets(n2)[0]));
+    REQUIRE(ng.has_connection(ng.input_sockets(n2)[0]));
 
     // multiple input
     auto n3 = ng.add(info);
     REQUIRE(n3);
-    connection_info connectInfo2 {n3, "output", n2, "input"};
+    connection_info connectInfo2 {
+      n3, ng.output_sockets(n3)[0], n2, ng.input_sockets(n2)[0]};
     REQUIRE(!ng.connect(connectInfo2));
 
     // self connect
-    connection_info connectInfo3 {n1, "output", n1, "input"};
+    connection_info connectInfo3 {
+      n1, ng.output_sockets(n1)[0], n1, ng.input_sockets(n1)[0]};
     REQUIRE(!ng.connect(connectInfo3));
   }
 
@@ -185,13 +179,14 @@ TEST_CASE("node_graph control")
     auto n1 = ng.add(info);
     auto n2 = ng.add(info);
 
-    connection_info cinfo {n1, "output", n2, "input"};
+    connection_info cinfo {
+      n1, ng.output_sockets(n1)[0], n2, ng.input_sockets(n2)[0]};
     auto c = ng.connect(cinfo);
     REQUIRE(c);
 
     ng.disconnect(c);
-    REQUIRE(!ng.has_connection(n1, "output"));
-    REQUIRE(!ng.has_connection(n2, "input"));
+    REQUIRE(!ng.has_connection(ng.output_sockets(n1)[0]));
+    REQUIRE(!ng.has_connection(ng.input_sockets(n2)[0]));
 
     REQUIRE(ng.connect(cinfo));
   }
@@ -218,10 +213,10 @@ TEST_CASE("node_graph control")
       node_info info {"test node", {"input"}, {"output"}};
       auto n1 = ng.add(info);
       auto n2 = ng.add(info);
-      REQUIRE(ng.connect(n1, "output", n2, "input"));
+      REQUIRE(ng.connect(ng.output_sockets(n1)[0], ng.input_sockets(n2)[0]));
 
-      REQUIRE(ng.has_connection(n1, "output"));
-      REQUIRE(ng.has_connection(n2, "input"));
+      REQUIRE(ng.has_connection(ng.output_sockets(n1)[0]));
+      REQUIRE(ng.has_connection(ng.input_sockets(n2)[0]));
     }
     SECTION("2")
     {
@@ -231,12 +226,13 @@ TEST_CASE("node_graph control")
       auto n1 = ng.add(info1);
       auto n2 = ng.add(info2);
 
-      REQUIRE(ng.connect(n1, "output", n2, "input"));
+      REQUIRE(ng.connect(ng.output_sockets(n1)[0], ng.input_sockets(n2)[0]));
 
-      REQUIRE(ng.has_connection(n1, "output"));
-      REQUIRE(ng.has_connection(n2, "input"));
-      REQUIRE(!ng.has_connection(n2, "output"));
-      REQUIRE(!ng.has_connection(n1, "nonexist"));
+      REQUIRE(ng.has_connection(ng.output_sockets(n1)[0]));
+      REQUIRE(ng.has_connection(ng.input_sockets(n2)[0]));
+      REQUIRE(!ng.has_connection(ng.output_sockets(n2)[0]));
+      REQUIRE(!ng.has_connection(
+        socket_handle((socket_handle::descriptor_type)0xdeadbeef, uid {42})));
     }
   }
 
@@ -264,23 +260,31 @@ TEST_CASE("node_graph control")
     auto n1 = ng.add(info1);
     auto n2 = ng.add(info2);
 
-    auto c1 = ng.connect(n1, "output", n2, "input1"); // n1.out -> n2.in[0]
-    auto c2 = ng.connect(n2, "output1", n1, "input"); // loop
-    auto c3 = ng.connect(n1, "output", n2, "input2"); // n1.out -> n2.in[1]
-    auto c4 = ng.connect(n1, "input", n2, "input1");  // invalid
+    auto n1_i = ng.input_sockets(n1)[0];
+    auto n1_o = ng.output_sockets(n1)[0];
+
+    auto n2_i1 = ng.input_sockets(n2)[0];
+    auto n2_i2 = ng.input_sockets(n2)[1];
+    auto n2_o1 = ng.output_sockets(n2)[0];
+    auto n2_o2 = ng.output_sockets(n2)[1];
+
+    auto c1 = ng.connect(n1_o, n2_i1); // n1.out -> n2.in[0]
+    auto c2 = ng.connect(n2_o1, n1_i); // loop
+    auto c3 = ng.connect(n1_o, n2_i2); // n1.out -> n2.in[1]
+    auto c4 = ng.connect(n1_i, n2_i1); // invalid
 
     REQUIRE(c1);
     REQUIRE(!c2);
     REQUIRE(c3);
     REQUIRE(!c4);
 
-    REQUIRE(ng.connections(n1, "input").size() == 0);
-    REQUIRE(ng.connections(n1, "output").size() == 2);
+    REQUIRE(ng.connections(n1_i).size() == 0);
+    REQUIRE(ng.connections(n1_o).size() == 2);
 
-    REQUIRE(ng.connections(n2, "input1").size() == 1);
-    REQUIRE(ng.connections(n2, "input2").size() == 1);
-    REQUIRE(ng.connections(n2, "output1").size() == 0);
-    REQUIRE(ng.connections(n2, "output2").size() == 0);
+    REQUIRE(ng.connections(n2_i1).size() == 1);
+    REQUIRE(ng.connections(n2_i2).size() == 1);
+    REQUIRE(ng.connections(n2_o1).size() == 0);
+    REQUIRE(ng.connections(n2_o2).size() == 0);
   }
 
   SECTION("root_of")
@@ -289,14 +293,20 @@ TEST_CASE("node_graph control")
 
     REQUIRE(ng.root_of(node_handle()).empty());
 
-    auto n1 = ng.add(info11);
+    auto n1   = ng.add(info11);
+    auto n1_i = ng.input_sockets(n1)[0];
+    auto n1_o = ng.output_sockets(n1)[0];
+
     // n1
     REQUIRE(ng.root_of(n1).size() == 1);
     REQUIRE(ng.root_of(n1)[0] == n1);
 
     // n1 -> n2
-    auto n2 = ng.add(info11);
-    auto c1 = ng.connect(n1, "output", n2, "input");
+    auto n2   = ng.add(info11);
+    auto n2_i = ng.input_sockets(n2)[0];
+    auto n2_o = ng.output_sockets(n2)[0];
+
+    auto c1 = ng.connect(n1_o, n2_i);
     REQUIRE(c1);
     REQUIRE(ng.root_of(n1).size() == 1);
     REQUIRE(ng.root_of(n1)[0] == n2);
@@ -307,17 +317,33 @@ TEST_CASE("node_graph control")
     auto n3 = ng.add(info22);
     auto n4 = ng.add(info11);
     auto n5 = ng.add(info11);
-    auto c3 = ng.connect(n3, "output1", n4, "input");
-    auto c4 = ng.connect(n3, "output2", n5, "input");
+
+    auto n3_i1 = ng.input_sockets(n3)[0];
+    auto n3_i2 = ng.input_sockets(n3)[1];
+    auto n3_o1 = ng.output_sockets(n3)[0];
+    auto n3_o2 = ng.output_sockets(n3)[1];
+
+    auto n4_i = ng.input_sockets(n4)[0];
+    auto n4_o = ng.output_sockets(n4)[0];
+
+    auto n5_i = ng.input_sockets(n5)[0];
+    auto n5_o = ng.output_sockets(n5)[0];
+
+    auto c3 = ng.connect(n3_o1, n4_i);
+    auto c4 = ng.connect(n3_o2, n5_i);
+
     REQUIRE(c3);
     REQUIRE(c4);
     REQUIRE(ng.root_of(n3).size() == 2);
     REQUIRE(vector_eq(ng.root_of(n3), std::vector {n4, n5}));
 
     // n3 -> n4,n5 -> n6
-    auto n6 = ng.add(info22);
-    auto c5 = ng.connect(n4, "output", n6, "input1");
-    auto c6 = ng.connect(n5, "output", n6, "input2");
+    auto n6    = ng.add(info22);
+    auto n6_i1 = ng.input_sockets(n6)[0];
+    auto n6_i2 = ng.input_sockets(n6)[1];
+
+    auto c5 = ng.connect(n4_o, n6_i1);
+    auto c6 = ng.connect(n5_o, n6_i2);
     REQUIRE(c5);
     REQUIRE(c6);
     REQUIRE(ng.root_of(n3).size() == 1);
@@ -332,25 +358,41 @@ TEST_CASE("node_graph control")
 
     auto n1 = ng.add(info11);
     auto n2 = ng.add(info11);
+
+    auto n1_i = ng.input_sockets(n1)[0];
+    auto n1_o = ng.output_sockets(n1)[0];
+    auto n2_i = ng.input_sockets(n2)[0];
+    auto n2_o = ng.output_sockets(n2)[0];
+
     auto n3 = ng.add(info22);
     auto n4 = ng.add(info22);
 
+    auto n3_i1 = ng.input_sockets(n3)[0];
+    auto n3_i2 = ng.input_sockets(n3)[1];
+    auto n3_o1 = ng.output_sockets(n3)[0];
+    auto n3_o2 = ng.output_sockets(n3)[1];
+
+    auto n4_i1 = ng.input_sockets(n4)[0];
+    auto n4_i2 = ng.input_sockets(n4)[1];
+    auto n4_o1 = ng.output_sockets(n4)[0];
+    auto n4_o2 = ng.output_sockets(n4)[1];
+
     REQUIRE(vector_eq(ng.roots(), std::vector {n1, n2, n3, n4}));
 
-    auto c1 = ng.connect(n1, "output", n2, "input");
+    auto c1 = ng.connect(n1_o, n2_i);
     REQUIRE(c1);
     REQUIRE(vector_eq(ng.roots(), std::vector {n2, n3, n4}));
 
-    auto c2 = ng.connect(n1, "output", n3, "input1");
+    auto c2 = ng.connect(n1_o, n3_i1);
     REQUIRE(c2);
     REQUIRE(vector_eq(ng.roots(), std::vector {n2, n3, n4}));
 
-    auto c3 = ng.connect(n1, "output", n3, "input2");
+    auto c3 = ng.connect(n1_o, n3_i2);
     REQUIRE(c3);
     REQUIRE(vector_eq(ng.roots(), std::vector {n2, n3, n4}));
 
-    auto c4 = ng.connect(n2, "output", n4, "input1");
-    auto c5 = ng.connect(n3, "output1", n4, "input2");
+    auto c4 = ng.connect(n2_o, n4_i1);
+    auto c5 = ng.connect(n3_o1, n4_i2);
     REQUIRE(c4);
     REQUIRE(c5);
     REQUIRE(vector_eq(ng.roots(), std::vector {n4}));
@@ -365,9 +407,9 @@ TEST_CASE("node_graph control")
     auto n2 = ng.add(info2, 2);
     auto n3 = ng.add(info2);
 
-    auto c1 = ng.connect(n2, "0", n1, "0");
-    auto c2 = ng.connect(n2, "0", n1, "2");
-    auto c3 = ng.connect(n3, "0", n1, "1");
+    auto c1 = ng.connect(ng.output_sockets(n2)[0], ng.input_sockets(n1)[0]);
+    auto c2 = ng.connect(ng.output_sockets(n2)[0], ng.input_sockets(n1)[2]);
+    auto c3 = ng.connect(ng.output_sockets(n3)[0], ng.input_sockets(n1)[1]);
 
     REQUIRE(c1);
     REQUIRE(c2);
@@ -387,11 +429,20 @@ TEST_CASE("node_graph interface")
   node_info info1 = {"1", {"0"}, {"0"}};
   node_info info2 = {"2", {"0", "1"}, {"0"}};
 
+  auto n1 = ng.add(info1);
+  auto n2 = ng.add(info2);
+  REQUIRE(n1);
+  REQUIRE(n2);
+
+  auto n1_i0 = ng.input_sockets(n1)[0];
+  auto n1_o0 = ng.output_sockets(n1)[0];
+
+  auto n2_i0 = ng.input_sockets(n2)[0];
+  auto n2_i1 = ng.input_sockets(n2)[1];
+  auto n2_o0 = ng.output_sockets(n2)[0];
+
   SECTION("init")
   {
-    auto n1 = ng.add(info1);
-    REQUIRE(n1);
-
     auto interface = ng.add({{"i"}, {}, {}, node_type::interface});
 
     REQUIRE(interface);
@@ -405,7 +456,8 @@ TEST_CASE("node_graph interface")
     REQUIRE(ng.is_interface(interface));
     REQUIRE(!ng.is_primitive(interface));
 
-    REQUIRE(ng.connections(interface).empty());
+    REQUIRE(ng.input_connections(interface).empty());
+    REQUIRE(ng.output_connections(interface).empty());
     ng.remove(interface);
 
     REQUIRE(!ng.exists(interface));
@@ -413,45 +465,39 @@ TEST_CASE("node_graph interface")
 
   SECTION("attach")
   {
-    auto n1 = ng.add(info1);
-    auto n2 = ng.add(info2);
-    REQUIRE(n1);
-    REQUIRE(n2);
-
     auto i1 = ng.add({"i1", {}, {}, node_type::interface});
 
-    REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::input));
-    REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::input));
+    REQUIRE(ng.attach_interface(i1, n1_i0));
+    REQUIRE(ng.attach_interface(i1, n1_i0));
     REQUIRE(ng.get_info(i1)->input_sockets().size() == 1);
     REQUIRE(ng.get_info(i1)->output_sockets().empty());
-    REQUIRE(ng.interfaces(n1, "0", socket_type::input)[0] == i1);
-    REQUIRE(ng.interfaces(n1, "0", socket_type::output).empty());
+    REQUIRE(ng.get_interfaces(n1_i0)[0] == i1);
+    REQUIRE(ng.get_interfaces(n1_o0).empty());
 
-    REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::output));
-    REQUIRE(ng.attach_interface(i1, n1, "0", socket_type::output));
+    REQUIRE(ng.attach_interface(i1, n1_o0));
+    REQUIRE(ng.attach_interface(i1, n1_o0));
     REQUIRE(ng.get_info(i1)->input_sockets().size() == 1);
     REQUIRE(ng.get_info(i1)->output_sockets().size() == 1);
-    REQUIRE(ng.interfaces(n1, "0", socket_type::output)[0] == i1);
+    REQUIRE(ng.get_interfaces(n1_o0)[0] == i1);
 
     REQUIRE(ng.input_sockets(i1).size() == 1);
     REQUIRE(ng.output_sockets(i1).size() == 1);
 
-    REQUIRE(ng.connections(i1).empty());
     REQUIRE(ng.input_connections(i1).empty());
     REQUIRE(ng.output_connections(i1).empty());
 
     SECTION("detach")
     {
-      ng.detach_interface(i1, n1, "0", socket_type::input);
-      ng.detach_interface(i1, n1, "0", socket_type::input);
-      ng.detach_interface(i1, n1, "0", socket_type::output);
-      ng.detach_interface(i1, n1, "0", socket_type::output);
+      ng.detach_interface(i1, n1_i0);
+      ng.detach_interface(i1, n1_i0);
+      ng.detach_interface(i1, n1_o0);
+      ng.detach_interface(i1, n1_o0);
 
       REQUIRE(ng.input_sockets(i1).empty());
       REQUIRE(ng.output_sockets(i1).empty());
 
-      REQUIRE(ng.interfaces(n1, "0", socket_type::input).empty());
-      REQUIRE(ng.interfaces(n1, "0", socket_type::output).empty());
+      REQUIRE(ng.get_interfaces(n1_i0).empty());
+      REQUIRE(ng.get_interfaces(n1_o0).empty());
     }
 
     SECTION("remove")
@@ -462,13 +508,13 @@ TEST_CASE("node_graph interface")
       REQUIRE(ng.exists(i1));
       REQUIRE(ng.input_sockets(i1).empty());
       REQUIRE(ng.output_sockets(i1).empty());
-      REQUIRE(ng.interfaces(n1, "0", socket_type::input).empty());
-      REQUIRE(ng.interfaces(n1, "0", socket_type::output).empty());
+      REQUIRE(ng.get_interfaces(n1_i0).empty());
+      REQUIRE(ng.get_interfaces(n1_o0).empty());
     }
 
     SECTION("conn")
     {
-      REQUIRE(ng.connect(n1, "0", n2, "0"));
+      REQUIRE(ng.connect(n1_o0, n2_i0));
       REQUIRE(ng.output_connections(n1).size() == 1);
       auto ci = ng.get_info(ng.output_connections(n1)[0]);
       REQUIRE(ci);
