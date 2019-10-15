@@ -124,9 +124,9 @@ namespace yave {
     /// See `connect(const connection_info&)`.
     [[nodiscard]] auto connect(
       const node_handle& src_node,
-      const std::string& src_socket,
+      const socket_handle& src_socket,
       const node_handle& dst_node,
-      const std::string& dst_socket) -> connection_handle;
+      const socket_handle& dst_socket) -> connection_handle;
 
     /// Disconnect sockets.
     /// \throws should not throw exception.
