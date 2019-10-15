@@ -176,18 +176,12 @@ namespace yave {
     /// \returns false when the socket does not exist.
     [[nodiscard]] bool is_output_socket(const socket_handle& socket) const;
 
-    /// List all input connections.
-    /// \returns Result should be same to connections(), but order of handles
-    /// may differ.
-    [[nodiscard]] auto input_connections() const
-      -> std::vector<connection_handle>;
-
     /// Get list of input connections to the node.
     [[nodiscard]] auto input_connections(const node_handle& node) const
       -> std::vector<connection_handle>;
 
-    /// Find input connection to the node.
-    [[nodiscard]] auto input_connections(const socket_handle& socket) const
+    /// Get list of output connections from the node.
+    [[nodiscard]] auto output_connections(const node_handle& node) const
       -> std::vector<connection_handle>;
 
     /// Check if connection exists.

@@ -663,19 +663,35 @@ namespace yave {
     return m_g[h.descriptor()].is_output();
   }
 
-  auto node_graph::input_connections() const -> std::vector<connection_handle>
+  auto node_graph::input_connections(const node_handle& node) const
+    -> std::vector<connection_handle>
   {
-    auto lck = _lock();
+    if (!_exists(node))
+      return {};
 
     std::vector<connection_handle> ret;
-    for (auto&& node : m_g.nodes()) {
-      for (auto&& socket : m_g.sockets(node)) {
-        if (m_g[socket].is_input()) {
-          assert(m_g.src_edges(socket).empty());
-          for (auto&& edge : m_g.dst_edges(socket)) {
-            ret.emplace_back(edge, uid {m_g.id(edge)});
-          }
+    for (auto&& s : m_g.sockets(node.descriptor())) {
+      if (m_g[s].is_input()) {
+        assert(m_g.src_edges(s).empty());
+        for (auto&& e : m_g.dst_edges(s)) {
+          ret.emplace_back(e, uid {m_g.id(s)});
         }
+      }
+    }
+    return ret;
+  }
+
+  auto node_graph::output_connections(const node_handle& node) const
+    -> std::vector<connection_handle>
+  {
+    if (!_exists(node))
+      return {};
+
+    std::vector<connection_handle> ret;
+    for (auto&& s : m_g.sockets(node.descriptor())) {
+      assert(m_g.dst_edges(s).empty());
+      for (auto&& e : m_g.src_edges(s)) {
+        ret.emplace_back(e, uid {m_g.id(s)});
       }
     }
     return ret;
