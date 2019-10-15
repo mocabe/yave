@@ -16,6 +16,9 @@ namespace yave {
   class descriptor_handle
   {
   public:
+    /// descriptor type
+    using descriptor_type = Descriptor;
+
     /// Constructor
     constexpr descriptor_handle() noexcept
       : m_descriptor {nullptr}
