@@ -407,14 +407,103 @@ namespace yave {
     m_g.remove_node(node.descriptor());
   }
 
-  auto node_graph::connect(
+  auto node_graph::_connect(
     const node_handle& src_node,
     const socket_handle& src_socket,
     const node_handle& dst_node,
     const socket_handle& dst_socket) -> connection_handle
   {
-    return connect(
-      yave::connection_info {src_node, src_socket, dst_node, dst_socket});
+    // socket descriptors
+    auto s = src_socket.descriptor();
+    auto d = dst_socket.descriptor();
+
+    // check socket type
+    if (!m_g[s].is_input() || !m_g[d].is_output()) {
+      Error(g_logger, "Failed to connect sockets: Invalid socket type");
+      return nullptr;
+    }
+
+    // already exists
+    for (auto&& e : m_g.dst_edges(d)) {
+      if (m_g.src(e) == s) {
+        Warning(
+          g_logger,
+          "Connection already exists. Return existing connection "
+          "handle.");
+        return connection_handle(e, {m_g.id(e)});
+      }
+    }
+
+    // input edge cannot have multiple inputs
+    if (m_g.n_dst_edges(d) != 0) {
+      Error(
+        g_logger,
+        "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
+        _get_name(src_node),
+        to_string(src_node.id()),
+        _get_name(src_socket),
+        _get_name(dst_node),
+        to_string(dst_node.id()),
+        _get_name(dst_socket));
+      Error(g_logger, "Multiple input is not allowed");
+      return nullptr;
+    }
+
+    // add new edge to graph
+    auto new_edge = m_g.add_edge(s, d);
+    assert(new_edge);
+
+    // closed loop check
+    if (!_find_loop(src_node).empty()) {
+      Error(
+        g_logger,
+        "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
+        _get_name(src_node),
+        to_string(src_node.id()),
+        _get_name(src_socket),
+        _get_name(dst_node),
+        to_string(dst_node.id()),
+        _get_name(dst_socket));
+      Error(g_logger, "Closed loop is not allowed");
+      m_g.remove_edge(new_edge);
+      return nullptr;
+    }
+
+    Info(
+      g_logger,
+      "Connected socket: src=\"{}\"({})::{}, dst=\"{}\"({})::{}",
+      _get_name(src_node),
+      to_string(src_node.id()),
+      _get_name(src_socket),
+      _get_name(dst_node),
+      to_string(dst_node.id()),
+      _get_name(dst_socket));
+
+    return connection_handle(new_edge, {m_g.id(new_edge)});
+  }
+
+  auto node_graph::connect(
+    const socket_handle& src_socket,
+    const socket_handle& dst_socket) -> connection_handle
+  {
+    auto lck = _lock();
+
+    if (!_exists(src_socket) || !_exists(dst_socket)) {
+      Error(g_logger, "Failed to connect sockets: Invalid socket descriptor");
+      return nullptr;
+    }
+
+    auto s  = src_socket.descriptor();
+    auto d  = dst_socket.descriptor();
+    auto sn = m_g.nodes(s)[0];
+    auto dn = m_g.nodes(d)[0];
+
+    // unchecked connect
+    return _connect(
+      node_handle(sn, {m_g.id(sn)}),
+      src_socket,
+      node_handle(dn, {m_g.id(dn)}),
+      dst_socket);
   }
 
   auto node_graph::connect(const connection_info& info) -> connection_handle
@@ -423,82 +512,40 @@ namespace yave {
 
     // check handler
     if (!_exists(info.src_node()) || !_exists(info.dst_node())) {
-      Error(g_logger, "Failed to connect sockets: Invalid node descriptor.");
-      return nullptr;
+      Error(g_logger, "Failed to connect sockets: Invalid node descriptor");
+      return {nullptr};
     }
     if (!_exists(info.src_socket()) || !_exists(info.dst_socket())) {
-      Error(g_logger, "Failed to connect sockets: Invalid socket descriptor.");
-      return nullptr;
+      Error(g_logger, "Failed to connect sockets: Invalid socket descriptor");
+      return {nullptr};
     }
 
-    // check sockets
-    for (auto&& s : m_g.sockets(info.src_node().descriptor())) {
-      if (s == info.src_socket().descriptor() && m_g[s].is_output()) {
-        for (auto&& d : m_g.sockets(info.dst_node().descriptor())) {
-          if (d == info.dst_socket().descriptor() && m_g[d].is_input()) {
-            // already exists
-            for (auto&& e : m_g.dst_edges(d))
-              if (m_g.src(e) == s) {
-                Warning(
-                  g_logger,
-                  "Connection already exists. Return existing connection "
-                  "handle.");
-                return connection_handle(e, {m_g.id(e)});
-              }
-            // input edge cannot have multiple inputs
-            if (m_g.n_dst_edges(d) != 0) {
-              Error(
-                g_logger,
-                "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
-                _get_name(info.src_node()),
-                to_string(info.src_node().id()),
-                _get_name(info.src_socket()),
-                _get_name(info.dst_node()),
-                to_string(info.dst_node().id()),
-                _get_name(info.dst_socket()));
-              Error(g_logger, "Multiple input is not allowed.");
-              return nullptr;
-            }
-
-            // add new edge to graph
-            auto new_edge = m_g.add_edge(s, d);
-            assert(new_edge);
-
-            // closed loop check
-            if (!_find_loop(info.src_node()).empty()) {
-              Error(
-                g_logger,
-                "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
-                _get_name(info.src_node()),
-                to_string(info.src_node().id()),
-                _get_name(info.src_socket()),
-                _get_name(info.dst_node()),
-                to_string(info.dst_node().id()),
-                _get_name(info.dst_socket()));
-              Error(g_logger, "Closed loop is not allowed.");
-              m_g.remove_edge(new_edge);
-              return nullptr;
-            }
-
-            Info(
-              g_logger,
-              "Connected socket: src=\"{}\"({})::{}, dst=\"{}\"({})::{}",
-              _get_name(info.src_node()),
-              to_string(info.src_node().id()),
-              _get_name(info.src_socket()),
-              _get_name(info.dst_node()),
-              to_string(info.dst_node().id()),
-              _get_name(info.dst_socket()));
-
-            return connection_handle(new_edge, {m_g.id(new_edge)});
-          }
-        }
+    // check nodes
+    {
+      auto s    = info.src_socket().descriptor();
+      auto ns   = m_g.nodes(s);
+      auto iter = std::find(ns.begin(), ns.end(), info.src_node().descriptor());
+      if (iter == ns.end()) {
+        Error(
+          g_logger,
+          "Failed to connect sockets: Invalid node-socket combination");
+        return {nullptr};
+      }
+    }
+    {
+      auto d    = info.dst_socket().descriptor();
+      auto ns   = m_g.nodes(d);
+      auto iter = std::find(ns.begin(), ns.end(), info.dst_node().descriptor());
+      if (iter == ns.end()) {
+        Error(
+          g_logger,
+          "Failed to connect sockets: Invalid node-socket combination");
+        return {nullptr};
       }
     }
 
-    // fail
-    Error(g_logger, "Failed to connect sockets: Invalid argument.");
-    return nullptr;
+    return _connect(
+      info.src_node(), info.src_socket(), info.dst_node(), info.dst_socket());
   }
 
   void node_graph::disconnect(const connection_handle& h)
@@ -528,6 +575,59 @@ namespace yave {
 
     // remove edge
     m_g.remove_edge(h.descriptor());
+  }
+
+  void node_graph::disconnect(const connection_info& info)
+  {
+    auto lck = _lock();
+
+    if (!_exists(info.src_socket()) || !_exists(info.dst_socket())) {
+      Error(g_logger, "disconnect(): Invalid socket handle");
+      return;
+    }
+
+    if (!_exists(info.src_node()) || !_exists(info.dst_node())) {
+      Error(g_logger, "disconnect(): Invalid node handle");
+      return;
+    }
+
+    auto s = info.src_socket().descriptor();
+    auto d  = info.dst_socket().descriptor();
+    auto sn = info.src_node().descriptor();
+    auto dn = info.dst_node().descriptor();
+
+    {
+      auto ns   = m_g.nodes(s);
+      auto iter = std::find(ns.begin(), ns.end(), sn);
+      if (iter == ns.end()) {
+        Error(g_logger, "disconnect(): Invalid node-socket combination");
+        return;
+      }
+    }
+    {
+      auto ns   = m_g.nodes(d);
+      auto iter = std::find(ns.begin(), ns.end(), dn);
+      if (iter == ns.end()) {
+        Error(g_logger, "disconnect(): Invalid node-socket combination");
+        return;
+      }
+    }
+
+    for (auto&& e : m_g.dst_edges(d)) {
+      if (m_g.src(e) == s) {
+        Info(
+          g_logger,
+          "Disconnecting: src='{}'({})::{} dst='{}'({})::{}",
+          _get_name(info.src_node()),
+          to_string(info.src_node().id()),
+          _get_name(info.src_socket()),
+          _get_name(info.dst_node()),
+          to_string(info.dst_node().id()),
+          _get_name(info.dst_socket()));
+        m_g.remove_edge(e);
+        return;
+      }
+    }
   }
 
   auto node_graph::node(const uid& id) const -> node_handle
@@ -597,14 +697,14 @@ namespace yave {
     return ret;
   }
 
-  auto node_graph::sockets(const node_handle& node)
+  auto node_graph::sockets(const node_handle& node) const
     -> std::vector<socket_handle>
   {
     auto lck = _lock();
 
     if (!_exists(node))
       return {};
-    
+
     std::vector<socket_handle> ret;
     for (auto&& s : m_g.sockets(node.descriptor())) 
       ret.emplace_back(s, uid {m_g.id(s)});
