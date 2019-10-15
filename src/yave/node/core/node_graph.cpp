@@ -106,13 +106,9 @@ namespace yave {
     return _exists(h);
   }
 
-  auto node_graph::_get_info(const node_handle& h) const
-    -> std::optional<node_info>
+  auto node_graph::_get_info(const node_handle& h) const -> node_info
   {
-    // check handler
-    if (!_exists(h)) {
-      return std::nullopt;
-    }
+    assert(_exists(h));
 
     // node
     auto& n = m_g[h.descriptor()];
@@ -136,16 +132,14 @@ namespace yave {
     -> std::optional<node_info>
   {
     auto lck = _lock();
+    if (!_exists(h))
+      return std::nullopt;
     return _get_info(h);
   }
 
-  auto node_graph::_get_info(const socket_handle& h) const
-    -> std::optional<socket_info>
+  auto node_graph::_get_info(const socket_handle& h) const -> socket_info
   {
-    if (_exists(h)) {
-      return std::nullopt;
-    }
-
+    assert(_exists(h));
     assert(!m_g.nodes(h.descriptor()).empty());
 
     const auto& s = m_g[h.descriptor()];
@@ -158,18 +152,15 @@ namespace yave {
     -> std::optional<socket_info>
   {
     auto lck = _lock();
+    if (!_exists(h))
+      return std::nullopt;
     return _get_info(h);
   }
 
   auto node_graph::_get_info(const connection_handle& h) const
-    -> std::optional<connection_info>
+    -> connection_info
   {
-    if (!_exists(h)) {
-      Warning(
-        g_logger,
-        "node_graph::connection_info() on invalid connection handle.");
-      return std::nullopt;
-    }
+    assert(_exists(h));
 
     auto src = m_g.src(h.descriptor());
     auto dst = m_g.dst(h.descriptor());
@@ -208,15 +199,14 @@ namespace yave {
     -> std::optional<connection_info>
   {
     auto lck = _lock();
+    if (!_exists(h))
+      return std::nullopt;
     return _get_info(h);
   }
 
-  auto node_graph::_get_name(const node_handle& node) const
-    -> std::optional<std::string>
+  auto node_graph::_get_name(const node_handle& node) const -> std::string
   {
-    if (!_exists(node)) {
-      return std::nullopt;
-    }
+    assert(_exists(node));
     return m_g[node.descriptor()].name();
   }
 
@@ -224,15 +214,14 @@ namespace yave {
     -> std::optional<std::string>
   {
     auto lck = _lock();
+    if (!_exists(node))
+      return std::nullopt;
     return _get_name(node);
   }
 
-  [[nodiscard]] auto node_graph::_get_name(const socket_handle& socket) const
-    -> std::optional<std::string>
+  auto node_graph::_get_name(const socket_handle& socket) const -> std::string
   {
-    if (!_exists(socket)) {
-      return std::nullopt;
-    }
+    assert(_exists(socket));
     return m_g[socket.descriptor()].name();
   }
 
@@ -240,6 +229,8 @@ namespace yave {
     -> std::optional<std::string>
   {
     auto lck = _lock();
+    if (!_exists(socket))
+      return std::nullopt;
     return _get_name(socket);
   }
 
@@ -335,7 +326,6 @@ namespace yave {
     }
 
     auto info = _get_info(socket);
-    assert(info);
 
     for (auto&& s : m_g.sockets(interface.descriptor())) {
       if (socket.id().data == m_g.id(s)) {
@@ -352,9 +342,9 @@ namespace yave {
     Info(
       g_logger,
       "Attached interface: node={}({}), socket={}({})",
-      *_get_name(info->node()),
-      to_string(info->node().id()),
-      info->name(),
+      _get_name(info.node()),
+      to_string(info.node().id()),
+      info.name(),
       to_string(socket.id()));
 
     return true;
@@ -370,7 +360,6 @@ namespace yave {
       return;
 
     auto info = _get_info(socket);
-    assert(info);
 
     for (auto&& s : m_g.sockets(interface.descriptor())) {
 
@@ -382,9 +371,9 @@ namespace yave {
         Info(
           g_logger,
           "Detached interface: node={}({}), socket={}({})",
-          *_get_name(info->node()),
-          to_string(info->node().id()),
-          info->name(),
+          _get_name(info.node()),
+          to_string(info.node().id()),
+          info.name(),
           to_string(socket.id()));
         return;
       }
@@ -461,12 +450,12 @@ namespace yave {
               Error(
                 g_logger,
                 "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
-                *_get_name(info.src_node()),
+                _get_name(info.src_node()),
                 to_string(info.src_node().id()),
-                *_get_name(info.src_socket()),
-                *_get_name(info.dst_node()),
+                _get_name(info.src_socket()),
+                _get_name(info.dst_node()),
                 to_string(info.dst_node().id()),
-                *_get_name(info.dst_socket()));
+                _get_name(info.dst_socket()));
               Error(g_logger, "Multiple input is not allowed.");
               return nullptr;
             }
@@ -480,12 +469,12 @@ namespace yave {
               Error(
                 g_logger,
                 "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
-                *_get_name(info.src_node()),
+                _get_name(info.src_node()),
                 to_string(info.src_node().id()),
-                *_get_name(info.src_socket()),
-                *_get_name(info.dst_node()),
+                _get_name(info.src_socket()),
+                _get_name(info.dst_node()),
                 to_string(info.dst_node().id()),
-                *_get_name(info.dst_socket()));
+                _get_name(info.dst_socket()));
               Error(g_logger, "Closed loop is not allowed.");
               m_g.remove_edge(new_edge);
               return nullptr;
@@ -494,12 +483,12 @@ namespace yave {
             Info(
               g_logger,
               "Connected socket: src=\"{}\"({})::{}, dst=\"{}\"({})::{}",
-              *_get_name(info.src_node()),
+              _get_name(info.src_node()),
               to_string(info.src_node().id()),
-              *_get_name(info.src_socket()),
-              *_get_name(info.dst_node()),
+              _get_name(info.src_socket()),
+              _get_name(info.dst_node()),
               to_string(info.dst_node().id()),
-              *_get_name(info.dst_socket()));
+              _get_name(info.dst_socket()));
 
             return connection_handle(new_edge, {m_g.id(new_edge)});
           }
@@ -526,15 +515,16 @@ namespace yave {
     }
 
     auto info = _get_info(h);
+
     Info(
       g_logger,
       "Disconnecting: src='{}'({})::{} dst='{}'({})::{}",
-      m_g[info->src_node().descriptor()].name(),
-      to_string(info->src_node().id()),
-      info->src_socket(),
-      m_g[info->dst_node().descriptor()].name(),
-      to_string(info->dst_node().id()),
-      info->dst_socket());
+      _get_name(info.src_node()),
+      to_string(info.src_node().id()),
+      _get_name(info.src_socket()),
+      _get_name(info.dst_node()),
+      to_string(info.dst_node().id()),
+      _get_name(info.dst_socket()));
 
     // remove edge
     m_g.remove_edge(h.descriptor());
@@ -1125,4 +1115,4 @@ namespace yave {
     return std::unique_lock(m_mtx);
   }
 
-  } // namespace yave
+} // namespace yave
