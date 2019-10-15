@@ -117,20 +117,19 @@ namespace yave {
     /// null handle.
     /// \returns Handle of connection (can be null handle).
     /// \throws std::bad_alloc
+    [[nodiscard]] auto connect(
+      const socket_handle& src_socket,
+      const socket_handle& dst_socket) -> connection_handle;
+
+    /// Connect sockets. (convenience)
     [[nodiscard]] auto connect(const connection_info& info)
       -> connection_handle;
 
-    /// Connect sockets.
-    /// See `connect(const connection_info&)`.
-    [[nodiscard]] auto connect(
-      const node_handle& src_node,
-      const socket_handle& src_socket,
-      const node_handle& dst_node,
-      const socket_handle& dst_socket) -> connection_handle;
-
     /// Disconnect sockets.
-    /// \throws should not throw exception.
     void disconnect(const connection_handle& connection);
+
+    /// Disconnect sockets. (convenience)
+    void disconnect(const connection_info& info);
 
     /// Find node from ID.
     /// \param id id
@@ -158,7 +157,7 @@ namespace yave {
     [[nodiscard]] auto sockets() const -> std::vector<socket_handle>;
 
     /// Get sockets
-    [[nodiscard]] auto sockets(const node_handle& node)
+    [[nodiscard]] auto sockets(const node_handle& node) const
       -> std::vector<socket_handle>;
 
     /// Get all connections.
@@ -252,7 +251,7 @@ namespace yave {
     /// clear graph
     void clear();
 
-  private: /* non locking helpers */
+  private: /* non locking, non checking helpers */
     [[nodiscard]] bool _exists(const node_handle&) const;
     [[nodiscard]] bool _exists(const socket_handle&) const;
     [[nodiscard]] bool _exists(const connection_handle&) const;
@@ -262,6 +261,11 @@ namespace yave {
       -> connection_info;
     [[nodiscard]] auto _get_name(const node_handle&) const -> std::string;
     [[nodiscard]] auto _get_name(const socket_handle&) const -> std::string;
+    [[nodiscard]] auto _connect(
+      const node_handle& src_node,
+      const socket_handle& src_socket,
+      const node_handle& dst_node,
+      const socket_handle& dst_socket) -> connection_handle;
     [[nodiscard]] auto _root_of(const node_handle&) const
       -> std::vector<node_handle>;
     [[nodiscard]] auto _find_loop(const node_handle&) const
