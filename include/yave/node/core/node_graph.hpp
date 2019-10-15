@@ -157,6 +157,10 @@ namespace yave {
     [[nodiscard]] auto connections() const -> std::vector<connection_handle>;
 
     /// Get connections
+    [[nodiscard]] auto connections(const node_handle& node) const
+      -> std::vector<connection_handle>;
+
+    /// Get connections
     [[nodiscard]] auto connections(const socket_handle& socket) const
       -> std::vector<connection_handle>;
 

@@ -626,6 +626,28 @@ namespace yave {
     return ret;
   }
 
+  auto node_graph::connections(const node_handle& node) const
+    -> std::vector<connection_handle>
+  {
+    auto lck = _lock();
+
+    if (!_exists(node))
+      return {};
+
+    std::vector<connection_handle> ret;
+    for (auto&& s : m_g.sockets(node.descriptor())) {
+      for (auto&& e : m_g.src_edges(s)) {
+        ret.emplace_back(e, uid {m_g.id(e)});
+      }
+      for (auto&& e : m_g.dst_edges(s)) {
+        ret.emplace_back(e, uid {m_g.id(e)});
+      }
+    }
+
+    assert(std::unique(ret.begin(), ret.end()) == ret.end());
+    return ret;
+  }
+
   auto node_graph::connections(const socket_handle& socket) const
     -> std::vector<connection_handle>
   {
