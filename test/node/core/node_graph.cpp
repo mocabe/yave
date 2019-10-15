@@ -147,11 +147,15 @@ TEST_CASE("node_graph control")
     auto n2 = ng.add(info);
     REQUIRE(n1);
     REQUIRE(n2);
-    connection_info ci {
-      n1, ng.output_sockets(n1)[0], n2, ng.input_sockets(n2)[0]};
-    REQUIRE(ng.connect(ci));
-    REQUIRE(ng.connect(ci));
-    REQUIRE(ng.connect(ci) == ng.connect(ci));
+
+    auto n1_i = ng.input_sockets(n1)[0];
+    auto n1_o = ng.output_sockets(n1)[0];
+    auto n2_i = ng.input_sockets(n2)[0];
+    auto n2_o = ng.output_sockets(n2)[0];
+
+    REQUIRE(ng.connect(n1_o, n2_i));
+    REQUIRE(ng.connect(n1_o, n2_i));
+    REQUIRE(ng.connect(n1_o, n2_i) == ng.connect(n1_o, n2_i));
 
     REQUIRE(ng.connections().size() == 1);
 
@@ -163,14 +167,13 @@ TEST_CASE("node_graph control")
     // multiple input
     auto n3 = ng.add(info);
     REQUIRE(n3);
-    connection_info connectInfo2 {
-      n3, ng.output_sockets(n3)[0], n2, ng.input_sockets(n2)[0]};
-    REQUIRE(!ng.connect(connectInfo2));
+    auto n3_i = ng.input_sockets(n3)[0];
+    auto n3_o = ng.output_sockets(n3)[0];
+
+    REQUIRE(!ng.connect(n3_o, n2_i));
 
     // self connect
-    connection_info connectInfo3 {
-      n1, ng.output_sockets(n1)[0], n1, ng.input_sockets(n1)[0]};
-    REQUIRE(!ng.connect(connectInfo3));
+    REQUIRE(!ng.connect(n1_o, n2_i));
   }
 
   SECTION("disconnect")
@@ -179,16 +182,22 @@ TEST_CASE("node_graph control")
     auto n1 = ng.add(info);
     auto n2 = ng.add(info);
 
-    connection_info cinfo {
-      n1, ng.output_sockets(n1)[0], n2, ng.input_sockets(n2)[0]};
-    auto c = ng.connect(cinfo);
+    REQUIRE(n1);
+    REQUIRE(n2);
+
+    auto n1_i = ng.input_sockets(n1)[0];
+    auto n1_o = ng.output_sockets(n1)[0];
+    auto n2_i = ng.input_sockets(n2)[0];
+    auto n2_o = ng.output_sockets(n2)[0];
+
+    auto c = ng.connect(n1_o, n2_i);
     REQUIRE(c);
 
     ng.disconnect(c);
     REQUIRE(!ng.has_connection(ng.output_sockets(n1)[0]));
     REQUIRE(!ng.has_connection(ng.input_sockets(n2)[0]));
 
-    REQUIRE(ng.connect(cinfo));
+    REQUIRE(ng.connect(n1_o, n2_i));
   }
 
   SECTION("find node")

@@ -121,15 +121,8 @@ namespace yave {
       const socket_handle& src_socket,
       const socket_handle& dst_socket) -> connection_handle;
 
-    /// Connect sockets. (convenience)
-    [[nodiscard]] auto connect(const connection_info& info)
-      -> connection_handle;
-
     /// Disconnect sockets.
     void disconnect(const connection_handle& connection);
-
-    /// Disconnect sockets. (convenience)
-    void disconnect(const connection_info& info);
 
     /// Find node from ID.
     /// \param id id
