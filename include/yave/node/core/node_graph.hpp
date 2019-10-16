@@ -73,6 +73,12 @@ namespace yave {
     [[nodiscard]] auto get_name(const socket_handle& socket) const
       -> std::optional<std::string>;
 
+    /// Set node name
+    void set_name(const node_handle& node, const std::string& name);
+
+    /// Set socket name
+    void set_name(const socket_handle& node, const std::string& name);
+
     /// Add new node.
     /// \returns Non-null handle of new node.
     /// \throws std::bad_alloc, std::runtime_error and other exceptions which

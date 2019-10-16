@@ -123,7 +123,7 @@ namespace yave {
         output_sockets.emplace_back(m_g[s].name());
     }
 
-    auto ret = node_info(n.name(), input_sockets, output_sockets, n.get_type());
+    auto ret = node_info(n.name(), input_sockets, output_sockets, n.type());
 
     return ret;
   }
@@ -145,7 +145,7 @@ namespace yave {
     const auto& s = m_g[h.descriptor()];
     const auto& n = m_g.nodes(h.descriptor())[0];
 
-    return socket_info(s.name(), s.get_type(), node_handle {n, {m_g.id(n)}});
+    return socket_info(s.name(), s.type(), node_handle {n, {m_g.id(n)}});
   }
 
   auto node_graph::get_info(const socket_handle& h) const
@@ -232,6 +232,26 @@ namespace yave {
     if (!_exists(socket))
       return std::nullopt;
     return _get_name(socket);
+  }
+
+  void node_graph::set_name(const node_handle& h, const std::string& name)
+  {
+    auto lck = _lock();
+
+    if (!_exists(h))
+      return;
+
+    m_g[h.descriptor()].set_name(name);
+  }
+
+  void node_graph::set_name(const socket_handle& h, const std::string& name)
+  {
+    auto lck = _lock();
+
+    if (!_exists(h))
+      return;
+
+    m_g[h.descriptor()].set_name(name);
   }
 
   auto node_graph::add(const yave::node_info& info, const primitive_t& prim)
@@ -757,7 +777,7 @@ namespace yave {
     std::vector<node_handle> ret;
     auto ns = m_g.nodes(socket.descriptor());
     for (size_t i = 1; i < ns.size(); ++i) {
-      assert(m_g[ns[i]].get_type() == node_type::interface);
+      assert(m_g[ns[i]].type() == node_type::interface);
       ret.emplace_back(ns[i], uid {m_g.id(ns[i])});
     }
     return ret;

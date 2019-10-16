@@ -32,14 +32,17 @@ namespace yave {
     [[nodiscard]] bool is_output() const;
 
     /// Get socket type
-    [[nodiscard]] auto get_type() const -> socket_type;
+    [[nodiscard]] auto type() const -> socket_type;
 
     /// Get name of socket.
     [[nodiscard]] auto name() const -> const std::string&;
 
+    /// Set new name
+    void set_name(const std::string& new_name);
+
   private:
     /// name of socket
-    const std::string m_name;
+    std::string m_name;
     /// input or output
     const socket_type m_type;
   };

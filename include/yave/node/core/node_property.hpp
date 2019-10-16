@@ -54,11 +54,13 @@ namespace yave {
     [[nodiscard]] bool is_primitive() const;
     /// Interface node?
     [[nodiscard]] bool is_interface() const;
-    /// Get node type
-    [[nodiscard]] auto get_type() const -> node_type;
-
     /// Get node name.
     [[nodiscard]] auto name() const -> const std::string&;
+    /// Get node type
+    [[nodiscard]] auto type() const -> node_type;
+
+    /// Set name
+    void set_name(const std::string& new_name);
 
     /// Get primitive value.
     /// \requires is_prim() == true
@@ -85,7 +87,7 @@ namespace yave {
 
   private:
     /// Name of node.
-    const std::string m_name;
+    std::string m_name;
     /// Node type
     const node_type m_type;
     /// Primitive value.

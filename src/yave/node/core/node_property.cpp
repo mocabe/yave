@@ -49,7 +49,7 @@ namespace yave {
     return m_type == node_type::interface;
   }
 
-  node_type node_property::get_type() const
+  node_type node_property::type() const
   {
     return m_type;
   }
@@ -57,6 +57,11 @@ namespace yave {
   auto node_property::name() const -> const std::string&
   {
     return m_name;
+  }
+
+  void node_property::set_name(const std::string& new_name)
+  {
+    m_name = new_name;
   }
 
   auto node_property::get_primitive() const -> std::optional<primitive_t>
