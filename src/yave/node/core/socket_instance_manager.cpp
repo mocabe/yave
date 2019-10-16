@@ -11,7 +11,7 @@ namespace {
   std::shared_ptr<spdlog::logger> g_inst_mngr_logger;
 
   // init
-  void init_inst_mngr_logger()
+  void init_logger()
   {
     [[maybe_unused]] static auto init_logger = [] {
       g_inst_mngr_logger = yave::add_logger("socket_instance_manager");
@@ -26,7 +26,7 @@ namespace yave {
     : m_map {}
     , m_mtx {}
   {
-    init_inst_mngr_logger();
+    init_logger();
   }
 
   socket_instance_manager::socket_instance_manager(
@@ -45,8 +45,8 @@ namespace yave {
     auto lck = other._lock();
   }
 
-  socket_instance_manager& socket_instance_manager::
-    operator=(const socket_instance_manager& other)
+  socket_instance_manager& socket_instance_manager::operator=(
+    const socket_instance_manager& other)
   {
     auto lck1 = _lock();
     auto lck2 = other._lock();
@@ -55,8 +55,8 @@ namespace yave {
     return *this;
   }
 
-  socket_instance_manager& socket_instance_manager::
-    operator=(socket_instance_manager&& other)
+  socket_instance_manager& socket_instance_manager::operator=(
+    socket_instance_manager&& other)
   {
     auto lck1 = _lock();
     auto lck2 = other._lock();
@@ -65,58 +65,41 @@ namespace yave {
     return *this;
   }
 
-  auto socket_instance_manager::find(const uid& id, const std::string& socket)
-    const -> std::optional<socket_instance>
+  auto socket_instance_manager::find(const socket_handle& socket) const
+    -> std::optional<socket_instance>
   {
     auto lck = _lock();
 
-    auto [bgn, end] = m_map.equal_range(id);
-    for (auto iter = bgn; iter != end; ++iter) {
-      if (iter->second.socket == socket)
-        return iter->second.si;
-    }
-    return std::nullopt;
+    auto iter = m_map.find(socket.id());
+
+    if (iter == m_map.end())
+      return std::nullopt;
+
+    return iter->second;
   }
 
   void socket_instance_manager::add(
-    const uid& id,
-    const std::string& socket,
+    const socket_handle& socket,
     const socket_instance& socket_instance)
   {
     auto lck = _lock();
 
-    auto [bgn, end] = m_map.equal_range(id);
-    for (auto iter = bgn; iter != end; ++iter) {
-      if (iter->second.socket == socket) {
-        iter->second.si = socket_instance;
-        return;
-      }
-    }
-    m_map.emplace(id, instanceTable {socket, socket_instance});
+    auto iter = m_map.find(socket.id());
+
+    if (iter != m_map.end())
+      iter->second = socket_instance;
+
+    m_map.emplace(socket.id(), socket_instance);
   }
 
-  void socket_instance_manager::remove(const uid& id, const std::string& socket)
+  void socket_instance_manager::remove(const socket_handle& socket)
   {
     auto lck = _lock();
 
-    auto [bgn, end] = m_map.equal_range(id);
+    auto iter = m_map.find(socket.id());
 
-    auto iter = bgn;
-    while (iter != end) {
-      if (iter->second.socket == socket)
-        m_map.erase(iter++);
-      else
-        ++iter;
-    }
-  }
-
-  void socket_instance_manager::remove(const uid& id)
-  {
-    auto lck = _lock();
-
-    auto [bgn, end] = m_map.equal_range(id);
-    auto iter       = bgn;
-    while (iter != end) m_map.erase(iter++);
+    if (iter != m_map.end())
+      m_map.erase(iter);
   }
 
   void socket_instance_manager::clear()

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/node/core/node_handle.hpp>
+#include <yave/node/core/socket_handle.hpp>
 #include <yave/node/core/bind_info.hpp>
 
 #include <mutex>
@@ -17,7 +17,7 @@ namespace yave {
   /// Socket instance cache
   struct socket_instance
   {
-    /// socket object
+    /// instance
     object_ptr<const Object> instance;
     /// type
     object_ptr<const Type> type;
@@ -41,7 +41,7 @@ namespace yave {
     socket_instance_manager& operator=(socket_instance_manager&& other);
 
     /// find instance
-    auto find(const uid& id, const std::string& socket) const
+    auto find(const socket_handle& socket) const
       -> std::optional<socket_instance>;
 
     /// size
@@ -49,15 +49,11 @@ namespace yave {
 
     /// add instance
     void add(
-      const uid& id,
-      const std::string& socket,
+      const socket_handle& socket,
       const socket_instance& socket_instance);
 
     /// remove instance
-    void remove(const uid& id, const std::string& socket);
-
-    /// remove instances
-    void remove(const uid& id);
+    void remove(const socket_handle& socket);
 
     /// clear
     void clear();
@@ -67,15 +63,8 @@ namespace yave {
     [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
 
   private:
-    struct instanceTable
-    {
-      std::string socket;
-      socket_instance si;
-    };
-
-  private:
     /// map
-    std::multimap<uid, instanceTable> m_map;
+    std::map<uid, socket_instance> m_map;
     /// mutex
     mutable std::mutex m_mtx;
   };
