@@ -608,6 +608,19 @@ namespace yave {
     return m_root_group;
   }
 
+  void managed_node_graph::set_group_name(
+    const node_handle& group,
+    const std::string& name)
+  {
+    if (!is_group(group))
+      return;
+
+    auto iter = m_groups.find(group);
+    assert(iter != m_groups.end());
+
+    m_ng.set_name(iter->second.interface, name);
+  }
+
   bool managed_node_graph::_add_group_socket(
     node_group* group,
     socket_type type,

@@ -85,6 +85,9 @@ namespace yave {
     /// Get root group
     auto root_group() const -> node_handle;
 
+    /// Change name of group
+    void set_group_name(const node_handle& group, const std::string& name);
+
     /// Add group input socket
     /// \note index -1 treated as size of sockets
     /// \requires -1 <= index <= number of sockets
