@@ -11,19 +11,20 @@ namespace yave::compile_error {
 
   std::string no_valid_overloading::message() const
   {
-    return fmt::format("No valid overloading: id={}", to_string(m_id));
+    return fmt::format("No valid overloading: node={}", to_string(m_node.id()));
   }
 
   std::string ambiguous_overloading::message() const
   {
-    return fmt::format("Ambiguous overloading: id={}", to_string(m_id));
+    return fmt::format(
+      "Ambiguous overloading: node={}", to_string(m_node.id()));
   }
 
   std::string type_missmatch::message() const
   {
     return fmt::format(
-      "Type missmatch: id={}, expected={}, provided={}",
-      to_string(m_id),
+      "Type missmatch: node={}, expected={}, provided={}",
+      to_string(m_node.id()),
       to_string(m_expected),
       to_string(m_provided));
   }
