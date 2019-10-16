@@ -277,6 +277,7 @@ namespace yave {
       for (auto&& n : nodes) {
         auto lb =
           std::lower_bound(parent->contents.begin(), parent->contents.end(), n);
+        assert(*lb == n);
         parent->contents.erase(lb);
       }
 
@@ -337,10 +338,10 @@ namespace yave {
         }
 
         // attach input handler
-        for (auto&& [c, cinfo] : inputs) {
+        for (auto&& [_, cinfo] : inputs) {
 
           auto dst_socket = cinfo.dst_socket();
-          auto dst_name   = *m_ng.get_name(cinfo.dst_socket());
+          auto dst_name   = *m_ng.get_name(dst_socket);
 
           // create I/O bit node
           auto info = get_node_info<node::NodeGroupIOBit>();
@@ -350,23 +351,29 @@ namespace yave {
           assert(bit);
           it->second.input_bits.push_back(bit);
 
+          [[maybe_unused]] bool b;
+          [[maybe_unused]] connection_handle c;
+
           // build loop connection
           m_ng.disconnect(c);
           // src -> bit
-          m_ng.connect(cinfo.src_socket(), m_ng.input_sockets(bit)[0]);
+          c = m_ng.connect(cinfo.src_socket(), m_ng.input_sockets(bit)[0]);
+          assert(c);
           // bit -> dst
-          m_ng.connect(m_ng.output_sockets(bit)[0], cinfo.dst_socket());
+          c = m_ng.connect(m_ng.output_sockets(bit)[0], cinfo.dst_socket());
+          assert(c);
 
           // attach input handler
-          m_ng.attach_interface(
+          b = m_ng.attach_interface(
             it->second.input_handler, m_ng.output_sockets(bit)[0]);
-
+          assert(b);
           // attach interface
-          m_ng.attach_interface(interface, m_ng.input_sockets(bit)[0]);
+          b = m_ng.attach_interface(interface, m_ng.input_sockets(bit)[0]);
+          assert(b);
         }
 
         // attach output handler
-        for (auto&& [c, cinfo] : outputs) {
+        for (auto&& [_, cinfo] : outputs) {
 
           auto src_socket = cinfo.src_socket();
           auto src_name   = *m_ng.get_name(src_socket);
@@ -379,19 +386,25 @@ namespace yave {
           assert(bit);
           it->second.output_bits.push_back(bit);
 
+          [[maybe_unused]] connection_handle c;
+          [[maybe_unused]] bool b;
+
           // build loop connection
           m_ng.disconnect(c);
           // src -> bit
-          m_ng.connect(cinfo.src_socket(), m_ng.input_sockets(bit)[0]);
+          c = m_ng.connect(cinfo.src_socket(), m_ng.input_sockets(bit)[0]);
+          assert(c);
           // bit -> dst
-          m_ng.connect(m_ng.output_sockets(bit)[0], cinfo.dst_socket());
+          c = m_ng.connect(m_ng.output_sockets(bit)[0], cinfo.dst_socket());
+          assert(c);
 
           // attach handler
-          m_ng.attach_interface(
+          b = m_ng.attach_interface(
             it->second.output_handler, m_ng.input_sockets(bit)[0]);
-
+          assert(b);
           // attach interface
-          m_ng.attach_interface(interface, m_ng.output_sockets(bit)[0]);
+          b = m_ng.attach_interface(interface, m_ng.output_sockets(bit)[0]);
+          assert(b);
         }
       }
 
@@ -445,10 +458,13 @@ namespace yave {
         auto ici = m_ng.get_info(ics.front());
         m_ng.disconnect(ics.front());
 
+        [[maybe_unused]] connection_handle c;
+
         for (auto&& oc : ocs) {
           auto oci = m_ng.get_info(oc);
           m_ng.disconnect(oc);
-          m_ng.connect(ici->src_socket(), oci->dst_socket());
+          c = m_ng.connect(ici->src_socket(), oci->dst_socket());
+          assert(c);
         }
       }
 
@@ -466,10 +482,13 @@ namespace yave {
         auto ici = m_ng.get_info(ics.front());
         m_ng.disconnect(ics.front());
 
+        [[maybe_unused]] connection_handle c;
+
         for (auto&& oc : ocs) {
           auto oci = m_ng.get_info(oc);
           m_ng.disconnect(oc);
-          m_ng.connect(ici->src_socket(), oci->dst_socket());
+          c = m_ng.connect(ici->src_socket(), oci->dst_socket());
+          assert(c);
         }
       }
     }
@@ -666,13 +685,17 @@ namespace yave {
       pBits->insert(pBits->begin() + index, bit);
     }
 
+    [[maybe_unused]] bool b;
+
     // attach
     for (auto&& bit : *pBits) {
       for (auto&& s : m_ng.input_sockets(bit)) {
-        m_ng.attach_interface(*pInterfaceIn, s);
+        b = m_ng.attach_interface(*pInterfaceIn, s);
+        assert(b);
       }
       for (auto&& s : m_ng.output_sockets(bit)) {
-        m_ng.attach_interface(*pInterfaceOut, s);
+        b = m_ng.attach_interface(*pInterfaceOut, s);
+        assert(b);
       }
     }
     return true;
@@ -831,14 +854,18 @@ namespace yave {
       pBits->erase(pBits->begin() + index);
     }
 
+    [[maybe_unused]] bool b;
+
     // attach
     {
       for (auto&& bit : *pBits) {
         for (auto&& s : m_ng.input_sockets(bit)) {
-          m_ng.attach_interface(*pInterfaceIn, s);
+          b = m_ng.attach_interface(*pInterfaceIn, s);
+          assert(b);
         }
         for (auto&& s : m_ng.output_sockets(bit)) {
-          m_ng.attach_interface(*pInterfaceOut, s);
+          b = m_ng.attach_interface(*pInterfaceOut, s);
+          assert(b);
         }
       }
     }
