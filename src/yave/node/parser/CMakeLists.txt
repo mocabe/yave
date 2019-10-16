@@ -2,8 +2,7 @@
 
 add_library(yave-node-parser
   node_parser.cpp
-  errors.cpp
-  desugar_keyframe.cpp)
+  errors.cpp)
 
 add_library(yave::node::parser ALIAS yave-node-parser)
 

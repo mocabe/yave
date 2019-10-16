@@ -4,9 +4,8 @@
 //
 
 #include <yave/node/parser/node_parser.hpp>
-#include <yave/node/parser/desugar_keyframe.hpp>
 #include <yave/node/parser/errors.hpp>
-#include <yave/node/obj/keyframe.hpp>
+#include <yave/node/obj/node_group.hpp>
 #include <yave/node/obj/constructor.hpp>
 #include <yave/support/log.hpp>
 
@@ -115,6 +114,7 @@ namespace yave {
     for (auto&& n : ns) {
       auto info = graph.get_info(n);
       assert(info);
+      assert(!info->is_interface());
 
       auto cpy = info->is_primitive()
                    ? ret.add_with_id(*info, n.id(), *graph.get_primitive(n))
@@ -129,7 +129,7 @@ namespace yave {
       // root node
       if (n == root) {
         ret_root = cpy;
-    }
+      }
     }
 
     if (!ret_root) {
@@ -145,22 +145,21 @@ namespace yave {
         auto info = graph.get_info(c);
         assert(info);
 
-        auto src = info->src_node();
-        auto dst = info->dst_node();
+        auto src = info->src_socket();
+        auto dst = info->dst_socket();
 
-        assert(dst == n);
+        assert(info->dst_node() == n);
 
-        auto src_cpy = ret.node(src.id());
-        auto dst_cpy = ret.node(dst.id());
+        auto src_cpy = ret.socket(src.id());
+        auto dst_cpy = ret.socket(dst.id());
 
         if (!src_cpy || !dst_cpy) {
           m_errors.push_back(make_error<parse_error::unexpected_error>(
-            "Could not find copied node"));
+            "Could not find copied socket"));
           throw std::runtime_error("Failed to copy prime tree");
         }
 
-        auto cpy =
-          ret.connect(src_cpy, info->src_socket(), dst_cpy, info->dst_socket());
+        auto cpy = ret.connect(src_cpy, dst_cpy);
 
         if (!cpy) {
           m_errors.push_back(make_error<parse_error::unexpected_error>(
@@ -187,16 +186,31 @@ namespace yave {
     auto ns = graph.nodes();
 
     for (auto&& n : ns) {
-      auto info = graph.get_info(n);
-      assert(info);
+      // Revemo group I/O bits
+      if (graph.get_name(n) == get_node_info<node::NodeGroupIOBit>().name()) {
+        auto ics = graph.input_connections(n);
+        auto ocs = graph.output_connections(n);
 
-      // desugar pass
-      {
-          desugar_KeyframeInt(graph, n, m_errors);
-          desugar_KeyframeFloat(graph, n, m_errors);
-          desugar_KeyframeBool(graph, n, m_errors);
+        if (!ics.empty()) {
+
+          assert(ics.size() == 1);
+          auto ic = ics[0];
+
+          auto ici = graph.get_info(ic);
+          graph.disconnect(ic);
+
+          [[maybe_unused]] connection_handle c;
+
+          // build connection
+          for (auto&& oc : ocs) {
+            auto oci = graph.get_info(oc);
+            graph.disconnect(oc);
+            c = graph.connect(ici->src_socket(), oci->dst_socket());
+            assert(c);
+          }
         }
       }
+    }
 
     // Need to put dummy node if root node can be replaced in desugar pass.
     assert(graph.exists(root));
@@ -244,4 +258,4 @@ namespace yave {
 
     return std::nullopt;
   }
-}
+} // namespace yave
