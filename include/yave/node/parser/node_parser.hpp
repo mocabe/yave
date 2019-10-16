@@ -32,6 +32,8 @@ namespace yave {
   };
 
   /// Parse node graph and generate data for compiler stage.
+  /// Parser extracts prime tree which can be passed to compiler stage.
+  /// Checks all insufficient inputs and removes intermediate nodes.
   class node_parser
   {
   public:
