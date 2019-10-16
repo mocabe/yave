@@ -730,76 +730,24 @@ namespace yave {
     const std::string& socket,
     size_t index)
   {
-    node_handle* pInterfaceIn;
-    node_handle* pInterfaceOut;
     std::vector<node_handle>* pBits;
 
     switch (type) {
       case socket_type::input:
-        pInterfaceIn  = &group->interface;
-        pInterfaceOut = &group->input_handler;
-        pBits         = &group->input_bits;
+        pBits = &group->input_bits;
         break;
       case socket_type::output:
-        pInterfaceOut = &group->interface;
-        pInterfaceIn  = &group->output_handler;
-        pBits         = &group->output_bits;
+        pBits = &group->output_bits;
         break;
       default:
         assert(false);
     }
 
-    // detach sockets
-    {
-      for (auto&& bit : *pBits) {
-        for (auto&& s : m_ng.input_sockets(bit)) {
-          m_ng.detach_interface(*pInterfaceIn, s);
-        }
-        for (auto&& s : m_ng.output_sockets(bit)) {
-          m_ng.detach_interface(*pInterfaceOut, s);
-        }
-      }
-    }
+    for (auto&& s : m_ng.input_sockets(pBits->operator[](index)))
+      m_ng.set_name(s, socket);
 
-    // Create bit with new name and swap
-    {
-      node_handle bit;
-      {
-        auto info = get_node_info<node::NodeGroupIOBit>();
-        info.set_input_sockets({socket});
-        info.set_output_sockets({socket});
-        bit = m_ng.add(info);
-        assert(bit);
-      }
-
-      for (auto&& c : m_ng.input_connections(pBits->at(index))) {
-        auto info = m_ng.get_info(c);
-        m_ng.disconnect(c);
-        m_ng.connect(info->src_socket(), m_ng.input_sockets(bit)[0]);
-      }
-
-      for (auto&& c : m_ng.output_connections(pBits->at(index))) {
-        auto info = m_ng.get_info(c);
-        m_ng.disconnect(c);
-        m_ng.connect(m_ng.output_sockets(bit)[0], info->dst_socket());
-      }
-
-      // remove old bit
-      std::swap(pBits->at(index), bit);
-      m_ng.remove(bit);
-    }
-
-    // attach
-    {
-      for (auto&& bit : *pBits) {
-        for (auto&& s : m_ng.input_sockets(bit)) {
-          m_ng.attach_interface(*pInterfaceIn, s);
-        }
-        for (auto&& s : m_ng.output_sockets(bit)) {
-          m_ng.attach_interface(*pInterfaceOut, s);
-        }
-      }
-    }
+    for (auto&& s : m_ng.output_sockets(pBits->operator[](index)))
+      m_ng.set_name(s, socket);
     return true;
   }
 
