@@ -3,8 +3,6 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#pragma once
-
 #include <yave/node/core/shared_node_handle.hpp>
 #include <yave/node/core/managed_node_graph.hpp>
 
@@ -14,7 +12,8 @@ namespace yave {
     : graph {g}
     , handle {h}
   {
-    assert(g.exists(h));
+    if (!g.exists(h))
+      throw std::runtime_error("Invalid node handle");
   }
 
   shared_node_handle::_data::~_data()
