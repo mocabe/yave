@@ -128,21 +128,21 @@ namespace yave {
         socket_instance_manager& sim, /* instance cache table (ref) */
         error_list& errors)           /* error list (ref) */
       {
-        auto node_info          = graph.get_info(node);
-        auto node_binds         = bim.get_binds(*node_info);
-        const auto& node_os     = graph.output_sockets(node);
-        const auto& node_is     = graph.input_sockets(node);
-        const auto& socket_name = *graph.get_name(socket);
+        auto node_info      = graph.get_info(node);
+        auto socket_info    = graph.get_info(socket);
+        auto node_binds     = bim.get_binds(*node_info);
+        const auto& node_os = graph.output_sockets(node);
+        const auto& node_is = graph.input_sockets(node);
 
         // when already in cache
-        if (auto inst = sim.find(node.id(), socket_name)) {
+        if (auto inst = sim.find(socket)) {
 
           Info(
             g_logger,
             "Found instance cache at {}({})#{}",
             node_info->name(),
             to_string(node.id()),
-            socket_name);
+            socket_info->name());
 
           return inst->type;
         }
@@ -196,7 +196,7 @@ namespace yave {
           Info(g_logger, "[ Type checking node: id={} ]", to_string(node.id()));
           Info(g_logger, "- name: {}", node_info->name());
           Info(g_logger, "- connected input sockets: {}", inputs_str);
-          Info(g_logger, "- output socket: {}", socket_name);
+          Info(g_logger, "- output socket: {}", socket_info->name());
           Info(g_logger, "- registered overloadings: {}", node_binds.size());
         }
 
@@ -208,7 +208,7 @@ namespace yave {
           auto bis = b->input_sockets();
           auto bos = b->output_socket();
 
-          if (bos != socket_name) {
+          if (bos != socket_info->name()) {
             continue;
           }
 
@@ -233,14 +233,14 @@ namespace yave {
         if (overloadings.empty()) {
 
           errors.push_back(make_error<compile_error::no_valid_overloading>(
-            node.id(), socket_name, overloadings));
+            node, socket, overloadings));
 
           Error(
             g_logger,
             "[ Typing node {}({})#{} failed ]",
             node_info->name(),
             to_string(node.id()),
-            socket_name);
+            socket_info->name());
           Error(g_logger, "- (No overloading for current input connections)");
 
           return object_type<Undefined>();
@@ -253,7 +253,7 @@ namespace yave {
             "[ Overloadings at {}({})#{} ]",
             node_info->name(),
             to_string(node.id()),
-            socket_name);
+            socket_info->name());
 
           for (auto&& o : overloadings) {
 
@@ -299,7 +299,7 @@ namespace yave {
             "[ Type check at node: {}({})#{} ]",
             node_info->name(),
             to_string(node.id()),
-            socket_name);
+            socket_info->name());
           Info(g_logger, "- input types: {}", input_types_str);
           Info(g_logger, "- generalized type: {}", to_string(generalized_tp));
         }
@@ -330,7 +330,7 @@ namespace yave {
           } catch (type_error::type_missmatch& e) {
 
             errors.push_back(make_error<compile_error::type_missmatch>(
-              node.id(), inputs_name[i], e.expected(), e.provided()));
+              node, inputs[i], e.expected(), e.provided()));
 
             {
               Error(
@@ -338,7 +338,7 @@ namespace yave {
                 "[ Type check on prime tree failed at {}({})#{} ]",
                 node_info->name(),
                 to_string(node.id()),
-                socket_name);
+                socket_info->name());
               Error(g_logger, "- on socket: {}", inputs_name[i]);
               Error(g_logger, "- error type: type_missmatch");
               Error(g_logger, "- socket type: {}", to_string(input_types[i]));
@@ -354,7 +354,7 @@ namespace yave {
           } catch (type_error::type_error&) {
 
             errors.push_back(make_error<compile_error::no_valid_overloading>(
-              node.id(), socket_name, overloadings));
+              node, socket, overloadings));
 
             {
               Error(
@@ -362,7 +362,7 @@ namespace yave {
                 "[ Type check on prime tree failed at {}({})#{} ]",
                 node_info->name(),
                 to_string(node.id()),
-                socket_name);
+                socket_info->name());
               Error(g_logger, "- on socket: {}", inputs_name[i]);
               Error(g_logger, "- error type: unification failed");
               Error(g_logger, "- socket type: {}", to_string(input_types[i]));
@@ -378,7 +378,7 @@ namespace yave {
             "[ Infered type of node: {}({})#{} ]",
             node_info->name(),
             to_string(node.id()),
-            socket_name);
+            socket_info->name());
           Info(g_logger, "- node_tp: {}", to_string(node_tp));
           Info(g_logger, "- tmp_tp: {}", to_string(tmp_tp));
         }
@@ -409,7 +409,7 @@ namespace yave {
         if (hits.empty()) {
 
           errors.push_back(make_error<compile_error::no_valid_overloading>(
-            node.id(), socket_name, overloadings));
+            node, socket, overloadings));
 
           {
             Info(
@@ -417,7 +417,7 @@ namespace yave {
               "[ Type check on prime tree failed at {}({})#{} ]",
               node_info->name(),
               to_string(node.id()),
-              socket_name);
+              socket_info->name());
             Info(g_logger, "- (No valid overloading found.)");
           }
 
@@ -431,7 +431,7 @@ namespace yave {
 
               // TODO: better error info
               errors.push_back(make_error<compile_error::ambiguous_overloading>(
-                node.id(), socket_name, overloadings));
+                node, socket, overloadings));
 
               {
                 Error(
@@ -439,7 +439,7 @@ namespace yave {
                   "[ Overloading resolution failed at {}({})#{} ]",
                   node_info->name(),
                   to_string(node.id()),
-                  socket_name);
+                  socket_info->name());
                 Error(g_logger, "- (Ambiguous overloadings)");
               }
 
@@ -455,16 +455,14 @@ namespace yave {
             "[ Type of node at {}({})#{} in prime tree successfully deduced ]",
             node_info->name(),
             to_string(node.id()),
-            socket_name);
+            socket_info->name());
           Info(g_logger, "- {}", to_string(ret.result_tp));
         }
 
         // add instance cache
 
         sim.add(
-          node.id(),
-          socket_name,
-          socket_instance {ret.instance, ret.result_tp, ret.bind});
+          socket, socket_instance {ret.instance, ret.result_tp, ret.bind});
 
         return ret.result_tp;
       }
@@ -509,7 +507,7 @@ namespace yave {
             rec(cinfo->src_node(), cinfo->src_socket(), graph, sim));
         }
 
-        auto inst = sim.find(node.id(), *graph.get_name(socket));
+        auto inst = sim.find(socket);
 
         if (!inst)
           return nullptr;
@@ -539,7 +537,7 @@ namespace yave {
     assert(root_info->output_sockets().size() == 1);
 
     auto app       = impl.rec(root, graph.output_sockets(root)[0], graph, sim);
-    auto root_inst = sim.find(root.id(), root_info->output_sockets()[0]);
+    auto root_inst = sim.find(graph.output_sockets(root)[0]);
 
     assert(root_inst);
 
@@ -559,8 +557,7 @@ namespace yave {
       auto& graph = parsed_graph.graph;
       auto& root  = parsed_graph.root;
 
-      auto inst =
-        sim.find(root.id(), graph.get_info(root)->output_sockets().at(0));
+      auto inst = sim.find(graph.output_sockets(root)[0]);
 
       Info(g_logger, "- type of root node:   {}", to_string(inst->type));
 
