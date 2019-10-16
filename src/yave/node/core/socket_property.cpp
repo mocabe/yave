@@ -23,7 +23,7 @@ namespace yave {
     return m_type == socket_type::output;
   }
 
-  auto socket_property::get_type() const -> socket_type
+  auto socket_property::type() const -> socket_type
   {
     return m_type;
   }
@@ -33,4 +33,8 @@ namespace yave {
     return m_name;
   }
 
+  void socket_property::set_name(const std::string& new_name)
+  {
+    m_name = new_name;
+  }
 } // namespace yave
