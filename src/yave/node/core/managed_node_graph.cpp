@@ -78,12 +78,12 @@ namespace yave {
     }
   };
 
-  managed_node_graph::managed_node_graph()
-    : m_ng {}
-    , m_nim {}
-    , m_groups {}
+  void managed_node_graph::_init()
   {
-    init_logger();
+    assert(m_ng.empty());
+    assert(m_nim.empty());
+    assert(m_groups.empty());
+    assert(!m_root_group);
 
     // register group node info
     if (
@@ -106,6 +106,16 @@ namespace yave {
 
       assert(succ);
     }
+  }
+
+  managed_node_graph::managed_node_graph()
+    : m_ng {}
+    , m_nim {}
+    , m_groups {}
+    , m_root_group {}
+  {
+    init_logger();
+    _init();
   }
 
   managed_node_graph::~managed_node_graph() noexcept
@@ -913,9 +923,45 @@ namespace yave {
   {
     return m_ng.exists(node);
   }
+
+  bool managed_node_graph::exists(const socket_handle& socket) const
+  {
+    return m_ng.exists(socket);
+  }
+
   bool managed_node_graph::exists(const connection_handle& connection) const
   {
     return m_ng.exists(connection);
+  }
+
+  auto managed_node_graph::get_info(const node_handle& node) const
+    -> std::optional<node_info>
+  {
+    return m_ng.get_info(node);
+  }
+
+  auto managed_node_graph::get_info(const socket_handle& socket) const
+    -> std::optional<socket_info>
+  {
+    return m_ng.get_info(socket);
+  }
+
+  auto managed_node_graph::get_info(const connection_handle& connection) const
+    -> std::optional<connection_info>
+  {
+    return m_ng.get_info(connection);
+  }
+
+  auto managed_node_graph::get_name(const node_handle& node) const
+    -> std::optional<std::string>
+  {
+    return m_ng.get_name(node);
+  }
+
+  auto managed_node_graph::get_name(const socket_handle& socket) const
+    -> std::optional<std::string>
+  {
+    return m_ng.get_name(socket);
   }
 
   /* create/connect */
@@ -1010,6 +1056,20 @@ namespace yave {
     return m_ng.disconnect(handle);
   }
 
+  /* sockets */
+
+  auto managed_node_graph::input_sockets(const node_handle& node) const
+    -> std::vector<socket_handle>
+  {
+    return m_ng.input_sockets(node);
+  }
+
+  auto managed_node_graph::output_sockets(const node_handle& node) const
+    -> std::vector<socket_handle>
+  {
+    return m_ng.output_sockets(node);
+  }
+
   /* stats */
 
   auto managed_node_graph::connections() const -> std::vector<connection_handle>
@@ -1041,24 +1101,6 @@ namespace yave {
     return m_ng.output_connections(node);
   }
 
-  auto managed_node_graph::get_info(const node_handle& node) const
-    -> std::optional<node_info>
-  {
-    return m_ng.get_info(node);
-  }
-
-  auto managed_node_graph::get_info(const socket_handle& socket) const
-    -> std::optional<socket_info>
-  {
-    return m_ng.get_info(socket);
-  }
-
-  auto managed_node_graph::get_info(const connection_handle& connection) const
-    -> std::optional<connection_info>
-  {
-    return m_ng.get_info(connection);
-  }
-
 
   auto managed_node_graph::get_primitive(const node_handle& node) const
     -> std::optional<primitive_t>
@@ -1087,6 +1129,10 @@ namespace yave {
   {
     m_ng.clear();
     m_nim.clear();
+    m_groups.clear();
+    m_root_group = nullptr;
+
+    _init();
   }
 
   auto managed_node_graph::get_node_graph() const -> const node_graph&

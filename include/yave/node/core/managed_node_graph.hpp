@@ -129,6 +129,23 @@ namespace yave {
     /// exists?
     [[nodiscard]] bool exists(const socket_handle& socket) const;
 
+    /// get node info
+    [[nodiscard]] auto get_info(const node_handle& node) const
+      -> std::optional<node_info>;
+    /// get socket info
+    [[nodiscard]] auto get_info(const socket_handle& socket) const
+      -> std::optional<socket_info>;
+    /// get connection info
+    [[nodiscard]] auto get_info(const connection_handle& connection) const
+      -> std::optional<connection_info>;
+
+    /// get name
+    [[nodiscard]] auto get_name(const node_handle& node) const
+      -> std::optional<std::string>;
+    /// get name
+    [[nodiscard]] auto get_name(const socket_handle& socket) const
+      -> std::optional<std::string>;
+
   public:
     /// create new node
     [[nodiscard]] auto create(
@@ -154,6 +171,15 @@ namespace yave {
     void disconnect(const connection_handle& handle);
 
   public:
+    /// Get list of input sockets attached to the node.
+    [[nodiscard]] auto input_sockets(const node_handle& node) const
+      -> std::vector<socket_handle>;
+
+    /// Get list of output sockets attached to the node.
+    [[nodiscard]] auto output_sockets(const node_handle& node) const
+      -> std::vector<socket_handle>;
+
+  public:
     /// list connections
     [[nodiscard]] auto connections() const -> std::vector<connection_handle>;
 
@@ -172,18 +198,6 @@ namespace yave {
     /// list input connections
     [[nodiscard]] auto output_connections(const node_handle& node) const
       -> std::vector<connection_handle>;
-
-    /// get node info
-    [[nodiscard]] auto get_info(const node_handle& node) const
-      -> std::optional<node_info>;
-
-    /// get socket info
-    [[nodiscard]] auto get_info(const socket_handle& socket) const
-      -> std::optional<socket_info>;
-
-    /// get connection info
-    [[nodiscard]] auto get_info(const connection_handle& connection) const
-      -> std::optional<connection_info>;
 
     /// primitive?
     [[nodiscard]] auto get_primitive(const node_handle& node) const
@@ -204,6 +218,7 @@ namespace yave {
     struct node_group;
 
   private:
+    void _init();
     [[nodiscard]] auto _find_parent_group(const node_handle& node)
       -> node_group*;
     [[nodiscard]] auto _find_parent_group(const node_handle& node) const

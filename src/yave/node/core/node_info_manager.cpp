@@ -175,6 +175,12 @@ namespace yave {
     m_info.clear();
   }
 
+  bool node_info_manager::empty() const
+  {
+    auto lck = _lock();
+    return m_info.empty();
+  }
+
   auto node_info_manager::_lock() const -> std::unique_lock<std::mutex>
   {
     return std::unique_lock(m_mtx);

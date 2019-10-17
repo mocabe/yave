@@ -108,6 +108,12 @@ namespace yave {
     m_map.clear();
   }
 
+  bool socket_instance_manager::empty() const
+  {
+    auto lck = _lock();
+    return m_map.empty();
+  }
+
   size_t socket_instance_manager::size() const
   {
     auto lck = _lock();

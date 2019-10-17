@@ -254,6 +254,9 @@ namespace yave {
     /// clear graph
     void clear();
 
+    /// empty?
+    bool empty() const;
+
   private: /* non locking, non checking helpers */
     [[nodiscard]] bool _exists(const node_handle&) const;
     [[nodiscard]] bool _exists(const socket_handle&) const;

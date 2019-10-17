@@ -58,6 +58,9 @@ namespace yave {
     /// clear
     void clear();
 
+    /// empty
+    bool empty() const;
+
   private:
     /// lock
     [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;

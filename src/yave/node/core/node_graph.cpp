@@ -999,6 +999,12 @@ namespace yave {
     m_g.clear();
   }
 
+  bool node_graph::empty() const
+  {
+    auto lck = _lock();
+    return m_g.empty();
+  }
+
   auto node_graph::_find_loop(const node_handle& node) const
     -> std::vector<node_handle>
   {
