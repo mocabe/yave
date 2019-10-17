@@ -142,8 +142,8 @@ namespace yave {
     assert(_exists(h));
     assert(!m_g.nodes(h.descriptor()).empty());
 
-    const auto& s = m_g[h.descriptor()];
-    const auto& n = m_g.nodes(h.descriptor())[0];
+    auto s = m_g[h.descriptor()];
+    auto n = m_g.nodes(h.descriptor())[0];
 
     return socket_info(s.name(), s.type(), node_handle {n, {m_g.id(n)}});
   }
@@ -438,7 +438,7 @@ namespace yave {
     auto d = dst_socket.descriptor();
 
     // check socket type
-    if (!m_g[s].is_input() || !m_g[d].is_output()) {
+    if (!m_g[s].is_output() || !m_g[d].is_input()) {
       Error(g_logger, "Failed to connect sockets: Invalid socket type");
       return nullptr;
     }
@@ -721,7 +721,7 @@ namespace yave {
       if (m_g[s].is_input()) {
         assert(m_g.src_edges(s).empty());
         for (auto&& e : m_g.dst_edges(s)) {
-          ret.emplace_back(e, uid {m_g.id(s)});
+          ret.emplace_back(e, uid {m_g.id(e)});
         }
       }
     }
@@ -736,9 +736,11 @@ namespace yave {
 
     std::vector<connection_handle> ret;
     for (auto&& s : m_g.sockets(node.descriptor())) {
-      assert(m_g.dst_edges(s).empty());
-      for (auto&& e : m_g.src_edges(s)) {
-        ret.emplace_back(e, uid {m_g.id(s)});
+      if (m_g[s].is_output()) {
+        assert(m_g.dst_edges(s).empty());
+        for (auto&& e : m_g.src_edges(s)) {
+          ret.emplace_back(e, uid {m_g.id(e)});
+        }
       }
     }
     return ret;
@@ -759,7 +761,7 @@ namespace yave {
     }
 
     if (!m_g.dst_edges(h.descriptor()).empty()) {
-      assert(m_g[h.descriptor()].is_output());
+      assert(m_g[h.descriptor()].is_input());
       return true;
     }
 

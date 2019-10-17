@@ -355,8 +355,7 @@ namespace yave {
         for (size_t i = current_index; i < sockets.size(); ++i) {
           auto& s = sockets[i];
           for (auto&& e : m_g.dst_edges(s)) {
-            assert(m_g.nodes(m_g.src(e)).size() == 1);
-            auto n    = m_g.nodes(m_g.src(e))[0];
+            auto n    = m_g.nodes(m_g.src(e))[0]; // ignore interfaces
             auto next = node_handle(n, uid {m_g.id(n)});
             // not visited yet
             if (!visited(next)) {
