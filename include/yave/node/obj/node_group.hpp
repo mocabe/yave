@@ -53,7 +53,7 @@ namespace yave {
     static node_info get_node_info()
     {
       // socket names will change dynamically
-      return node_info {"NodeGroupIOBit", {""}, {""}};
+      return node_info {"NodeGroupIOBit", {"0"}, {"0"}};
     }
   };
 

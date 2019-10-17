@@ -61,10 +61,21 @@ namespace yave {
     {
       auto lb = std::lower_bound(contents.begin(), contents.end(), node);
 
-      if (*lb == node)
+      if (lb != contents.end() && *lb == node)
         return;
 
       contents.insert(lb, node);
+    }
+
+    void remove_content(const node_handle& node)
+    {
+      auto lb = std::lower_bound(contents.begin(), contents.end(), node);
+
+      if (lb == contents.end())
+        return;
+
+      if (*lb == node)
+        contents.erase(lb);
     }
 
     bool find_content(const node_handle& node) const
@@ -269,13 +280,11 @@ namespace yave {
     // check all other nodes are in the same group content
     {
       for (auto&& n : nodes) {
-
-        auto lb =
-          std::lower_bound(parent->contents.begin(), parent->contents.end(), n);
-
-        // fail
-        if (lb == parent->contents.end() || *lb != n) {
-          Error(g_logger, "group(): Invalid node in group member");
+        if (!parent->find_content(n)) {
+          Error(
+            g_logger,
+            "group(): Invalid node in group member. id={}",
+            to_string(n.id()));
           return {nullptr};
         }
       }
@@ -285,10 +294,7 @@ namespace yave {
     {
       // erase nodes from current group
       for (auto&& n : nodes) {
-        auto lb =
-          std::lower_bound(parent->contents.begin(), parent->contents.end(), n);
-        assert(*lb == n);
-        parent->contents.erase(lb);
+        parent->remove_content(n);
       }
 
       // create new group interfaces
@@ -309,112 +315,152 @@ namespace yave {
       assert(succ);
 
       // Add interface node to parent group
-      parent->contents.push_back(interface);
-
-      std::sort(it->second.contents.begin(), it->second.contents.end());
+      parent->add_content(interface);
 
       // rebuild connections
       {
-        // list of outbound connections
-        std::vector<std::pair<connection_handle, connection_info>> inputs;
-        std::vector<std::pair<connection_handle, connection_info>> outputs;
+        // pair of socket and its outbound connections
+        struct _out_cs
+        {
+          // socket
+          socket_handle s;
+          // outbound connections (can be empty)
+          std::vector<std::pair<connection_handle, connection_info>> cs;
+        };
+
+        std::vector<_out_cs> inputs;
+        std::vector<_out_cs> outputs;
 
         // find connections
         for (auto&& n : nodes) {
-          // input
-          auto ic = m_ng.input_connections(n);
-          for (auto&& c : ic) {
-            auto info = m_ng.get_info(c);
-            assert(info);
 
-            if (
-              std::find(nodes.begin(), nodes.end(), info->src_node()) ==
-              nodes.end()) {
-              inputs.emplace_back(c, std::move(*info));
+          auto is = m_ng.input_sockets(n);
+          auto os = m_ng.output_sockets(n);
+
+          // input
+          for (auto&& s : is) {
+
+            // add table
+            inputs.push_back(_out_cs {s, {}});
+
+            // collect outbound connections
+            auto ic = m_ng.connections(s);
+            for (auto&& c : ic) {
+              auto info = m_ng.get_info(c);
+              assert(info);
+              if (
+                std::find(nodes.begin(), nodes.end(), info->src_node()) ==
+                nodes.end()) {
+                inputs.back().cs.emplace_back(c, std::move(*info));
+              }
             }
           }
-          // output
-          auto oc = m_ng.output_connections(n);
-          for (auto&& c : oc) {
-            auto info = m_ng.get_info(c);
-            assert(info);
 
-            if (
-              std::find(nodes.begin(), nodes.end(), info->dst_node()) ==
-              nodes.end()) {
-              outputs.emplace_back(c, std::move(*info));
+          // output
+          for (auto&& s : os) {
+
+            // add table
+            outputs.push_back(_out_cs {s, {}});
+
+            // collect outbound connections
+            auto oc = m_ng.connections(s);
+            for (auto&& c : oc) {
+              auto info = m_ng.get_info(c);
+              assert(info);
+              if (
+                std::find(nodes.begin(), nodes.end(), info->dst_node()) ==
+                nodes.end()) {
+                outputs.back().cs.emplace_back(c, std::move(*info));
+              }
             }
           }
         }
 
         // attach input handler
-        for (auto&& [_, cinfo] : inputs) {
+        for (auto&& [is, cs] : inputs) {
 
-          auto dst_socket = cinfo.dst_socket();
-          auto dst_name   = *m_ng.get_name(dst_socket);
+          // no outbound connection
+          if (cs.empty())
+            continue;
 
           // create I/O bit node
-          auto info = get_node_info<node::NodeGroupIOBit>();
-          info.set_input_sockets({dst_name});
-          info.set_output_sockets({dst_name});
-          auto bit = m_ng.add(info);
+          auto bit_name = *m_ng.get_name(is);
+          auto bit_info = get_node_info<node::NodeGroupIOBit>();
+          bit_info.set_input_sockets({bit_name});
+          bit_info.set_output_sockets({bit_name});
+          auto bit = m_ng.add(bit_info);
           assert(bit);
+
           it->second.input_bits.push_back(bit);
 
-          [[maybe_unused]] bool b;
-          [[maybe_unused]] connection_handle c;
+          auto bit_in  = m_ng.input_sockets(bit)[0];
+          auto bit_out = m_ng.output_sockets(bit)[0];
 
-          // build loop connection
-          m_ng.disconnect(c);
-          // src -> bit
-          c = m_ng.connect(cinfo.src_socket(), m_ng.input_sockets(bit)[0]);
-          assert(c);
-          // bit -> dst
-          c = m_ng.connect(m_ng.output_sockets(bit)[0], cinfo.dst_socket());
-          assert(c);
+          // build connections
+          for (auto&& [ic, icinfo] : cs) {
 
-          // attach input handler
-          b = m_ng.attach_interface(
-            it->second.input_handler, m_ng.output_sockets(bit)[0]);
-          assert(b);
-          // attach interface
-          b = m_ng.attach_interface(interface, m_ng.input_sockets(bit)[0]);
-          assert(b);
+            m_ng.disconnect(ic);
+
+            [[maybe_unused]] connection_handle c;
+            [[maybe_unused]] bool b;
+
+            // src -> bit
+            c = m_ng.connect(icinfo.src_socket(), bit_in);
+            assert(c);
+            // bit -> dst
+            c = m_ng.connect(bit_out, icinfo.dst_socket());
+            assert(c);
+
+            // attach input handler
+            b = m_ng.attach_interface(it->second.input_handler, bit_out);
+            assert(b);
+            // attach interface
+            b = m_ng.attach_interface(interface, bit_in);
+            assert(b);
+          }
         }
 
-        // attach output handler
-        for (auto&& [_, cinfo] : outputs) {
+        for (auto&& [os, cs] : outputs) {
 
-          auto src_socket = cinfo.src_socket();
-          auto src_name   = *m_ng.get_name(src_socket);
+          // no outbound connection
+          if (cs.empty())
+            continue;
 
           // create I/O bit node
-          auto info = get_node_info<node::NodeGroupIOBit>();
-          info.set_input_sockets({src_name});
-          info.set_output_sockets({src_name});
-          auto bit = m_ng.add(info);
+          auto bit_name = *m_ng.get_name(os);
+          auto bit_info = get_node_info<node::NodeGroupIOBit>();
+          bit_info.set_input_sockets({bit_name});
+          bit_info.set_output_sockets({bit_name});
+          auto bit = m_ng.add(bit_info);
           assert(bit);
+
           it->second.output_bits.push_back(bit);
 
-          [[maybe_unused]] connection_handle c;
-          [[maybe_unused]] bool b;
+          auto bit_in  = m_ng.input_sockets(bit)[0];
+          auto bit_out = m_ng.output_sockets(bit)[0];
 
-          // build loop connection
-          m_ng.disconnect(c);
-          // src -> bit
-          c = m_ng.connect(cinfo.src_socket(), m_ng.input_sockets(bit)[0]);
-          assert(c);
-          // bit -> dst
-          c = m_ng.connect(m_ng.output_sockets(bit)[0], cinfo.dst_socket());
-          assert(c);
+          for (auto&& [oc, ocinfo] : cs) {
 
-          // attach handler
-          b = m_ng.attach_interface(
-            it->second.output_handler, m_ng.input_sockets(bit)[0]);
-          assert(b);
-          // attach interface
-          b = m_ng.attach_interface(interface, m_ng.output_sockets(bit)[0]);
-          assert(b);
+            // build loop connection
+            m_ng.disconnect(oc);
+
+            [[maybe_unused]] connection_handle c;
+            [[maybe_unused]] bool b;
+
+            // src -> bit
+            c = m_ng.connect(ocinfo.src_socket(), bit_in);
+            assert(c);
+            // bit -> dst
+            c = m_ng.connect(bit_out, ocinfo.dst_socket());
+            assert(c);
+
+            // attach handler
+            b = m_ng.attach_interface(it->second.output_handler, bit_in);
+            assert(b);
+            // attach interface
+            b = m_ng.attach_interface(interface, bit_out);
+            assert(b);
+          }
         }
       }
 
@@ -454,19 +500,19 @@ namespace yave {
     // rebuild connections
     {
       // input handler
-      for (auto&& socket : m_ng.input_sockets(group->input_handler)) {
+      for (auto&& socket : m_ng.input_sockets(group->interface)) {
 
         auto bit = m_ng.get_owner(socket);
         auto ics = m_ng.input_connections(bit);
         auto ocs = m_ng.output_connections(bit);
 
-        // no input: discard
-        if (ics.empty())
+        // no connection: discard
+        if (ics.empty() || ocs.empty())
           continue;
 
         assert(ics.size() == 1);
-        auto ici = m_ng.get_info(ics.front());
-        m_ng.disconnect(ics.front());
+        auto ici = m_ng.get_info(ics[0]);
+        m_ng.disconnect(ics[0]);
 
         [[maybe_unused]] connection_handle c;
 
@@ -479,18 +525,18 @@ namespace yave {
       }
 
       // output handler
-      for (auto&& socket : m_ng.input_sockets(group->output_handler)) {
+      for (auto&& socket : m_ng.output_sockets(group->interface)) {
 
         auto bit = m_ng.get_owner(socket);
         auto ics = m_ng.input_connections(bit);
         auto ocs = m_ng.output_connections(bit);
 
-        if (ics.empty())
+        if (ics.empty() || ocs.empty())
           continue;
 
         assert(ics.size() == 1);
-        auto ici = m_ng.get_info(ics.front());
-        m_ng.disconnect(ics.front());
+        auto ici = m_ng.get_info(ics[0]);
+        m_ng.disconnect(ics[0]);
 
         [[maybe_unused]] connection_handle c;
 
@@ -505,17 +551,14 @@ namespace yave {
 
     // remove interface from parent
     {
-      auto iter =
-        std::find(parent->contents.begin(), parent->contents.end(), node);
-      parent->contents.erase(iter);
+      parent->remove_content(node);
     }
 
     // move contents to parent
     {
       for (auto&& n : group->contents) {
-        parent->contents.push_back(n);
+        parent->add_content(n);
       }
-      std::sort(parent->contents.begin(), parent->contents.end());
     }
 
     // remove interface, I/O bits, handlers
@@ -983,10 +1026,7 @@ namespace yave {
     // create and add to node group
     auto node = m_ng.add(*info);
     assert(node);
-    iter->second.contents.insert(
-      std::lower_bound(
-        iter->second.contents.begin(), iter->second.contents.end(), node),
-      node);
+    iter->second.add_content(node);
 
     Info(
       g_logger,
@@ -1018,7 +1058,8 @@ namespace yave {
     }
 
     // group
-    if (m_ng.is_interface(node)) {
+    if (is_group(node)) {
+
       auto iter = m_groups.find(node);
       assert(iter != m_groups.end());
 
@@ -1032,15 +1073,13 @@ namespace yave {
         m_ng.remove(n);
       }
 
-      parent->contents.erase(
-        std::find(parent->contents.begin(), parent->contents.end(), node));
+      parent->remove_content(node);
       return;
     }
 
     // member
     m_ng.remove(node);
-    parent->contents.erase(
-      std::find(parent->contents.begin(), parent->contents.end(), node));
+    parent->remove_content(node);
     return;
   }
 
