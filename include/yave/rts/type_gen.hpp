@@ -224,7 +224,7 @@ namespace yave {
     meta_type<T> type,
     meta_type<ClosureProxy<Ts...>> result)
   {
-    if constexpr (is_arrow_type(type)) {
+    if constexpr (is_ty_arrow(type)) {
       return guess_object_type_closure(
         type.t2(), append(guess_object_type(type.t1()), result));
     } else {
@@ -237,7 +237,7 @@ namespace yave {
   template <class T>
   [[nodiscard]] constexpr auto guess_object_type(meta_type<T> type)
   {
-    if constexpr (is_arrow_type(type)) {
+    if constexpr (is_ty_arrow(type)) {
       return guess_object_type_closure(type, type_c<ClosureProxy<>>);
     } else if constexpr (is_value_type(type)) {
       using tag = typename decltype(type.tag())::type;

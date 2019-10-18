@@ -30,10 +30,10 @@ namespace yave {
 
     if constexpr (type == ar.t1()) {
       return ar.t2();
-    } else if constexpr (is_arrow_type(type)) {
+    } else if constexpr (is_ty_arrow(type)) {
       auto lt = subst(ar, type.t1());
       auto rt = subst(ar, type.t2());
-      return make_arrow(lt, rt);
+      return make_ty_arrow(lt, rt);
     } else if constexpr (is_value_type(type)) {
       return type;
     } else if constexpr (is_var_type(type)) {
@@ -169,7 +169,7 @@ namespace yave {
     (void)x;
     (void)t;
 
-    if constexpr (is_arrow_type(t)) {
+    if constexpr (is_ty_arrow(t)) {
       constexpr bool b = occurs(x, t.t1()) || occurs(x, t.t2());
       return std::bool_constant<b> {};
     } else if constexpr (is_value_type(t)) {
@@ -225,7 +225,7 @@ namespace yave {
         return unify_impl(tl);
       }
       // constr(arrow(S1, S2), arrow(T1, T2))
-      else if constexpr (is_arrow_type(c.t1()) && is_arrow_type(c.t2())) {
+      else if constexpr (is_ty_arrow(c.t1()) && is_ty_arrow(c.t2())) {
         auto a1 = c.t1();
         auto a2 = c.t2();
         return unify_impl(concat(
@@ -442,7 +442,7 @@ namespace yave {
         // No need for error check (as far as tm_closure is used just for
         // type declaration).
 
-        return make_pair(make_arrow(t1, t2), g2);
+        return make_pair(make_ty_arrow(t1, t2), g2);
       }
     } else
       return type_of_impl(term, gen, enable_assert);
@@ -500,7 +500,7 @@ namespace yave {
           // type check subtree
           auto var = gen_var(g2);
           auto g3  = nextgen(g2);
-          auto c   = make_tuple(make_constr(t1, make_arrow(t2, var)));
+          auto c   = make_tuple(make_constr(t1, make_ty_arrow(t2, var)));
           auto s   = unify(c, enable_assert);
           if constexpr (is_error_type(s))
             return make_pair(s, g3);

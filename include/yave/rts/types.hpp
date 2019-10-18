@@ -14,7 +14,7 @@ namespace yave {
 
   /// Arrow type
   template <class T1, class T2>
-  struct arrow
+  struct ty_arrow
   {
   };
 
@@ -98,7 +98,7 @@ namespace yave {
   // meta_type specializations
 
   template <class T1, class T2>
-  struct meta_type<arrow<T1, T2>>
+  struct meta_type<ty_arrow<T1, T2>>
   {
     [[nodiscard]] constexpr auto t1() const
     {
@@ -111,9 +111,9 @@ namespace yave {
   };
 
   template <class T1, class T2>
-  [[nodiscard]] constexpr auto make_arrow(meta_type<T1>, meta_type<T2>)
+  [[nodiscard]] constexpr auto make_ty_arrow(meta_type<T1>, meta_type<T2>)
   {
-    return type_c<arrow<T1, T2>>;
+    return type_c<ty_arrow<T1, T2>>;
   }
 
   template <class T1, class T2>
@@ -364,24 +364,24 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // is_arrow_type
+  // is_ty_arrow
 
   template <class T>
-  struct is_arrow_type_impl
+  struct is_ty_arrow_impl
   {
     static constexpr std::false_type value {};
   };
 
   template <class T1, class T2>
-  struct is_arrow_type_impl<arrow<T1, T2>>
+  struct is_ty_arrow_impl<ty_arrow<T1, T2>>
   {
     static constexpr std::true_type value {};
   };
 
   template <class T>
-  [[nodiscard]] constexpr auto is_arrow_type(meta_type<T>)
+  [[nodiscard]] constexpr auto is_ty_arrow(meta_type<T>)
   {
-    return is_arrow_type_impl<T>::value;
+    return is_ty_arrow_impl<T>::value;
   }
 
   // ------------------------------------------

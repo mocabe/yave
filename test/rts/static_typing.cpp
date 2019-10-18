@@ -13,8 +13,8 @@ using namespace yave;
 namespace yave {
   using Int    = yave::Box<int>;
   using Double = yave::Box<double>;
-  using Float = yave::Box<float>;
-  using Bool = yave::Box<bool>;
+  using Float  = yave::Box<float>;
+  using Bool   = yave::Box<bool>;
 } // namespace yave
 
 YAVE_DECL_TYPE(Int, "7d27665a-c56a-40d1-8e2e-844cb48de9e9");
@@ -175,13 +175,13 @@ void test_subst()
 {
   {
     constexpr auto arrow = type_c<tyarrow<var<taggen<0>>, value<int>>>;
-    constexpr auto type = type_c<var<taggen<0>>>;
+    constexpr auto type  = type_c<var<taggen<0>>>;
     static_assert(subst(arrow, type) == type_c<value<int>>);
   }
   {
-    constexpr auto ar = type_c<tyarrow<var<taggen<0>>, value<int>>>;
-    constexpr auto type = type_c<arrow<var<taggen<0>>, value<int>>>;
-    static_assert(subst(ar, type) == type_c<arrow<value<int>, value<int>>>);
+    constexpr auto ar   = type_c<tyarrow<var<taggen<0>>, value<int>>>;
+    constexpr auto type = type_c<ty_arrow<var<taggen<0>>, value<int>>>;
+    static_assert(subst(ar, type) == type_c<ty_arrow<value<int>, value<int>>>);
   }
 }
 
@@ -192,14 +192,14 @@ void test_subst_all()
       tyarrow<var<taggen<0>>, value<int>>,
       tyarrow<var<taggen<1>>, value<float>>>;
 
-    constexpr auto type = type_c<arrow<
-      arrow<var<taggen<1>>, var<taggen<0>>>,
-      arrow<value<float>, var<taggen<1>>>>>;
+    constexpr auto type = type_c<ty_arrow<
+      ty_arrow<var<taggen<1>>, var<taggen<0>>>,
+      ty_arrow<value<float>, var<taggen<1>>>>>;
 
     static_assert(
-      subst_all(ars, type) == type_c<arrow<
-                                arrow<value<float>, value<int>>,
-                                arrow<value<float>, value<float>>>>);
+      subst_all(ars, type) == type_c<ty_arrow<
+                                ty_arrow<value<float>, value<int>>,
+                                ty_arrow<value<float>, value<float>>>>);
   }
 }
 
@@ -215,18 +215,19 @@ void test_unify()
     // [X = int, Y = X -> X]
     constexpr auto c = tuple_c<
       constr<var<class X>, value<int>>,
-      constr<var<class Y>, arrow<var<class X>, var<class X>>>>;
+      constr<var<class Y>, ty_arrow<var<class X>, var<class X>>>>;
 
     static_assert(
       set_c<
         tyarrow<var<class X>, value<int>>,
-        tyarrow<var<class Y>, arrow<value<int>, value<int>>>> ==
+        tyarrow<var<class Y>, ty_arrow<value<int>, value<int>>>> ==
       make_set(unify(c, true_c)));
   }
   {
     // [int->int = X -> Y]
-    constexpr auto c = tuple_c<
-      constr<arrow<value<int>, value<int>>, arrow<var<class X>, var<class Y>>>>;
+    constexpr auto c = tuple_c<constr<
+      ty_arrow<value<int>, value<int>>,
+      ty_arrow<var<class X>, var<class Y>>>>;
 
     static_assert(
       set_c<
@@ -235,14 +236,16 @@ void test_unify()
   }
   {
     // [int = int -> Y]
-    constexpr auto c = tuple_c<constr<value<int>, arrow<value<int>, var<class Y>>>>;
+    constexpr auto c =
+      tuple_c<constr<value<int>, ty_arrow<value<int>, var<class Y>>>>;
     constexpr auto r = unify(c, false_c);
     static_assert(is_error_type(r));
     // using r = unify_t<c>; // should fail
   }
   {
     // [Y = int -> Y]
-    constexpr auto c = tuple_c<constr<var<class Y>, arrow<value<int>, var<class Y>>>>;
+    constexpr auto c =
+      tuple_c<constr<var<class Y>, ty_arrow<value<int>, var<class Y>>>>;
     constexpr auto r = unify(c, false_c);
     static_assert(is_error_type(r));
     // using r = unify_t<c>; // should fail
@@ -317,7 +320,7 @@ void test_type_of()
   }
   {
     constexpr auto tp = type_c<tm_closure<tm_value<int>, tm_value<float>>>;
-    static_assert(type_of(tp) == type_c<arrow<value<int>, value<float>>>);
+    static_assert(type_of(tp) == type_c<ty_arrow<value<int>, value<float>>>);
   }
   {
     constexpr auto tp = type_c<tm_closure<
@@ -326,7 +329,7 @@ void test_type_of()
 
     static_assert(
       type_of(tp) ==
-      type_c<arrow<value<int>, arrow<value<float>, var<taggen<0>>>>>);
+      type_c<ty_arrow<value<int>, ty_arrow<value<float>, var<taggen<0>>>>>);
   }
   {
     // apply
@@ -361,7 +364,7 @@ void test_type_of()
     constexpr auto tm =
       type_c<tm_apply<doubleapp, tm_closure<tm_value<int>, tm_value<int>>>>;
 
-    static_assert(type_c<arrow<value<int>, value<int>>> == type_of(tm));
+    static_assert(type_c<ty_arrow<value<int>, value<int>>> == type_of(tm));
   }
   {
     // fix ((int -> bool) -> (int -> bool)) = int -> bool
@@ -372,7 +375,7 @@ void test_type_of()
         tm_value<int>,
         tm_value<bool>>>>;
 
-    static_assert(type_of(ff) == type_c<arrow<value<int>, value<bool>>>);
+    static_assert(type_of(ff) == type_c<ty_arrow<value<int>, value<bool>>>);
   }
   {
     static_assert(type_of(type_c<tm_var<class X>>) == type_c<var<class X>>);
@@ -465,21 +468,21 @@ void test_assume_object_type()
   {
     // arrow<S, T> -> closure<S, T>
     static_assert(
-      guess_object_type(type_c<arrow<value<Double>, value<Int>>>) ==
+      guess_object_type(type_c<ty_arrow<value<Double>, value<Int>>>) ==
       type_c<ClosureProxy<Double, Int>>);
 
     // arrow<S, arrow<T, U>> -> closure<S, T, U>
     static_assert(
       guess_object_type(
-        type_c<arrow<value<Int>, arrow<value<Double>, value<Int>>>>) ==
+        type_c<ty_arrow<value<Int>, ty_arrow<value<Double>, value<Int>>>>) ==
       type_c<ClosureProxy<Int, Double, Int>>);
 
     // arrow<arrow<Double, Int>, arrow<Double, Int>> -> closure<closure<Double,
     // Int>, Double, Int>
     static_assert(
-      guess_object_type(type_c<arrow<
-                          arrow<value<Double>, value<Int>>,
-                          arrow<value<Double>, value<Int>>>>) ==
+      guess_object_type(type_c<ty_arrow<
+                          ty_arrow<value<Double>, value<Int>>,
+                          ty_arrow<value<Double>, value<Int>>>>) ==
       type_c<ClosureProxy<ClosureProxy<Double, Int>, Double, Int>>);
   }
 }
