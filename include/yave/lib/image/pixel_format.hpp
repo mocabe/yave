@@ -25,7 +25,8 @@ namespace yave {
   };
 
   /// Get number of channels
-  constexpr uint8_t get_channel_size(const pixel_format& fmt) noexcept
+  [[nodiscard]] constexpr uint8_t get_channel_size(
+    const pixel_format& fmt) noexcept
   {
     // clang-format off
     switch (fmt) {
@@ -45,7 +46,8 @@ namespace yave {
   }
 
   /// Check if the format has alpha channel
-  constexpr bool has_alpha_channel(const pixel_format& fmt) noexcept
+  [[nodiscard]] constexpr bool has_alpha_channel(
+    const pixel_format& fmt) noexcept
   {
     // clang-format off
     switch (fmt) {
@@ -65,7 +67,8 @@ namespace yave {
   }
 
   /// Get string representation of pixel format
-  constexpr const char* get_pixel_format_cstr(const pixel_format& fmt)
+  [[nodiscard]] constexpr const char* get_pixel_format_cstr(
+    const pixel_format& fmt)
   {
     // clang-format off
     switch (fmt) {
@@ -85,7 +88,7 @@ namespace yave {
   }
 
   /// Convert pixel_format to string
-  inline std::string to_string(const pixel_format& format)
+  [[nodiscard]] inline std::string to_string(const pixel_format& format)
   {
     return {get_pixel_format_cstr(format)};
   }

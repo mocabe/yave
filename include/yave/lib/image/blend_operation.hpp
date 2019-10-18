@@ -23,7 +23,8 @@ namespace yave {
   };
 
   /// Get string name of blend operation
-  constexpr const char* get_blend_operation_cstr(blend_operation op)
+  [[nodiscard]] constexpr const char* get_blend_operation_cstr(
+    blend_operation op)
   {
     switch (op) {
       case blend_operation::src:
@@ -43,7 +44,7 @@ namespace yave {
   }
 
   /// Convert blend_operation to string
-  inline std::string to_string(blend_operation op)
+  [[nodiscard]] inline std::string to_string(blend_operation op)
   {
     return {get_blend_operation_cstr(op)};
   }

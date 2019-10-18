@@ -37,7 +37,9 @@ namespace yave {
   // clang-format on
 
   /// operator==
-  constexpr bool operator==(const image_format& lhs, const image_format& rhs)
+  [[nodiscard]] constexpr bool operator==(
+    const image_format& lhs,
+    const image_format& rhs)
   {
     return lhs.pixel_format == rhs.pixel_format &&
            lhs.sample_format == rhs.sample_format &&
@@ -45,30 +47,35 @@ namespace yave {
   }
 
   /// operator!=
-  constexpr bool operator!=(const image_format& lhs, const image_format& rhs)
+  [[nodiscard]] constexpr bool operator!=(
+    const image_format& lhs,
+    const image_format& rhs)
   {
     return !(lhs == rhs);
   }
 
   /// Get channel size
-  constexpr uint32_t channel_size(const image_format& fmt) noexcept
+  [[nodiscard]] constexpr uint32_t channel_size(
+    const image_format& fmt) noexcept
   {
     return get_channel_size(fmt.pixel_format);
   }
 
   /// Get byte per channel
-  constexpr uint32_t byte_per_channel(const image_format& fmt) noexcept
+  [[nodiscard]] constexpr uint32_t byte_per_channel(
+    const image_format& fmt) noexcept
   {
     return fmt.byte_per_channel;
   }
 
   /// Get byte per pixel
-  constexpr uint32_t byte_per_pixel(const image_format& fmt) noexcept
+  [[nodiscard]] constexpr uint32_t byte_per_pixel(
+    const image_format& fmt) noexcept
   {
     return fmt.byte_per_channel * get_channel_size(fmt.pixel_format);
   }
 
   /// Get string name of image format
-  std::string to_string(const image_format& fmt);
+  [[nodiscard]] std::string to_string(const image_format& fmt);
 
 } // namespace yave

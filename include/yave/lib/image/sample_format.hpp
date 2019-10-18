@@ -24,7 +24,8 @@ namespace yave {
   };
 
   /// Get string representation of sample format
-  constexpr const char* get_sample_format_cstr(const sample_format& fmt)
+  [[nodiscard]] constexpr const char* get_sample_format_cstr(
+    const sample_format& fmt)
   {
     // clang-format off
     switch (fmt) {
@@ -43,7 +44,7 @@ namespace yave {
   }
 
   /// Convert sample_format to string
-  inline std::string to_string(const sample_format& format)
+  [[nodiscard]] inline std::string to_string(const sample_format& format)
   {
     return {get_sample_format_cstr(format)};
   }
