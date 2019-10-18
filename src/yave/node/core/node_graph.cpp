@@ -937,8 +937,7 @@ namespace yave {
 
   auto node_graph::_get_primitive(const node_handle& h) const -> primitive_t
   {
-    if (m_g[h.descriptor()].is_primitive())
-      return m_g[h.descriptor()].get_primitive();
+    return m_g[h.descriptor()].get_primitive();
   }
 
   auto node_graph::get_primitive(const node_handle& h) const
