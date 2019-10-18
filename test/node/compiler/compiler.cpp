@@ -88,8 +88,10 @@ TEST_CASE("add x y", "[node_compiler]")
   REQUIRE(i1);
   REQUIRE(i2);
 
-  auto c1 = graph.connect(i1, "value", add, "x");
-  auto c2 = graph.connect(i2, "value", add, "y");
+  auto c1 =
+    graph.connect(graph.output_sockets(i1)[0], graph.input_sockets(add)[0]);
+  auto c2 =
+    graph.connect(graph.output_sockets(i2)[0], graph.input_sockets(add)[1]);
 
   REQUIRE(c1);
   REQUIRE(c2);
@@ -112,8 +114,10 @@ TEST_CASE("add x x", "[node_compiler]")
   REQUIRE(add);
   REQUIRE(i);
 
-  auto c1 = graph.connect(i, "value", add, "x");
-  auto c2 = graph.connect(i, "value", add, "y");
+  auto c1 =
+    graph.connect(graph.output_sockets(i)[0], graph.input_sockets(add)[0]);
+  auto c2 =
+    graph.connect(graph.output_sockets(i)[0], graph.input_sockets(add)[1]);
 
   REQUIRE(c1);
   REQUIRE(c2);
@@ -138,10 +142,17 @@ TEST_CASE("add (add x x) x", "[node_compiler]")
   REQUIRE(add2);
   REQUIRE(i);
 
-  auto c1 = graph.connect(add2, "out", add1, "x");
-  auto c2 = graph.connect(i, "value", add1, "y");
-  auto c3 = graph.connect(i, "value", add2, "x");
-  auto c4 = graph.connect(i, "value", add2, "y");
+  auto add1_x   = graph.input_sockets(add1)[0];
+  auto add1_y   = graph.input_sockets(add1)[1];
+  auto add2_x   = graph.input_sockets(add2)[0];
+  auto add2_y   = graph.input_sockets(add2)[1];
+  auto add2_out = graph.output_sockets(add2)[0];
+  auto i_value  = graph.output_sockets(i)[0];
+
+  auto c1 = graph.connect(add2_out, add1_x);
+  auto c2 = graph.connect(i_value, add1_y);
+  auto c3 = graph.connect(i_value, add2_x);
+  auto c4 = graph.connect(i_value, add2_y);
 
   REQUIRE(c1);
   REQUIRE(c2);
@@ -168,8 +179,13 @@ TEST_CASE("add x d", "[node_compiler]")
   REQUIRE(i);
   REQUIRE(d);
 
-  auto c1 = graph.connect(i, "value", add, "x");
-  auto c2 = graph.connect(d, "value", add, "y");
+  auto i_value = graph.output_sockets(i)[0];
+  auto d_value = graph.output_sockets(d)[0];
+  auto add_x   = graph.input_sockets(add)[0];
+  auto add_y   = graph.input_sockets(add)[1];
+
+  auto c1 = graph.connect(i_value, add_x);
+  auto c2 = graph.connect(d_value, add_y);
 
   REQUIRE(c1);
   REQUIRE(c2);
@@ -197,10 +213,18 @@ TEST_CASE("add (add x d) x", "[node_compiler]")
   REQUIRE(i);
   REQUIRE(d);
 
-  auto c1 = graph.connect(add2, "out", add1, "x");
-  auto c2 = graph.connect(i, "value", add1, "y");
-  auto c3 = graph.connect(i, "value", add2, "x");
-  auto c4 = graph.connect(d, "value", add2, "y");
+  auto add2_out = graph.output_sockets(add2)[0];
+  auto i_value  = graph.output_sockets(i)[0];
+  auto d_value  = graph.output_sockets(d)[0];
+  auto add1_x   = graph.input_sockets(add1)[0];
+  auto add1_y   = graph.input_sockets(add1)[1];
+  auto add2_x   = graph.input_sockets(add2)[0];
+  auto add2_y   = graph.input_sockets(add2)[1];
+
+  auto c1 = graph.connect(add2_out, add1_x);
+  auto c2 = graph.connect(i_value, add1_y);
+  auto c3 = graph.connect(i_value, add2_x);
+  auto c4 = graph.connect(d_value, add2_y);
 
   REQUIRE(c1);
   REQUIRE(c2);
@@ -228,9 +252,15 @@ TEST_CASE("if b x y", "[node_compiler]")
   REQUIRE(i);
   REQUIRE(b);
 
-  auto c1 = graph.connect(b, "value", _if, "cond");
-  auto c2 = graph.connect(i, "value", _if, "then");
-  auto c3 = graph.connect(i, "value", _if, "else");
+  auto b_value  = graph.output_sockets(b)[0];
+  auto i_value  = graph.output_sockets(i)[0];
+  auto _if_cond = graph.input_sockets(_if)[0];
+  auto _if_then = graph.input_sockets(_if)[1];
+  auto _if_else = graph.input_sockets(_if)[2];
+
+  auto c1 = graph.connect(b_value, _if_cond);
+  auto c2 = graph.connect(i_value, _if_then);
+  auto c3 = graph.connect(i_value, _if_else);
 
   REQUIRE(c1);
   REQUIRE(c2);
@@ -259,12 +289,24 @@ TEST_CASE("if b (if b x y) z", "[node_compiler]")
   REQUIRE(i);
   REQUIRE(b);
 
-  auto c1 = graph.connect(b, "value", if1, "cond");
-  auto c2 = graph.connect(if2, "out", if1, "then");
-  auto c3 = graph.connect(b, "value", if2, "cond");
-  auto c4 = graph.connect(i, "value", if2, "then");
-  auto c5 = graph.connect(i, "value", if2, "else");
-  auto c6 = graph.connect(i, "value", if1, "else");
+  auto b_value = graph.output_sockets(b)[0];
+  auto i_value = graph.output_sockets(i)[0];
+
+  auto if1_cond = graph.input_sockets(if1)[0];
+  auto if1_then = graph.input_sockets(if1)[1];
+  auto if1_else = graph.input_sockets(if1)[2];
+
+  auto if2_cond = graph.input_sockets(if1)[0];
+  auto if2_then = graph.input_sockets(if1)[1];
+  auto if2_else = graph.input_sockets(if1)[2];
+  auto if2_out  = graph.output_sockets(if2)[0];
+
+  auto c1 = graph.connect(b_value, if1_cond);
+  auto c2 = graph.connect(if2_out, if1_then);
+  auto c3 = graph.connect(b_value, if2_cond);
+  auto c4 = graph.connect(i_value, if2_then);
+  auto c5 = graph.connect(i_value, if2_else);
+  auto c6 = graph.connect(i_value, if1_else);
 
   REQUIRE(c1);
   REQUIRE(c2);
@@ -296,9 +338,16 @@ TEST_CASE("if b x d", "[node_compiler]")
   REQUIRE(d);
   REQUIRE(b);
 
-  auto c1 = graph.connect(b, "value", _if, "cond");
-  auto c2 = graph.connect(i, "value", _if, "then");
-  auto c3 = graph.connect(d, "value", _if, "else");
+  auto i_value  = graph.output_sockets(i)[0];
+  auto d_value  = graph.output_sockets(d)[0];
+  auto b_value  = graph.output_sockets(b)[0];
+  auto _if_cond = graph.input_sockets(_if)[0];
+  auto _if_then = graph.input_sockets(_if)[1];
+  auto _if_else = graph.input_sockets(_if)[2];
+
+  auto c1 = graph.connect(b_value, _if_cond);
+  auto c2 = graph.connect(i_value, _if_then);
+  auto c3 = graph.connect(d_value, _if_else);
 
   REQUIRE(c1);
   REQUIRE(c2);
@@ -324,8 +373,12 @@ TEST_CASE("add<int> x y", "[node_compiler]")
   REQUIRE(add);
   REQUIRE(i);
 
-  auto c1 = graph.connect(i, "value", add, "x");
-  auto c2 = graph.connect(i, "value", add, "y");
+  auto i_value = graph.output_sockets(i)[0];
+  auto add_x   = graph.input_sockets(add)[0];
+  auto add_y   = graph.input_sockets(add)[1];
+
+  auto c1 = graph.connect(i_value, add_x);
+  auto c2 = graph.connect(i_value, add_y);
 
   REQUIRE(c1);
   REQUIRE(c2);
@@ -349,8 +402,12 @@ TEST_CASE("add<double> x y", "[node_compiler]")
   REQUIRE(add);
   REQUIRE(d);
 
-  auto c1 = graph.connect(d, "value", add, "x");
-  auto c2 = graph.connect(d, "value", add, "y");
+  auto d_value = graph.output_sockets(d)[0];
+  auto add_x   = graph.input_sockets(add)[0];
+  auto add_y   = graph.input_sockets(add)[1];
+
+  auto c1 = graph.connect(d_value, add_x);
+  auto c2 = graph.connect(d_value, add_y);
 
   REQUIRE(c1);
   REQUIRE(c2);
@@ -376,8 +433,13 @@ TEST_CASE("add<?> x y", "[node_compiler]")
   REQUIRE(i);
   REQUIRE(d);
 
-  auto c1 = graph.connect(i, "value", add, "x");
-  auto c2 = graph.connect(d, "value", add, "y");
+  auto d_value = graph.output_sockets(d)[0];
+  auto i_value = graph.output_sockets(i)[0];
+  auto add_x   = graph.input_sockets(add)[0];
+  auto add_y   = graph.input_sockets(add)[1];
+
+  auto c1 = graph.connect(i_value, add_x);
+  auto c2 = graph.connect(d_value, add_y);
 
   REQUIRE(c1);
   REQUIRE(c2);

@@ -41,6 +41,11 @@ TEST_CASE("node_parser _extract")
     auto prim = graph.add(prim_info, 42);
     auto norm = graph.add(norm_info);
 
+    auto prim_value = graph.output_sockets(prim)[0];
+    auto norm_i0    = graph.input_sockets(norm)[0];
+    auto norm_i1    = graph.input_sockets(norm)[1];
+    auto norm_o0    = graph.output_sockets(norm)[0];
+
     REQUIRE(prim);
     REQUIRE(norm);
 
@@ -59,7 +64,7 @@ TEST_CASE("node_parser _extract")
 
     SECTION("single")
     {
-      auto c = graph.connect(prim, "value", norm, "0");
+      auto c = graph.connect(prim_value, norm_i0);
       REQUIRE(c);
       auto parsed = parser.parse(graph, norm);
       REQUIRE(parsed);
@@ -69,8 +74,8 @@ TEST_CASE("node_parser _extract")
 
     SECTION("multi")
     {
-      auto c0 = graph.connect(prim, "value", norm, "0");
-      auto c1 = graph.connect(prim, "value", norm, "1");
+      auto c0 = graph.connect(prim_value, norm_i0);
+      auto c1 = graph.connect(prim_value, norm_i1);
 
       REQUIRE(c0);
       REQUIRE(c1);
@@ -78,45 +83,6 @@ TEST_CASE("node_parser _extract")
       auto parsed = parser.parse(graph, norm);
       REQUIRE(parsed);
       REQUIRE(parsed->graph.nodes().size() == 2);
-    }
-  }
-}
-
-TEST_CASE("node_parser _desugar")
-{
-  node_graph graph;
-  node_parser parser;
-
-  // Use dummy top node to prevent root node is changed by desugar pass.
-  auto id_info = get_node_info<node::Identity>();
-  auto id      = graph.add(id_info);
-
-  SECTION("keyframe")
-  {
-    auto kf_info = get_node_info<node::KeyframeInt>();
-    auto kf      = graph.add(kf_info, 42);
-
-    // kf -> id
-    REQUIRE(graph.connect(
-      kf, kf_info.output_sockets()[0], id, id_info.input_sockets()[0]));
-
-    SECTION("single")
-    {
-      auto parsed = parser.parse(graph, id);
-      REQUIRE(!parsed);
-    }
-
-    SECTION("with input")
-    {
-      auto frame_info = get_node_info<node::Frame>();
-      auto frame      = graph.add(frame_info);
-
-      // frame -> kf (-> id)
-      REQUIRE(graph.connect(
-        frame, frame_info.output_sockets()[0], kf, kf_info.input_sockets()[0]));
-
-      auto parsed = parser.parse(graph, id);
-      REQUIRE(parsed);
     }
   }
 }

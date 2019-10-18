@@ -173,7 +173,7 @@ TEST_CASE("node_graph control")
     REQUIRE(!ng.connect(n3_o, n2_i));
 
     // self connect
-    REQUIRE(!ng.connect(n1_o, n2_i));
+    REQUIRE(!ng.connect(n1_o, n1_i));
   }
 
   SECTION("disconnect")
@@ -526,6 +526,7 @@ TEST_CASE("node_graph interface")
       REQUIRE(ng.connect(n1_o0, n2_i0));
       REQUIRE(ng.output_connections(n1).size() == 1);
       auto ci = ng.get_info(ng.output_connections(n1)[0]);
+      REQUIRE(ng.exists(ng.output_connections(n1)[0]));
       REQUIRE(ci);
       REQUIRE(ci->src_node() == n1);
       REQUIRE(ci->dst_node() == n2);
