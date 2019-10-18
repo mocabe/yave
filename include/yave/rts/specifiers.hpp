@@ -22,6 +22,10 @@ namespace yave {
   template <class T>
   struct object;
 
+  /// list specifier
+  template <class T>
+  struct list;
+
   // ------------------------------------------
   // proxy types (forward decl)
 
@@ -36,6 +40,9 @@ namespace yave {
 
   template <class T>
   struct ObjectProxy;
+
+  template <class T>
+  struct ListProxy;
 
   // ------------------------------------------
   // is_specifier
@@ -64,6 +71,12 @@ namespace yave {
     return true_c;
   }
 
+  template <class T>
+  [[nodiscard]] constexpr auto is_specifier(meta_type<list<T>>)
+  {
+    return true_c;
+  }
+
   // ------------------------------------------
   // normalize_specifier
 
@@ -88,6 +101,13 @@ namespace yave {
       closure<typename decltype(normalize_specifier(type_c<Ts>))::type...>>;
   }
 
+  template <class T>
+  [[nodiscard]] constexpr auto normalize_specifier(meta_type<list<T>>)
+  {
+    return type_c<
+      list<typename decltype(normalize_specifier(type_c<T>))::type>>;
+  }
+
   // ------------------------------------------
   // get_proxy_type
 
@@ -108,6 +128,13 @@ namespace yave {
   [[nodiscard]] constexpr auto get_proxy_type(meta_type<object<T>>)
   {
     return type_c<ObjectProxy<T>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_proxy_type(meta_type<list<T>>)
+  {
+    return type_c<
+      ListProxy<typename decltype(get_proxy_type(type_c<T>))::type>>;
   }
 
   // ------------------------------------------
@@ -131,6 +158,12 @@ namespace yave {
   [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<object<T>> o)
   {
     return get_proxy_type(o);
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<list<T>> l)
+  {
+    return get_proxy_type(l);
   }
 
   // ------------------------------------------
