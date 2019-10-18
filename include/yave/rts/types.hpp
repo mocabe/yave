@@ -345,106 +345,116 @@ namespace yave {
   // ------------------------------------------
   // is_ty_value
 
-  template <class T>
-  struct is_ty_value_impl
-  {
-    static constexpr std::false_type value {};
-  };
+  namespace detail {
+    template <class T>
+    struct is_ty_value_impl
+    {
+      static constexpr std::false_type value {};
+    };
 
-  template <class Tag>
-  struct is_ty_value_impl<ty_value<Tag>>
-  {
-    static constexpr std::true_type value {};
-  };
+    template <class Tag>
+    struct is_ty_value_impl<ty_value<Tag>>
+    {
+      static constexpr std::true_type value {};
+    };
+  } // namespace detail
 
   template <class T>
   [[nodiscard]] constexpr auto is_ty_value(meta_type<T>)
   {
-    return is_ty_value_impl<T>::value;
+    return detail::is_ty_value_impl<T>::value;
   }
 
   // ------------------------------------------
   // is_ty_arrow
 
-  template <class T>
-  struct is_ty_arrow_impl
-  {
-    static constexpr std::false_type value {};
-  };
+  namespace detail {
+    template <class T>
+    struct is_ty_arrow_impl
+    {
+      static constexpr std::false_type value {};
+    };
 
-  template <class T1, class T2>
-  struct is_ty_arrow_impl<ty_arrow<T1, T2>>
-  {
-    static constexpr std::true_type value {};
-  };
+    template <class T1, class T2>
+    struct is_ty_arrow_impl<ty_arrow<T1, T2>>
+    {
+      static constexpr std::true_type value {};
+    };
+  } // namespace detail
 
   template <class T>
   [[nodiscard]] constexpr auto is_ty_arrow(meta_type<T>)
   {
-    return is_ty_arrow_impl<T>::value;
+    return detail::is_ty_arrow_impl<T>::value;
   }
 
   // ------------------------------------------
   // is_ty_var
 
-  template <class T>
-  struct is_ty_var_impl
-  {
-    static constexpr std::false_type value {};
-  };
+  namespace detail {
+    template <class T>
+    struct is_ty_var_impl
+    {
+      static constexpr std::false_type value {};
+    };
 
-  template <class Tag>
-  struct is_ty_var_impl<ty_var<Tag>>
-  {
-    static constexpr std::true_type value {};
-  };
+    template <class Tag>
+    struct is_ty_var_impl<ty_var<Tag>>
+    {
+      static constexpr std::true_type value {};
+    };
+  } // namespace detail
 
   template <class T>
   [[nodiscard]] constexpr auto is_ty_var(meta_type<T>)
   {
-    return is_ty_var_impl<T>::value;
+    return detail::is_ty_var_impl<T>::value;
   }
 
   // ------------------------------------------
   // is_ty_varvalue
 
-  template <class T>
-  struct is_ty_varvalue_impl
-  {
-    static constexpr std::false_type value {};
-  };
+  namespace detail {
+    template <class T>
+    struct is_ty_varvalue_impl
+    {
+      static constexpr std::false_type value {};
+    };
 
-  template <class Tag>
-  struct is_ty_varvalue_impl<ty_varvalue<Tag>>
-  {
-    static constexpr std::true_type value {};
-  };
+    template <class Tag>
+    struct is_ty_varvalue_impl<ty_varvalue<Tag>>
+    {
+      static constexpr std::true_type value {};
+    };
+  } // namespace detail
 
   template <class T>
   [[nodiscard]] constexpr auto is_ty_varvalue(meta_type<T>)
   {
-    return is_ty_varvalue_impl<T>::value;
+    return detail::is_ty_varvalue_impl<T>::value;
   }
 
   // ------------------------------------------
   // is_ty_list
 
-  template <class T>
-  struct is_ty_list_impl
-  {
-    static constexpr std::false_type value {};
-  };
+  namespace detail {
+    template <class T>
+    struct is_ty_list_impl
+    {
+      static constexpr std::false_type value {};
+    };
 
-  template <class T>
-  struct is_ty_list_impl<ty_list<T>>
-  {
-    static constexpr std::true_type value {};
-  };
+    template <class T>
+    struct is_ty_list_impl<ty_list<T>>
+    {
+      static constexpr std::true_type value {};
+    };
+  } // namespace detail
 
   template <class T>
   [[nodiscard]] constexpr auto is_ty_list(meta_type<T>)
   {
-    return is_ty_list_impl<T>::value;
+    return detail::is_ty_list_impl<T>::value;
   }
 
   // ------------------------------------------
