@@ -241,7 +241,7 @@ void test_unify()
     constexpr auto c =
       tuple_c<constr<ty_value<int>, ty_arrow<ty_value<int>, ty_var<class Y>>>>;
     constexpr auto r = unify(c, false_c);
-    static_assert(is_error_type(r));
+    static_assert(is_tyerror(r));
     // using r = unify_t<c>; // should fail
   }
   {
@@ -249,7 +249,7 @@ void test_unify()
     constexpr auto c = tuple_c<
       constr<ty_var<class Y>, ty_arrow<ty_value<int>, ty_var<class Y>>>>;
     constexpr auto r = unify(c, false_c);
-    static_assert(is_error_type(r));
+    static_assert(is_tyerror(r));
     // using r = unify_t<c>; // should fail
   }
   {

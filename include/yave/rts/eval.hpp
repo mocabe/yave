@@ -174,7 +174,7 @@ namespace yave {
     constexpr auto type = type_of(get_term<T>(), false_c);
 
     // run compile time type check
-    if constexpr (!is_error_type(type)) {
+    if constexpr (!is_tyerror(type)) {
       // Currently object_ptr<T> MUST have type T which has compatible memory
       // layout with actual object pointing to.
       // Since it's impossible to decide memory layout of closure types,

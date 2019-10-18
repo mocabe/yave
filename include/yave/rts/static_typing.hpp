@@ -203,7 +203,7 @@ namespace yave {
       auto arr = make_tyarrow(var, x);
       auto t   = unify_impl(subst_constr_all(arr, tail(cs)));
       // error handling
-      if constexpr (is_error_type(t))
+      if constexpr (is_tyerror(t))
         return t;
       else
         return compose_subst(t, arr);
@@ -285,7 +285,7 @@ namespace yave {
         false_v<T>,
         "Unification error: Unknown error(probably invalid constraints)");
     } else {
-      static_assert(false_v<T>, "Invalid error tag for error_type");
+      static_assert(false_v<T>, "Invalid error tag for tyerror");
     }
     return type;
   }
@@ -293,8 +293,8 @@ namespace yave {
   /// Compile time unification.
   /// \param cs a list of constraints
   /// \param enable_assert if `true_type` then emit `static_assert` otherwise
-  /// return `error_type`.
-  /// \return `meta_set` of `constr` or `error_type` on failure(when
+  /// return `tyerror`.
+  /// \return `meta_set` of `constr` or `tyerror` on failure(when
   /// `enable_assert` is `false_type`).
   template <bool B, class... Cs>
   [[nodiscard]] constexpr auto unify(
@@ -306,7 +306,7 @@ namespace yave {
 
     constexpr auto t = unify_impl(cs);
 
-    if constexpr (enable_assert && is_error_type(t))
+    if constexpr (enable_assert && is_tyerror(t))
       return unify_assert(t);
     else
       return t;
@@ -487,14 +487,14 @@ namespace yave {
       auto p1 = type_of_impl_app(term.t1(), gen, enable_assert);
       auto t1 = p1.first();
       auto g1 = p1.second();
-      if constexpr (is_error_type(t1)) {
+      if constexpr (is_tyerror(t1)) {
         return make_pair(t1, g1);
       } else {
         // arg
         auto p2 = type_of_impl(term.t2(), g1, enable_assert);
         auto t2 = p2.first();
         auto g2 = p2.second();
-        if constexpr (is_error_type(t2)) {
+        if constexpr (is_tyerror(t2)) {
           return make_pair(t2, g2);
         } else {
           // type check subtree
@@ -502,7 +502,7 @@ namespace yave {
           auto g3  = nextgen(g2);
           auto c   = make_tuple(make_constr(t1, make_ty_arrow(t2, var)));
           auto s   = unify(c, enable_assert);
-          if constexpr (is_error_type(s))
+          if constexpr (is_tyerror(s))
             return make_pair(s, g3);
           else
             return make_pair(subst_all(s, var), g3);

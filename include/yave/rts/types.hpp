@@ -48,9 +48,9 @@ namespace yave {
   {
   };
 
-  /// error_type
+  /// Type error
   template <class Tag>
-  struct error_type
+  struct tyerror
   {
     [[nodiscard]] constexpr auto tag() const
     {
@@ -181,7 +181,7 @@ namespace yave {
   }
 
   template <class Tag>
-  struct meta_type<error_type<Tag>>
+  struct meta_type<tyerror<Tag>>
   {
     [[nodiscard]] constexpr auto tag() const
     {
@@ -210,8 +210,7 @@ namespace yave {
     meta_type<T2>,
     Other)
   {
-    return type_c<
-      error_type<error_tags::unsolvable_constraints<T1, T2, Other>>>;
+    return type_c<tyerror<error_tags::unsolvable_constraints<T1, T2, Other>>>;
   }
 
   template <class T1, class T2, class Other>
@@ -220,38 +219,40 @@ namespace yave {
     meta_type<T2>,
     Other)
   {
-    return type_c<error_type<error_tags::type_missmatch<T1, T2, Other>>>;
+    return type_c<tyerror<error_tags::type_missmatch<T1, T2, Other>>>;
   }
 
   template <class Var, class Other>
   [[nodiscard]] constexpr auto make_circular_constraints(meta_type<Var>, Other)
   {
-    return type_c<error_type<error_tags::circular_constraints<Var, Other>>>;
+    return type_c<tyerror<error_tags::circular_constraints<Var, Other>>>;
   }
 
   // ------------------------------------------
-  // is_error_type
+  // is_tyerror
+
+  namespace detail {
+    template <class T>
+    struct is_tyerror_impl
+    {
+      static constexpr std::false_type value {};
+    };
+
+    template <class Tag>
+    struct is_tyerror_impl<tyerror<Tag>>
+    {
+      static constexpr std::true_type value {};
+    };
+  } // namespace detail
 
   template <class T>
-  struct is_error_type_impl
+  [[nodiscard]] constexpr auto is_tyerror(meta_type<T>)
   {
-    static constexpr std::false_type value {};
-  };
-
-  template <class Tag>
-  struct is_error_type_impl<error_type<Tag>>
-  {
-    static constexpr std::true_type value {};
-  };
-
-  template <class T>
-  [[nodiscard]] constexpr auto is_error_type(meta_type<T>)
-  {
-    return is_error_type_impl<T>::value;
+    return detail::is_tyerror_impl<T>::value;
   }
 
   template <class T>
-  [[nodiscard]] constexpr auto is_error_type(T)
+  [[nodiscard]] constexpr auto is_tyerror(T)
   {
     return std::false_type {};
   }
