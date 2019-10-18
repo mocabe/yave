@@ -22,7 +22,7 @@ namespace yave {
   /// \param type type to apply substitution
   template <class TyT1Tag, class TyT2, class T>
   [[nodiscard]] constexpr auto subst(
-    meta_type<tyarrow<var<TyT1Tag>, TyT2>> ar,
+    meta_type<tyarrow<ty_var<TyT1Tag>, TyT2>> ar,
     meta_type<T> type)
   {
     (void)ar;
@@ -36,7 +36,7 @@ namespace yave {
       return make_ty_arrow(lt, rt);
     } else if constexpr (is_value_type(type)) {
       return type;
-    } else if constexpr (is_var_type(type)) {
+    } else if constexpr (is_ty_var(type)) {
       return type;
     } else if constexpr (is_varvalue_type(type)) {
       return type;
@@ -174,7 +174,7 @@ namespace yave {
       return std::bool_constant<b> {};
     } else if constexpr (is_value_type(t)) {
       return false_c;
-    } else if constexpr (is_var_type(t)) {
+    } else if constexpr (is_ty_var(t)) {
       return x == t;
     } else if constexpr (is_varvalue_type(t)) {
       return false_c;
@@ -234,13 +234,13 @@ namespace yave {
           tl));
       }
       // constr(x , var)
-      else if constexpr (is_var_type(c.t2())) {
+      else if constexpr (is_ty_var(c.t2())) {
         auto x   = c.t1();
         auto var = c.t2();
         return unify_impl_vars(var, x, cs);
       }
       // constr(var, x)
-      else if constexpr (is_var_type(c.t1())) {
+      else if constexpr (is_ty_var(c.t1())) {
         auto var = c.t1();
         auto x   = c.t2();
         return unify_impl_vars(var, x, cs);
@@ -498,7 +498,7 @@ namespace yave {
           return make_pair(t2, g2);
         } else {
           // type check subtree
-          auto var = gen_var(g2);
+          auto var = gen_ty_var(g2);
           auto g3  = nextgen(g2);
           auto c   = make_tuple(make_constr(t1, make_ty_arrow(t2, var)));
           auto s   = unify(c, enable_assert);
@@ -515,7 +515,7 @@ namespace yave {
     } else if constexpr (is_tm_varvalue(term)) {
       return make_pair(make_varvalue(term.tag()), gen);
     } else if constexpr (is_tm_var(term)) {
-      return make_pair(make_var(term.tag()), gen);
+      return make_pair(make_ty_var(term.tag()), gen);
     } else if constexpr (is_tm_list(term)) {
       auto p = type_of_impl(term.t(), gen, enable_assert);
       auto t = p.first();

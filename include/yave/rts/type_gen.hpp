@@ -242,10 +242,10 @@ namespace yave {
     } else if constexpr (is_value_type(type)) {
       using tag = typename decltype(type.tag())::type;
       return get_object_type(type_c<ObjectProxy<tag>>);
-    } else if constexpr (is_varvalue_type(type) || is_var_type(type)) {
+    } else if constexpr (is_varvalue_type(type) || is_ty_var(type)) {
       using tag = typename decltype(type.tag())::type;
       return type_c<VarValueProxy<tag>>;
-    } else if constexpr (is_list_type(type)) {
+    } else if constexpr (is_ty_list(type)) {
       using t = typename decltype(type.t())::type;
       return type_c<ListProxy<t>>;
     } else

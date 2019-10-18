@@ -20,7 +20,7 @@ namespace yave {
 
   /// Type variable
   template <class Tag>
-  struct var
+  struct ty_var
   {
   };
 
@@ -151,7 +151,7 @@ namespace yave {
   }
 
   template <class Tag>
-  struct meta_type<var<Tag>>
+  struct meta_type<ty_var<Tag>>
   {
     [[nodiscard]] constexpr auto tag() const
     {
@@ -160,9 +160,9 @@ namespace yave {
   };
 
   template <class Tag>
-  [[nodiscard]] constexpr auto make_var(meta_type<Tag>)
+  [[nodiscard]] constexpr auto make_ty_var(meta_type<Tag>)
   {
-    return type_c<var<Tag>>;
+    return type_c<ty_var<Tag>>;
   }
 
   template <class Tag>
@@ -385,24 +385,24 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // is_var_type
+  // is_ty_var
 
   template <class T>
-  struct is_var_type_impl
+  struct is_ty_var_impl
   {
     static constexpr std::false_type value {};
   };
 
   template <class Tag>
-  struct is_var_type_impl<var<Tag>>
+  struct is_ty_var_impl<ty_var<Tag>>
   {
     static constexpr std::true_type value {};
   };
 
   template <class T>
-  [[nodiscard]] constexpr auto is_var_type(meta_type<T>)
+  [[nodiscard]] constexpr auto is_ty_var(meta_type<T>)
   {
-    return is_var_type_impl<T>::value;
+    return is_ty_var_impl<T>::value;
   }
 
   // ------------------------------------------
@@ -471,9 +471,9 @@ namespace yave {
   // genvar
 
   template <size_t N>
-  [[nodiscard]] constexpr auto gen_var(meta_type<taggen<N>>)
+  [[nodiscard]] constexpr auto gen_ty_var(meta_type<taggen<N>>)
   {
-    return type_c<var<taggen<N>>>;
+    return type_c<ty_var<taggen<N>>>;
   }
 
   template <size_t N>
