@@ -1338,13 +1338,15 @@ namespace yave::graph {
 
       for (auto &&n : nodes()) {
         // copy nodes
-        auto dsc = g._create_n(id(n), _access(n).inline_property());
+        [[maybe_unused]] auto dsc =
+          g._create_n(id(n), _access(n).inline_property());
         assert(dsc);
       }
 
       for (auto &&s : sockets()) {
         // copy socket
-        auto dsc = g._create_s(id(s), _access(s).inline_property());
+        [[maybe_unused]] auto dsc =
+          g._create_s(id(s), _access(s).inline_property());
         assert(dsc);
 
         // attach socket

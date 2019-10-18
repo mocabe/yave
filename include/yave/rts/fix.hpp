@@ -25,9 +25,9 @@ namespace yave {
     return_type code() const
     {
       auto f     = eval_arg<0>();
-      auto cf    = reinterpret_cast<const Closure<>*>(f.get());
       auto cthis = reinterpret_cast<const Closure<>*>(this);
 
+      [[maybe_unused]] auto cf = reinterpret_cast<const Closure<>*>(f.get());
       assert(cf->arity != 0);
 
       auto& app = cthis->vertebrae(0);

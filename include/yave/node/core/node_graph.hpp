@@ -307,7 +307,7 @@ namespace yave {
     if (!_exists(node))
       return;
 
-    for (auto&& n : m_g.nodes()) {
+    for ([[maybe_unused]] auto&& n : m_g.nodes()) {
       assert(m_g[n].is_unvisited());
     }
 
