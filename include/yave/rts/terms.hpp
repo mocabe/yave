@@ -111,7 +111,7 @@ namespace yave {
   struct meta_type<tm_list<T>>
   {
     using type = tm_list<T>;
-    constexpr size_t t() const
+    constexpr auto t() const
     {
       return type_c<T>;
     }

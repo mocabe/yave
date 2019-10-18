@@ -38,7 +38,7 @@ namespace yave {
 
   /// List type
   template <class T>
-  struct list
+  struct ty_list
   {
   };
 
@@ -190,13 +190,13 @@ namespace yave {
   };
 
   template <class T>
-  [[nodiscard]] constexpr auto make_list(meta_type<T>)
+  [[nodiscard]] constexpr auto make_ty_list(meta_type<T>)
   {
-    return type_c<list<T>>;
+    return type_c<ty_list<T>>;
   }
 
   template <class T>
-  struct meta_type<list<T>>
+  struct meta_type<ty_list<T>>
   {
     [[nodiscard]] constexpr auto t() const
     {
@@ -427,24 +427,24 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // is_list_type
+  // is_ty_list
 
   template <class T>
-  struct is_list_type_impl
+  struct is_ty_list_impl
   {
     static constexpr std::false_type value {};
   };
 
   template <class T>
-  struct is_list_type_impl<list<T>>
+  struct is_ty_list_impl<ty_list<T>>
   {
     static constexpr std::true_type value {};
   };
 
   template <class T>
-  [[nodiscard]] constexpr auto is_list_type(meta_type<T>)
+  [[nodiscard]] constexpr auto is_ty_list(meta_type<T>)
   {
-    return is_list_type_impl<T>::value;
+    return is_ty_list_impl<T>::value;
   }
 
   // ------------------------------------------

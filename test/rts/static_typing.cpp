@@ -397,6 +397,33 @@ void test_type_of()
       tm_value<Double>>>;
     static_assert(type_c<var<taggen<3>>> == type_of(term));
   }
+  {
+    // (X->X) Int = Int
+    constexpr auto term = type_c<
+      tm_apply<tm_closure<tm_var<class X>, tm_var<class X>>, tm_value<Int>>>;
+    static_assert(type_c<value<Int>> == type_of(term));
+  }
+  {
+    // list<T> -> list<T>
+    constexpr auto term = type_c<tm_list<tm_value<class Tag>>>;
+    static_assert(type_c<ty_list<value<class Tag>>> == type_of(term));
+  }
+  {
+    // (X -> X -> list<X>) Int Int = list<Int>
+    constexpr auto term = type_c<tm_apply<
+      tm_apply<
+        tm_closure<tm_var<class X>, tm_var<class X>, tm_list<tm_var<class X>>>,
+        tm_value<Int>>,
+      tm_value<Int>>>;
+    static_assert(type_c<ty_list<value<Int>>> == type_of(term));
+  }
+  {
+    // (list<X> -> X) list<Int> = Int
+    constexpr auto term = type_c<tm_apply<
+      tm_closure<tm_list<tm_var<class X>>, tm_var<class X>>,
+      tm_list<tm_value<Int>>>>;
+    static_assert(type_c<value<Int>> == type_of(term));
+  }
 }
 
 void test_genpoly()
