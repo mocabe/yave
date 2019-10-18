@@ -86,8 +86,10 @@ namespace yave {
 
     auto iter = m_map.find(socket.id());
 
-    if (iter != m_map.end())
+    if (iter != m_map.end()) {
       iter->second = socket_instance;
+      return;
+    }
 
     m_map.emplace(socket.id(), socket_instance);
   }
