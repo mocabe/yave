@@ -32,7 +32,7 @@ namespace yave {
 
   /// Var value
   template <class Tag>
-  struct varvalue
+  struct ty_varvalue
   {
   };
 
@@ -166,7 +166,7 @@ namespace yave {
   }
 
   template <class Tag>
-  struct meta_type<varvalue<Tag>>
+  struct meta_type<ty_varvalue<Tag>>
   {
     [[nodiscard]] constexpr auto tag() const
     {
@@ -175,9 +175,9 @@ namespace yave {
   };
 
   template <class Tag>
-  [[nodiscard]] constexpr auto make_varvalue(meta_type<Tag>)
+  [[nodiscard]] constexpr auto make_ty_varvalue(meta_type<Tag>)
   {
-    return type_c<varvalue<Tag>>;
+    return type_c<ty_varvalue<Tag>>;
   }
 
   template <class Tag>
@@ -406,24 +406,24 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // is_varvalue_type
+  // is_ty_varvalue
 
   template <class T>
-  struct is_varvalue_type_impl
+  struct is_ty_varvalue_impl
   {
     static constexpr std::false_type value {};
   };
 
   template <class Tag>
-  struct is_varvalue_type_impl<varvalue<Tag>>
+  struct is_ty_varvalue_impl<ty_varvalue<Tag>>
   {
     static constexpr std::true_type value {};
   };
 
   template <class T>
-  [[nodiscard]] constexpr auto is_varvalue_type(meta_type<T>)
+  [[nodiscard]] constexpr auto is_ty_varvalue(meta_type<T>)
   {
-    return is_varvalue_type_impl<T>::value;
+    return is_ty_varvalue_impl<T>::value;
   }
 
   // ------------------------------------------

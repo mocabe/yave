@@ -318,7 +318,7 @@ void test_type_of()
   }
   {
     constexpr auto tp = type_c<tm_varvalue<int>>;
-    static_assert(type_of(tp) == make_varvalue(type_c<int>));
+    static_assert(type_of(tp) == make_ty_varvalue(type_c<int>));
   }
   {
     constexpr auto tp = type_c<tm_closure<tm_value<int>, tm_value<float>>>;
@@ -462,7 +462,7 @@ void test_assume_object_type()
   {
     // varty_value<T> -> VarValurProxy<T>
     static_assert(
-      guess_object_type(type_c<varvalue<class Tag>>) ==
+      guess_object_type(type_c<ty_varvalue<class Tag>>) ==
       type_c<VarValueProxy<class Tag>>);
   }
   {

@@ -38,7 +38,7 @@ namespace yave {
       return type;
     } else if constexpr (is_ty_var(type)) {
       return type;
-    } else if constexpr (is_varvalue_type(type)) {
+    } else if constexpr (is_ty_varvalue(type)) {
       return type;
     } else if constexpr (is_ty_list(type)) {
       auto t = subst(ar, type.t());
@@ -176,7 +176,7 @@ namespace yave {
       return false_c;
     } else if constexpr (is_ty_var(t)) {
       return x == t;
-    } else if constexpr (is_varvalue_type(t)) {
+    } else if constexpr (is_ty_varvalue(t)) {
       return false_c;
     } else if constexpr (is_ty_list(t)) {
       return occurs(x, t.t());
@@ -513,7 +513,7 @@ namespace yave {
     } else if constexpr (is_tm_value(term)) {
       return make_pair(make_ty_value(term.tag()), gen);
     } else if constexpr (is_tm_varvalue(term)) {
-      return make_pair(make_varvalue(term.tag()), gen);
+      return make_pair(make_ty_varvalue(term.tag()), gen);
     } else if constexpr (is_tm_var(term)) {
       return make_pair(make_ty_var(term.tag()), gen);
     } else if constexpr (is_tm_list(term)) {
