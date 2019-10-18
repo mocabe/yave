@@ -90,7 +90,7 @@ TEST_CASE("Graph control", "[lib][graph]")
       REQUIRE(g.sockets(n)[0] == s);
       REQUIRE(g.nodes(s)[0] == n);
 
-      REQUIRE_FALSE(g.attach_socket(n, s));
+      REQUIRE(g.attach_socket(n, s));
       REQUIRE(g.sockets(n).size() == 1);
       REQUIRE(g.nodes(s).size() == 1);
     }

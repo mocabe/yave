@@ -470,14 +470,16 @@ namespace yave::graph {
   private:
     /// Set socket descriptor.
     /// \param descriptor descriptor of target socket
-    /// \returns return true if success. false if invalid descriptor or it is
-    /// already set.
+    /// \returns return true if success or already set. false if invalid
+    /// descriptor.
     [[nodiscard]] bool set_socket(const socket_descriptor_type &descriptor)
     {
-      // error check
+      if (!descriptor)
+        return false;
+
       for (auto &&d : m_sockets) {
         if (d == descriptor)
-          return false;
+          return true;
       }
 
       m_sockets.push_back(descriptor); // set socket
@@ -498,7 +500,6 @@ namespace yave::graph {
         }
       }
       m_sockets.swap(tmp);
-      return;
     }
 
   private:
@@ -694,25 +695,29 @@ namespace yave::graph {
     /// \returns true when success
     [[nodiscard]] bool set_src_edge(const edge_descriptor_type &descriptor)
     {
-      // error check
+      if (!descriptor)
+        return false;
+
       for (auto &&d : m_src_edges) {
         if (d == descriptor)
-          return false;
+          return true;
       }
 
       m_src_edges.push_back(descriptor); // add edge
       return true;
     }
+
     /// Set dst edge.
     /// \param descriptor descriptor of edge
     /// \returns true when success
     [[nodiscard]] bool set_dst_edge(const edge_descriptor_type &descriptor)
     {
+      if (!descriptor)
+        return false;
 
-      // error check
       for (auto &&d : m_dst_edges) {
         if (d == descriptor)
-          return false;
+          return true;
       }
 
       m_dst_edges.push_back(descriptor); // add edge
@@ -724,11 +729,12 @@ namespace yave::graph {
     /// \returns true when success
     [[nodiscard]] bool set_node(const node_descriptor_type &descriptor)
     {
+      if (!descriptor)
+        return false;
 
-      // error check
       for (auto &&d : m_nodes) {
         if (d == descriptor)
-          return false;
+          return true;
       }
 
       m_nodes.push_back(descriptor); // add node
@@ -748,7 +754,6 @@ namespace yave::graph {
           break;
       }
       m_nodes.swap(tmp);
-      return;
     }
 
     /// Unset edge.
@@ -765,7 +770,6 @@ namespace yave::graph {
           break;
       }
       m_src_edges.swap(tmp);
-      return;
     }
 
     /// Unset edge
@@ -782,7 +786,6 @@ namespace yave::graph {
           break;
       }
       m_dst_edges.swap(tmp);
-      return;
     }
 
   private:
@@ -926,11 +929,12 @@ namespace yave::graph {
       }
 
       auto e = _create_e(id, src, dst, std::forward<Args>(args)...);
+      assert(e);
 
       // set edge to sockets
-      bool r1 [[maybe_unused]] = _access(src).set_src_edge(e);
-      bool r2 [[maybe_unused]] = _access(dst).set_dst_edge(e);
-      assert(r1 && r2);
+      [[maybe_unused]] bool b1 = _access(src).set_src_edge(e);
+      [[maybe_unused]] bool b2 = _access(dst).set_dst_edge(e);
+      assert(b1 && b2);
 
       return e;
     }
@@ -958,7 +962,7 @@ namespace yave::graph {
 
       // delete links from sockets
       for (auto &&s : _access(descriptor).m_sockets)
-        _at(s).unset_node(descriptor);
+        _access(s).unset_node(descriptor);
 
       _destroy(descriptor);
       return;
@@ -988,7 +992,7 @@ namespace yave::graph {
     void remove_socket(const socket_descriptor_type &descriptor)
     {
       if (!exists(descriptor))
-        return; // nonexist descriptor{
+        return; // nonexist descriptor
 
       for (auto &&e : src_edges(descriptor)) remove_edge(e);
       for (auto &&e : dst_edges(descriptor)) remove_edge(e);
@@ -997,7 +1001,8 @@ namespace yave::graph {
 
       for (auto &&n : nds)
         _access(n).unset_socket(descriptor); // remove all links from node
-      _destroy(descriptor); // remove all socket and delete instance
+
+      _destroy(descriptor);
 
       return;
     }
@@ -1136,18 +1141,14 @@ namespace yave::graph {
       const node_descriptor_type &node,
       const socket_descriptor_type &socket)
     {
-      if (!(exists(node) && exists(socket)))
+      if (!exists(node) || !exists(socket))
         return false;
 
-      if (_access(socket).set_node(node)) {
-        if (_access(node).set_socket(socket)) {
-          return true;
-        } else {
-          // unset socket to avoid one-way connection
-          _access(socket).unset_node(node);
-        }
-      }
-      return false;
+      [[maybe_unused]] bool b1 = _access(socket).set_node(node);
+      [[maybe_unused]] bool b2 = _access(node).set_socket(socket);
+      assert(b1 && b2);
+
+      return true;
     }
 
     /// Detach socket.
@@ -1157,7 +1158,7 @@ namespace yave::graph {
       const node_descriptor_type &node,
       const socket_descriptor_type &socket)
     {
-      if (!(exists(node) && exists(socket)))
+      if (!exists(node) || !exists(socket))
         return;
 
       for (auto n : _access(socket).nodes()) {
