@@ -80,23 +80,9 @@ namespace yave {
     return m_input_sockets;
   }
 
-  void bind_info::set_input_sockets(const std::vector<std::string>& sockets)
-  {
-    auto tmp = sockets;
-    if (!has_unique_name(tmp)) {
-      throw std::invalid_argument("Input socket names should be unique");
-    }
-    std::swap(tmp, m_input_sockets);
-  }
-
   auto bind_info::output_socket() const -> const std::string&
   {
     return m_output_socket;
-  }
-
-  void bind_info::set_output_socket(const std::string& socket)
-  {
-    m_output_socket = socket;
   }
 
   auto bind_info::get_instance_func() const -> const object_ptr<const Object>&
@@ -104,32 +90,6 @@ namespace yave {
     return m_get_instance_func;
   }
 
-  void bind_info::set_instance_func(const object_ptr<const Object>& func)
-  {
-    // null check
-    if (!func) {
-      throw std::invalid_argument("func is null");
-    }
-
-    // test primitive apply
-    try {
-      auto prim = make_object<PrimitiveContainer>();
-      auto app  = func << prim;
-      auto tp   = type_of(app);
-
-      auto flat = flatten(tp);
-      if (
-        flat.size() != m_input_sockets.size() + 2 ||
-        !same_type(flat[m_input_sockets.size()], object_type<Frame>()))
-        throw std::invalid_argument(
-          "Invalid closure type retuend from instance getter function");
-
-    } catch (type_error::type_error& e) {
-      throw std::invalid_argument(
-        std::string("Invalid type in instance getter function: ") + e.what());
-    }
-    m_get_instance_func = func;
-  }
 
   bool bind_info::is_const() const
   {
@@ -144,11 +104,6 @@ namespace yave {
   auto bind_info::description() const -> const std::string&
   {
     return m_description;
-  }
-
-  void bind_info::set_description(const std::string& d)
-  {
-    m_description = d;
   }
 
   auto bind_info::get_instance(const object_ptr<const PrimitiveContainer>& prim)
@@ -200,5 +155,50 @@ namespace yave {
         return false;
     }
     return true;
+  }
+
+  void bind_info::set_input_sockets(std::vector<std::string> sockets)
+  {
+    if (!has_unique_name(sockets)) {
+      throw std::invalid_argument("Input socket names should be unique");
+    }
+    m_input_sockets = std::move(sockets);
+  }
+
+  void bind_info::set_output_socket(std::string socket)
+  {
+    m_output_socket = std::move(socket);
+  }
+
+  void bind_info::set_instance_func(object_ptr<const Object> func)
+  {
+    // null check
+    if (!func) {
+      throw std::invalid_argument("func is null");
+    }
+
+    // test primitive apply
+    try {
+      auto prim = make_object<PrimitiveContainer>();
+      auto app  = func << prim;
+      auto tp   = type_of(app);
+
+      auto flat = flatten(tp);
+      if (
+        flat.size() != m_input_sockets.size() + 2 ||
+        !same_type(flat[m_input_sockets.size()], object_type<Frame>()))
+        throw std::invalid_argument(
+          "Invalid closure type retuend from instance getter function");
+
+    } catch (type_error::type_error& e) {
+      throw std::invalid_argument(
+        std::string("Invalid type in instance getter function: ") + e.what());
+    }
+    m_get_instance_func = std::move(func);
+  }
+
+  void bind_info::set_description(std::string d)
+  {
+    m_description = std::move(d);
   }
 } // namespace yave

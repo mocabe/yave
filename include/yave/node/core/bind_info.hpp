@@ -52,45 +52,23 @@ namespace yave {
     /// Get name.
     [[nodiscard]] auto name() const -> const std::string&;
 
-    /// Set name.
-    void set_name(const std::string& name);
-
     /// Get input sockets.
     /// Socket names are sorted.
     [[nodiscard]] auto input_sockets() const -> const std::vector<std::string>&;
 
-    /// Set input sockets.
-    /// \param sockets Should have unique and sorted names. When not sorted,
-    /// this function will automatically sort it.
-    void set_input_sockets(const std::vector<std::string>& sockets);
-
     /// Get output socket.
     [[nodiscard]] auto output_socket() const -> const std::string&;
-
-    /// Set output socket.
-    void set_output_socket(const std::string& socket);
 
     /// Get instance function.
     [[nodiscard]] auto get_instance_func() const
       -> const object_ptr<const Object>&;
 
-    /// Set instance function.
-    /// \param func A non-null managed pointer to an object (closure) which
-    /// has type (Primitive -> T).
-    void set_instance_func(const object_ptr<const Object>& func);
-
     /// Check constness.
     /// \notes const attribute is currently not used
     [[nodiscard]] bool is_const() const;
 
-    /// Set constness.
-    void set_const(bool b);
-
     /// Get description.
     [[nodiscard]] const std::string& description() const;
-
-    /// Set description.
-    void set_description(const std::string& d);
 
     /// Get instance by calling instance function.
     [[nodiscard]] auto get_instance(
@@ -105,6 +83,28 @@ namespace yave {
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets) const;
+
+    /// Set output socket.
+    void set_output_socket(std::string socket);
+
+    /// Set name.
+    void set_name(std::string name);
+
+    /// Set input sockets.
+    /// \param sockets Should have unique and sorted names. When not sorted,
+    /// this function will automatically sort it.
+    void set_input_sockets(std::vector<std::string> sockets);
+
+    /// Set instance function.
+    /// \param func A non-null managed pointer to an object (closure) which
+    /// has type (Primitive -> T).
+    void set_instance_func(object_ptr<const Object> func);
+
+    /// Set constness.
+    void set_const(bool b);
+
+    /// Set description.
+    void set_description(std::string d);
 
   private:
     /// name of node
