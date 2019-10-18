@@ -38,7 +38,7 @@ namespace yave {
     [[nodiscard]] auto name() const -> const std::string&;
 
     /// Set new name
-    void set_name(const std::string& new_name);
+    void set_name(std::string new_name);
 
   private:
     /// name of socket

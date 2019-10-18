@@ -171,8 +171,8 @@ namespace yave {
     assert(src_nodes.size() >= 1);
     assert(dst_nodes.size() >= 1);
 
-    assert(m_g[src_nodes[0]].is_normal());
-    assert(m_g[dst_nodes[0]].is_normal());
+    assert(!m_g[src_nodes[0]].is_interface());
+    assert(!m_g[dst_nodes[0]].is_interface());
 
     std::vector<node_handle> src_interfaces;
     std::vector<node_handle> dst_interfaces;
@@ -257,15 +257,9 @@ namespace yave {
   auto node_graph::add(const yave::node_info& info, const primitive_t& prim)
     -> node_handle
   {
-    return add_with_id(info, uid::random_generate(), prim);
-  }
-
-  auto node_graph::add_with_id(
-    const yave::node_info& info,
-    const uid& id,
-    const primitive_t& prim) -> node_handle
-  {
     auto lck = _lock();
+
+    auto id = uid::random_generate();
 
     // add node
     auto node = [&]() {
@@ -329,6 +323,66 @@ namespace yave {
       to_string(handle.id()));
 
     return handle;
+  }
+
+  auto node_graph::add_copy(const node_graph& other, const node_handle& node)
+    -> node_handle
+  {
+    auto lck1 = _lock();
+    auto lck2 = other._lock();
+
+    if (!other._exists(node)) {
+      Error(g_logger, "copy_add(): Invalid node handle");
+      return {nullptr};
+    }
+
+    auto is   = other._input_sockets(node);
+    auto os   = other._output_sockets(node);
+    auto info = other._get_info(node);
+
+    if (!info.is_normal() && !info.is_primitive()) {
+      Error(g_logger, "copy_add(): Invalid node type");
+      return {nullptr};
+    }
+
+    node_handle::descriptor_type cpy_n = nullptr;
+
+    if (info.is_normal())
+      cpy_n = m_g.add_node_with_id(
+        node.id().data, node_property::normal_construct_t {}, info.name());
+
+    if (info.is_primitive())
+      cpy_n = m_g.add_node_with_id(
+        node.id().data,
+        node_property::primitive_construct_t {},
+        info.name(),
+        other._get_primitive(node));
+
+    assert(cpy_n);
+
+    [[maybe_unused]] bool b;
+
+    for (auto&& s : is) {
+      auto si    = other._get_info(s);
+      auto cpy_s = m_g.add_socket_with_id(s.id().data, si.name(), si.type());
+      b          = m_g.attach_socket(cpy_n, cpy_s);
+      assert(b);
+    }
+
+    for (auto&& s : os) {
+      auto si    = other._get_info(s);
+      auto cpy_s = m_g.add_socket_with_id(s.id().data, si.name(), si.type());
+      b          = m_g.attach_socket(cpy_n, cpy_s);
+      assert(b);
+    }
+
+    Info(
+      g_logger,
+      "Copied node from other graph: name={},id={}",
+      info.name(),
+      to_string(node.id()));
+
+    return node_handle(cpy_n, {m_g.id(cpy_n)});
   }
 
   bool node_graph::attach_interface(
@@ -617,7 +671,7 @@ namespace yave {
     auto lck = _lock();
 
     std::vector<socket_handle> ret;
-    for (auto&& s : m_g.sockets()) 
+    for (auto&& s : m_g.sockets())
       ret.emplace_back(s, uid {m_g.id(s)});
     return ret;
   }
@@ -631,7 +685,7 @@ namespace yave {
       return {};
 
     std::vector<socket_handle> ret;
-    for (auto&& s : m_g.sockets(node.descriptor())) 
+    for (auto&& s : m_g.sockets(node.descriptor()))
       ret.emplace_back(s, uid {m_g.id(s)});
     return ret;
   }
@@ -641,7 +695,7 @@ namespace yave {
     auto lck = _lock();
 
     std::vector<connection_handle> ret;
-    for (auto&& e : m_g.edges()) 
+    for (auto&& e : m_g.edges())
       ret.emplace_back(e, uid {m_g.id(e)});
     return ret;
   }
@@ -797,6 +851,30 @@ namespace yave {
     return node_handle(n, {m_g.id(n)});
   }
 
+  auto node_graph::_input_sockets(const node_handle& h) const
+    -> std::vector<socket_handle>
+  {
+    auto&& sockets = m_g.sockets(h.descriptor());
+    std::vector<socket_handle> ret;
+    for (auto&& s : sockets) {
+      if (m_g[s].is_input())
+        ret.emplace_back(s, uid {m_g.id(s)});
+    }
+    return ret;
+  }
+
+  auto node_graph::_output_sockets(const node_handle& h) const
+    -> std::vector<socket_handle>
+  {
+    auto&& sockets = m_g.sockets(h.descriptor());
+    std::vector<socket_handle> ret;
+    for (auto&& s : sockets) {
+      if (m_g[s].is_output())
+        ret.emplace_back(s, uid {m_g.id(s)});
+    }
+    return ret;
+  }
+
   auto node_graph::input_sockets(const node_handle& h) const
     -> std::vector<socket_handle>
   {
@@ -807,13 +885,7 @@ namespace yave {
       return {};
     }
 
-    auto&& sockets = m_g.sockets(h.descriptor());
-    std::vector<socket_handle> ret;
-    for (auto&& s : sockets) {
-      if (m_g[s].is_input())
-        ret.emplace_back(s, uid {m_g.id(s)});
-    }
-    return ret;
+    return _input_sockets(h);
   }
 
   auto node_graph::output_sockets(const node_handle& h) const
@@ -826,13 +898,7 @@ namespace yave {
       return {};
     }
 
-    auto&& sockets = m_g.sockets(h.descriptor());
-    std::vector<socket_handle> ret;
-    for (auto&& s : sockets) {
-      if (m_g[s].is_output())
-        ret.emplace_back(s, uid {m_g.id(s)});
-    }
-    return ret;
+    return _output_sockets(h);
   }
 
   bool node_graph::is_normal(const node_handle& h) const
@@ -869,6 +935,12 @@ namespace yave {
     return m_g[node.descriptor()].is_interface();
   }
 
+  auto node_graph::_get_primitive(const node_handle& h) const -> primitive_t
+  {
+    if (m_g[h.descriptor()].is_primitive())
+      return m_g[h.descriptor()].get_primitive();
+  }
+
   auto node_graph::get_primitive(const node_handle& h) const
     -> std::optional<primitive_t>
   {
@@ -880,7 +952,8 @@ namespace yave {
     }
 
     if (m_g[h.descriptor()].is_primitive())
-      return m_g[h.descriptor()].get_primitive();
+      return _get_primitive(h);
+
     return std::nullopt;
   }
 

@@ -86,18 +86,12 @@ namespace yave {
     [[nodiscard]] auto add(const node_info& info, const primitive_t& prim = {})
       -> node_handle;
 
-    /// Add new node which has specified ID value.
-    /// Mainly for copying exising node from other instance of node_graph
-    /// without changing ID.
-    /// \note If `info.is_normal()`, parameter `prim` will be ignored.
-    /// \note If `info.is_primitive()`, parameter `prim` will be used to
-    /// create internal primitive value.
-    /// \note If `info.is_interface()`, input and output sockets i `info` should
-    /// be empty.
-    [[nodiscard]] auto add_with_id(
-      const node_info& info,
-      const uid& id,
-      const primitive_t& prim = {}) -> node_handle;
+    /// Add copy of node.
+    /// \note `node` should not be interface node.
+    /// \note All ID of node and sockets will also be copied.
+    [[nodiscard]] auto add_copy(
+      const node_graph& other,
+      const node_handle& node) -> node_handle;
 
     /// Attach interface socket.
     /// When attached socket is destroyed, it will also be removed from
@@ -267,11 +261,16 @@ namespace yave {
       -> connection_info;
     [[nodiscard]] auto _get_name(const node_handle&) const -> std::string;
     [[nodiscard]] auto _get_name(const socket_handle&) const -> std::string;
+    [[nodiscard]] auto _input_sockets(const node_handle& node) const
+      -> std::vector<socket_handle>;
+    [[nodiscard]] auto _output_sockets(const node_handle& node) const
+      -> std::vector<socket_handle>;
     [[nodiscard]] auto _connect(
       const node_handle& src_node,
       const socket_handle& src_socket,
       const node_handle& dst_node,
       const socket_handle& dst_socket) -> connection_handle;
+    [[nodiscard]] auto _get_primitive(const node_handle&) const -> primitive_t;
     [[nodiscard]] auto _root_of(const node_handle&) const
       -> std::vector<node_handle>;
     [[nodiscard]] auto _find_loop(const node_handle&) const

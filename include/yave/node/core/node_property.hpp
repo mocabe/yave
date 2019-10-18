@@ -64,7 +64,7 @@ namespace yave {
 
     /// Get primitive value.
     /// \requires is_prim() == true
-    [[nodiscard]] auto get_primitive() const -> std::optional<primitive_t>;
+    [[nodiscard]] auto get_primitive() const -> primitive_t;
 
     /// Get shared primitive container.
     [[nodiscard]] auto get_shared_primitive() const

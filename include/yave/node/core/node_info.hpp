@@ -41,6 +41,8 @@ namespace yave {
     [[nodiscard]] auto output_sockets() const
       -> const std::vector<std::string>&;
 
+    /// normal?
+    [[nodiscard]] bool is_normal() const;
     /// primitive?
     [[nodiscard]] bool is_primitive() const;
     /// interface?
@@ -49,13 +51,13 @@ namespace yave {
     [[nodiscard]] auto type() const -> node_type;
 
     /// set name
-    void set_name(const std::string& name);
+    void set_name(std::string name);
 
     /// set input sockets
-    void set_input_sockets(const std::vector<std::string>& sockets);
+    void set_input_sockets(std::vector<std::string> sockets);
 
     /// set output sockets
-    void set_output_sockets(const std::vector<std::string>& sockets);
+    void set_output_sockets(std::vector<std::string> sockets);
 
   private:
     /// Unique name of node.

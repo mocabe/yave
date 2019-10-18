@@ -61,9 +61,9 @@ namespace yave {
     return m_name;
   }
 
-  void node_info::set_name(const std::string& name)
+  void node_info::set_name(std::string name)
   {
-    m_name = name;
+    m_name = std::move(name);
   }
 
   auto node_info::input_sockets() const -> const std::vector<std::string>&
@@ -76,16 +76,21 @@ namespace yave {
     return m_output_sockets;
   }
 
-  void node_info::set_output_sockets(const std::vector<std::string>& sockets)
+  void node_info::set_output_sockets(std::vector<std::string> sockets)
   {
-    m_input_sockets = sockets;
+    m_input_sockets = std::move(sockets);
     validate_node_info(m_name, m_input_sockets, m_output_sockets);
   }
 
-  void node_info::set_input_sockets(const std::vector<std::string>& sockets)
+  void node_info::set_input_sockets(std::vector<std::string> sockets)
   {
-    m_output_sockets = sockets;
+    m_output_sockets = std::move(sockets);
     validate_node_info(m_name, m_input_sockets, m_output_sockets);
+  }
+
+  bool node_info::is_normal() const
+  {
+    return m_type == node_type::normal;
   }
 
   bool node_info::is_primitive() const

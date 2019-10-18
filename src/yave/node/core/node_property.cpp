@@ -64,12 +64,10 @@ namespace yave {
     m_name = new_name;
   }
 
-  auto node_property::get_primitive() const -> std::optional<primitive_t>
+  auto node_property::get_primitive() const -> primitive_t
   {
-    if (is_primitive())
-      return m_prim.value()->get();
-    else
-      return std::nullopt;
+    assert(is_primitive());
+    return m_prim.value()->get();
   }
 
   void node_property::set_primitive(const primitive_t& prim)

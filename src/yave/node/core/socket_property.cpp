@@ -33,8 +33,8 @@ namespace yave {
     return m_name;
   }
 
-  void socket_property::set_name(const std::string& new_name)
+  void socket_property::set_name(std::string new_name)
   {
-    m_name = new_name;
+    m_name = std::move(new_name);
   }
 } // namespace yave

@@ -112,19 +112,13 @@ namespace yave {
 
     // copy nodes
     for (auto&& n : ns) {
+
       auto info = graph.get_info(n);
       assert(info);
       assert(!info->is_interface());
 
-      auto cpy = info->is_primitive()
-                   ? ret.add_with_id(*info, n.id(), *graph.get_primitive(n))
-                   : ret.add_with_id(*info, n.id());
-
-      if (!cpy) {
-        m_errors.push_back(
-          make_error<parse_error::unexpected_error>("Failed to copy node"));
-        throw std::runtime_error("Failed to copy prime tree");
-      }
+      auto cpy = ret.add_copy(graph, n);
+      assert(cpy);
 
       // root node
       if (n == root) {
