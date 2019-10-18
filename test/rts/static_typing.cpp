@@ -174,14 +174,15 @@ void test_set_insert()
 void test_subst()
 {
   {
-    constexpr auto arrow = type_c<tyarrow<ty_var<taggen<0>>, value<int>>>;
+    constexpr auto arrow = type_c<tyarrow<ty_var<taggen<0>>, ty_value<int>>>;
     constexpr auto type  = type_c<ty_var<taggen<0>>>;
-    static_assert(subst(arrow, type) == type_c<value<int>>);
+    static_assert(subst(arrow, type) == type_c<ty_value<int>>);
   }
   {
-    constexpr auto ar   = type_c<tyarrow<ty_var<taggen<0>>, value<int>>>;
-    constexpr auto type = type_c<ty_arrow<ty_var<taggen<0>>, value<int>>>;
-    static_assert(subst(ar, type) == type_c<ty_arrow<value<int>, value<int>>>);
+    constexpr auto ar   = type_c<tyarrow<ty_var<taggen<0>>, ty_value<int>>>;
+    constexpr auto type = type_c<ty_arrow<ty_var<taggen<0>>, ty_value<int>>>;
+    static_assert(
+      subst(ar, type) == type_c<ty_arrow<ty_value<int>, ty_value<int>>>);
   }
 }
 
@@ -189,17 +190,17 @@ void test_subst_all()
 {
   {
     constexpr auto ars = tuple_c<
-      tyarrow<ty_var<taggen<0>>, value<int>>,
-      tyarrow<ty_var<taggen<1>>, value<float>>>;
+      tyarrow<ty_var<taggen<0>>, ty_value<int>>,
+      tyarrow<ty_var<taggen<1>>, ty_value<float>>>;
 
     constexpr auto type = type_c<ty_arrow<
       ty_arrow<ty_var<taggen<1>>, ty_var<taggen<0>>>,
-      ty_arrow<value<float>, ty_var<taggen<1>>>>>;
+      ty_arrow<ty_value<float>, ty_var<taggen<1>>>>>;
 
     static_assert(
       subst_all(ars, type) == type_c<ty_arrow<
-                                ty_arrow<value<float>, value<int>>,
-                                ty_arrow<value<float>, value<float>>>>);
+                                ty_arrow<ty_value<float>, ty_value<int>>,
+                                ty_arrow<ty_value<float>, ty_value<float>>>>);
   }
 }
 
@@ -207,46 +208,46 @@ void test_unify()
 {
   {
     // [X -> int]
-    constexpr auto c = tuple_c<constr<ty_var<class X>, value<int>>>;
+    constexpr auto c = tuple_c<constr<ty_var<class X>, ty_value<int>>>;
     static_assert(
-      set_c<tyarrow<ty_var<class X>, value<int>>> ==
+      set_c<tyarrow<ty_var<class X>, ty_value<int>>> ==
       make_set(unify(c, true_c)));
   }
   {
     // [X = int, Y = X -> X]
     constexpr auto c = tuple_c<
-      constr<ty_var<class X>, value<int>>,
+      constr<ty_var<class X>, ty_value<int>>,
       constr<ty_var<class Y>, ty_arrow<ty_var<class X>, ty_var<class X>>>>;
 
     static_assert(
       set_c<
-        tyarrow<ty_var<class X>, value<int>>,
-        tyarrow<ty_var<class Y>, ty_arrow<value<int>, value<int>>>> ==
+        tyarrow<ty_var<class X>, ty_value<int>>,
+        tyarrow<ty_var<class Y>, ty_arrow<ty_value<int>, ty_value<int>>>> ==
       make_set(unify(c, true_c)));
   }
   {
     // [int->int = X -> Y]
     constexpr auto c = tuple_c<constr<
-      ty_arrow<value<int>, value<int>>,
+      ty_arrow<ty_value<int>, ty_value<int>>,
       ty_arrow<ty_var<class X>, ty_var<class Y>>>>;
 
     static_assert(
       set_c<
-        tyarrow<ty_var<class X>, value<int>>,
-        tyarrow<ty_var<class Y>, value<int>>> == make_set(unify(c, true_c)));
+        tyarrow<ty_var<class X>, ty_value<int>>,
+        tyarrow<ty_var<class Y>, ty_value<int>>> == make_set(unify(c, true_c)));
   }
   {
     // [int = int -> Y]
     constexpr auto c =
-      tuple_c<constr<value<int>, ty_arrow<value<int>, ty_var<class Y>>>>;
+      tuple_c<constr<ty_value<int>, ty_arrow<ty_value<int>, ty_var<class Y>>>>;
     constexpr auto r = unify(c, false_c);
     static_assert(is_error_type(r));
     // using r = unify_t<c>; // should fail
   }
   {
     // [Y = int -> Y]
-    constexpr auto c =
-      tuple_c<constr<ty_var<class Y>, ty_arrow<value<int>, ty_var<class Y>>>>;
+    constexpr auto c = tuple_c<
+      constr<ty_var<class Y>, ty_arrow<ty_value<int>, ty_var<class Y>>>>;
     constexpr auto r = unify(c, false_c);
     static_assert(is_error_type(r));
     // using r = unify_t<c>; // should fail
@@ -313,7 +314,7 @@ void test_type_of()
 {
   {
     constexpr auto tp = type_c<tm_value<int>>;
-    static_assert(type_of(tp) == make_value(type_c<int>));
+    static_assert(type_of(tp) == make_ty_value(type_c<int>));
   }
   {
     constexpr auto tp = type_c<tm_varvalue<int>>;
@@ -321,7 +322,8 @@ void test_type_of()
   }
   {
     constexpr auto tp = type_c<tm_closure<tm_value<int>, tm_value<float>>>;
-    static_assert(type_of(tp) == type_c<ty_arrow<value<int>, value<float>>>);
+    static_assert(
+      type_of(tp) == type_c<ty_arrow<ty_value<int>, ty_value<float>>>);
   }
   {
     constexpr auto tp = type_c<tm_closure<
@@ -330,14 +332,15 @@ void test_type_of()
 
     static_assert(
       type_of(tp) ==
-      type_c<ty_arrow<value<int>, ty_arrow<value<float>, ty_var<taggen<0>>>>>);
+      type_c<
+        ty_arrow<ty_value<int>, ty_arrow<ty_value<float>, ty_var<taggen<0>>>>>);
   }
   {
     // apply
     // (Int -> Int) Int = Int
     constexpr auto tm1 =
       type_c<tm_apply<tm_closure<tm_value<int>, tm_value<int>>, tm_value<int>>>;
-    static_assert(type_of(tm1) == type_c<value<int>>);
+    static_assert(type_of(tm1) == type_c<ty_value<int>>);
   }
   {
     // higher-order
@@ -345,7 +348,7 @@ void test_type_of()
     constexpr auto tm1 = type_c<tm_apply<
       tm_closure<tm_closure<tm_value<double>, tm_value<int>>, tm_value<int>>,
       tm_closure<tm_value<double>, tm_value<int>>>>;
-    static_assert(type_c<value<int>> == type_of(tm1));
+    static_assert(type_c<ty_value<int>> == type_of(tm1));
   }
   {
     // (Double -> X -> X) (Double -> Int) = Int
@@ -354,7 +357,7 @@ void test_type_of()
         tm_closure<tm_value<double>, tm_var<class X>>,
         tm_var<class X>>,
       tm_closure<tm_value<double>, tm_value<int>>>>;
-    static_assert(type_c<value<int>> == type_of(tm1));
+    static_assert(type_c<ty_value<int>> == type_of(tm1));
   }
   {
     // ((X -> X) -> (X -> X)) (Int -> Int) = Int -> Int
@@ -365,7 +368,8 @@ void test_type_of()
     constexpr auto tm =
       type_c<tm_apply<doubleapp, tm_closure<tm_value<int>, tm_value<int>>>>;
 
-    static_assert(type_c<ty_arrow<value<int>, value<int>>> == type_of(tm));
+    static_assert(
+      type_c<ty_arrow<ty_value<int>, ty_value<int>>> == type_of(tm));
   }
   {
     // fix ((int -> bool) -> (int -> bool)) = int -> bool
@@ -376,7 +380,8 @@ void test_type_of()
         tm_value<int>,
         tm_value<bool>>>>;
 
-    static_assert(type_of(ff) == type_c<ty_arrow<value<int>, value<bool>>>);
+    static_assert(
+      type_of(ff) == type_c<ty_arrow<ty_value<int>, ty_value<bool>>>);
   }
   {
     static_assert(type_of(type_c<tm_var<class X>>) == type_c<ty_var<class X>>);
@@ -392,7 +397,7 @@ void test_type_of()
     // (Int -> Double) Int = Double
     constexpr auto term = type_c<
       tm_apply<tm_closure<tm_value<Int>, tm_value<Double>>, tm_value<Int>>>;
-    static_assert(type_c<value<Double>> == type_of(term));
+    static_assert(type_c<ty_value<Double>> == type_of(term));
   }
   {
     // (X -> Y -> Int) Double -> Z(placeholder)
@@ -405,12 +410,12 @@ void test_type_of()
     // (X->X) Int = Int
     constexpr auto term = type_c<
       tm_apply<tm_closure<tm_var<class X>, tm_var<class X>>, tm_value<Int>>>;
-    static_assert(type_c<value<Int>> == type_of(term));
+    static_assert(type_c<ty_value<Int>> == type_of(term));
   }
   {
     // list<T> -> list<T>
     constexpr auto term = type_c<tm_list<tm_value<class Tag>>>;
-    static_assert(type_c<ty_list<value<class Tag>>> == type_of(term));
+    static_assert(type_c<ty_list<ty_value<class Tag>>> == type_of(term));
   }
   {
     // (X -> X -> list<X>) Int Int = list<Int>
@@ -419,14 +424,14 @@ void test_type_of()
         tm_closure<tm_var<class X>, tm_var<class X>, tm_list<tm_var<class X>>>,
         tm_value<Int>>,
       tm_value<Int>>>;
-    static_assert(type_c<ty_list<value<Int>>> == type_of(term));
+    static_assert(type_c<ty_list<ty_value<Int>>> == type_of(term));
   }
   {
     // (list<X> -> X) list<Int> = Int
     constexpr auto term = type_c<tm_apply<
       tm_closure<tm_list<tm_var<class X>>, tm_var<class X>>,
       tm_list<tm_value<Int>>>>;
-    static_assert(type_c<value<Int>> == type_of(term));
+    static_assert(type_c<ty_value<Int>> == type_of(term));
   }
 }
 
@@ -451,11 +456,11 @@ void test_genpoly()
 void test_assume_object_type()
 {
   {
-    // value<T> -> T
-    static_assert(guess_object_type(type_c<value<Int>>) == type_c<Int>);
+    // ty_value<T> -> T
+    static_assert(guess_object_type(type_c<ty_value<Int>>) == type_c<Int>);
   }
   {
-    // varvalue<T> -> VarValurProxy<T>
+    // varty_value<T> -> VarValurProxy<T>
     static_assert(
       guess_object_type(type_c<varvalue<class Tag>>) ==
       type_c<VarValueProxy<class Tag>>);
@@ -469,21 +474,22 @@ void test_assume_object_type()
   {
     // arrow<S, T> -> closure<S, T>
     static_assert(
-      guess_object_type(type_c<ty_arrow<value<Double>, value<Int>>>) ==
+      guess_object_type(type_c<ty_arrow<ty_value<Double>, ty_value<Int>>>) ==
       type_c<ClosureProxy<Double, Int>>);
 
     // arrow<S, arrow<T, U>> -> closure<S, T, U>
     static_assert(
-      guess_object_type(
-        type_c<ty_arrow<value<Int>, ty_arrow<value<Double>, value<Int>>>>) ==
+      guess_object_type(type_c<ty_arrow<
+                          ty_value<Int>,
+                          ty_arrow<ty_value<Double>, ty_value<Int>>>>) ==
       type_c<ClosureProxy<Int, Double, Int>>);
 
     // arrow<arrow<Double, Int>, arrow<Double, Int>> -> closure<closure<Double,
     // Int>, Double, Int>
     static_assert(
       guess_object_type(type_c<ty_arrow<
-                          ty_arrow<value<Double>, value<Int>>,
-                          ty_arrow<value<Double>, value<Int>>>>) ==
+                          ty_arrow<ty_value<Double>, ty_value<Int>>,
+                          ty_arrow<ty_value<Double>, ty_value<Int>>>>) ==
       type_c<ClosureProxy<ClosureProxy<Double, Int>, Double, Int>>);
   }
 }

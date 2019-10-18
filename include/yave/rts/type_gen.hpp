@@ -239,7 +239,7 @@ namespace yave {
   {
     if constexpr (is_ty_arrow(type)) {
       return guess_object_type_closure(type, type_c<ClosureProxy<>>);
-    } else if constexpr (is_value_type(type)) {
+    } else if constexpr (is_ty_value(type)) {
       using tag = typename decltype(type.tag())::type;
       return get_object_type(type_c<ObjectProxy<tag>>);
     } else if constexpr (is_varvalue_type(type) || is_ty_var(type)) {

@@ -34,7 +34,7 @@ namespace yave {
       auto lt = subst(ar, type.t1());
       auto rt = subst(ar, type.t2());
       return make_ty_arrow(lt, rt);
-    } else if constexpr (is_value_type(type)) {
+    } else if constexpr (is_ty_value(type)) {
       return type;
     } else if constexpr (is_ty_var(type)) {
       return type;
@@ -172,7 +172,7 @@ namespace yave {
     if constexpr (is_ty_arrow(t)) {
       constexpr bool b = occurs(x, t.t1()) || occurs(x, t.t2());
       return std::bool_constant<b> {};
-    } else if constexpr (is_value_type(t)) {
+    } else if constexpr (is_ty_value(t)) {
       return false_c;
     } else if constexpr (is_ty_var(t)) {
       return x == t;
@@ -511,7 +511,7 @@ namespace yave {
     } else if constexpr (is_tm_closure(term)) {
       return type_of_impl_closure(term, gen, enable_assert);
     } else if constexpr (is_tm_value(term)) {
-      return make_pair(make_value(term.tag()), gen);
+      return make_pair(make_ty_value(term.tag()), gen);
     } else if constexpr (is_tm_varvalue(term)) {
       return make_pair(make_varvalue(term.tag()), gen);
     } else if constexpr (is_tm_var(term)) {

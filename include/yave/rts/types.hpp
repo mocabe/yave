@@ -26,7 +26,7 @@ namespace yave {
 
   /// Value type
   template <class Tag>
-  struct value
+  struct ty_value
   {
   };
 
@@ -136,7 +136,7 @@ namespace yave {
   }
 
   template <class Tag>
-  struct meta_type<value<Tag>>
+  struct meta_type<ty_value<Tag>>
   {
     [[nodiscard]] constexpr auto tag() const
     {
@@ -145,9 +145,9 @@ namespace yave {
   };
 
   template <class Tag>
-  [[nodiscard]] constexpr auto make_value(meta_type<Tag>)
+  [[nodiscard]] constexpr auto make_ty_value(meta_type<Tag>)
   {
-    return type_c<value<Tag>>;
+    return type_c<ty_value<Tag>>;
   }
 
   template <class Tag>
@@ -343,24 +343,24 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // is_value_type
+  // is_ty_value
 
   template <class T>
-  struct is_value_type_impl
+  struct is_ty_value_impl
   {
     static constexpr std::false_type value {};
   };
 
   template <class Tag>
-  struct is_value_type_impl<value<Tag>>
+  struct is_ty_value_impl<ty_value<Tag>>
   {
     static constexpr std::true_type value {};
   };
 
   template <class T>
-  [[nodiscard]] constexpr auto is_value_type(meta_type<T>)
+  [[nodiscard]] constexpr auto is_ty_value(meta_type<T>)
   {
-    return is_value_type_impl<T>::value;
+    return is_ty_value_impl<T>::value;
   }
 
   // ------------------------------------------
