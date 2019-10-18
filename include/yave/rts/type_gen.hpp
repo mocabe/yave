@@ -60,7 +60,7 @@ namespace yave {
   struct ListProxy : Object
   {
     /// term
-    static constexpr auto term = type_c<tm_list<T>>;
+    static constexpr auto term = make_tm_list(get_term<T>());
   };
 
   /// proxy type of named objec type

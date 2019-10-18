@@ -254,6 +254,57 @@ void test_unify()
   }
 }
 
+template <class... Ts>
+struct F : Object
+{
+  static constexpr auto term = get_term<closure<Ts...>>();
+};
+
+template <class T>
+struct L : Object
+{
+  static constexpr auto term = get_term<list<T>>();
+};
+
+void test_get_term()
+{
+  {
+    static_assert(get_term<Int>() == type_c<tm_value<Int>>);
+  }
+  {
+    static_assert(get_term<object<Int>>() == type_c<tm_value<Int>>);
+  }
+  {
+    static_assert(
+      get_term<F<Int, Double>>() ==
+      type_c<tm_closure<tm_value<Int>, tm_value<Double>>>);
+  }
+  {
+    static_assert(
+      get_term<closure<Int, object<Double>>>() ==
+      type_c<tm_closure<tm_value<Int>, tm_value<Double>>>);
+  }
+  {
+    static_assert(
+      get_term<closure<F<Int, Double>, Int>>() ==
+      type_c<tm_closure<
+        tm_closure<tm_value<Int>, tm_value<Double>>,
+        tm_value<Int>>>);
+  }
+  {
+    static_assert(get_term<L<Int>>() == type_c<tm_list<tm_value<Int>>>);
+    static_assert(get_term<list<Int>>() == type_c<tm_list<tm_value<Int>>>);
+    static_assert(
+      get_term<L<closure<L<Int>, Double>>>() ==
+      type_c<tm_list<tm_closure<tm_list<tm_value<Int>>, tm_value<Double>>>>);
+  }
+  {
+    static_assert(
+      get_term<list<closure<Int, Double>>>() ==
+      type_c<tm_list<tm_closure<tm_value<Int>, tm_value<Double>>>>);
+  }
+}
+
 void test_type_of()
 {
   {
