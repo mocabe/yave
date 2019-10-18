@@ -30,9 +30,15 @@ namespace yave {
   {
   };
 
-  // Var value
+  /// Var value
   template <class Tag>
   struct varvalue
+  {
+  };
+
+  /// List type
+  template <class T>
+  struct list
   {
   };
 
@@ -180,6 +186,21 @@ namespace yave {
     [[nodiscard]] constexpr auto tag() const
     {
       return type_c<Tag>;
+    }
+  };
+
+  template <class T>
+  [[nodiscard]] constexpr auto make_list(meta_type<T>)
+  {
+    return type_c<list<T>>;
+  }
+
+  template <class T>
+  struct meta_type<list<T>>
+  {
+    [[nodiscard]] constexpr auto t() const
+    {
+      return type_c<T>;
     }
   };
 
@@ -403,6 +424,27 @@ namespace yave {
   [[nodiscard]] constexpr auto is_varvalue_type(meta_type<T>)
   {
     return is_varvalue_type_impl<T>::value;
+  }
+
+  // ------------------------------------------
+  // is_list_type
+
+  template <class T>
+  struct is_list_type_impl
+  {
+    static constexpr std::false_type value {};
+  };
+
+  template <class T>
+  struct is_list_type_impl<list<T>>
+  {
+    static constexpr std::true_type value {};
+  };
+
+  template <class T>
+  [[nodiscard]] constexpr auto is_list_type(meta_type<T>)
+  {
+    return is_list_type_impl<T>::value;
   }
 
   // ------------------------------------------

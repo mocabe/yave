@@ -93,6 +93,13 @@ namespace yave {
     return detail::id_to_string_short(buff);
   }
 
+  /// List type
+  struct list_type
+  {
+    /// value type of list
+    object_ptr<const Type> t;
+  };
+
   // ------------------------------------------
   // TypeValue
 
@@ -121,6 +128,12 @@ namespace yave {
     {
     }
 
+    type_value_storage(list_type t) noexcept
+      : list {std::move(t)}
+      , index {list_index}
+    {
+    }
+
     /// Copy constructor
     type_value_storage(const type_value_storage& other) noexcept
       : index {other.index}
@@ -132,6 +145,8 @@ namespace yave {
         arrow = other.arrow;
       if (other.index == var_index)
         var = other.var;
+      if (other.index == list_index)
+        list = other.list;
     }
 
     /// Destructor
@@ -144,6 +159,8 @@ namespace yave {
         arrow.~arrow_type();
       if (index == var_index)
         var.~var_type();
+      if (index == list_index)
+        list.~list_type();
     }
 
     template <class T>
@@ -155,6 +172,8 @@ namespace yave {
         return arrow_index;
       } else if constexpr (std::is_same_v<std::decay_t<T>, var_type>) {
         return var_index;
+      } else if constexpr (std::is_same_v<std::decay_t<T>, list_type>) {
+        return list_index;
       } else {
         static_assert(false_v<T>, "Invalid type of type value union");
       }
@@ -164,6 +183,7 @@ namespace yave {
     static constexpr uint64_t value_index = 0;
     static constexpr uint64_t arrow_index = 1;
     static constexpr uint64_t var_index   = 2;
+    static constexpr uint64_t list_index  = 3;
 
     // 16 byte union
     union
@@ -171,6 +191,7 @@ namespace yave {
       value_type value;
       arrow_type arrow;
       var_type var;
+      list_type list;
     };
 
     // 8 byte index
@@ -180,6 +201,7 @@ namespace yave {
   static_assert(offset_of_member(&type_value_storage::value) == 0);
   static_assert(offset_of_member(&type_value_storage::arrow) == 0);
   static_assert(offset_of_member(&type_value_storage::var) == 0);
+  static_assert(offset_of_member(&type_value_storage::list) == 0);
 
   /// Base class for TypeValue
   class type_value : type_value_storage
@@ -210,6 +232,11 @@ namespace yave {
     }
 
     type_value(var_type t) noexcept
+      : base {t}
+    {
+    }
+
+    type_value(list_type t) noexcept
       : base {t}
     {
     }
@@ -266,6 +293,9 @@ namespace yave {
       return ref;
     } else if constexpr (Idx == type_value_storage::var_index) {
       auto&& ref = std::forward<T>(v).var;
+      return ref;
+    } else if constexpr (Idx == type_value_storage::list_index) {
+      auto&& ref = std::forward<T>(v).list;
       return ref;
     } else {
       static_assert(false_v<Idx>, "Invalid index of type value union");

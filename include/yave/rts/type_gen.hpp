@@ -55,6 +55,14 @@ namespace yave {
     static constexpr auto term = type_c<tm_varvalue<Tag>>;
   };
 
+  /// proxy type of list
+  template <class T>
+  struct ListProxy : Object
+  {
+    /// term
+    static constexpr auto term = type_c<tm_list<T>>;
+  };
+
   /// proxy type of named objec type
   template <class T>
   struct ObjectProxy : Object
@@ -156,6 +164,24 @@ namespace yave {
     }
 
     // ------------------------------------------
+    // list type
+
+    template <class T>
+    struct list_type_initializer
+    {
+      /// list type object
+      inline static const Type type {
+        static_construct,
+        list_type {object_type_impl<T>(type_c<T>)}};
+    };
+
+    template <class T>
+    constexpr auto list_type_address(meta_type<T>)
+    {
+      return &list_type_initializer<T>::type;
+    }
+
+    // ------------------------------------------
     // constexpr version of object_type type
 
     template <class T>
@@ -169,6 +195,8 @@ namespace yave {
         return var_type_address(term);
       } else if constexpr (is_tm_varvalue(term)) {
         return var_type_address(term);
+      } else if constexpr (is_tm_list(term)) {
+        return list_type_address(term);
       } else {
         static_assert(false_v<T>);
       }
@@ -217,6 +245,9 @@ namespace yave {
     } else if constexpr (is_varvalue_type(type) || is_var_type(type)) {
       using tag = typename decltype(type.tag())::type;
       return type_c<VarValueProxy<tag>>;
+    } else if constexpr (is_list_type(type)) {
+      using t = typename decltype(type.t())::type;
+      return type_c<ListProxy<t>>;
     } else
       static_assert(false_v<T>, "Invalid type");
   }
