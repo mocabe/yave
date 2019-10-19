@@ -68,4 +68,30 @@ namespace yave {
 
   static_assert(std::is_standard_layout_v<Object>);
 
+  namespace detail {
+
+    template <class T>
+    struct is_heap_object_impl : std::false_type
+    {
+    };
+
+    template <class T>
+    struct is_heap_object_impl<T*>
+    {
+      static constexpr bool value =
+        (std::is_base_of_v<Object, T>) ? true : false;
+    };
+
+    template <class T>
+    struct is_heap_object_impl<object_ptr<T>> : std::true_type
+    {
+    };
+
+  } // namespace detail
+
+  /// heap object? (raw pointer or object_ptrT>)
+  template <class T>
+  inline constexpr bool is_heap_object_v =
+    detail::is_heap_object_impl<std::decay_t<T>>::value;
+
 } // namespace yave
