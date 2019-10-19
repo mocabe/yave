@@ -453,7 +453,7 @@ void test_genpoly()
   }
 }
 
-void test_assume_object_type()
+void test_guess_object_type()
 {
   {
     // ty_value<T> -> T
@@ -491,5 +491,11 @@ void test_assume_object_type()
                           ty_arrow<ty_value<Double>, ty_value<Int>>,
                           ty_arrow<ty_value<Double>, ty_value<Int>>>>) ==
       type_c<ClosureProxy<ClosureProxy<Double, Int>, Double, Int>>);
+  }
+  {
+    // list<T> -> List<T>
+    constexpr auto l = guess_object_type(type_c<ty_list<ty_value<Int>>>);
+    constexpr auto r = type_c<List<Int>>;
+    static_assert(std::is_same_v<decltype(l), decltype(r)>);
   }
 }

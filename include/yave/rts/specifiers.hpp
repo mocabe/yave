@@ -167,18 +167,36 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // get_object_type
+  // get_value_object_type
 
   template <class T>
-  [[nodiscard]] constexpr auto get_object_type(meta_type<object<T>>)
+  struct ty_value;
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_value_object_type(meta_type<ty_value<T>>)
   {
     return type_c<T>;
   }
 
+  // ------------------------------------------
+  // get_list_object_type
+
   template <class T>
-  [[nodiscard]] constexpr auto get_object_type(meta_type<ObjectProxy<T>>)
+  struct Box;
+
+  template <class T>
+  struct list_object_value;
+
+  template <class T>
+  using List = Box<list_object_value<T>>;
+
+  template <class T>
+  struct ty_list;
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_list_object_type(meta_type<ty_list<T>>)
   {
-    return type_c<T>;
+    return type_c<List<T>>;
   }
 
   // ------------------------------------------

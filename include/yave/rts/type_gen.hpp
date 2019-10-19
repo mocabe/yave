@@ -240,14 +240,12 @@ namespace yave {
     if constexpr (is_ty_arrow(type)) {
       return guess_object_type_closure(type, type_c<ClosureProxy<>>);
     } else if constexpr (is_ty_value(type)) {
-      using tag = typename decltype(type.tag())::type;
-      return get_object_type(type_c<ObjectProxy<tag>>);
+      return get_value_object_type(type);
     } else if constexpr (is_ty_varvalue(type) || is_ty_var(type)) {
       using tag = typename decltype(type.tag())::type;
       return type_c<VarValueProxy<tag>>;
     } else if constexpr (is_ty_list(type)) {
-      using t = typename decltype(type.t())::type;
-      return type_c<ListProxy<t>>;
+      return get_list_object_type(make_ty_list(guess_object_type(type.t())));
     } else
       static_assert(false_v<T>, "Invalid type");
   }
