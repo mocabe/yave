@@ -170,13 +170,12 @@ namespace yave {
     struct list_type_initializer
     {
       /// list type object
-      inline static const Type type {
-        static_construct,
-        list_type {object_type_impl<T>(type_c<T>)}};
+      inline static const Type type {static_construct,
+                                     list_type {object_type_impl(type_c<T>)}};
     };
 
     template <class T>
-    constexpr auto list_type_address(meta_type<T>)
+    constexpr auto list_type_address(meta_type<tm_list<T>>)
     {
       return &list_type_initializer<T>::type;
     }
