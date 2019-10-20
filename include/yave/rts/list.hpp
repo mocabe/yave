@@ -211,9 +211,9 @@ namespace yave {
     auto make_list_impl(Head&& h, Tail&&... tail)
     {
       if constexpr (sizeof...(Tail) == 0)
-        return make_object<List<T>>(std::forward<Head>(h));
+        return make_object<const List<T>>(std::forward<Head>(h));
       else
-        return make_object<List<T>>(
+        return make_object<const List<T>>(
           std::forward<Head>(h),
           make_list_impl<T>(std::forward<Tail>(tail)...));
     }
