@@ -20,7 +20,6 @@ namespace yave {
   struct object_type_traits<List<T>>
   {
     static constexpr const char name[] = "List<T>";
-    static constexpr const char uuid[] = "f36c9331-491b-4900-b414-ca2e935a089d";
   };
 
   // ------------------------------------------
