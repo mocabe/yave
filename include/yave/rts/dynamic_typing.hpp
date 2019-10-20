@@ -99,7 +99,7 @@ namespace yave {
     return ret;
   }
 
-  struct TyArrow
+  struct type_arrow
   {
     object_ptr<const Type> from;
     object_ptr<const Type> to;
@@ -188,12 +188,12 @@ namespace yave {
 
   /// emulate type-substitution
   [[nodiscard]] inline auto subst_type(
-    const TyArrow& ta,
+    const type_arrow& ta,
     const object_ptr<const Type>& in) -> object_ptr<const Type>
   {
     struct
     {
-      auto rec(const TyArrow& ta, const object_ptr<const Type>& in)
+      auto rec(const type_arrow& ta, const object_ptr<const Type>& in)
         -> object_ptr<const Type>
       {
         auto& from = ta.from;
@@ -226,7 +226,7 @@ namespace yave {
 
   /// apply all substitution
   [[nodiscard]] inline auto subst_type_all(
-    const std::vector<TyArrow>& tyarrows,
+    const std::vector<type_arrow>& tyarrows,
     const object_ptr<const Type>& ty) -> object_ptr<const Type>
   {
     auto t = ty;
@@ -237,7 +237,9 @@ namespace yave {
   }
 
   /// compose substitution
-  inline void compose_subst(std::vector<TyArrow>& tyarrows, const TyArrow& a)
+  inline void compose_subst(
+    std::vector<type_arrow>& tyarrows,
+    const type_arrow& a)
   {
     for (auto&& ta : tyarrows) {
       ta.to = subst_type(a, ta.to);
@@ -254,7 +256,7 @@ namespace yave {
 
   /// subst_constr
   [[nodiscard]] inline auto subst_constr(
-    const TyArrow& ta,
+    const type_arrow& ta,
     const Constr& constr) -> Constr
   {
     return {subst_type(ta, constr.t1), subst_type(ta, constr.t2)};
@@ -262,12 +264,13 @@ namespace yave {
 
   /// subst_constr_all
   [[nodiscard]] inline auto subst_constr_all(
-    const TyArrow& ta,
+    const type_arrow& ta,
     const std::vector<Constr>& cs) -> std::vector<Constr>
   {
     auto ret = std::vector<Constr> {};
     ret.reserve(cs.size());
-    for (auto&& c : cs) ret.push_back(subst_constr(ta, c));
+    for (auto&& c : cs)
+      ret.push_back(subst_constr(ta, c));
     return ret;
   }
 
@@ -291,10 +294,10 @@ namespace yave {
   /// \param src Source node (for error handling)
   [[nodiscard]] inline auto unify(
     const std::vector<Constr>& constrs,
-    const object_ptr<const Object>& src) -> std::vector<TyArrow>
+    const object_ptr<const Object>& src) -> std::vector<type_arrow>
   {
     auto cs = constrs;
-    auto ta = std::vector<TyArrow> {};
+    auto ta = std::vector<type_arrow> {};
 
     while (!cs.empty()) {
       auto c = cs.back();
@@ -303,7 +306,7 @@ namespace yave {
         continue;
       if (is_var_type(c.t2)) {
         if (likely(!occurs(c.t2, c.t1))) {
-          auto arr = TyArrow {c.t2, c.t1};
+          auto arr = type_arrow {c.t2, c.t1};
           cs       = subst_constr_all(arr, cs);
           compose_subst(ta, arr);
           continue;
@@ -312,7 +315,7 @@ namespace yave {
       }
       if (is_var_type(c.t1)) {
         if (likely(!occurs(c.t1, c.t2))) {
-          auto arr = TyArrow {c.t1, c.t2};
+          auto arr = type_arrow {c.t1, c.t2};
           cs       = subst_constr_all(arr, cs);
           compose_subst(ta, arr);
           continue;
@@ -384,7 +387,7 @@ namespace yave {
     auto vs = vars(tp);
     auto t  = tp;
     for (auto v : vs) {
-      auto a = TyArrow {v, genvar()};
+      auto a = type_arrow {v, genvar()};
       t      = subst_type(a, tp);
     }
     return t;

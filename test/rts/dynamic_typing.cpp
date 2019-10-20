@@ -31,16 +31,16 @@ TEST_CASE("subst_type")
 
   SECTION("[X->Int] X == Int")
   {
-    auto var = genvar();
-    auto tyarrow = TyArrow {var, object_type<Int>()};
+    auto var     = genvar();
+    auto tyarrow = type_arrow {var, object_type<Int>()};
     REQUIRE(same_type(subst_type(tyarrow, var), object_type<Int>()));
   }
 
   SECTION("[X->Int]X->Int == Int->Int")
   {
-    auto var = genvar();
-    auto tyarrow = TyArrow {var, object_type<Int>()};
-    auto type = make_object<Type>(arrow_type {var, object_type<Int>()});
+    auto var     = genvar();
+    auto tyarrow = type_arrow {var, object_type<Int>()};
+    auto type    = make_object<Type>(arrow_type {var, object_type<Int>()});
     REQUIRE(same_type(
       subst_type(tyarrow, type),
       make_object<Type>(arrow_type {object_type<Int>(), object_type<Int>()})));
@@ -50,11 +50,11 @@ TEST_CASE("subst_type")
 TEST_CASE("subst_type_all")
 {
   { // (Y->X) -> (Float->Y) [X->Int, Y->Float] => (Float->Int) -> (Float->Float)
-    auto X = genvar();
-    auto Y = genvar();
-    std::vector tyarrows = {TyArrow {X, object_type<Int>()},
-                            TyArrow {Y, object_type<Float>()}};
-    auto type = make_object<Type>(
+    auto X               = genvar();
+    auto Y               = genvar();
+    std::vector tyarrows = {type_arrow {X, object_type<Int>()},
+                            type_arrow {Y, object_type<Float>()}};
+    auto type            = make_object<Type>(
       arrow_type {new Type(arrow_type {Y, X}),
                   new Type(arrow_type {object_type<Float>(), Y})});
 
@@ -69,7 +69,7 @@ TEST_CASE("subst_type_all")
 TEST_CASE("unify")
 {
 
-  // compare two TyArrow vectors
+  // compare two type_arrow vectors
   auto eq_arrows = [](auto&& result, auto&& ans) {
     if (result.size() != ans.size())
       return false;
@@ -104,7 +104,7 @@ TEST_CASE("unify")
   SECTION("[X=int]")
   {
     std::vector cs = {Constr {X, object_type<Int>()}};
-    auto result = unify(cs, nullptr);
+    auto result    = unify(cs, nullptr);
 
     SECTION("reunify")
     {
@@ -116,7 +116,7 @@ TEST_CASE("unify")
 
     SECTION("eq")
     {
-      std::vector ans = {TyArrow {X, object_type<Int>()}};
+      std::vector ans = {type_arrow {X, object_type<Int>()}};
       print_tyarrows(result);
       print_tyarrows(ans);
       CHECK(eq_arrows(result, ans));
@@ -125,7 +125,7 @@ TEST_CASE("unify")
 
   SECTION("[X=Int, Y=X->X]")
   {
-    std::vector cs = {Constr {X, object_type<Int>()},
+    std::vector cs     = {Constr {X, object_type<Int>()},
                       Constr {Y, new Type(arrow_type {X, X})}};
     std::vector result = unify(cs, nullptr);
 
@@ -140,8 +140,8 @@ TEST_CASE("unify")
     SECTION("eq")
     {
       std::vector ans = {
-        TyArrow {X, object_type<Int>()},
-        TyArrow {
+        type_arrow {X, object_type<Int>()},
+        type_arrow {
           Y, new Type(arrow_type {object_type<Int>(), object_type<Int>()})}};
 
       print_tyarrows(result);
@@ -167,8 +167,8 @@ TEST_CASE("unify")
 
     SECTION("eq")
     {
-      std::vector ans = {TyArrow {X, object_type<Int>()},
-                         TyArrow {Y, object_type<Int>()}};
+      std::vector ans = {type_arrow {X, object_type<Int>()},
+                         type_arrow {Y, object_type<Int>()}};
       print_tyarrows(result);
       print_tyarrows(ans);
       CHECK(eq_arrows(result, ans));
@@ -192,9 +192,9 @@ TEST_CASE("unify")
 
     SECTION("eq")
     {
-      std::vector ans = {TyArrow {X, new Type(arrow_type {U, W})},
-                         TyArrow {Y, new Type(arrow_type {U, W})},
-                         TyArrow {Z, new Type(arrow_type {U, W})}};
+      std::vector ans = {type_arrow {X, new Type(arrow_type {U, W})},
+                         type_arrow {Y, new Type(arrow_type {U, W})},
+                         type_arrow {Z, new Type(arrow_type {U, W})}};
       print_tyarrows(result);
       print_tyarrows(ans);
       CHECK(eq_arrows(result, ans));
@@ -213,14 +213,14 @@ TEST_CASE("type_of")
 {
   SECTION("type")
   {
-    auto t = make_object<Type>(value_type {});
+    auto t    = make_object<Type>(value_type {});
     auto type = type_of(t);
     REQUIRE(same_type(type, object_type<Type>()));
   }
 
   SECTION("value")
   {
-    auto i = make_object<Int>();
+    auto i    = make_object<Int>();
     auto type = type_of(i);
     REQUIRE(same_type(type, object_type<Int>()));
   }
@@ -235,7 +235,7 @@ TEST_CASE("type_of")
           throw;
         }
       };
-      auto a = make_object<A>();
+      auto a    = make_object<A>();
       auto type = type_of(a);
       REQUIRE(same_type(type, object_type<closure<closure<Int, Int>, Int>>()));
     }
@@ -258,20 +258,20 @@ TEST_CASE("type_of")
       SECTION("Apply")
       {
         object_ptr app = new Apply {a, i};
-        auto type = type_of(app);
+        auto type      = type_of(app);
         REQUIRE(same_type(type, object_type<Double>()));
       }
 
       SECTION("Apply")
       {
         object_ptr app = make_object<Apply>(a, i);
-        auto type = type_of(app);
+        auto type      = type_of(app);
         REQUIRE(same_type(type, object_type<Double>()));
       }
 
       SECTION("operator<<")
       {
-        auto app = a << i;
+        auto app  = a << i;
         auto type = type_of(app);
         REQUIRE(same_type(type, object_type<Double>()));
       }
@@ -303,13 +303,13 @@ TEST_CASE("type_of")
     SECTION("Apply")
     {
       object_ptr app = new Apply {new Apply {a, b}, d};
-      auto type = type_of(app);
+      auto type      = type_of(app);
       REQUIRE(same_type(type, object_type<Int>()));
     }
 
     SECTION("operator<<")
     {
-      auto app = a << b << d;
+      auto app  = a << b << d;
       auto type = type_of(app);
       REQUIRE(same_type(type, object_type<Int>()));
     }
@@ -338,14 +338,14 @@ TEST_CASE("type_of")
 
     SECTION("mono")
     {
-      auto app = a << b << i << i;
+      auto app  = a << b << i << i;
       auto type = type_of(app);
       REQUIRE(same_type(type, object_type<Int>()));
     }
 
     SECTION("poly")
     {
-      auto app = a << b << (a << b << d << d) << d;
+      auto app  = a << b << (a << b << d << d) << d;
       auto type = type_of(app);
       REQUIRE(same_type(type, object_type<Double>()));
     }
@@ -387,28 +387,28 @@ TEST_CASE("type_of")
       }
     };
 
-    auto a = make_object<A>();
-    auto b = make_object<B>();
-    auto c = make_object<C>();
+    auto a   = make_object<A>();
+    auto b   = make_object<B>();
+    auto c   = make_object<C>();
     auto fix = make_object<Fix>();
 
     SECTION("a")
     {
-      auto app = fix << a;
+      auto app  = fix << a;
       auto type = type_of(app);
       REQUIRE(same_type(type, object_type<closure<Int, Double>>()));
     }
 
     SECTION("b")
     {
-      auto app = fix << b;
+      auto app  = fix << b;
       auto type = type_of(app);
       REQUIRE(same_type(type, object_type<closure<Int, Double>>()));
     }
 
     SECTION("c")
     {
-      auto app = fix << c;
+      auto app  = fix << c;
       auto type = type_of(app);
       INFO(to_string(type));
       INFO(to_string(object_type<closure<forall<X>, forall<Y>>>()));
@@ -439,13 +439,13 @@ TEST_CASE("copy_type")
 {
   SECTION("value")
   {
-    auto tp = object_type<Int>();
+    auto tp  = object_type<Int>();
     auto cpy = copy_type(tp);
     REQUIRE(same_type(tp, cpy));
   }
   SECTION("var")
   {
-    auto tp = genvar();
+    auto tp  = genvar();
     auto cpy = copy_type(tp);
     REQUIRE(same_type(tp, cpy));
   }
@@ -458,7 +458,7 @@ TEST_CASE("copy_type")
         throw;
       }
     };
-    auto tp = object_type<F>();
+    auto tp  = object_type<F>();
     auto cpy = copy_type(tp);
     REQUIRE(same_type(tp, cpy));
   }
@@ -472,7 +472,7 @@ TEST_CASE("copy_type")
       }
     };
 
-    auto tp = object_type<F>();
+    auto tp  = object_type<F>();
     auto cpy = copy_type(tp);
     REQUIRE(same_type(tp, cpy));
   }
