@@ -25,30 +25,24 @@ namespace yave {
       if (depth > MaxDepth)
         return "[...]";
 
-      if (is_value_type(type)) {
-        return "Value[" + to_string(get<value_type>(*type)) + "]";
+      if (auto value = get_if<value_type>(type.value())) {
+        return "Value[" + to_string(*value) + "]";
       }
 
-      if (is_arrow_type(type)) {
-        return "(" + //
-               to_string_impl<MaxDepth>(
-                 get<arrow_type>(*type).captured, depth + 1) + //
-               " -> " +                                        //
-               to_string_impl<MaxDepth>(
-                 get<arrow_type>(*type).returns, depth + 1) + //
-               ")";                                           //
+      if (auto arrow = get_if<arrow_type>(type.value())) {
+        return "(" +                                                  //
+               to_string_impl<MaxDepth>(arrow->captured, depth + 1) + //
+               " -> " +                                               //
+               to_string_impl<MaxDepth>(arrow->returns, depth + 1) +  //
+               ")";                                                   //
       }
 
-      if (is_var_type(type)) {
-        return "Var[" +                                     //
-               to_string(*get_if<var_type>(type.value())) + //
-               "]";                                         //
+      if (auto var = get_if<var_type>(type.value())) {
+        return "Var[" + to_string(*var) + "]";
       }
 
-      if (is_list_type(type)) {
-        return "List<" +
-               to_string_impl<MaxDepth>(get<list_type>(*type).t, depth + 1) +
-               ">";
+      if (auto list = get_if<list_type>(type.value())) {
+        return "List<" + to_string_impl<MaxDepth>(list->t, depth + 1) + ">";
       }
 
       unreachable();
