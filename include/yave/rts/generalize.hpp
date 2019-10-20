@@ -31,17 +31,17 @@ namespace yave {
       {
         // dispatch
         if (is_arrow_type(t1) && is_arrow_type(t2)) {
-          auto& a1 = get<arrow_type>(*t1);
-          auto& a2 = get<arrow_type>(*t2);
+          auto* a1 = get_if<arrow_type>(t1.value());
+          auto* a2 = get_if<arrow_type>(t2.value());
           return object_ptr<const Type>(
-            new Type(arrow_type {rec(a1.captured, a2.captured, table),
-                                 rec(a1.returns, a2.returns, table)}));
+            new Type(arrow_type {rec(a1->captured, a2->captured, table),
+                                 rec(a1->returns, a2->returns, table)}));
         }
         if (is_list_type(t1) && is_list_type(t2)) {
-          auto& l1 = get<list_type>(*t1);
-          auto& l2 = get<list_type>(*t2);
+          auto* l1 = get_if<list_type>(t1.value());
+          auto* l2 = get_if<list_type>(t2.value());
           return object_ptr<const Type>(
-            new Type(list_type {rec(l1.t, l2.t, table)}));
+            new Type(list_type {rec(l1->t, l2->t, table)}));
         }
         // (T,T) -> T
         if (same_type(t1, t2))
@@ -79,18 +79,18 @@ namespace yave {
         const object_ptr<const Type>& t2) -> std::vector<type_constr>
       {
         if (is_arrow_type(t1) && is_arrow_type(t2)) {
-          auto& a1 = get<arrow_type>(*t1);
-          auto& a2 = get<arrow_type>(*t2);
-          auto l   = constr(a1.captured, a2.captured);
-          auto r   = constr(a1.returns, a2.returns);
+          auto* a1 = get_if<arrow_type>(t1.value());
+          auto* a2 = get_if<arrow_type>(t2.value());
+          auto l   = constr(a1->captured, a2->captured);
+          auto r   = constr(a1->returns, a2->returns);
           // concat
           l.insert(l.end(), r.begin(), r.end());
           return l;
         }
         if (is_list_type(t1) && is_list_type(t2)) {
-          auto l1 = get<list_type>(*t1);
-          auto l2 = get<list_type>(*t2);
-          return constr(l1.t, l2.t);
+          auto* l1 = get_if<list_type>(t1.value());
+          auto* l2 = get_if<list_type>(t2.value());
+          return constr(l1->t, l2->t);
         }
         return {type_constr {t1, t2}};
       }
