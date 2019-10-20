@@ -186,7 +186,7 @@ TEST_CASE("unify")
     }
   }
 
-  SECTION("[Int->Int=X->Y]")
+  SECTION("[X->Y=Y->Z, Z=U->W]")
   {
     std::vector cs = {
       type_constr {new Type(arrow_type {X, Y}), new Type(arrow_type {Y, Z})},
@@ -206,6 +206,32 @@ TEST_CASE("unify")
       std::vector ans = {type_arrow {X, new Type(arrow_type {U, W})},
                          type_arrow {Y, new Type(arrow_type {U, W})},
                          type_arrow {Z, new Type(arrow_type {U, W})}};
+      print_tyarrows(result);
+      print_tyarrows(ans);
+      CHECK(eq_arrows(result, ans));
+    }
+  }
+
+  SECTION("List<Int> -> List<List<Double>> = List<X> -> List<Y>")
+  {
+    std::vector cs = {type_constr {
+      new Type(arrow_type {new Type(list_type {object_type<Int>()}),
+                           new Type(list_type {object_type<List<Double>>()})}),
+      new Type(arrow_type {new Type(list_type {X}), new Type(list_type {Y})})}};
+    auto result    = unify(cs, nullptr);
+
+    SECTION("reunify")
+    {
+      for (auto&& ta : result) {
+        cs = subst_constr_all(ta, cs);
+      }
+      REQUIRE(unify(cs, nullptr).empty());
+    }
+
+    SECTION("eq")
+    {
+      std::vector ans = {type_arrow {X, object_type<Int>()},
+                         type_arrow {Y, object_type<List<Double>>()}};
       print_tyarrows(result);
       print_tyarrows(ans);
       CHECK(eq_arrows(result, ans));
