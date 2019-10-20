@@ -208,7 +208,7 @@ void test_unify()
 {
   {
     // [X -> int]
-    constexpr auto c = tuple_c<constr<ty_var<class X>, ty_value<int>>>;
+    constexpr auto c = tuple_c<tyconstr<ty_var<class X>, ty_value<int>>>;
     static_assert(
       set_c<tyarrow<ty_var<class X>, ty_value<int>>> ==
       make_set(unify(c, true_c)));
@@ -216,8 +216,8 @@ void test_unify()
   {
     // [X = int, Y = X -> X]
     constexpr auto c = tuple_c<
-      constr<ty_var<class X>, ty_value<int>>,
-      constr<ty_var<class Y>, ty_arrow<ty_var<class X>, ty_var<class X>>>>;
+      tyconstr<ty_var<class X>, ty_value<int>>,
+      tyconstr<ty_var<class Y>, ty_arrow<ty_var<class X>, ty_var<class X>>>>;
 
     static_assert(
       set_c<
@@ -227,7 +227,7 @@ void test_unify()
   }
   {
     // [int->int = X -> Y]
-    constexpr auto c = tuple_c<constr<
+    constexpr auto c = tuple_c<tyconstr<
       ty_arrow<ty_value<int>, ty_value<int>>,
       ty_arrow<ty_var<class X>, ty_var<class Y>>>>;
 
@@ -238,8 +238,8 @@ void test_unify()
   }
   {
     // [int = int -> Y]
-    constexpr auto c =
-      tuple_c<constr<ty_value<int>, ty_arrow<ty_value<int>, ty_var<class Y>>>>;
+    constexpr auto c = tuple_c<
+      tyconstr<ty_value<int>, ty_arrow<ty_value<int>, ty_var<class Y>>>>;
     constexpr auto r = unify(c, false_c);
     static_assert(is_tyerror(r));
     // using r = unify_t<c>; // should fail
@@ -247,7 +247,7 @@ void test_unify()
   {
     // [Y = int -> Y]
     constexpr auto c = tuple_c<
-      constr<ty_var<class Y>, ty_arrow<ty_value<int>, ty_var<class Y>>>>;
+      tyconstr<ty_var<class Y>, ty_arrow<ty_value<int>, ty_var<class Y>>>>;
     constexpr auto r = unify(c, false_c);
     static_assert(is_tyerror(r));
     // using r = unify_t<c>; // should fail

@@ -67,15 +67,15 @@ namespace yave {
 
   /// Type constraint
   template <class T1, class T2>
-  struct constr
+  struct tyconstr
   {
-    using type = constr<T1, T2>;
+    using type = tyconstr<T1, T2>;
     using t1   = T1;
     using t2   = T2;
   };
 
   template <class T1, class T2>
-  struct meta_type<constr<T1, T2>>
+  struct meta_type<tyconstr<T1, T2>>
   {
     [[nodiscard]] constexpr auto t1() const
     {
@@ -88,9 +88,9 @@ namespace yave {
   };
 
   template <class T1, class T2>
-  [[nodiscard]] constexpr auto make_constr(meta_type<T1>, meta_type<T2>)
+  [[nodiscard]] constexpr auto make_tyconstr(meta_type<T1>, meta_type<T2>)
   {
-    return type_c<constr<T1, T2>>;
+    return type_c<tyconstr<T1, T2>>;
   }
 
   // ------------------------------------------
@@ -100,11 +100,11 @@ namespace yave {
   template <class TyT1, class TyT2, class T1, class T2>
   [[nodiscard]] constexpr auto subst_constr(
     meta_type<tyarrow<TyT1, TyT2>> a,
-    meta_type<constr<T1, T2>>)
+    meta_type<tyconstr<T1, T2>>)
   {
     auto t1 = subst(a, type_c<T1>);
     auto t2 = subst(a, type_c<T2>);
-    return make_constr(t1, t2);
+    return make_tyconstr(t1, t2);
   }
 
   // ------------------------------------------
@@ -230,7 +230,7 @@ namespace yave {
         auto a2 = c.t2();
         return unify_impl(concat(
           make_tuple(
-            make_constr(a1.t1(), a2.t1()), make_constr(a1.t2(), a2.t2())),
+            make_tyconstr(a1.t1(), a2.t1()), make_tyconstr(a1.t2(), a2.t2())),
           tl));
       }
       // constr(x , var)
@@ -249,7 +249,7 @@ namespace yave {
       else if constexpr (is_ty_list(c.t1()) && is_ty_list(c.t2())) {
         auto l = c.t1();
         auto r = c.t2();
-        return unify_impl(concat(make_tuple(make_constr(l.t(), r.t())), tl));
+        return unify_impl(concat(make_tuple(make_tyconstr(l.t(), r.t())), tl));
       } else
         return make_type_missmatch(c.t1(), c.t2(), tl);
     }
@@ -500,7 +500,7 @@ namespace yave {
           // type check subtree
           auto var = gen_ty_var(g2);
           auto g3  = nextgen(g2);
-          auto c   = make_tuple(make_constr(t1, make_ty_arrow(t2, var)));
+          auto c   = make_tuple(make_tyconstr(t1, make_ty_arrow(t2, var)));
           auto s   = unify(c, enable_assert);
           if constexpr (is_tyerror(s))
             return make_pair(s, g3);
