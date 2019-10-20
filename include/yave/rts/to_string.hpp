@@ -45,6 +45,12 @@ namespace yave {
                "]";                                         //
       }
 
+      if (is_list_type(type)) {
+        return "List<" +
+               to_string_impl<MaxDepth>(get<list_type>(*type).t, depth + 1) +
+               ">";
+      }
+
       unreachable();
     }
   } // namespace detail

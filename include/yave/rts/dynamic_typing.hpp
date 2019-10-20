@@ -56,6 +56,15 @@ namespace yave {
       return false;
   }
 
+  // is_list_type
+  [[nodiscard]] inline bool is_list_type(const object_ptr<const Type>& tp)
+  {
+    if (get_if<list_type>(tp.value()))
+      return true;
+    else
+      return false;
+  }
+
   /// has_value_type
   [[nodiscard]] inline bool has_value_type(const object_ptr<const Object>& obj)
   {
@@ -72,6 +81,12 @@ namespace yave {
   [[nodiscard]] inline bool has_var_type(const object_ptr<const Object>& obj)
   {
     return is_var_type(get_type(obj));
+  }
+
+  /// has_list_type
+  [[nodiscard]] inline bool has_list_type(const object_ptr<const Object>& obj)
+  {
+    return is_list_type(get_type(obj));
   }
 
   /// flatten arrow type (non recursive)
@@ -129,6 +144,9 @@ namespace yave {
           return make_object<Type>(
             arrow_type {rec(arrow->captured), rec(arrow->returns)});
         }
+        if (auto list = get_if<list_type>(t.value())) {
+          return make_object<Type>(list_type {rec(list->t)});
+        }
         unreachable();
       }
     } impl;
@@ -179,6 +197,14 @@ namespace yave {
           else
             return false;
         }
+
+        if (auto llist = get_if<list_type>(&left)) {
+          if (auto rlist = get_if<list_type>(&right))
+            return rec(llist->t, rlist->t);
+          else
+            return false;
+        }
+
         unreachable();
       }
     } impl;
@@ -217,6 +243,13 @@ namespace yave {
           return make_object<Type>(
             arrow_type {rec(ta, arrow->captured), rec(ta, arrow->returns)});
         }
+
+        if (auto list = get_if<list_type>(in.value())) {
+          if (same_type(in, from))
+            return to;
+          return make_object<Type>(list_type {rec(ta, list->t)});
+        }
+
         unreachable();
       }
     } impl;
@@ -281,10 +314,15 @@ namespace yave {
   {
     if (get_if<value_type>(t.value()))
       return false;
+
     if (get_if<var_type>(t.value()))
       return same_type(x, t);
+
     if (auto arrow = get_if<arrow_type>(t.value()))
       return occurs(x, arrow->captured) || occurs(x, arrow->returns);
+
+    if (auto list = get_if<list_type>(t.value()))
+      return occurs(x, list->t);
 
     unreachable();
   }
@@ -329,6 +367,12 @@ namespace yave {
           continue;
         }
       }
+      if (auto list1 = get_if<list_type>(c.t1.value())) {
+        if (auto list2 = get_if<list_type>(c.t2.value())) {
+          cs.push_back({list1->t, list2->t});
+          continue;
+        }
+      }
       throw type_error::type_missmatch(src, c.t1, c.t2);
     }
 
@@ -368,7 +412,10 @@ namespace yave {
           rec(get_if<arrow_type>(tp.value())->returns, vars);
           return;
         }
-
+        if (is_list_type(tp)) {
+          rec(get_if<list_type>(tp.value())->t, vars);
+          return;
+        }
         unreachable();
       }
     } impl;
@@ -440,6 +487,10 @@ namespace yave {
             return rec(c->vertebrae(0));
           }
           // arrow: get_type
+          return get_type(obj);
+        }
+        // list -> list
+        if (has_list_type(obj)) {
           return get_type(obj);
         }
 
