@@ -17,8 +17,8 @@ using namespace yave;
 namespace yave {
   using Int    = yave::Box<int>;
   using Double = yave::Box<double>;
-  using Float = yave::Box<float>;
-  using Bool = yave::Box<bool>;
+  using Float  = yave::Box<float>;
+  using Bool   = yave::Box<bool>;
 } // namespace yave
 
 YAVE_DECL_TYPE(Int, "7d27665a-c56a-40d1-8e2e-844cb48de9e9");
@@ -103,7 +103,7 @@ TEST_CASE("unify")
 
   SECTION("[X=int]")
   {
-    std::vector cs = {Constr {X, object_type<Int>()}};
+    std::vector cs = {type_constr {X, object_type<Int>()}};
     auto result    = unify(cs, nullptr);
 
     SECTION("reunify")
@@ -125,8 +125,8 @@ TEST_CASE("unify")
 
   SECTION("[X=Int, Y=X->X]")
   {
-    std::vector cs     = {Constr {X, object_type<Int>()},
-                      Constr {Y, new Type(arrow_type {X, X})}};
+    std::vector cs     = {type_constr {X, object_type<Int>()},
+                      type_constr {Y, new Type(arrow_type {X, X})}};
     std::vector result = unify(cs, nullptr);
 
     SECTION("reunify")
@@ -152,9 +152,9 @@ TEST_CASE("unify")
 
   SECTION("[Int-Int=X->Y]")
   {
-    std::vector cs = {
-      Constr {new Type(arrow_type {object_type<Int>(), object_type<Int>()}),
-              new Type(arrow_type {X, Y})}};
+    std::vector cs     = {type_constr {
+      new Type(arrow_type {object_type<Int>(), object_type<Int>()}),
+      new Type(arrow_type {X, Y})}};
     std::vector result = unify(cs, nullptr);
 
     SECTION("reunify")
@@ -178,8 +178,8 @@ TEST_CASE("unify")
   SECTION("[Int->Int=X->Y]")
   {
     std::vector cs = {
-      Constr {new Type(arrow_type {X, Y}), new Type(arrow_type {Y, Z})},
-      Constr {Z, new Type(arrow_type {U, W})}};
+      type_constr {new Type(arrow_type {X, Y}), new Type(arrow_type {Y, Z})},
+      type_constr {Z, new Type(arrow_type {U, W})}};
     auto result = unify(cs, nullptr);
 
     SECTION("reunify")
@@ -203,7 +203,7 @@ TEST_CASE("unify")
 
   SECTION("[]")
   {
-    std::vector<Constr> cs;
+    std::vector<type_constr> cs;
     auto result = unify(cs, nullptr);
     REQUIRE(result.empty());
   }

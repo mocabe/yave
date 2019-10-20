@@ -70,7 +70,7 @@ namespace yave {
     {
       auto constr(
         const object_ptr<const Type>& t1,
-        const object_ptr<const Type>& t2) -> std::vector<Constr>
+        const object_ptr<const Type>& t2) -> std::vector<type_constr>
       {
         if (is_arrow_type(t1) && is_arrow_type(t2)) {
           auto& a1 = get<arrow_type>(*t1);
@@ -81,10 +81,10 @@ namespace yave {
           l.insert(l.end(), r.begin(), r.end());
           return l;
         }
-        return {Constr {t1, t2}};
+        return {type_constr {t1, t2}};
       }
 
-      bool unify(std::vector<Constr>& cs)
+      bool unify(std::vector<type_constr>& cs)
       {
         while (!cs.empty()) {
           auto c = cs.back();

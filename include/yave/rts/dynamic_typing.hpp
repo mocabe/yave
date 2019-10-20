@@ -105,7 +105,7 @@ namespace yave {
     object_ptr<const Type> to;
   };
 
-  struct Constr
+  struct type_constr
   {
     object_ptr<const Type> t1;
     object_ptr<const Type> t2;
@@ -257,7 +257,7 @@ namespace yave {
   /// subst_constr
   [[nodiscard]] inline auto subst_constr(
     const type_arrow& ta,
-    const Constr& constr) -> Constr
+    const type_constr& constr) -> type_constr
   {
     return {subst_type(ta, constr.t1), subst_type(ta, constr.t2)};
   }
@@ -265,9 +265,9 @@ namespace yave {
   /// subst_constr_all
   [[nodiscard]] inline auto subst_constr_all(
     const type_arrow& ta,
-    const std::vector<Constr>& cs) -> std::vector<Constr>
+    const std::vector<type_constr>& cs) -> std::vector<type_constr>
   {
-    auto ret = std::vector<Constr> {};
+    auto ret = std::vector<type_constr> {};
     ret.reserve(cs.size());
     for (auto&& c : cs)
       ret.push_back(subst_constr(ta, c));
@@ -293,7 +293,7 @@ namespace yave {
   /// \param cs Type constraints
   /// \param src Source node (for error handling)
   [[nodiscard]] inline auto unify(
-    const std::vector<Constr>& constrs,
+    const std::vector<type_constr>& constrs,
     const object_ptr<const Object>& src) -> std::vector<type_arrow>
   {
     auto cs = constrs;
@@ -421,8 +421,8 @@ namespace yave {
           auto _t1 = rec_app(apply_storage.app());
           auto _t2 = rec(apply_storage.arg());
           auto _t  = genvar();
-          auto c =
-            std::vector {Constr {_t1, make_object<Type>(arrow_type {_t2, _t})}};
+          auto c   = std::vector {
+            type_constr {_t1, make_object<Type>(arrow_type {_t2, _t})}};
           auto s = unify(std::move(c), obj);
           return subst_type_all(s, _t);
         }
