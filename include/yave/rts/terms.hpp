@@ -151,11 +151,9 @@ namespace yave {
     if constexpr (has_term<T>()) {
       // normal term
       return T::term;
-    } else if constexpr (is_specifier(type_c<T>)) {
+    } else
       // specifier -> term
       return get_term(get_proxy_type(normalize_specifier(type_c<T>)));
-    } else
-      static_assert(false_v<T>, "T should have either term or specifier");
   }
 
   /// Special case for value type Undefined.

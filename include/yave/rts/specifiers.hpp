@@ -80,6 +80,8 @@ namespace yave {
   // ------------------------------------------
   // normalize_specifier
 
+  struct Object;
+
   /// lift all raw types to specifiers
   template <class T>
   [[nodiscard]] constexpr auto normalize_specifier(meta_type<T> t)
@@ -89,9 +91,11 @@ namespace yave {
     else if constexpr (!is_complete_v<T>)
       // type variable
       return type_c<forall<T>>;
-    else
+    else if constexpr (std::is_base_of_v<Object, T>)
       // object
       return type_c<object<T>>;
+    else
+      static_assert(false_v<T>, "T is not valid heap object");
   }
 
   template <class... Ts>
