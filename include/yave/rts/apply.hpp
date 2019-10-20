@@ -158,7 +158,8 @@ namespace yave {
   template <
     class T1,
     class T2,
-    class = std::enable_if_t<is_heap_object_v<T1> && is_heap_object_v<T2>>>
+    class =
+      std::enable_if_t<is_object_pointer_v<T1> && is_object_pointer_v<T2>>>
   [[nodiscard]] auto operator<<(T1&& lhs, T2&& rhs)
   {
     // use {} to workaround gcc bug (81486?)
