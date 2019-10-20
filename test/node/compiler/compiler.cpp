@@ -296,9 +296,9 @@ TEST_CASE("if b (if b x y) z", "[node_compiler]")
   auto if1_then = graph.input_sockets(if1)[1];
   auto if1_else = graph.input_sockets(if1)[2];
 
-  auto if2_cond = graph.input_sockets(if1)[0];
-  auto if2_then = graph.input_sockets(if1)[1];
-  auto if2_else = graph.input_sockets(if1)[2];
+  auto if2_cond = graph.input_sockets(if2)[0];
+  auto if2_then = graph.input_sockets(if2)[1];
+  auto if2_else = graph.input_sockets(if2)[2];
   auto if2_out  = graph.output_sockets(if2)[0];
 
   auto c1 = graph.connect(b_value, if1_cond);
