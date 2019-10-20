@@ -9,6 +9,7 @@
 #include <yave/rts/function.hpp>
 #include <yave/rts/fix.hpp>
 #include <yave/rts/to_string.hpp>
+#include <yave/rts/list.hpp>
 
 #include <iostream>
 
@@ -36,7 +37,7 @@ TEST_CASE("subst_type")
     REQUIRE(same_type(subst_type(tyarrow, var), object_type<Int>()));
   }
 
-  SECTION("[X->Int]X->Int == Int->Int")
+  SECTION("[X->Int] X->Int == Int->Int")
   {
     auto var     = genvar();
     auto tyarrow = type_arrow {var, object_type<Int>()};
@@ -45,11 +46,22 @@ TEST_CASE("subst_type")
       subst_type(tyarrow, type),
       make_object<Type>(arrow_type {object_type<Int>(), object_type<Int>()})));
   }
+
+  SECTION("[X->Int] List<X> == List<Int>")
+  {
+    auto var     = genvar();
+    auto tyarrow = type_arrow {var, object_type<Int>()};
+    REQUIRE(same_type(
+      subst_type(tyarrow, make_object<Type>(list_type {var})),
+      object_type<List<Int>>()));
+  }
 }
 
 TEST_CASE("subst_type_all")
 {
-  { // (Y->X) -> (Float->Y) [X->Int, Y->Float] => (Float->Int) -> (Float->Float)
+  SECTION(
+    "(Y->X) -> (Float->Y) [X->Int, Y->Float] => (Float->Int) -> (Float->Float)")
+  {
     auto X               = genvar();
     auto Y               = genvar();
     std::vector tyarrows = {type_arrow {X, object_type<Int>()},
@@ -68,7 +80,6 @@ TEST_CASE("subst_type_all")
 
 TEST_CASE("unify")
 {
-
   // compare two type_arrow vectors
   auto eq_arrows = [](auto&& result, auto&& ans) {
     if (result.size() != ans.size())
@@ -240,6 +251,24 @@ TEST_CASE("type_of")
       REQUIRE(same_type(type, object_type<closure<closure<Int, Int>, Int>>()));
     }
   }
+
+  SECTION("List")
+  {
+    {
+      struct F : Function<F, List<Int>, List<Int>>
+      {
+        return_type code() const
+        {
+          throw;
+        }
+      };
+
+      auto f    = make_object<F>();
+      auto type = type_of(f);
+      REQUIRE(same_type(type, object_type<closure<list<Int>, list<Int>>>()));
+    }
+  }
+
   SECTION("apply")
   {
     SECTION("simple")
@@ -462,9 +491,22 @@ TEST_CASE("copy_type")
     auto cpy = copy_type(tp);
     REQUIRE(same_type(tp, cpy));
   }
+  SECTION("list")
+  {
+    struct F : Function<F, List<Int>, List<List<Int>>>
+    {
+      return_type code() const
+      {
+        throw;
+      }
+    };
+    auto tp  = object_type<F>();
+    auto cpy = copy_type(tp);
+    REQUIRE(same_type(tp, cpy));
+  }
   SECTION("combined")
   {
-    struct F : Function<F, closure<class X, Int>, Double, class X>
+    struct F : Function<F, closure<class X, Int>, Double, List<class X>>
     {
       return_type code() const
       {
