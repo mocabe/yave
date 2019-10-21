@@ -29,7 +29,7 @@ namespace yave {
         const object_ptr<const Type>& t2,
         std::vector<_table>& table) -> object_ptr<const Type>
       {
-        // dispatch
+        // arrow
         if (is_arrow_type(t1) && is_arrow_type(t2)) {
           auto* a1 = get_if<arrow_type>(t1.value());
           auto* a2 = get_if<arrow_type>(t2.value());
@@ -37,20 +37,25 @@ namespace yave {
             new Type(arrow_type {rec(a1->captured, a2->captured, table),
                                  rec(a1->returns, a2->returns, table)}));
         }
+
+        // list
         if (is_list_type(t1) && is_list_type(t2)) {
           auto* l1 = get_if<list_type>(t1.value());
           auto* l2 = get_if<list_type>(t2.value());
           return object_ptr<const Type>(
             new Type(list_type {rec(l1->t, l2->t, table)}));
         }
+
         // (T,T) -> T
         if (same_type(t1, t2))
           return t1;
+
         // (S,T) -> X
         for (auto&& e : table) {
           if (same_type(e.t1, t1) && same_type(e.t2, t2))
             return e.g;
         }
+
         auto gv = genvar();
         table.push_back({t1, t2, gv});
         return gv;
@@ -59,11 +64,13 @@ namespace yave {
 
     assert(!ts.empty());
     object_ptr<const Type> tp = ts.front();
+
     std::vector<_table> table;
-    for (size_t i = 1; i < ts.size(); ++i) {
-      tp = _impl.rec(tp, ts[i], table);
+    std::for_each(ts.begin() + 1, ts.end(), [&](auto&& t) {
+      tp = _impl.rec(tp, t, table);
       table.clear();
-    }
+    });
+
     return tp;
   }
 
@@ -78,6 +85,7 @@ namespace yave {
         const object_ptr<const Type>& t1,
         const object_ptr<const Type>& t2) -> std::vector<type_constr>
       {
+        // arrow
         if (is_arrow_type(t1) && is_arrow_type(t2)) {
           auto* a1 = get_if<arrow_type>(t1.value());
           auto* a2 = get_if<arrow_type>(t2.value());
@@ -87,11 +95,14 @@ namespace yave {
           l.insert(l.end(), r.begin(), r.end());
           return l;
         }
+
+        // list
         if (is_list_type(t1) && is_list_type(t2)) {
           auto* l1 = get_if<list_type>(t1.value());
           auto* l2 = get_if<list_type>(t2.value());
           return constr(l1->t, l2->t);
         }
+
         return {type_constr {t1, t2}};
       }
 
@@ -100,6 +111,8 @@ namespace yave {
         while (!cs.empty()) {
           auto c = cs.back();
           cs.pop_back();
+
+          // arrow
           if (auto arrow1 = get_if<arrow_type>(c.t1.value())) {
             if (auto arrow2 = get_if<arrow_type>(c.t2.value())) {
               cs.push_back({arrow1->captured, arrow2->captured});
@@ -108,6 +121,8 @@ namespace yave {
             }
             return false;
           }
+
+          // list
           if (auto list1 = get_if<list_type>(c.t1.value())) {
             if (auto list2 = get_if<list_type>(c.t2.value())) {
               cs.push_back({list1->t, list2->t});
@@ -115,6 +130,8 @@ namespace yave {
             }
             return false;
           }
+
+          // var
           if (is_var_type(c.t1)) {
             for (auto& cc : cs) {
               if (same_type(cc.t1, c.t1) && !same_type(cc.t2, c.t2))
@@ -122,6 +139,8 @@ namespace yave {
             }
             continue;
           }
+
+          // value
           if (is_value_type(c.t1)) {
             if (!same_type(c.t1, c.t2))
               return false;
