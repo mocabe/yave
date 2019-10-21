@@ -135,13 +135,11 @@ namespace yave {
     public:
       bad_type_check(
         object_ptr<const Type> expected,
-        object_ptr<const Type> result,
+        object_ptr<const Type> provided,
         object_ptr<const Object> obj)
-        : type_error(
-            "type_error: check_type failed. Result type is invalid",
-            std::move(obj))
+        : type_error("type_error: Runtime type check failed", std::move(obj))
         , m_expected {std::move(expected)}
-        , m_result {std::move(result)}
+        , m_provided {std::move(provided)}
       {
       }
 
@@ -152,16 +150,16 @@ namespace yave {
       }
 
       /// result
-      [[nodiscard]] auto result() const -> const object_ptr<const Type>&
+      [[nodiscard]] auto provided() const -> const object_ptr<const Type>&
       {
-        return m_result;
+        return m_provided;
       }
 
     private:
       /// expected type
       object_ptr<const Type> m_expected;
       /// result type
-      object_ptr<const Type> m_result;
+      object_ptr<const Type> m_provided;
     };
 
   } // namespace type_error
@@ -201,7 +199,7 @@ namespace yave {
     return make_object<Exception>(
       e.what(),
       make_object<TypeError>(
-        type_error_type::bad_type_check, e.expected(), e.result()));
+        type_error_type::bad_type_check, e.expected(), e.provided()));
   }
 
 } // namespace yave

@@ -30,14 +30,30 @@ namespace yave {
     return static_object_cast<T>(std::move(tmp));
   }
 
-  /// check type
-  template <class T, class U>
-  void check_type(const object_ptr<U>& obj)
+  /// check type at runtime
+  template <class T, class U, class = std::enable_if_t<is_object_pointer_v<U>>>
+  void check_type_dynamic(U&& obj)
   {
-    auto t1 = object_type<T>();
-    auto t2 = type_of(obj);
+    auto tmp = object_ptr(std::forward<U>(obj));
+    auto t1  = object_type<T>();
+    auto t2  = type_of(tmp);
     if (unlikely(!same_type(t1, t2)))
-      throw type_error::bad_type_check(t1, t2, obj);
+      throw type_error::bad_type_check(t1, t2, tmp);
+  }
+
+  /// check type at compile time
+  template <class T, class U, class = std::enable_if_t<is_object_pointer_v<U>>>
+  void check_type_static(U&&)
+  {
+    auto t1 = type_of(get_term<T>(), true_c);
+    auto t2 = type_of(get_term<object_pointer_element_t<U>>(), true_c);
+
+    if constexpr (t1 != t2) {
+      static_assert(false_v<T>, "Compile time type check failed!");
+      using expected = typename decltype(t1)::_print_expected;
+      using provided = typename decltype(t2)::_print_provided;
+      static_assert(false_v<expected, provided>);
+    }
   }
 
 } // namespace yave
