@@ -44,6 +44,12 @@ namespace yave {
   {
   };
 
+  /// tm_list
+  template <class T>
+  struct tm_list
+  {
+  };
+
   // ------------------------------------------
   // Term accessors
 
@@ -101,6 +107,16 @@ namespace yave {
     }
   };
 
+  template <class T>
+  struct meta_type<tm_list<T>>
+  {
+    using type = tm_list<T>;
+    constexpr auto t() const
+    {
+      return type_c<T>;
+    }
+  };
+
   // ------------------------------------------
   // has_term
 
@@ -135,11 +151,9 @@ namespace yave {
     if constexpr (has_term<T>()) {
       // normal term
       return T::term;
-    } else if constexpr (is_specifier(type_c<T>)) {
+    } else
       // specifier -> term
       return get_term(get_proxy_type(normalize_specifier(type_c<T>)));
-    } else
-      static_assert(false_v<T>, "T should have either term or specifier");
   }
 
   /// Special case for value type Undefined.
@@ -299,18 +313,50 @@ namespace yave {
 
   } // namespace detail
 
-  /// is_varvalue_v
+  /// is_tm_varvalue
   template <class T>
   [[nodiscard]] constexpr auto is_tm_varvalue(meta_type<T>)
   {
     return detail::is_tm_varvalue_impl<T>::value;
   }
 
-  /// has_varvalue_v
+  /// has_tm_varvalue_v
   template <class T>
   [[nodiscard]] constexpr auto has_tm_varvalue()
   {
-    return is_varvalue(get_term<T>());
+    return is_tm_varvalue(get_term<T>());
+  }
+
+  // ------------------------------------------
+  // is_tm_list
+
+  namespace detail {
+
+    template <class T>
+    struct is_tm_list_impl
+    {
+      static constexpr auto value = false_c;
+    };
+
+    template <class T>
+    struct is_tm_list_impl<tm_list<T>>
+    {
+      static constexpr auto value = true_c;
+    };
+  }
+
+  /// is_tm_list
+  template <class T>
+  [[nodiscard]] constexpr auto is_tm_list(meta_type<T>)
+  {
+    return detail::is_tm_list_impl<T>::value;
+  }
+
+  /// has_tm_list
+  template <class T>
+  [[nodiscard]] constexpr auto has_tm_list()
+  {
+    return is_tm_list(get_term<T>());
   }
 
   // ------------------------------------------
@@ -356,6 +402,15 @@ namespace yave {
   [[nodiscard]] constexpr auto make_tm_var(meta_type<Tag>)
   {
     return type_c<tm_var<Tag>>;
+  }
+
+  // ------------------------------------------
+  // make_tm_list
+
+  template <class T>
+  [[nodiscard]] constexpr auto make_tm_list(meta_type<T>)
+  {
+    return type_c<tm_list<T>>;
   }
 
   // ------------------------------------------

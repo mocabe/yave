@@ -55,6 +55,14 @@ namespace yave {
     static constexpr auto term = type_c<tm_varvalue<Tag>>;
   };
 
+  /// proxy type of list
+  template <class T>
+  struct ListProxy : Object
+  {
+    /// term
+    static constexpr auto term = make_tm_list(get_term<T>());
+  };
+
   /// proxy type of named objec type
   template <class T>
   struct ObjectProxy : Object
@@ -156,6 +164,23 @@ namespace yave {
     }
 
     // ------------------------------------------
+    // list type
+
+    template <class T>
+    struct list_type_initializer
+    {
+      /// list type object
+      inline static const Type type {static_construct,
+                                     list_type {object_type_impl(type_c<T>)}};
+    };
+
+    template <class T>
+    constexpr auto list_type_address(meta_type<tm_list<T>>)
+    {
+      return &list_type_initializer<T>::type;
+    }
+
+    // ------------------------------------------
     // constexpr version of object_type type
 
     template <class T>
@@ -169,6 +194,8 @@ namespace yave {
         return var_type_address(term);
       } else if constexpr (is_tm_varvalue(term)) {
         return var_type_address(term);
+      } else if constexpr (is_tm_list(term)) {
+        return list_type_address(term);
       } else {
         static_assert(false_v<T>);
       }
@@ -196,7 +223,7 @@ namespace yave {
     meta_type<T> type,
     meta_type<ClosureProxy<Ts...>> result)
   {
-    if constexpr (is_arrow_type(type)) {
+    if constexpr (is_ty_arrow(type)) {
       return guess_object_type_closure(
         type.t2(), append(guess_object_type(type.t1()), result));
     } else {
@@ -209,14 +236,15 @@ namespace yave {
   template <class T>
   [[nodiscard]] constexpr auto guess_object_type(meta_type<T> type)
   {
-    if constexpr (is_arrow_type(type)) {
+    if constexpr (is_ty_arrow(type)) {
       return guess_object_type_closure(type, type_c<ClosureProxy<>>);
-    } else if constexpr (is_value_type(type)) {
-      using tag = typename decltype(type.tag())::type;
-      return get_object_type(type_c<ObjectProxy<tag>>);
-    } else if constexpr (is_varvalue_type(type) || is_var_type(type)) {
+    } else if constexpr (is_ty_value(type)) {
+      return get_value_object_type(type);
+    } else if constexpr (is_ty_varvalue(type) || is_ty_var(type)) {
       using tag = typename decltype(type.tag())::type;
       return type_c<VarValueProxy<tag>>;
+    } else if constexpr (is_ty_list(type)) {
+      return get_list_object_type(make_ty_list(guess_object_type(type.t())));
     } else
       static_assert(false_v<T>, "Invalid type");
   }

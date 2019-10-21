@@ -33,6 +33,9 @@ namespace yave {
   // heap-allocated runtime type infomation
   using Type = Box<type_value>;
 
+  // ------------------------------------------
+  // Object
+
   /// Base class of heap-allocated objects
   struct Object
   {
@@ -67,5 +70,75 @@ namespace yave {
   };
 
   static_assert(std::is_standard_layout_v<Object>);
+
+  // ------------------------------------------
+  // is_object_pointer
+
+  namespace detail {
+
+    template <class T>
+    struct is_object_pointer_impl : std::false_type
+    {
+    };
+
+    template <class T>
+    struct is_object_pointer_impl<T*>
+    {
+      static constexpr bool value =
+        (std::is_base_of_v<Object, T>) ? true : false;
+    };
+
+    template <class T>
+    struct is_object_pointer_impl<object_ptr<T>> : std::true_type
+    {
+    };
+
+  } // namespace detail
+
+  /// Heap object pointer? (raw pointer or object_ptrT>)
+  template <class T>
+  inline constexpr bool is_object_pointer_v =
+    detail::is_object_pointer_impl<std::decay_t<T>>::value;
+
+  // ------------------------------------------
+  // object_pointer_element_t
+
+  namespace detail {
+
+    template <class T>
+    struct object_pointer_element_impl_
+    {
+    };
+
+    template <class T>
+    struct object_pointer_element_impl_<T*>
+    {
+      using type = T;
+    };
+
+    template <class T>
+    struct object_pointer_element_impl_<object_ptr<T>>
+    {
+      using type = T;
+    };
+
+    template <class T, class = void>
+    struct object_pointer_element_impl
+    {
+    };
+
+    template <class T>
+    struct object_pointer_element_impl<
+      T,
+      std::enable_if_t<is_object_pointer_v<T>>>
+    {
+      using type = typename object_pointer_element_impl_<std::decay_t<T>>::type;
+    };
+  } // namespace detail
+
+  /// Element type of pointer
+  template <class T>
+  using object_pointer_element_t =
+    typename detail::object_pointer_element_impl<T>::type;
 
 } // namespace yave

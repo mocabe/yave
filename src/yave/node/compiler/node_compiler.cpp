@@ -319,7 +319,7 @@ namespace yave {
 
             auto v = genvar();
             // [tmp = it -> v]
-            auto c = Constr {tmp_tp, new Type(arrow_type {it, v})};
+            auto c = type_constr {tmp_tp, new Type(arrow_type {it, v})};
             // solve constraint
             auto subst = unify({c}, nullptr);
             // update result by substitution.
@@ -398,7 +398,7 @@ namespace yave {
           auto& t = overloading_types[i];
 
           try {
-            auto c         = unify({Constr {node_tp, t}}, nullptr);
+            auto c         = unify({type_constr {node_tp, t}}, nullptr);
             auto result_tp = subst_type_all(c, tmp_tp);
             hits.push_back({b, o, t, result_tp});
           } catch (type_error::type_error&) {

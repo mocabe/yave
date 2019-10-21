@@ -8,6 +8,7 @@
 #include <yave/rts/function.hpp>
 #include <yave/rts/eval.hpp>
 #include <yave/rts/unit.hpp>
+#include <yave/rts/list.hpp>
 
 #include <iostream>
 
@@ -16,8 +17,8 @@ using namespace yave;
 namespace yave {
   using Int    = yave::Box<int>;
   using Double = yave::Box<double>;
-  using Float = yave::Box<float>;
-  using Bool = yave::Box<bool>;
+  using Float  = yave::Box<float>;
+  using Bool   = yave::Box<bool>;
 } // namespace yave
 
 YAVE_DECL_TYPE(Int, "7d27665a-c56a-40d1-8e2e-844cb48de9e9");
@@ -58,7 +59,8 @@ TEST_CASE("higher order function test")
       {
         static_assert(
           type_c<argument_proxy_t<0>> ==
-          type_c<const ClosureArgumentProxy<ObjectProxy<Int>, ObjectProxy<Int>>>);
+          type_c<
+            const ClosureArgumentProxy<ObjectProxy<Int>, ObjectProxy<Int>>>);
         return arg<0>();
         return eval_arg<0>();
         return eval(arg<0>());
@@ -160,8 +162,8 @@ TEST_CASE("polymorphic function test")
         return_type code() const
         {
           auto _if = make_object<If>();
-          auto b = make_object<Bool>();
-          auto i = make_object<Int>();
+          auto b   = make_object<Bool>();
+          auto i   = make_object<Int>();
           return _if << b << i << i; // Bool->X->X->X Bool Int Int
         }
       };
@@ -176,9 +178,9 @@ TEST_CASE("polymorphic function test")
         return_type code() const
         {
           auto _if = make_object<If>();
-          auto b = make_object<Bool>();
-          auto i = make_object<Int>();
-          auto d = make_object<Double>();
+          auto b   = make_object<Bool>();
+          auto i   = make_object<Int>();
+          auto d   = make_object<Double>();
           // (Double->Int->Int) ((Bool->X->X->X) Bool Double Double)
           // ((Bool->X->X->X) Bool Int Int)
           return arg<0>() << (_if << b << d << d) << (_if << b << i << i);
@@ -186,5 +188,112 @@ TEST_CASE("polymorphic function test")
       };
       auto f = make_object<F>();
     }
+  }
+}
+
+TEST_CASE("List<T>")
+{
+  SECTION("List head")
+  {
+    struct F : Function<F, List<Int>, Int>
+    {
+      return_type code() const
+      {
+        return eval_arg<0>()->head();
+      }
+    };
+
+    auto f = make_object<F>();
+  }
+
+  SECTION("List tail")
+  {
+    struct F : Function<F, List<Int>, List<Int>>
+    {
+      return_type code() const
+      {
+        return eval_arg<0>()->tail();
+        return eval(arg<0>())->tail();
+      }
+    };
+
+    auto f = make_object<F>();
+  }
+
+  SECTION("List cons")
+  {
+    struct F : Function<F, Int, List<Int>, List<Int>>
+    {
+      return_type code() const
+      {
+        return make_object<List<Int>>(arg<0>(), arg<1>());
+        return make_object<List<Int>>(eval_arg<0>(), arg<1>());
+        return make_object<List<Int>>(arg<0>(), eval_arg<1>());
+        return make_object<List<Int>>(eval_arg<0>(), eval_arg<1>());
+        return make_object<List<Int>>(eval_arg<0>(), eval_arg<1>()->tail());
+        return make_object<List<Int>>(eval_arg<1>()->head(), eval_arg<1>());
+        return make_object<List<Int>>(
+          eval_arg<1>()->head(), eval_arg<1>()->tail());
+        return make_list<Int>(arg<0>(), eval_arg<0>(), eval_arg<1>()->head());
+      }
+    };
+
+    auto f = make_object<F>();
+  }
+
+  SECTION("List misc")
+  {
+    struct F : Function<F, closure<Int, List<Int>>, Int, Int>
+    {
+      return_type code() const
+      {
+        return eval(arg<0>() << arg<1>())->head();
+        return eval(eval_arg<0>() << arg<1>())->head();
+        return eval(eval_arg<0>() << eval_arg<1>())->head();
+        return eval(arg<0>() << eval_arg<1>())->head();
+      }
+    };
+
+    auto f = make_object<F>();
+  }
+
+  SECTION("List poly")
+  {
+    class X;
+    struct F
+      : Function<F, closure<class X, List<class X>>, class X, List<class X>>
+    {
+      return_type code() const
+      {
+        return arg<0>() << arg<1>();
+        return eval(arg<0>() << arg<1>());
+        return eval(arg<0>() << arg<1>())->tail();
+      }
+    };
+
+    struct G : Function<G, class X, List<class X>>
+    {
+      return_type code() const
+      {
+        return make_list<class X>(arg<0>());
+        return make_list<class X>(eval_arg<0>());
+      }
+    };
+
+    struct H : Function<H, F, G, List<Double>>
+    {
+      return_type code() const
+      {
+        return arg<0>() << arg<1>() << make_object<Double>();
+        return eval_arg<0>() << arg<1>() << make_object<Double>();
+        return eval_arg<0>() << eval_arg<1>() << make_object<Double>();
+        return make_object<F>() << arg<1>() << make_object<Double>();
+        return make_object<F>() << make_object<G>() << make_object<Double>();
+      }
+    };
+
+    auto f = make_object<F>();
+    auto g = make_object<G>();
+    auto h = make_object<H>();
   }
 }

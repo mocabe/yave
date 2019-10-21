@@ -32,28 +32,25 @@ namespace yave {
   /// is_value_type
   [[nodiscard]] inline bool is_value_type(const object_ptr<const Type>& tp)
   {
-    if (get_if<value_type>(tp.value()))
-      return true;
-    else
-      return false;
+    return get_if<value_type>(tp.value());
   }
 
   /// is_arrow_type
   [[nodiscard]] inline bool is_arrow_type(const object_ptr<const Type>& tp)
   {
-    if (get_if<arrow_type>(tp.value()))
-      return true;
-    else
-      return false;
+    return get_if<arrow_type>(tp.value());
   }
 
   /// is_var_type
   [[nodiscard]] inline bool is_var_type(const object_ptr<const Type>& tp)
   {
-    if (get_if<var_type>(tp.value()))
-      return true;
-    else
-      return false;
+    return get_if<var_type>(tp.value());
+  }
+
+  // is_list_type
+  [[nodiscard]] inline bool is_list_type(const object_ptr<const Type>& tp)
+  {
+    return get_if<list_type>(tp.value());
   }
 
   /// has_value_type
@@ -72,6 +69,12 @@ namespace yave {
   [[nodiscard]] inline bool has_var_type(const object_ptr<const Object>& obj)
   {
     return is_var_type(get_type(obj));
+  }
+
+  /// has_list_type
+  [[nodiscard]] inline bool has_list_type(const object_ptr<const Object>& obj)
+  {
+    return is_list_type(get_type(obj));
   }
 
   /// flatten arrow type (non recursive)
@@ -99,13 +102,13 @@ namespace yave {
     return ret;
   }
 
-  struct TyArrow
+  struct type_arrow
   {
     object_ptr<const Type> from;
     object_ptr<const Type> to;
   };
 
-  struct Constr
+  struct type_constr
   {
     object_ptr<const Type> t1;
     object_ptr<const Type> t2;
@@ -125,10 +128,13 @@ namespace yave {
         if (auto var = get_if<var_type>(t.value()))
           return make_object<Type>(var_type {var->id});
 
-        if (auto arrow = get_if<arrow_type>(t.value())) {
+        if (auto arrow = get_if<arrow_type>(t.value()))
           return make_object<Type>(
             arrow_type {rec(arrow->captured), rec(arrow->returns)});
-        }
+
+        if (auto list = get_if<list_type>(t.value()))
+          return make_object<Type>(list_type {rec(list->t)});
+
         unreachable();
       }
     } impl;
@@ -146,39 +152,39 @@ namespace yave {
   {
     struct
     {
-      auto rec(const object_ptr<const Type>& l, const object_ptr<const Type>& r)
-        -> bool
+      auto rec(
+        const object_ptr<const Type>& left,
+        const object_ptr<const Type>& right) -> bool
       {
-        if (l.get() == r.get())
+        if (left.get() == right.get())
           return true;
 
-        if (!l || !r)
+        if (!left || !right)
           return false;
 
-        const auto& left  = *l;
-        const auto& right = *r;
+        auto* l = left.value();
+        auto* r = right.value();
 
-        if (auto lvar = get_if<value_type>(&left)) {
-          if (auto rvar = get_if<value_type>(&right))
+        if (_get_storage(*l).index != _get_storage(*r).index)
+          return false;
+
+        if (auto lvar = get_if<value_type>(l))
+          if (auto rvar = get_if<value_type>(r))
             return value_type::equal(*lvar, *rvar);
-          else
-            return false;
-        }
 
-        if (auto larr = get_if<arrow_type>(&left)) {
-          if (auto rarr = get_if<arrow_type>(&right))
+        if (auto larr = get_if<arrow_type>(l))
+          if (auto rarr = get_if<arrow_type>(r))
             return rec(larr->captured, rarr->captured) &&
                    rec(larr->returns, rarr->returns);
-          else
-            return false;
-        }
 
-        if (auto lany = get_if<var_type>(&left)) {
-          if (auto rany = get_if<var_type>(&right))
+        if (auto lany = get_if<var_type>(l))
+          if (auto rany = get_if<var_type>(r))
             return lany->id == rany->id;
-          else
-            return false;
-        }
+
+        if (auto llist = get_if<list_type>(l))
+          if (auto rlist = get_if<list_type>(r))
+            return rec(llist->t, rlist->t);
+
         unreachable();
       }
     } impl;
@@ -188,45 +194,45 @@ namespace yave {
 
   /// emulate type-substitution
   [[nodiscard]] inline auto subst_type(
-    const TyArrow& ta,
+    const type_arrow& ta,
     const object_ptr<const Type>& in) -> object_ptr<const Type>
   {
     struct
     {
-      auto rec(const TyArrow& ta, const object_ptr<const Type>& in)
+      auto rec(const type_arrow& ta, const object_ptr<const Type>& in)
         -> object_ptr<const Type>
       {
         auto& from = ta.from;
         auto& to   = ta.to;
 
-        if (get_if<value_type>(in.value())) {
-          if (same_type(in, from))
-            return to;
-          return in;
-        }
-
-        if (get_if<var_type>(in.value())) {
-          if (same_type(in, from))
-            return to;
-          return in;
-        }
-
         if (auto arrow = get_if<arrow_type>(in.value())) {
-          if (same_type(in, from))
-            return to;
-          return make_object<Type>(
-            arrow_type {rec(ta, arrow->captured), rec(ta, arrow->returns)});
+          auto cap = rec(ta, arrow->captured);
+          auto ret = rec(ta, arrow->returns);
+          return (!cap && !ret)
+                   ? nullptr
+                   : make_object<Type>(arrow_type {cap ? cap : arrow->captured,
+                                                   ret ? ret : arrow->returns});
         }
-        unreachable();
+
+        if (auto list = get_if<list_type>(in.value())) {
+          auto t = rec(ta, list->t);
+          return !t ? nullptr : make_object<Type>(list_type {t});
+        }
+
+        if (same_type(in, from))
+          return to;
+
+        return nullptr;
       }
     } impl;
 
-    return impl.rec(ta, in);
+    auto r = impl.rec(ta, in);
+    return !r ? in : r;
   }
 
   /// apply all substitution
   [[nodiscard]] inline auto subst_type_all(
-    const std::vector<TyArrow>& tyarrows,
+    const std::vector<type_arrow>& tyarrows,
     const object_ptr<const Type>& ty) -> object_ptr<const Type>
   {
     auto t = ty;
@@ -237,7 +243,9 @@ namespace yave {
   }
 
   /// compose substitution
-  inline void compose_subst(std::vector<TyArrow>& tyarrows, const TyArrow& a)
+  inline void compose_subst(
+    std::vector<type_arrow>& tyarrows,
+    const type_arrow& a)
   {
     for (auto&& ta : tyarrows) {
       ta.to = subst_type(a, ta.to);
@@ -254,20 +262,23 @@ namespace yave {
 
   /// subst_constr
   [[nodiscard]] inline auto subst_constr(
-    const TyArrow& ta,
-    const Constr& constr) -> Constr
+    const type_arrow& ta,
+    const type_constr& constr) -> type_constr
   {
     return {subst_type(ta, constr.t1), subst_type(ta, constr.t2)};
   }
 
   /// subst_constr_all
   [[nodiscard]] inline auto subst_constr_all(
-    const TyArrow& ta,
-    const std::vector<Constr>& cs) -> std::vector<Constr>
+    const type_arrow& ta,
+    const std::vector<type_constr>& cs) -> std::vector<type_constr>
   {
-    auto ret = std::vector<Constr> {};
+    auto ret = std::vector<type_constr> {};
     ret.reserve(cs.size());
-    for (auto&& c : cs) ret.push_back(subst_constr(ta, c));
+
+    for (auto&& c : cs)
+      ret.push_back(subst_constr(ta, c));
+
     return ret;
   }
 
@@ -278,10 +289,15 @@ namespace yave {
   {
     if (get_if<value_type>(t.value()))
       return false;
+
     if (get_if<var_type>(t.value()))
       return same_type(x, t);
+
     if (auto arrow = get_if<arrow_type>(t.value()))
       return occurs(x, arrow->captured) || occurs(x, arrow->returns);
+
+    if (auto list = get_if<list_type>(t.value()))
+      return occurs(x, list->t);
 
     unreachable();
   }
@@ -290,45 +306,56 @@ namespace yave {
   /// \param cs Type constraints
   /// \param src Source node (for error handling)
   [[nodiscard]] inline auto unify(
-    const std::vector<Constr>& constrs,
-    const object_ptr<const Object>& src) -> std::vector<TyArrow>
+    const std::vector<type_constr>& constrs,
+    const object_ptr<const Object>& src) -> std::vector<type_arrow>
   {
     auto cs = constrs;
-    auto ta = std::vector<TyArrow> {};
+    auto ta = std::vector<type_arrow> {};
 
     while (!cs.empty()) {
       auto c = cs.back();
       cs.pop_back();
+
       if (same_type(c.t1, c.t2))
         continue;
+
       if (is_var_type(c.t2)) {
         if (likely(!occurs(c.t2, c.t1))) {
-          auto arr = TyArrow {c.t2, c.t1};
+          auto arr = type_arrow {c.t2, c.t1};
           cs       = subst_constr_all(arr, cs);
           compose_subst(ta, arr);
           continue;
         }
         throw type_error::circular_constraint(src, c.t1);
       }
+
       if (is_var_type(c.t1)) {
         if (likely(!occurs(c.t1, c.t2))) {
-          auto arr = TyArrow {c.t1, c.t2};
+          auto arr = type_arrow {c.t1, c.t2};
           cs       = subst_constr_all(arr, cs);
           compose_subst(ta, arr);
           continue;
         }
         throw type_error::circular_constraint(src, c.t1);
       }
-      if (auto arrow1 = get_if<arrow_type>(c.t1.value())) {
-        if (auto arrow2 = get_if<arrow_type>(c.t2.value())) {
-          cs.push_back({arrow1->captured, arrow2->captured});
-          cs.push_back({arrow1->returns, arrow2->returns});
-          continue;
-        }
+
+      if (is_arrow_type(c.t1) && is_arrow_type(c.t2)) {
+        auto* arrow1 = get_if<arrow_type>(c.t1.value());
+        auto* arrow2 = get_if<arrow_type>(c.t2.value());
+        cs.push_back({arrow1->captured, arrow2->captured});
+        cs.push_back({arrow1->returns, arrow2->returns});
+        continue;
       }
+
+      if (is_list_type(c.t1) && is_list_type(c.t2)) {
+        auto list1 = get_if<list_type>(c.t1.value());
+        auto list2 = get_if<list_type>(c.t2.value());
+        cs.push_back({list1->t, list2->t});
+        continue;
+      }
+
       throw type_error::type_missmatch(src, c.t1, c.t2);
     }
-
     return ta;
   }
 
@@ -349,9 +376,10 @@ namespace yave {
         const object_ptr<const Type>& tp,
         std::vector<object_ptr<const Type>>& vars)
       {
-        if (is_value_type(tp))
+        if (get_if<value_type>(tp.value()))
           return;
-        if (is_var_type(tp)) {
+
+        if (get_if<var_type>(tp.value())) {
           return [&]() {
             for (auto&& v : vars) {
               if (same_type(v, tp))
@@ -360,9 +388,15 @@ namespace yave {
             vars.push_back(tp);
           }();
         }
-        if (is_arrow_type(tp)) {
-          rec(get_if<arrow_type>(tp.value())->captured, vars);
-          rec(get_if<arrow_type>(tp.value())->returns, vars);
+
+        if (auto arrow = get_if<arrow_type>(tp.value())) {
+          rec(arrow->captured, vars);
+          rec(arrow->returns, vars);
+          return;
+        }
+
+        if (auto list = get_if<list_type>(tp.value())) {
+          rec(list->t, vars);
           return;
         }
 
@@ -381,10 +415,12 @@ namespace yave {
   {
     if (!is_arrow_type(tp))
       return tp;
+
     auto vs = vars(tp);
     auto t  = tp;
+
     for (auto v : vs) {
-      auto a = TyArrow {v, genvar()};
+      auto a = type_arrow {v, genvar()};
       t      = subst_type(a, tp);
     }
     return t;
@@ -418,17 +454,12 @@ namespace yave {
           auto _t1 = rec_app(apply_storage.app());
           auto _t2 = rec(apply_storage.arg());
           auto _t  = genvar();
-          auto c =
-            std::vector {Constr {_t1, make_object<Type>(arrow_type {_t2, _t})}};
+          auto c   = std::vector {
+            type_constr {_t1, make_object<Type>(arrow_type {_t2, _t})}};
           auto s = unify(std::move(c), obj);
           return subst_type_all(s, _t);
         }
-        // value -> value
-        if (has_value_type(obj))
-          return get_type(obj);
-        // var -> var
-        if (has_var_type(obj))
-          return get_type(obj);
+
         // arrow -> arrow or PAP
         if (has_arrow_type(obj)) {
           auto c = reinterpret_cast<const Closure<>*>(obj.get());
@@ -439,6 +470,18 @@ namespace yave {
           // arrow: get_type
           return get_type(obj);
         }
+
+        // value -> value
+        if (has_value_type(obj))
+          return get_type(obj);
+
+        // var -> var
+        if (has_var_type(obj))
+          return get_type(obj);
+
+        // list -> list
+        if (has_list_type(obj))
+          return get_type(obj);
 
         unreachable();
       }
@@ -451,10 +494,7 @@ namespace yave {
   template <class T, class U>
   [[nodiscard]] bool has_type(const object_ptr<U>& obj)
   {
-    if (same_type(get_type(obj), object_type<T>()))
-      return true;
-    else
-      return false;
+    return same_type(get_type(obj), object_type<T>());
   }
 
 } // namespace yave

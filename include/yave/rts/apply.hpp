@@ -154,38 +154,12 @@ namespace yave {
     }
   };
 
-  namespace detail {
-
-    template <class T>
-    constexpr auto is_valid_app_arg(meta_type<T>)
-    {
-      return false_c;
-    }
-
-    template <class T>
-    constexpr auto is_valid_app_arg(meta_type<T*>)
-    {
-      if constexpr (std::is_base_of_v<Object, T>)
-        return true_c;
-      else
-        return false_c;
-    }
-
-    template <class T>
-    constexpr auto is_valid_app_arg(meta_type<object_ptr<T>>)
-    {
-      return true_c;
-    }
-
-  } // namespace detail
-
   /// apply operator
   template <
     class T1,
     class T2,
-    class = std::enable_if_t<
-      detail::is_valid_app_arg(type_c<std::decay_t<T1>>) &&
-      detail::is_valid_app_arg(type_c<std::decay_t<T2>>)>>
+    class =
+      std::enable_if_t<is_object_pointer_v<T1> && is_object_pointer_v<T2>>>
   [[nodiscard]] auto operator<<(T1&& lhs, T2&& rhs)
   {
     // use {} to workaround gcc bug (81486?)

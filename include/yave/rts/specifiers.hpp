@@ -22,6 +22,10 @@ namespace yave {
   template <class T>
   struct object;
 
+  /// list specifier
+  template <class T>
+  struct list;
+
   // ------------------------------------------
   // proxy types (forward decl)
 
@@ -36,6 +40,9 @@ namespace yave {
 
   template <class T>
   struct ObjectProxy;
+
+  template <class T>
+  struct ListProxy;
 
   // ------------------------------------------
   // is_specifier
@@ -64,8 +71,16 @@ namespace yave {
     return true_c;
   }
 
+  template <class T>
+  [[nodiscard]] constexpr auto is_specifier(meta_type<list<T>>)
+  {
+    return true_c;
+  }
+
   // ------------------------------------------
   // normalize_specifier
+
+  struct Object;
 
   /// lift all raw types to specifiers
   template <class T>
@@ -76,9 +91,11 @@ namespace yave {
     else if constexpr (!is_complete_v<T>)
       // type variable
       return type_c<forall<T>>;
-    else
+    else if constexpr (std::is_base_of_v<Object, T>)
       // object
       return type_c<object<T>>;
+    else
+      static_assert(false_v<T>, "T is not valid heap object");
   }
 
   template <class... Ts>
@@ -86,6 +103,13 @@ namespace yave {
   {
     return type_c<
       closure<typename decltype(normalize_specifier(type_c<Ts>))::type...>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto normalize_specifier(meta_type<list<T>>)
+  {
+    return type_c<
+      list<typename decltype(normalize_specifier(type_c<T>))::type>>;
   }
 
   // ------------------------------------------
@@ -108,6 +132,13 @@ namespace yave {
   [[nodiscard]] constexpr auto get_proxy_type(meta_type<object<T>>)
   {
     return type_c<ObjectProxy<T>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_proxy_type(meta_type<list<T>>)
+  {
+    return type_c<
+      ListProxy<typename decltype(get_proxy_type(type_c<T>))::type>>;
   }
 
   // ------------------------------------------
@@ -133,19 +164,43 @@ namespace yave {
     return get_proxy_type(o);
   }
 
+  template <class T>
+  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<list<T>> l)
+  {
+    return get_proxy_type(l);
+  }
+
   // ------------------------------------------
-  // get_object_type
+  // get_value_object_type
 
   template <class T>
-  [[nodiscard]] constexpr auto get_object_type(meta_type<object<T>>)
+  struct ty_value;
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_value_object_type(meta_type<ty_value<T>>)
   {
     return type_c<T>;
   }
 
+  // ------------------------------------------
+  // get_list_object_type
+
   template <class T>
-  [[nodiscard]] constexpr auto get_object_type(meta_type<ObjectProxy<T>>)
+  struct Box;
+
+  template <class T>
+  struct list_object_value;
+
+  template <class T>
+  using List = Box<list_object_value<T>>;
+
+  template <class T>
+  struct ty_list;
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_list_object_type(meta_type<ty_list<T>>)
   {
-    return type_c<T>;
+    return type_c<List<T>>;
   }
 
   // ------------------------------------------

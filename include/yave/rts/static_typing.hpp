@@ -22,7 +22,7 @@ namespace yave {
   /// \param type type to apply substitution
   template <class TyT1Tag, class TyT2, class T>
   [[nodiscard]] constexpr auto subst(
-    meta_type<tyarrow<var<TyT1Tag>, TyT2>> ar,
+    meta_type<tyarrow<ty_var<TyT1Tag>, TyT2>> ar,
     meta_type<T> type)
   {
     (void)ar;
@@ -30,16 +30,19 @@ namespace yave {
 
     if constexpr (type == ar.t1()) {
       return ar.t2();
-    } else if constexpr (is_arrow_type(type)) {
+    } else if constexpr (is_ty_arrow(type)) {
       auto lt = subst(ar, type.t1());
       auto rt = subst(ar, type.t2());
-      return make_arrow(lt, rt);
-    } else if constexpr (is_value_type(type)) {
+      return make_ty_arrow(lt, rt);
+    } else if constexpr (is_ty_value(type)) {
       return type;
-    } else if constexpr (is_var_type(type)) {
+    } else if constexpr (is_ty_var(type)) {
       return type;
-    } else if constexpr (is_varvalue_type(type)) {
+    } else if constexpr (is_ty_varvalue(type)) {
       return type;
+    } else if constexpr (is_ty_list(type)) {
+      auto t = subst(ar, type.t());
+      return make_ty_list(t);
     } else
       static_assert(false_v<T>, "Invalid type");
   }
@@ -64,15 +67,15 @@ namespace yave {
 
   /// Type constraint
   template <class T1, class T2>
-  struct constr
+  struct tyconstr
   {
-    using type = constr<T1, T2>;
+    using type = tyconstr<T1, T2>;
     using t1   = T1;
     using t2   = T2;
   };
 
   template <class T1, class T2>
-  struct meta_type<constr<T1, T2>>
+  struct meta_type<tyconstr<T1, T2>>
   {
     [[nodiscard]] constexpr auto t1() const
     {
@@ -85,9 +88,9 @@ namespace yave {
   };
 
   template <class T1, class T2>
-  [[nodiscard]] constexpr auto make_constr(meta_type<T1>, meta_type<T2>)
+  [[nodiscard]] constexpr auto make_tyconstr(meta_type<T1>, meta_type<T2>)
   {
-    return type_c<constr<T1, T2>>;
+    return type_c<tyconstr<T1, T2>>;
   }
 
   // ------------------------------------------
@@ -97,11 +100,11 @@ namespace yave {
   template <class TyT1, class TyT2, class T1, class T2>
   [[nodiscard]] constexpr auto subst_constr(
     meta_type<tyarrow<TyT1, TyT2>> a,
-    meta_type<constr<T1, T2>>)
+    meta_type<tyconstr<T1, T2>>)
   {
     auto t1 = subst(a, type_c<T1>);
     auto t2 = subst(a, type_c<T2>);
-    return make_constr(t1, t2);
+    return make_tyconstr(t1, t2);
   }
 
   // ------------------------------------------
@@ -166,15 +169,17 @@ namespace yave {
     (void)x;
     (void)t;
 
-    if constexpr (is_arrow_type(t)) {
+    if constexpr (is_ty_arrow(t)) {
       constexpr bool b = occurs(x, t.t1()) || occurs(x, t.t2());
       return std::bool_constant<b> {};
-    } else if constexpr (is_value_type(t)) {
+    } else if constexpr (is_ty_value(t)) {
       return false_c;
-    } else if constexpr (is_var_type(t)) {
+    } else if constexpr (is_ty_var(t)) {
       return x == t;
-    } else if constexpr (is_varvalue_type(t)) {
+    } else if constexpr (is_ty_varvalue(t)) {
       return false_c;
+    } else if constexpr (is_ty_list(t)) {
+      return occurs(x, t.t());
     } else
       static_assert(false_v<T>, "Invalid type");
   }
@@ -198,7 +203,7 @@ namespace yave {
       auto arr = make_tyarrow(var, x);
       auto t   = unify_impl(subst_constr_all(arr, tail(cs)));
       // error handling
-      if constexpr (is_error_type(t))
+      if constexpr (is_tyerror(t))
         return t;
       else
         return compose_subst(t, arr);
@@ -220,25 +225,31 @@ namespace yave {
         return unify_impl(tl);
       }
       // constr(arrow(S1, S2), arrow(T1, T2))
-      else if constexpr (is_arrow_type(c.t1()) && is_arrow_type(c.t2())) {
+      else if constexpr (is_ty_arrow(c.t1()) && is_ty_arrow(c.t2())) {
         auto a1 = c.t1();
         auto a2 = c.t2();
         return unify_impl(concat(
           make_tuple(
-            make_constr(a1.t1(), a2.t1()), make_constr(a1.t2(), a2.t2())),
+            make_tyconstr(a1.t1(), a2.t1()), make_tyconstr(a1.t2(), a2.t2())),
           tl));
       }
       // constr(x , var)
-      else if constexpr (is_var_type(c.t2())) {
+      else if constexpr (is_ty_var(c.t2())) {
         auto x   = c.t1();
         auto var = c.t2();
         return unify_impl_vars(var, x, cs);
       }
       // constr(var, x)
-      else if constexpr (is_var_type(c.t1())) {
+      else if constexpr (is_ty_var(c.t1())) {
         auto var = c.t1();
         auto x   = c.t2();
         return unify_impl_vars(var, x, cs);
+      }
+      // constr(list(T1), list(T2))
+      else if constexpr (is_ty_list(c.t1()) && is_ty_list(c.t2())) {
+        auto l = c.t1();
+        auto r = c.t2();
+        return unify_impl(concat(make_tuple(make_tyconstr(l.t(), r.t())), tl));
       } else
         return make_type_missmatch(c.t1(), c.t2(), tl);
     }
@@ -274,7 +285,7 @@ namespace yave {
         false_v<T>,
         "Unification error: Unknown error(probably invalid constraints)");
     } else {
-      static_assert(false_v<T>, "Invalid error tag for error_type");
+      static_assert(false_v<T>, "Invalid error tag for tyerror");
     }
     return type;
   }
@@ -282,8 +293,8 @@ namespace yave {
   /// Compile time unification.
   /// \param cs a list of constraints
   /// \param enable_assert if `true_type` then emit `static_assert` otherwise
-  /// return `error_type`.
-  /// \return `meta_set` of `constr` or `error_type` on failure(when
+  /// return `tyerror`.
+  /// \return `meta_set` of `constr` or `tyerror` on failure(when
   /// `enable_assert` is `false_type`).
   template <bool B, class... Cs>
   [[nodiscard]] constexpr auto unify(
@@ -295,7 +306,7 @@ namespace yave {
 
     constexpr auto t = unify_impl(cs);
 
-    if constexpr (enable_assert && is_error_type(t))
+    if constexpr (enable_assert && is_tyerror(t))
       return unify_assert(t);
     else
       return t;
@@ -340,6 +351,8 @@ namespace yave {
       return term;
     } else if constexpr (is_tm_var(term)) {
       return term;
+    } else if constexpr (is_tm_list(term)) {
+      return make_tm_list(subst_term(from, to, term.t()));
     } else
       static_assert(false_v<Term>, "Invalid type");
   }
@@ -429,7 +442,7 @@ namespace yave {
         // No need for error check (as far as tm_closure is used just for
         // type declaration).
 
-        return make_pair(make_arrow(t1, t2), g2);
+        return make_pair(make_ty_arrow(t1, t2), g2);
       }
     } else
       return type_of_impl(term, gen, enable_assert);
@@ -474,22 +487,22 @@ namespace yave {
       auto p1 = type_of_impl_app(term.t1(), gen, enable_assert);
       auto t1 = p1.first();
       auto g1 = p1.second();
-      if constexpr (is_error_type(t1)) {
+      if constexpr (is_tyerror(t1)) {
         return make_pair(t1, g1);
       } else {
         // arg
         auto p2 = type_of_impl(term.t2(), g1, enable_assert);
         auto t2 = p2.first();
         auto g2 = p2.second();
-        if constexpr (is_error_type(t2)) {
+        if constexpr (is_tyerror(t2)) {
           return make_pair(t2, g2);
         } else {
           // type check subtree
-          auto var = gen_var(g2);
+          auto var = gen_ty_var(g2);
           auto g3  = nextgen(g2);
-          auto c   = make_tuple(make_constr(t1, make_arrow(t2, var)));
+          auto c   = make_tuple(make_tyconstr(t1, make_ty_arrow(t2, var)));
           auto s   = unify(c, enable_assert);
-          if constexpr (is_error_type(s))
+          if constexpr (is_tyerror(s))
             return make_pair(s, g3);
           else
             return make_pair(subst_all(s, var), g3);
@@ -498,11 +511,16 @@ namespace yave {
     } else if constexpr (is_tm_closure(term)) {
       return type_of_impl_closure(term, gen, enable_assert);
     } else if constexpr (is_tm_value(term)) {
-      return make_pair(make_value(term.tag()), gen);
+      return make_pair(make_ty_value(term.tag()), gen);
     } else if constexpr (is_tm_varvalue(term)) {
-      return make_pair(make_varvalue(term.tag()), gen);
+      return make_pair(make_ty_varvalue(term.tag()), gen);
     } else if constexpr (is_tm_var(term)) {
-      return make_pair(make_var(term.tag()), gen);
+      return make_pair(make_ty_var(term.tag()), gen);
+    } else if constexpr (is_tm_list(term)) {
+      auto p = type_of_impl(term.t(), gen, enable_assert);
+      auto t = p.first();
+      auto g = p.second();
+      return make_pair(make_ty_list(t), g);
     } else
       static_assert(false_v<Term>, "Invalid term");
   }
