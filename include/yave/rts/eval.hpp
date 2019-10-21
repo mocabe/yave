@@ -55,37 +55,32 @@ namespace yave {
 
   namespace detail {
 
+    /// Build spine stack and assign spine pointers.
+    /// Only allocates memory once at bottom, but uses more stack compared to
+    /// incremental buffer allocation.
     [[nodiscard]] inline auto build_spine_stack(
-      object_ptr<const Object> obj,
-      std::vector<object_ptr<const Apply>>& stack) -> object_ptr<const Object>
+      const object_ptr<const Object>& next,
+      size_t depth) -> std::
+      pair<object_ptr<const Object>, std::vector<object_ptr<const Apply>>>
     {
-      // we, hopeless C++ programmers, manually optimize tailcalls because
-      // compilers sometimes not smart enough to do that for us.
+      if (auto apply = value_cast_if<const Apply>(next)) {
 
-      auto next = std::move(obj);
+        auto& apply_storage = _get_storage(*apply);
 
-      for (;;) {
+        if (apply_storage.is_result())
+          return build_spine_stack(apply_storage.get_result(), depth);
 
-        if (auto apply = value_cast_if<Apply>(std::move(next))) {
+        auto [bottom, stack] =
+          build_spine_stack(apply_storage.app(), depth + 1);
 
-          auto& apply_storage = _get_storage(*apply);
+        // assign each vertebrae
+        stack[depth] = std::move(apply);
 
-          // graph reduction
-          if (apply_storage.is_result()) {
-            next = apply_storage.get_result();
-            assert(!value_cast_if<Exception>(next));
-            continue;
-          }
-
-          // push vertebrae
-          stack.push_back(std::move(apply));
-
-          next = apply_storage.app();
-          continue;
-        }
-        // bottom
-        return next;
+        return {std::move(bottom), std::move(stack)};
       }
+
+      std::vector<object_ptr<const Apply>> stack {depth};
+      return {next, std::move(stack)};
     }
 
     [[nodiscard]] inline auto eval_spine(object_ptr<const Object> obj)
@@ -103,12 +98,9 @@ namespace yave {
         if (apply_storage.is_result())
           return apply_storage.get_result();
 
-        // spine stack
-        std::vector<object_ptr<const Apply>> stack;
-
         // build stack and get bottom closure
-        stack.push_back(std::move(apply));
-        auto bottom = build_spine_stack(apply_storage.app(), stack);
+        auto [bottom, stack] = build_spine_stack(apply_storage.app(), 1);
+        stack[0]             = std::move(apply);
 
         for (;;) {
 
