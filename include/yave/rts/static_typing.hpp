@@ -390,6 +390,8 @@ namespace yave {
       auto t2 = p2.first();
       auto g2 = p2.second();
       return make_pair(make_tm_apply(t1, t2), g2);
+    } else if constexpr (is_tm_list(term)) {
+      return genpoly_impl(term.t(), gen, target);
     } else if constexpr (is_tm_var(term)) {
       return make_pair(subst_term(term, gen_tm_var(gen), target), nextgen(gen));
     } else
@@ -508,6 +510,11 @@ namespace yave {
             return make_pair(subst_all(s, var), g3);
         }
       }
+    } else if constexpr (is_tm_list(term)) {
+      auto p = type_of_impl(term.t(), gen, enable_assert);
+      auto t = p.first();
+      auto g = p.second();
+      return make_pair(make_ty_list(t), g);
     } else if constexpr (is_tm_closure(term)) {
       return type_of_impl_closure(term, gen, enable_assert);
     } else if constexpr (is_tm_value(term)) {
@@ -516,11 +523,6 @@ namespace yave {
       return make_pair(make_ty_varvalue(term.tag()), gen);
     } else if constexpr (is_tm_var(term)) {
       return make_pair(make_ty_var(term.tag()), gen);
-    } else if constexpr (is_tm_list(term)) {
-      auto p = type_of_impl(term.t(), gen, enable_assert);
-      auto t = p.first();
-      auto g = p.second();
-      return make_pair(make_ty_list(t), g);
     } else
       static_assert(false_v<Term>, "Invalid term");
   }

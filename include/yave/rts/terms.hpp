@@ -458,6 +458,8 @@ namespace yave {
       } else if constexpr (is_tm_apply(term)) {
         return closure_term_export_impl(
           term.t2(), closure_term_export_impl(term.t1(), target));
+      } else if constexpr (is_tm_list(term)) {
+        return closure_term_export_impl(term.t(), target);
       } else
         return target;
     }
