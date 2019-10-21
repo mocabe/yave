@@ -7,7 +7,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/backend/backend_info.hpp>
-#include <yave/node/support/bind_info_manager.hpp>
+#include <yave/node/core/bind_info_manager.hpp>
 #include <yave/obj/scene/scene_config.hpp>
 #include <yave/support/id.hpp>
 
