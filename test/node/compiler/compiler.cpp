@@ -8,6 +8,7 @@
 #include <yave/node/core/function.hpp>
 #include <yave/backend/default/render/primitive_constructor.hpp>
 #include <yave/backend/default/render/control_flow.hpp>
+#include <yave/backend/default/render/list.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
@@ -450,4 +451,36 @@ TEST_CASE("add<?> x y", "[node_compiler]")
   REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
 
   REQUIRE(!compiler.compile({std::move(graph), add}, bim));
+}
+
+TEST_CASE("42 : []", "[node_compiler]")
+{
+  node_compiler compiler;
+  node_graph graph;
+  bind_info_manager bim;
+
+  auto i    = graph.add(get_node_info<node::Int>());
+  auto nil  = graph.add(get_node_info<node::ListNil>());
+  auto cons = graph.add(get_node_info<node::ListCons>());
+
+  REQUIRE(i);
+  REQUIRE(nil);
+  REQUIRE(cons);
+
+  auto i_value   = graph.output_sockets(i)[0];
+  auto nil_value = graph.output_sockets(nil)[0];
+  auto cons_head = graph.input_sockets(cons)[0];
+  auto cons_tail = graph.input_sockets(cons)[1];
+
+  auto c1 = graph.connect(i_value, cons_head);
+  auto c2 = graph.connect(nil_value, cons_tail);
+
+  REQUIRE(c1);
+  REQUIRE(c2);
+
+  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::ListNil, backend::tags::default_render>()));
+  REQUIRE(bim.add(get_bind_info<node::ListCons, backend::tags::default_render>()));
+
+  REQUIRE(compiler.compile({std::move(graph), cons}, bim));
 }
