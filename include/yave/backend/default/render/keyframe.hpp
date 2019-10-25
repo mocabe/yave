@@ -15,8 +15,8 @@ namespace yave {
 
   namespace backend::default_render {
 
-    struct KeyframeIntValueExtractor
-      : NodeFunction<KeyframeIntValueExtractor, KeyframeInt, Frame, Int>
+    struct KeyframeIntEvaluator
+      : NodeFunction<KeyframeIntEvaluator, KeyframeInt, Frame, Int>
     {
       return_type code() const
       {
@@ -28,8 +28,8 @@ namespace yave {
       }
     };
 
-    struct KeyframeBoolValueExtractor
-      : NodeFunction<KeyframeBoolValueExtractor, KeyframeBool, Frame, Bool>
+    struct KeyframeBoolEvaluator
+      : NodeFunction<KeyframeBoolEvaluator, KeyframeBool, Frame, Bool>
     {
       return_type code() const
       {
@@ -40,8 +40,8 @@ namespace yave {
       }
     };
 
-    struct KeyframeFloatValueExtractor
-      : NodeFunction<KeyframeFloatValueExtractor, KeyframeFloat, Frame, Float>
+    struct KeyframeFloatEvaluator
+      : NodeFunction<KeyframeFloatEvaluator, KeyframeFloat, Frame, Float>
     {
       return_type code() const
       {
@@ -75,8 +75,8 @@ namespace yave {
     }                                                                \
   }
 
-  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeIntValueExtractor);
-  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeFloatValueExtractor);
-  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeBoolValueExtractor);
+  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeIntEvaluator);
+  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeFloatEvaluator);
+  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeBoolEvaluator);
 
 } // namespace yave
