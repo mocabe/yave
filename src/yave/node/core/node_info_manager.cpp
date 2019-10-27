@@ -10,13 +10,13 @@
 
 namespace {
   // logger
-  std::shared_ptr<spdlog::logger> g_info_mngr_logger;
+  std::shared_ptr<spdlog::logger> g_logger;
 
   // init
-  void init_info_mngr_logger()
+  void init_logger()
   {
-    [[maybe_unused]] static auto init_logger = [] {
-      g_info_mngr_logger = yave::add_logger("node_info_manager");
+    [[maybe_unused]] static auto init = [] {
+      g_logger = yave::add_logger("node_info_manager");
       return 1;
     }();
   }
@@ -25,15 +25,15 @@ namespace {
 namespace yave {
 
   node_info_manager::node_info_manager()
-    : m_info {}
+    : m_map {}
     , m_mtx {}
   {
-    init_info_mngr_logger();
+    init_logger();
   }
 
   node_info_manager::node_info_manager(const std::vector<node_info>& info_list)
   {
-    init_info_mngr_logger();
+    init_logger();
 
     for (auto&& i : info_list) {
       if (!add(i))
@@ -42,14 +42,14 @@ namespace yave {
   }
 
   node_info_manager::node_info_manager(const node_info_manager& other)
-    : m_info {other.m_info}
+    : m_map {other.m_map}
     , m_mtx {}
   {
     auto lck = other._lock();
   }
 
   node_info_manager::node_info_manager(node_info_manager&& other)
-    : m_info {std::move(other.m_info)}
+    : m_map {std::move(other.m_map)}
     , m_mtx {}
   {
     auto lck = other._lock();
@@ -60,8 +60,8 @@ namespace yave {
   {
     auto lck1 = _lock();
     auto lck2 = other._lock();
-    
-    m_info = other.m_info;
+
+    m_map = other.m_map;
     return *this;
   }
 
@@ -70,7 +70,7 @@ namespace yave {
     auto lck1 = _lock();
     auto lck2 = other._lock();
 
-    m_info = std::move(other.m_info);
+    m_map = std::move(other.m_map);
     return *this;
   }
 
@@ -79,32 +79,52 @@ namespace yave {
     auto lck = _lock();
 
     auto [it, succ] =
-      m_info.emplace(info.name(), std::make_shared<info_type>(info));
+      m_map.emplace(info.name(), std::make_shared<info_type>(info));
 
     if (succ) {
       Info(
-        g_info_mngr_logger,
+        g_logger,
         "Added new node_info: {}(in:{},out:{})",
         it->first,
-        it->second->input_sockets().size(),
-        it->second->output_sockets().size());
+        _access_info(it)->input_sockets().size(),
+        _access_info(it)->output_sockets().size());
       return true;
     }
 
     // when exact same info is already there
-    if (*it->second == info) {
+    if (*_access_info(it) == info) {
       assert(it->first == info.name());
       Warning(
-        g_info_mngr_logger,
+        g_logger,
         "Tried to add same node_info multiple times: {}",
         info.name());
       return true;
     }
 
-    Warning(
-      g_info_mngr_logger,
+    Error(
+      g_logger,
       "Tried to add node_info which is different from exising one: {}",
-      it->second->name());
+      _access_info(it)->name());
+
+    return false;
+  }
+
+  bool node_info_manager::add(const node_initializer& initializer)
+  {
+    auto lck = _lock();
+
+    auto [it, succ] = m_map.emplace(
+      initializer.name(),
+      std::make_shared<const node_initializer>(initializer));
+
+    if (succ) {
+      Info(g_logger, "Added new node_initializer: {}", it->first);
+      return true;
+    }
+
+    Error(
+      g_logger,
+      "Tried to add node_initializer which has same name to existing one");
 
     return false;
   }
@@ -114,26 +134,52 @@ namespace yave {
     auto lck = _lock();
 
     // find
-    auto it = m_info.find(name);
+    auto it = m_map.find(name);
     // not found
-    if (it == m_info.end())
+    if (it == m_map.end())
       return;
     // remove
-    m_info.erase(it);
+    m_map.erase(it);
 
-    Info(g_info_mngr_logger, "Removed node_info: {}", name);
+    Info(g_logger, "Removed node_info: {}", name);
   }
 
   void node_info_manager::remove(const node_info& info)
   {
     auto lck = _lock();
 
-    auto iter = m_info.begin();
-    auto end  = m_info.end();
+    auto iter = m_map.begin();
+    auto end  = m_map.end();
+
     while (iter != end) {
-      if (*iter->second == info) {
-        Info(g_info_mngr_logger, "Removed node_info: {}", iter->second->name());
-        m_info.erase(iter++);
+
+      if (!std::get_if<std::shared_ptr<const node_info>>(&iter->second))
+        continue;
+
+      if (*_access_info(iter) == info) {
+        Info(g_logger, "Removed node_info: {}", _access_info(iter)->name());
+        m_map.erase(iter++);
+      } else
+        ++iter;
+    }
+  }
+
+  void node_info_manager::remove(const node_initializer& initializer)
+  {
+    auto lck = _lock();
+
+    auto iter = m_map.begin();
+    auto end  = m_map.end();
+
+    while (iter != end) {
+
+      if (!std::get_if<std::shared_ptr<const node_initializer>>(&iter->second))
+        continue;
+
+      if (_access_init(iter)->name() == initializer.name()) {
+        Info(
+          g_logger, "Removed node_initializer: {}", _access_init(iter)->name());
+        m_map.erase(iter++);
       } else
         ++iter;
     }
@@ -142,48 +188,100 @@ namespace yave {
   bool node_info_manager::exists(const std::string& name) const
   {
     auto lck = _lock();
-    return m_info.find(name) != m_info.end();
+    return m_map.find(name) != m_map.end();
   }
 
-  auto node_info_manager::enumerate()
+  auto node_info_manager::enumerate_info()
     -> std::vector<std::shared_ptr<const info_type>>
   {
     auto lck = _lock();
 
     std::vector<std::shared_ptr<const info_type>> ret;
-    for (auto&& [name, ptr] : m_info) {
-      assert(name == ptr->name());
-      ret.push_back(ptr);
+
+    for (auto&& [name, var] : m_map) {
+      if (auto ptr = std::get_if<std::shared_ptr<const node_info>>(&var))
+        ret.push_back(*ptr);
     }
+
     return ret;
   }
 
-  auto node_info_manager::find(const std::string& name) const
-    -> std::shared_ptr<const info_type>
+  auto node_info_manager::enumerate_initializer()
+    -> std::vector<std::shared_ptr<const node_initializer>>
   {
     auto lck = _lock();
 
-    auto iter = m_info.find(name);
-    if (iter == m_info.end())
+    std::vector<std::shared_ptr<const node_initializer>> ret;
+
+    for (auto&& [name, var] : m_map) {
+      if (auto ptr = std::get_if<std::shared_ptr<const node_initializer>>(&var))
+        ret.push_back(*ptr);
+    }
+
+    return ret;
+  }
+
+  auto node_info_manager::find_info(const std::string& name) const
+    -> std::shared_ptr<const node_info>
+  {
+    auto lck = _lock();
+
+    auto iter = m_map.find(name);
+
+    if (iter == m_map.end())
       return nullptr;
-    return iter->second;
+
+    if (auto ptr = std::get_if<std::shared_ptr<const node_info>>(&iter->second))
+      return *ptr;
+
+    return nullptr;
+  }
+
+  auto node_info_manager::find_initializer(const std::string& name) const
+    -> std::shared_ptr<const node_initializer>
+  {
+    auto lck = _lock();
+
+    auto iter = m_map.find(name);
+
+    if (iter == m_map.end())
+      return nullptr;
+
+    if (
+      auto ptr =
+        std::get_if<std::shared_ptr<const node_initializer>>(&iter->second))
+      return *ptr;
+
+    return nullptr;
   }
 
   void node_info_manager::clear()
   {
     auto lck = _lock();
-    m_info.clear();
+    m_map.clear();
   }
 
   bool node_info_manager::empty() const
   {
     auto lck = _lock();
-    return m_info.empty();
+    return m_map.empty();
   }
 
   auto node_info_manager::_lock() const -> std::unique_lock<std::mutex>
   {
     return std::unique_lock(m_mtx);
+  }
+
+  auto node_info_manager::_access_init(const map_type::const_iterator& it) const
+    -> std::shared_ptr<const node_initializer>
+  {
+    return *std::get_if<std::shared_ptr<const node_initializer>>(&it->second);
+  }
+
+  auto node_info_manager::_access_info(const map_type::const_iterator& it) const
+    -> std::shared_ptr<const node_info>
+  {
+    return *std::get_if<std::shared_ptr<const node_info>>(&it->second);
   }
 
 } // namespace yave

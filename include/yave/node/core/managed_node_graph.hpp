@@ -9,6 +9,7 @@
 #include <yave/node/core/shared_node_handle.hpp>
 #include <yave/node/core/node_info_manager.hpp>
 #include <yave/node/core/bind_info_manager.hpp>
+#include <yave/node/core/node_initializer.hpp>
 
 namespace yave {
 
@@ -41,6 +42,22 @@ namespace yave {
 
     /// unregister node info
     void unregister_node_info(const std::vector<node_info>& info);
+
+  public: /* node initializer registration */
+    /// register new initializer
+    [[nodiscard]] bool register_node_initializer(
+      const node_initializer& initializer);
+
+    /// register new initializer
+    [[nodiscard]] bool register_node_initializer(
+      const std::vector<node_initializer>& initializer);
+
+    /// unregister initializer
+    void unregister_node_initializer(const node_initializer& initializer);
+
+    /// unregister initizlier
+    void unregister_node_initializer(
+      const std::vector<node_initializer>& initializer);
 
   public: /* node grouping features */
     /// Create new group

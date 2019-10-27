@@ -201,6 +201,50 @@ namespace yave {
     }
   }
 
+  bool managed_node_graph::register_node_initializer(
+    const node_initializer& initializer)
+  {
+    return m_nim.add(initializer);
+  }
+
+  void managed_node_graph::unregister_node_initializer(
+    const node_initializer& initializer)
+  {
+    return m_nim.remove(initializer);
+  }
+
+  bool managed_node_graph::register_node_initializer(
+    const std::vector<node_initializer>& initializers)
+  {
+    std::vector<const node_initializer*> added;
+
+    bool succ = [&] {
+      for (auto&& i : initializers) {
+        if (!m_nim.add(i))
+          return false;
+        added.push_back(&i);
+      }
+      return true;
+    }();
+
+    if (succ)
+      return true;
+
+    for (auto&& pi : added) {
+      m_nim.remove(*pi);
+    }
+
+    return false;
+  }
+
+  void managed_node_graph::unregister_node_initializer(
+    const std::vector<node_initializer>& initializers)
+  {
+    for (auto&& i : initializers) {
+      m_nim.remove(i);
+    }
+  }
+
   auto managed_node_graph::_find_parent_group(const node_handle& node) const
     -> const node_group*
   {
@@ -1013,28 +1057,35 @@ namespace yave {
     const node_handle& parent_group,
     const std::string& name) -> node_handle
   {
-    auto info = m_nim.find(name);
+    // info
+    if (auto info = m_nim.find_info(name)) {
 
-    if (!info)
-      return nullptr;
+      // find group
+      auto iter = m_groups.find(parent_group);
+      if (iter == m_groups.end())
+        return {nullptr};
 
-    // find group
-    auto iter = m_groups.find(parent_group);
-    if (iter == m_groups.end())
-      return {nullptr};
+      // create and add to node group
+      auto node = m_ng.add(*info);
+      assert(node);
+      iter->second.add_content(node);
 
-    // create and add to node group
-    auto node = m_ng.add(*info);
-    assert(node);
-    iter->second.add_content(node);
+      Info(
+        g_logger,
+        "Create new node {} under group {}",
+        to_string(node.id()),
+        to_string(iter->second.interface.id()));
 
-    Info(
-      g_logger,
-      "Create new node {} under group {}",
-      to_string(node.id()),
-      to_string(iter->second.interface.id()));
+      return node;
+    }
 
-    return node;
+    // initializer
+    if (auto init = m_nim.find_initializer(name)) {
+      Info(g_logger, "Create node using initializer {}", init->name());
+      return init->initialize(*this, parent_group);
+    }
+
+    return {nullptr};
   }
 
   auto managed_node_graph::create_shared(

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/core/node_info.hpp>
+#include <yave/node/core/node_initializer.hpp>
 
 #include <map>
 #include <optional>
@@ -20,7 +21,11 @@ namespace yave {
   class node_info_manager
   {
     /// map type
-    using map_type = std::map<std::string, std::shared_ptr<const node_info>>;
+    using map_type = std::map<
+      std::string,
+      std::variant<
+        std::shared_ptr<const node_info>,
+        std::shared_ptr<const node_initializer>>>;
 
   public:
     /// info type
@@ -44,25 +49,36 @@ namespace yave {
     /// Add info.
     [[nodiscard]] bool add(const info_type& info);
 
+    /// Add initializer.
+    [[nodiscard]] bool add(const node_initializer& initializer);
+
     /// Check if the info exists.
     [[nodiscard]] bool exists(const std::string& name) const;
 
     /// Get list of info.
-    [[nodiscard]] auto enumerate()
+    [[nodiscard]] auto enumerate_info()
       -> std::vector<std::shared_ptr<const info_type>>;
 
+    /// Get list of initializer.
+    [[nodiscard]] auto enumerate_initializer()
+      -> std::vector<std::shared_ptr<const node_initializer>>;
+
     /// Find info.
-    [[nodiscard]] auto find(const std::string& name) const
-      -> std::shared_ptr<const info_type>;
+    [[nodiscard]] auto find_info(const std::string& name) const
+      -> std::shared_ptr<const node_info>;
 
-    /// Remove info.
-    void remove(const std::string& name);
-
-    /// Remove info.
-    void remove(map_type::const_iterator iter);
+    /// Find initializer.
+    [[nodiscard]] auto find_initializer(const std::string& name) const
+      -> std::shared_ptr<const node_initializer>;
 
     /// Remove info.
     void remove(const node_info& info);
+
+    /// Remove initializer.
+    void remove(const node_initializer& initializer);
+
+    /// Remove info.
+    void remove(const std::string& name);
 
     /// Clear
     void clear();
@@ -73,10 +89,16 @@ namespace yave {
   private:
     /// Lock
     [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
+    /// Access initializer
+    [[nodiscard]] auto _access_init(const map_type::const_iterator& it) const
+      -> std::shared_ptr<const node_initializer>;
+    /// Access node info
+    [[nodiscard]] auto _access_info(const map_type::const_iterator& it) const
+      -> std::shared_ptr<const node_info>;
 
   private:
     /// map
-    map_type m_info;
+    map_type m_map;
     /// mutex
     mutable std::mutex m_mtx;
   };
