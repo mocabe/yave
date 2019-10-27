@@ -52,7 +52,8 @@ namespace yave {
 
     m_errors.clear();
 
-    auto ng = _optimize(std::move(parsed_graph));
+    // early optimize stage?
+    auto ng = _optimize_early(std::move(parsed_graph));
     if (!ng) {
       Error(g_logger, "Failed to optmize parsed node graph");
       for (auto&& e : m_errors) {
@@ -61,6 +62,7 @@ namespace yave {
       return std::nullopt;
     }
 
+    // type check and create socket instance map
     auto sim = _type(*ng, bim);
     if (!sim) {
       Error(g_logger, "Failed to type node graph");
@@ -70,6 +72,7 @@ namespace yave {
       return std::nullopt;
     }
 
+    // generate executable apply graph
     auto exe = _generate(*ng, *sim);
     if (!exe) {
       Error(g_logger, "Failed to generate apply graph");
@@ -79,6 +82,10 @@ namespace yave {
       return std::nullopt;
     }
 
+    // optimize executable
+    exe = _optimize(std::move(*exe), *ng);
+
+    // verbose type check
     auto succ = _verbose_check(*ng, *sim, *exe);
     if (!succ) {
       Error(g_logger, "Verbose check failed");
@@ -91,11 +98,22 @@ namespace yave {
     return exe;
   }
 
-  auto node_compiler::_optimize(parsed_node_graph&& parsed_graph)
+  // AST optimization stage.
+  auto node_compiler::_optimize_early(parsed_node_graph&& parsed_graph)
     -> std::optional<parsed_node_graph>
   {
     // TODO...
     return std::move(parsed_graph);
+  }
+
+  // Graph optimization stage.
+  auto node_compiler::_optimize(
+    executable&& exe,
+    const parsed_node_graph& graph) -> executable
+  {
+    // TODO...
+    (void)graph;
+    return std::move(exe);
   }
 
   /*

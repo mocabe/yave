@@ -29,8 +29,13 @@ namespace yave {
 
   private:
     /// Optimize parsed graph
-    [[nodiscard]] auto _optimize(parsed_node_graph&& parsed_graph)
+    [[nodiscard]] auto _optimize_early(parsed_node_graph&& parsed_graph)
       -> std::optional<parsed_node_graph>;
+
+    /// Optimize executable
+    [[nodiscard]] auto _optimize(
+      executable&& exe,
+      const parsed_node_graph& parsed_graph) -> executable;
 
     /// Resolve overloadings and check type
     [[nodiscard]] auto _type(
