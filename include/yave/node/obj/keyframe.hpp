@@ -11,17 +11,11 @@
 
 namespace yave {
 
-  /* Keyframe value extractors */
-
   namespace node {
 
-    struct KeyframeIntEvaluator;
-    struct KeyframeFloatEvaluator;
-    struct KeyframeBoolEvaluator;
-
-    struct KeyframeInt;
-    struct KeyframeFloat;
-    struct KeyframeBool;
+    struct KeyframeEvaluatorInt;
+    struct KeyframeEvaluatorFloat;
+    struct KeyframeEvaluatorBool;
 
   } // namespace node
 
@@ -35,20 +29,16 @@ namespace yave {
     }                                                             \
   }
 
-  YAVE_DECL_KEYFRAME_EVALUATOR(KeyframeIntEvaluator);
-  YAVE_DECL_KEYFRAME_EVALUATOR(KeyframeFloatEvaluator);
-  YAVE_DECL_KEYFRAME_EVALUATOR(KeyframeBoolEvaluator);
+  YAVE_DECL_KEYFRAME_EVALUATOR(KeyframeEvaluatorInt);
+  YAVE_DECL_KEYFRAME_EVALUATOR(KeyframeEvaluatorFloat);
+  YAVE_DECL_KEYFRAME_EVALUATOR(KeyframeEvaluatorBool);
 
   inline std::vector<node_info> get_keyframe_node_info_list()
   {
-    return {/* extractors */
-            get_node_info<node::KeyframeIntEvaluator>(),
-            get_node_info<node::KeyframeFloatEvaluator>(),
-            get_node_info<node::KeyframeBoolEvaluator>(),
-            /* sugars */
-            get_node_info<node::KeyframeInt>(),
-            get_node_info<node::KeyframeBool>(),
-            get_node_info<node::KeyframeFloat>()};
+    return {/* evaluators */
+            get_node_info<node::KeyframeEvaluatorInt>(),
+            get_node_info<node::KeyframeEvaluatorFloat>(),
+            get_node_info<node::KeyframeEvaluatorBool>()};
   }
 
 } // namespace yave

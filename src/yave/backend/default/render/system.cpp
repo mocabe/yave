@@ -217,12 +217,12 @@ namespace yave::backend::default_render {
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerCompositor, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Frame, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerImageOutput, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeIntValue, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeFloatValue, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeBoolValue, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeIntValueExtractor, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeFloatValueExtractor , tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeBoolValueExtractor, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeDataInt, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeDataFloat, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeDataBool, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeEvaluatorInt, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeEvaluatorFloat , tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeEvaluatorBool, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int8, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int16, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int32, tags::default_render>()));

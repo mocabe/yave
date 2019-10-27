@@ -12,7 +12,7 @@ TEST_CASE("Keyframe")
 {
   SECTION("int")
   {
-    auto kf = make_object<KeyframeInt>();
+    auto kf = make_object<KeyframeDataInt>();
 
     SECTION("init")
     {
@@ -31,7 +31,7 @@ TEST_CASE("Keyframe")
 
   SECTION("float")
   {
-    auto kf = make_object<KeyframeFloat>();
+    auto kf = make_object<KeyframeDataFloat>();
 
     SECTION("init")
     {
@@ -45,7 +45,7 @@ TEST_CASE("Keyframe")
 
   SECTION("bool")
   {
-    auto kf = make_object<KeyframeBool>();
+    auto kf = make_object<KeyframeDataBool>();
 
     SECTION("init")
     {

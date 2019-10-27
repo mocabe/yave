@@ -42,11 +42,11 @@ namespace yave {
   {
   };
 
-#define YAVE_DECL_PRIMITIVE_TYPENAME(t, tname)  \
-  template <>                                   \
-  struct primitive_type_traits<t>               \
-  {                                             \
-    static constexpr const char* name = #tname; \
+#define YAVE_DECL_PRIMITIVE_TYPENAME(TYPE, TYPENAME) \
+  template <>                                        \
+  struct primitive_type_traits<TYPE>                 \
+  {                                                  \
+    static constexpr const char* name = #TYPENAME;   \
   }
 
   YAVE_DECL_PRIMITIVE_TYPENAME(int8_t, Char);
@@ -61,9 +61,9 @@ namespace yave {
   YAVE_DECL_PRIMITIVE_TYPENAME(float, Float);
   YAVE_DECL_PRIMITIVE_TYPENAME(bool, Bool);
   YAVE_DECL_PRIMITIVE_TYPENAME(yave::string, String);
-  YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_int_t, KeyframeInt);
-  YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_float_t, KeyframeFloat);
-  YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_bool_t, KeyframeBool);
+  YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_int_t, KeyframeDataInt);
+  YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_float_t, KeyframeDataFloat);
+  YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_bool_t, KeyframeDataBool);
 
 #undef YAVE_DECL_PRIMITIVE_TYPENAME
 
