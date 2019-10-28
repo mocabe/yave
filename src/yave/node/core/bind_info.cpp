@@ -60,7 +60,7 @@ namespace yave {
           "get_instance_func may return closure with invalid number of "
           "arguments");
 
-      if (!same_type(flat[m_input_sockets.size()], object_type<Frame>()))
+      if (!same_type(flat[m_input_sockets.size()], object_type<FrameTime>()))
         throw std::invalid_argument(
           "get_instance_func may return closure with invalid argument type");
 
@@ -186,7 +186,7 @@ namespace yave {
       auto flat = flatten(tp);
       if (
         flat.size() != m_input_sockets.size() + 2 ||
-        !same_type(flat[m_input_sockets.size()], object_type<Frame>()))
+        !same_type(flat[m_input_sockets.size()], object_type<FrameTime>()))
         throw std::invalid_argument(
           "Invalid closure type retuend from instance getter function");
 

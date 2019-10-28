@@ -215,7 +215,7 @@ namespace yave::backend::default_render {
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpOut, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpAdd, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerCompositor, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Frame, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::FrameTime, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerImageOutput, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeDataInt, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeDataFloat, tags::default_render>()));

@@ -19,10 +19,10 @@ namespace yave {
 
     template <class Derived, class R, class... Ts>
     struct NodeFunctionImpl<Derived, meta_tuple<Ts...>, meta_type<R>>
-      : Function<Derived, closure<Frame, Ts>..., Frame, R>
+      : Function<Derived, closure<FrameTime, Ts>..., FrameTime, R>
     {
     private:
-      using base = Function<Derived, closure<Frame, Ts>..., Frame, R>;
+      using base = Function<Derived, closure<FrameTime, Ts>..., FrameTime, R>;
 
     public:
       /// Overrided for NodeFunction.
@@ -44,6 +44,8 @@ namespace yave {
   } // namespace detail
 
   /// Wrapper template of Function for node functions.
+  /// Given argument type `T1...Tn Tr`,
+  /// define closure of type `(FrameTime->T1) ->...-> (FrameTime->Tn) -> FrameTime -> Tr`.
   /// \param Derived for CRTP.
   /// \param Ts List of argument types and return type.
   template <class Derived, class... Ts>
@@ -62,7 +64,7 @@ namespace yave {
     template <class R, class... Ts>
     struct node_closure_impl<meta_tuple<Ts...>, meta_type<R>>
     {
-      using type = closure<closure<Frame, Ts>..., Frame, R>;
+      using type = closure<closure<FrameTime, Ts>..., FrameTime, R>;
     };
 
   } // namespace detail

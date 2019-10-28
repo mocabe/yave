@@ -13,13 +13,13 @@ TEST_CASE("frame")
 {
   SECTION("make_object")
   {
-    [[maybe_unused]] auto v0 = make_object<const Frame>();
-    [[maybe_unused]] auto v1 = make_object<const Frame>(0, 0);
-    [[maybe_unused]] auto v2 = make_object<const Frame>(frame());
-    [[maybe_unused]] auto v3 = make_object<const Frame>(time::zero(), 0);
+    [[maybe_unused]] auto v0 = make_object<const FrameTime>();
+    [[maybe_unused]] auto v1 = make_object<const FrameTime>(0, 0);
+    [[maybe_unused]] auto v2 = make_object<const FrameTime>(frame_time());
+    [[maybe_unused]] auto v3 = make_object<const FrameTime>(time::zero(), 0);
   }
   SECTION("access")
   {
-    [[maybe_unused]] auto v = make_object<const Frame>()->time_point;
+    [[maybe_unused]] auto v = make_object<const FrameTime>()->time_point;
   }
 }

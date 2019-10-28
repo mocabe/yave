@@ -15,7 +15,7 @@ namespace yave {
 
   namespace backend::default_render {
 
-    struct FrameConstructor : Function<FrameConstructor, Frame, Frame>
+    struct FrameConstructor : Function<FrameConstructor, FrameTime, FrameTime>
     {
       return_type code() const
       {
@@ -27,11 +27,11 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<node::Frame, backend::tags::default_render>
+  struct bind_info_traits<node::FrameTime, backend::tags::default_render>
   {
     static bind_info get_bind_info()
     {
-      auto info = get_node_info<node::Frame>();
+      auto info = get_node_info<node::FrameTime>();
       return bind_info(
         info.name(),
         info.input_sockets(),

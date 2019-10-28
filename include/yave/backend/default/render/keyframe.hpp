@@ -16,7 +16,7 @@ namespace yave {
   namespace backend::default_render {
 
     struct KeyframeEvaluatorInt
-      : NodeFunction<KeyframeEvaluatorInt, KeyframeDataInt, Frame, Int>
+      : NodeFunction<KeyframeEvaluatorInt, KeyframeDataInt, FrameTime, Int>
     {
       return_type code() const
       {
@@ -29,7 +29,7 @@ namespace yave {
     };
 
     struct KeyframeEvaluatorBool
-      : NodeFunction<KeyframeEvaluatorBool, KeyframeDataBool, Frame, Bool>
+      : NodeFunction<KeyframeEvaluatorBool, KeyframeDataBool, FrameTime, Bool>
     {
       return_type code() const
       {
@@ -40,8 +40,11 @@ namespace yave {
       }
     };
 
-    struct KeyframeEvaluatorFloat
-      : NodeFunction<KeyframeEvaluatorFloat, KeyframeDataFloat, Frame, Float>
+    struct KeyframeEvaluatorFloat : NodeFunction<
+                                      KeyframeEvaluatorFloat,
+                                      KeyframeDataFloat,
+                                      FrameTime,
+                                      Float>
     {
       return_type code() const
       {

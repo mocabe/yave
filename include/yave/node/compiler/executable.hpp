@@ -32,7 +32,7 @@ namespace yave {
     [[nodiscard]] auto object() const -> const object_ptr<const Object>&;
 
     /// Execute.
-    [[nodiscard]] auto execute(frame frame) -> object_ptr<const Object>;
+    [[nodiscard]] auto execute(frame_time frame) -> object_ptr<const Object>;
 
   private:
     object_ptr<const Object> m_obj;
