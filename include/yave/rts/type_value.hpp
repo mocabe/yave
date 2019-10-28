@@ -23,8 +23,8 @@ namespace yave {
   /// Value type
   struct value_type
   {
-    /// Pointer to 16byte aligned 128bit UUID.
-    const std::array<char, 16>* data;
+    /// 128bit UUID.
+    std::array<char, 16> data;
 
     /// Friendly name of this value type.
     const char* name;
@@ -35,14 +35,13 @@ namespace yave {
       const value_type& rhs) noexcept
     {
       if constexpr (has_SSE) {
-        // assume 16 byte alignment
-        auto xmm1 = _mm_load_si128((const __m128i*)lhs.data->data());
-        auto xmm2 = _mm_load_si128((const __m128i*)rhs.data->data());
+        auto xmm1 = _mm_loadu_si128((const __m128i*)lhs.data.data());
+        auto xmm2 = _mm_loadu_si128((const __m128i*)rhs.data.data());
         auto cmp  = _mm_cmpeq_epi8(xmm1, xmm2);
         auto mask = _mm_movemask_epi8(cmp);
         return mask == 0xffffU;
       } else
-        return *lhs.data == *rhs.data;
+        return lhs.data == rhs.data;
     }
   };
 
@@ -56,7 +55,7 @@ namespace yave {
     ret.reserve(ret.capacity() + 10);
 
     ret += '(';
-    ret += detail::uuid_to_string_short(*v.data);
+    ret += detail::uuid_to_string_short(v.data);
     ret += ')';
 
     return ret;

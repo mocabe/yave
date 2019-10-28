@@ -99,16 +99,10 @@ namespace yave {
     template <class T>
     struct value_type_initializer
     {
-      /// 16byte aligned uuid
-      alignas(16) static constexpr const std::array<char, 16> aligned_uuid =
-        value_type_uuid<T>();
-
-      /// name
-      static constexpr const char* friendly_name = value_type_name<T>();
-
       /// value type object
-      inline static const Type type {static_construct,
-                                     value_type {&aligned_uuid, friendly_name}};
+      alignas(64) inline static const Type type {
+        static_construct,
+        value_type {value_type_uuid<T>(), value_type_name<T>()}};
     };
 
     template <class T>
@@ -124,7 +118,7 @@ namespace yave {
     struct arrow_type_initializer
     {
       /// arrow type object
-      inline static const Type type {
+      alignas(64) inline static const Type type {
         static_construct,
         arrow_type {object_type_impl(type_c<T>),
                     &arrow_type_initializer<Ts...>::type}};
@@ -134,9 +128,10 @@ namespace yave {
     struct arrow_type_initializer<T1, T2>
     {
       /// arrow type object
-      inline static const Type type {static_construct,
-                                     arrow_type {object_type_impl(type_c<T1>),
-                                                 object_type_impl(type_c<T2>)}};
+      alignas(64) inline static const Type type {
+        static_construct,
+        arrow_type {object_type_impl(type_c<T1>),
+                    object_type_impl(type_c<T2>)}};
     };
 
     template <class... Ts>
@@ -153,8 +148,8 @@ namespace yave {
     struct var_type_initializer
     {
       /// var type object.
-      inline static const Type type {static_construct,
-                                     var_type::random_generate()};
+      alignas(64) inline static const Type type {static_construct,
+                                                 var_type::random_generate()};
     };
 
     template <class T>
@@ -170,8 +165,9 @@ namespace yave {
     struct list_type_initializer
     {
       /// list type object
-      inline static const Type type {static_construct,
-                                     list_type {object_type_impl(type_c<T>)}};
+      alignas(64) inline static const Type type {
+        static_construct,
+        list_type {object_type_impl(type_c<T>)}};
     };
 
     template <class T>
