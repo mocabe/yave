@@ -6,9 +6,9 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/frame.hpp>
+#include <yave/node/obj/frame_time.hpp>
 #include <yave/rts/rts.hpp>
-#include <yave/obj/frame/frame.hpp>
+#include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/node/core/instance_getter.hpp>
 
 namespace yave {

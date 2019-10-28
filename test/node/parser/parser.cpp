@@ -5,7 +5,7 @@
 
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/obj/keyframe.hpp>
-#include <yave/node/obj/frame.hpp>
+#include <yave/node/obj/frame_time.hpp>
 #include <yave/node/obj/identity.hpp>
 #include <catch2/catch.hpp>
 

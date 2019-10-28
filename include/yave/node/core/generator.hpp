@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/rts/eval.hpp>
-#include <yave/obj/frame/frame.hpp>
+#include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/node/core/function.hpp>
 
 #include <functional>

@@ -5,7 +5,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/obj/frame/frame.hpp>
+#include <yave/obj/frame_time/frame_time.hpp>
 
 using namespace yave;
 

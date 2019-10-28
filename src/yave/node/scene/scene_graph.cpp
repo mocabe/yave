@@ -7,7 +7,7 @@
 
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
-#include <yave/node/obj/frame.hpp>
+#include <yave/node/obj/frame_time.hpp>
 #include <yave/node/obj/frame_buffer.hpp>
 #include <yave/node/obj/image_output.hpp>
 #include <yave/node/obj/compositor.hpp>
