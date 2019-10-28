@@ -15,7 +15,8 @@ namespace yave {
 
   namespace backend::default_render {
 
-    struct FrameConstructor : Function<FrameConstructor, FrameTime, FrameTime>
+    struct FrameTimeConstructor
+      : Function<FrameTimeConstructor, FrameTime, FrameTime>
     {
       return_type code() const
       {
@@ -36,8 +37,8 @@ namespace yave {
         info.name(),
         info.input_sockets(),
         info.output_sockets()[0],
-        make_object<
-          InstanceGetterFunction<backend::default_render::FrameConstructor>>(),
+        make_object<InstanceGetterFunction<
+          backend::default_render::FrameTimeConstructor>>(),
         info.name());
     }
   };

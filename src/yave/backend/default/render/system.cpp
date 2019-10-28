@@ -10,7 +10,7 @@
 #include <yave/backend/default/render/blend_op.hpp>
 #include <yave/backend/default/render/compositor.hpp>
 #include <yave/backend/default/render/frame_buffer_constructor.hpp>
-#include <yave/backend/default/render/frame_constructor.hpp>
+#include <yave/backend/default/render/frame_time_constructor.hpp>
 #include <yave/backend/default/render/image_output.hpp>
 #include <yave/backend/default/render/keyframe.hpp>
 #include <yave/backend/default/render/primitive_constructor.hpp>
