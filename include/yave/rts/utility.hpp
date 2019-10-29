@@ -7,18 +7,18 @@
 
 #include <yave/rts/object_ptr.hpp>
 #include <yave/rts/object_cast.hpp>
+#include <yave/rts/type_error.hpp>
 
 namespace yave {
 
   /// Clone
   /// \effects Call copy constructor of the object from vtable.
-  /// \returns `object_ptr<T>` pointing new object.
+  /// \returns `object_ptr<remove_const_t<T>>` pointing new object.
   /// \throws `std::bad_alloc` when `clone` returned nullptr.
-  /// \throws `std::runtime_error` when object is null.
   /// \notes Reference count of new object will be set to 1.
   /// \requires not null.
   template <class T>
-  [[nodiscard]] auto clone(const object_ptr<T>& obj) -> object_ptr<T>
+  [[nodiscard]] auto clone(const object_ptr<T>& obj)
   {
     assert(obj);
 
@@ -27,7 +27,9 @@ namespace yave {
     if (unlikely(!tmp))
       throw std::bad_alloc();
 
-    return static_object_cast<T>(std::move(tmp));
+    using To = std::remove_const_t<T>;
+
+    return static_object_cast<To>(std::move(tmp));
   }
 
   /// check type at runtime
