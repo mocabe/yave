@@ -1,48 +1,54 @@
-# (Work in progress) YAVE - Node based video editor powered by visual programming language.
+# (Work in progress) YAVE - Functional Reactive Visual Programming Language for Multimedia Processing.
 
-`YAVE` is a research project to build open-source video editor with functional node based visual programming language. YAVE is aiming to to become hybrid of traditional timeline-based video editing and powerful, extensible node based visual programming environment.
+`YAVE` is a research project to build an open-source backend for functional reactive visual programming language (FRVPL) for multimedia processing such as video editing or audio processing.  
+
+## What is Functional Reactive Programming?  
+
+Functional Reactive Programming (FRP) is theoretical background of `YAVE`.  
+It was appeared in a famous paper ["Functional Reactive Animation"](http://conal.net/papers/icfp97/) by Conal Elliott and Paul Hudak in 1997.  
+The core idea of FRP is pretty simple: lifting functions to make them possible to transfer dependant parameters across call graph.  
+In other words, FRP is a programming model to represent demand-driven dataflow in functional programming language.  
+Although FRP is pretty similar to the idea of dataflow programming languages, visual programming language (VPL) implementation of FRP is almost nonexistent.  
+This project is aiming to implement reliable, easy-to-use backend (and some frontend stuff) for functional reactive visual programming language for static multimedia processing.  
+
+The main advantages of FRVPL compared to traditional data-driven VPLs are:
+* Avoiding unneccesary computations with lazy evaluation.
+* Parameter value independent representatio for sequential execution.
+* Implicit representation of parameter dependency.  
+* Incremental computation by graph reduction and data flow analysis.
+* Modern language functionality like higher-order functions.
+
+Some disclaimers:
+* `YAVE` is not for realtime media interaction, which means we don't care about events and use discrete time representation for parameter.  
+* `YAVE` is dynamic language. It behaves like a glue to connect functions compiled elsewhere i.e. C/C++.
+* `YAVE` is NOT **pure** functional visual programming language strictly speaking, but functions are expected to behave as it is.
 
 ## Development   
 
-YAVE is currently under development. Following components are implemented so far (partially, or PoC stage).  
+YAVE is currently under development using C++17.  
+Most of stuff are still PoC stage and contains lots of obsolete stuff.
 
-* Core 
-  - Dynamic closure object library and type system.
-  - Utility to generate dynamic type information at compile time.
-  - Basic data types.
-* Node 
-  - Low-level node graph controls.
-  - Basic node graph operations.
-  - Node parser, compiler (obsolate).
-* GUI
-  - Full implementation of Vulkan backend for imgui (Immediate GUI library).
+## Creating node function with `YAVE`
 
-Recent development tasks:
-- [x] layer tree implementation (
-    + `layered_node_graph`
-- [x] per-layer resource control implementation 
-    + `scene_graph`
-        + [x] basic interface and resuorce control
-        + [x] move_* functions
-        + [ ] more testing
-- [x] parser rework
-    + `node_parser`
-        + [x] basic implementation
-        + [x] basic tests
-        + [ ] `scene_graph` integration tests
-- [x] compiler rework
-    + `node_compiler`
-        + [x] basic implementation
-        + [x] tests
-        + [ ] `scene_graph` integration tests
-- [ ] key-frame object implementation
-    + `keyframe`
-        + [x] add node info
-        + [x] implement value type
-        + [x] integrate to primitive types
-        + [ ] float interpolation
-        + [ ] backend object impl
-- [ ] improve test structure
-    + [ ] remove tests for obsolete classes
-    + [ ] restructure tests based on backends
-- [ ] async command interface
+Here's sneak peak of implementation of node functions in `YAVE`.  
+In FRP, functions like `a1 -> a2 -> ... -> an` are lifted into `(time->a1) -> ... -> (time->an-1) -> time -> an`.  
+Evaluation of each input values are done by applying given `time` parameter to input closure.  
+
+`YAVE` supports automatic generation of dynamically-typed closure object of lifted functions.   
+
+```cpp
+  // lifted function of (Int->Int->Int)
+  struct AddInt : NodeFunction<Int, Int, Int> 
+  {
+    // body of lifted function (you can write any C++ code).
+    return_type code() const 
+    {
+      // eval_arg<N>() evaluates argument value. You can use arg<N>() to get unevaluated thunk.
+      // Here I just allocate new Int object and return it.
+      return make_object<Int>(*eval_arg<0>() + *eval_arg<1>());
+
+      // This won't compile, because compile-time type checker checks return type. 
+      return make_object<Double>(42);
+    }
+  };
+```
