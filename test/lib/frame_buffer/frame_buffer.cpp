@@ -8,6 +8,8 @@
 #include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
 #include <yave/lib/frame_buffer/frame_buffer.hpp>
 
+#include <yave/rts/utility.hpp>
+
 using namespace yave;
 
 TEST_CASE("", "[lib][frame_buffer]")
@@ -51,6 +53,11 @@ TEST_CASE("3", "[lib][frame_buffer]")
   REQUIRE(view.image_format() == mngr.format());
   REQUIRE(view.width() == 1920);
   REQUIRE(view.height() == 1080);
-  auto f2                        = f1->copy();
+
+  auto f2 = clone(f1);
+  REQUIRE(f2->id() != f1->id());
+
   f2->get_image_view().data()[0] = 255;
+  REQUIRE(f2->get_image_view().data()[0] == 255);
+  REQUIRE(f1->get_image_view().data()[0] != 255);
 }
