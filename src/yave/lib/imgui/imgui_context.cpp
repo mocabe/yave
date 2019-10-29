@@ -826,12 +826,14 @@ namespace yave::imgui {
     // clang-format off
   public:
     impl(bool enableValidation, uint32_t width, uint32_t height, const char* windowName);
+    ~impl() noexcept;
 
-  public:
-    glfw::glfw_context                     glfwCtx;
-    vulkan::vulkan_context                 vulkanCtx;
-    glfw::glfw_window                      glfwWindow;
-    vulkan::window_context                 windowCtx;
+  public: /* managed by impl */
+    glfw::glfw_context     glfwCtx;
+    vulkan::vulkan_context vulkanCtx;
+    glfw::glfw_window      glfwWindow;
+    vulkan::window_context windowCtx;
+    ImGuiContext*          imCtx;
 
   public:
     vk::UniqueSampler             fontSampler;
@@ -870,7 +872,13 @@ namespace yave::imgui {
     , vulkanCtx {glfwCtx, enableValidation}
     , glfwWindow {glfwCtx.create_window(widt, height, windowName)}
     , windowCtx {vulkanCtx.create_window_context(glfwWindow)}
+    , imCtx {ImGui::CreateContext()}
   {
+  }
+
+  imgui_context::impl::~impl() noexcept
+  {
+    ImGui::DestroyContext(imCtx);
   }
 
   imgui_context::imgui_context(bool enableValidation)
@@ -878,13 +886,13 @@ namespace yave::imgui {
     using namespace yave;
     init_logger();
 
+    // create context
     m_pimpl =
       std::make_unique<impl>(enableValidation, 1280, 720, "imgui_context");
 
     /* init ImGui */
     {
       IMGUI_CHECKVERSION();
-      ImGui::CreateContext();
       ImGui::StyleColorsDark();
 
       /* setup GLFW input binding */
@@ -997,8 +1005,6 @@ namespace yave::imgui {
     m_pimpl->vulkanCtx.device().waitIdle();
     // unbind GLFW
     ImGui_ImplGlfw_Shutdown();
-    // destroy ImGui
-    ImGui::DestroyContext();
   }
 
   void imgui_context::begin()
