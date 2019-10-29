@@ -6,7 +6,7 @@
 #include <catch2/catch.hpp>
 
 #include <yave/node/obj/constructor.hpp>
-#include <yave/obj/frame/frame.hpp>
+#include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/backend/default/render/primitive_constructor.hpp>
 #include <yave/rts/eval.hpp>
 
@@ -27,7 +27,7 @@ TEST_CASE("Constructor")
   SECTION("eval")
   {
     auto v = make_object<IntConstructor>(i);
-    auto r = eval(v << make_object<Frame>());
+    auto r = eval(v << make_object<FrameTime>());
     REQUIRE(*r == 42);
   }
 }

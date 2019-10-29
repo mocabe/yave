@@ -9,14 +9,14 @@
 #include <yave/node/obj/keyframe.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/keyframe/keyframe.hpp>
-#include <yave/obj/frame/frame.hpp>
+#include <yave/obj/frame_time/frame_time.hpp>
 
 namespace yave {
 
   namespace backend::default_render {
 
     struct KeyframeEvaluatorInt
-      : NodeFunction<KeyframeEvaluatorInt, KeyframeDataInt, Frame, Int>
+      : NodeFunction<KeyframeEvaluatorInt, KeyframeDataInt, FrameTime, Int>
     {
       return_type code() const
       {
@@ -29,7 +29,7 @@ namespace yave {
     };
 
     struct KeyframeEvaluatorBool
-      : NodeFunction<KeyframeEvaluatorBool, KeyframeDataBool, Frame, Bool>
+      : NodeFunction<KeyframeEvaluatorBool, KeyframeDataBool, FrameTime, Bool>
     {
       return_type code() const
       {
@@ -40,8 +40,11 @@ namespace yave {
       }
     };
 
-    struct KeyframeEvaluatorFloat
-      : NodeFunction<KeyframeEvaluatorFloat, KeyframeDataFloat, Frame, Float>
+    struct KeyframeEvaluatorFloat : NodeFunction<
+                                      KeyframeEvaluatorFloat,
+                                      KeyframeDataFloat,
+                                      FrameTime,
+                                      Float>
     {
       return_type code() const
       {

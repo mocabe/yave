@@ -94,7 +94,7 @@ TEST_CASE("List")
   auto i24 = make_object<PrimitiveConstructor<Int>>(
     make_object<PrimitiveContainer>((int)24));
 
-  auto frame = make_object<Frame>();
+  auto frame = make_object<FrameTime>();
 
   SECTION("42 : []")
   {

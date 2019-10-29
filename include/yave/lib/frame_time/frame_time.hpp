@@ -9,12 +9,12 @@
 
 namespace yave {
 
-  /// Data type to represent single frame point.
-  struct frame
+  /// Data type to represent frame time to render.
+  struct frame_time
   {
-    /// Time point of frame
+    /// Time point of frame.
     yave::time time_point;
-    /// Duration of current frame
+    /// Duration of frame to render.
     yave::time duration;
   };
 

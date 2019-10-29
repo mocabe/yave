@@ -10,7 +10,7 @@
 #include <yave/backend/default/render/blend_op.hpp>
 #include <yave/backend/default/render/compositor.hpp>
 #include <yave/backend/default/render/frame_buffer_constructor.hpp>
-#include <yave/backend/default/render/frame_constructor.hpp>
+#include <yave/backend/default/render/frame_time_constructor.hpp>
 #include <yave/backend/default/render/image_output.hpp>
 #include <yave/backend/default/render/keyframe.hpp>
 #include <yave/backend/default/render/primitive_constructor.hpp>
@@ -215,7 +215,7 @@ namespace yave::backend::default_render {
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpOut, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpAdd, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerCompositor, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Frame, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::FrameTime, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerImageOutput, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeDataInt, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeDataFloat, tags::default_render>()));
