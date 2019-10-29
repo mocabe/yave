@@ -47,7 +47,7 @@ namespace yave {
         return nullptr;
 
       auto aligned_header_size =
-        ((sizeof(buff_header) + alignment - 1) / alignment + 1) * alignment;
+        (sizeof(buff_header) + alignment - 1) / alignment * alignment;
 
       auto alloc_size = aligned_header_size + size;
 
