@@ -13,7 +13,7 @@ This project is aiming to implement reliable, easy-to-use backend (and some fron
 
 The main advantages of FRVPL compared to traditional data-driven VPLs are:
 * Avoiding unneccesary computations with lazy evaluation.
-* Parameter value independent representatio for sequential execution.
+* Parameter value independent representation of reactive execution.
 * Implicit representation of parameter dependency.  
 * Incremental computation by graph reduction and data flow analysis.
 * Modern language functionality like higher-order functions.
@@ -27,6 +27,14 @@ Some disclaimers:
 
 YAVE is currently under development using C++17.  
 Most of stuff are still PoC stage and contains lots of obsolete stuff.
+
+Current development targets:
+
+* Build simple node based language for testing and practical use.
+* Dataflow analsys and sharing.
+* Parallel reduction.
+* Concurrent execution.
+* Lifetime based constant caching.
 
 ## Creating node function with `YAVE`
 
