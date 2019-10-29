@@ -30,6 +30,10 @@ namespace std {
 #  define YAVE_IMGUI_FRAG_SHADER frag.spv
 #endif
 
+#if !defined(YAVE_IMGUI_FONT_ROBOTO)
+#  pragma message("Font file paths are not provided by build script.")
+#endif
+
 #define YAVE_TOSTR_(id) #id
 #define YAVE_TOSTR(id) YAVE_TOSTR_(id)
 
@@ -455,7 +459,7 @@ namespace {
   auto createImGuiFontSampler(const vk::Device& device) -> vk::UniqueSampler
   {
     vk::SamplerCreateInfo info;
-    info.magFilter     = vk::Filter::eLinear;
+    info.magFilter     = vk::Filter::eNearest;
     info.minFilter     = vk::Filter::eLinear;
     info.mipmapMode    = vk::SamplerMipmapMode::eLinear;
     info.addressModeU  = vk::SamplerAddressMode::eRepeat;
@@ -910,12 +914,13 @@ namespace yave::imgui {
       // Add default font
       ImGuiIO& io = ImGui::GetIO();
       io.Fonts->AddFontDefault();
+      io.Fonts->AddFontFromFileTTF(YAVE_TOSTR(YAVE_IMGUI_FONT_ROBOTO), 13);
     }
 
     /* build fonts with FreeType */
     {
       ImGuiIO& io = ImGui::GetIO();
-      auto flags  = ImGuiFreeType::NoHinting;
+      auto flags  = ImGuiFreeType::RasterizerFlags::NoHinting;
       ImGuiFreeType::BuildFontAtlas(io.Fonts, flags);
     }
 

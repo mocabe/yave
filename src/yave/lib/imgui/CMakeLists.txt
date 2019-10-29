@@ -23,6 +23,9 @@ target_link_libraries(yave-lib-imgui PUBLIC yave::lib::glfw)
 target_link_libraries(yave-lib-imgui PUBLIC yave::lib::vulkan)
 target_link_libraries(yave-lib-imgui PUBLIC imgui-glfw-vulkan)
 
+# Add Roboto-Medium.ttf
+target_compile_definitions(yave-lib-imgui PRIVATE "-DYAVE_IMGUI_FONT_ROBOTO=${YAVE_EXTERNAL_DIR}/imgui/misc/fonts/Roboto-Medium.ttf")
+
 # Add commands to compile shaders
 add_custom_command(
   OUTPUT vert.spv
