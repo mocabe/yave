@@ -1,4 +1,5 @@
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/common.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/zlib.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/libpng.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/libjpeg.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/libtiff.cmake)
