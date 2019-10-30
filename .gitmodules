@@ -33,15 +33,20 @@
 [submodule "external/freetype2"]
 	path = external/freetype2
 	url = git://git.sv.nongnu.org/freetype/freetype2.git
+	ignore = dirty
 [submodule "external/libpng"]
 	path = external/libpng
 	url = https://github.com/glennrp/libpng
+	ignore = dirty
 [submodule "external/libjpeg"]
 	path = external/libjpeg
 	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git
+	ignore = dirty
 [submodule "external/libtiff"]
 	path = external/libtiff
 	url = https://gitlab.com/libtiff/libtiff.git
+	ignore = dirty
 [submodule "external/zlib"]
 	path = external/zlib
 	url = https://github.com/madler/zlib.git
+	ignore = dirty
