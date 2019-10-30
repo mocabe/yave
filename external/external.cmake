@@ -10,6 +10,18 @@ function(init_and_add_lib_cmake NAME)
   add_subdirectory(external/${NAME})
 endfunction()
 
+# libpng
+find_package(PNG REQUIRED)
+
+# libjpeg
+find_package(JPEG REQUIRED)
+
+# libtiff
+find_package(TIFF REQUIRED)
+
+# freetype
+find_package(Freetype REQUIRED)
+
 # fmt
 init_and_add_lib_cmake(fmt)
 
@@ -42,49 +54,6 @@ find_package(Vulkan REQUIRED)
 add_library(vulkan INTERFACE)
 target_include_directories(vulkan INTERFACE ${Vulkan_INCLUDE_DIRS})
 target_link_libraries(vulkan INTERFACE ${Vulkan_LIBRARIES})
-
-# FreeType
-find_package(Freetype)
-
-if(NOT Freetype_FOUND)
-
-  # Clone repo
-  init_lib_cmake(freetype2)
-
-  # Build freetype2 directly using CMake
-  set(YAVE_FREETYPE_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/external/freetype2)
-  set(YAVE_FREETYPE_INSTALL_DIR ${YAVE_FREETYPE_BUILD_DIR}/install)
-
-  execute_process(
-    COMMAND ${CMAKE_COMMAND} -G ${CMAKE_GENERATOR} -A ${CMAKE_GENERATOR_PLATFORM} -S ${YAVE_EXTERNAL_DIR}/freetype2 -B ${YAVE_FREETYPE_BUILD_DIR} -DCMAKE_INSTALL_PREFIX=${YAVE_FREETYPE_INSTALL_DIR}
-  )
-  
-  execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${YAVE_FREETYPE_BUILD_DIR} --config ${CMAKE_BUILD_TYPE}
-  )
-
-  execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${YAVE_FREETYPE_BUILD_DIR} --target install --config ${CMAKE_BUILD_TYPE}
-  )
-
-  # Maually find library because FindFreetype is broken
-  find_library(FREETYPE_LIBRARY
-    NAMES
-      freetype
-      libfreetype
-      freetype219
-      freetyped
-      libfreetyped
-      freetype219d
-    HINTS
-      ${YAVE_FREETYPE_INSTALL_DIR} 
-    PATH_SUFFIXES
-      lib
-  )
-
-  set(FREETYPE_DIR ${YAVE_FREETYPE_INSTALL_DIR})
-  find_package(Freetype REQUIRED)  
-endif()
 
 # imgui
 init_lib_cmake(imgui)
@@ -149,11 +118,10 @@ if(NOT Boost_FOUND)
   message(STATUS "Building boost library")
   
   # bootstrap
-  if((NOT EXISTS ${YAVE_EXTERNAL_DIR}/boost/bjam.exe OR 
-      NOT EXISTS ${YAVE_EXTERNAL_DIR}/boost/b2.exe) 
-      AND
-     (NOT EXISTS ${YAVE_EXTERNAL_DIR}/boost/bjam OR
-      NOT EXISTS ${YAVE_EXTERNAL_DIR}/boost/b2))
+  file(GLOB b2_bin ${YAVE_EXTERNAL_DIR}/boost/b2*)
+
+  if(NOT b2_bin)
+    message(STATUS "No b2/bjam executables. Run bootstrap.")
     execute_process(COMMAND sh bootstrap.sh 
                     WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
   endif()
@@ -162,14 +130,14 @@ if(NOT Boost_FOUND)
   if(MINGW)
     # Use default "mgw" toolset. which uses gcc.
     # Use workaround for clang to link to gcc binary.
-    execute_process(COMMAND ./b2 -j 8 link=static address-model=64 
+    execute_process(COMMAND ./b2 -j 8 link=static address-model=64 cxxstd=17
                     WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
   elseif(YAVE_COMPILER_MSVC)
     # Should link Boost::disable_autolinking on all targets to avoid link errors.
-    execute_process(COMMAND ./b2 -j 8 toolset=msvc link=static address-model=64 
+    execute_process(COMMAND ./b2 -j 8 toolset=msvc link=static address-model=64 cxxstd=17
                     WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
   else()
-    execute_process(COMMAND ./b2 -j 8 toolset=gcc link=static address-model=64 
+    execute_process(COMMAND ./b2 -j 8 toolset=gcc link=static address-model=64 cxxstd=17
                     WORKING_DIRECTORY ${YAVE_EXTERNAL_DIR}/boost)
   endif()
   
