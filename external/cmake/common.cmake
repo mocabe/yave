@@ -1,0 +1,10 @@
+function(init_lib_cmake NAME)
+  message(STATUS "Initializing submodule: ${NAME}")
+  execute_process(COMMAND git submodule update --init --jobs 4 -- ${YAVE_EXTERNAL_DIR}/${NAME})
+endfunction()
+
+function(init_and_add_lib_cmake NAME)
+  init_lib_cmake(${NAME})
+  message(STATUS "Adding library target: ${NAME}")
+  add_subdirectory(${YAVE_EXTERNAL_DIR}/${NAME})
+endfunction()
