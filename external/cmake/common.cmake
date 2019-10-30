@@ -24,7 +24,9 @@ function(build_submodule NAME)
         -A ${CMAKE_GENERATOR_PLATFORM}
         -S ${SUBMODULE_DIR}
         -B ${SUBMODULE_BUILD_DIR} 
-        -DCMAKE_INSTALL_PREFIX=${SUBMODULE_INSTALL_DIR})
+        -DCMAKE_INSTALL_PREFIX=${SUBMODULE_INSTALL_DIR}
+        -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+        ${ARGN})
   else()
     execute_process(
       COMMAND 
@@ -32,7 +34,9 @@ function(build_submodule NAME)
         -G ${CMAKE_GENERATOR} 
         -S ${SUBMODULE_DIR}
         -B ${SUBMODULE_BUILD_DIR} 
-        -DCMAKE_INSTALL_PREFIX=${SUBMODULE_INSTALL_DIR})
+        -DCMAKE_INSTALL_PREFIX=${SUBMODULE_INSTALL_DIR} 
+        -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+        ${ARGN})
   endif()
 
   execute_process(
@@ -50,6 +54,5 @@ function(build_submodule NAME)
       --config ${CMAKE_BUILD_TYPE}
   )
 
-  list(APPEND CMAKE_PREFIX_PATH ${SUBMODULE_INSTALL_DIR})
-
+  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBMODULE_INSTALL_DIR} PARENT_SCOPE)
 endfunction()

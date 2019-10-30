@@ -1,5 +1,5 @@
 # libtiff
-#find_package(TIFF REQUIRED)
+find_package(TIFF)
 
 if(NOT TIFF_FOUND) 
   init_submodule(libtiff)

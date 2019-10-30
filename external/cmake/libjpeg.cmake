@@ -1,5 +1,5 @@
 # libjpeg
-find_package(JPEG REQUIRED)
+find_package(JPEG)
 
 if(NOT JPEG_FOUND)
   init_submodule(libjpeg)

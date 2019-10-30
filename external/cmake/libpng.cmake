@@ -1,5 +1,5 @@
 # libpng
-find_package(PNG REQUIRED)
+find_package(PNG)
 
 if(NOT PNG_FOUND)
   init_submodule(libpng)
