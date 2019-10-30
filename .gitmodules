@@ -30,3 +30,15 @@
 	path = external/selene
 	url = https://github.com/kmhofmann/selene.git
 	ignore = dirty
+[submodule "external/freetype2"]
+	path = external/freetype2
+	url = git://git.sv.nongnu.org/freetype/freetype2.git
+[submodule "external/libpng"]
+	path = external/libpng
+	url = https://github.com/glennrp/libpng
+[submodule "external/libjpeg"]
+	path = external/libjpeg
+	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git
+[submodule "external/libtiff"]
+	path = external/libtiff
+	url = https://gitlab.com/libtiff/libtiff.git

@@ -1,2 +1,2 @@
 # fmt
-init_and_add_lib_cmake(fmt)
+init_add_submodule(fmt)

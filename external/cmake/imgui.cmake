@@ -1,5 +1,5 @@
 # imgui
-init_lib_cmake(imgui)
+init_submodule(imgui)
 
 add_library(imgui 
   ${YAVE_EXTERNAL_DIR}/imgui/imgui.cpp

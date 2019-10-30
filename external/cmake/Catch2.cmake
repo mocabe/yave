@@ -1,2 +1,2 @@
 # Cathc2
-init_and_add_lib_cmake(Catch2)
+init_add_submodule(Catch2)
