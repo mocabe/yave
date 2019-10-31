@@ -5,6 +5,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/lib/imgui/imgui_context.hpp>
+#include <yave/lib/filesystem/filesystem.hpp>
 #include <yave/support/log.hpp>
 
 #include <imgui.h>
@@ -14,15 +15,6 @@
 #include <thread>
 #include <fstream>
 #include <map>
-
-#if defined(YAVE_COMPILER_GCC) && __GNUC__ < 8
-#  include <experimental/filesystem>
-namespace std {
-  namespace filesystem = experimental::filesystem;
-}
-#else
-#  include <filesystem>
-#endif
 
 #if !defined(YAVE_IMGUI_VERT_SHADER) || !defined(YAVE_IMGUI_FRAG_SHADER)
 #  pragma message("Shader paths are not privided by build script.")
