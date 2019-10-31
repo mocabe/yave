@@ -77,10 +77,12 @@ namespace yave {
     assert(is_valid());
   }
 
-  void image::release() noexcept
+  uint8_t* image::release() noexcept
   {
-    m_data = nullptr;
+    uint8_t* tmp = nullptr;
+    std::swap(tmp, m_data);
     clear();
+    return tmp;
   }
 
   bool image::empty() const noexcept

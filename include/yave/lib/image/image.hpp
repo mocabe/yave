@@ -65,7 +65,7 @@ namespace yave {
     /// Release the owenership of the instance.
     /// \effects Calls `clear()` without deallocating `m_data`.
     /// \requires Should always success.
-    void release() noexcept;
+    [[nodiscard]] uint8_t* release() noexcept;
 
     /// Check if the instance has data.
     /// \effects None.
