@@ -7,6 +7,8 @@
 
 #include <yave/rts/dynamic_typing.hpp>
 
+#include <algorithm>
+
 namespace yave {
 
   /// Anti-unification.

@@ -33,10 +33,10 @@ namespace yave {
     object_ptr<const Object> cdr;
 
     /// nil?
-    bool is_nil() const;
+    bool is_nil() const noexcept;
 
     /// get statically allocated nil object
-    static auto get_nil() -> object_ptr<const Object>;
+    static auto get_nil() noexcept -> object_ptr<const Object>;
 
   private:
     static const List<Object> _nil;
@@ -193,12 +193,12 @@ namespace yave {
 
   inline const List<Object> list_storage::_nil {static_construct};
 
-  inline bool list_storage::is_nil() const
+  inline bool list_storage::is_nil() const noexcept
   {
     return cdr == nullptr;
   }
 
-  inline auto list_storage::get_nil() -> object_ptr<const Object>
+  inline auto list_storage::get_nil() noexcept -> object_ptr<const Object>
   {
     return object_ptr<const Object>(&_nil);
   }
