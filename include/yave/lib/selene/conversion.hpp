@@ -151,9 +151,9 @@ namespace yave::sln {
 
     return yave::image(
       data,
-      image.width().value,
-      image.height().value,
-      image_format {pfmt, sfmt, bpc});
+      image.width().value(),
+      image.height().value(),
+      image_format {pfmt, sfmt, static_cast<uint16_t>(bpc)});
   }
 
   [[nodiscard]] inline image to_image(const DynImage<>& image)
