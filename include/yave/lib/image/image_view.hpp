@@ -6,9 +6,10 @@
 #pragma once
 
 #include <yave/lib/image/image_format.hpp>
-#include <yave/lib/image/image.hpp>
 
 namespace yave {
+
+  class image;
 
   class mutable_image_view
   {

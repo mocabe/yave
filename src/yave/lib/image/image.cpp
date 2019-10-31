@@ -202,4 +202,24 @@ namespace yave {
   {
     std::memcpy(dst, src, size);
   }
+
+  mutable_image_view image::get_mutable_image_view() noexcept
+  {
+    return mutable_image_view(*this);
+  }
+
+  mutable_image_view image::get_image_view() noexcept
+  {
+    return get_mutable_image_view();
+  }
+
+  const_image_view image::get_const_image_view() const noexcept
+  {
+    return const_image_view(*this);
+  }
+
+  const_image_view image::get_image_view() const noexcept
+  {
+    return get_const_image_view();
+  }
 }

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/lib/image/image_format.hpp>
+#include <yave/lib/image/image_view.hpp>
 
 #include <cstring>
 #include <cstdint>
@@ -104,6 +105,18 @@ namespace yave {
 
     /// size in byte
     [[nodiscard]] uint32_t byte_size() const noexcept;
+
+    /// Get mutable image view
+    [[nodiscard]] mutable_image_view get_mutable_image_view() noexcept;
+
+    /// Get mutable image view
+    [[nodiscard]] mutable_image_view get_image_view() noexcept;
+
+    /// Get const image view
+    [[nodiscard]] const_image_view get_image_view() const noexcept;
+    
+    /// Get const image view
+    [[nodiscard]] const_image_view get_const_image_view() const noexcept;
 
   private:
     void allocate(std::uint64_t size) noexcept;
