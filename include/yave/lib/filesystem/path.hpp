@@ -65,6 +65,16 @@ namespace yave::filesystem {
       return std::string(m_string);
     }
 
+    friend inline bool operator==(const path& lhs, const path& rhs)
+    {
+      return lhs.m_string == rhs.m_string;
+    }
+
+    friend inline bool operator!=(const path& lhs, const path& rhs)
+    {
+      return !(lhs == rhs);
+    }
+
   private:
     yave::string m_string;
   };
