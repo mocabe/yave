@@ -222,26 +222,29 @@ namespace yave::sln {
       image.byte_ptr(), image.width().value(), image.height().value(), fmt);
   }
 
-  /// wrapper of ::sln::to_image_view<...>
+  /* Wrappers for support lookup */
+
   template <typename PixelType, typename Allocator>
-  [[nodiscard]] MutableImageView<PixelType>
-    to_image_view(DynImage<Allocator>& dyn_img)
+  Image<PixelType, Allocator> to_image(DynImage<Allocator>&& dyn_img)
+  {
+    return ::sln::to_image(std::move(dyn_img));
+  }
+
+  template <typename PixelType, typename Allocator>
+  MutableImageView<PixelType> to_image_view(DynImage<Allocator>& dyn_img)
   {
     return ::sln::to_image_view<PixelType, Allocator>(dyn_img);
   }
 
-  /// wrapper of ::sln::to_image_view<...>
   template <typename PixelType, typename Allocator>
-  [[nodiscard]] ConstantImageView<PixelType>
-    to_image_view(const DynImage<Allocator>& dyn_img)
+  ConstantImageView<PixelType> to_image_view(const DynImage<Allocator>& dyn_img)
   {
     return ::sln::to_image_view<PixelType, Allocator>(dyn_img);
   }
 
-  /// wrapper of ::sln::to_image_view<...>
   template <typename PixelType, ImageModifiability modifiability>
-  [[nodiscard]] ImageView<PixelType, modifiability>
-    to_image_view(const DynImageView<modifiability>& view)
+  ImageView<PixelType, modifiability> to_image_view(
+    const DynImageView<modifiability>& view)
   {
     return ::sln::to_image_view<PixelType, modifiability>(view);
   }
