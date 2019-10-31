@@ -73,7 +73,10 @@ namespace yave {
     [[nodiscard]] bool empty() const noexcept;
 
     /// get data pointer
-    [[nodiscard]] uint8_t* data() const noexcept;
+    [[nodiscard]] const uint8_t* data() const noexcept;
+
+    /// get data pointer
+    [[nodiscard]] uint8_t* data() noexcept;
 
     /// format
     [[nodiscard]] yave::image_format image_format() const noexcept;
