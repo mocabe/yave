@@ -415,6 +415,39 @@ namespace yave {
     meta_type<Gen> gen,
     std::bool_constant<Assert> enable_assert);
 
+  template <class T, class Gen, bool Assert>
+  constexpr auto type_of_impl_closure_1(
+    meta_type<tm_closure<T>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    return type_of_impl_closure(head(term), gen, enable_assert);
+  }
+
+  template <class... Ts, class Gen, bool Assert>
+  constexpr auto type_of_impl_closure_n(
+    meta_type<tm_closure<Ts...>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    auto h = head(term);
+    auto t = tail(term);
+
+    // head
+    auto p1 = type_of_impl_closure(h, gen, enable_assert);
+    auto t1 = p1.first();
+    auto g1 = p1.second();
+    // tail
+    auto p2 = type_of_impl_closure(t, g1, enable_assert);
+    auto t2 = p2.first();
+    auto g2 = p2.second();
+
+    // No need for error check (as far as tm_closure is used just for
+    // type declaration).
+
+    return make_pair(make_ty_arrow(t1, t2), g2);
+  }
+
   /// Convert `tm_closure<T1, T2...>` to `arrow<T1, arrow<T2, ...>>`.
   /// \param term term
   /// \param gen generator
@@ -426,25 +459,12 @@ namespace yave {
     std::bool_constant<Assert> enable_assert)
   {
     if constexpr (is_tm_closure(term)) {
+      // Workaround for VS2019 16.4 Preview 2.
+      // SFINAE-out branches not taken.
       if constexpr (term.size() <= 1) {
-        return type_of_impl_closure(head(term), gen, enable_assert);
+        return type_of_impl_closure_1(term, gen, enable_assert);
       } else {
-        auto h = head(term);
-        auto t = tail(term);
-
-        // head
-        auto p1 = type_of_impl_closure(h, gen, enable_assert);
-        auto t1 = p1.first();
-        auto g1 = p1.second();
-        // tail
-        auto p2 = type_of_impl_closure(t, g1, enable_assert);
-        auto t2 = p2.first();
-        auto g2 = p2.second();
-
-        // No need for error check (as far as tm_closure is used just for
-        // type declaration).
-
-        return make_pair(make_ty_arrow(t1, t2), g2);
+        return type_of_impl_closure_n(term, gen, enable_assert);
       }
     } else
       return type_of_impl(term, gen, enable_assert);
