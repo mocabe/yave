@@ -4,6 +4,7 @@
 //
 
 #include <yave/lib/image/image_view.hpp>
+#include <yave/lib/image/image.hpp>
 
 namespace yave {
 
