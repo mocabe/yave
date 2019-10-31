@@ -10,6 +10,7 @@
 #include <yave/support/overloaded.hpp>
 #include <yave/obj/primitive/primitive.hpp>
 #include <yave/obj/keyframe/keyframe.hpp>
+#include <yave/obj/filesystem/path.hpp>
 
 #include <mutex>
 

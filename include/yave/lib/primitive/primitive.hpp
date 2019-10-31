@@ -9,6 +9,7 @@
 #include <yave/rts/atomic.hpp>
 #include <yave/lib/string/string.hpp>
 #include <yave/lib/keyframe/alias.hpp>
+#include <yave/lib/filesystem/path.hpp>
 
 #include <yave/support/overloaded.hpp>
 
@@ -32,6 +33,7 @@ namespace yave {
       float,
       bool,
       yave::string,
+      yave::filesystem::path,
       kf_int_t,
       kf_bool_t,
       kf_float_t>;
@@ -61,6 +63,7 @@ namespace yave {
   YAVE_DECL_PRIMITIVE_TYPENAME(float, Float);
   YAVE_DECL_PRIMITIVE_TYPENAME(bool, Bool);
   YAVE_DECL_PRIMITIVE_TYPENAME(yave::string, String);
+  YAVE_DECL_PRIMITIVE_TYPENAME(yave::filesystem::path, FilesystemPath);
   YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_int_t, KeyframeDataInt);
   YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_float_t, KeyframeDataFloat);
   YAVE_DECL_PRIMITIVE_TYPENAME(yave::kf_bool_t, KeyframeDataBool);
