@@ -119,6 +119,49 @@ namespace yave::sln {
     return sample_format::Unknown;
   }
 
+  /// Convert image to sln::DynImage
+  [[nodiscard]] inline DynImage<> to_DynImage(image&& image)
+  {
+    auto layout = UntypedLayout(
+      PixelLength(image.width()),
+      PixelLength(image.height()),
+      static_cast<int16_t>(image.channels()),
+      static_cast<int16_t>(image.byte_per_channel()));
+
+    auto semantics = UntypedImageSemantics(
+      to_PixelFormat(image.image_format().pixel_format),
+      to_SampleFormat(image.image_format().sample_format));
+
+    return sln::DynImage<>(image.release(), layout, semantics);
+  }
+
+  /// Convert image to sln::DynImage
+  [[nodiscard]] inline DynImage<> to_DynImage(const image& image)
+  {
+    auto tmp = image;
+    return to_DynImage(std::move(tmp));
+  }
+
+  [[nodiscard]] inline image to_image(DynImage<>&& image)
+  {
+    auto pfmt = to_pixel_format(image.pixel_format());
+    auto sfmt = to_sample_format(image.sample_format());
+    auto bpc  = image.nr_bytes_per_channel();
+    auto data = image.relinquish_data_ownership().transfer_data();
+
+    return yave::image(
+      data,
+      image.width().value,
+      image.height().value,
+      image_format {pfmt, sfmt, bpc});
+  }
+
+  [[nodiscard]] inline image to_image(const DynImage<>& image)
+  {
+    auto tmp = image;
+    return to_image(std::move(tmp));
+  }
+
   /// Convert const_image_view to sln::ConstantDynImageView
   [[nodiscard]] inline ConstantDynImageView
     to_DynImageView(const const_image_view& image)
