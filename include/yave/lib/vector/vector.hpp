@@ -298,8 +298,10 @@ namespace yave {
 
     void _dealloc(T* ptr, size_t n) noexcept
     {
-      std::destroy_n(ptr, n);
-      allocator().deallocate(ptr, n);
+      if (ptr) {
+        std::destroy_n(ptr, n);
+        allocator().deallocate(ptr, n);
+      }
     }
 
   private:
