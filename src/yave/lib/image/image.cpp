@@ -17,64 +17,56 @@ namespace yave {
     , m_height {height}
     , m_format {image_format}
   {
-    assert(is_valid());
+    assert(_is_valid());
   }
 
-  image::image(
-    uint32_t width,
-    uint32_t height,
-    yave::image_format image_format) noexcept
+  image::image(uint32_t width, uint32_t height, yave::image_format image_format)
     : m_data {nullptr}
     , m_width {width}
     , m_height {height}
     , m_format {image_format}
   {
-    allocate(byte_size());
-
-    if (m_data == nullptr)
-      clear();
-    else
-      std::memset(m_data, 0, byte_size());
-
-    assert(is_valid());
+    m_data = _alloc(byte_size());
+    std::memset(m_data, 0, byte_size());
+    assert(_is_valid());
   }
 
-  image::image(const image& other) noexcept
+  image::image(const image& other)
     : image()
   {
     if (other.m_data != nullptr) {
-      allocate(other.byte_size());
-      if (m_data != nullptr) {
-        copy_bytes(m_data, other.m_data, other.byte_size());
-        m_width  = other.m_width;
-        m_height = other.m_height;
-        m_format = other.m_format;
-      }
+
+      _dealloc(m_data, byte_size());
+
+      m_data = _alloc(other.byte_size());
+      _copy_bytes(m_data, other.m_data, other.byte_size());
+
+      m_width  = other.m_width;
+      m_height = other.m_height;
+      m_format = other.m_format;
     }
-    assert(is_valid());
+    assert(_is_valid());
   }
 
   image::image(image&& other) noexcept
     : image(other.m_data, other.m_width, other.m_height, other.m_format)
   {
     other.m_data = nullptr;
-    // `clear()` is not called so `other` will become invalid, but destructor
-    // accepts invalid object as long as `m_data` is valid to call
-    // `std::free()`.
   }
 
   image::~image() noexcept
   {
-    deallocate();
+    _dealloc(m_data, byte_size());
   }
 
   void image::clear() noexcept
   {
-    deallocate();
+    _dealloc(m_data, byte_size());
+    m_data   = nullptr;
     m_width  = 0;
     m_height = 0;
     m_format = image_format::Unknown;
-    assert(is_valid());
+    assert(_is_valid());
   }
 
   uint8_t* image::release() noexcept
@@ -87,7 +79,7 @@ namespace yave {
 
   bool image::empty() const noexcept
   {
-    assert(is_valid());
+    assert(_is_valid());
     return m_data == nullptr;
   }
 
@@ -146,6 +138,22 @@ namespace yave {
     return m_width * m_height * byte_per_channel();
   }
 
+  uint8_t* image::_alloc(size_t size)
+  {
+    return std::allocator<uint8_t>().allocate(size);
+  }
+
+  void image::_dealloc(uint8_t* ptr, size_t size) noexcept
+  {
+    if (ptr)
+      std::allocator<uint8_t>().deallocate(ptr, size);
+  }
+
+  void image::_copy_bytes(uint8_t* dst, uint8_t* src, uint64_t size) noexcept
+  {
+    std::memcpy(dst, src, size);
+  }
+
   /** \brief Check if the instance is in valid state.
    * Validate the instance following rules below:
    *   if `m_data` is `nullptr`, then other members should be initialized as
@@ -157,7 +165,7 @@ namespace yave {
    * \returns Boolean result of validation.
    * \notes internal
    */
-  bool image::is_valid() const
+  bool image::_is_valid() const
   {
     if (m_data == nullptr) {
       return                               //
@@ -166,41 +174,6 @@ namespace yave {
         m_format == image_format::Unknown; //
     }
     return true;
-  }
-
-  /** \brief Allocate memory.
-   * \param size Byte size to allocate.
-   * \effects Deallocate current data and set allocated memory to `m_data`.
-   * \requires None.
-   * \notes internal
-   */
-  void image::allocate(uint64_t size) noexcept
-  {
-    deallocate();
-    m_data = (uint8_t*)std::malloc(size);
-  }
-
-  /** \brief Deallocate `m_data`.
-   * \effects Calls `std::free()` with `m_data` and set `m_data` to `nullptr`.
-   * \requires `m_data` should be valid to call`std::free()`.
-   * \notes internal
-   */
-  void image::deallocate() noexcept
-  {
-    std::free(m_data);
-    m_data = nullptr;
-  }
-
-  /** \brief copy data.
-   * Copy `size` bytes of data from `src` to `dst`.
-   *
-   * \effects Calls `std::memcpy()` with arguments.
-   * \requires Arguments should be valid to calls `std::memcpy()`.
-   * \notes internal
-   */
-  void image::copy_bytes(uint8_t* dst, uint8_t* src, uint64_t size) noexcept
-  {
-    std::memcpy(dst, src, size);
   }
 
   mutable_image_view image::get_mutable_image_view() noexcept
