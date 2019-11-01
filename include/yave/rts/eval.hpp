@@ -59,11 +59,11 @@ namespace yave {
     /// Only allocates memory once at bottom, but uses more stack compared to
     /// incremental buffer allocation.
     [[nodiscard]] inline auto build_spine_stack(
-      const object_ptr<const Object>& next,
+      object_ptr<const Object> next,
       size_t depth) -> std::
       pair<object_ptr<const Object>, std::vector<object_ptr<const Apply>>>
     {
-      if (auto apply = value_cast_if<const Apply>(next)) {
+      if (auto apply = value_cast_if<const Apply>(std::move(next))) {
 
         auto& apply_storage = _get_storage(*apply);
 
@@ -79,8 +79,8 @@ namespace yave {
         return {std::move(bottom), std::move(stack)};
       }
 
-      std::vector<object_ptr<const Apply>> stack {depth};
-      return {next, std::move(stack)};
+      auto stack = std::vector<object_ptr<const Apply>>(depth);
+      return {std::move(next), std::move(stack)};
     }
 
     [[nodiscard]] inline auto eval_spine(object_ptr<const Object> obj)
