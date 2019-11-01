@@ -8,6 +8,13 @@
 
 namespace yave {
 
+  frame_buffer::frame_buffer(const object_ptr<FrameBufferPool>& pool)
+    : buffer_base(pool, pool->create())
+  {
+    if (m_id == uid())
+      throw std::bad_alloc();
+  }
+
   mutable_image_view frame_buffer::get_image_view()
   {
     return mutable_image_view(

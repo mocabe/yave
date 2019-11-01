@@ -16,27 +16,13 @@ namespace yave {
   /// Frame buffer object value.
   struct frame_buffer : buffer_base<frame_buffer, FrameBufferPool>
   {
-    frame_buffer(const object_ptr<FrameBufferPool>& pool)
-      : buffer_base(pool)
-    {
-      m_id = pool->create();
-
-      if (m_id == uid())
-        throw std::bad_alloc();
-    }
-
-    frame_buffer(const object_ptr<FrameBufferPool>& pool, uid id)
-      : buffer_base(pool)
-    {
-      m_id = pool->create_from(id);
-
-      if (m_id == uid())
-        throw std::bad_alloc();
-    }
+    /// Create new frame buffer
+    frame_buffer(const object_ptr<FrameBufferPool>& pool);
 
     /// Get image view.
-    [[nodiscard]] mutable_image_view get_image_view();
+    [[nodiscard]] auto get_image_view() -> mutable_image_view;
+
     /// Get image view.
-    [[nodiscard]] const_image_view get_image_view() const;
+    [[nodiscard]] auto get_image_view() const -> const_image_view;
   };
 }

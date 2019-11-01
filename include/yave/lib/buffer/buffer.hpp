@@ -17,36 +17,24 @@ namespace yave {
   {
     /// deleted
     buffer_base() = delete;
+
     /// deleted
     buffer_base(buffer_base&&) = delete;
 
-    /// Initialize buffer pool.
-    /// \note This constructor does not initialize m_id to allow customization
-    /// in Derived class. Be careful.
-    explicit buffer_base(const object_ptr<TBufferPool>& pool)
-      : m_pool {pool}
-      , m_id {} // !!!
-    {
-    }
-
-    /// Copy Ctor
+    /// Copy Ctor.
     buffer_base(const buffer_base& other)
       : m_pool {other.m_pool}
-      , m_id {other.m_id}
+      , m_id {other.m_pool->create_from(other.m_id)}
     {
-      m_pool->ref(m_id);
+      if (m_id == uid())
+        throw std::bad_alloc();
     }
 
-    /// Dtor
+    /// Dtor.
+    /// Decrements refcount.
     ~buffer_base() noexcept
     {
       m_pool->unref(m_id);
-    }
-
-    /// Acquire new buffer object
-    auto copy() const -> object_ptr<Box<Derived>>
-    {
-      return make_object<Box<Derived>>(m_pool, m_pool->create_from(m_id));
     }
 
     /// Get data pointer
@@ -86,6 +74,14 @@ namespace yave {
     }
 
   protected:
+    buffer_base(const object_ptr<TBufferPool>& pool, uid id)
+      : m_pool {pool}
+      , m_id {id}
+    {
+      /* No error check */
+    }
+
+  protected:
     object_ptr<TBufferPool> m_pool;
     uid m_id;
   };
@@ -95,22 +91,11 @@ namespace yave {
   {
     /// Initialize new buffer
     buffer(const object_ptr<BufferPool>& pool, uint64_t size)
-      : buffer_base(pool)
+      : buffer_base(pool, pool->create(size))
     {
-      m_id = pool->create(size);
-
-      if (m_id == uid())
-        throw std::bad_alloc();
-    }
-
-    /// Copy initialize from existing buffer ID
-    buffer(const object_ptr<BufferPool>& pool, uid id)
-      : buffer_base(pool)
-    {
-      m_id = m_pool->create_from(id);
-
       if (m_id == uid())
         throw std::bad_alloc();
     }
   };
-}
+
+} // namespace yave

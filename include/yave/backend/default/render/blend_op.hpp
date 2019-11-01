@@ -43,7 +43,7 @@ namespace yave {
         auto fb_dst = eval_arg<1>();
 
         // clone dst
-        auto dst = fb_dst->copy();
+        auto dst = clone(fb_dst);
 
         const_image_view src_view   = fb_src->get_image_view();
         mutable_image_view dst_view = dst->get_image_view();
@@ -76,7 +76,7 @@ namespace yave {
         auto fb_dst = eval_arg<1>();
 
         // clone dst
-        auto dst = fb_dst->copy();
+        auto dst = clone(fb_dst);
 
         const_image_view src_view   = fb_src->get_image_view();
         mutable_image_view dst_view = dst->get_image_view();
@@ -109,7 +109,7 @@ namespace yave {
         auto fb_dst = eval_arg<1>();
 
         // clone dst
-        auto dst = fb_dst->copy();
+        auto dst = clone(fb_dst);
 
         const_image_view src_view   = fb_src->get_image_view();
         mutable_image_view dst_view = dst->get_image_view();
@@ -142,7 +142,7 @@ namespace yave {
         auto fb_dst = eval_arg<1>();
 
         // clone dst
-        auto dst = fb_dst->copy();
+        auto dst = clone(fb_dst);
 
         const_image_view src_view   = fb_src->get_image_view();
         mutable_image_view dst_view = dst->get_image_view();
