@@ -62,7 +62,7 @@ namespace yave {
       assert(file_path.is_absolute());
       assert(std::filesystem::exists(file_path));
 
-      Info("Loading PNG image from {}", file_path.string());
+      Info(g_logger, "Loading PNG image from {}", file_path.string());
 
       auto reader = sln::FileReader(file_path);
 
@@ -95,7 +95,7 @@ namespace yave {
       assert(file_path.is_absolute());
       assert(std::filesystem::exists(file_path));
 
-      Info("Loading JPEG image from {}", file_path.string());
+      Info(g_logger, "Loading JPEG image from {}", file_path.string());
 
       auto reader = sln::FileReader(file_path);
 
@@ -131,7 +131,7 @@ namespace yave {
       assert(file_path.is_absolute());
       assert(std::filesystem::exists(file_path));
 
-      Info("Loading TIFF image from {}", file_path.string());
+      Info(g_logger, "Loading TIFF image from {}", file_path.string());
 
       auto reader = sln::FileReader(file_path);
 
