@@ -15,6 +15,7 @@
 #include <yave/backend/default/render/keyframe.hpp>
 #include <yave/backend/default/render/primitive_constructor.hpp>
 #include <yave/backend/default/render/primitive.hpp>
+#include <yave/backend/default/render/list.hpp>
 #include <yave/backend/default/render/image_io.hpp>
 
 namespace {
@@ -236,6 +237,10 @@ namespace yave::backend::default_render {
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Double, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Bool, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::String, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::ListNil, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::ListCons, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::ListDecompose_Head, tags::default_render>()));
+        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::ListDecompose_Tail, tags::default_render>()));
         binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LoadImage, tags::default_render>()));
 
         // clang-format on
