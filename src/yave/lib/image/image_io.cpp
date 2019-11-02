@@ -15,9 +15,17 @@
 #include <boost/dll/runtime_symbol_info.hpp>
 
 namespace {
-  static std::shared_ptr<spdlog::logger> g_logger =
-    yave::add_logger("image_io");
-}
+
+  std::shared_ptr<spdlog::logger> g_logger;
+
+  void init_logger()
+  {
+    [[maybe_unused]] static auto init = [] {
+      g_logger = yave::add_logger("image_io");
+      return 1;
+    }();
+  }
+} // namespace
 
 namespace yave {
 
@@ -28,8 +36,9 @@ namespace yave {
       if (p.is_absolute())
         return p;
 
-      auto program = boost::dll::program_location();
-      return std::filesystem::path(program.string()) / p;
+      // convert relative path to full path
+      auto base = boost::dll::program_location().remove_filename();
+      return std::filesystem::path(base.string()) / p;
     }
 
     void log_sln_logs(const sln::MessageLog& log)
@@ -69,7 +78,16 @@ namespace yave {
         throw std::runtime_error("Failed to read PNG image");
       }
 
-      return sln::to_image(std::move(image));
+      auto ret = sln::to_image(std::move(image));
+
+      Info(
+        g_logger,
+        "Loaded image: width={}, height={}, format={}",
+        ret.width(),
+        ret.height(),
+        to_string(ret.image_format()));
+
+      return ret;
     }
 
     image load_image_jpeg_impl(const std::filesystem::path& file_path)
@@ -96,7 +114,16 @@ namespace yave {
         throw std::runtime_error("Failed to read jpeg image");
       }
 
-      return sln::to_image(std::move(image));
+      auto ret = sln::to_image(std::move(image));
+
+      Info(
+        g_logger,
+        "Loaded image: width={}, height={}, format={}",
+        ret.width(),
+        ret.height(),
+        to_string(ret.image_format()));
+
+      return ret;
     }
 
     image load_image_tiff_impl(const std::filesystem::path& file_path)
@@ -122,17 +149,29 @@ namespace yave {
         throw std::runtime_error("Failed to read tiff image");
       }
 
-      return sln::to_image(std::move(image));
+      auto ret = sln::to_image(std::move(image));
+
+      Info(
+        g_logger,
+        "Loaded image: width={}, height={}, format={}",
+        ret.width(),
+        ret.height(),
+        to_string(ret.image_format()));
+
+      return ret;
     }
 
   } // namespace
 
   image load_image_auto(const filesystem::path& file)
   {
+    init_logger();
+
     auto file_path = normalize_path(file);
 
     if (!std::filesystem::exists(file_path)) {
-      Error(g_logger, "Failed to load image: no such file {}", file.c_str());
+      Error(
+        g_logger, "Failed to load image: no such file {}", file_path.c_str());
       throw std::invalid_argument(
         "Failed to loag image file: File doesn't exist");
     }
@@ -142,17 +181,17 @@ namespace yave {
     auto ext = file_path.extension().generic_u8string();
 
     // png
-    if (ext == u8"png") {
+    if (ext == u8".png") {
       return load_image_png_impl(file_path);
     }
 
     // jpeg
-    if (ext == u8"jpeg" || ext == u8"jpg") {
+    if (ext == u8".jpeg" || ext == u8".jpg") {
       return load_image_jpeg_impl(file_path);
     }
 
     // tiff
-    if (ext == u8"tiff") {
+    if (ext == u8".tiff") {
       return load_image_tiff_impl(file_path);
     }
 
@@ -161,23 +200,29 @@ namespace yave {
 
   image load_image_png(const filesystem::path& file)
   {
+    init_logger();
+
     auto file_path = normalize_path(file);
 
     if (!std::filesystem::exists(file_path)) {
-      Error(g_logger, "Failed to load image: no such file {}", file.c_str());
+      Error(
+        g_logger, "Failed to load image: no such file {}", file_path.c_str());
       throw std::invalid_argument(
         "Failed to loag image file: File doesn't exist");
     }
 
-    return load_image_png_impl(file_path);    
+    return load_image_png_impl(file_path);
   }
 
   image load_image_jpeg(const filesystem::path& file)
   {
+    init_logger();
+
     auto file_path = normalize_path(file);
 
     if (!std::filesystem::exists(file_path)) {
-      Error(g_logger, "Failed to load image: no such file {}", file.c_str());
+      Error(
+        g_logger, "Failed to load image: no such file {}", file_path.c_str());
       throw std::invalid_argument(
         "Failed to loag image file: File doesn't exist");
     }
@@ -187,14 +232,17 @@ namespace yave {
 
   image load_image_tiff(const filesystem::path& file)
   {
+    init_logger();
+
     auto file_path = normalize_path(file);
 
     if (!std::filesystem::exists(file_path)) {
-      Error(g_logger, "Failed to load image: no such file {}", file.c_str());
+      Error(
+        g_logger, "Failed to load image: no such file {}", file_path.c_str());
       throw std::invalid_argument(
         "Failed to loag image file: File doesn't exist");
     }
 
     return load_image_tiff_impl(file_path);
   }
-}
+} // namespace yave

@@ -144,15 +144,17 @@ namespace yave::sln {
 
   [[nodiscard]] inline image to_image(DynImage<>&& image)
   {
-    auto pfmt = to_pixel_format(image.pixel_format());
-    auto sfmt = to_sample_format(image.sample_format());
-    auto bpc  = image.nr_bytes_per_channel();
-    auto data = image.relinquish_data_ownership().transfer_data();
+    auto pfmt   = to_pixel_format(image.pixel_format());
+    auto sfmt   = to_sample_format(image.sample_format());
+    auto bpc    = image.nr_bytes_per_channel();
+    auto width  = image.width().value();
+    auto height = image.height().value();
+    auto data   = image.relinquish_data_ownership().transfer_data();
 
     return yave::image(
       data,
-      image.width().value(),
-      image.height().value(),
+      width,
+      height,
       image_format {pfmt, sfmt, static_cast<uint16_t>(bpc)});
   }
 
