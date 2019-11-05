@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
+#include <map>
 
 namespace yave::graph {
 
@@ -78,17 +79,13 @@ namespace yave::graph {
     // id type
     using id_type = typename GraphTraits::id_type;
 
-    // container type
+    /// Internal container type for graph
     struct container_type
     {
-      // Flat descriptor map.
-      std::vector<descriptor_type> dsc_map;
-
-      // Flat id map (and support vector).
-      // Support vector contains unordered descriptors which relates to Id in
-      // id_map of same index.
-      std::vector<id_type> id_map;
-      std::vector<descriptor_type> id_map_support;
+      // descriptor map.
+      std::map<descriptor_type, id_type> dsc_map;
+      // id map.
+      std::map<id_type, descriptor_type> id_map;
     };
 
     /// Check if a descriptor exists in a container.
@@ -101,15 +98,9 @@ namespace yave::graph {
     {
       auto &map = c.dsc_map;
 
-      if (descriptor == nullptr)
-        return false;
+      auto iter = map.find(descriptor);
 
-      auto lb = std::lower_bound(map.begin(), map.end(), descriptor);
-
-      if (lb == map.end())
-        return false;
-
-      if (*lb == descriptor)
+      if (iter != map.end())
         return true;
 
       return false;
@@ -123,12 +114,9 @@ namespace yave::graph {
     {
       auto &map = c.id_map;
 
-      auto lb = std::lower_bound(map.begin(), map.end(), id);
+      auto iter = map.find(id);
 
-      if (lb == c.end())
-        return false;
-
-      if (*lb == id)
+      if (iter != map.end())
         return true;
 
       return false;
@@ -142,18 +130,12 @@ namespace yave::graph {
       const container_type &c,
       const id_type &id)
     {
-      auto &map     = c.id_map;
-      auto &support = c.id_map_support;
+      auto &map = c.id_map;
 
-      auto lb = std::lower_bound(map.begin(), map.end(), id);
+      auto iter = map.find(id);
 
-      if (lb == map.end())
-        return nullptr;
-
-      if (*lb == id) {
-        auto d = std::distance(map.begin(), lb);
-        return support[d];
-      }
+      if (iter != map.end())
+        return iter->second;
 
       return nullptr;
     }
@@ -171,35 +153,25 @@ namespace yave::graph {
     {
       // remove id
       {
-        auto &map     = c.id_map;
-        auto &support = c.id_map_support;
-        auto lb       = std::lower_bound(map.begin(), map.end(), id);
-        auto dist     = std::distance(map.begin(), lb);
+        auto &map = c.id_map;
 
-        if (lb == map.end())
-          return;
+        auto iter = map.find(id);
 
-        if (*lb == id) {
-          map.erase(lb);
-          support.erase(support.begin() + dist);
-        }
+        if (iter != map.end())
+          map.erase(iter);
       }
+
       // remove descriptor
       {
         auto &map = c.dsc_map;
-        auto lb   = std::lower_bound(map.begin(), map.end(), descriptor);
 
-        if (lb == map.end())
-          return;
+        auto iter = map.find(descriptor);
 
-        if (*lb == descriptor) {
-          map.erase(lb);
-          delete descriptor;
-        }
+        if (iter != map.end())
+          map.erase(iter);
       }
 
-      assert(c.dsc_map.size() == c.id_map.size());
-      assert(c.id_map.size() == c.id_map_support.size());
+      delete descriptor;
     }
 
     /// Instance in a container and return descriptor.
@@ -217,40 +189,50 @@ namespace yave::graph {
       // insert dsc
       {
         auto &map = c.dsc_map;
-        auto lb   = std::lower_bound(map.begin(), map.end(), dsc);
-        assert(lb == map.end() || *lb != dsc);
-        map.insert(lb, dsc);
+        map.emplace(dsc, id);
       }
       // insert id
       {
-        auto &map     = c.id_map;
-        auto &support = c.id_map_support;
-        auto lb       = std::lower_bound(map.begin(), map.end(), id);
-        auto dist     = std::distance(map.begin(), lb);
-        assert(lb == map.end() || *lb != id);
-        map.insert(lb, id);
-        support.insert(support.begin() + dist, dsc);
+        auto &map = c.id_map;
+        map.emplace(id, dsc);
       }
-
-      assert(c.dsc_map.size() == c.id_map.size());
-      assert(c.id_map.size() == c.id_map_support.size());
 
       return dsc;
     }
 
     /// Get list of descriptors.
     /// \param c Container
-    static inline const std::vector<descriptor_type> &descriptors(
+    static inline std::vector<descriptor_type> descriptors(
       const container_type &c)
     {
-      return c.dsc_map;
+      std::vector<descriptor_type> ret;
+
+      for (auto &&pair : c.dsc_map) {
+        ret.push_back(pair.first);
+      }
+
+      return ret;
     }
 
     /// Get list of IDs.
     /// \param c Container
-    static inline const std::vector<id_type> &ids(const container_type &c)
+    static inline std::vector<id_type> ids(const container_type &c)
     {
-      return c.id_map;
+      std::vector<id_type> ret;
+
+      for (auto &&pair : c.id_map) {
+        ret.push_back(pair.first);
+      }
+
+      return ret;
+    }
+
+    /// Get number of elements.
+    /// \param c Container
+    static inline size_t size(const container_type &c)
+    {
+      assert(c.dsc_map.size() == c.id_map.size());
+      return c.dsc_map.size();
     }
 
     /// Access function.
@@ -1435,7 +1417,7 @@ private:
     }
 
     /// Get list of node descriptors.
-    inline const std::vector<node_descriptor_type> &_nodes() const
+    inline std::vector<node_descriptor_type> _nodes() const
     {
       return traits::node_container_traits::descriptors(m_nodes);
     }
@@ -1443,11 +1425,11 @@ private:
     /// Get size of nodes.
     inline size_t _n_nodes() const
     {
-      return _nodes().size();
+      return traits::node_container_traits::size(m_nodes);
     }
 
     /// Get list of socket descriptors.
-    inline const std::vector<socket_descriptor_type> &_sockets() const
+    inline std::vector<socket_descriptor_type> _sockets() const
     {
       return traits::socket_container_traits::descriptors(m_sockets);
     }
@@ -1455,11 +1437,11 @@ private:
     /// Get size of sockets.
     inline size_t _n_sockets() const
     {
-      return _sockets().size();
+      return traits::socket_container_traits::size(m_sockets);
     }
 
     /// Get list of edges descriptors.
-    inline const std::vector<edge_descriptor_type> &_edges() const
+    inline std::vector<edge_descriptor_type> _edges() const
     {
       return traits::edge_container_traits::descriptors(m_edges);
     }
@@ -1467,7 +1449,7 @@ private:
     /// Get size of edges.
     inline size_t _n_edges() const
     {
-      return _edges().size();
+      return traits::edge_container_traits::size(m_edges);
     }
 
     /// Node access.
