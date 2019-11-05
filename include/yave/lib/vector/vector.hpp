@@ -27,6 +27,7 @@ namespace yave {
   {
     static_assert(std::is_nothrow_move_constructible_v<T>);
     static_assert(std::is_nothrow_destructible_v<T>);
+    static_assert(std::is_empty_v<Alloc>);
 
   public:
     // clang-format off
