@@ -15,15 +15,8 @@ namespace yave {
 
   namespace backend::default_render {
 
-    struct FrameTimeConstructor
-      : Function<FrameTimeConstructor, FrameTime, FrameTime>
-    {
-      return_type code() const
-      {
-        // reflect frame value
-        return eval_arg<0>();
-      }
-    };
+    /// Time -> Time
+    using FrameTimeConstructor = Id;
 
   } // namespace backend::default_render
 
