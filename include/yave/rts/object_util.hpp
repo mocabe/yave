@@ -18,7 +18,7 @@ namespace yave {
     -> object_ptr<const Type>
   {
     if (obj)
-      return _get_storage(obj).info_table()->obj_type;
+      return _get_storage(obj).this_info_table()->obj_type;
     else
       return object_type<Undefined>();
   }
@@ -29,7 +29,7 @@ namespace yave {
     -> const char*
   {
     if (obj)
-      return _get_storage(obj).info_table()->obj_name;
+      return _get_storage(obj).this_info_table()->obj_name;
     else
       return object_type_traits<Undefined>::name;
   }
@@ -40,7 +40,7 @@ namespace yave {
     -> uint64_t
   {
     if (obj)
-      return _get_storage(obj).info_table()->obj_size;
+      return _get_storage(obj).this_info_table()->obj_size;
     else
       return 0;
   }

@@ -22,7 +22,7 @@ namespace yave {
   {
     assert(obj);
 
-    object_ptr tmp = _get_storage(obj).info_table()->clone(obj.get());
+    object_ptr tmp = _get_storage(obj).this_info_table()->clone(obj.get());
 
     if (unlikely(!tmp))
       throw std::bad_alloc();

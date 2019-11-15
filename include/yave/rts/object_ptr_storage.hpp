@@ -18,57 +18,75 @@ namespace yave {
   struct object_ptr_storage
   {
     /// get pointer
-    /// Ideally, optimized into single AND instruction.
     [[nodiscard]] auto get() const noexcept -> const Object*
     {
       return m_ptr;
     }
 
-    /// get address of header
-    [[nodiscard]] auto head() const noexcept -> const Object*
+    /// get address of header of this object.
+    [[nodiscard]] auto this_head() const noexcept -> const Object*
     {
       assert(get());
       return get();
     }
 
-    /// get info table pointer
-    [[nodiscard]] auto info_table() const noexcept -> const object_info_table*
+    /// get address of heaedr of root object.
+    [[nodiscard]] auto root_head() const noexcept -> const Object*
     {
       assert(get());
-      return detail::clear_info_table_tag(head()->info_table);
+      auto* this_ptr = get();
+      auto* root_ptr =
+        (const Object*)(((const char*)this_ptr) - this_ptr->offset);
+      return root_ptr;
+    }
+
+    /// get info table pointer
+    [[nodiscard]] auto this_info_table() const noexcept
+      -> const object_info_table*
+    {
+      assert(get());
+      return detail::clear_info_table_tag(this_head()->info_table);
+    }
+
+    [[nodiscard]] auto root_info_table() const noexcept
+      -> const object_info_table*
+    {
+      assert(get());
+      return detail::clear_info_table_tag(root_head()->info_table);
     }
 
     /// exception?
     [[nodiscard]] bool is_exception() const noexcept
     {
-      return detail::has_exception_tag(head()->info_table);
+      return detail::has_exception_tag(this_head()->info_table);
     }
 
     /// apply?
     [[nodiscard]] bool is_apply() const noexcept
     {
-      return detail::has_apply_tag(head()->info_table);
+      return detail::has_apply_tag(this_head()->info_table);
     }
 
     /// static?
     [[nodiscard]] bool is_static() const noexcept
     {
       assert(get());
-      return head()->refcount.load() == 0;
+      // inherit from root object
+      return root_head()->refcount.load() == 0;
     }
 
     /// use_count
     [[nodiscard]] auto use_count() const noexcept -> uint64_t
     {
       assert(get());
-      return head()->refcount.load();
+      return root_head()->refcount.load();
     }
 
     /// increment refcount (mutable)
     void increment_refcount() const noexcept
     {
       if (likely(get() && !is_static()))
-        head()->refcount.fetch_add();
+        root_head()->refcount.fetch_add();
     }
 
     /// decrement refcount (mutable)

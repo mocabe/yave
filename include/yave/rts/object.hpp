@@ -46,24 +46,21 @@ namespace yave {
     constexpr Object(const object_info_table* info)
       : info_table {info}
     {
-      /* Default initialize refcount and spinlock */
+      /* Default initialize refcount and offset */
     }
 
     /// Copy ctor
     constexpr Object(const Object& other)
       : info_table {other.info_table}
     {
-      /* Default initialize refcount and spinlock */
+      /* Default initialize refcount and offset */
     }
 
     /// 4byte: reference count
     mutable atomic_refcount<uint32_t> refcount = {1u};
 
-    /// 1byte: spinlock
-    mutable atomic_spinlock<uint8_t> spinlock = {/*false*/};
-
-    /* 3byte: padding */
-    std::byte reserved[3] = {};
+    /// 4byte: offset of this object
+    const uint32_t offset = 0;
 
     /// 8byte: pointer to info table
     const object_info_table* info_table;

@@ -212,9 +212,9 @@ namespace yave {
   inline void object_ptr_storage::decrement_refcount() const noexcept
   {
     if (likely(get() && !is_static())) {
-      if (head()->refcount.fetch_sub() == 1) {
+      if (root_head()->refcount.fetch_sub() == 1) {
         std::atomic_thread_fence(std::memory_order_acquire);
-        info_table()->destroy(get());
+        root_info_table()->destroy(get());
       }
     }
   }
