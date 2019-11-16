@@ -19,9 +19,9 @@ The main advantages of FRVPL compared to traditional data-driven VPLs are:
 * Modern language functionality like higher-order functions.
 
 Some disclaimers:
-* `YAVE` is not for realtime media interaction, which means we don't care about events and use discrete time representation for parameter.  
+* `YAVE` can be used for realtime media interaction, but it uses discrete time representation so that might be disappointment for people who like continuous time representation. 
 * `YAVE` is dynamic language. It behaves like a glue to connect functions compiled elsewhere i.e. C/C++.
-* `YAVE` is NOT **pure** functional visual programming language strictly speaking, but functions are expected to behave as it is.
+* `YAVE` is NOT **pure** functional visual programming language strictly speaking, but backends are expected to encapsulate internal memory pooling and other kind of side effects. As the result, `YAVE` looks exactly like purely functional language, but backends still have full access to C/C++ feature, which makes it much easier to implement low-level operations.
 
 ## Development   
 
