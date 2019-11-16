@@ -24,6 +24,8 @@ namespace yave::imgui {
     ~imgui_context();
   
   public:
+    /// Set current context
+    void set_current();
     /// Begin ImGui frame
     void begin();
     /// End ImGui frame

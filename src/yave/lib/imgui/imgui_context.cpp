@@ -1004,6 +1004,11 @@ namespace yave::imgui {
     ImGui_ImplGlfw_Shutdown();
   }
 
+  void imgui_context::set_current()
+  {
+    ImGui::SetCurrentContext(m_pimpl->imCtx);
+  }
+
   void imgui_context::begin()
   {
     /* start ImGui frame */
