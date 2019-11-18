@@ -32,17 +32,16 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<node::If, backend::tags::default_render>
+  struct node_definition_traits<node::If, backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definition()
     {
-      auto info = get_node_info<node::If>();
-      return {
+      auto info = get_node_declaration<node::If>();
+      return node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
-        make_object<InstanceGetterFunction<backend::default_render::If>>(),
-        info.name()};
+        info.name(),
+        make_object<InstanceGetterFunction<backend::default_render::If>>());
     }
   };
 } // namespace yave

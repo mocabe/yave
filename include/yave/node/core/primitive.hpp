@@ -37,18 +37,22 @@ namespace yave {
   [[nodiscard]] auto get_primitive_name_list() -> std::vector<std::string>;
 
   /// get primitive node info
-  [[nodiscard]] auto get_primitive_node_info(const primitive_t& v) -> node_info;
+  [[nodiscard]] auto get_primitive_node_declaration(const primitive_t& v)
+    -> node_declaration;
 
   /// get primitive info list
-  [[nodiscard]] auto get_primitive_node_info_list() -> std::vector<node_info>;
+  [[nodiscard]] auto get_primitive_node_declaration_list()
+    -> std::vector<node_declaration>;
 
   /// get primitive bind info
   template <class BackendTag>
-  [[nodiscard]] auto get_primitive_bind_info(const primitive_t& v) -> bind_info;
+  [[nodiscard]] auto get_primitive_node_definition(const primitive_t& v)
+    -> node_definition;
 
   /// get primitive bind list
   template <class BackendTag>
-  [[nodiscard]] auto get_primitive_bind_info_list() -> std::vector<bind_info>;
+  [[nodiscard]] auto get_primitive_node_definition_list()
+    -> std::vector<node_definition>;
 
   /// get type of primitive object
   template <class BackendTag>

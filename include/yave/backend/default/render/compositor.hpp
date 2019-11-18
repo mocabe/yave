@@ -32,18 +32,19 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<node::LayerCompositor, backend::tags::default_render>
+  struct node_definition_traits<
+    node::LayerCompositor,
+    backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definition() -> node_definition
     {
-      auto info = get_node_info<node::LayerCompositor>();
-      return bind_info(
+      auto info = get_node_declaration<node::LayerCompositor>();
+      return node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
+        info.name() + ": composite layer outputs",
         make_object<
-          InstanceGetterFunction<backend::default_render::LayerCompositor>>(),
-        info.name() + ": composite layer outputs");
+          InstanceGetterFunction<backend::default_render::LayerCompositor>>());
     }
   };
 

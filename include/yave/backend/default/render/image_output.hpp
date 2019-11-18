@@ -26,18 +26,19 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<node::LayerImageOutput, backend::tags::default_render>
+  struct node_definition_traits<
+    node::LayerImageOutput,
+    backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definition() -> node_definition
     {
-      auto info = get_node_info<node::LayerImageOutput>();
-      return bind_info(
+      auto info = get_node_declaration<node::LayerImageOutput>();
+      return node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
+        info.name() + ": Image output node for layers",
         make_object<
-          InstanceGetterFunction<backend::default_render::LayerImageOutput>>(),
-        info.name() + ": Image output node for layers");
+          InstanceGetterFunction<backend::default_render::LayerImageOutput>>());
     }
   };
 }

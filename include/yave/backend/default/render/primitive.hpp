@@ -29,8 +29,8 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  object_ptr<const Type>
-    get_primitive_type<backend::tags::default_render>(const primitive_t& v)
+  auto get_primitive_type<backend::tags::default_render>(const primitive_t& v)
+    -> object_ptr<const Type>
   {
     return std::visit(
       overloaded {[](const auto& p) {
@@ -42,13 +42,13 @@ namespace yave {
   }
 
   template <>
-  bind_info
-    get_primitive_bind_info<backend::tags::default_render>(const primitive_t& v)
+  auto get_primitive_node_definition<backend::tags::default_render>(
+    const primitive_t& v) -> node_definition
   {
     return std::visit(
       overloaded {[&](const auto& p) {
         using value_type = std::decay_t<decltype(p)>;
-        return get_bind_info<
+        return get_node_definition<
           node::PrimitiveConstructor<Box<value_type>>,
           backend::tags::default_render>();
       }},
@@ -56,13 +56,13 @@ namespace yave {
   }
 
   template <>
-  std::vector<bind_info>
-    get_primitive_bind_info_list<backend::tags::default_render>()
+  auto get_primitive_node_definition_list<backend::tags::default_render>()
+    -> std::vector<node_definition>
   {
-    std::vector<bind_info> ret;
+    std::vector<node_definition> ret;
     backend::default_render::
       primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
-        ret, get_primitive_bind_info<backend::tags::default_render>);
+        ret, get_primitive_node_definition<backend::tags::default_render>);
     return ret;
   }
 

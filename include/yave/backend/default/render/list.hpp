@@ -61,70 +61,66 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<node::ListNil, backend::tags::default_render>
+  struct node_definition_traits<node::ListNil, backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definition() -> node_definition
     {
-      auto info = get_node_info<node::ListNil>();
-      return bind_info(
+      auto info = get_node_declaration<node::ListNil>();
+      return node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
+        info.name(),
         make_object<
-          InstanceGetterFunction<yave::backend::default_render::ListNil>>(),
-        info.name());
+          InstanceGetterFunction<yave::backend::default_render::ListNil>>());
     }
   };
 
   template <>
-  struct bind_info_traits<node::ListCons, backend::tags::default_render>
+  struct node_definition_traits<node::ListCons, backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definition() -> node_definition
     {
-      auto info = get_node_info<node::ListCons>();
-      return bind_info(
+      auto info = get_node_declaration<node::ListCons>();
+      return node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
+        info.name(),
         make_object<
-          InstanceGetterFunction<yave::backend::default_render::ListCons>>(),
-        info.name());
+          InstanceGetterFunction<yave::backend::default_render::ListCons>>());
     }
   };
 
   template <>
-  struct bind_info_traits<
+  struct node_definition_traits<
     node::ListDecompose_Head,
     backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definition() -> node_definition
     {
-      auto info = get_node_info<node::ListDecompose_Head>();
-      return bind_info(
+      auto info = get_node_declaration<node::ListDecompose_Head>();
+      return node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
+        info.name(),
         make_object<InstanceGetterFunction<
-          yave::backend::default_render::ListDecompose_Head>>(),
-        info.name());
+          yave::backend::default_render::ListDecompose_Head>>());
     }
   };
 
   template <>
-  struct bind_info_traits<
+  struct node_definition_traits<
     node::ListDecompose_Tail,
     backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definition() -> node_definition
     {
-      auto info = get_node_info<node::ListDecompose_Tail>();
-      return bind_info(
+      auto info = get_node_declaration<node::ListDecompose_Tail>();
+      return node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
+        info.name(),
         make_object<InstanceGetterFunction<
-          yave::backend::default_render::ListDecompose_Tail>>(),
-        info.name());
+          yave::backend::default_render::ListDecompose_Tail>>());
     }
   };
 }

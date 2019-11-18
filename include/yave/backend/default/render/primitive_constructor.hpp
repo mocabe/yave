@@ -71,22 +71,20 @@ namespace yave {
   } // namespace backend::default_render
 
   template <class T>
-  struct bind_info_traits<
+  struct node_definition_traits<
     node::PrimitiveConstructor<T>,
     backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definition() -> node_definition
     {
       using value_type = typename T::value_type;
-      auto info        = get_node_info<node::PrimitiveConstructor<T>>();
-      return bind_info(
+      auto info        = get_node_declaration<node::PrimitiveConstructor<T>>();
+      return node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
-        make_object<
-          backend::default_render::PrimitiveGetterFunction<value_type>>(),
         info.name(),
-        true);
+        make_object<
+          backend::default_render::PrimitiveGetterFunction<value_type>>());
     }
   };
 

@@ -53,19 +53,20 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<node::FrameBuffer, backend::tags::default_render>
+  struct node_definition_traits<
+    node::FrameBuffer,
+    backend::tags::default_render>
   {
-    static bind_info get_bind_info(frame_buffer_manager* mngr)
+    static auto get_node_definition(frame_buffer_manager* mngr)
     {
-      auto info = get_node_info<node::FrameBuffer>();
-      return bind_info(
+      auto info = get_node_declaration<node::FrameBuffer>();
+      return node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
+        info.name(),
         make_object<
           yave::backend::default_render::FrameBufferConstructorGetterFunction>(
-          mngr),
-        info.name());
+          mngr));
     }
   };
 } // namespace yave

@@ -166,27 +166,26 @@ namespace yave {
 
   } // namespace backend::default_render
 
-#define YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(TYPE)                     \
-  template <>                                                                 \
-  struct bind_info_traits<node::TYPE, backend::tags::default_render>          \
-  {                                                                           \
-    static bind_info get_bind_info()                                          \
-    {                                                                         \
-      auto info = get_node_info<node::TYPE>();                                \
-      return bind_info(                                                       \
-        info.name(),                                                          \
-        info.input_sockets(),                                                 \
-        info.output_sockets()[0],                                             \
-        make_object<InstanceGetterFunction<backend::default_render::TYPE>>(), \
-        info.name());                                                         \
-    }                                                                         \
+#define YAVE_DEFAULT_RENDER_DEF_BLEND_OP(TYPE)                                 \
+  template <>                                                                  \
+  struct node_definition_traits<node::TYPE, backend::tags::default_render>     \
+  {                                                                            \
+    static auto get_node_definition() -> node_definition                       \
+    {                                                                          \
+      auto info = get_node_declaration<node::TYPE>();                          \
+      return node_definition(                                                  \
+        info.name(),                                                           \
+        info.output_sockets()[0],                                              \
+        info.name(),                                                           \
+        make_object<InstanceGetterFunction<backend::default_render::TYPE>>()); \
+    }                                                                          \
   }
 
-  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpSrc);
-  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpDst);
-  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpOver);
-  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpIn);
-  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpOut);
-  YAVE_DECL_BLEND_OP_BIND_INFO_DEFAULT_RENDER(BlendOpAdd);
+  YAVE_DEFAULT_RENDER_DEF_BLEND_OP(BlendOpSrc);
+  YAVE_DEFAULT_RENDER_DEF_BLEND_OP(BlendOpDst);
+  YAVE_DEFAULT_RENDER_DEF_BLEND_OP(BlendOpOver);
+  YAVE_DEFAULT_RENDER_DEF_BLEND_OP(BlendOpIn);
+  YAVE_DEFAULT_RENDER_DEF_BLEND_OP(BlendOpOut);
+  YAVE_DEFAULT_RENDER_DEF_BLEND_OP(BlendOpAdd);
 
 } // namespace yave
