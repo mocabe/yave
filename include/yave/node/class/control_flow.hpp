@@ -17,22 +17,23 @@ namespace yave {
   } // namespace node
 
   template <>
-  struct node_info_traits<node::If>
+  struct node_declaration_traits<node::If>
   {
-    static auto get_node_info() -> node_info
-    {
-      return {"If", {"cond", "then", "else"}, {"out"}};
-    }
-
-    static auto get_node_type() -> object_ptr<const Type>
+    static auto get_node_declaration() -> node_declaration
     {
       class X;
-      return object_type<node_closure<Bool, X, X>>();
+      return node_declaration(
+        "If",
+        {"cond", "then", "else"},
+        {"out"},
+        node_type::normal,
+        object_type<node_closure<Bool, X, X>>());
     }
   };
 
-  std::vector<node_info> get_control_flow_node_info_list()
+  inline auto get_control_flow_node_declaration_list()
+    -> std::vector<node_declaration>
   {
-    return {get_node_info<node::If>()};
+    return {get_node_declaration<node::If>()};
   }
 }

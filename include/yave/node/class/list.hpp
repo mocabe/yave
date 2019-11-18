@@ -22,64 +22,62 @@ namespace yave {
   } // namespace node
 
   template <>
-  struct node_info_traits<node::ListNil>
+  struct node_declaration_traits<node::ListNil>
   {
-    static auto get_node_info() -> node_info
-    {
-      // List<T>
-      return node_info("ListNil", {}, {"nil"});
-    }
-
-    static auto get_node_type() -> object_ptr<const Type>
+    static auto get_node_declaration() -> node_declaration
     {
       class X;
-      return object_type<node_closure<List<X>>>();
+      return node_declaration(
+        "ListNil",
+        {},
+        {"nil"},
+        node_type::normal,
+        object_type<node_closure<List<X>>>());
     }
   };
 
   template <>
-  struct node_info_traits<node::ListCons>
+  struct node_declaration_traits<node::ListCons>
   {
-    static auto get_node_info() -> node_info
-    {
-      return node_info("ListCons", {"head", "tail"}, {"cons"});
-    }
-
-    static auto get_node_type() -> object_ptr<const Type>
+    static auto get_node_declaration() -> node_declaration
     {
       class X;
-      return object_type<node_closure<X, List<X>, List<X>>>();
+      return node_declaration(
+        "ListCons",
+        {"head", "tail"},
+        {"cons"},
+        node_type::normal,
+        object_type<node_closure<X, List<X>, List<X>>>());
     }
   };
 
   template <>
-  struct node_info_traits<node::ListDecompose_Head>
+  struct node_declaration_traits<node::ListDecompose_Head>
   {
-    static auto get_node_info() -> node_info
-    {
-      return node_info("ListDecompose", {"list"}, {"head"});
-    }
-
-    static auto get_node_type() -> object_ptr<const Type>
+    static auto get_node_declaration() -> node_declaration
     {
       class X;
-      return object_type<node_closure<List<X>, X>>();
+      return node_declaration(
+        "ListDecompose",
+        {"list"},
+        {"head"},
+        node_type::normal,
+        object_type<node_closure<List<X>, X>>());
     }
   };
 
   template <>
-  struct node_info_traits<node::ListDecompose_Tail>
+  struct node_declaration_traits<node::ListDecompose_Tail>
   {
-    static auto get_node_info() -> node_info
-    {
-      // List<T> -> List<T>
-      return node_info("ListDecompose", {"list"}, {"tail"});
-    }
-
-    static auto get_node_type() -> object_ptr<const Type>
+    static auto get_node_declaration() -> node_declaration
     {
       class X;
-      return object_type<node_closure<List<X>, List<X>>>();
+      return node_declaration(
+        "ListDecompose",
+        {"list"},
+        {"tail"},
+        node_type::normal,
+        object_type<node_closure<List<X>, List<X>>>());
     }
   };
 }

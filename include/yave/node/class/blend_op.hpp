@@ -32,193 +32,187 @@ namespace yave {
 
   } // namespace node
 
-  /// Get node info from blend_operation
-  inline auto get_blend_op_node_info(blend_operation op) -> node_info
+  inline auto get_blend_op_node_declaration(blend_operation op)
+    -> node_declaration
   {
     switch (op) {
       case blend_operation::src:
-        return get_node_info<node::BlendOpSrc>();
+        return get_node_declaration<node::BlendOpSrc>();
       case blend_operation::dst:
-        return get_node_info<node::BlendOpDst>();
+        return get_node_declaration<node::BlendOpDst>();
       case blend_operation::over:
-        return get_node_info<node::BlendOpOver>();
+        return get_node_declaration<node::BlendOpOver>();
       case blend_operation::in:
-        return get_node_info<node::BlendOpIn>();
+        return get_node_declaration<node::BlendOpIn>();
       case blend_operation::out:
-        return get_node_info<node::BlendOpOut>();
+        return get_node_declaration<node::BlendOpOut>();
       case blend_operation::add:
-        return get_node_info<node::BlendOpAdd>();
+        return get_node_declaration<node::BlendOpAdd>();
     }
-    // default: alpha overlay
-    return get_node_info<node::BlendOpOver>();
+    unreachable();
   }
 
-  /// Get node info from blend_operation
-  inline auto get_blend_op_getter_node_info(blend_operation op) -> node_info
+  inline auto get_blend_op_getter_node_declaration(blend_operation op)
+    -> node_declaration
   {
     switch (op) {
       case blend_operation::src:
-        return get_node_info<node::BlendOpSrcGetter>();
+        return get_node_declaration<node::BlendOpSrcGetter>();
       case blend_operation::dst:
-        return get_node_info<node::BlendOpDstGetter>();
+        return get_node_declaration<node::BlendOpDstGetter>();
       case blend_operation::over:
-        return get_node_info<node::BlendOpOverGetter>();
+        return get_node_declaration<node::BlendOpOverGetter>();
       case blend_operation::in:
-        return get_node_info<node::BlendOpInGetter>();
+        return get_node_declaration<node::BlendOpInGetter>();
       case blend_operation::out:
-        return get_node_info<node::BlendOpOutGetter>();
+        return get_node_declaration<node::BlendOpOutGetter>();
       case blend_operation::add:
-        return get_node_info<node::BlendOpAddGetter>();
+        return get_node_declaration<node::BlendOpAddGetter>();
     }
-    // default: alpha overlay
-    return get_node_info<node::BlendOpOverGetter>();
+    unreachable();
   }
 
-  /// Get bind info from blend_operation
   template <class BackendTag>
-  auto get_blend_op_bind_info(blend_operation op) -> bind_info
+  auto get_blend_op_node_definition(blend_operation op) -> node_definition
   {
     switch (op) {
       case blend_operation::src:
-        return get_bind_info<node::BlendOpSrc, BackendTag>();
+        return get_node_definition<node::BlendOpSrc, BackendTag>();
       case blend_operation::dst:
-        return get_bind_info<node::BlendOpDst, BackendTag>();
+        return get_node_definition<node::BlendOpDst, BackendTag>();
       case blend_operation::over:
-        return get_bind_info<node::BlendOpOver, BackendTag>();
+        return get_node_definition<node::BlendOpOver, BackendTag>();
       case blend_operation::in:
-        return get_bind_info<node::BlendOpIn, BackendTag>();
+        return get_node_definition<node::BlendOpIn, BackendTag>();
       case blend_operation::out:
-        return get_bind_info<node::BlendOpOut, BackendTag>();
+        return get_node_definition<node::BlendOpOut, BackendTag>();
       case blend_operation::add:
-        return get_bind_info<node::BlendOpAdd, BackendTag>();
+        return get_node_definition<node::BlendOpAdd, BackendTag>();
     }
-    // default: alpha overlay
-    return get_bind_info<node::BlendOpOver, BackendTag>();
+    unreachable();
   }
 
-  /// Get bind info from blend_operation
   template <class BackendTag>
-  auto get_blend_op_getter_bind_info(blend_operation op) -> bind_info
+  auto get_blend_op_getter_node_definition(blend_operation op)
+    -> node_definition
   {
     switch (op) {
       case blend_operation::src:
-        return get_bind_info<node::BlendOpSrcGetter, BackendTag>();
+        return get_node_definition<node::BlendOpSrcGetter, BackendTag>();
       case blend_operation::dst:
-        return get_bind_info<node::BlendOpDstGetter, BackendTag>();
+        return get_node_definition<node::BlendOpDstGetter, BackendTag>();
       case blend_operation::over:
-        return get_bind_info<node::BlendOpOverGetter, BackendTag>();
+        return get_node_definition<node::BlendOpOverGetter, BackendTag>();
       case blend_operation::in:
-        return get_bind_info<node::BlendOpInGetter, BackendTag>();
+        return get_node_definition<node::BlendOpInGetter, BackendTag>();
       case blend_operation::out:
-        return get_bind_info<node::BlendOpOutGetter, BackendTag>();
+        return get_node_definition<node::BlendOpOutGetter, BackendTag>();
       case blend_operation::add:
-        return get_bind_info<node::BlendOpAddGetter, BackendTag>();
+        return get_node_definition<node::BlendOpAddGetter, BackendTag>();
     }
-    // default: alpha overlay
-    return get_bind_info<node::BlendOpOverGetter, BackendTag>();
+    unreachable();
   }
 
-  /// Get list of node info from blend_operation
-  inline auto get_blend_op_node_info_list() -> std::vector<node_info>
+  inline auto get_blend_op_node_declaration_list()
+    -> std::vector<node_declaration>
   {
-    std::vector<node_info> ret = {
-      get_blend_op_node_info(blend_operation::src),
-      get_blend_op_node_info(blend_operation::dst),
-      get_blend_op_node_info(blend_operation::over),
-      get_blend_op_node_info(blend_operation::in),
-      get_blend_op_node_info(blend_operation::out),
-      get_blend_op_node_info(blend_operation::add),
+    std::vector ret = {
+      get_blend_op_node_declaration(blend_operation::src),
+      get_blend_op_node_declaration(blend_operation::dst),
+      get_blend_op_node_declaration(blend_operation::over),
+      get_blend_op_node_declaration(blend_operation::in),
+      get_blend_op_node_declaration(blend_operation::out),
+      get_blend_op_node_declaration(blend_operation::add),
     };
     return ret;
   }
 
-  /// Get list of node info from blend_operation
-  inline auto get_blend_op_getter_node_info_list() -> std::vector<node_info>
+  inline auto get_blend_op_getter_node_declaration_list()
+    -> std::vector<node_declaration>
   {
-    std::vector<node_info> ret = {
-      get_blend_op_getter_node_info(blend_operation::src),
-      get_blend_op_getter_node_info(blend_operation::dst),
-      get_blend_op_getter_node_info(blend_operation::over),
-      get_blend_op_getter_node_info(blend_operation::in),
-      get_blend_op_getter_node_info(blend_operation::out),
-      get_blend_op_getter_node_info(blend_operation::add),
+    std::vector ret = {
+      get_blend_op_getter_node_declaration(blend_operation::src),
+      get_blend_op_getter_node_declaration(blend_operation::dst),
+      get_blend_op_getter_node_declaration(blend_operation::over),
+      get_blend_op_getter_node_declaration(blend_operation::in),
+      get_blend_op_getter_node_declaration(blend_operation::out),
+      get_blend_op_getter_node_declaration(blend_operation::add),
     };
     return ret;
   }
 
-  /// Get list of bind info from blend_operation
   template <class BackendTag>
-  auto get_blend_op_bind_info_list() -> std::vector<bind_info>
+  auto get_blend_op_node_definition_list() -> std::vector<node_definition>
   {
-    std::vector<bind_info> ret = {
-      get_blend_op_bind_info<BackendTag>(blend_operation::src),
-      get_blend_op_bind_info<BackendTag>(blend_operation::dst),
-      get_blend_op_bind_info<BackendTag>(blend_operation::over),
-      get_blend_op_bind_info<BackendTag>(blend_operation::in),
-      get_blend_op_bind_info<BackendTag>(blend_operation::out),
-      get_blend_op_bind_info<BackendTag>(blend_operation::add),
+    std::vector ret = {
+      get_blend_op_node_definition<BackendTag>(blend_operation::src),
+      get_blend_op_node_definition<BackendTag>(blend_operation::dst),
+      get_blend_op_node_definition<BackendTag>(blend_operation::over),
+      get_blend_op_node_definition<BackendTag>(blend_operation::in),
+      get_blend_op_node_definition<BackendTag>(blend_operation::out),
+      get_blend_op_node_definition<BackendTag>(blend_operation::add),
     };
     return ret;
   }
 
-  /// Get list of bind info from blend_operation
   template <class BackendTag>
-  auto get_blend_op_getter_bind_info_list() -> std::vector<bind_info>
+  auto get_blend_op_getter_node_definition_list()
+    -> std::vector<node_definition>
   {
-    std::vector<bind_info> ret = {
-      get_blend_op_getter_bind_info<BackendTag>(blend_operation::src),
-      get_blend_op_getter_bind_info<BackendTag>(blend_operation::dst),
-      get_blend_op_getter_bind_info<BackendTag>(blend_operation::over),
-      get_blend_op_getter_bind_info<BackendTag>(blend_operation::in),
-      get_blend_op_getter_bind_info<BackendTag>(blend_operation::out),
-      get_blend_op_getter_bind_info<BackendTag>(blend_operation::add),
+    std::vector ret = {
+      get_blend_op_getter_node_definition<BackendTag>(blend_operation::src),
+      get_blend_op_getter_node_definition<BackendTag>(blend_operation::dst),
+      get_blend_op_getter_node_definition<BackendTag>(blend_operation::over),
+      get_blend_op_getter_node_definition<BackendTag>(blend_operation::in),
+      get_blend_op_getter_node_definition<BackendTag>(blend_operation::out),
+      get_blend_op_getter_node_definition<BackendTag>(blend_operation::add),
     };
     return ret;
   }
 
-#define YAVE_DECL_BLEND_OP_NODE_INFO(TYPE)                      \
-  template <>                                                   \
-  struct node_info_traits<node::TYPE>                           \
-  {                                                             \
-    static auto get_node_info() -> node_info                    \
-    {                                                           \
-      return node_info(#TYPE, {"src", "dst"}, {"out"});         \
-    }                                                           \
-                                                                \
-    static auto get_node_type() -> object_ptr<const Type>       \
-    {                                                           \
-      return object_type<                                       \
-        node_closure<FrameBuffer, FrameBuffer, FrameBuffer>>(); \
-    }                                                           \
+#define YAVE_DECL_BLEND_OP_NODE(TYPE)                                        \
+  template <>                                                                \
+  struct node_declaration_traits<node::TYPE>                                 \
+  {                                                                          \
+    static auto get_node_declaration() -> node_declaration                   \
+    {                                                                        \
+      return node_declaration(                                               \
+        #TYPE,                                                               \
+        {"src", "dst"},                                                      \
+        {"out"},                                                             \
+        node_type::normal,                                                   \
+        object_type<node_closure<FrameBuffer, FrameBuffer, FrameBuffer>>()); \
+    }                                                                        \
   }
 
-  YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpSrc);
-  YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpDst);
-  YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpOver);
-  YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpIn);
-  YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpOut);
-  YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpAdd);
+  YAVE_DECL_BLEND_OP_NODE(BlendOpSrc);
+  YAVE_DECL_BLEND_OP_NODE(BlendOpDst);
+  YAVE_DECL_BLEND_OP_NODE(BlendOpOver);
+  YAVE_DECL_BLEND_OP_NODE(BlendOpIn);
+  YAVE_DECL_BLEND_OP_NODE(BlendOpOut);
+  YAVE_DECL_BLEND_OP_NODE(BlendOpAdd);
 
-#define YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(TYPE)                             \
-  template <>                                                                 \
-  struct node_info_traits<node::TYPE##Getter>                                 \
-  {                                                                           \
-    static auto get_node_info() -> node_info                                  \
-    {                                                                         \
-      return node_info(#TYPE "Getter", {}, {"op"}, node_type::primitive);     \
-    }                                                                         \
-                                                                              \
-    static auto get_node_type() -> object_ptr<const Type>                     \
-    {                                                                         \
-      return object_type<                                                     \
-        node_closure<node_closure<FrameBuffer, FrameBuffer, FrameBuffer>>>(); \
-    }                                                                         \
+#define YAVE_DECL_BLEND_OP_GETTER_NODE(TYPE)                        \
+  template <>                                                       \
+  struct node_declaration_traits<node::TYPE##Getter>                \
+  {                                                                 \
+    static auto get_node_declaration() -> node_declaration          \
+    {                                                               \
+      return node_declaration(                                      \
+        #TYPE "Getter",                                             \
+        {},                                                         \
+        {"op"},                                                     \
+        node_type::normal,                                          \
+        object_type<node_closure<                                   \
+          node_closure<FrameBuffer, FrameBuffer, FrameBuffer>>>()); \
+    }                                                               \
   }
 
-  YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(BlendOpSrc);
-  YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(BlendOpDst);
-  YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(BlendOpOver);
-  YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(BlendOpIn);
-  YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(BlendOpOut);
-  YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(BlendOpAdd);
+  YAVE_DECL_BLEND_OP_GETTER_NODE(BlendOpSrc);
+  YAVE_DECL_BLEND_OP_GETTER_NODE(BlendOpDst);
+  YAVE_DECL_BLEND_OP_GETTER_NODE(BlendOpOver);
+  YAVE_DECL_BLEND_OP_GETTER_NODE(BlendOpIn);
+  YAVE_DECL_BLEND_OP_GETTER_NODE(BlendOpOut);
+  YAVE_DECL_BLEND_OP_GETTER_NODE(BlendOpAdd);
+
 } // namespace yave

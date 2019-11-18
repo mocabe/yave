@@ -16,22 +16,21 @@ namespace yave {
     struct LayerCompositor;
   } // namespace node
 
-  // info traits
   template <>
-  struct node_info_traits<node::LayerCompositor>
+  struct node_declaration_traits<node::LayerCompositor>
   {
-    static auto get_node_info() -> node_info
+    static auto get_node_declaration() -> node_declaration
     {
-      return node_info("LayerCompositor", {"src", "dst", "blend op"}, {"out"});
-    }
-
-    static auto get_node_type() -> object_ptr<const Type>
-    {
-      return object_type<node_closure<
-        FrameBuffer,
-        FrameBuffer,
-        node_closure<FrameBuffer, FrameBuffer, FrameBuffer>,
-        FrameBuffer>>();
+      return node_declaration(
+        "LayerCompositor",
+        {"src", "dst", "blend op"},
+        {"out"},
+        node_type::normal,
+        object_type<node_closure<
+          FrameBuffer,
+          FrameBuffer,
+          node_closure<FrameBuffer, FrameBuffer, FrameBuffer>,
+          FrameBuffer>>());
     }
   };
 

@@ -17,17 +17,17 @@ namespace yave {
   } // namespace node
 
   template <>
-  struct node_info_traits<node::LayerImageOutput>
+  struct node_declaration_traits<node::LayerImageOutput>
   {
-    static auto get_node_info() -> node_info
-    {
-      return node_info("LayerImageOutput", {"in"}, {"out"});
-    }
-
-    static auto get_node_type() -> object_ptr<const Type>
+    static auto get_node_declaration() -> node_declaration
     {
       class X;
-      return object_type<node_closure<X, FrameBuffer>>();
+      return node_declaration(
+        "LayerImageOutput",
+        {"in"},
+        {"out"},
+        node_type::normal,
+        object_type<node_closure<X, FrameBuffer>>());
     }
   };
-}
+} // namespace yave

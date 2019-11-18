@@ -17,17 +17,16 @@ namespace yave {
   } // namespace node
 
   template <>
-  struct node_info_traits<node::FrameTime>
+  struct node_declaration_traits<node::FrameTime>
   {
-    static auto get_node_info() -> node_info
+    static auto get_node_declaratin() -> node_declaration
     {
-      // pseudo primitive
-      return node_info("FrameTime", {}, {"value"}, node_type::primitive);
-    }
-
-    static auto get_node_type() -> object_ptr<const Type>
-    {
-      return object_type<node_closure<FrameTime>>();
+      return node_declaration(
+        "FrameTime",
+        {},
+        {"value"},
+        node_type::primitive,
+        object_type<node_closure<FrameTime>>());
     }
   };
 } // namespace yave

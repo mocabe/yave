@@ -17,17 +17,17 @@ namespace yave {
   } // namespace node
 
   template <>
-  struct node_info_traits<node::FrameBuffer>
+  struct node_declaration_traits<node::FrameBuffer>
   {
-    static auto get_node_info() -> node_info
+    static auto get_node_declaration() -> node_declaration
     {
       // pseudo primitive
-      return node_info("FrameBuffer", {}, {"value"}, node_type::primitive);
-    }
-
-    static auto get_node_type() -> object_ptr<const Type>
-    {
-      return object_type<node_closure<FrameBuffer>>();
+      return node_declaration(
+        "FrameBuffer",
+        {},
+        {"value"},
+        node_type::primitive,
+        object_type<node_closure<FrameBuffer>>());
     }
   };
 } // namespace yave

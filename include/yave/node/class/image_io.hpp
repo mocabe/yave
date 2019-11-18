@@ -17,17 +17,18 @@ namespace yave {
   } // namespace node
 
   template <>
-  struct node_info_traits<node::LoadImage>
+  struct node_declaration_traits<node::LoadImage>
   {
-    static auto get_node_info() -> node_info
-    {
-      return node_info("LoadImage", {"path"}, {"image"});
-    }
-
-    static auto get_node_type() -> object_ptr<const Type>
+    static auto get_node_declaration() -> node_declaration
     {
       class X;
-      return object_type<node_closure<X, Image>>();
+      return node_declaration(
+        "LoadImage",
+        {"path"},
+        {"image"},
+        node_type::normal,
+        object_type<node_closure<X, Image>>()
+      );
     }
   };
 } // namespace yave

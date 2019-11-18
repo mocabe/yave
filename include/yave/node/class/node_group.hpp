@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
+#include <yave/node/core/function.hpp>
 
 namespace yave {
 
@@ -21,39 +22,66 @@ namespace yave {
   } // namespace node
 
   template <>
-  struct node_info_traits<node::NodeGroupInterface>
+  struct node_declaration_traits<node::NodeGroupInterface>
   {
-    static node_info get_node_info()
+    static auto get_node_declaration() -> node_declaration
     {
-      return node_info {"NodeGroupInterface", {}, {}, node_type::interface};
+      return node_declaration(
+        "NodeGroupInterface",
+        {},
+        {},
+        [](managed_node_graph&, const node_handle&) -> node_handle {
+          assert(false);
+          return nullptr;
+        });
     }
   };
 
   template <>
-  struct node_info_traits<node::NodeGroupInput>
+  struct node_declaration_traits<node::NodeGroupInput>
   {
-    static node_info get_node_info()
+    static auto get_node_declaration() -> node_declaration
     {
-      return node_info {"NodeGroupInput", {}, {}, node_type::interface};
+      return node_declaration(
+        "NodeGroupInput",
+        {},
+        {},
+        [](managed_node_graph&, const node_handle&) -> node_handle {
+          assert(false);
+          return nullptr;
+        });
     }
   };
 
   template <>
-  struct node_info_traits<node::NodeGroupOutput>
+  struct node_declaration_traits<node::NodeGroupOutput>
   {
-    static node_info get_node_info()
+    static auto get_node_declaration() -> node_declaration
     {
-      return node_info {"NodeGroupOutput", {}, {}, node_type::interface};
+      return node_declaration(
+        "NodeGroupOutput",
+        {},
+        {},
+        [](managed_node_graph&, const node_handle&) -> node_handle {
+          assert(false);
+          return nullptr;
+        });
     }
   };
 
   template <>
-  struct node_info_traits<node::NodeGroupIOBit>
+  struct node_declaration_traits<node::NodeGroupIOBit>
   {
-    static node_info get_node_info()
+    static auto get_node_declaration() -> node_declaration
     {
       // socket names will change dynamically
-      return node_info {"NodeGroupIOBit", {"0"}, {"0"}};
+      class X;
+      return node_declaration(
+        "NodeGroupIOBit",
+        {"0"},
+        {"0"},
+        node_type::normal,
+        object_type<node_closure<X, X>>());
     }
   };
 

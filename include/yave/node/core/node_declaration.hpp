@@ -17,6 +17,7 @@ namespace yave {
   /// Node declaration
   class node_declaration
   {
+  public:
     /// normal node
     node_declaration(
       std::string name,
