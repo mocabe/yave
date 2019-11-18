@@ -5,8 +5,10 @@
 
 #pragma once
 
-#include <yave/lib/image/blend_operation.hpp>
 #include <yave/node/core/get_info.hpp>
+#include <yave/node/core/function.hpp>
+#include <yave/obj/frame_buffer/frame_buffer.hpp>
+#include <yave/lib/image/blend_operation.hpp>
 
 namespace yave {
 
@@ -31,7 +33,7 @@ namespace yave {
   } // namespace node
 
   /// Get node info from blend_operation
-  inline node_info get_blend_op_node_info(blend_operation op)
+  inline auto get_blend_op_node_info(blend_operation op) -> node_info
   {
     switch (op) {
       case blend_operation::src:
@@ -52,7 +54,7 @@ namespace yave {
   }
 
   /// Get node info from blend_operation
-  inline node_info get_blend_op_getter_node_info(blend_operation op)
+  inline auto get_blend_op_getter_node_info(blend_operation op) -> node_info
   {
     switch (op) {
       case blend_operation::src:
@@ -74,7 +76,7 @@ namespace yave {
 
   /// Get bind info from blend_operation
   template <class BackendTag>
-  bind_info get_blend_op_bind_info(blend_operation op)
+  auto get_blend_op_bind_info(blend_operation op) -> bind_info
   {
     switch (op) {
       case blend_operation::src:
@@ -96,7 +98,7 @@ namespace yave {
 
   /// Get bind info from blend_operation
   template <class BackendTag>
-  bind_info get_blend_op_getter_bind_info(blend_operation op)
+  auto get_blend_op_getter_bind_info(blend_operation op) -> bind_info
   {
     switch (op) {
       case blend_operation::src:
@@ -117,7 +119,7 @@ namespace yave {
   }
 
   /// Get list of node info from blend_operation
-  inline std::vector<node_info> get_blend_op_node_info_list()
+  inline auto get_blend_op_node_info_list() -> std::vector<node_info>
   {
     std::vector<node_info> ret = {
       get_blend_op_node_info(blend_operation::src),
@@ -131,7 +133,7 @@ namespace yave {
   }
 
   /// Get list of node info from blend_operation
-  inline std::vector<node_info> get_blend_op_getter_node_info_list()
+  inline auto get_blend_op_getter_node_info_list() -> std::vector<node_info>
   {
     std::vector<node_info> ret = {
       get_blend_op_getter_node_info(blend_operation::src),
@@ -146,7 +148,7 @@ namespace yave {
 
   /// Get list of bind info from blend_operation
   template <class BackendTag>
-  std::vector<bind_info> get_blend_op_bind_info_list()
+  auto get_blend_op_bind_info_list() -> std::vector<bind_info>
   {
     std::vector<bind_info> ret = {
       get_blend_op_bind_info<BackendTag>(blend_operation::src),
@@ -161,7 +163,7 @@ namespace yave {
 
   /// Get list of bind info from blend_operation
   template <class BackendTag>
-  std::vector<bind_info> get_blend_op_getter_bind_info_list()
+  auto get_blend_op_getter_bind_info_list() -> std::vector<bind_info>
   {
     std::vector<bind_info> ret = {
       get_blend_op_getter_bind_info<BackendTag>(blend_operation::src),
@@ -174,14 +176,20 @@ namespace yave {
     return ret;
   }
 
-#define YAVE_DECL_BLEND_OP_NODE_INFO(TYPE)              \
-  template <>                                           \
-  struct node_info_traits<node::TYPE>                   \
-  {                                                     \
-    static node_info get_node_info()                    \
-    {                                                   \
-      return node_info(#TYPE, {"src", "dst"}, {"out"}); \
-    }                                                   \
+#define YAVE_DECL_BLEND_OP_NODE_INFO(TYPE)                      \
+  template <>                                                   \
+  struct node_info_traits<node::TYPE>                           \
+  {                                                             \
+    static auto get_node_info() -> node_info                    \
+    {                                                           \
+      return node_info(#TYPE, {"src", "dst"}, {"out"});         \
+    }                                                           \
+                                                                \
+    static auto get_node_type() -> object_ptr<const Type>       \
+    {                                                           \
+      return object_type<                                       \
+        node_closure<FrameBuffer, FrameBuffer, FrameBuffer>>(); \
+    }                                                           \
   }
 
   YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpSrc);
@@ -191,14 +199,20 @@ namespace yave {
   YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpOut);
   YAVE_DECL_BLEND_OP_NODE_INFO(BlendOpAdd);
 
-#define YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(TYPE)                         \
-  template <>                                                             \
-  struct node_info_traits<node::TYPE##Getter>                             \
-  {                                                                       \
-    static node_info get_node_info()                                      \
-    {                                                                     \
-      return node_info(#TYPE "Getter", {}, {"op"}, node_type::primitive); \
-    }                                                                     \
+#define YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(TYPE)                             \
+  template <>                                                                 \
+  struct node_info_traits<node::TYPE##Getter>                                 \
+  {                                                                           \
+    static auto get_node_info() -> node_info                                  \
+    {                                                                         \
+      return node_info(#TYPE "Getter", {}, {"op"}, node_type::primitive);     \
+    }                                                                         \
+                                                                              \
+    static auto get_node_type() -> object_ptr<const Type>                     \
+    {                                                                         \
+      return object_type<                                                     \
+        node_closure<node_closure<FrameBuffer, FrameBuffer, FrameBuffer>>>(); \
+    }                                                                         \
   }
 
   YAVE_DECL_BLEND_OP_GETTER_NODE_INFO(BlendOpSrc);

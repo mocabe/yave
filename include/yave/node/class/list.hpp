@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
+#include <yave/node/core/function.hpp>
 
 namespace yave {
 
@@ -23,40 +24,62 @@ namespace yave {
   template <>
   struct node_info_traits<node::ListNil>
   {
-    static node_info get_node_info()
+    static auto get_node_info() -> node_info
     {
       // List<T>
       return node_info("ListNil", {}, {"nil"});
+    }
+
+    static auto get_node_type() -> object_ptr<const Type>
+    {
+      class X;
+      return object_type<node_closure<List<X>>>();
     }
   };
 
   template <>
   struct node_info_traits<node::ListCons>
   {
-    static node_info get_node_info()
+    static auto get_node_info() -> node_info
     {
-      // T -> List<T> -> List<T>
       return node_info("ListCons", {"head", "tail"}, {"cons"});
+    }
+
+    static auto get_node_type() -> object_ptr<const Type>
+    {
+      class X;
+      return object_type<node_closure<X, List<X>, List<X>>>();
     }
   };
 
   template <>
   struct node_info_traits<node::ListDecompose_Head>
   {
-    static node_info get_node_info()
+    static auto get_node_info() -> node_info
     {
-      // List<T> -> T
       return node_info("ListDecompose", {"list"}, {"head"});
+    }
+
+    static auto get_node_type() -> object_ptr<const Type>
+    {
+      class X;
+      return object_type<node_closure<List<X>, X>>();
     }
   };
 
   template <>
   struct node_info_traits<node::ListDecompose_Tail>
   {
-    static node_info get_node_info()
+    static auto get_node_info() -> node_info
     {
       // List<T> -> List<T>
       return node_info("ListDecompose", {"list"}, {"tail"});
+    }
+
+    static auto get_node_type() -> object_ptr<const Type>
+    {
+      class X;
+      return object_type<node_closure<List<X>, List<X>>>();
     }
   };
 }

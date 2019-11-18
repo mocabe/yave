@@ -6,6 +6,8 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
+#include <yave/node/core/function.hpp>
+#include <yave/obj/image/image.hpp>
 
 namespace yave {
 
@@ -17,9 +19,15 @@ namespace yave {
   template <>
   struct node_info_traits<node::LoadImage>
   {
-    static node_info get_node_info()
+    static auto get_node_info() -> node_info
     {
       return node_info("LoadImage", {"path"}, {"image"});
+    }
+
+    static auto get_node_type() -> object_ptr<const Type>
+    {
+      class X;
+      return object_type<node_closure<X, Image>>();
     }
   };
 } // namespace yave
