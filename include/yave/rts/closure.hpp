@@ -67,10 +67,10 @@ namespace yave {
     {
       using arg_type = typename decltype(Closure1::spine)::value_type;
       // offset to first element of argument buffer
-      constexpr uint64_t offset = offset_of_member(&Closure1::spine);
-      static_assert(offset % sizeof(arg_type) == 0);
+      constexpr uint64_t arg_offset = offset_of_member(&Closure1::spine);
+      static_assert(arg_offset % sizeof(arg_type) == 0);
       // manually calc offset to avoid UB
-      return ((arg_type*)this)[offset / sizeof(arg_type) + n];
+      return ((arg_type*)this)[arg_offset / sizeof(arg_type) + n];
     }
 
     /// get nth argument

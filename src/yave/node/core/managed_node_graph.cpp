@@ -743,9 +743,9 @@ namespace yave {
     const std::string& socket,
     size_t index)
   {
-    node_handle* pInterfaceIn;
-    node_handle* pInterfaceOut;
-    std::vector<node_handle>* pBits;
+    node_handle* pInterfaceIn       = nullptr;
+    node_handle* pInterfaceOut      = nullptr;
+    std::vector<node_handle>* pBits = nullptr;
 
     switch (type) {
       case socket_type::input:
@@ -758,8 +758,6 @@ namespace yave {
         pInterfaceIn  = &group->output_handler;
         pBits         = &group->output_bits;
         break;
-      default:
-        assert(false);
     }
 
     // detach
@@ -850,7 +848,7 @@ namespace yave {
     const std::string& socket,
     size_t index)
   {
-    std::vector<node_handle>* pBits;
+    std::vector<node_handle>* pBits = nullptr;
 
     switch (type) {
       case socket_type::input:
@@ -859,8 +857,6 @@ namespace yave {
       case socket_type::output:
         pBits = &group->output_bits;
         break;
-      default:
-        assert(false);
     }
 
     for (auto&& s : m_ng.input_sockets(pBits->operator[](index)))
@@ -914,9 +910,9 @@ namespace yave {
     socket_type type,
     size_t index)
   {
-    node_handle* pInterfaceIn;
-    node_handle* pInterfaceOut;
-    std::vector<node_handle>* pBits;
+    node_handle* pInterfaceIn       = nullptr;
+    node_handle* pInterfaceOut      = nullptr;
+    std::vector<node_handle>* pBits = nullptr;
 
     switch (type) {
       case socket_type::input:
@@ -929,8 +925,6 @@ namespace yave {
         pInterfaceIn  = &group->output_handler;
         pBits         = &group->output_bits;
         break;
-      default:
-        assert(false);
     }
 
     // detach

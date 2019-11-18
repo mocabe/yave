@@ -64,7 +64,7 @@ namespace yave {
 
       Info(g_logger, "Loading PNG image from {}", file_path.string());
 
-      auto reader = sln::FileReader(file_path);
+      auto reader = sln::FileReader(file_path.string());
 
       assert(reader.is_open());
 
@@ -97,7 +97,7 @@ namespace yave {
 
       Info(g_logger, "Loading JPEG image from {}", file_path.string());
 
-      auto reader = sln::FileReader(file_path);
+      auto reader = sln::FileReader(file_path.string());
 
       assert(reader.is_open());
 
@@ -133,7 +133,7 @@ namespace yave {
 
       Info(g_logger, "Loading TIFF image from {}", file_path.string());
 
-      auto reader = sln::FileReader(file_path);
+      auto reader = sln::FileReader(file_path.string());
 
       assert(reader.is_open());
 
@@ -171,7 +171,7 @@ namespace yave {
 
     if (!std::filesystem::exists(file_path)) {
       Error(
-        g_logger, "Failed to load image: no such file {}", file_path.c_str());
+        g_logger, "Failed to load image: no such file {}", file_path.string());
       throw std::invalid_argument(
         "Failed to loag image file: File doesn't exist");
     }
@@ -206,7 +206,7 @@ namespace yave {
 
     if (!std::filesystem::exists(file_path)) {
       Error(
-        g_logger, "Failed to load image: no such file {}", file_path.c_str());
+        g_logger, "Failed to load image: no such file {}", file_path.string());
       throw std::invalid_argument(
         "Failed to loag image file: File doesn't exist");
     }
@@ -222,7 +222,7 @@ namespace yave {
 
     if (!std::filesystem::exists(file_path)) {
       Error(
-        g_logger, "Failed to load image: no such file {}", file_path.c_str());
+        g_logger, "Failed to load image: no such file {}", file_path.string());
       throw std::invalid_argument(
         "Failed to loag image file: File doesn't exist");
     }
@@ -238,7 +238,7 @@ namespace yave {
 
     if (!std::filesystem::exists(file_path)) {
       Error(
-        g_logger, "Failed to load image: no such file {}", file_path.c_str());
+        g_logger, "Failed to load image: no such file {}", file_path.string());
       throw std::invalid_argument(
         "Failed to loag image file: File doesn't exist");
     }

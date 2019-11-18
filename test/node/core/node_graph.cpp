@@ -240,8 +240,8 @@ TEST_CASE("node_graph control")
       REQUIRE(ng.has_connection(ng.output_sockets(n1)[0]));
       REQUIRE(ng.has_connection(ng.input_sockets(n2)[0]));
       REQUIRE(!ng.has_connection(ng.output_sockets(n2)[0]));
-      REQUIRE(!ng.has_connection(
-        socket_handle((socket_handle::descriptor_type)0xdeadbeef, uid {42})));
+      REQUIRE(!ng.has_connection(socket_handle(
+        (socket_handle::descriptor_type)0xBADC00FEE0DDF00D, uid {42})));
     }
   }
 
