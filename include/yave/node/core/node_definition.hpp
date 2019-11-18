@@ -13,6 +13,7 @@ namespace yave {
   {
   public:
     /// \param name name of bind (should match to target node_info::name())
+    /// \param output_socket name of output socket
     /// \param description Description of this bind.
     /// \throws std::invalid_argument when arguments are invalid.
     /// \param inst_getter A non-null managed pointer to a closure object
@@ -21,9 +22,11 @@ namespace yave {
     /// << make_object<Primitive>())` should not throw.
     node_definition(
       std::string name,
+      std::string output_socket,
       std::string description,
       object_ptr<const Object> inst_getter)
       : m_name {std::move(name)}
+      , m_os {std::move(output_socket)}
       , m_description {std::move(description)}
       , m_inst_getter {std::move(inst_getter)}
     {
@@ -69,6 +72,8 @@ namespace yave {
   private:
     /// name of name
     std::string m_name;
+    /// output socket name
+    std::string m_os;
     /// instance description
     std::string m_description;
     /// instance getter
