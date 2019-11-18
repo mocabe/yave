@@ -1,0 +1,77 @@
+//
+// Copyright (c) 2019 mocabe (https://github.com/mocabe)
+// Distributed under LGPLv3 License. See LICENSE for more details.
+//
+
+#include <yave/config/config.hpp>
+#include <yave/rts/eval.hpp>
+
+namespace yave {
+
+  /// Node definition provided by backend.
+  class node_definition
+  {
+  public:
+    /// \param name name of bind (should match to target node_info::name())
+    /// \param description Description of this bind.
+    /// \throws std::invalid_argument when arguments are invalid.
+    /// \param inst_getter A non-null managed pointer to a closure object
+    /// which takes sintle Primitive object and returns instance of node object
+    /// (closure). Thus `type_of(instance_func
+    /// << make_object<Primitive>())` should not throw.
+    node_definition(
+      std::string name,
+      std::string description,
+      object_ptr<const Object> inst_getter)
+      : m_name {std::move(name)}
+      , m_description {std::move(description)}
+      , m_inst_getter {std::move(inst_getter)}
+    {
+      // null
+      if (!m_inst_getter) {
+        throw std::invalid_argument("get_instance_func is null");
+      }
+
+      // check type of getter func
+      try {
+        auto prim = make_object<PrimitiveContainer>();
+        auto app  = m_inst_getter << prim;
+        auto tp   = type_of(app);
+      } catch (type_error::type_error& e) {
+        throw std::invalid_argument(
+          std::string("get_instance_func has invalid type: ") + e.what());
+      }
+    }
+
+    /// Get instance by calling instance function.
+    [[nodiscard]] auto get_instance(object_ptr<const PrimitiveContainer> prim)
+      const -> object_ptr<const Object>
+    {
+      auto app = m_inst_getter << std::move(prim);
+      return eval(app);
+    }
+
+    [[nodiscard]] auto name() const -> const auto&
+    {
+      return m_name;
+    }
+
+    [[nodiscard]] auto description() const -> const auto&
+    {
+      return m_description;
+    }
+
+    [[nodiscard]] auto instance_getter() const -> const auto&
+    {
+      return m_inst_getter;
+    }
+
+  private:
+    /// name of name
+    std::string m_name;
+    /// instance description
+    std::string m_description;
+    /// instance getter
+    object_ptr<const Object> m_inst_getter;
+  };
+}
