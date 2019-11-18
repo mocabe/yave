@@ -6,10 +6,8 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/frame_buffer.hpp>
+#include <yave/node/class/frame_buffer.hpp>
 #include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
-#include <yave/obj/frame_buffer/frame_buffer.hpp>
-#include <yave/node/core/function.hpp>
 
 namespace yave {
 

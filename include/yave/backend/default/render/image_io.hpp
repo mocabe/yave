@@ -6,10 +6,8 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/image_io.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/node/class/image_io.hpp>
 #include <yave/obj/filesystem/path.hpp>
-#include <yave/obj/image/image.hpp>
 #include <yave/lib/image/image_io.hpp>
 
 namespace yave {

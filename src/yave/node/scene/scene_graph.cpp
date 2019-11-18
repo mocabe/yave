@@ -7,13 +7,13 @@
 
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
-#include <yave/node/obj/frame_time.hpp>
-#include <yave/node/obj/frame_buffer.hpp>
-#include <yave/node/obj/image_output.hpp>
-#include <yave/node/obj/compositor.hpp>
-#include <yave/node/obj/blend_op.hpp>
-#include <yave/node/obj/control_flow.hpp>
-#include <yave/node/obj/keyframe.hpp>
+#include <yave/node/class/frame_time.hpp>
+#include <yave/node/class/frame_buffer.hpp>
+#include <yave/node/class/image_output.hpp>
+#include <yave/node/class/compositor.hpp>
+#include <yave/node/class/blend_op.hpp>
+#include <yave/node/class/control_flow.hpp>
+#include <yave/node/class/keyframe.hpp>
 #include <yave/support/log.hpp>
 #include <yave/support/id.hpp>
 

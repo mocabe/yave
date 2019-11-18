@@ -6,9 +6,7 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/image_output.hpp>
-#include <yave//obj/frame_buffer/frame_buffer.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/node/class/image_output.hpp>
 #include <yave/node/core/instance_getter.hpp>
 
 namespace yave {

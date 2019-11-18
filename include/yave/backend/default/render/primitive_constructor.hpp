@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/constructor.hpp>
+#include <yave/node/class/constructor.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/node/core/primitive.hpp>

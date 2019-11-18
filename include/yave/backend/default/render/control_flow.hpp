@@ -6,9 +6,8 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/control_flow.hpp>
-#include <yave/node/core/function.hpp>
-#include <yave/node/obj/constructor.hpp>
+#include <yave/node/class/control_flow.hpp>
+#include <yave/node/class/constructor.hpp>
 
 namespace yave {
 

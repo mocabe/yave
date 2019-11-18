@@ -6,11 +6,9 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/blend_op.hpp>
-#include <yave/node/core/function.hpp>
-#include <yave/node/obj/compositor.hpp>
+#include <yave/node/class/compositor.hpp>
+#include <yave/node/class/blend_op.hpp>
 #include <yave/lib/image/image_blend.hpp>
-#include <yave/obj/frame_buffer/frame_buffer.hpp>
 
 namespace yave {
 

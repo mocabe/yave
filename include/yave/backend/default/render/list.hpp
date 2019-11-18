@@ -5,9 +5,8 @@
 
 #pragma once
 
-#include <yave/node/obj/list.hpp>
 #include <yave/backend/default/config.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/node/class/list.hpp>
 
 namespace yave {
 

@@ -4,9 +4,9 @@
 //
 
 #include <yave/node/core/primitive.hpp>
-#include <yave/node/obj/constructor.hpp>
 #include <yave/rts/eval.hpp>
 #include <yave/obj/string/string.hpp>
+#include <yave/node/class/constructor.hpp>
 
 namespace yave {
 
