@@ -24,12 +24,16 @@ namespace yave {
       std::vector<std::string> iss,
       std::vector<std::string> oss,
       node_type node_type,
-      object_ptr<const Type> type_class)
+      object_ptr<const Type> type_class,
+      std::string category = "",
+      std::string module   = "")
       : m_name {std::move(name)}
       , m_iss {std::move(iss)}
       , m_oss {std::move(oss)}
       , m_node_type {std::move(node_type)}
       , m_type_class {std::move(type_class)}
+      , m_category {category}
+      , m_module {module}
     {
       assert(m_node_type != node_type::interface);
       assert(m_type_class);
@@ -40,11 +44,15 @@ namespace yave {
       std::string name,
       std::vector<std::string> iss,
       std::vector<std::string> oss,
-      std::function<node_handle(managed_node_graph&, const node_handle&)> func)
+      std::function<node_handle(managed_node_graph&, const node_handle&)> func,
+      std::string category = "",
+      std::string module   = "")
       : m_name {std::move(name)}
       , m_iss {std::move(iss)}
       , m_oss {std::move(oss)}
       , m_composite_func {std::move(func)}
+      , m_category {category}
+      , m_module {module}
     {
       m_node_type = node_type::interface;
       assert(m_composite_func);
@@ -82,6 +90,16 @@ namespace yave {
       return m_composite_func;
     }
 
+    [[nodiscard]] auto category() const -> const auto&
+    {
+      return m_category;
+    }
+
+    [[nodiscard]] auto module() const -> const auto&
+    {
+      return m_module;
+    }
+
   private:
     std::string m_name;
     std::vector<std::string> m_iss;
@@ -96,5 +114,9 @@ namespace yave {
     /// for composite node
     std::function<node_handle(managed_node_graph&, const node_handle&)>
       m_composite_func;
+
+  private:
+    std::string m_category;
+    std::string m_module;
   };
 }
