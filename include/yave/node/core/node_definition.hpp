@@ -7,6 +7,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/rts/eval.hpp>
+#include <yave/obj/primitive/primitive.hpp>
 
 namespace yave {
 
