@@ -3,6 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
+#pragma once
+
 #include <yave/config/config.hpp>
 #include <yave/rts/eval.hpp>
 
@@ -67,6 +69,11 @@ namespace yave {
     [[nodiscard]] auto instance_getter() const -> const auto&
     {
       return m_inst_getter;
+    }
+
+    [[nodiscard]] auto output_socket() const -> const auto&
+    {
+      return m_os;
     }
 
   private:
