@@ -16,6 +16,8 @@ add_library(yave-node-core
   socket_instance_manager.cpp
   shared_node_handle.cpp
   node_initializer.cpp
+  node_declaration_store.cpp
+  node_definition_store.cpp
 )
 
 add_library(yave::node::core ALIAS yave-node-core)
