@@ -10,16 +10,6 @@
 
 namespace yave {
 
-  auto get_primitive_node_info(const primitive_t& v) -> node_info
-  {
-    return std::visit(
-      overloaded {[&](const auto& p) {
-        using value_type = std::decay_t<decltype(p)>;
-        return get_node_info<node::PrimitiveConstructor<Box<value_type>>>();
-      }},
-      v);
-  }
-
   namespace {
     template <size_t N, class P, class R, class F>
     void primitive_list_gen(R& result, F& func)
@@ -42,11 +32,22 @@ namespace yave {
     return ret;
   }
 
-  auto get_primitive_node_info_list() -> std::vector<node_info>
+  auto get_primitive_node_declaration(const primitive_t& v) -> node_declaration
   {
-    std::vector<node_info> ret;
+    return std::visit(
+      overloaded {[&](const auto& p) {
+        using value_type = std::decay_t<decltype(p)>;
+        return get_node_declaration<
+          node::PrimitiveConstructor<Box<value_type>>>();
+      }},
+      v);
+  }
+
+  auto get_primitive_node_declaration_list() -> std::vector<node_declaration>
+  {
+    std::vector<node_declaration> ret;
     primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
-      ret, get_primitive_node_info);
+      ret, get_primitive_node_declaration);
     return ret;
   }
 

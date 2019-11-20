@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/node/core/node_info.hpp>
-#include <yave/node/core/bind_info.hpp>
+#include <yave/node/core/node_declaration.hpp>
+#include <yave/node/core/node_definition.hpp>
 #include <yave/support/overloaded.hpp>
 #include <yave/obj/primitive/primitive.hpp>
 #include <yave/obj/keyframe/keyframe.hpp>
