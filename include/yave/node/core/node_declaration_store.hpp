@@ -53,6 +53,9 @@ namespace yave {
     /// clear
     void clear();
 
+    /// empty?
+    bool empty() const;
+
   private:
     /// map
     map_type m_map;

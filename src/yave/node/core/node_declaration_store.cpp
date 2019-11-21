@@ -107,4 +107,9 @@ namespace yave {
     for (auto&& name : names)
       remove(name);
   }
+
+  bool node_declaration_store::empty() const
+  {
+    return m_map.empty();
+  }
 }

@@ -116,4 +116,9 @@ namespace yave {
     m_map.clear();
   }
 
+  bool node_definition_store::empty() const
+  {
+    return m_map.empty();
+  }
+
 } // namespace yave
