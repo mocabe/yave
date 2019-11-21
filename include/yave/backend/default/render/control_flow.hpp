@@ -40,8 +40,8 @@ namespace yave {
       return node_definition(
         info.name(),
         info.output_sockets()[0],
-        info.name(),
-        make_object<InstanceGetterFunction<backend::default_render::If>>());
+        make_object<InstanceGetterFunction<backend::default_render::If>>(),
+        info.name());
     }
   };
 } // namespace yave

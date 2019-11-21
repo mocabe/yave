@@ -35,9 +35,9 @@ namespace yave {
       return node_definition(
         info.name(),
         info.output_sockets()[0],
-        info.name() + ": Load image from file",
         make_object<
-          InstanceGetterFunction<backend::default_render::LoadImage>>());
+          InstanceGetterFunction<backend::default_render::LoadImage>>(),
+        info.name() + ": Load image from file");
     }
   };
 }

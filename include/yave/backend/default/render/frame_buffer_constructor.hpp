@@ -63,10 +63,10 @@ namespace yave {
       return node_definition(
         info.name(),
         info.output_sockets()[0],
-        info.name(),
         make_object<
           yave::backend::default_render::FrameBufferConstructorGetterFunction>(
-          mngr));
+          mngr),
+        info.name());
     }
   };
 } // namespace yave

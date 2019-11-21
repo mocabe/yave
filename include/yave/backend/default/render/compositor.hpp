@@ -42,9 +42,9 @@ namespace yave {
       return node_definition(
         info.name(),
         info.output_sockets()[0],
-        info.name() + ": composite layer outputs",
         make_object<
-          InstanceGetterFunction<backend::default_render::LayerCompositor>>());
+          InstanceGetterFunction<backend::default_render::LayerCompositor>>(),
+        info.name() + ": composite layer outputs");
     }
   };
 

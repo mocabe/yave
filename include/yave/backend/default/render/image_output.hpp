@@ -36,9 +36,9 @@ namespace yave {
       return node_definition(
         info.name(),
         info.output_sockets()[0],
-        info.name() + ": Image output node for layers",
         make_object<
-          InstanceGetterFunction<backend::default_render::LayerImageOutput>>());
+          InstanceGetterFunction<backend::default_render::LayerImageOutput>>(),
+        info.name() + ": Image output node for layers");
     }
   };
 }

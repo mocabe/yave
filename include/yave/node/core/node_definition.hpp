@@ -26,12 +26,12 @@ namespace yave {
     node_definition(
       std::string name,
       std::string output_socket,
-      std::string description,
-      object_ptr<const Object> inst_getter)
+      object_ptr<const Object> inst_getter,
+      std::string description)
       : m_name {std::move(name)}
       , m_os {std::move(output_socket)}
-      , m_description {std::move(description)}
       , m_inst_getter {std::move(inst_getter)}
+      , m_description {std::move(description)}
     {
       // null
       if (!m_inst_getter) {
@@ -82,9 +82,9 @@ namespace yave {
     std::string m_name;
     /// output socket name
     std::string m_os;
-    /// instance description
-    std::string m_description;
     /// instance getter
     object_ptr<const Object> m_inst_getter;
+    /// instance description
+    std::string m_description;
   };
 }

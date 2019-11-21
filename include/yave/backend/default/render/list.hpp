@@ -69,9 +69,9 @@ namespace yave {
       return node_definition(
         info.name(),
         info.output_sockets()[0],
-        info.name(),
         make_object<
-          InstanceGetterFunction<yave::backend::default_render::ListNil>>());
+          InstanceGetterFunction<yave::backend::default_render::ListNil>>(),
+        info.name());
     }
   };
 
@@ -84,9 +84,9 @@ namespace yave {
       return node_definition(
         info.name(),
         info.output_sockets()[0],
-        info.name(),
         make_object<
-          InstanceGetterFunction<yave::backend::default_render::ListCons>>());
+          InstanceGetterFunction<yave::backend::default_render::ListCons>>(),
+        info.name());
     }
   };
 
@@ -101,9 +101,9 @@ namespace yave {
       return node_definition(
         info.name(),
         info.output_sockets()[0],
-        info.name(),
         make_object<InstanceGetterFunction<
-          yave::backend::default_render::ListDecompose_Head>>());
+          yave::backend::default_render::ListDecompose_Head>>(),
+        info.name());
     }
   };
 
@@ -118,9 +118,9 @@ namespace yave {
       return node_definition(
         info.name(),
         info.output_sockets()[0],
-        info.name(),
         make_object<InstanceGetterFunction<
-          yave::backend::default_render::ListDecompose_Tail>>());
+          yave::backend::default_render::ListDecompose_Tail>>(),
+        info.name());
     }
   };
 }

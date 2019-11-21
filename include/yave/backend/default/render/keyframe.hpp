@@ -67,8 +67,8 @@ namespace yave {
       return node_definition(                                              \
         name,                                                              \
         os[0],                                                             \
-        "Calculate value of keyframe at current frame.",                   \
-        make_object<backend::default_render::TYPE>());                     \
+        make_object<backend::default_render::TYPE>(),                      \
+        "Calculate value of keyframe at current frame.");                  \
     }                                                                      \
   }
 
