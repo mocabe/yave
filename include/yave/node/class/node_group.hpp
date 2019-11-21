@@ -30,10 +30,8 @@ namespace yave {
         "NodeGroupInterface",
         {},
         {},
-        [](managed_node_graph&, const node_handle&) -> node_handle {
-          assert(false);
-          return nullptr;
-        });
+        node_type::interface,
+        object_type<Undefined>());
     }
   };
 
@@ -46,10 +44,8 @@ namespace yave {
         "NodeGroupInput",
         {},
         {},
-        [](managed_node_graph&, const node_handle&) -> node_handle {
-          assert(false);
-          return nullptr;
-        });
+        node_type::interface,
+        object_type<Undefined>());
     }
   };
 
@@ -62,10 +58,8 @@ namespace yave {
         "NodeGroupOutput",
         {},
         {},
-        [](managed_node_graph&, const node_handle&) -> node_handle {
-          assert(false);
-          return nullptr;
-        });
+        node_type::interface,
+        object_type<Undefined>());
     }
   };
 

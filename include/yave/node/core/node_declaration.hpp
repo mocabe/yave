@@ -35,7 +35,7 @@ namespace yave {
       , m_category {category}
       , m_module {module}
     {
-      assert(m_node_type != node_type::interface);
+      assert(m_node_type != node_type::composite);
       assert(m_type_class);
     }
 
@@ -54,7 +54,7 @@ namespace yave {
       , m_category {category}
       , m_module {module}
     {
-      m_node_type = node_type::interface;
+      m_node_type = node_type::composite;
       assert(m_composite_func);
     }
 
@@ -98,6 +98,11 @@ namespace yave {
     [[nodiscard]] auto module() const -> const auto&
     {
       return m_module;
+    }
+
+    [[nodiscard]] bool is_composite() const
+    {
+      return m_node_type == node_type::composite;
     }
 
   private:
