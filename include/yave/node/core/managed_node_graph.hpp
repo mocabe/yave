@@ -7,9 +7,7 @@
 
 #include <yave/node/core/node_graph.hpp>
 #include <yave/node/core/shared_node_handle.hpp>
-#include <yave/node/core/node_info_manager.hpp>
-#include <yave/node/core/bind_info_manager.hpp>
-#include <yave/node/core/node_initializer.hpp>
+#include <yave/node/core/node_declaration_store.hpp>
 
 namespace yave {
 
@@ -31,33 +29,18 @@ namespace yave {
     managed_node_graph& operator=(managed_node_graph&&) noexcept;
 
   public: /* node info registration */
-    /// register new node info
-    [[nodiscard]] bool register_node_info(const node_info& info);
+    /// register new node decl
+    [[nodiscard]] bool register_node_declaration(const node_declaration&);
 
-    /// register new node info
-    [[nodiscard]] bool register_node_info(const std::vector<node_info>& info);
+    /// register new node decls
+    [[nodiscard]] bool register_node_declaration(
+      const std::vector<node_declaration>&);
 
-    /// unregister node info
-    void unregister_node_info(const node_info& info);
+    /// unregister node decl
+    void unregister_node_declaration(const std::string&);
 
-    /// unregister node info
-    void unregister_node_info(const std::vector<node_info>& info);
-
-  public: /* node initializer registration */
-    /// register new initializer
-    [[nodiscard]] bool register_node_initializer(
-      const node_initializer& initializer);
-
-    /// register new initializer
-    [[nodiscard]] bool register_node_initializer(
-      const std::vector<node_initializer>& initializer);
-
-    /// unregister initializer
-    void unregister_node_initializer(const node_initializer& initializer);
-
-    /// unregister initizlier
-    void unregister_node_initializer(
-      const std::vector<node_initializer>& initializer);
+    /// unregister node decls
+    void unregister_node_declaration(const std::vector<std::string>&);
 
   public: /* node grouping features */
     /// Create new group
@@ -257,7 +240,7 @@ namespace yave {
 
   private:
     node_graph m_ng;
-    node_info_manager m_nim;
+    node_declaration_store m_nim;
 
   private:
     std::map<node_handle, node_group> m_groups;
