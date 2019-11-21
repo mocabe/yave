@@ -22,6 +22,8 @@ namespace yave {
   {
     /// Specialize this function to provide definition of node.
     static auto get_node_definition() -> node_definition;
+    /// For overloaded functions, return list of definitions.
+    static auto get_node_definitions() -> std::vector<node_definition>;
   };
 
   /// Get node declaration
@@ -36,6 +38,15 @@ namespace yave {
   [[nodiscard]] auto get_node_definition(Args&&... args) -> node_definition
   {
     return node_definition_traits<Tag, BackendTag>::get_node_defintion(
+      std::forward<Args>(args)...);
+  }
+
+  /// Get node definitions
+  template <class Tag, class BackendTag, class... Args>
+  [[nodiscard]] auto get_node_definitions(Args&&... args)
+    -> std::vector<node_definition>
+  {
+    return node_definition_traits<Tag, BackendTag>::get_node_definitions(
       std::forward<Args>(args)...);
   }
 
