@@ -45,17 +45,27 @@ namespace yave {
     const node_declaration_store& other)
   {
     m_map = other.m_map;
+    return *this;
   }
 
   node_declaration_store& node_declaration_store::operator=(
     node_declaration_store&& other) noexcept
   {
     m_map = std::move(other.m_map);
+    return *this;
   }
 
   bool node_declaration_store::add(const node_declaration& decl)
   {
-    return m_map.emplace(decl.name(), decl).second;
+    auto [it, succ] =
+      m_map.emplace(decl.name(), std::make_shared<node_declaration>(decl));
+
+    if (succ)
+      Info(g_logger, "Added new declaration: {}", decl.name());
+    else
+      Error(g_logger, "Failed to add declaration: {}", decl.name());
+
+    return succ;
   }
 
   bool node_declaration_store::add(const std::vector<node_declaration>& decls)
@@ -98,7 +108,9 @@ namespace yave {
 
     if (iter == m_map.end())
       return;
-    
+
+    Info(g_logger, "Removed declaration: {}", name);
+
     m_map.erase(iter);
   }
 
