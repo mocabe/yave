@@ -63,30 +63,30 @@ namespace yave {
   template <>
   struct node_definition_traits<node::ListNil, backend::tags::default_render>
   {
-    static auto get_node_definition() -> node_definition
+    static auto get_node_definitions() -> std::vector<node_definition>
     {
       auto info = get_node_declaration<node::ListNil>();
-      return node_definition(
+      return {node_definition(
         info.name(),
         info.output_sockets()[0],
         make_object<
           InstanceGetterFunction<yave::backend::default_render::ListNil>>(),
-        info.name());
+        info.name())};
     }
   };
 
   template <>
   struct node_definition_traits<node::ListCons, backend::tags::default_render>
   {
-    static auto get_node_definition() -> node_definition
+    static auto get_node_definitions() -> std::vector<node_definition>
     {
       auto info = get_node_declaration<node::ListCons>();
-      return node_definition(
+      return {node_definition(
         info.name(),
         info.output_sockets()[0],
         make_object<
           InstanceGetterFunction<yave::backend::default_render::ListCons>>(),
-        info.name());
+        info.name())};
     }
   };
 
@@ -95,15 +95,15 @@ namespace yave {
     node::ListDecompose_Head,
     backend::tags::default_render>
   {
-    static auto get_node_definition() -> node_definition
+    static auto get_node_definitions() -> std::vector<node_definition>
     {
       auto info = get_node_declaration<node::ListDecompose_Head>();
-      return node_definition(
+      return {node_definition(
         info.name(),
         info.output_sockets()[0],
         make_object<InstanceGetterFunction<
           yave::backend::default_render::ListDecompose_Head>>(),
-        info.name());
+        info.name())};
     }
   };
 
@@ -112,15 +112,15 @@ namespace yave {
     node::ListDecompose_Tail,
     backend::tags::default_render>
   {
-    static auto get_node_definition() -> node_definition
+    static auto get_node_definitions() -> std::vector<node_definition>
     {
       auto info = get_node_declaration<node::ListDecompose_Tail>();
-      return node_definition(
+      return {node_definition(
         info.name(),
         info.output_sockets()[0],
         make_object<InstanceGetterFunction<
           yave::backend::default_render::ListDecompose_Tail>>(),
-        info.name());
+        info.name())};
     }
   };
 }

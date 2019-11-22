@@ -30,15 +30,15 @@ namespace yave {
     node::LayerImageOutput,
     backend::tags::default_render>
   {
-    static auto get_node_definition() -> node_definition
+    static auto get_node_definitions() -> std::vector<node_definition>
     {
       auto info = get_node_declaration<node::LayerImageOutput>();
-      return node_definition(
+      return {node_definition(
         info.name(),
         info.output_sockets()[0],
         make_object<
           InstanceGetterFunction<backend::default_render::LayerImageOutput>>(),
-        info.name() + ": Image output node for layers");
+        info.name() + ": Image output node for layers")};
     }
   };
 }

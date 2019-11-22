@@ -20,8 +20,6 @@ namespace yave {
   template <class Tag, class BackendTag>
   struct node_definition_traits
   {
-    /// Specialize this function to provide definition of node.
-    static auto get_node_definition() -> node_definition;
     /// For overloaded functions, return list of definitions.
     static auto get_node_definitions() -> std::vector<node_definition>;
   };
@@ -31,14 +29,6 @@ namespace yave {
   [[nodiscard]] auto get_node_declaration() -> node_declaration
   {
     return node_declaration_traits<Tag>::get_node_declaration();
-  }
-
-  /// Get node definition
-  template <class Tag, class BackendTag, class... Args>
-  [[nodiscard]] auto get_node_definition(Args&&... args) -> node_definition
-  {
-    return node_definition_traits<Tag, BackendTag>::get_node_defintion(
-      std::forward<Args>(args)...);
   }
 
   /// Get node definitions

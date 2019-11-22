@@ -57,16 +57,17 @@ namespace yave {
     node::FrameBuffer,
     backend::tags::default_render>
   {
-    static auto get_node_definition(frame_buffer_manager* mngr)
+    static auto get_node_definitions(frame_buffer_manager* mngr)
+      -> std::vector<node_definition>
     {
       auto info = get_node_declaration<node::FrameBuffer>();
-      return node_definition(
+      return {node_definition(
         info.name(),
         info.output_sockets()[0],
         make_object<
           yave::backend::default_render::FrameBufferConstructorGetterFunction>(
           mngr),
-        info.name());
+        info.name())};
     }
   };
 } // namespace yave

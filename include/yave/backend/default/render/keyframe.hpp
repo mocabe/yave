@@ -58,17 +58,17 @@ namespace yave {
   template <>                                                              \
   struct node_definition_traits<node::TYPE, backend::tags::default_render> \
   {                                                                        \
-    static auto get_bind_info() -> node_definition                         \
+    static auto get_node_definitions() -> std::vector<node_definition>     \
     {                                                                      \
       auto info = get_node_declaration<node::TYPE>();                      \
       auto name = info.name();                                             \
       auto os   = info.output_sockets();                                   \
                                                                            \
-      return node_definition(                                              \
+      return {node_definition(                                             \
         name,                                                              \
         os[0],                                                             \
         make_object<backend::default_render::TYPE>(),                      \
-        "Calculate value of keyframe at current frame.");                  \
+        "Calculate value of keyframe at current frame.")};                 \
     }                                                                      \
   }
 

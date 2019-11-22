@@ -75,16 +75,16 @@ namespace yave {
     node::PrimitiveConstructor<T>,
     backend::tags::default_render>
   {
-    static auto get_node_definition() -> node_definition
+    static auto get_node_definitions() -> std::vector<node_definition>
     {
       using value_type = typename T::value_type;
       auto info        = get_node_declaration<node::PrimitiveConstructor<T>>();
-      return node_definition(
+      return {node_definition(
         info.name(),
         info.output_sockets()[0],
         make_object<
           backend::default_render::PrimitiveGetterFunction<value_type>>(),
-        info.name());
+        info.name())};
     }
   };
 

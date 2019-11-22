@@ -17,13 +17,16 @@ namespace yave {
     template <size_t N, class P, class R, class F>
     void primitive_list_gen(R& result, F& func)
     {
-      result.emplace_back(
-        func(make_primitive<std::variant_alternative_t<N, P>>()));
-      if constexpr (N == 0) {
+      std::vector defs =
+        func(make_primitive<std::variant_alternative_t<N, P>>());
+
+      for (auto&& def : defs)
+        result.push_back(std::move(def));
+
+      if constexpr (N == 0)
         return;
-      } else {
+      else
         return primitive_list_gen<N - 1, P>(result, func);
-      }
     }
 
   } // namespace backend::default_render
@@ -42,13 +45,13 @@ namespace yave {
   }
 
   template <>
-  auto get_primitive_node_definition<backend::tags::default_render>(
-    const primitive_t& v) -> node_definition
+  auto get_primitive_node_definitions<backend::tags::default_render>(
+    const primitive_t& v) -> std::vector<node_definition>
   {
     return std::visit(
       overloaded {[&](const auto& p) {
         using value_type = std::decay_t<decltype(p)>;
-        return get_node_definition<
+        return get_node_definitions<
           node::PrimitiveConstructor<Box<value_type>>,
           backend::tags::default_render>();
       }},
@@ -56,13 +59,13 @@ namespace yave {
   }
 
   template <>
-  auto get_primitive_node_definition_list<backend::tags::default_render>()
+  auto get_primitive_node_definitions_all<backend::tags::default_render>()
     -> std::vector<node_definition>
   {
     std::vector<node_definition> ret;
     backend::default_render::
       primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
-        ret, get_primitive_node_definition<backend::tags::default_render>);
+        ret, get_primitive_node_definitions<backend::tags::default_render>);
     return ret;
   }
 
