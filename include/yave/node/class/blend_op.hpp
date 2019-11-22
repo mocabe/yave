@@ -73,42 +73,43 @@ namespace yave {
   }
 
   template <class BackendTag>
-  auto get_blend_op_node_definition(blend_operation op) -> node_definition
+  auto get_blend_op_node_definitions(blend_operation op)
+    -> std::vector<node_definition>
   {
     switch (op) {
       case blend_operation::src:
-        return get_node_definition<node::BlendOpSrc, BackendTag>();
+        return get_node_definitions<node::BlendOpSrc, BackendTag>();
       case blend_operation::dst:
-        return get_node_definition<node::BlendOpDst, BackendTag>();
+        return get_node_definitions<node::BlendOpDst, BackendTag>();
       case blend_operation::over:
-        return get_node_definition<node::BlendOpOver, BackendTag>();
+        return get_node_definitions<node::BlendOpOver, BackendTag>();
       case blend_operation::in:
-        return get_node_definition<node::BlendOpIn, BackendTag>();
+        return get_node_definitions<node::BlendOpIn, BackendTag>();
       case blend_operation::out:
-        return get_node_definition<node::BlendOpOut, BackendTag>();
+        return get_node_definitions<node::BlendOpOut, BackendTag>();
       case blend_operation::add:
-        return get_node_definition<node::BlendOpAdd, BackendTag>();
+        return get_node_definitions<node::BlendOpAdd, BackendTag>();
     }
     unreachable();
   }
 
   template <class BackendTag>
-  auto get_blend_op_getter_node_definition(blend_operation op)
-    -> node_definition
+  auto get_blend_op_getter_node_definitions(blend_operation op)
+    -> std::vector<node_definition>
   {
     switch (op) {
       case blend_operation::src:
-        return get_node_definition<node::BlendOpSrcGetter, BackendTag>();
+        return get_node_definitions<node::BlendOpSrcGetter, BackendTag>();
       case blend_operation::dst:
-        return get_node_definition<node::BlendOpDstGetter, BackendTag>();
+        return get_node_definitions<node::BlendOpDstGetter, BackendTag>();
       case blend_operation::over:
-        return get_node_definition<node::BlendOpOverGetter, BackendTag>();
+        return get_node_definitions<node::BlendOpOverGetter, BackendTag>();
       case blend_operation::in:
-        return get_node_definition<node::BlendOpInGetter, BackendTag>();
+        return get_node_definitions<node::BlendOpInGetter, BackendTag>();
       case blend_operation::out:
-        return get_node_definition<node::BlendOpOutGetter, BackendTag>();
+        return get_node_definitions<node::BlendOpOutGetter, BackendTag>();
       case blend_operation::add:
-        return get_node_definition<node::BlendOpAddGetter, BackendTag>();
+        return get_node_definitions<node::BlendOpAddGetter, BackendTag>();
     }
     unreachable();
   }
@@ -145,12 +146,12 @@ namespace yave {
   auto get_blend_op_node_definition_list() -> std::vector<node_definition>
   {
     std::vector ret = {
-      get_blend_op_node_definition<BackendTag>(blend_operation::src),
-      get_blend_op_node_definition<BackendTag>(blend_operation::dst),
-      get_blend_op_node_definition<BackendTag>(blend_operation::over),
-      get_blend_op_node_definition<BackendTag>(blend_operation::in),
-      get_blend_op_node_definition<BackendTag>(blend_operation::out),
-      get_blend_op_node_definition<BackendTag>(blend_operation::add),
+      get_blend_op_node_definitions<BackendTag>(blend_operation::src),
+      get_blend_op_node_definitions<BackendTag>(blend_operation::dst),
+      get_blend_op_node_definitions<BackendTag>(blend_operation::over),
+      get_blend_op_node_definitions<BackendTag>(blend_operation::in),
+      get_blend_op_node_definitions<BackendTag>(blend_operation::out),
+      get_blend_op_node_definitions<BackendTag>(blend_operation::add),
     };
     return ret;
   }
@@ -160,12 +161,12 @@ namespace yave {
     -> std::vector<node_definition>
   {
     std::vector ret = {
-      get_blend_op_getter_node_definition<BackendTag>(blend_operation::src),
-      get_blend_op_getter_node_definition<BackendTag>(blend_operation::dst),
-      get_blend_op_getter_node_definition<BackendTag>(blend_operation::over),
-      get_blend_op_getter_node_definition<BackendTag>(blend_operation::in),
-      get_blend_op_getter_node_definition<BackendTag>(blend_operation::out),
-      get_blend_op_getter_node_definition<BackendTag>(blend_operation::add),
+      get_blend_op_getter_node_definitions<BackendTag>(blend_operation::src),
+      get_blend_op_getter_node_definitions<BackendTag>(blend_operation::dst),
+      get_blend_op_getter_node_definitions<BackendTag>(blend_operation::over),
+      get_blend_op_getter_node_definitions<BackendTag>(blend_operation::in),
+      get_blend_op_getter_node_definitions<BackendTag>(blend_operation::out),
+      get_blend_op_getter_node_definitions<BackendTag>(blend_operation::add),
     };
     return ret;
   }

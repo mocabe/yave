@@ -43,7 +43,7 @@ namespace yave {
       v);
   }
 
-  auto get_primitive_node_declaration_list() -> std::vector<node_declaration>
+  auto get_primitive_node_declarations() -> std::vector<node_declaration>
   {
     std::vector<node_declaration> ret;
     primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(

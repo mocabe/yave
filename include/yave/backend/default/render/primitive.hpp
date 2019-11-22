@@ -45,7 +45,7 @@ namespace yave {
   }
 
   template <>
-  auto get_primitive_node_definitions<backend::tags::default_render>(
+  auto get_primitive_node_definition<backend::tags::default_render>(
     const primitive_t& v) -> std::vector<node_definition>
   {
     return std::visit(
@@ -59,7 +59,7 @@ namespace yave {
   }
 
   template <>
-  auto get_primitive_node_definitions_all<backend::tags::default_render>()
+  auto get_primitive_node_definitions<backend::tags::default_render>()
     -> std::vector<node_definition>
   {
     std::vector<node_definition> ret;
