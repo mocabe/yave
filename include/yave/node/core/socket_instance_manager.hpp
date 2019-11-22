@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/node/core/socket_handle.hpp>
-#include <yave/node/core/bind_info.hpp>
+#include <yave/node/core/node_definition.hpp>
 
 #include <mutex>
 #include <map>
@@ -22,7 +22,7 @@ namespace yave {
     /// type
     object_ptr<const Type> type;
     /// bind
-    std::shared_ptr<const bind_info> bind;
+    std::shared_ptr<const node_definition> definition;
   };
 
   /// Socket instance manager

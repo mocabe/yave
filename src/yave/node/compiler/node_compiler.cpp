@@ -46,7 +46,8 @@ namespace yave {
 
   auto node_compiler::compile(
     parsed_node_graph&& parsed_graph,
-    const bind_info_manager& bim) -> std::optional<executable>
+    const node_declaration_store& decls,
+    const node_definition_store& defs) -> std::optional<executable>
   {
     auto lck = _lock();
 
@@ -63,7 +64,7 @@ namespace yave {
     }
 
     // type check and create socket instance map
-    auto sim = _type(*ng, bim);
+    auto sim = _type(*ng, decls, defs);
     if (!sim) {
       Error(g_logger, "Failed to type node graph");
       for (auto&& e : m_errors) {
@@ -125,32 +126,34 @@ namespace yave {
 
     Type checking each node is done by following algorithm:
     1. Type check all input sockets.
-    2. Find bindings which have exactly same input arguments to current active
-    input sockets of the node.
-    3. Create genealized type of the node from bindings.
-    4. Type check to generalized type, and collect valid bindings.
-    5. Decide the single most specialized binding from valid bindings.
+    2. Enumerate avalable definitions.
+    4. Type check to type class, and collect valid definitions.
+    5. Decide the single most specialized definition from valid definitions.
+    6. Store result to cache.
    */
   auto node_compiler::_type(
     const parsed_node_graph& parsed_graph,
-    const bind_info_manager& bim) -> std::optional<socket_instance_manager>
+    const node_declaration_store& decls,
+    const node_definition_store& defs) -> std::optional<socket_instance_manager>
   {
     struct
     {
       // Recursive implementation of node type checker.
       object_ptr<const Type> rec(
-        const node_handle& node,      /* target node */
-        const socket_handle& socket,  /* target socket */
-        const node_graph& graph,      /* graph */
-        const bind_info_manager& bim, /* bind info */
-        socket_instance_manager& sim, /* instance cache table (ref) */
-        error_list& errors)           /* error list (ref) */
+        const node_handle& node,             /* target node */
+        const socket_handle& socket,         /* target socket */
+        const node_graph& graph,             /* graph */
+        const node_declaration_store& decls, /* declarations */
+        const node_definition_store& defs,   /* definitions */
+        socket_instance_manager& sim,        /* instance cache table (ref) */
+        error_list& errors)                  /* error list (ref) */
       {
         auto node_info   = graph.get_info(node);
         auto socket_info = graph.get_info(socket);
-        auto node_binds  = bim.get_binds(*node_info);
-        auto node_os     = graph.output_sockets(node);
-        auto node_is     = graph.input_sockets(node);
+        auto node_decl   = decls.find(node_info->name());
+        auto node_defs = defs.get_binds(node_info->name(), socket_info->name());
+        auto node_os   = graph.output_sockets(node);
+        auto node_is   = graph.input_sockets(node);
 
         // when already in cache
         if (auto inst = sim.find(socket)) {
@@ -165,10 +168,11 @@ namespace yave {
           return inst->type;
         }
 
-        if (std::find(node_os.begin(), node_os.end(), socket) == node_os.end())
-          throw std::invalid_argument("Invalid output socket name");
+        assert(
+          std::find(node_os.begin(), node_os.end(), socket) != node_os.end());
+        assert(node_decl);
 
-        // list avalable inputs
+        // list input info
         auto input_sockets     = std::vector<socket_handle> {};
         auto input_names       = std::vector<std::string> {};
         auto input_connections = std::vector<connection_info> {};
@@ -180,19 +184,18 @@ namespace yave {
         input_types.reserve(node_is.size());
 
         for (auto&& is : node_is) {
-          if (graph.has_connection(is)) {
-            // socket
-            input_sockets.push_back(is);
-            // name
-            input_names.push_back(*graph.get_name(is));
-            // connection
-            assert(graph.connections(is).size() == 1);
-            auto ic = *graph.get_info(graph.connections(is)[0]);
-            input_connections.push_back(ic);
-            // type (rec call)
-            input_types.push_back(
-              rec(ic.src_node(), ic.src_socket(), graph, bim, sim, errors));
-          }
+          assert(graph.has_connection(is));
+          assert(graph.connections(is).size() == 1);
+          // socket
+          input_sockets.push_back(is);
+          // name
+          input_names.push_back(*graph.get_name(is));
+          // connection
+          auto ic = *graph.get_info(graph.connections(is)[0]);
+          input_connections.push_back(ic);
+          // type (rec call)
+          input_types.push_back(rec(
+            ic.src_node(), ic.src_socket(), graph, decls, defs, sim, errors));
         }
 
         // log
@@ -207,38 +210,14 @@ namespace yave {
           Info(g_logger, "- name: {}", node_info->name());
           Info(g_logger, "- connected input sockets: {}", inputs_str);
           Info(g_logger, "- output socket: {}", socket_info->name());
-          Info(g_logger, "- registered overloadings: {}", node_binds.size());
+          Info(g_logger, "- registered overloadings: {}", node_defs.size());
         }
 
-        auto overloadings = std::vector<std::shared_ptr<const bind_info>> {};
+        auto overloadings =
+          std::vector<std::shared_ptr<const node_definition>> {};
 
-        // find bindings which are compatible with current input sockets.
-        for (auto&& b : node_binds) {
-
-          auto bis = b->input_sockets();
-          auto bos = b->output_socket();
-
-          if (bos != socket_info->name()) {
-            continue;
-          }
-
-          if (bis.size() != input_sockets.size())
-            continue;
-
-          auto match = [&]() {
-            for (size_t i = 0; i < input_sockets.size(); ++i) {
-              if (bis[i] != input_names[i]) {
-                return false;
-              }
-            }
-            return true;
-          }();
-
-          if (!match)
-            continue;
-
-          overloadings.push_back(b);
-        }
+        for (auto&& def : node_defs)
+          overloadings.push_back(def);
 
         if (overloadings.empty()) {
 
@@ -256,26 +235,12 @@ namespace yave {
           return object_type<Undefined>();
         }
 
-        // log
-        {
-          Info(
-            g_logger,
-            "[ Overloadings at {}({})#{} ]",
-            node_info->name(),
-            to_string(node.id()),
-            socket_info->name());
-
-          for (auto&& o : overloadings) {
-
-            std::string str;
-            for (auto&& i : o->input_sockets()) str += fmt::format("{} ", i);
-            if (o->input_sockets().empty())
-              str += "(no input)";
-            str += fmt::format("-> {}", o->output_socket());
-
-            Info(g_logger, "- {}", str);
-          }
-        }
+        Info(
+          g_logger,
+          "[ Overloadings at {}({})#{} ]",
+          node_info->name(),
+          to_string(node.id()),
+          socket_info->name());
 
         // list overloading instances and its types
         auto overloading_instances = std::vector<object_ptr<const Object>> {};
@@ -288,8 +253,23 @@ namespace yave {
           overloading_types.push_back(type_of(instance));
         }
 
-        // generalized overloading type
-        auto generalized_tp = generalize(overloading_types);
+        // generalized overloading type.
+        // uses type class of declaration here.
+        auto type_class = node_decl->get_type_class();
+
+        // check overloading types
+        for (auto&& type : overloading_types) {
+          try {
+            (void)unify({type_constr {type_class, type}}, nullptr);
+          } catch (type_error::type_error&) {
+            Error(
+              g_logger,
+              "Invalid node definition: Unification from type class failed, "
+              "ignored.");
+            Error(g_logger, "- type class: {}", to_string(type_class));
+            Error(g_logger, "- definition: {}", to_string(type));
+          }
+        }
 
         // log
         {
@@ -307,13 +287,13 @@ namespace yave {
             to_string(node.id()),
             socket_info->name());
           Info(g_logger, "- input types: {}", input_types_str);
-          Info(g_logger, "- generalized type: {}", to_string(generalized_tp));
+          Info(g_logger, "- type class: {}", to_string(type_class));
         }
 
         // type of target node tree.
-        auto node_tp = generalized_tp;
+        auto node_tp = type_class;
         // updated on each ufinication step
-        auto tmp_tp = generalized_tp;
+        auto tmp_tp = type_class;
 
         // Infer type of node on generalized type.
         for (size_t i = 0; i < input_sockets.size(); ++i) {
@@ -352,9 +332,7 @@ namespace yave {
               Error(g_logger, "- provided: {}", to_string(e.provided()));
             }
 
-            auto flat = flatten(generalized_tp);
-            assert(flat.size() >= 2);
-
+            auto flat = flatten(type_class);
             return flat.back();
 
           } catch (type_error::type_error&) {
@@ -374,7 +352,8 @@ namespace yave {
               Error(g_logger, "- socket type: {}", to_string(input_types[i]));
             }
 
-            return generalized_tp;
+            auto flat = flatten(type_class);
+            return flat.back();
           }
         }
 
@@ -391,7 +370,7 @@ namespace yave {
 
         struct hit_info
         {
-          std::shared_ptr<const bind_info> bind;
+          std::shared_ptr<const node_definition> definition;
           object_ptr<const Object> instance;
           object_ptr<const Type> instance_tp;
           object_ptr<const Type> result_tp;
@@ -467,7 +446,7 @@ namespace yave {
 
         // add instance cache
         sim.add(
-          socket, socket_instance {ret.instance, ret.result_tp, ret.bind});
+          socket, socket_instance {ret.instance, ret.result_tp, ret.definition});
 
         return ret.result_tp;
       }
@@ -480,7 +459,7 @@ namespace yave {
     auto sim         = socket_instance_manager();
 
     auto root_instance =
-      impl.rec(root_node, root_socket, graph, bim, sim, m_errors);
+      impl.rec(root_node, root_socket, graph, decls, defs, sim, m_errors);
 
     // success
     if (m_errors.empty()) {
