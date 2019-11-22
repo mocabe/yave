@@ -27,7 +27,7 @@ namespace yave {
         {"cond", "then", "else"},
         {"out"},
         node_type::normal,
-        object_type<node_closure<Bool, X, X>>());
+        object_type<node_closure<Bool, X, X, X>>());
     }
   };
 
