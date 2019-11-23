@@ -19,8 +19,8 @@
 #include <climits>
 #include <limits>
 
-#if defined(YAVE_OS_WINDOWS)
-#  define NOMINMAX
+#if defined(YAVE_OS_WINDOWS) && !defined(NOMINMAX)
+#  define NOMINMAX 1
 #endif
 
 namespace yave {
