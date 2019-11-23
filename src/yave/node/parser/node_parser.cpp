@@ -5,8 +5,8 @@
 
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/parser/errors.hpp>
-#include <yave/node/obj/node_group.hpp>
-#include <yave/node/obj/constructor.hpp>
+#include <yave/node/class/node_group.hpp>
+#include <yave/node/class/constructor.hpp>
 #include <yave/support/log.hpp>
 
 namespace {
@@ -181,7 +181,9 @@ namespace yave {
 
     for (auto&& n : ns) {
       // Revemo group I/O bits
-      if (graph.get_name(n) == get_node_info<node::NodeGroupIOBit>().name()) {
+      if (
+        graph.get_name(n) ==
+        get_node_declaration<node::NodeGroupIOBit>().name()) {
         auto ics = graph.input_connections(n);
         auto ocs = graph.output_connections(n);
 

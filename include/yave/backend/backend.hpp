@@ -7,7 +7,8 @@
 
 #include <yave/config/config.hpp>
 #include <yave/backend/backend_info.hpp>
-#include <yave/node/core/bind_info_manager.hpp>
+#include <yave/node/core/node_declaration.hpp>
+#include <yave/node/core/node_definition.hpp>
 #include <yave/obj/scene/scene_config.hpp>
 #include <yave/support/id.hpp>
 
@@ -32,11 +33,16 @@ namespace yave {
     /// Initialized?
     [[nodiscard]] bool initialized() const;
 
-    /// Get binding list
-    [[nodiscard]] auto get_binds() const -> bind_info_manager;
+    /// Get additional declaration list
+    [[nodiscard]] auto get_node_declarations() const
+      -> std::vector<node_declaration>;
+
+    /// Get additional definition list
+    [[nodiscard]] auto get_node_definitions() const
+      -> std::vector<node_definition>;
 
     /// Get current scene_config of backend
-    [[nodiscard]] auto get_config() const -> scene_config;
+    [[nodiscard]] auto get_scene_config() const -> scene_config;
 
     /// Get instance ID
     [[nodiscard]] auto instance_id() const -> uid;

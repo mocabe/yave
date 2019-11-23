@@ -6,9 +6,7 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/image_output.hpp>
-#include <yave//obj/frame_buffer/frame_buffer.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/node/class/image_output.hpp>
 #include <yave/node/core/instance_getter.hpp>
 
 namespace yave {
@@ -28,18 +26,19 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<node::LayerImageOutput, backend::tags::default_render>
+  struct node_definition_traits<
+    node::LayerImageOutput,
+    backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definitions() -> std::vector<node_definition>
     {
-      auto info = get_node_info<node::LayerImageOutput>();
-      return bind_info(
+      auto info = get_node_declaration<node::LayerImageOutput>();
+      return {node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
         make_object<
           InstanceGetterFunction<backend::default_render::LayerImageOutput>>(),
-        info.name() + ": Image output node for layers");
+        info.name() + ": Image output node for layers")};
     }
   };
 }

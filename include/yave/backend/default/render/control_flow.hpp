@@ -6,9 +6,8 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/control_flow.hpp>
-#include <yave/node/core/function.hpp>
-#include <yave/node/obj/constructor.hpp>
+#include <yave/node/class/control_flow.hpp>
+#include <yave/node/class/constructor.hpp>
 
 namespace yave {
 
@@ -33,17 +32,16 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<node::If, backend::tags::default_render>
+  struct node_definition_traits<node::If, backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definitions() -> std::vector<node_definition>
     {
-      auto info = get_node_info<node::If>();
-      return {
+      auto info = get_node_declaration<node::If>();
+      return {node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
         make_object<InstanceGetterFunction<backend::default_render::If>>(),
-        info.name()};
+        info.name())};
     }
   };
 } // namespace yave

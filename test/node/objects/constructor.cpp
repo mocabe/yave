@@ -5,7 +5,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/node/obj/constructor.hpp>
+#include <yave/node/class/constructor.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/backend/default/render/primitive_constructor.hpp>
 #include <yave/rts/eval.hpp>

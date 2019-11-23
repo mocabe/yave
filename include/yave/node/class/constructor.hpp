@@ -8,6 +8,7 @@
 #include <yave/node/core/get_info.hpp>
 #include <yave/node/core/primitive.hpp>
 #include <yave/obj/string/string.hpp>
+#include <yave/node/core/function.hpp>
 
 namespace yave {
 
@@ -47,13 +48,17 @@ namespace yave {
   } // namespace node
 
   template <class T>
-  struct node_info_traits<node::PrimitiveConstructor<T>>
+  struct node_declaration_traits<node::PrimitiveConstructor<T>>
   {
-    static node_info get_node_info()
+    static auto get_node_declaration() -> node_declaration
     {
       using value_type = typename T::value_type;
-      auto name        = get_primitive_name(primitive_t {value_type {}});
-      return node_info(name, {}, {"value"}, node_type::primitive);
+      return node_declaration(
+        get_primitive_name(primitive_t {value_type {}}),
+        {},
+        {"value"},
+        node_type::primitive,
+        object_type<node_closure<T>>());
     }
   };
 

@@ -65,13 +65,18 @@ TEST_CASE("group with content")
 {
   managed_node_graph ng;
 
-  auto info = node_info {"node", {"0", "1", "2"}, {"0", "1"}};
+  auto decl = node_declaration(
+    "node",
+    {"0", "1", "2"},
+    {"0", "1"},
+    node_type::normal,
+    object_type<Undefined>());
 
-  REQUIRE(ng.register_node_info(info));
+  REQUIRE(ng.register_node_declaration(decl));
 
   SECTION("simple")
   {
-    auto n = ng.create(ng.root_group(), info.name());
+    auto n = ng.create(ng.root_group(), decl.name());
     REQUIRE(n);
     REQUIRE(ng.get_group_members(ng.root_group()).front() == n);
 
@@ -106,9 +111,9 @@ TEST_CASE("group with content")
 
   SECTION("with input and outputs")
   {
-    auto n1 = ng.create(ng.root_group(), info.name());
-    auto n2 = ng.create(ng.root_group(), info.name());
-    auto n3 = ng.create(ng.root_group(), info.name());
+    auto n1 = ng.create(ng.root_group(), decl.name());
+    auto n2 = ng.create(ng.root_group(), decl.name());
+    auto n3 = ng.create(ng.root_group(), decl.name());
 
     // root + 3
     REQUIRE(ng.get_node_graph().nodes().size() == 4);
@@ -214,9 +219,9 @@ TEST_CASE("group with content")
 
     SECTION("1")
     {
-      auto n4    = ng.create(ng.root_group(), info.name());
-      auto n5    = ng.create(ng.root_group(), info.name());
-      auto n6    = ng.create(ng.root_group(), info.name());
+      auto n4    = ng.create(ng.root_group(), decl.name());
+      auto n5    = ng.create(ng.root_group(), decl.name());
+      auto n6    = ng.create(ng.root_group(), decl.name());
 
       auto n3_i0 = ng.input_sockets(n3)[0];
       auto n4_i0 = ng.input_sockets(n4)[0];
@@ -260,7 +265,7 @@ TEST_CASE("group with content")
       REQUIRE(ng.add_group_output_socket(g, "test"));
 
       // n1,n2 -> [n3,n4,n5,n7] -> n6
-      auto n7 = ng.create(g, info.name());
+      auto n7 = ng.create(g, decl.name());
       REQUIRE(n7);
 
       auto n7_i0 = ng.input_sockets(n7)[0];

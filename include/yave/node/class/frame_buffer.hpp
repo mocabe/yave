@@ -6,6 +6,8 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
+#include <yave/node/core/function.hpp>
+#include <yave/obj/frame_buffer/frame_buffer.hpp>
 
 namespace yave {
 
@@ -15,12 +17,17 @@ namespace yave {
   } // namespace node
 
   template <>
-  struct node_info_traits<node::FrameBuffer>
+  struct node_declaration_traits<node::FrameBuffer>
   {
-    static node_info get_node_info()
+    static auto get_node_declaration() -> node_declaration
     {
       // pseudo primitive
-      return node_info("FrameBuffer", {}, {"value"}, node_type::primitive);
+      return node_declaration(
+        "FrameBuffer",
+        {},
+        {"value"},
+        node_type::primitive,
+        object_type<node_closure<FrameBuffer>>());
     }
   };
 } // namespace yave

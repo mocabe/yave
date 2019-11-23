@@ -6,9 +6,7 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/frame_time.hpp>
-#include <yave/rts/rts.hpp>
-#include <yave/obj/frame_time/frame_time.hpp>
+#include <yave/node/class/frame_time.hpp>
 #include <yave/node/core/instance_getter.hpp>
 
 namespace yave {
@@ -21,18 +19,17 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<node::FrameTime, backend::tags::default_render>
+  struct node_definition_traits<node::FrameTime, backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definitions() -> std::vector<node_definition>
     {
-      auto info = get_node_info<node::FrameTime>();
-      return bind_info(
+      auto info = get_node_declaration<node::FrameTime>();
+      return {node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
         make_object<InstanceGetterFunction<
           backend::default_render::FrameTimeConstructor>>(),
-        info.name());
+        info.name())};
     }
   };
 

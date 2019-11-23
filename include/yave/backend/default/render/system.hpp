@@ -32,11 +32,16 @@ namespace yave::backend::default_render {
     [[nodiscard]] bool update(uid id, const scene_config& config) noexcept;
 
     /// get current scene config
-    [[nodiscard]] auto get_config(uid id) noexcept -> object_ptr<SceneConfig>;
+    [[nodiscard]] auto get_scene_config(uid id) noexcept
+      -> object_ptr<SceneConfig>;
 
-    /// get bind info list
-    [[nodiscard]] auto get_binds(uid id) noexcept
-      -> object_ptr<BackendBindInfoList>;
+    /// get declaration list
+    [[nodiscard]] auto get_node_declarations(uid id) noexcept
+      -> object_ptr<BackendNodeDeclarationList>;
+
+    /// get definition list
+    [[nodiscard]] auto get_node_definitions(uid id) noexcept
+      -> object_ptr<BackendNodeDefinitionList>;
 
     /// name of backend
     [[nodiscard]] auto name() const noexcept -> std::string;

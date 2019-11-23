@@ -13,34 +13,25 @@
 
 using namespace yave;
 
+// backend tag
 class test_backend
 {
 };
 
-struct Add : NodeFunction<Add, Int, Int, Int>
+namespace n {
+
+  // node tag
+  class Add
+  {
+  };
+
+} // namespace n
+
+struct AddI : NodeFunction<AddI, Int, Int, Int>
 {
   return_type code() const
   {
     return new Int(*eval_arg<0>() + *eval_arg<1>());
-  }
-};
-
-template <>
-struct yave::node_info_traits<Add>
-{
-  static node_info get_node_info()
-  {
-    return node_info("add", {"x", "y"}, {"out"});
-  }
-};
-
-template <>
-struct yave::bind_info_traits<Add, test_backend>
-{
-  static bind_info get_bind_info()
-  {
-    return bind_info(
-      "add", {"x", "y"}, "out", make_object<InstanceGetterFunction<Add>>(), "");
   }
 };
 
@@ -53,434 +44,414 @@ struct AddD : NodeFunction<AddD, Double, Double, Double>
 };
 
 template <>
-struct yave::node_info_traits<AddD>
+struct yave::node_declaration_traits<n::Add>
 {
-  static node_info get_node_info()
+  static auto get_node_declaration()
   {
-    return node_info("add", {"x", "y"}, {"out"});
+    class X;
+    return node_declaration(
+      "add",
+      {"x", "y"},
+      {"out"},
+      node_type::normal,
+      object_type<node_closure<X, X, X>>());
   }
 };
 
 template <>
-struct yave::bind_info_traits<AddD, test_backend>
+struct yave::node_definition_traits<n::Add, test_backend>
 {
-  static bind_info get_bind_info()
+  static auto get_node_definitions() -> std::vector<node_definition>
   {
-    return bind_info(
-      "add",
-      {"x", "y"},
-      "out",
+    // Int version
+    auto defi = node_definition(
+      get_node_declaration<n::Add>().name(),
+      get_node_declaration<n::Add>().output_sockets()[0],
+      make_object<InstanceGetterFunction<AddI>>(),
+      "AddI");
+
+    // Double version
+    auto defd = node_definition(
+      get_node_declaration<n::Add>().name(),
+      get_node_declaration<n::Add>().output_sockets()[0],
       make_object<InstanceGetterFunction<AddD>>(),
-      "");
+      "AddD");
+
+    return {defi, defd};
   }
 };
 
-TEST_CASE("add x y", "[node_compiler]")
+auto to_node_info(const node_declaration& decl)
+{
+  return node_info(
+    decl.name(), decl.input_sockets(), decl.output_sockets(), decl.node_type());
+};
+
+TEST_CASE("add", "[node_compiler]")
 {
   node_compiler compiler;
   node_graph graph;
-  bind_info_manager bim;
-
-  auto add = graph.add(get_node_info<Add>());
-  auto i1  = graph.add(get_node_info<node::Int>());
-  auto i2  = graph.add(get_node_info<node::Int>());
-
-  REQUIRE(add);
-  REQUIRE(i1);
-  REQUIRE(i2);
-
-  auto c1 =
-    graph.connect(graph.output_sockets(i1)[0], graph.input_sockets(add)[0]);
-  auto c2 =
-    graph.connect(graph.output_sockets(i2)[0], graph.input_sockets(add)[1]);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-
-  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-
-  REQUIRE(compiler.compile({std::move(graph), add}, bim));
-}
-
-TEST_CASE("add x x", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto add = graph.add(get_node_info<Add>());
-  auto i   = graph.add(get_node_info<node::Int>());
-
-  REQUIRE(add);
-  REQUIRE(i);
-
-  auto c1 =
-    graph.connect(graph.output_sockets(i)[0], graph.input_sockets(add)[0]);
-  auto c2 =
-    graph.connect(graph.output_sockets(i)[0], graph.input_sockets(add)[1]);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-
-  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-
-  REQUIRE(compiler.compile({std::move(graph), add}, bim));
-}
-
-TEST_CASE("add (add x x) x", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto add1 = graph.add(get_node_info<Add>());
-  auto add2 = graph.add(get_node_info<Add>());
-  auto i   = graph.add(get_node_info<node::Int>());
-
-  REQUIRE(add1);
-  REQUIRE(add2);
-  REQUIRE(i);
-
-  auto add1_x   = graph.input_sockets(add1)[0];
-  auto add1_y   = graph.input_sockets(add1)[1];
-  auto add2_x   = graph.input_sockets(add2)[0];
-  auto add2_y   = graph.input_sockets(add2)[1];
-  auto add2_out = graph.output_sockets(add2)[0];
-  auto i_value  = graph.output_sockets(i)[0];
-
-  auto c1 = graph.connect(add2_out, add1_x);
-  auto c2 = graph.connect(i_value, add1_y);
-  auto c3 = graph.connect(i_value, add2_x);
-  auto c4 = graph.connect(i_value, add2_y);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-  REQUIRE(c3);
-  REQUIRE(c4);
-
-  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-
-  REQUIRE(compiler.compile({std::move(graph), add1}, bim));
-}
-
-TEST_CASE("add x d", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto add = graph.add(get_node_info<Add>());
-  auto i   = graph.add(get_node_info<node::Int>());
-  auto d   = graph.add(get_node_info<node::Double>());
-
-  REQUIRE(add);
-  REQUIRE(i);
-  REQUIRE(d);
-
-  auto i_value = graph.output_sockets(i)[0];
-  auto d_value = graph.output_sockets(d)[0];
-  auto add_x   = graph.input_sockets(add)[0];
-  auto add_y   = graph.input_sockets(add)[1];
-
-  auto c1 = graph.connect(i_value, add_x);
-  auto c2 = graph.connect(d_value, add_y);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-
-  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
-
-  REQUIRE(!compiler.compile({std::move(graph), add}, bim));
-}
-
-TEST_CASE("add (add x d) x", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto add1 = graph.add(get_node_info<Add>());
-  auto add2 = graph.add(get_node_info<Add>());
-  auto i    = graph.add(get_node_info<node::Int>());
-  auto d    = graph.add(get_node_info<node::Double>());
-
-  REQUIRE(add1);
-  REQUIRE(add2);
-  REQUIRE(i);
-  REQUIRE(d);
-
-  auto add2_out = graph.output_sockets(add2)[0];
-  auto i_value  = graph.output_sockets(i)[0];
-  auto d_value  = graph.output_sockets(d)[0];
-  auto add1_x   = graph.input_sockets(add1)[0];
-  auto add1_y   = graph.input_sockets(add1)[1];
-  auto add2_x   = graph.input_sockets(add2)[0];
-  auto add2_y   = graph.input_sockets(add2)[1];
-
-  auto c1 = graph.connect(add2_out, add1_x);
-  auto c2 = graph.connect(i_value, add1_y);
-  auto c3 = graph.connect(i_value, add2_x);
-  auto c4 = graph.connect(d_value, add2_y);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-  REQUIRE(c3);
-  REQUIRE(c4);
-
-  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
-
-  REQUIRE(!compiler.compile({std::move(graph), add1}, bim));
-}
-
-TEST_CASE("if b x y", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto _if = graph.add(get_node_info<node::If>());
-  auto i   = graph.add(get_node_info<node::Int>());
-  auto b   = graph.add(get_node_info<node::Bool>());
-
-  REQUIRE(_if);
-  REQUIRE(i);
-  REQUIRE(b);
-
-  auto b_value  = graph.output_sockets(b)[0];
-  auto i_value  = graph.output_sockets(i)[0];
-  auto _if_cond = graph.input_sockets(_if)[0];
-  auto _if_then = graph.input_sockets(_if)[1];
-  auto _if_else = graph.input_sockets(_if)[2];
-
-  auto c1 = graph.connect(b_value, _if_cond);
-  auto c2 = graph.connect(i_value, _if_then);
-  auto c3 = graph.connect(i_value, _if_else);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-  REQUIRE(c3);
-
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::Bool, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::If, backend::tags::default_render>()));
-
-  REQUIRE(compiler.compile({std::move(graph), _if}, bim));
-}
-
-TEST_CASE("if b (if b x y) z", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto if1 = graph.add(get_node_info<node::If>());
-  auto if2 = graph.add(get_node_info<node::If>());
-  auto i   = graph.add(get_node_info<node::Int>());
-  auto b   = graph.add(get_node_info<node::Bool>());
-
-  REQUIRE(if1);
-  REQUIRE(if2);
-  REQUIRE(i);
-  REQUIRE(b);
-
-  auto b_value = graph.output_sockets(b)[0];
-  auto i_value = graph.output_sockets(i)[0];
-
-  auto if1_cond = graph.input_sockets(if1)[0];
-  auto if1_then = graph.input_sockets(if1)[1];
-  auto if1_else = graph.input_sockets(if1)[2];
-
-  auto if2_cond = graph.input_sockets(if2)[0];
-  auto if2_then = graph.input_sockets(if2)[1];
-  auto if2_else = graph.input_sockets(if2)[2];
-  auto if2_out  = graph.output_sockets(if2)[0];
-
-  auto c1 = graph.connect(b_value, if1_cond);
-  auto c2 = graph.connect(if2_out, if1_then);
-  auto c3 = graph.connect(b_value, if2_cond);
-  auto c4 = graph.connect(i_value, if2_then);
-  auto c5 = graph.connect(i_value, if2_else);
-  auto c6 = graph.connect(i_value, if1_else);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-  REQUIRE(c3);
-  REQUIRE(c4);
-  REQUIRE(c5);
-  REQUIRE(c6);
-
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::Bool, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::If, backend::tags::default_render>()));
-
-  REQUIRE(compiler.compile({std::move(graph), if1}, bim));
-}
-
-TEST_CASE("if b x d", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto _if = graph.add(get_node_info<node::If>());
-  auto i   = graph.add(get_node_info<node::Int>());
-  auto d   = graph.add(get_node_info<node::Double>());
-  auto b   = graph.add(get_node_info<node::Bool>());
-
-  REQUIRE(_if);
-  REQUIRE(i);
-  REQUIRE(d);
-  REQUIRE(b);
-
-  auto i_value  = graph.output_sockets(i)[0];
-  auto d_value  = graph.output_sockets(d)[0];
-  auto b_value  = graph.output_sockets(b)[0];
-  auto _if_cond = graph.input_sockets(_if)[0];
-  auto _if_then = graph.input_sockets(_if)[1];
-  auto _if_else = graph.input_sockets(_if)[2];
-
-  auto c1 = graph.connect(b_value, _if_cond);
-  auto c2 = graph.connect(i_value, _if_then);
-  auto c3 = graph.connect(d_value, _if_else);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-  REQUIRE(c3);
-
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::Bool, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::If, backend::tags::default_render>()));
-
-  REQUIRE(!compiler.compile({std::move(graph), _if}, bim));
-}
-
-TEST_CASE("add<int> x y", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto add = graph.add(get_node_info<Add>());
-  auto i   = graph.add(get_node_info<node::Int>());
-
-  REQUIRE(add);
-  REQUIRE(i);
-
-  auto i_value = graph.output_sockets(i)[0];
-  auto add_x   = graph.input_sockets(add)[0];
-  auto add_y   = graph.input_sockets(add)[1];
-
-  auto c1 = graph.connect(i_value, add_x);
-  auto c2 = graph.connect(i_value, add_y);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-
-  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<AddD, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-
-  REQUIRE(compiler.compile({std::move(graph), add}, bim));
-}
-
-TEST_CASE("add<double> x y", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto add = graph.add(get_node_info<Add>());
-  auto d   = graph.add(get_node_info<node::Double>());
-
-  REQUIRE(add);
-  REQUIRE(d);
-
-  auto d_value = graph.output_sockets(d)[0];
-  auto add_x   = graph.input_sockets(add)[0];
-  auto add_y   = graph.input_sockets(add)[1];
-
-  auto c1 = graph.connect(d_value, add_x);
-  auto c2 = graph.connect(d_value, add_y);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-
-  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<AddD, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
-
-  REQUIRE(compiler.compile({std::move(graph), add}, bim));
-}
-
-TEST_CASE("add<?> x y", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto add = graph.add(get_node_info<Add>());
-  auto i   = graph.add(get_node_info<node::Int>());
-  auto d   = graph.add(get_node_info<node::Double>());
-
-  REQUIRE(add);
-  REQUIRE(i);
-  REQUIRE(d);
-
-  auto d_value = graph.output_sockets(d)[0];
-  auto i_value = graph.output_sockets(i)[0];
-  auto add_x   = graph.input_sockets(add)[0];
-  auto add_y   = graph.input_sockets(add)[1];
-
-  auto c1 = graph.connect(i_value, add_x);
-  auto c2 = graph.connect(d_value, add_y);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-
-  REQUIRE(bim.add(get_bind_info<Add, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<AddD, test_backend>()));
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::Double, backend::tags::default_render>()));
-
-  REQUIRE(!compiler.compile({std::move(graph), add}, bim));
-}
-
-TEST_CASE("42 : []", "[node_compiler]")
-{
-  node_compiler compiler;
-  node_graph graph;
-  bind_info_manager bim;
-
-  auto i    = graph.add(get_node_info<node::Int>());
-  auto nil  = graph.add(get_node_info<node::ListNil>());
-  auto cons = graph.add(get_node_info<node::ListCons>());
-
-  REQUIRE(i);
-  REQUIRE(nil);
-  REQUIRE(cons);
-
-  auto i_value   = graph.output_sockets(i)[0];
-  auto nil_value = graph.output_sockets(nil)[0];
-  auto cons_head = graph.input_sockets(cons)[0];
-  auto cons_tail = graph.input_sockets(cons)[1];
-
-  auto c1 = graph.connect(i_value, cons_head);
-  auto c2 = graph.connect(nil_value, cons_tail);
-
-  REQUIRE(c1);
-  REQUIRE(c2);
-
-  REQUIRE(bim.add(get_bind_info<node::Int, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::ListNil, backend::tags::default_render>()));
-  REQUIRE(bim.add(get_bind_info<node::ListCons, backend::tags::default_render>()));
-
-  REQUIRE(compiler.compile({std::move(graph), cons}, bim));
+  node_declaration_store decls;
+  node_definition_store defs;
+
+  auto double_decl = get_node_declaration<node::Double>();
+  auto int_decl    = get_node_declaration<node::Int>();
+  auto bool_decl   = get_node_declaration<node::Bool>();
+  auto if_decl     = get_node_declaration<node::If>();
+  auto nil_decl    = get_node_declaration<node::ListNil>();
+  auto cons_decl   = get_node_declaration<node::ListCons>();
+  auto add_decl    = get_node_declaration<n::Add>();
+
+  auto add_defs = get_node_definitions<n::Add, test_backend>();
+  auto int_defs =
+    get_node_definitions<node::Int, backend::tags::default_render>();
+  auto double_defs =
+    get_node_definitions<node::Double, backend::tags::default_render>();
+  auto bool_defs =
+    get_node_definitions<node::Bool, backend::tags::default_render>();
+  auto if_defs =
+    get_node_definitions<node::If, backend::tags::default_render>();
+  auto nil_defs =
+    get_node_definitions<node::ListNil, backend::tags::default_render>();
+  auto cons_defs =
+    get_node_definitions<node::ListCons, backend::tags::default_render>();
+
+  REQUIRE(decls.add(int_decl));
+  REQUIRE(decls.add(add_decl));
+  REQUIRE(decls.add(double_decl));
+  REQUIRE(decls.add(bool_decl));
+  REQUIRE(decls.add(if_decl));
+  REQUIRE(decls.add(nil_decl));
+  REQUIRE(decls.add(cons_decl));
+
+  defs.add(add_defs);
+  defs.add(int_defs);
+  defs.add(double_defs);
+  defs.add(bool_defs);
+  defs.add(if_defs);
+  defs.add(nil_defs);
+  defs.add(cons_defs);
+
+  auto add_info    = to_node_info(add_decl);
+  auto int_info    = to_node_info(int_decl);
+  auto double_info = to_node_info(double_decl);
+  auto bool_info   = to_node_info(bool_decl);
+  auto if_info     = to_node_info(if_decl);
+  auto nil_info    = to_node_info(nil_decl);
+  auto cons_info   = to_node_info(cons_decl);
+
+  SECTION("add x y")
+  {
+    auto add = graph.add(add_info);
+    auto i1  = graph.add(int_info);
+    auto i2  = graph.add(int_info);
+
+    REQUIRE(add);
+    REQUIRE(i1);
+    REQUIRE(i2);
+
+    auto c1 =
+      graph.connect(graph.output_sockets(i1)[0], graph.input_sockets(add)[0]);
+    auto c2 =
+      graph.connect(graph.output_sockets(i2)[0], graph.input_sockets(add)[1]);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+
+    REQUIRE(compiler.compile({std::move(graph), add}, decls, defs));
+  }
+
+  SECTION("add x x")
+  {
+    auto add = graph.add(add_info);
+    auto i   = graph.add(int_info);
+
+    REQUIRE(add);
+    REQUIRE(i);
+
+    auto c1 =
+      graph.connect(graph.output_sockets(i)[0], graph.input_sockets(add)[0]);
+    auto c2 =
+      graph.connect(graph.output_sockets(i)[0], graph.input_sockets(add)[1]);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+
+    REQUIRE(compiler.compile({std::move(graph), add}, decls, defs));
+  }
+
+  SECTION("add (add x x) x")
+  {
+    auto add1 = graph.add(add_info);
+    auto add2 = graph.add(add_info);
+    auto i    = graph.add(int_info);
+
+    REQUIRE(add1);
+    REQUIRE(add2);
+    REQUIRE(i);
+
+    auto add1_x   = graph.input_sockets(add1)[0];
+    auto add1_y   = graph.input_sockets(add1)[1];
+    auto add2_x   = graph.input_sockets(add2)[0];
+    auto add2_y   = graph.input_sockets(add2)[1];
+    auto add2_out = graph.output_sockets(add2)[0];
+    auto i_value  = graph.output_sockets(i)[0];
+
+    auto c1 = graph.connect(add2_out, add1_x);
+    auto c2 = graph.connect(i_value, add1_y);
+    auto c3 = graph.connect(i_value, add2_x);
+    auto c4 = graph.connect(i_value, add2_y);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+    REQUIRE(c3);
+    REQUIRE(c4);
+
+    REQUIRE(compiler.compile({std::move(graph), add1}, decls, defs));
+  }
+
+  SECTION("add x d")
+  {
+    auto add = graph.add(add_info);
+    auto i   = graph.add(int_info);
+    auto d   = graph.add(double_info);
+
+    REQUIRE(add);
+    REQUIRE(i);
+    REQUIRE(d);
+
+    auto i_value = graph.output_sockets(i)[0];
+    auto d_value = graph.output_sockets(d)[0];
+    auto add_x   = graph.input_sockets(add)[0];
+    auto add_y   = graph.input_sockets(add)[1];
+
+    auto c1 = graph.connect(i_value, add_x);
+    auto c2 = graph.connect(d_value, add_y);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+
+    REQUIRE(!compiler.compile({std::move(graph), add}, decls, defs));
+  }
+
+  SECTION("add (add x d) x")
+  {
+    auto add1 = graph.add(add_info);
+    auto add2 = graph.add(add_info);
+    auto i    = graph.add(int_info);
+    auto d    = graph.add(double_info);
+
+    REQUIRE(add1);
+    REQUIRE(add2);
+    REQUIRE(i);
+    REQUIRE(d);
+
+    auto add2_out = graph.output_sockets(add2)[0];
+    auto i_value  = graph.output_sockets(i)[0];
+    auto d_value  = graph.output_sockets(d)[0];
+    auto add1_x   = graph.input_sockets(add1)[0];
+    auto add1_y   = graph.input_sockets(add1)[1];
+    auto add2_x   = graph.input_sockets(add2)[0];
+    auto add2_y   = graph.input_sockets(add2)[1];
+
+    auto c1 = graph.connect(add2_out, add1_x);
+    auto c2 = graph.connect(i_value, add1_y);
+    auto c3 = graph.connect(i_value, add2_x);
+    auto c4 = graph.connect(d_value, add2_y);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+    REQUIRE(c3);
+    REQUIRE(c4);
+
+    REQUIRE(!compiler.compile({std::move(graph), add1}, decls, defs));
+  }
+
+  SECTION("if b x y")
+  {
+    auto _if = graph.add(if_info);
+    auto i   = graph.add(int_info);
+    auto b   = graph.add(bool_info);
+
+    REQUIRE(_if);
+    REQUIRE(i);
+    REQUIRE(b);
+
+    auto b_value  = graph.output_sockets(b)[0];
+    auto i_value  = graph.output_sockets(i)[0];
+    auto _if_cond = graph.input_sockets(_if)[0];
+    auto _if_then = graph.input_sockets(_if)[1];
+    auto _if_else = graph.input_sockets(_if)[2];
+
+    auto c1 = graph.connect(b_value, _if_cond);
+    auto c2 = graph.connect(i_value, _if_then);
+    auto c3 = graph.connect(i_value, _if_else);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+    REQUIRE(c3);
+
+    REQUIRE(compiler.compile({std::move(graph), _if}, decls, defs));
+  }
+
+  SECTION("if b (if b x y) z")
+  {
+    auto if1 = graph.add(if_info);
+    auto if2 = graph.add(if_info);
+    auto i   = graph.add(int_info);
+    auto b   = graph.add(bool_info);
+
+    REQUIRE(if1);
+    REQUIRE(if2);
+    REQUIRE(i);
+    REQUIRE(b);
+
+    auto b_value = graph.output_sockets(b)[0];
+    auto i_value = graph.output_sockets(i)[0];
+
+    auto if1_cond = graph.input_sockets(if1)[0];
+    auto if1_then = graph.input_sockets(if1)[1];
+    auto if1_else = graph.input_sockets(if1)[2];
+
+    auto if2_cond = graph.input_sockets(if2)[0];
+    auto if2_then = graph.input_sockets(if2)[1];
+    auto if2_else = graph.input_sockets(if2)[2];
+    auto if2_out  = graph.output_sockets(if2)[0];
+
+    auto c1 = graph.connect(b_value, if1_cond);
+    auto c2 = graph.connect(if2_out, if1_then);
+    auto c3 = graph.connect(b_value, if2_cond);
+    auto c4 = graph.connect(i_value, if2_then);
+    auto c5 = graph.connect(i_value, if2_else);
+    auto c6 = graph.connect(i_value, if1_else);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+    REQUIRE(c3);
+    REQUIRE(c4);
+    REQUIRE(c5);
+    REQUIRE(c6);
+
+    REQUIRE(compiler.compile({std::move(graph), if1}, decls, defs));
+  }
+
+  SECTION("if b x d")
+  {
+    auto _if = graph.add(if_info);
+    auto i   = graph.add(int_info);
+    auto d   = graph.add(double_info);
+    auto b   = graph.add(bool_info);
+
+    REQUIRE(_if);
+    REQUIRE(i);
+    REQUIRE(d);
+    REQUIRE(b);
+
+    auto i_value  = graph.output_sockets(i)[0];
+    auto d_value  = graph.output_sockets(d)[0];
+    auto b_value  = graph.output_sockets(b)[0];
+    auto _if_cond = graph.input_sockets(_if)[0];
+    auto _if_then = graph.input_sockets(_if)[1];
+    auto _if_else = graph.input_sockets(_if)[2];
+
+    auto c1 = graph.connect(b_value, _if_cond);
+    auto c2 = graph.connect(i_value, _if_then);
+    auto c3 = graph.connect(d_value, _if_else);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+    REQUIRE(c3);
+
+    REQUIRE(!compiler.compile({std::move(graph), _if}, decls, defs));
+  }
+
+  SECTION("add<int> x y")
+  {
+    auto add = graph.add(add_info);
+    auto i   = graph.add(int_info);
+
+    REQUIRE(add);
+    REQUIRE(i);
+
+    auto i_value = graph.output_sockets(i)[0];
+    auto add_x   = graph.input_sockets(add)[0];
+    auto add_y   = graph.input_sockets(add)[1];
+
+    auto c1 = graph.connect(i_value, add_x);
+    auto c2 = graph.connect(i_value, add_y);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+
+    REQUIRE(compiler.compile({std::move(graph), add}, decls, defs));
+  }
+
+  SECTION("add<double> x y")
+  {
+    auto add = graph.add(add_info);
+    auto d   = graph.add(double_info);
+
+    REQUIRE(add);
+    REQUIRE(d);
+
+    auto d_value = graph.output_sockets(d)[0];
+    auto add_x   = graph.input_sockets(add)[0];
+    auto add_y   = graph.input_sockets(add)[1];
+
+    auto c1 = graph.connect(d_value, add_x);
+    auto c2 = graph.connect(d_value, add_y);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+
+    REQUIRE(compiler.compile({std::move(graph), add}, decls, defs));
+  }
+
+  SECTION("add<?> x y")
+  {
+    auto add = graph.add(add_info);
+    auto i   = graph.add(int_info);
+    auto d   = graph.add(double_info);
+
+    REQUIRE(add);
+    REQUIRE(i);
+    REQUIRE(d);
+
+    auto d_value = graph.output_sockets(d)[0];
+    auto i_value = graph.output_sockets(i)[0];
+    auto add_x   = graph.input_sockets(add)[0];
+    auto add_y   = graph.input_sockets(add)[1];
+
+    auto c1 = graph.connect(i_value, add_x);
+    auto c2 = graph.connect(d_value, add_y);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+
+    REQUIRE(!compiler.compile({std::move(graph), add}, decls, defs));
+  }
+
+  SECTION("42 : []")
+  {
+    auto i    = graph.add(int_info);
+    auto nil  = graph.add(nil_info);
+    auto cons = graph.add(cons_info);
+
+    REQUIRE(i);
+    REQUIRE(nil);
+    REQUIRE(cons);
+
+    auto i_value   = graph.output_sockets(i)[0];
+    auto nil_value = graph.output_sockets(nil)[0];
+    auto cons_head = graph.input_sockets(cons)[0];
+    auto cons_tail = graph.input_sockets(cons)[1];
+
+    auto c1 = graph.connect(i_value, cons_head);
+    auto c2 = graph.connect(nil_value, cons_tail);
+
+    REQUIRE(c1);
+    REQUIRE(c2);
+
+    REQUIRE(compiler.compile({std::move(graph), cons}, decls, defs));
+  }
 }

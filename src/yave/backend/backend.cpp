@@ -70,41 +70,62 @@ namespace yave {
     return m_initialized;
   }
 
-  auto backend::get_binds() const -> bind_info_manager
+  auto backend::get_node_declarations() const -> std::vector<node_declaration>
   {
     if (!m_initialized) {
-      Error(g_logger, "backend::get_binds(): Backend not initialized");
-      throw std::runtime_error("Failed to get bind info list from backend");
+      Error(
+        g_logger, "backend::get_node_declarations(): Backend not initialized");
+      throw std::runtime_error("Failed to get declaration list from backend");
     }
 
-    /// get binds
-    auto binds = m_backend_info->get_binds(m_instance_id);
+    // get declarations
+    auto decls = m_backend_info->get_node_declarations(m_instance_id);
 
-    if (binds->info_list.empty()) {
-      Error(g_logger, "backend::get_binds(): Failed to get backend info list");
-      throw std::runtime_error("Failed to get bind info list from backend");
+    if (!decls) {
+      Error(
+        g_logger,
+        "backend::get_node_declarations(): Failed to get backend declarations");
+      throw std::runtime_error("Failed to get declaration list from backend");
     }
 
-    // add to bim
-    bind_info_manager bim;
-    for (auto&& info : binds->info_list) {
-      if (!bim.add(info->bind_info())) {
-        Error(
-          g_logger, "backend::get_binds(): Failed to add bind info to manager");
-        throw std::runtime_error("Failed to get bind info from backend");
-      }
+    std::vector<node_declaration> ret;
+    for (auto&& decl : decls->list) {
+      ret.push_back(decl->node_declaration());
     }
-
-    return bim;
+    return ret;
   }
 
-  auto backend::get_config() const -> scene_config
+  auto backend::get_node_definitions() const -> std::vector<node_definition>
+  {
+    if (!m_initialized) {
+      Error(
+        g_logger, "backend::get_node_definitions(): Backend not initialized");
+      throw std::runtime_error("Failed to get definition list from backend");
+    }
+
+    // get definitions
+    auto defs = m_backend_info->get_node_definitions(m_instance_id);
+
+    if (!defs) {
+      Error(
+        g_logger, "backend::get_node_definitions(): Failed to get definitios");
+      throw std::runtime_error("Failed to get definition list from backend");
+    }
+
+    std::vector<node_definition> ret;
+    for (auto&& def : defs->list) {
+      ret.push_back(def->node_definition());
+    }
+    return ret;
+  }
+
+  auto backend::get_scene_config() const -> scene_config
   {
     if (!m_initialized) {
       Error(g_logger, "backend::get_config(): Backend not initialized");
       throw std::runtime_error("Failed to get scene config from backend");
     }
-    return *m_backend_info->get_config(m_instance_id);
+    return *m_backend_info->get_scene_config(m_instance_id);
   }
 
   auto backend::instance_id() const -> uid

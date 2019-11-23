@@ -5,42 +5,39 @@
 
 #pragma once
 
-#include <yave/node/core/node_info.hpp>
-#include <yave/node/core/bind_info.hpp>
+#include <yave/node/core/node_declaration.hpp>
+#include <yave/node/core/node_definition.hpp>
 
 namespace yave {
 
-  /// trait class to define node info
-  template <class T>
-  struct node_info_traits
+  template <class Tag>
+  struct node_declaration_traits
   {
-    // static node_info get_node_info(...);
+    /// Specialize this function to provide declaration of node.
+    static auto get_node_declaration() -> node_declaration;
   };
 
-  /// trant class to define backend binding
-  template <class T, class BackendTag>
-  struct bind_info_traits
+  template <class Tag, class BackendTag>
+  struct node_definition_traits
   {
-    // static bind_info get_bind_info(...);
+    /// For overloaded functions, return list of definitions.
+    static auto get_node_definitions() -> std::vector<node_definition>;
   };
 
-  template <class T>
-  [[nodiscard]] auto get_node_info() -> node_info
+  /// Get node declaration
+  template <class Tag>
+  [[nodiscard]] auto get_node_declaration() -> node_declaration
   {
-    return node_info_traits<T>::get_node_info();
+    return node_declaration_traits<Tag>::get_node_declaration();
   }
 
-  template <class T, class BackendTag, class... Args>
-  [[nodiscard]] auto get_bind_info(Args&&... args) -> bind_info
+  /// Get node definitions
+  template <class Tag, class BackendTag, class... Args>
+  [[nodiscard]] auto get_node_definitions(Args&&... args)
+    -> std::vector<node_definition>
   {
-    auto info = bind_info_traits<T, BackendTag>::get_bind_info(
+    return node_definition_traits<Tag, BackendTag>::get_node_definitions(
       std::forward<Args>(args)...);
-
-    {
-      auto ni = get_node_info<T>();
-      assert(info.name() == ni.name());
-    }
-    return info;
   }
 
 } // namespace yave

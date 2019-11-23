@@ -6,6 +6,8 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
+#include <yave/node/core/function.hpp>
+#include <yave/obj/frame_time/frame_time.hpp>
 
 namespace yave {
 
@@ -15,12 +17,16 @@ namespace yave {
   } // namespace node
 
   template <>
-  struct node_info_traits<node::FrameTime>
+  struct node_declaration_traits<node::FrameTime>
   {
-    static node_info get_node_info()
+    static auto get_node_declaration() -> node_declaration
     {
-      // pseudo primitive
-      return node_info("FrameTime", {}, {"value"}, node_type::primitive);
+      return node_declaration(
+        "FrameTime",
+        {},
+        {"value"},
+        node_type::primitive,
+        object_type<node_closure<FrameTime>>());
     }
   };
 } // namespace yave

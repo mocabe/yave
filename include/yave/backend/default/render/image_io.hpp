@@ -6,10 +6,8 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/image_io.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/node/class/image_io.hpp>
 #include <yave/obj/filesystem/path.hpp>
-#include <yave/obj/image/image.hpp>
 #include <yave/lib/image/image_io.hpp>
 
 namespace yave {
@@ -29,18 +27,17 @@ namespace yave {
   } // namespace backend::default_render
 
   template <>
-  struct bind_info_traits<node::LoadImage, backend::tags::default_render>
+  struct node_definition_traits<node::LoadImage, backend::tags::default_render>
   {
-    static bind_info get_bind_info()
+    static auto get_node_definitions() -> std::vector<node_definition>
     {
-      auto info = get_node_info<node::LoadImage>();
-      return bind_info(
+      auto info = get_node_declaration<node::LoadImage>();
+      return {node_definition(
         info.name(),
-        info.input_sockets(),
         info.output_sockets()[0],
         make_object<
           InstanceGetterFunction<backend::default_render::LoadImage>>(),
-        info.name() + ": Load image from file");
+        info.name() + ": Load image from file")};
     }
   };
 }

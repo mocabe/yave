@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/core/managed_node_graph.hpp>
-#include <yave/node/obj/node_group.hpp>
+#include <yave/node/class/node_group.hpp>
 
 #include <yave/support/log.hpp>
 
@@ -24,6 +24,18 @@ namespace {
 } // namespace
 
 namespace yave {
+
+  namespace {
+    // convert decl to node info
+    auto to_node_info(const node_declaration& decl)
+    {
+      return node_info(
+        decl.name(),
+        decl.input_sockets(),
+        decl.output_sockets(),
+        decl.node_type());
+    }
+  } // namespace
 
   /// Node group data.
   /// Node group is a way to create custom node which contains multiple nodes
@@ -98,15 +110,16 @@ namespace yave {
 
     // register group node info
     if (
-      !m_nim.add(get_node_info<node::NodeGroupInterface>()) ||
-      !m_nim.add(get_node_info<node::NodeGroupInput>()) ||
-      !m_nim.add(get_node_info<node::NodeGroupOutput>()) ||
-      !m_nim.add(get_node_info<node::NodeGroupIOBit>()))
+      !m_nim.add(get_node_declaration<node::NodeGroupInterface>()) ||
+      !m_nim.add(get_node_declaration<node::NodeGroupInput>()) ||
+      !m_nim.add(get_node_declaration<node::NodeGroupOutput>()) ||
+      !m_nim.add(get_node_declaration<node::NodeGroupIOBit>()))
       throw std::runtime_error("Failed to register node info");
 
     // initialize root group
     {
-      m_root_group = m_ng.add(get_node_info<node::NodeGroupInterface>());
+      m_root_group = m_ng.add(
+        to_node_info(get_node_declaration<node::NodeGroupInterface>()));
 
       assert(m_root_group);
 
@@ -157,92 +170,27 @@ namespace yave {
 
   /* reg/unreg */
 
-  bool managed_node_graph::register_node_info(const node_info& info)
+  bool managed_node_graph::register_node_declaration(
+    const node_declaration& decl)
   {
-    return m_nim.add(info);
+    return m_nim.add(decl);
   }
 
-  void managed_node_graph::unregister_node_info(const node_info& info)
+  bool managed_node_graph::register_node_declaration(
+    const std::vector<node_declaration>& decls)
   {
-    return m_nim.remove(info);
+    return m_nim.add(decls);
   }
 
-  bool managed_node_graph::register_node_info(
-    const std::vector<node_info>& info)
+  void managed_node_graph::unregister_node_declaration(const std::string& name)
   {
-    std::vector<const node_info*> added;
-
-    bool succ = [&] {
-      for (auto&& i : info) {
-        if (!m_nim.add(i))
-          return false;
-        added.push_back(&i);
-      }
-      return true;
-    }();
-
-    // added all info
-    if (succ)
-      return true;
-
-    // rollback changes
-    for (auto&& pi : added) {
-      m_nim.remove(*pi);
-    }
-
-    return false;
+    return m_nim.remove(name);
   }
 
-  void managed_node_graph::unregister_node_info(
-    const std::vector<node_info>& info)
+  void managed_node_graph::unregister_node_declaration(
+    const std::vector<std::string>& names)
   {
-    for (auto&& i : info) {
-      m_nim.remove(i);
-    }
-  }
-
-  bool managed_node_graph::register_node_initializer(
-    const node_initializer& initializer)
-  {
-    return m_nim.add(initializer);
-  }
-
-  void managed_node_graph::unregister_node_initializer(
-    const node_initializer& initializer)
-  {
-    return m_nim.remove(initializer);
-  }
-
-  bool managed_node_graph::register_node_initializer(
-    const std::vector<node_initializer>& initializers)
-  {
-    std::vector<const node_initializer*> added;
-
-    bool succ = [&] {
-      for (auto&& i : initializers) {
-        if (!m_nim.add(i))
-          return false;
-        added.push_back(&i);
-      }
-      return true;
-    }();
-
-    if (succ)
-      return true;
-
-    for (auto&& pi : added) {
-      m_nim.remove(*pi);
-    }
-
-    return false;
-  }
-
-  void managed_node_graph::unregister_node_initializer(
-    const std::vector<node_initializer>& initializers)
-  {
-    for (auto&& i : initializers) {
-      m_nim.remove(i);
-    }
+    m_nim.remove(names);
   }
 
   auto managed_node_graph::_find_parent_group(const node_handle& node) const
@@ -342,9 +290,12 @@ namespace yave {
       }
 
       // create new group interfaces
-      auto interface      = m_ng.add(get_node_info<node::NodeGroupInterface>());
-      auto input_handler  = m_ng.add(get_node_info<node::NodeGroupInput>());
-      auto output_handler = m_ng.add(get_node_info<node::NodeGroupOutput>());
+      auto interface = m_ng.add(
+        to_node_info(get_node_declaration<node::NodeGroupInterface>()));
+      auto input_handler =
+        m_ng.add(to_node_info(get_node_declaration<node::NodeGroupInput>()));
+      auto output_handler =
+        m_ng.add(to_node_info(get_node_declaration<node::NodeGroupOutput>()));
 
       assert(interface);
       assert(input_handler);
@@ -429,7 +380,8 @@ namespace yave {
 
           // create I/O bit node
           auto bit_name = *m_ng.get_name(is);
-          auto bit_info = get_node_info<node::NodeGroupIOBit>();
+          auto bit_info =
+            to_node_info(get_node_declaration<node::NodeGroupIOBit>());
           bit_info.set_input_sockets({bit_name});
           bit_info.set_output_sockets({bit_name});
           auto bit = m_ng.add(bit_info);
@@ -472,7 +424,8 @@ namespace yave {
 
           // create I/O bit node
           auto bit_name = *m_ng.get_name(os);
-          auto bit_info = get_node_info<node::NodeGroupIOBit>();
+          auto bit_info =
+            to_node_info(get_node_declaration<node::NodeGroupIOBit>());
           bit_info.set_input_sockets({bit_name});
           bit_info.set_output_sockets({bit_name});
           auto bit = m_ng.add(bit_info);
@@ -641,16 +594,16 @@ namespace yave {
   {
     auto info = m_ng.get_info(node);
 
-    if (info->name() == get_node_info<node::NodeGroupInput>().name())
+    if (info->name() == get_node_declaration<node::NodeGroupInput>().name())
       return false;
 
-    if (info->name() == get_node_info<node::NodeGroupOutput>().name())
+    if (info->name() == get_node_declaration<node::NodeGroupOutput>().name())
       return false;
 
-    if (info->name() == get_node_info<node::NodeGroupInterface>().name())
+    if (info->name() == get_node_declaration<node::NodeGroupInterface>().name())
       return false;
 
-    assert(info->name() != get_node_info<node::NodeGroupIOBit>().name());
+    assert(info->name() != get_node_declaration<node::NodeGroupIOBit>().name());
 
     return true;
   }
@@ -658,7 +611,8 @@ namespace yave {
   bool managed_node_graph::is_group_output(const node_handle& node) const
   {
     if (auto info = m_ng.get_info(node)) {
-      return info->name() == get_node_info<node::NodeGroupOutput>().name();
+      return info->name() ==
+             get_node_declaration<node::NodeGroupOutput>().name();
     }
     return false;
   }
@@ -666,7 +620,8 @@ namespace yave {
   bool managed_node_graph::is_group_input(const node_handle& node) const
   {
     if (auto info = m_ng.get_info(node)) {
-      return info->name() == get_node_info<node::NodeGroupInput>().name();
+      return info->name() ==
+             get_node_declaration<node::NodeGroupInput>().name();
     }
     return false;
   }
@@ -772,7 +727,7 @@ namespace yave {
 
     // insert new bit
     {
-      auto info = get_node_info<node::NodeGroupIOBit>();
+      auto info = to_node_info(get_node_declaration<node::NodeGroupIOBit>());
       info.set_input_sockets({socket});
       info.set_output_sockets({socket});
       auto bit = m_ng.add(info);
@@ -1051,32 +1006,46 @@ namespace yave {
     const node_handle& parent_group,
     const std::string& name) -> node_handle
   {
-    // info
-    if (auto info = m_nim.find_info(name)) {
+    // find declaration
+    auto decl = m_nim.find(name);
 
-      // find group
+    if (!decl) {
+      Error(g_logger, "Failed to create node: No such declaration: {}", name);
+      return {nullptr};
+    }
+
+    // find group
+    node_group* group;
+    {
       auto iter = m_groups.find(parent_group);
-      if (iter == m_groups.end())
+
+      if (iter == m_groups.end()) {
+        Error(
+          g_logger,
+          "Failed to create node: Invalid group handler: {}",
+          to_string(parent_group.id()));
         return {nullptr};
+      }
+      group = &iter->second;
+    }
+
+    // non-composite nodes
+    {
+      auto info = to_node_info(*decl);
+      auto node = m_ng.add(info);
+
+      assert(node);
 
       // create and add to node group
-      auto node = m_ng.add(*info);
-      assert(node);
-      iter->second.add_content(node);
+      group->add_content(node);
 
       Info(
         g_logger,
         "Create new node {} under group {}",
         to_string(node.id()),
-        to_string(iter->second.interface.id()));
+        to_string(group->interface.id()));
 
       return node;
-    }
-
-    // initializer
-    if (auto init = m_nim.find_initializer(name)) {
-      Info(g_logger, "Create node using initializer {}", init->name());
-      return init->initialize(*this, parent_group);
     }
 
     return {nullptr};

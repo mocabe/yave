@@ -6,10 +6,7 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/obj/keyframe.hpp>
-#include <yave/node/core/function.hpp>
-#include <yave/obj/keyframe/keyframe.hpp>
-#include <yave/obj/frame_time/frame_time.hpp>
+#include <yave/node/class/keyframe.hpp>
 
 namespace yave {
 
@@ -57,29 +54,26 @@ namespace yave {
     };
   } // namespace backend::default_render
 
-#define YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(TYPE)            \
-  template <>                                                        \
-  struct bind_info_traits<node::TYPE, backend::tags::default_render> \
-  {                                                                  \
-    static bind_info get_bind_info()                                 \
-    {                                                                \
-      auto info = get_node_info<node::TYPE>();                       \
-      auto name = info.name();                                       \
-      auto is   = info.input_sockets();                              \
-      auto os   = info.output_sockets();                             \
-                                                                     \
-      return bind_info(                                              \
-        name,                                                        \
-        {is[0], is[1]},                                              \
-        os[0],                                                       \
-        make_object<backend::default_render::TYPE>(),                \
-        "Calculate value of keyframe at current frame.",             \
-        true);                                                       \
-    }                                                                \
+#define YAVE_DEFAULT_RENDER_DEF_KEYFRAME_EVALUATOR(TYPE)                   \
+  template <>                                                              \
+  struct node_definition_traits<node::TYPE, backend::tags::default_render> \
+  {                                                                        \
+    static auto get_node_definitions() -> std::vector<node_definition>     \
+    {                                                                      \
+      auto info = get_node_declaration<node::TYPE>();                      \
+      auto name = info.name();                                             \
+      auto os   = info.output_sockets();                                   \
+                                                                           \
+      return {node_definition(                                             \
+        name,                                                              \
+        os[0],                                                             \
+        make_object<backend::default_render::TYPE>(),                      \
+        "Calculate value of keyframe at current frame.")};                 \
+    }                                                                      \
   }
 
-  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeEvaluatorInt);
-  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeEvaluatorFloat);
-  YAVE_DECL_KEYFRAME_BIND_INFO_DEFAULT_RENDER(KeyframeEvaluatorBool);
+  YAVE_DEFAULT_RENDER_DEF_KEYFRAME_EVALUATOR(KeyframeEvaluatorInt);
+  YAVE_DEFAULT_RENDER_DEF_KEYFRAME_EVALUATOR(KeyframeEvaluatorFloat);
+  YAVE_DEFAULT_RENDER_DEF_KEYFRAME_EVALUATOR(KeyframeEvaluatorBool);
 
 } // namespace yave

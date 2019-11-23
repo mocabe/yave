@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/node/core/bind_info.hpp>
+#include <yave/node/core/node_definition.hpp>
 #include <yave/node/core/node_handle.hpp>
 #include <yave/node/core/socket_handle.hpp>
 #include <yave/support/error.hpp>
@@ -23,10 +23,10 @@ namespace yave {
       no_valid_overloading(
         const node_handle& node,
         const socket_handle& socket,
-        const std::vector<std::shared_ptr<const bind_info>>& binds)
+        const std::vector<std::shared_ptr<const node_definition>>& defs)
         : m_node {node}
         , m_socket {socket}
-        , m_binds {binds}
+        , m_defs {defs}
       {
       }
 
@@ -46,16 +46,16 @@ namespace yave {
       }
 
       /// Get overloading bindings
-      [[nodiscard]] auto binds() const
-        -> const std::vector<std::shared_ptr<const bind_info>>&
+      [[nodiscard]] auto definitions() const
+        -> const std::vector<std::shared_ptr<const node_definition>>&
       {
-        return m_binds;
+        return m_defs;
       }
 
     private:
       node_handle m_node;
       socket_handle m_socket;
-      std::vector<std::shared_ptr<const bind_info>> m_binds;
+      std::vector<std::shared_ptr<const node_definition>> m_defs;
     };
 
     /// Ambiguous overloading error
@@ -64,10 +64,10 @@ namespace yave {
       ambiguous_overloading(
         const node_handle& node,
         const socket_handle& socket,
-        const std::vector<std::shared_ptr<const bind_info>>& binds)
+        const std::vector<std::shared_ptr<const node_definition>>& defs)
         : m_node {node}
         , m_socket {socket}
-        , m_binds {binds}
+        , m_defs {defs}
       {
       }
 
@@ -87,16 +87,16 @@ namespace yave {
       }
 
       /// Get overloading bindings
-      [[nodiscard]] auto binds() const
-        -> const std::vector<std::shared_ptr<const bind_info>>&
+      [[nodiscard]] auto definitions() const
+        -> const std::vector<std::shared_ptr<const node_definition>>&
       {
-        return m_binds;
+        return m_defs;
       }
 
     private:
       node_handle m_node;
       socket_handle m_socket;
-      std::vector<std::shared_ptr<const bind_info>> m_binds;
+      std::vector<std::shared_ptr<const node_definition>> m_defs;
     };
 
     /// Type missmatch error
