@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <yave/rts/dynamic_typing.hpp>
 #include <yave/node/core/node_handle.hpp>
 #include <functional>
 
