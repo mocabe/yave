@@ -9,114 +9,15 @@
 #include <yave/lib/string/string.hpp>
 #include <yave/lib/vector/vector.hpp>
 #include <yave/obj/scene/scene_config.hpp>
-#include <yave/node/core/node_info.hpp>
-#include <yave/node/core/bind_info.hpp>
+#include <yave/node/core/node_declaration.hpp>
+#include <yave/node/core/node_definition.hpp>
 #include <yave/rts/box.hpp>
 #include <yave/support/id.hpp>
 
+#include <yave/backend/backend_node_definition.hpp>
+#include <yave/backend/backend_node_declaration.hpp>
+
 namespace yave {
-
-  /// bind_info for backend interface.
-  /// Only for communication with backends.
-  /// Keep data types as binary compatible as possible.
-  struct backend_bind_info
-  {
-    backend_bind_info(const bind_info& info)
-    {
-      // we need some code for conversion from std::vector<string> to
-      // vector<string>
-      std::vector<string> inputs_tmp;
-      inputs_tmp.reserve(info.input_sockets().size());
-
-      for (auto&& name : info.input_sockets())
-        inputs_tmp.push_back(name);
-
-      m_name          = info.name();
-      m_inputs        = inputs_tmp;
-      m_output        = info.output_socket();
-      m_instanec_func = info.get_instance_func();
-      m_description   = info.description();
-      m_is_const      = info.is_const();
-    }
-
-    /// Get name
-    [[nodiscard]] auto name() const -> std::string
-    {
-      return m_name;
-    }
-
-    /// Get input sockets
-    [[nodiscard]] auto input_sockets() const -> std::vector<std::string>
-    {
-      std::vector<std::string> tmp;
-      tmp.reserve(m_inputs.size());
-
-      for (auto&& s : m_inputs)
-        tmp.emplace_back(s);
-
-      return tmp;
-    }
-
-    /// Get output sockets
-    [[nodiscard]] auto output_socket() const -> std::string
-    {
-      return m_output;
-    }
-
-    /// Get description
-    [[nodiscard]] auto description() const -> std::string
-    {
-      return m_description;
-    }
-
-    /// Get instance generator function
-    [[nodiscard]] auto instance_func() const -> const object_ptr<const Object>&
-    {
-      return m_instanec_func;
-    }
-
-    /// Const?
-    [[nodiscard]] bool is_const() const
-    {
-      return m_is_const;
-    }
-
-    /// Convert to yave::bind info
-    [[nodiscard]] yave::bind_info bind_info() const
-    {
-      return {name(),
-              input_sockets(),
-              output_socket(),
-              instance_func(),
-              description(),
-              is_const()};
-    }
-
-  private:
-    string m_name;                            // 16 byte
-    vector<string> m_inputs;                  // 16
-    string m_output;                          // 16
-    string m_description;                     // 16
-    object_ptr<const Object> m_instanec_func; // 8
-    uint64_t m_is_const;                      // 8 (including padding)
-  };
-
-  static_assert(sizeof(backend_bind_info) == 80);
-
-  /// BackendBindInfo
-  using BackendBindInfo = Box<backend_bind_info>;
-
-  /// List of bind info
-  struct backend_bind_info_list
-  {
-    /// List of bind info
-    vector<object_ptr<BackendBindInfo>> info_list; // 16
-  };
-
-  static_assert(sizeof(backend_bind_info_list) == 16);
-
-  /// BackendBindInfoList
-  using BackendBindInfoList = Box<backend_bind_info_list>;
 
   /// backend info
   struct backend_info
@@ -126,11 +27,12 @@ namespace yave {
       const string& name,
       const uuid& backend_id,
       void* handle,
-      auto (*fp_init)(void* handle, const scene_config& config) noexcept->uid,
+      auto (*fp_init)(void* handle, const scene_config& config) noexcept -> uid,
       void (*fp_deinit)(void* handle, uid instance) noexcept,
       bool (*fp_update)(void* handle, uid instance, const scene_config& config) noexcept,
-      auto (*fp_get_config)(void* handle, uid instance) noexcept ->object_ptr<SceneConfig>,
-      auto (*fp_get_binds)(void* handle, uid instance) noexcept ->object_ptr<BackendBindInfoList>)
+      auto (*fp_get_config)(void* handle, uid instance) noexcept -> object_ptr<SceneConfig>,
+      auto (*fp_get_declarations)(void* handle, uid instance) noexcept -> object_ptr<BackendNodeDeclarationList>,
+      auto (*fp_get_definitions)(void* handle, uid instance) noexcept -> object_ptr<BackendNodeDefinitionList>)
       : m_name {name}
       , m_backend_id {backend_id}
       , m_handle {handle}
@@ -138,7 +40,8 @@ namespace yave {
       , m_fp_deinit {fp_deinit}
       , m_fp_update {fp_update}
       , m_fp_get_config {fp_get_config}
-      , m_fp_get_binds {fp_get_binds}
+      , m_fp_get_declarations {fp_get_declarations}
+      , m_fp_get_definitions {fp_get_definitions}
     {
     }
     // clang-format on
@@ -163,17 +66,24 @@ namespace yave {
     }
 
     /// Get current scene config
-    [[nodiscard]] auto get_config(uid instance) const noexcept
+    [[nodiscard]] auto get_scene_config(uid instance) const noexcept
       -> object_ptr<SceneConfig>
     {
       return m_fp_get_config(m_handle, instance);
     }
 
-    /// Get list of backend bind info
-    [[nodiscard]] auto get_binds(uid instance) const noexcept
-      -> object_ptr<BackendBindInfoList>
+    /// Get list of declarations
+    [[nodiscard]] auto get_node_declarations(uid instance) const noexcept
+      -> object_ptr<BackendNodeDeclarationList>
     {
-      return m_fp_get_binds(m_handle, instance);
+      return m_fp_get_declarations(m_handle, instance);
+    }
+
+    /// Get list of definitions
+    [[nodiscard]] auto get_node_definitions(uid instance) const noexcept
+      -> object_ptr<BackendNodeDefinitionList>
+    {
+      return m_fp_get_definitions(m_handle, instance);
     }
 
     /// Get name of backend
@@ -230,11 +140,17 @@ namespace yave {
     auto (*m_fp_get_config)(void* handle, uid instance) noexcept
       -> object_ptr<SceneConfig>;
 
-    /// Get list of backend bindings.
-    /// \note Should return nullptr on fail, otherwise return set of bindings
+    /// Get list of backend declarations.
+    /// \note Should return nullptr on fail, otherwise return set of
+    /// declarations required to compile scene graph.
+    auto (*m_fp_get_declarations)(void* handle, uid instance) noexcept
+      -> object_ptr<BackendNodeDeclarationList>;
+
+    /// Get list of backend definitions.
+    /// \note Should return nullptr on fail, otherwise return set of definitions
     /// required to compile scene graph.
-    auto (*m_fp_get_binds)(void* handle, uid instance) noexcept
-      -> object_ptr<BackendBindInfoList>;
+    auto (*m_fp_get_definitions)(void* handle, uid instance) noexcept
+      -> object_ptr<BackendNodeDefinitionList>;
   };
 
   /// BackendInfo
@@ -242,8 +158,4 @@ namespace yave {
 
 } // namespace yave
 
-// clang-format off
-YAVE_DECL_TYPE(yave::BackendBindInfo,     "a292b66b-e8c2-4cae-a02e-3de38fa38cb7");
-YAVE_DECL_TYPE(yave::BackendBindInfoList, "e6bdef71-b50f-4591-a6fc-ee99aa78ba4c");
-YAVE_DECL_TYPE(yave::BackendInfo,         "11a91dd5-c9e1-4c41-b864-0175f2283647");
-// clang-format on
+YAVE_DECL_TYPE(yave::BackendInfo, "85023810-49d6-4bc8-b9fc-22415164934c");

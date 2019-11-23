@@ -83,8 +83,9 @@ namespace yave::backend::default_render {
       [](void* handle, const scene_config& config) noexcept { return ((backend*)handle)->init(config); },
       [](void* handle, uid id) noexcept { return ((backend*)handle)->deinit(id); },
       [](void* handle, uid id, const scene_config& config) noexcept { return ((backend*)handle)->update(id, config); },
-      [](void* handle, uid id) noexcept { return ((backend*)handle)->get_config(id); },
-      [](void* handle, uid id) noexcept { return ((backend*)handle)->get_binds(id); }
+      [](void* handle, uid id) noexcept { return ((backend*)handle)->get_scene_config(id); },
+      [](void* handle, uid id) noexcept { return ((backend*)handle)->get_node_declarations(id); },
+      [](void* handle, uid id) noexcept { return ((backend*)handle)->get_node_definitions(id); }
     );
     // clang-format on
   }
@@ -167,7 +168,7 @@ namespace yave::backend::default_render {
     }
   }
 
-  auto backend::get_config(uid id) noexcept -> object_ptr<SceneConfig>
+  auto backend::get_scene_config(uid id) noexcept -> object_ptr<SceneConfig>
   {
     try {
       auto lck = _lock();
@@ -189,7 +190,8 @@ namespace yave::backend::default_render {
     }
   }
 
-  auto backend::get_binds(uid id) noexcept -> object_ptr<BackendBindInfoList>
+  auto backend::get_node_definitions(uid id) noexcept
+    -> object_ptr<BackendNodeDefinitionList>
   {
     try {
       auto lck = _lock();
@@ -203,50 +205,55 @@ namespace yave::backend::default_render {
 
       instance& inst = *iter;
 
-      std::vector<object_ptr<BackendBindInfo>> binds;
+      std::vector<object_ptr<BackendNodeDefinition>> definitions;
+
+      auto add_defs = [&](const std::vector<node_definition>& defs) {
+        for (auto&& def : defs)
+          definitions.push_back(make_object<BackendNodeDefinition>(def));
+      };
 
       // add backends impl
       {
         // clang-format off
 
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::FrameBuffer, tags::default_render>(inst.fb_manager.get())));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpSrc, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpDst, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpOver, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpIn, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpOut, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::BlendOpAdd, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerCompositor, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::FrameTime, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LayerImageOutput, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeDataInt, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeDataFloat, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeDataBool, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeEvaluatorInt, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeEvaluatorFloat , tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::KeyframeEvaluatorBool, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int8, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int16, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int32, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Int64, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt8, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt16, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt32, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::UInt64, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Float, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Double, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::Bool, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::String, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::ListNil, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::ListCons, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::ListDecompose_Head, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::ListDecompose_Tail, tags::default_render>()));
-        binds.push_back(make_object<BackendBindInfo>(get_bind_info<node::LoadImage, tags::default_render>()));
+        add_defs(yave::get_node_definitions<node::FrameBuffer, tags::default_render>(inst.fb_manager.get()));
+        add_defs(yave::get_node_definitions<node::BlendOpSrc, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::BlendOpDst, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::BlendOpOver, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::BlendOpIn, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::BlendOpOut, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::BlendOpAdd, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::LayerCompositor, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::FrameTime, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::LayerImageOutput, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::KeyframeDataInt, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::KeyframeDataFloat, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::KeyframeDataBool, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::KeyframeEvaluatorInt, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::KeyframeEvaluatorFloat , tags::default_render>());
+        add_defs(yave::get_node_definitions<node::KeyframeEvaluatorBool, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::Int8, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::Int16, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::Int32, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::Int64, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::UInt8, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::UInt16, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::UInt32, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::UInt64, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::Float, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::Double, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::Bool, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::String, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::ListNil, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::ListCons, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::ListDecompose_Head, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::ListDecompose_Tail, tags::default_render>());
+        add_defs(yave::get_node_definitions<node::LoadImage, tags::default_render>());
 
         // clang-format on
       }
 
-      return make_object<BackendBindInfoList>(binds);
+      return make_object<BackendNodeDefinitionList>(definitions);
 
     } catch (std::exception& e) {
       Error(g_logger, "Failed to get bindings: {}", e.what());
