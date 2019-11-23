@@ -24,8 +24,9 @@ TEST_CASE("ListNil")
 
   SECTION("bind")
   {
-    auto info = get_bind_info<node::ListNil, backend::tags::default_render>();
-    REQUIRE(same_type(get_type(nil), get_type(info.get_instance(nullptr))));
+    auto defs =
+      get_node_definitions<node::ListNil, backend::tags::default_render>();
+    REQUIRE(same_type(get_type(nil), get_type(defs[0].get_instance(nullptr))));
   }
 }
 
@@ -41,8 +42,9 @@ TEST_CASE("ListCons")
 
   SECTION("bind")
   {
-    auto info = get_bind_info<node::ListCons, backend::tags::default_render>();
-    REQUIRE(same_type(get_type(cons), get_type(info.get_instance(nullptr))));
+    auto defs =
+      get_node_definitions<node::ListCons, backend::tags::default_render>();
+    REQUIRE(same_type(get_type(cons), get_type(defs[0].get_instance(nullptr))));
   }
 }
 
@@ -58,9 +60,10 @@ TEST_CASE("ListDecompose_Head")
 
   SECTION("bind")
   {
-    auto info =
-      get_bind_info<node::ListDecompose_Head, backend::tags::default_render>();
-    REQUIRE(same_type(get_type(head), get_type(info.get_instance(nullptr))));
+    auto defs = get_node_definitions<
+      node::ListDecompose_Head,
+      backend::tags::default_render>();
+    REQUIRE(same_type(get_type(head), get_type(defs[0].get_instance(nullptr))));
   }
 }
 
@@ -76,9 +79,10 @@ TEST_CASE("ListDecompose_Tail")
 
   SECTION("bind")
   {
-    auto info =
-      get_bind_info<node::ListDecompose_Tail, backend::tags::default_render>();
-    REQUIRE(same_type(get_type(tail), get_type(info.get_instance(nullptr))));
+    auto defs = get_node_definitions<
+      node::ListDecompose_Tail,
+      backend::tags::default_render>();
+    REQUIRE(same_type(get_type(tail), get_type(defs[0].get_instance(nullptr))));
   }
 }
 
