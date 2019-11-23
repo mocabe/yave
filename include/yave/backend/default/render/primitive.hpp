@@ -65,7 +65,7 @@ namespace yave {
     std::vector<node_definition> ret;
     backend::default_render::
       primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
-        ret, get_primitive_node_definitions<backend::tags::default_render>);
+        ret, get_primitive_node_definition<backend::tags::default_render>);
     return ret;
   }
 

@@ -120,6 +120,11 @@ namespace yave {
       remove(name);
   }
 
+  void node_declaration_store::clear()
+  {
+    m_map.clear();
+  }
+
   bool node_declaration_store::empty() const
   {
     return m_map.empty();

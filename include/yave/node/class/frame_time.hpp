@@ -19,7 +19,7 @@ namespace yave {
   template <>
   struct node_declaration_traits<node::FrameTime>
   {
-    static auto get_node_declaratin() -> node_declaration
+    static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
         "FrameTime",

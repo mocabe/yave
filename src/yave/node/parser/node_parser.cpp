@@ -181,7 +181,9 @@ namespace yave {
 
     for (auto&& n : ns) {
       // Revemo group I/O bits
-      if (graph.get_name(n) == get_node_info<node::NodeGroupIOBit>().name()) {
+      if (
+        graph.get_name(n) ==
+        get_node_declaration<node::NodeGroupIOBit>().name()) {
         auto ics = graph.input_connections(n);
         auto ocs = graph.output_connections(n);
 
