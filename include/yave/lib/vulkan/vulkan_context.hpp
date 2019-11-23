@@ -7,7 +7,6 @@
 
 #include <yave/lib/glfw/glfw_context.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
-#include <vulkan/vulkan.hpp>
 
 namespace yave::vulkan {
 

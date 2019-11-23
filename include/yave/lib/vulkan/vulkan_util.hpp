@@ -5,6 +5,13 @@
 
 #pragma once
 
+#include <yave/config/config.hpp>
+
+// https://github.com/KhronosGroup/Vulkan-Hpp/pull/431
+#if defined(YAVE_OS_WINDOWS)
+#  include <windows.h>
+#endif
+
 #include <vulkan/vulkan.hpp>
 
 namespace yave::vulkan {

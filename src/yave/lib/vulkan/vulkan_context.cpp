@@ -7,7 +7,6 @@
 #define GLFW_INCLUDE_VULKAN
 
 #include <yave/lib/vulkan/vulkan_context.hpp>
-
 #include <yave/support/log.hpp>
 
 /* Global definitions */
@@ -672,8 +671,9 @@ namespace {
   {
     using namespace yave;
 
-    auto default_format = vk::SurfaceFormatKHR {
-      vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear};
+    auto default_format       = vk::SurfaceFormatKHR();
+    default_format.format     = vk::Format::eB8G8R8A8Unorm;
+    default_format.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
 
     if (formats.size() == 1 && formats[0].format == vk::Format::eUndefined) {
       // use default format

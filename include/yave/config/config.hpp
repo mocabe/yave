@@ -19,6 +19,10 @@
 #include <climits>
 #include <limits>
 
+#if defined(YAVE_OS_WINDOWS)
+#  define NOMINMAX
+#endif
+
 namespace yave {
 
   using uint8_t  = std::uint8_t;
