@@ -15,7 +15,7 @@ TEST_CASE("init", "[lib][vector]")
   vector<int>();
   vector<int>(1);
   vector<int>(1, 42);
-  vector<int>(std::vector<int>());
+  vector<int>(std::vector<int> {});
 
   vector<string>();
   vector<string>(1);
@@ -116,8 +116,6 @@ TEST_CASE("access", "[lib][vector]")
     REQUIRE(e == 0);
     e = 0;
   }
-
-  const auto& ref = v;
 
   for (auto& e : v) {
     REQUIRE(e == 0);
