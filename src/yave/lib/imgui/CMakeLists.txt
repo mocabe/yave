@@ -41,8 +41,8 @@ add_custom_command(
 # Add command to copy shaders into lib directory
 add_custom_command(
   TARGET yave-lib-imgui POST_BUILD
-  COMMAND cp -f frag.spv $<TARGET_FILE_DIR:yave-lib-imgui>/frag.spv & true
-  COMMAND cp -f vert.spv $<TARGET_FILE_DIR:yave-lib-imgui>/vert.spv & true
+  COMMAND ${CMAKE_COMMAND} -E copy frag.spv $<TARGET_FILE_DIR:yave-lib-imgui>/frag.spv
+  COMMAND ${CMAKE_COMMAND} -E copy vert.spv $<TARGET_FILE_DIR:yave-lib-imgui>/vert.spv
 )
 
 # And custom targets for commands
