@@ -2,7 +2,6 @@
 
 add_library(yave-node-core 
   primitive.cpp
-  bind_info.cpp
   node_info.cpp
   socket_info.cpp
   connection_info.cpp
@@ -11,8 +10,6 @@ add_library(yave-node-core
   socket_property.cpp
   node_graph.cpp
   managed_node_graph.cpp
-  node_info_manager.cpp
-  bind_info_manager.cpp
   socket_instance_manager.cpp
   shared_node_handle.cpp
   node_initializer.cpp
