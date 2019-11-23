@@ -29,7 +29,6 @@ namespace yave {
     // convert decl to node info
     auto to_node_info(const node_declaration& decl)
     {
-      assert(decl.node_type() != node_type::composite);
       return node_info(
         decl.name(),
         decl.input_sockets(),
@@ -1034,12 +1033,6 @@ namespace yave {
         return {nullptr};
       }
       group = &iter->second;
-    }
-
-    // process composite nodes
-    if (decl->is_composite()) {
-      Info(g_logger, "Creating composite node: {}", name);
-      return decl->get_composite_func()(*this, parent_group);
     }
 
     // non-composite nodes

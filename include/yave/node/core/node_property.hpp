@@ -16,10 +16,9 @@ namespace yave {
   /// Node type
   enum class node_type
   {
-    normal,    // normal function
-    primitive, // with primitive value
-    interface, // interface
-    composite, // composite
+    normal,    // normal node
+    primitive, // primitive node
+    interface, // interface node
   };
 
   /// Node property class for node graph.

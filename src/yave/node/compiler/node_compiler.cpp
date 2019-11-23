@@ -255,7 +255,7 @@ namespace yave {
 
         // generalized overloading type.
         // uses type class of declaration here.
-        auto type_class = node_decl->get_type_class();
+        auto type_class = node_decl->type_class();
 
         // check overloading types
         for (auto&& type : overloading_types) {
