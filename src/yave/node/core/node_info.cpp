@@ -6,7 +6,7 @@
 #include <yave/node/core/node_info.hpp>
 
 #include <stdexcept>
-#include <algorithm>
+#include <range/v3/algorithm.hpp>
 
 namespace yave {
 
@@ -30,10 +30,8 @@ namespace yave {
       }
 
       auto _has_unique_names = [](auto names) {
-        // get unique names
-        std::sort(names.begin(), names.end());
-        auto end = std::unique(names.begin(), names.end());
-        return end == names.end();
+        ranges::sort(names);
+        return ranges::unique(names) == names.end();
       };
 
       if (

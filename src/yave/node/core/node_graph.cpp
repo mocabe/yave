@@ -5,6 +5,7 @@
 
 #include <yave/node/core/node_graph.hpp>
 #include <yave/support/log.hpp>
+#include <range/v3/algorithm.hpp>
 
 namespace {
 
@@ -718,7 +719,7 @@ namespace yave {
       }
     }
 
-    assert(std::unique(ret.begin(), ret.end()) == ret.end());
+    assert(ranges::unique(ret) == ret.end());
     return ret;
   }
 
@@ -736,7 +737,7 @@ namespace yave {
     for (auto&& e : m_g.dst_edges(socket.descriptor()))
       ret.emplace_back(e, uid {m_g.id(e)});
 
-    assert(std::unique(ret.begin(), ret.end()) == ret.end());
+    assert(std::unique(ret) == ret.end());
     return ret;
   }
 
@@ -1090,13 +1091,13 @@ namespace yave {
       [](auto&&, auto&&) { return false; },
       [&ret](const node_handle& n, const std::vector<node_handle>& pth) {
         // find closed loop
-        for (auto iter = pth.begin(); iter != pth.end(); ++iter) {
-          if (*iter == n) {
-            ret = {iter, pth.end()};
-            return true;
-          }
-        }
-        return false;
+        auto iter = ranges::find(pth, n);
+
+        if (iter == pth.end())
+          return false;
+
+        ret = {iter, pth.end()};
+        return true;
       });
 
     return ret;

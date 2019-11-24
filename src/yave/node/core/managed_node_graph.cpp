@@ -8,6 +8,7 @@
 
 #include <yave/support/log.hpp>
 
+#include <range/v3/algorithm.hpp>
 #include <memory>
 
 namespace {
@@ -71,7 +72,7 @@ namespace yave {
 
     void add_content(const node_handle& node)
     {
-      auto lb = std::lower_bound(contents.begin(), contents.end(), node);
+      auto lb = ranges::lower_bound(contents, node);
 
       if (lb != contents.end() && *lb == node)
         return;
@@ -81,7 +82,7 @@ namespace yave {
 
     void remove_content(const node_handle& node)
     {
-      auto lb = std::lower_bound(contents.begin(), contents.end(), node);
+      auto lb = ranges::lower_bound(contents, node);
 
       if (lb == contents.end())
         return;
@@ -92,7 +93,7 @@ namespace yave {
 
     bool find_content(const node_handle& node) const
     {
-      auto lb = std::lower_bound(contents.begin(), contents.end(), node);
+      auto lb = ranges::lower_bound(contents, node);
 
       if (lb == contents.end())
         return false;
@@ -260,6 +261,7 @@ namespace yave {
     node_group* parent = nullptr;
     {
       auto iter = m_groups.find(parent_group);
+
       if (iter == m_groups.end()) {
         Error(g_logger, "group(): Invalid parent handler");
         return {nullptr};
@@ -343,9 +345,7 @@ namespace yave {
             for (auto&& c : ic) {
               auto info = m_ng.get_info(c);
               assert(info);
-              if (
-                std::find(nodes.begin(), nodes.end(), info->src_node()) ==
-                nodes.end()) {
+              if (ranges::find(nodes, info->src_node()) == nodes.end()) {
                 inputs.back().cs.emplace_back(c, std::move(*info));
               }
             }
@@ -362,9 +362,7 @@ namespace yave {
             for (auto&& c : oc) {
               auto info = m_ng.get_info(c);
               assert(info);
-              if (
-                std::find(nodes.begin(), nodes.end(), info->dst_node()) ==
-                nodes.end()) {
+              if (ranges::find(nodes, info->dst_node()) == nodes.end()) {
                 outputs.back().cs.emplace_back(c, std::move(*info));
               }
             }
