@@ -99,6 +99,7 @@ target_link_options(yave-config INTERFACE ${YAVE_LINK_FLAGS})
 target_link_libraries(yave-config INTERFACE Boost::boost)
 target_link_libraries(yave-config INTERFACE Boost::disable_autolinking)
 target_link_libraries(yave-config INTERFACE range-v3)
+target_link_libraries(yave-config INTERFACE fmt::fmt)
 
 # ------------------------------------------
 # Valgrind Target
