@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/class/list.hpp>
+#include <yave/node/decl/list.hpp>
 
 namespace yave {
 

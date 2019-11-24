@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/class/frame_time.hpp>
+#include <yave/node/decl/frame_time.hpp>
 #include <yave/node/core/instance_getter.hpp>
 
 namespace yave {

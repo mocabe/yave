@@ -4,9 +4,9 @@
 //
 
 #include <yave/node/parser/node_parser.hpp>
-#include <yave/node/class/keyframe.hpp>
-#include <yave/node/class/frame_time.hpp>
-#include <yave/node/class/identity.hpp>
+#include <yave/node/decl/keyframe.hpp>
+#include <yave/node/decl/frame_time.hpp>
+#include <yave/node/decl/identity.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;

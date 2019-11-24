@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/core/managed_node_graph.hpp>
-#include <yave/node/class/node_group.hpp>
+#include <yave/node/decl/node_group.hpp>
 
 #include <yave/support/log.hpp>
 

@@ -5,8 +5,8 @@
 
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/parser/errors.hpp>
-#include <yave/node/class/node_group.hpp>
-#include <yave/node/class/constructor.hpp>
+#include <yave/node/decl/node_group.hpp>
+#include <yave/node/decl/constructor.hpp>
 #include <yave/support/log.hpp>
 
 namespace {

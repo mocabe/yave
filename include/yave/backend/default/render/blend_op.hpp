@@ -6,8 +6,8 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/class/compositor.hpp>
-#include <yave/node/class/blend_op.hpp>
+#include <yave/node/decl/compositor.hpp>
+#include <yave/node/decl/blend_op.hpp>
 #include <yave/lib/image/image_blend.hpp>
 
 namespace yave {

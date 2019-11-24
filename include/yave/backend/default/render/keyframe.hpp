@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/class/keyframe.hpp>
+#include <yave/node/decl/keyframe.hpp>
 
 namespace yave {
 

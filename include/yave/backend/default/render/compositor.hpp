@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/class/compositor.hpp>
+#include <yave/node/decl/compositor.hpp>
 #include <yave/node/core/instance_getter.hpp>
 
 namespace yave {

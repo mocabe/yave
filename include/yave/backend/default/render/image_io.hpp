@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/class/image_io.hpp>
+#include <yave/node/decl/image_io.hpp>
 #include <yave/obj/filesystem/path.hpp>
 #include <yave/lib/image/image_io.hpp>
 

@@ -6,8 +6,8 @@
 #pragma once
 
 #include <yave/backend/default/config.hpp>
-#include <yave/node/class/control_flow.hpp>
-#include <yave/node/class/constructor.hpp>
+#include <yave/node/decl/control_flow.hpp>
+#include <yave/node/decl/constructor.hpp>
 
 namespace yave {
 
