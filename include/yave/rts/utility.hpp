@@ -52,8 +52,8 @@ namespace yave {
 
     if constexpr (t1 != t2) {
       static_assert(false_v<T>, "Compile time type check failed!");
-      using expected = typename decltype(t1)::_print_expected;
-      using provided = typename decltype(t2)::_print_provided;
+      using expected = typename decltype(t1)::_show;
+      using provided = typename decltype(t2)::_show;
       static_assert(false_v<expected, provided>);
     }
   }

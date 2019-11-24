@@ -9,6 +9,7 @@
 #include <yave/node/core/get_info.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/keyframe/keyframe.hpp>
+#include <yave/obj/frame_time/frame_time.hpp>
 
 namespace yave {
 

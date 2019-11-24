@@ -263,22 +263,22 @@ namespace yave {
     if constexpr (is_type_missmatch(tag)) {
       static_assert(false_v<T>, "Unification error: Type missmatch");
       // print error info
-      using left  = typename decltype(tag)::type::left::_print_lhs;
-      using right = typename decltype(tag)::type::right::_print_rhs;
-      using other = typename decltype(tag)::type::other::_print_other;
+      using left  = typename decltype(tag)::type::left::_show;
+      using right = typename decltype(tag)::type::right::_show;
+      using other = typename decltype(tag)::type::other::_show;
       static_assert(false_v<left, right, other>, "Unification failed.");
     } else if constexpr (is_unsolvable_constraints(tag)) {
       static_assert(false_v<T>, "Unification error: Unsolvable constraints");
       // print error info
-      using left  = typename decltype(tag)::type::left::_print_lhs;
-      using right = typename decltype(tag)::type::right::_print_rhs;
-      using other = typename decltype(tag)::type::other::_print_other;
+      using left  = typename decltype(tag)::type::left::_show;
+      using right = typename decltype(tag)::type::right::_show;
+      using other = typename decltype(tag)::type::other::_show;
       static_assert(false_v<left, right, other>, "Unification failed.");
     } else if constexpr (is_circular_constraints(tag)) {
       static_assert(false_v<T>, "Unification error: Circular constraints");
       // print error info
-      using var   = typename decltype(tag)::type::var::_print_var;
-      using other = typename decltype(tag)::type::other::_print_other;
+      using var   = typename decltype(tag)::type::var::_show;
+      using other = typename decltype(tag)::type::other::_show;
       static_assert(false_v<var, other>, "Unification failed.");
     } else if constexpr (is_unknown_error(tag)) {
       static_assert(

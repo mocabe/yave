@@ -13,8 +13,15 @@ namespace yave {
 
   namespace backend::default_render {
 
-    /// Time -> Time
-    using FrameTimeConstructor = Id;
+    /// FrameDemand -> FrameTime
+    struct FrameTimeConstructor
+      : Function<FrameTimeConstructor, FrameDemand, FrameTime>
+    {
+      return_type code() const
+      {
+        return make_object<FrameTime>(eval_arg<0>()->time);
+      }
+    };
 
   } // namespace backend::default_render
 

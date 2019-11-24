@@ -97,10 +97,10 @@ namespace yave {
   constexpr auto check_return_type(meta_type<T1> t1, meta_type<T2> t2)
   {
     if constexpr (t1 != t2) {
-      static_assert(false_v<T1>, "return type does not match.");
-      using _t1 = typename T1::_print_expected;
-      using _t2 = typename T2::_print_provided;
-      static_assert(false_v<_t1, _t2>, "compile-time type check failed.");
+      static_assert(false_v<T1, T2>, "return type does not match.");
+      using lhs = typename T1::_show;
+      using rhs = typename T2::_show;
+      static_assert(false_v<lhs, rhs>, "compile-time type check failed.");
     }
   }
 

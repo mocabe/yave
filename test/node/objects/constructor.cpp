@@ -27,7 +27,7 @@ TEST_CASE("Constructor")
   SECTION("eval")
   {
     auto v = make_object<IntConstructor>(i);
-    auto r = eval(v << make_object<FrameTime>());
+    auto r = eval(v << make_object<FrameDemand>());
     REQUIRE(*r == 42);
   }
 }
