@@ -9,12 +9,7 @@ add_library(yave-lib-image
 )
 add_library(yave::lib::image ALIAS yave-lib-image)
 
-target_include_directories(yave-lib-image PRIVATE ${YAVE_INCLUDE_DIR})
-target_compile_options(yave-lib-image PRIVATE ${YAVE_COMPILE_FLAGS})
-target_link_options(yave-lib-image PRIVATE ${YAVE_LINK_FLAGS})
-
-target_link_libraries(yave-lib-image PRIVATE selene)
+target_link_libraries(yave-lib-image PRIVATE yave::config)
 target_link_libraries(yave-lib-image PRIVATE yave::support::log)
-target_link_libraries(yave-lib-image PRIVATE Boost::boost)
+target_link_libraries(yave-lib-image PRIVATE selene)
 target_link_libraries(yave-lib-image PRIVATE Boost::filesystem)
-target_link_libraries(yave-lib-image PRIVATE Boost::disable_autolinking)

@@ -6,13 +6,9 @@ add_library(yave-lib-imgui
 
 add_library(yave::lib::imgui ALIAS yave-lib-imgui)
 
-target_include_directories(yave-lib-imgui PRIVATE ${YAVE_INCLUDE_DIR})
-target_compile_options(yave-lib-imgui PRIVATE ${YAVE_COMPILE_FLAGS})
-target_link_options(yave-lib-imgui PRIVATE ${YAVE_LINK_FLAGS})
+target_link_libraries(yave-lib-imgui PRIVATE yave::config)
 target_link_libraries(yave-lib-imgui PRIVATE yave::support::log)
-target_link_libraries(yave-lib-imgui PRIVATE Boost::boost)
 target_link_libraries(yave-lib-imgui PRIVATE Boost::filesystem)
-target_link_libraries(yave-lib-imgui PRIVATE Boost::disable_autolinking)
 
 if(YAVE_COMPILER_GNU)
   # <experimental/filesystem>

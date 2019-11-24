@@ -89,6 +89,18 @@ if(YAVE_COMPILER_GNU)
 endif()
 
 # ------------------------------------------
+# Configuration
+
+add_library(yave-config INTERFACE)
+add_library(yave::config ALIAS yave-config)
+target_include_directories(yave-config INTERFACE ${YAVE_INCLUDE_DIR})
+target_compile_options(yave-config INTERFACE ${YAVE_COMPILE_FLAGS})
+target_link_options(yave-config INTERFACE ${YAVE_LINK_FLAGS})
+target_link_libraries(yave-config INTERFACE Boost::boost)
+target_link_libraries(yave-config INTERFACE Boost::disable_autolinking)
+target_link_libraries(yave-config INTERFACE range-v3)
+
+# ------------------------------------------
 # Valgrind Target
 
 if(UNIX AND YAVE_BUILD_TESTS)
