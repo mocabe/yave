@@ -75,7 +75,8 @@ TEST_CASE("time")
 
   SECTION("overflow")
   {
-    constexpr yave::time t;
+    constexpr yave::time t {};
+    constexpr auto one = time::unit(1);
 
     STATIC_REQUIRE(t.count() == 0);
     STATIC_REQUIRE(t == t.zero());
@@ -86,45 +87,69 @@ TEST_CASE("time")
     STATIC_REQUIRE(t * t == t);
     STATIC_REQUIRE(t - t == t);
 
-    STATIC_REQUIRE(-t.max() == t.min() + 1);
+    STATIC_REQUIRE(-t.max() == t.min() + one);
     STATIC_REQUIRE(-t.min() == t.max());
 
     STATIC_REQUIRE(t.max() + t.max() == t.max());
     STATIC_REQUIRE(t.min() + t.min() == t.min());
     STATIC_REQUIRE(t.zero() + t.min() == t.min());
     STATIC_REQUIRE(t.zero() + t.max() == t.max());
-    STATIC_REQUIRE(t.min() + t.max() == t.zero() - 1);
-    STATIC_REQUIRE(t.max() + t.min() == t.zero() - 1);
+    STATIC_REQUIRE(t.min() + t.max() == t.zero() - one);
+    STATIC_REQUIRE(t.max() + t.min() == t.zero() - one);
 
     STATIC_REQUIRE(t.max() - t.max() == t.zero());
     STATIC_REQUIRE(t.min() - t.min() == t.zero());
     STATIC_REQUIRE(t.max() - t.min() == t.max());
     STATIC_REQUIRE(t.min() - t.max() == t.min());
-    STATIC_REQUIRE(t.zero() - t.max() == t.min() + 1);
+    STATIC_REQUIRE(t.zero() - t.max() == t.min() + one);
     STATIC_REQUIRE(t.min() - t.zero() == t.min());
 
-    STATIC_REQUIRE(t.max() * (t.zero() + 1) == t.max());
-    STATIC_REQUIRE(t.min() * (t.zero() + 1) == t.min());
-    STATIC_REQUIRE((t.zero() + 1) * t.max() == t.max());
-    STATIC_REQUIRE((t.zero() + 1) * t.min() == t.min());
-    STATIC_REQUIRE(t.max() * (t.zero() - 1) == t.min() + 1);
-    STATIC_REQUIRE(t.min() * (t.zero() - 1) == t.max());
-    STATIC_REQUIRE((t.zero() - 1) * t.max() == t.min() + 1);
-    STATIC_REQUIRE((t.zero() - 1) * t.min() == t.max());
+    STATIC_REQUIRE(t.max() * (t.zero() + one) == t.max());
+    STATIC_REQUIRE(t.min() * (t.zero() + one) == t.min());
+    STATIC_REQUIRE((t.zero() + one) * t.max() == t.max());
+    STATIC_REQUIRE((t.zero() + one) * t.min() == t.min());
+    STATIC_REQUIRE(t.max() * (t.zero() - one) == t.min() + one);
+    STATIC_REQUIRE(t.min() * (t.zero() - one) == t.max());
+    STATIC_REQUIRE((t.zero() - one) * t.max() == t.min() + one);
+    STATIC_REQUIRE((t.zero() - one) * t.min() == t.max());
 
     STATIC_REQUIRE(t.max() * t.max() == t.max());
     STATIC_REQUIRE(t.max() * t.min() == t.min());
     STATIC_REQUIRE(t.min() * t.min() == t.max());
     STATIC_REQUIRE(t.min() * t.max() == t.min());
 
-    STATIC_REQUIRE(t.max() / (t.zero() - 1) == t.min() + 1);
-    STATIC_REQUIRE(t.min() / (t.zero() - 1) == t.max());
-    STATIC_REQUIRE((t.zero() - 1) / t.max() == -(1 / t.max()));
-    STATIC_REQUIRE((t.zero() - 1) / t.min() == -(1 / t.max()));
+    STATIC_REQUIRE(t.max() / (t.zero() - one) == t.min() + one);
+    STATIC_REQUIRE(t.min() / (t.zero() - one) == t.max());
+    STATIC_REQUIRE((t.zero() - one) / t.max() == -(one / t.max()));
+    STATIC_REQUIRE((t.zero() - one) / t.min() == -(one / t.max()));
 
     STATIC_REQUIRE(++t.max() == t.max());
     STATIC_REQUIRE(t.max()++ == t.max());
     STATIC_REQUIRE(--t.min() == t.min());
     STATIC_REQUIRE(t.min()-- == t.min());
+  }
+
+  SECTION("chrono conv")
+  {
+    constexpr auto mil = yave::time(std::chrono::milliseconds(1));
+    constexpr auto sec = yave::time(std::chrono::seconds(1));
+    constexpr auto min = yave::time(std::chrono::minutes(1));
+    constexpr auto hor = yave::time(std::chrono::hours(1));
+
+    STATIC_REQUIRE(mil.milliseconds() == std::chrono::milliseconds(1));
+    STATIC_REQUIRE(sec.seconds() == std::chrono::seconds(1));
+    STATIC_REQUIRE(min.minutes() == std::chrono::minutes(1));
+    STATIC_REQUIRE(hor.hours() == std::chrono::hours(1));
+  }
+
+  SECTION("static conv")
+  {
+    STATIC_REQUIRE(
+      yave::time::milliseconds(1.0).duration() == std::chrono::milliseconds(1));
+    STATIC_REQUIRE(
+      yave::time::seconds(1.0).duration() == std::chrono::seconds(1));
+    STATIC_REQUIRE(
+      yave::time::minutes(1.0).duration() == std::chrono::minutes(1));
+    STATIC_REQUIRE(yave::time::hours(1.0).duration() == std::chrono::hours(1));
   }
 }

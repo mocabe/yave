@@ -22,17 +22,17 @@ TEST_CASE("keyframe")
     REQUIRE(kf.keys().empty());
     REQUIRE(kf.values().empty());
     REQUIRE(kf.pairs().empty());
-    REQUIRE(kf.find_range({0}) == std::pair {min, max});
+    REQUIRE(kf.find_range(zero) == std::pair {min, max});
     REQUIRE(kf.find_range(min) == std::pair {min, max});
     REQUIRE(kf.find_range(max) == std::pair {min, max});
-    REQUIRE(kf.find_value({0}) == 0);
+    REQUIRE(kf.find_value(zero) == 0);
     REQUIRE(kf.find_value(max) == 0);
     REQUIRE(kf.find_value(min) == 0);
   }
 
   SECTION("set 0")
   {
-    kf.set(0, 42); // no effect
+    kf.set(zero, 42); // no effect
     REQUIRE(kf.empty());
   }
 
@@ -45,7 +45,7 @@ TEST_CASE("keyframe")
       REQUIRE(kf.size() == 1);
       REQUIRE(!kf.empty());
       REQUIRE(kf.keys().size() == 1);
-      REQUIRE(kf.keys()[0] == 0);
+      REQUIRE(kf.keys()[0] == zero);
       REQUIRE(kf.values().size() == 1);
       REQUIRE(kf.values()[0] == 42);
       REQUIRE(kf.pairs()[0] == std::pair {zero, 42});
