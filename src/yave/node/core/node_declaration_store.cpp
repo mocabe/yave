@@ -57,6 +57,8 @@ namespace yave {
 
   bool node_declaration_store::add(const node_declaration& decl)
   {
+    assert(decl.node_type() != node_type::interface);
+
     auto [it, succ] =
       m_map.emplace(decl.name(), std::make_shared<node_declaration>(decl));
 
@@ -73,6 +75,7 @@ namespace yave {
     std::vector<std::string> added;
 
     for (auto&& decl : decls) {
+      assert(decl.node_type() != node_type::interface);
       if (add(decl)) {
         added.push_back(decl.name());
       } else {
