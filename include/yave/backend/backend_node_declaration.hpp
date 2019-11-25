@@ -20,9 +20,9 @@ namespace yave {
   {
     backend_node_declaration(const node_declaration& decl)
     {
-      m_name       = decl.name();
-      m_type_class = decl.type_class();
-      m_node_type  = decl.node_type();
+      m_name         = decl.name();
+      m_type_classes = decl.type_classes();
+      m_node_type    = decl.node_type();
 
       std::vector<string> iss;
       for (auto&& s : decl.input_sockets()) {
@@ -64,11 +64,11 @@ namespace yave {
     }
 
     /// Get type class
-    auto type_class() const -> object_ptr<const Type>
+    auto type_classes() const -> std::vector<object_ptr<const Type>>
     {
-      return m_type_class;
+      return m_type_classes;
     }
-    
+
     /// Get node type
     auto node_type() const -> node_type
     {
@@ -79,19 +79,19 @@ namespace yave {
     auto node_declaration() const -> node_declaration
     {
       return {
-        name(), input_sockets(), output_sockets(), node_type(), type_class()};
+        name(), input_sockets(), output_sockets(), type_classes(), node_type()};
     }
 
   private:
-    string m_name;                       // 16
-    vector<string> m_iss;                // 16
-    vector<string> m_oss;                // 16
-    object_ptr<const Type> m_type_class; // 8
-    yave::node_type m_node_type;         // 4
-    [[maybe_unused]] uint32_t padding;   // 4
+    string m_name;                                 // 16
+    vector<string> m_iss;                          // 16
+    vector<string> m_oss;                          // 16
+    vector<object_ptr<const Type>> m_type_classes; // 16
+    yave::node_type m_node_type;                   // 4
+    [[maybe_unused]] uint32_t padding;             // 4
   };
 
-  static_assert(sizeof(backend_node_declaration) == 64);
+  static_assert(sizeof(backend_node_declaration) == 72);
 
   /// BackendNodeDeclaration
   using BackendNodeDeclaration = Box<backend_node_declaration>;

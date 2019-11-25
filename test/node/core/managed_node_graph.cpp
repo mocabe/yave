@@ -5,6 +5,7 @@
 #include <catch2/catch.hpp>
 
 #include <yave/node/core/managed_node_graph.hpp>
+#include <yave/node/core/function.hpp>
 
 using namespace yave;
 
@@ -69,8 +70,8 @@ TEST_CASE("group with content")
     "node",
     {"0", "1", "2"},
     {"0", "1"},
-    node_type::normal,
-    object_type<Undefined>());
+    {2, object_type<node_closure<Int, Int, Int, Int>>()},
+    node_type::normal);
 
   REQUIRE(ng.register_node_declaration(decl));
 

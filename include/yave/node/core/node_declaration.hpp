@@ -23,25 +23,38 @@ namespace yave {
     /// \param name Name of this node
     /// \param iss input socket names
     /// \param oss output socket names
+    /// \param type_classes type classes for each output
     /// \param node_type type of node
-    /// \param type_class type class of node
+    /// \requires oss.size() == type_classes.size().
+    /// \requires number of arguments of each type class should match the number
+    /// of inputs. for interface nodes, types will be ignored.
     node_declaration(
       std::string name,
       std::vector<std::string> iss,
       std::vector<std::string> oss,
-      node_type node_type,
-      object_ptr<const Type> type_class)
+      std::vector<object_ptr<const Type>> type_classes,
+      node_type node_type)
       : m_name {std::move(name)}
       , m_iss {std::move(iss)}
       , m_oss {std::move(oss)}
       , m_node_type {std::move(node_type)}
-      , m_type_class {std::move(type_class)}
+      , m_type_classes {std::move(type_classes)}
     {
-      assert(m_type_class);
-      assert(flatten(m_type_class).size() == m_iss.size() + 1);
-
       if (m_node_type == node_type::interface)
-        assert(same_type(m_type_class, object_type<Undefined>()));
+        m_type_classes = {m_oss.size(), object_type<Undefined>()};
+
+      if (m_type_classes.size() != m_oss.size())
+        throw std::runtime_error("Invalid number of type classes");
+
+      for (auto&& tc : m_type_classes) {
+
+        if (!tc)
+          throw std::runtime_error("Invalid type class");
+
+        // inputs + demand + return type
+        if (flatten(tc).size() != m_iss.size() + 2)
+          throw std::runtime_error("Invalid number of inputs in type class: ");
+      }
     }
 
     [[nodiscard]] auto name() const -> const auto&
@@ -64,10 +77,10 @@ namespace yave {
       return m_node_type;
     }
 
-    [[nodiscard]] auto type_class() const -> const auto&
+    [[nodiscard]] auto type_classes() const -> const auto&
     {
       assert(m_node_type != node_type::interface);
-      return m_type_class;
+      return m_type_classes;
     }
 
   private:
@@ -78,6 +91,6 @@ namespace yave {
 
   private:
     /// for non-composite node
-    object_ptr<const Type> m_type_class;
+    std::vector<object_ptr<const Type>> m_type_classes;
   };
 }

@@ -25,8 +25,8 @@ namespace yave {
         "Identity",
         {"in"},
         {"out"},
-        node_type::normal,
-        object_type<node_closure<X, X>>());
+        {object_type<node_closure<X, X>>()},
+        node_type::normal);
     }
   };
 } // namespace yave

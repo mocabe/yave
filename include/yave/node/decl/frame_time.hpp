@@ -25,8 +25,8 @@ namespace yave {
         "FrameTime",
         {},
         {"value"},
-        node_type::primitive,
-        object_type<node_closure<FrameTime>>());
+        {object_type<node_closure<FrameTime>>()},
+        node_type::primitive);
     }
   };
 } // namespace yave

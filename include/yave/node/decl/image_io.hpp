@@ -26,9 +26,8 @@ namespace yave {
         "LoadImage",
         {"path"},
         {"image"},
-        node_type::normal,
-        object_type<node_closure<X, Image>>()
-      );
+        {object_type<node_closure<X, Image>>()},
+        node_type::normal);
     }
   };
 } // namespace yave

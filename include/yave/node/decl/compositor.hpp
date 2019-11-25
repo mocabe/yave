@@ -25,12 +25,12 @@ namespace yave {
         "LayerCompositor",
         {"src", "dst", "blend op"},
         {"out"},
-        node_type::normal,
-        object_type<node_closure<
+        {object_type<node_closure<
           FrameBuffer,
           FrameBuffer,
           node_closure<FrameBuffer, FrameBuffer, FrameBuffer>,
-          FrameBuffer>>());
+          FrameBuffer>>()},
+        node_type::normal);
     }
   };
 

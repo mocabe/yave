@@ -21,19 +21,19 @@ namespace yave {
 
   } // namespace node
 
-#define YAVE_DECL_KEYFRAME_EVALUATOR(TYPE)                                 \
-  template <>                                                              \
-  struct node_declaration_traits<node::KeyframeEvaluator##TYPE>            \
-  {                                                                        \
-    static auto get_node_declaration() -> node_declaration                 \
-    {                                                                      \
-      return node_declaration(                                             \
-        "KeyframeEvaluator" #TYPE,                                         \
-        {"keyframes", "frame"},                                            \
-        {"value"},                                                         \
-        node_type::normal,                                                 \
-        object_type<node_closure<KeyframeData##TYPE, FrameTime, TYPE>>()); \
-    }                                                                      \
+#define YAVE_DECL_KEYFRAME_EVALUATOR(TYPE)                                  \
+  template <>                                                               \
+  struct node_declaration_traits<node::KeyframeEvaluator##TYPE>             \
+  {                                                                         \
+    static auto get_node_declaration() -> node_declaration                  \
+    {                                                                       \
+      return node_declaration(                                              \
+        "KeyframeEvaluator" #TYPE,                                          \
+        {"keyframes", "frame"},                                             \
+        {"value"},                                                          \
+        {object_type<node_closure<KeyframeData##TYPE, FrameTime, TYPE>>()}, \
+        node_type::normal);                                                 \
+    }                                                                       \
   }
 
   YAVE_DECL_KEYFRAME_EVALUATOR(Int);

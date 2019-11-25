@@ -53,8 +53,8 @@ struct yave::node_declaration_traits<n::Add>
       "add",
       {"x", "y"},
       {"out"},
-      node_type::normal,
-      object_type<node_closure<X, X, X>>());
+      {object_type<node_closure<X, X, X>>()},
+      node_type::normal);
   }
 };
 

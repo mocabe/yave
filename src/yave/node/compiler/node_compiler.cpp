@@ -11,6 +11,8 @@
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/value_cast.hpp>
 
+#include <range/v3/algorithm.hpp>
+
 namespace {
 
   // logger
@@ -168,8 +170,7 @@ namespace yave {
           return inst->type;
         }
 
-        assert(
-          std::find(node_os.begin(), node_os.end(), socket) != node_os.end());
+        assert(ranges::find(node_os, socket) != node_os.end());
         assert(node_decl);
 
         // list input info
@@ -255,7 +256,15 @@ namespace yave {
 
         // generalized overloading type.
         // uses type class of declaration here.
-        auto type_class = node_decl->type_class();
+        object_ptr<const Type> type_class;
+        {
+          auto idx = ranges::distance(
+            node_decl->output_sockets().begin(),
+            ranges::find(node_decl->output_sockets(), socket_info->name()));
+
+          assert(idx != node_decl->output_sockets().size());
+          type_class = node_decl->type_classes()[idx];
+        }
 
         // check overloading types
         for (auto&& type : overloading_types) {

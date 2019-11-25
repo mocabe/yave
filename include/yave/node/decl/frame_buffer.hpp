@@ -26,8 +26,8 @@ namespace yave {
         "FrameBuffer",
         {},
         {"value"},
-        node_type::primitive,
-        object_type<node_closure<FrameBuffer>>());
+        {object_type<node_closure<FrameBuffer>>()},
+        node_type::primitive);
     }
   };
 } // namespace yave
