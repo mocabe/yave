@@ -56,12 +56,11 @@ namespace yave {
   {
     static auto get_node_declaration() -> node_declaration
     {
-      // socket names will change dynamically
       class X;
       return node_declaration(
         "NodeGroupIOBit",
-        {"0"},
-        {"0"},
+        {"in"},  // will change dynamically
+        {"out"}, // will change dynamically
         {object_type<node_closure<X, X>>()},
         node_type::normal);
     }
