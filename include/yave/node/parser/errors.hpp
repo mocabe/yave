@@ -19,8 +19,9 @@ namespace yave {
     /// No sufficient inputs for non-primitive node
     struct no_sufficient_input : error_info<no_sufficient_input>
     {
-      no_sufficient_input(const uid& id)
-        : m_id {id}
+      no_sufficient_input(const uid& node_id, const uid& socket_id)
+        : m_node_id {node_id}
+        , m_socket_id {socket_id}
       {
       }
 
@@ -28,13 +29,20 @@ namespace yave {
       [[nodiscard]] auto message() const -> std::string override;
 
       /// Get node ID
-      [[nodiscard]] auto id() const -> const uid&
+      [[nodiscard]] auto node_id() const -> const auto&
       {
-        return m_id;
+        return m_node_id;
+      }
+
+      /// Get socket ID
+      [[nodiscard]] auto socket_id() const -> const auto&
+      {
+        return m_socket_id;
       }
 
     private:
-      uid m_id ;
+      uid m_node_id;
+      uid m_socket_id;
     };
 
     /// Unexpected parser error

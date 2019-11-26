@@ -60,18 +60,18 @@ namespace yave {
       return std::nullopt;
     }
 
-    tmp = _desugar(std::move(*tmp));
+    tmp = _parse(std::move(*tmp));
     if (!tmp) {
-      Error(g_logger, "Failed to desugar prime tree");
+      Error(g_logger, "Failed to parse prime tree");
       for (auto&& e : m_errors) {
         Error(g_logger, "error: {}", e.message());
       }
       return std::nullopt;
     }
 
-    tmp = _parse(std::move(*tmp));
+    tmp = _desugar(std::move(*tmp));
     if (!tmp) {
-      Error(g_logger, "Failed to parse prime tree");
+      Error(g_logger, "Failed to desugar prime tree");
       for (auto&& e : m_errors) {
         Error(g_logger, "error: {}", e.message());
       }
@@ -90,13 +90,13 @@ namespace yave {
     if (!root) {
       m_errors.push_back(
         make_error<parse_error::unexpected_error>("root handle is null"));
-      throw std::invalid_argument("Null root node handle");
+      return std::nullopt;
     }
 
     if (!graph.exists(root)) {
       m_errors.push_back(
         make_error<parse_error::unexpected_error>("Invalid root handle"));
-      throw std::invalid_argument("Invalid root node handle");
+      return std::nullopt;
     }
 
     auto ns = std::vector<node_handle> {};
@@ -129,7 +129,7 @@ namespace yave {
     if (!ret_root) {
       m_errors.push_back(make_error<parse_error::unexpected_error>(
         "Could not find new root node"));
-      throw std::runtime_error("Failed to copy prime tree");
+      return std::nullopt;
     }
 
     // copy connections
@@ -150,7 +150,7 @@ namespace yave {
         if (!src_cpy || !dst_cpy) {
           m_errors.push_back(make_error<parse_error::unexpected_error>(
             "Could not find copied socket"));
-          throw std::runtime_error("Failed to copy prime tree");
+          return std::nullopt;
         }
 
         auto cpy = ret.connect(src_cpy, dst_cpy);
@@ -158,7 +158,7 @@ namespace yave {
         if (!cpy) {
           m_errors.push_back(make_error<parse_error::unexpected_error>(
             "Failed to connect copied nodes"));
-          throw std::runtime_error("Failed to copy prime tree");
+          return std::nullopt;
         }
       }
     }
@@ -167,6 +167,38 @@ namespace yave {
       return {{std::move(ret), ret_root}};
 
     return std::nullopt;
+  }
+
+  // Remove group IO node
+  static void remove_group_io(
+    node_graph& graph,
+    const node_handle& node,
+    const node_info& info)
+  {
+    if (info.name() != get_node_declaration<node::NodeGroupIOBit>().name())
+      return;
+
+    auto ics = graph.input_connections(node);
+    auto ocs = graph.output_connections(node);
+
+    if (!ics.empty()) {
+
+      assert(ics.size() == 1);
+      auto ic = ics[0];
+
+      auto ici = graph.get_info(ic);
+      graph.disconnect(ic);
+
+      [[maybe_unused]] connection_handle c;
+
+      // build connection
+      for (auto&& oc : ocs) {
+        auto oci = graph.get_info(oc);
+        graph.disconnect(oc);
+        c = graph.connect(ici->src_socket(), oci->dst_socket());
+        assert(c);
+      }
+    }
   }
 
   auto node_parser::_desugar(parsed_node_graph&& parsed_graph)
@@ -180,32 +212,10 @@ namespace yave {
     auto ns = graph.nodes();
 
     for (auto&& n : ns) {
-      // Revemo group I/O bits
-      if (
-        graph.get_name(n) ==
-        get_node_declaration<node::NodeGroupIOBit>().name()) {
-        auto ics = graph.input_connections(n);
-        auto ocs = graph.output_connections(n);
 
-        if (!ics.empty()) {
+      auto info = graph.get_info(n);
 
-          assert(ics.size() == 1);
-          auto ic = ics[0];
-
-          auto ici = graph.get_info(ic);
-          graph.disconnect(ic);
-
-          [[maybe_unused]] connection_handle c;
-
-          // build connection
-          for (auto&& oc : ocs) {
-            auto oci = graph.get_info(oc);
-            graph.disconnect(oc);
-            c = graph.connect(ici->src_socket(), oci->dst_socket());
-            assert(c);
-          }
-        }
-      }
+      remove_group_io(graph, n, *info);
     }
 
     // Need to put dummy node if root node can be replaced in desugar pass.
@@ -215,6 +225,22 @@ namespace yave {
       return {{std::move(graph), root}};
 
     return std::nullopt;
+  }
+
+  // check input connections.
+  // NOTE: Will remove this with higher-order function supoprt.
+  static void check_insufficient_input(
+    node_graph& graph,
+    error_list& errors,
+    const node_handle& node)
+  {
+    auto iss = graph.input_sockets(node);
+
+    for (auto&& is : iss) {
+      if (graph.connections(is).empty())
+        errors.push_back(
+          make_error<parse_error::no_sufficient_input>(node.id(), is.id()));
+    }
   }
 
   auto node_parser::_parse(parsed_node_graph&& parsed_graph)
@@ -228,25 +254,20 @@ namespace yave {
     if (!root) {
       m_errors.push_back(
         make_error<parse_error::unexpected_error>("root handle is null"));
-      throw std::invalid_argument("Null root node handle");
+      return std::nullopt;
     }
 
     if (!graph.exists(root)) {
       m_errors.push_back(
         make_error<parse_error::unexpected_error>("Invalid root handle"));
-      throw std::invalid_argument("Invalid root node handle");
+      return std::nullopt;
     }
 
     auto ns = graph.nodes();
 
     for (auto&& n : ns) {
-      // parse pass
-      {
-        if (graph.input_connections(n).empty() && !graph.is_primitive(n)) {
-          m_errors.push_back(
-            make_error<parse_error::no_sufficient_input>(n.id()));
-        }
-      }
+
+      check_insufficient_input(graph, m_errors, n);
     }
 
     if (m_errors.empty())

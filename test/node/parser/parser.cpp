@@ -67,9 +67,7 @@ TEST_CASE("node_parser _extract")
       auto c = graph.connect(prim_value, norm_i0);
       REQUIRE(c);
       auto parsed = parser.parse(graph, norm);
-      REQUIRE(parsed);
-      REQUIRE(parsed->graph.nodes().size() == 2);
-      REQUIRE(parser.get_errors().empty());
+      REQUIRE(!parsed);
     }
 
     SECTION("multi")

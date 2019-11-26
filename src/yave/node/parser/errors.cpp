@@ -11,8 +11,9 @@ namespace yave {
   std::string parse_error::no_sufficient_input::message() const
   {
     return fmt::format(
-      "No sufficient input connections on non primitive node: id={}",
-      to_string(m_id));
+      "No sufficient input connections on non primitive node: n={}, s={}",
+      to_string(m_node_id),
+      to_string(m_socket_id));
   }
 
   std::string parse_error::unexpected_error::message() const
