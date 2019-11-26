@@ -130,11 +130,11 @@ namespace yave {
     /// \param rps_num numerator of rate per second
     /// \param rps_den denominator of rate per second
     /// \return (per_second() * rps_den) / rps_num
-    [[nodiscard]] static constexpr value_type per_rate(
+    [[nodiscard]] static constexpr unit per_rate(
       int64_t rps_num,
       int64_t rps_den = 1) noexcept
     {
-      return (per_second().count() * rps_den) / rps_num;
+      return (per_second() * rps_den) / rps_num;
     }
 
     /// Check rate compatibility.
@@ -145,7 +145,7 @@ namespace yave {
       int64_t rps_num,
       int64_t rps_den = 1) noexcept
     {
-      return (per_second().count() * rps_den) % rps_num == 0;
+      return (per_second() * rps_den) % rps_num == unit(0);
     }
 
     /// Maximum milliseconds can be contained.
