@@ -258,7 +258,7 @@ namespace yave {
         // uses type class of declaration here.
         object_ptr<const Type> type_class;
         {
-          auto idx = ranges::distance(
+          size_t idx = ranges::distance(
             node_decl->output_sockets().begin(),
             ranges::find(node_decl->output_sockets(), socket_info->name()));
 
@@ -268,9 +268,7 @@ namespace yave {
 
         // check overloading types
         for (auto&& type : overloading_types) {
-          try {
-            (void)unify({type_constr {type_class, type}}, nullptr);
-          } catch (type_error::type_error&) {
+          if (!specializable(type_class, type)) {
             Error(
               g_logger,
               "Invalid node definition: Unification from type class failed, "
