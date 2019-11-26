@@ -34,8 +34,8 @@ namespace yave {
     [[nodiscard]] constexpr bounded_int operator+() const noexcept;
     [[nodiscard]] constexpr bounded_int operator-() const noexcept;
 
-    constexpr bounded_int operator++() noexcept;
-    constexpr bounded_int operator--() noexcept;
+    constexpr bounded_int& operator++() noexcept;
+    constexpr bounded_int& operator--() noexcept;
     constexpr bounded_int operator++(int) noexcept;
     constexpr bounded_int operator--(int) noexcept;
 
@@ -243,21 +243,19 @@ namespace yave {
   }
 
   template <class T>
-  constexpr bounded_int<T> bounded_int<T>::operator++() noexcept
+  constexpr bounded_int<T>& bounded_int<T>::operator++() noexcept
   {
-    if (m_value == std::numeric_limits<value_type>::max())
-      return std::numeric_limits<value_type>::max();
-    m_value += 1;
-    return m_value;
+    if (m_value != std::numeric_limits<value_type>::max())
+      m_value += 1;
+    return *this;
   }
 
   template <class T>
-  constexpr bounded_int<T> bounded_int<T>::operator--() noexcept
+  constexpr bounded_int<T>& bounded_int<T>::operator--() noexcept
   {
-    if (m_value == std::numeric_limits<value_type>::min())
-      return std::numeric_limits<value_type>::min();
-    m_value -= 1;
-    return m_value;
+    if (m_value != std::numeric_limits<value_type>::min())
+      m_value -= 1;
+    return *this;
   }
 
   template <class T>

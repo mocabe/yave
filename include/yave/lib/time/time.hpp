@@ -312,9 +312,9 @@ namespace yave {
     [[nodiscard]] constexpr time operator-() const noexcept;
 
     /// operator++
-    constexpr time operator++() noexcept;
+    constexpr time& operator++() noexcept;
     /// operator+-
-    constexpr time operator--() noexcept;
+    constexpr time& operator--() noexcept;
 
     /// operator++(int)
     constexpr time operator++(int) noexcept;
@@ -366,14 +366,16 @@ namespace yave {
     return {-m_value};
   }
 
-  constexpr time time::operator++() noexcept
+  constexpr time& time::operator++() noexcept
   {
-    return {++m_value};
+    ++m_value;
+    return *this;
   }
 
-  constexpr time time::operator--() noexcept
+  constexpr time& time::operator--() noexcept
   {
-    return {--m_value};
+    --m_value;
+    return *this;
   }
 
   constexpr time time::operator++(int) noexcept
