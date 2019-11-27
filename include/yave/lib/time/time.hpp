@@ -302,10 +302,14 @@ namespace yave {
     /// operator-=.
     /// TODO: Signed integer overflow should be clamped.
     constexpr time& operator-=(const time& rhs) noexcept;
+
     /// operator*=
-    constexpr time& operator*=(const time& rhs) noexcept;
+    template <class T>
+    constexpr time& operator*=(const T& rhs) noexcept;
     /// operator/=
-    constexpr time& operator/=(const time& rhs) noexcept;
+    template <class T>
+    constexpr time& operator/=(const T& rhs) noexcept;
+
     /// operator+
     [[nodiscard]] constexpr time operator+() const noexcept;
     /// operator-
@@ -344,16 +348,34 @@ namespace yave {
     return *this;
   }
 
-  constexpr time& time::operator*=(const time& rhs) noexcept
+  template <class T>
+  constexpr time& time::operator*=(const T& rhs) noexcept
   {
-    m_value *= rhs.m_value;
-    return *this;
+    if constexpr (std::is_same_v<T, time>) {
+      m_value *= rhs.m_value;
+      return *this;
+    } else if constexpr (std::is_integral_v<T>) {
+      m_value *= rhs;
+      return *this;
+    } else if constexpr (std::is_floating_point_v<T>) {
+      return *this = time(duration() * rhs);
+    } else
+      static_assert(false_v<T>, "Invalid operand for time::operator*=");
   }
 
-  constexpr time& time::operator/=(const time& rhs) noexcept
+  template <class T>
+  constexpr time& time::operator/=(const T& rhs) noexcept
   {
-    m_value /= rhs.m_value;
-    return *this;
+    if constexpr (std::is_same_v<T, time>) {
+      m_value /= rhs.m_value;
+      return *this;
+    } else if constexpr (std::is_integral_v<T>) {
+      m_value /= rhs;
+      return *this;
+    } else if constexpr (std::is_floating_point_v<T>) {
+      return *this = time(duration() / rhs);
+    } else
+      static_assert(false_v<T>, "Invalid operand for time::operator/=");
   }
 
   constexpr time time::operator+() const noexcept
@@ -402,16 +424,18 @@ namespace yave {
     return time {lhs} -= rhs;
   }
 
+  template <class T>
   [[nodiscard]] constexpr time operator*(
     const time& lhs,
-    const time& rhs) noexcept
+    const T& rhs) noexcept
   {
     return time {lhs} *= rhs;
   }
 
+  template <class T>
   [[nodiscard]] constexpr time operator/(
     const time& lhs,
-    const time& rhs) noexcept
+    const T& rhs) noexcept
   {
     return time {lhs} /= rhs;
   }

@@ -127,6 +127,12 @@ TEST_CASE("time")
     STATIC_REQUIRE(t.max()++ == t.max());
     STATIC_REQUIRE(--t.min() == t.min());
     STATIC_REQUIRE(t.min()-- == t.min());
+
+    STATIC_REQUIRE(t.seconds(1) * 2 == t.seconds(2));
+    STATIC_REQUIRE(t.seconds(2) / 2 == t.seconds(1));
+    STATIC_REQUIRE(t.seconds(1.5) * 2 == t.seconds(3));
+    STATIC_REQUIRE(t.seconds(1) * 1.5 == t.seconds(1.5));
+    STATIC_REQUIRE(t.seconds(1.5) / 1.5 == t.seconds(1));
   }
 
   SECTION("chrono conv")
