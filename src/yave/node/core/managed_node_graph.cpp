@@ -11,18 +11,7 @@
 #include <range/v3/algorithm.hpp>
 #include <memory>
 
-namespace {
-
-  std::shared_ptr<spdlog::logger> g_logger;
-
-  void init_logger()
-  {
-    [[maybe_unused]] static auto init = [] {
-      g_logger = yave::add_logger("managed_node_graph");
-      return 1;
-    }();
-  }
-} // namespace
+YAVE_DECL_G_LOGGER(managed_node_graph);
 
 namespace yave {
 

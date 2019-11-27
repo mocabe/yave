@@ -6,19 +6,7 @@
 #include <yave/node/core/socket_instance_manager.hpp>
 #include <yave/support/log.hpp>
 
-namespace {
-  // logger
-  std::shared_ptr<spdlog::logger> g_inst_mngr_logger;
-
-  // init
-  void init_logger()
-  {
-    [[maybe_unused]] static auto init_logger = [] {
-      g_inst_mngr_logger = yave::add_logger("socket_instance_manager");
-      return 1;
-    }();
-  }
-} // namespace
+YAVE_DECL_G_LOGGER(socket_instance_manager);
 
 namespace yave {
 

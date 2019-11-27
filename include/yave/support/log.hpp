@@ -7,6 +7,20 @@
 
 #include <spdlog/spdlog.h>
 
+#define YAVE_DECL_G_LOGGER(NAME)                 \
+  namespace {                                    \
+                                                 \
+    std::shared_ptr<spdlog::logger> g_logger;    \
+                                                 \
+    void init_logger()                           \
+    {                                            \
+      [[maybe_unused]] static auto init = []() { \
+        g_logger = yave::add_logger(#NAME);      \
+        return 1;                                \
+      }();                                       \
+    }                                            \
+  }
+
 namespace yave {
 
   /// Default logger named "yave".
@@ -117,4 +131,4 @@ namespace yave {
     Log(
       get_default_logger(), LogLevel::Error, msg, std::forward<Args>(args)...);
   }
-}
+} // namespace yave

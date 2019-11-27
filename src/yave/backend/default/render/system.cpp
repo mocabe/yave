@@ -18,18 +18,7 @@
 #include <yave/backend/default/render/list.hpp>
 #include <yave/backend/default/render/image_io.hpp>
 
-namespace {
-
-  std::shared_ptr<spdlog::logger> g_logger;
-
-  void init_logger()
-  {
-    [[maybe_unused]] static auto init = [] {
-      g_logger = yave::add_logger("yave::backend::default_render");
-      return 1;
-    }();
-  }
-}
+YAVE_DECL_G_LOGGER(yave::backend::default_render);
 
 namespace yave::backend::default_render {
 

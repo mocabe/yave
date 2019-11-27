@@ -7,21 +7,7 @@
 #include <yave/support/log.hpp>
 #include <range/v3/algorithm.hpp>
 
-namespace {
-
-  // logger
-  std::shared_ptr<spdlog::logger> g_logger;
-
-  // init
-  void init_logger()
-  {
-    [[maybe_unused]] static auto init_logger = []() {
-      g_logger = yave::add_logger("node_graph");
-      return 1;
-    }();
-  }
-
-} // namespace
+YAVE_DECL_G_LOGGER(node_graph);
 
 namespace yave {
 

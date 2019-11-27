@@ -6,20 +6,7 @@
 #include <yave/node/core/node_definition_store.hpp>
 #include <yave/support/log.hpp>
 
-namespace {
-
-  // logger
-  std::shared_ptr<spdlog::logger> g_logger;
-
-  // init
-  void init_logger()
-  {
-    [[maybe_unused]] static auto init = [] {
-      g_logger = yave::add_logger("node_definition_store");
-      return 1;
-    }();
-  }
-} // namespace
+YAVE_DECL_G_LOGGER(node_definition_store);
 
 namespace yave {
 

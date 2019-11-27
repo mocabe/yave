@@ -29,17 +29,10 @@
 #define YAVE_TOSTR_(id) #id
 #define YAVE_TOSTR(id) YAVE_TOSTR_(id)
 
+
+YAVE_DECL_G_LOGGER(imgui_context);
+
 namespace {
-
-  std::shared_ptr<spdlog::logger> g_logger;
-
-  void init_logger()
-  {
-    [[maybe_unused]] static auto init_logger = [] {
-      g_logger = yave::add_logger("imgui_context");
-      return 1;
-    }();
-  }
 
   auto createImGuiPipelineLayout(
     const vk::DescriptorSetLayout& setLayout,

@@ -14,18 +14,7 @@
 
 #include <boost/dll/runtime_symbol_info.hpp>
 
-namespace {
-
-  std::shared_ptr<spdlog::logger> g_logger;
-
-  void init_logger()
-  {
-    [[maybe_unused]] static auto init = [] {
-      g_logger = yave::add_logger("image_io");
-      return 1;
-    }();
-  }
-} // namespace
+YAVE_DECL_G_LOGGER(image_io);
 
 namespace yave {
 

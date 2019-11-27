@@ -8,17 +8,8 @@
 
 #include <yave/support/log.hpp>
 
-namespace {
-  std::shared_ptr<spdlog::logger> g_logger;
+YAVE_DECL_G_LOGGER(buffer_manager);
 
-  void init_logger()
-  {
-    [[maybe_unused]] static auto init = [] {
-      g_logger = yave::add_logger("buffer_manager");
-      return 1;
-    }();
-  }
-}
 namespace yave {
 
   namespace {

@@ -6,19 +6,7 @@
 #include <yave/node/scene/layered_node_graph.hpp>
 #include <yave/support/log.hpp>
 
-namespace {
-
-  static std::shared_ptr<spdlog::logger> g_logger;
-
-  void init_logger()
-  {
-    [[maybe_unused]] static auto init = [] {
-      g_logger = yave::add_logger("layered_node_graph");
-      return 1;
-    }();
-  }
-
-} // namespace
+YAVE_DECL_G_LOGGER(layered_node_graph);
 
 namespace yave {
 
