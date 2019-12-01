@@ -10,15 +10,25 @@
 namespace yave::editor::imgui {
 
   // ------------------------------------------
+  // Grid
+
+  [[nodiscard]] constexpr size_t gridpx(size_t n = 1)
+  {
+    return n * 8;
+  }
+
+  // ------------------------------------------
   // Fonts
 
   /// Font size level
   enum class font_size_level
   {
-    display,
-    title,
-    body,
-    caption,
+    e36,
+    e22,
+    e17,
+    e15,
+    e13,
+    e11,
   };
 
   /// Text alignment types
@@ -56,13 +66,24 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // Colors
 
-  [[nodiscard]] ImColor get_node_fill_color();
-  [[nodiscard]] ImColor get_node_fill_color_hovered();
-  [[nodiscard]] ImColor get_node_fill_color_selected();
+  [[nodiscard]] ImColor get_node_header_fill_color();
+  [[nodiscard]] ImColor get_node_header_fill_color_hovered();
+  [[nodiscard]] ImColor get_node_header_fill_color_selected();
+
+  [[nodiscard]] ImColor get_node_background_fill_color();
+  [[nodiscard]] ImColor get_node_background_fill_color_hovered();
+  [[nodiscard]] ImColor get_node_background_fill_color_selected();
 
   [[nodiscard]] ImColor get_node_edge_color();
   [[nodiscard]] ImColor get_node_edge_color_hovered();
   [[nodiscard]] ImColor get_node_edge_color_selected();
+
+  [[nodiscard]] ImColor get_node_header_text_color();
+  [[nodiscard]] ImColor get_socket_text_color();
+
+  [[nodiscard]] ImColor get_socket_slot_color(socket_type tpye);
+  [[nodiscard]] ImColor get_socket_slot_color_hovered(socket_type type);
+  [[nodiscard]] ImColor get_socket_slot_color_selected(socket_type type);
 
   // ------------------------------------------
   // Drawing layers

@@ -13,13 +13,17 @@ namespace yave::editor::imgui {
   float get_font_size(font_size_level level)
   {
     switch (level) {
-      case font_size_level::display:
+      case font_size_level::e36:
         return 36;
-      case font_size_level::title:
+      case font_size_level::e22:
+        return 22;
+      case font_size_level::e17:
         return 17;
-      case font_size_level::body:
+      case font_size_level::e15:
+        return 15;
+      case font_size_level::e13:
         return 13;
-      case font_size_level::caption:
+      case font_size_level::e11:
         return 11;
     }
     unreachable();
@@ -28,13 +32,17 @@ namespace yave::editor::imgui {
   float get_font_weight(font_size_level level)
   {
     switch (level) {
-      case font_size_level::display:
-        return 200;
-      case font_size_level::title:
+      case font_size_level::e36:
         return 300;
-      case font_size_level::body:
+      case font_size_level::e22:
+        return 300;
+      case font_size_level::e17:
+        return 300;
+      case font_size_level::e15:
         return 400;
-      case font_size_level::caption:
+      case font_size_level::e13:
+        return 400;
+      case font_size_level::e11:
         return 400;
     }
     unreachable();
@@ -87,6 +95,69 @@ namespace yave::editor::imgui {
     }
 
     unreachable();
+  }
+
+  // ------------------------------------------
+  // Colors
+
+  ImColor get_node_header_fill_color()
+  {
+    return IM_COL32(120, 80, 110, 255);
+  }
+
+  ImColor get_node_header_fill_color_hovered()
+  {
+    return IM_COL32(120, 80, 110, 255);
+  }
+
+  ImColor get_node_header_fill_color_selected()
+  {
+    return IM_COL32(120, 80, 110, 255);
+  }
+
+  ImColor get_node_background_fill_color()
+  {
+    return IM_COL32(125, 125, 125, 230);
+  }
+
+  ImColor get_node_background_fill_color_hovered()
+  {
+    return IM_COL32(125, 125, 125, 230);
+  }
+
+  ImColor get_node_background_fill_color_selected()
+  {
+    return IM_COL32(125, 125, 125, 230);
+  }
+
+  ImColor get_node_edge_color()
+  {
+    return IM_COL32(0, 0, 0, 0);
+  }
+
+  ImColor get_node_edge_color_hovered()
+  {
+    return IM_COL32(0, 0, 0, 0);
+  }
+
+  ImColor get_node_edge_color_selected()
+  {
+    return IM_COL32(0, 0, 0, 0);
+  }
+
+  ImColor get_node_edge_color()
+  {
+    return IM_COL32(150, 115, 165, 255);
+  }
+
+  ImColor get_node_edge_color_hovered()
+  {
+    return IM_COL32(150, 115, 165, 255);
+  }
+
+  ImColor get_node_edge_color_selected()
+  {
+    return IM_COL32(150, 115, 165, 255);
   }
 
   // ------------------------------------------
