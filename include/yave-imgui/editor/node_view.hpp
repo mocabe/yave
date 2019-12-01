@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/core/node_handle.hpp>
+#include <yave/node/core/node_info.hpp>
 #include <yave/lib/imgui/imgui_context.hpp>
 #include <yave-imgui/editor/input_state.hpp>
 
@@ -14,19 +15,41 @@ namespace yave::editor::imgui {
   // fwd
   class editor_context;
   struct socket_view;
+  struct connection_view;
 
   /// Node view interface
   struct node_view
   {
-    /// calculate minimum size to render
+    /// ctor
+    node_view(const node_handle& h, const editor_context& ctx);
+
+    /// handle
+    node_handle handle;
+    /// info
+    node_info info;
+
+    /// calc minimum size to render
     virtual auto min_size() const -> ImVec2 = 0;
+    /// calc socket slot position
+    /// \param socket socket handle
+    /// \param pos base position to render
+    /// \param size render size
+    virtual auto slot_pos(
+      const socket_handle& socket,
+      const ImVec2& pos,
+      const ImVec2& size) const -> ImVec2 = 0;
     /// draw node.
-    /// \param base cursor pos
-    virtual void draw(const ImVec2& base) const = 0;
+    /// \param pos base position to render
+    /// \param size render size
+    virtual void draw(const ImVec2& pos, const ImVec2& size) const = 0;
     /// handle input.
-    /// \param base cursor pos
-    /// \param state input state
-    virtual void handle_input(const ImVec2& base, input_state& state) const = 0;
+    /// \param pos base position to render
+    /// \param size render size
+    /// \param state input state manager
+    virtual void handle_input(
+      const ImVec2& base,
+      const ImVec2& size,
+      input_state& state) const = 0;
     /// dtor
     virtual ~node_view() noexcept = 0;
   };
@@ -35,10 +58,10 @@ namespace yave::editor::imgui {
   struct basic_node_view : node_view
   {
   public:
-    basic_node_view(const node_handle& h, const editor_context& ctx);
-
-    /// handle
-    node_handle handle;
+    basic_node_view(
+      const node_handle& h,
+      const editor_context& ctx,
+      const std::vector<std::shared_ptr<socket_view>>& sockets);
 
     /// selected?
     bool is_selected;
@@ -49,27 +72,23 @@ namespace yave::editor::imgui {
     /// position
     ImVec2 position;
 
-    /// size
-    ImVec2 size;
-
-    /// title
+    /// header title
     std::string title;
 
     /// sockets
-    std::vector<std::unique_ptr<socket_view>> sockets;
-
-    /// socket positions
-    std::vector<ImVec2> socket_positions;
+    std::vector<std::shared_ptr<socket_view>> sockets;
 
   public:
     auto min_size() const -> ImVec2 override;
-    void draw(const ImVec2&) const override;
-    void handle_input(const ImVec2&, input_state&) const override;
+    void draw(const ImVec2& base, const ImVec2& size) const override;
+    auto slot_pos(
+      const socket_handle& socket,
+      const ImVec2& pos,
+      const ImVec2& size) const -> ImVec2 override;
+    void handle_input(
+      const ImVec2& base,
+      const ImVec2& size,
+      input_state& state) const override;
   };
-
-  /// Create node view object
-  [[nodiscard]] auto create_node_view(
-    const node_handle& node,
-    const editor_context& ctx) -> std::unique_ptr<node_view>;
 
 } // namespace yave::editor::imgui

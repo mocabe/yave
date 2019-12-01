@@ -5,8 +5,12 @@
 
 #include <yave-imgui/editor/node_view.hpp>
 #include <yave-imgui/editor/socket_view.hpp>
+#include <yave-imgui/editor/connection_view.hpp>
 #include <yave-imgui/editor/editor_context.hpp>
 #include <yave-imgui/editor/style.hpp>
+#include <yave/support/log.hpp>
+
+YAVE_DECL_G_LOGGER(node_view)
 
 namespace yave::editor::imgui {
 
@@ -15,135 +19,183 @@ namespace yave::editor::imgui {
 
   namespace {
 
-    float calc_header_height(const std::string& title)
+    auto calc_node_header_min_size(const std::string& title) -> ImVec2
     {
-      auto text_size = calc_text_size(title, font_size_level::body);
-      return text_size.y + 2 * get_text_padding();
+      // Width: text width + 32 px
+      // Height: 32 px
+      // Font: 15 px
+      auto text_size = calc_text_size(title, font_size_level::e15);
+      return {text_size.x + 2 * gridpx(4), gridpx(4)};
     }
 
-    float calc_header_min_width(const std::string& title)
-    {
-      auto text_size = calc_text_size(title, font_size_level::body);
-      return text_size.x + 2 * get_text_padding();
-    }
-
-    void draw_bg(
+    void draw_node_background(
       const ImVec2& pos,
       const ImVec2& size,
       bool is_hovered,
       bool is_selected)
     {
-      auto fill = get_node_fill_color();
-      if (is_hovered)
-        fill = get_node_fill_color_hovered();
-      if (is_selected)
-        fill = get_node_fill_color_selected();
+      auto fill = is_hovered
+                    ? get_node_background_fill_color_hovered()
+                    : is_selected ? get_node_background_fill_color_selected()
+                                  : get_node_background_fill_color_hovered();
 
       auto rounding = get_node_rounding();
-
       auto draw_list = ImGui::GetWindowDrawList();
+
+      // fill
       draw_list->AddRectFilled(pos, pos + size, fill, rounding);
     }
 
-    void draw_header(
+    void draw_node_header(
       const std::string& title,
       const ImVec2& pos,
-      const ImVec2& size)
+      const ImVec2& size,
+      bool is_hovered,
+      bool is_selected)
     {
+      auto fill = is_hovered
+                    ? get_node_background_fill_color_hovered()
+                    : is_selected ? get_node_header_fill_color_selected()
+                                  : get_node_header_fill_color();
+
+      auto rounding  = get_node_rounding();
+      auto draw_list = ImGui::GetWindowDrawList();
+
+      // fill
+      draw_list->AddRectFilled(
+        pos, {pos.x + size.x, pos.y + size.y / 2}, fill, rounding);
+      draw_list->AddRectFilled(
+        {pos.x, pos.y + size.y / 2 - 10}, pos + size, fill, 0);
+
+      // text
       auto text_pos = calc_text_pos(
-        title, font_size_level::caption, size, text_alignment::center);
+        title, font_size_level::e15, size, text_alignment::center);
       ImGui::SetCursorScreenPos(pos + text_pos);
-      ImGui::Text("%s", title.c_str());
+      ImGui::TextColored(get_node_header_text_color(), "%s", title.c_str());
     }
 
   } // namespace
 
+  node_view::node_view(const node_handle& h, const editor_context& ctx)
+    : handle {h}
+    , info {*ctx.node_graph().get_info(h)}
+  {
+    init_logger();
+  }
+
   basic_node_view::basic_node_view(
     const node_handle& h,
-    const editor_context& ctx)
+    const editor_context& ctx,
+    const std::vector<std::shared_ptr<socket_view>>& sv)
+    : node_view(h, ctx)
+    , sockets {sv}
   {
-    auto info      = ctx.node_graph().get_info(handle);
     auto edit_info = ctx.get_editor_info(handle);
 
-    handle      = h;
     is_selected = edit_info->is_selected;
     is_hovered  = edit_info->is_hovered;
     position    = edit_info->position;
-    title       = info->name();
 
-    // initialize sockets
-
-    for (auto&& s : ctx.node_graph().output_sockets(h)) {
-      sockets.push_back(create_socket_view(s, ctx));
-    }
-
-    for (auto&& s : ctx.node_graph().input_sockets(h)) {
-      sockets.push_back(create_socket_view(s, ctx));
-    }
-
-    // layout
-
-    for (auto&& s : sockets) {
-    }
+    title = info.name();
   }
 
   auto basic_node_view::min_size() const -> ImVec2
   {
-    float cursor_height = 0;
-    float max_width     = 0;
-
-    // header
-    cursor_height = calc_header_height(title);
-    max_width     = calc_header_min_width(title);
+    ImVec2 size = calc_node_header_min_size(title);
 
     for (auto&& s : sockets) {
-      max_width = std::max(max_width, s->min_width());
-      cursor_height += s->height();
+      auto sz = s->min_size();
+      size    = {std::max(size.x, sz.x), size.y + sz.y};
     }
 
-    return {max_width, cursor_height};
+    return size;
   }
 
-  void basic_node_view::draw(const ImVec2& base) const
+  void basic_node_view::draw(const ImVec2& base, const ImVec2& size) const
   {
     auto channel = get_node_channel_index();
     ImGui::GetWindowDrawList()->ChannelsSetCurrent(channel);
 
-    float cursor_height = 0;
-    auto size           = min_size();
+    // draw bg
+    draw_node_background(base, size, is_hovered, is_selected);
 
-    // bg
-    draw_bg(base, size, is_hovered, is_selected);
+    // draw header
+    auto header_size = calc_node_header_min_size(title);
+    draw_node_header(
+      title,
+      base,
+      ImVec2 {size.x, header_size.y}, // use min height
+      is_hovered,
+      is_selected);
 
-    // header
-    auto header_height = calc_header_height(title);
-    draw_header(title, {0, cursor_height}, {size.x, header_height});
-    cursor_height += header_height;
-
+    auto cursor_y = header_size.y;
     for (auto&& s : sockets) {
-      s->draw({0, cursor_height});
-      cursor_height += s->height();
+
+      auto socket_size = s->min_size();
+
+      auto socket_base = ImVec2 {base.x, base.y + cursor_y};
+      auto socket_size = ImVec2 {size.x, socket_size.y};
+
+      // draw socket
+      s->draw(socket_base, socket_size); // use min height
+
+      // move cursor
+      cursor_y += socket_size.y;
     }
   }
 
-  void basic_node_view::handle_input(const ImVec2& base, input_state& state)
-    const
+  auto basic_node_view::slot_pos(
+    const socket_handle& socket,
+    const ImVec2& pos,
+    const ImVec2& size) const -> ImVec2
   {
-    float cursor_height = calc_header_height(title);
-
     for (auto&& s : sockets) {
-      s->handle_input({base.x, base.y + cursor_height}, state);
-      cursor_height += s->height();
+      if (s->handle == socket)
+        return s->slot_pos(pos, size);
     }
+    throw std::runtime_error("Invalid socket handle");
   }
 
-  auto create_node_view(const node_handle& node, const editor_context& ctx)
-    -> std::unique_ptr<node_view>
+  void basic_node_view::handle_input(
+    const ImVec2& base,
+    const ImVec2& size,
+    input_state& state) const
   {
-    if (!ctx.node_graph().exists(node))
-      throw std::runtime_error("Invalid node handle!");
+    ImGui::PushID(handle.id().data);
 
-    return std::make_unique<basic_node_view>(node, ctx);
+    float cursor_y = calc_node_header_min_size(title).y;
+
+    // handle socket input
+    for (auto&& s : sockets) {
+
+      auto socket_size = s->min_size();
+
+      auto socket_base = ImVec2 {base.x, base.y + cursor_y};
+      auto socket_size = ImVec2 {size.x, socket_size.y};
+
+      s->handle_input(socket_base, socket_size, state);
+
+      cursor_y += socket_size.y;
+    }
+
+
+    // background
+    ImGui::SetCursorScreenPos(base);
+
+    bool hovered = false;
+    bool pressed = InvisibleButtonEx("bg", size, &hovered);
+
+    if (hovered) {
+      // TODO: set hovered
+    }
+    if (pressed) {
+      // TODO: set selected
+    }
+    if (ImGui::IsItemActive()) {
+      // TODO: drag
+    }
+
+    ImGui::PopID();
   }
 
 } // namespace yave::editor::imgui
