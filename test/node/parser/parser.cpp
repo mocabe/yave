@@ -31,7 +31,7 @@ TEST_CASE("node_parser _extract")
     REQUIRE(parsed->graph.nodes()[0].id() == parsed->root.id());
 
     auto parsed_root = parsed->graph.nodes()[0];
-    REQUIRE(parsed->graph.get_info(parsed_root) == prim_info);
+    REQUIRE(parsed->graph.get_info(parsed_root)->name() == prim_info.name());
     REQUIRE(parsed->graph.get_primitive(parsed_root));
     REQUIRE(parsed->graph.get_primitive(parsed_root) == primitive_t(42));
   }

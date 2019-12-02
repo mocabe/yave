@@ -70,10 +70,4 @@ namespace yave {
     node_type m_type;
   };
 
-  /// operator==
-  [[nodiscard]] bool operator==(const node_info& lhs, const node_info& rhs);
-
-  /// operator!=
-  [[nodiscard]] bool operator!=(const node_info& lhs, const node_info& rhs);
-
 } // namespace yave

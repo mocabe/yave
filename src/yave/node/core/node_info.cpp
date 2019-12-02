@@ -106,16 +106,4 @@ namespace yave {
     return m_type;
   }
 
-  bool operator==(const node_info& lhs, const node_info& rhs)
-  {
-    return lhs.name() == rhs.name() &&
-           lhs.input_sockets() == rhs.input_sockets() &&
-           lhs.output_sockets() == rhs.output_sockets();
-  }
-
-  bool operator!=(const node_info& lhs, const node_info& rhs)
-  {
-    return !(lhs == rhs);
-  }
-
 } // namespace yave
