@@ -29,10 +29,7 @@ namespace yave {
     using unit = std::chrono::duration<value_type, ratio>;
 
     /// Constructor.
-    constexpr time() noexcept
-      : m_value {0}
-    {
-    }
+    constexpr time() noexcept = default;
 
     /// Constructor.
     template <class T, class R>
@@ -333,7 +330,7 @@ namespace yave {
 
   private:
     /// value
-    bounded_int<value_type> m_value;
+    bounded_int<value_type> m_value = {};
   };
 
   constexpr time& time::operator+=(const time& rhs) noexcept

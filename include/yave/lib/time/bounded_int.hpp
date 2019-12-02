@@ -16,7 +16,9 @@ namespace yave {
   public:
     using value_type = IntegerT;
 
-    constexpr bounded_int(value_type v)
+    constexpr bounded_int() noexcept = default;
+
+    constexpr bounded_int(value_type v) noexcept
       : m_value {v}
     {
     }
@@ -40,7 +42,7 @@ namespace yave {
     constexpr bounded_int operator--(int) noexcept;
 
   private:
-    value_type m_value;
+    value_type m_value = 0;
   };
 
   template <class T>
