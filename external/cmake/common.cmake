@@ -1,14 +1,19 @@
+find_package(Git REQUIRED)
+
+# Initialize submodule 
 function(init_submodule NAME)
   message(STATUS "Initializing submodule: ${NAME}")
-  execute_process(COMMAND git submodule update --init --jobs 4 -- ${YAVE_EXTERNAL_DIR}/${NAME})
+  execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --jobs 4 -- ${YAVE_EXTERNAL_DIR}/${NAME})
 endfunction()
 
+# Initialize and add submodule 
 function(init_add_submodule NAME)
   init_submodule(${NAME})
   message(STATUS "Adding library target: ${NAME}")
   add_subdirectory(${YAVE_EXTERNAL_DIR}/${NAME})
 endfunction()
 
+# Build submodule
 function(build_submodule NAME)
 
   set(SUBMODULE_DIR ${YAVE_EXTERNAL_DIR}/${NAME})

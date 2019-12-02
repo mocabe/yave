@@ -19,7 +19,7 @@ endif()
 if(NOT Boost_FOUND)
 
   message(STATUS "Initializing submodule: boost")
-  execute_process(COMMAND git submodule update --init --recursive --jobs 8 ${YAVE_EXTERNAL_DIR}/boost)
+  execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive --jobs 8 ${YAVE_EXTERNAL_DIR}/boost)
   
   message(STATUS "Building boost library")
   
