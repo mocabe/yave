@@ -6,6 +6,7 @@
 #include <yave/node/core/node_graph.hpp>
 #include <yave/support/log.hpp>
 #include <range/v3/algorithm.hpp>
+#include <range/v3/view.hpp>
 
 YAVE_DECL_G_LOGGER(node_graph);
 
@@ -129,10 +130,16 @@ namespace yave {
     assert(_exists(h));
     assert(!m_g.nodes(h.descriptor()).empty());
 
-    auto s = m_g[h.descriptor()];
-    auto n = m_g.nodes(h.descriptor())[0];
 
-    return socket_info(s.name(), s.type(), node_handle {n, {m_g.id(n)}});
+    auto s  = m_g[h.descriptor()];
+    auto ns = m_g.nodes(h.descriptor());
+
+    auto nodes = ns | ranges::views::transform([&](auto&& n) {
+                   return node_handle {n, {m_g.id(n)}};
+                 });
+
+    return socket_info(
+      s.name(), s.type(), nodes.front(), {nodes.begin() + 1, nodes.end()});
   }
 
   auto node_graph::get_info(const socket_handle& h) const

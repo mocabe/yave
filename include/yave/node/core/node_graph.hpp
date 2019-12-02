@@ -60,6 +60,7 @@ namespace yave {
       -> std::optional<socket_info>;
 
     /// Get connection info of all connections from/to the node.
+    /// \returns std::nullopt when connection doesn't exist.
     [[nodiscard]] auto get_info(const connection_handle& node) const
       -> std::optional<connection_info>;
 

@@ -19,7 +19,11 @@ namespace yave {
     socket_info& operator=(const socket_info&) = default;
     socket_info& operator=(socket_info&&) = default;
 
-    socket_info(std::string name, socket_type type, node_handle node);
+    socket_info(
+      std::string name,
+      socket_type type,
+      node_handle node,
+      std::vector<node_handle> interfaces);
 
     /// name
     [[nodiscard]] auto name() const -> const std::string&;
@@ -30,9 +34,13 @@ namespace yave {
     /// Get node
     [[nodiscard]] auto node() const -> const node_handle&;
 
+    /// Get interfaces
+    [[nodiscard]] auto interfaces() const -> const std::vector<node_handle>&;
+
   private:
     std::string m_name;
     socket_type m_type;
     node_handle m_node;
+    std::vector<node_handle> m_interfaces;
   };
 }

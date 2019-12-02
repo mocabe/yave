@@ -7,10 +7,15 @@
 
 namespace yave {
 
-  socket_info::socket_info(std::string name, socket_type type, node_handle node)
+  socket_info::socket_info(
+    std::string name,
+    socket_type type,
+    node_handle node,
+    std::vector<node_handle> interfaces)
     : m_name {std::move(name)}
     , m_type {std::move(type)}
     , m_node {std::move(node)}
+    , m_interfaces {std::move(interfaces)}
   {
   }
 
@@ -27,6 +32,11 @@ namespace yave {
   auto socket_info::node() const -> const node_handle&
   {
     return m_node;
+  }
+
+  auto socket_info::interfaces() const -> const std::vector<node_handle>&
+  {
+    return m_interfaces;
   }
 
 } // namespace yave
