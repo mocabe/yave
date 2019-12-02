@@ -983,9 +983,8 @@ namespace yave {
             info.name() ==
             get_node_declaration<node::NodeGroupInterface>().name())
             return managed_node_type::group;
-
-          throw std::runtime_error("Invalid interface node");
       }
+      throw std::runtime_error("Invalid node type");
     }();
 
     return managed_node_info(
