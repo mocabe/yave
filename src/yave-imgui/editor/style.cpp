@@ -132,21 +132,6 @@ namespace yave::editor::imgui {
 
   ImColor get_node_edge_color()
   {
-    return IM_COL32(0, 0, 0, 0);
-  }
-
-  ImColor get_node_edge_color_hovered()
-  {
-    return IM_COL32(0, 0, 0, 0);
-  }
-
-  ImColor get_node_edge_color_selected()
-  {
-    return IM_COL32(0, 0, 0, 0);
-  }
-
-  ImColor get_node_edge_color()
-  {
     return IM_COL32(150, 115, 165, 255);
   }
 
