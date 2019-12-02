@@ -9,6 +9,9 @@ add_library(yave-node-core
   node_property.cpp
   socket_property.cpp
   node_graph.cpp
+  managed_node_info.cpp
+  managed_socket_info.cpp
+  managed_connection_info.cpp
   managed_node_graph.cpp
   socket_instance_manager.cpp
   shared_node_handle.cpp

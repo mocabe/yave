@@ -7,6 +7,9 @@
 
 #include <yave/node/core/node_graph.hpp>
 #include <yave/node/core/shared_node_handle.hpp>
+#include <yave/node/core/managed_node_info.hpp>
+#include <yave/node/core/managed_socket_info.hpp>
+#include <yave/node/core/managed_connection_info.hpp>
 #include <yave/node/core/node_declaration_store.hpp>
 
 namespace yave {
@@ -131,13 +134,13 @@ namespace yave {
 
     /// get node info
     [[nodiscard]] auto get_info(const node_handle& node) const
-      -> std::optional<node_info>;
+      -> std::optional<managed_node_info>;
     /// get socket info
     [[nodiscard]] auto get_info(const socket_handle& socket) const
-      -> std::optional<socket_info>;
+      -> std::optional<managed_socket_info>;
     /// get connection info
     [[nodiscard]] auto get_info(const connection_handle& connection) const
-      -> std::optional<connection_info>;
+      -> std::optional<managed_connection_info>;
 
     /// get name
     [[nodiscard]] auto get_name(const node_handle& node) const

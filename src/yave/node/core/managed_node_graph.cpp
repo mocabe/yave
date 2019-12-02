@@ -959,21 +959,73 @@ namespace yave {
   }
 
   auto managed_node_graph::get_info(const node_handle& node) const
-    -> std::optional<node_info>
+    -> std::optional<managed_node_info>
   {
-    return m_ng.get_info(node);
+    if (!exists(node))
+      return std::nullopt;
+
+    auto info = *m_ng.get_info(node);
+
+    auto type = [&] {
+      switch (info.type()) {
+        case node_type::normal:
+          return managed_node_type::normal;
+        case node_type::primitive:
+          return managed_node_type::primitive;
+        case node_type::interface:
+          if (
+            info.name() == get_node_declaration<node::NodeGroupInput>().name())
+            return managed_node_type::group_input;
+          if (
+            info.name() == get_node_declaration<node::NodeGroupOutput>().name())
+            return managed_node_type::group_output;
+          if (
+            info.name() ==
+            get_node_declaration<node::NodeGroupInterface>().name())
+            return managed_node_type::group;
+
+          throw std::runtime_error("Invalid interface node");
+      }
+    }();
+
+    return managed_node_info(
+      info.name(), info.input_sockets(), info.output_sockets(), type);
   }
 
   auto managed_node_graph::get_info(const socket_handle& socket) const
-    -> std::optional<socket_info>
+    -> std::optional<managed_socket_info>
   {
-    return m_ng.get_info(socket);
+    if (!exists(socket))
+      return std::nullopt;
+
+    auto info = *m_ng.get_info(socket);
+
+    return managed_socket_info(info.name(), info.type(), info.node());
   }
 
   auto managed_node_graph::get_info(const connection_handle& connection) const
-    -> std::optional<connection_info>
+    -> std::optional<managed_connection_info>
   {
-    return m_ng.get_info(connection);
+    if (!exists(connection))
+      return std::nullopt;
+
+    auto info = *m_ng.get_info(connection);
+
+    auto srcn = info.src_node();
+    auto dstn = info.dst_node();
+
+    if (!info.src_interfaces().empty()) {
+      assert(info.src_interfaces().size() == 1);
+      srcn = info.src_interfaces()[0];
+    }
+
+    if (!info.dst_interfaces().empty()) {
+      assert(info.dst_interfaces().size() == 1);
+      dstn = info.dst_interfaces()[0];
+    }
+
+    return managed_connection_info(
+      srcn, info.src_socket(), dstn, info.dst_socket());
   }
 
   auto managed_node_graph::get_name(const node_handle& node) const
