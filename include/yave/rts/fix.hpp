@@ -22,7 +22,7 @@ namespace yave {
   struct Fix
     : Function<Fix, closure<detail::Fix_X, detail::Fix_X>, detail::Fix_X>
   {
-    return_type code() const
+    auto code() const -> return_type
     {
       auto f     = eval_arg<0>();
       auto cthis = reinterpret_cast<const Closure<>*>(this);

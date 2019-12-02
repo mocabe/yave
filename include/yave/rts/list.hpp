@@ -57,15 +57,15 @@ namespace yave {
     using value_type = T;
 
     /// friend function to get address of storage
-    [[nodiscard]] friend inline const list_storage& _get_storage(
-      const list_object_value& v) noexcept
+    [[nodiscard]] friend inline auto _get_storage(
+      const list_object_value& v) noexcept -> const list_storage&
     {
       return *reinterpret_cast<const list_storage*>(&(v.m_storage));
     }
 
     /// friend function to get address of storage
-    [[nodiscard]] friend inline list_storage& _get_storage(
-      list_object_value& v) noexcept
+    [[nodiscard]] friend inline auto _get_storage(list_object_value& v) noexcept
+      -> list_storage&
     {
       return *reinterpret_cast<list_storage*>(&(v.m_storage));
     }

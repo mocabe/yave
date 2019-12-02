@@ -31,9 +31,9 @@ namespace yave {
     };
 
     /// Add info table tag of type T to given pointer.
-    [[nodiscard]] inline const object_info_table* add_info_table_tag(
+    [[nodiscard]] inline auto add_info_table_tag(
       const object_info_table* ptr,
-      info_table_tags tag)
+      info_table_tags tag) -> const object_info_table*
     {
       uintptr_t tmp = 0;
       std::memcpy(&tmp, &ptr, sizeof(ptr));
@@ -46,8 +46,8 @@ namespace yave {
     }
 
     /// Clear info table pointer tag and get actual address
-    [[nodiscard]] inline const object_info_table* clear_info_table_tag(
-      const object_info_table* tagged)
+    [[nodiscard]] inline auto clear_info_table_tag(
+      const object_info_table* tagged) -> const object_info_table*
     {
       uintptr_t tmp = 0;
       std::memcpy(&tmp, &tagged, sizeof(tagged));
@@ -71,8 +71,8 @@ namespace yave {
 
     // Exception
 
-    [[nodiscard]] inline const object_info_table* add_exception_tag(
-      const object_info_table* info)
+    [[nodiscard]] inline auto add_exception_tag(const object_info_table* info)
+      -> const object_info_table*
     {
       return add_info_table_tag(info, info_table_tags::exception);
     }

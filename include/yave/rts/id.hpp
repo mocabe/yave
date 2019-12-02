@@ -16,7 +16,7 @@ namespace yave {
   // id = \x.x
   struct Id : Function<Id, detail::id_X, detail::id_X>
   {
-    return_type code() const
+    auto code() const -> return_type
     {
       return arg<0>();
     }

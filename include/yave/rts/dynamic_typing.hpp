@@ -380,13 +380,12 @@ namespace yave {
           return;
 
         if (get_if<var_type>(tp.value())) {
-          return [&]() {
-            for (auto&& v : vars) {
-              if (same_type(v, tp))
-                return;
-            }
-            vars.push_back(tp);
-          }();
+          for (auto&& v : vars) {
+            if (same_type(v, tp))
+              return;
+          }
+          vars.push_back(tp);
+          return;
         }
 
         if (auto arrow = get_if<arrow_type>(tp.value())) {

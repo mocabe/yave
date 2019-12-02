@@ -22,13 +22,13 @@ namespace yave {
     {
     }
 
-    [[nodiscard]] auto& app() const noexcept
+    [[nodiscard]] auto app() const noexcept -> object_ptr<const Object>&
     {
       assert(!is_result());
       return m_app;
     }
 
-    [[nodiscard]] auto& arg() const noexcept
+    [[nodiscard]] auto arg() const noexcept -> object_ptr<const Object>&
     {
       assert(!is_result());
       return m_arg;
@@ -40,7 +40,7 @@ namespace yave {
     }
 
     /// get cache of object
-    [[nodiscard]] auto get_result() const noexcept
+    [[nodiscard]] auto get_result() const noexcept -> object_ptr<const Object>
     {
       assert(is_result());
       return m_arg;
