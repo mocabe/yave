@@ -146,6 +146,14 @@ namespace yave {
     [[nodiscard]] auto get_name(const socket_handle& socket) const
       -> std::optional<std::string>;
 
+    /// Get node declaration
+    [[nodiscard]] auto get_declaration(const node_handle& node) const
+      -> std::optional<node_declaration>;
+
+    /// Get socket type class
+    [[nodiscard]] auto get_type_class(const socket_handle& socket) const
+      -> object_ptr<const Type>;
+
   public:
     /// create new node
     [[nodiscard]] auto create(

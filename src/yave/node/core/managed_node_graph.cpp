@@ -5,6 +5,7 @@
 
 #include <yave/node/core/managed_node_graph.hpp>
 #include <yave/node/decl/node_group.hpp>
+#include <yave/rts/generalize.hpp>
 
 #include <yave/support/log.hpp>
 
@@ -247,7 +248,7 @@ namespace yave {
     const std::vector<node_handle>& nodes) -> node_handle
   {
     // get parent group
-    node_group* parent = nullptr;
+    node_group* parent;
     {
       auto iter = m_groups.find(parent_group);
 
@@ -985,6 +986,71 @@ namespace yave {
     -> std::optional<std::string>
   {
     return m_ng.get_name(socket);
+  }
+
+  auto managed_node_graph::get_declaration(const node_handle& node) const
+    -> std::optional<node_declaration>
+  {
+    if (!exists(node))
+      return std::nullopt;
+
+    auto name = *m_ng.get_name(node);
+
+    auto decl = m_nim.find(name);
+
+    if (!decl)
+      return std::nullopt;
+
+    return *decl;
+  }
+
+  auto managed_node_graph::get_type_class(const socket_handle& socket) const
+    -> object_ptr<const Type>
+  {
+    if (!exists(socket))
+      return object_type<Undefined>();
+
+    auto info = *m_ng.get_info(socket);
+    auto name = *m_ng.get_name(info.node());
+
+    auto decl = m_nim.find(name);
+
+    if (!decl)
+      return object_type<Undefined>();
+
+    // is
+    if (info.type() == socket_type::input) {
+
+      auto ts = flatten(generalize(decl->type_classes()));
+
+      size_t idx = ranges::distance(
+        decl->input_sockets().begin(),
+        ranges::find(decl->input_sockets(), info.name()));
+
+      if (idx == decl->input_sockets().size())
+        return object_type<Undefined>();
+
+      assert(idx < ts.size());
+
+      return ts[idx];
+    }
+
+    // os
+    if (info.type() == socket_type::output) {
+
+      size_t idx = ranges::distance(
+        decl->output_sockets().begin(),
+        ranges::find(decl->output_sockets(), info.name()));
+
+      if (idx == decl->output_sockets().size())
+        return object_type<Undefined>();
+
+      assert(idx < decl->type_classes().size());
+
+      return decl->type_classes()[idx];
+    }
+
+    return object_type<Undefined>();
   }
 
   /* create/connect */
