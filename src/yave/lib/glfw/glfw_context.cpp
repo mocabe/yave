@@ -40,7 +40,8 @@ namespace yave::glfw {
     void remove(const std::string& key) noexcept;
 
   private:
-    uint32_t m_magic = 0xdeadbeef;
+    /// for sanity check
+    [[maybe_unused]] uint32_t m_magic = 0xdeadbeef;
     /// flat map of (key,pointer) pairs
     std::vector<std::pair<std::string, void*>> m_map;
   };
