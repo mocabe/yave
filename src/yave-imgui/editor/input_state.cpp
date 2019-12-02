@@ -6,7 +6,7 @@
 #include <yave-imgui/editor/input_state.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(input_state);
+YAVE_DECL_G_LOGGER(input_state)
 
 namespace yave::editor::imgui {
 

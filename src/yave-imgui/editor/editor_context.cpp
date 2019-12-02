@@ -8,7 +8,7 @@
 #include <yave/support/log.hpp>
 #include <range/v3/algorithm.hpp>
 
-YAVE_DECL_G_LOGGER(editor_context);
+YAVE_DECL_G_LOGGER(editor_context)
 
 namespace yave::editor::imgui {
 
