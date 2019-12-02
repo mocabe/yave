@@ -7,6 +7,8 @@
 #include <yave/node/core/managed_node_graph.hpp>
 #include <yave/node/core/function.hpp>
 
+#include <fmt/format.h>
+
 using namespace yave;
 
 TEST_CASE("root group")
@@ -38,6 +40,13 @@ TEST_CASE("empty group")
   REQUIRE(gi->output_sockets().empty());
   REQUIRE(gi->input_sockets().empty());
 
+  REQUIRE(gi->type() == managed_node_type::group);
+  REQUIRE(gi->is_group());
+  REQUIRE(!gi->is_group_input());
+  REQUIRE(!gi->is_group_output());
+  REQUIRE(!gi->is_normal());
+  REQUIRE(!gi->is_primitive());
+
   auto i = ng.get_group_input(g);
   auto o = ng.get_group_output(g);
 
@@ -46,6 +55,12 @@ TEST_CASE("empty group")
 
   REQUIRE(ng.is_group_input(i));
   REQUIRE(ng.is_group_output(o));
+
+  REQUIRE(ng.get_parent_group(i) == g);
+  REQUIRE(ng.get_parent_group(o) == g);
+
+  REQUIRE(ng.get_info(i)->is_group_input());
+  REQUIRE(ng.get_info(o)->is_group_output());
 
   REQUIRE(ng.exists(g));
 
@@ -70,7 +85,8 @@ TEST_CASE("group with content")
     "node",
     {"0", "1", "2"},
     {"0", "1"},
-    {2, object_type<node_closure<Int, Int, Int, Int>>()},
+    {object_type<node_closure<Int, Double, Int, Double>>(),
+     object_type<node_closure<Int, Int, Int, Int>>()},
     node_type::normal);
 
   REQUIRE(ng.register_node_declaration(decl));
@@ -79,6 +95,7 @@ TEST_CASE("group with content")
   {
     auto n = ng.create(ng.root_group(), decl.name());
     REQUIRE(n);
+    REQUIRE(ng.get_info(n)->is_normal());
     REQUIRE(ng.get_group_members(ng.root_group()).front() == n);
 
     auto g = ng.group(ng.root_group(), {n});
@@ -129,6 +146,15 @@ TEST_CASE("group with content")
       REQUIRE(c1);
       REQUIRE(c2);
 
+      REQUIRE(ng.get_info(c1)->src_socket() == ng.output_sockets(n1)[0]);
+      REQUIRE(ng.get_info(c1)->dst_socket() == ng.input_sockets(n2)[0]);
+      REQUIRE(ng.get_info(c1)->src_node() == n1);
+      REQUIRE(ng.get_info(c1)->dst_node() == n2);
+
+      REQUIRE(ng.get_info(c2)->src_socket() == ng.output_sockets(n2)[0]);
+      REQUIRE(ng.get_info(c2)->dst_socket() == ng.input_sockets(n3)[0]);
+      REQUIRE(ng.get_info(c2)->src_node() == n2);
+      REQUIRE(ng.get_info(c2)->dst_node() == n3);
 
       //
       // n1 -> [ -> n2 -> ] -> n3
@@ -153,6 +179,11 @@ TEST_CASE("group with content")
       REQUIRE(ng.get_info(ics[0])->src_socket() == ng.output_sockets(n1)[0]);
       REQUIRE(ng.get_info(ocs[0])->dst_socket() == ng.input_sockets(n3)[0]);
 
+      REQUIRE(ng.get_info(ics[0])->src_node() == n1);
+      REQUIRE(ng.get_info(ics[0])->dst_node() == g);
+      REQUIRE(ng.get_info(ocs[0])->src_node() == g);
+      REQUIRE(ng.get_info(ocs[0])->dst_node() == n3);
+
       REQUIRE(!ng.group(ng.root_group(), {n2}));
 
       //
@@ -165,6 +196,16 @@ TEST_CASE("group with content")
       ocs = ng.output_connections(n2);
       REQUIRE(ics.size() == 1);
       REQUIRE(ocs.size() == 1);
+
+      REQUIRE(ng.get_info(ng.output_connections(n1)[0])->src_node() == n1);
+      REQUIRE(ng.get_info(ng.output_connections(n1)[0])->dst_node() == g1);
+      REQUIRE(ng.get_info(ng.input_connections(n3)[0])->src_node() == g1);
+      REQUIRE(ng.get_info(ng.input_connections(n3)[0])->dst_node() == n3);
+
+      REQUIRE(ng.get_info(ng.input_connections(g1)[0])->src_node() == n1);
+      REQUIRE(ng.get_info(ng.input_connections(g1)[0])->dst_node() == g1);
+      REQUIRE(ng.get_info(ng.output_connections(g1)[0])->src_node() == g1);
+      REQUIRE(ng.get_info(ng.output_connections(g1)[0])->dst_node() == n3);
 
       // 9 + 5
       REQUIRE(ng.get_node_graph().nodes().size() == 14);
@@ -247,7 +288,9 @@ TEST_CASE("group with content")
       REQUIRE(ng.connect(n5_o0, n4_i2));
       REQUIRE(ng.connect(n4_o0, n6_i0));
 
+      //
       // n1,n2 -> [  n3,n4,n5  ] -> n6
+      //
       auto g = ng.group(ng.root_group(), {n3, n4, n5});
       REQUIRE(g);
 
@@ -265,7 +308,14 @@ TEST_CASE("group with content")
       REQUIRE(ng.add_group_input_socket(g, "test"));
       REQUIRE(ng.add_group_output_socket(g, "test"));
 
+      REQUIRE(ng.get_info(ng.output_connections(n1)[0])->src_node() == n1);
+      REQUIRE(ng.get_info(ng.output_connections(n1)[0])->dst_node() == g);
+      REQUIRE(ng.get_info(ng.input_connections(n6)[0])->src_node() == g);
+      REQUIRE(ng.get_info(ng.input_connections(n6)[0])->dst_node() == n6);
+
+      //
       // n1,n2 -> [n3,n4,n5,n7] -> n6
+      //
       auto n7 = ng.create(g, decl.name());
       REQUIRE(n7);
 
@@ -281,6 +331,27 @@ TEST_CASE("group with content")
 
       ng.ungroup(g);
       REQUIRE(ng.get_node_graph().nodes().size() == 8);
+    }
+  }
+
+  SECTION("util")
+  {
+    auto n = ng.create(ng.root_group(), "node");
+    REQUIRE(n);
+    REQUIRE(ng.get_declaration(n)->name() == decl.name());
+
+    auto os = ng.output_sockets(n);
+    auto is = ng.input_sockets(n);
+
+    REQUIRE(ng.get_type_class(os[0]) == decl.type_classes()[0]);
+    REQUIRE(ng.get_type_class(os[1]) == decl.type_classes()[1]);
+
+    for (auto&& s : os) {
+      fmt::print("os: {}\n", to_string(ng.get_type_class(s)));
+    }
+
+    for (auto&& s : is) {
+      fmt::print("is: {}\n", to_string(ng.get_type_class(s)));
     }
   }
 }

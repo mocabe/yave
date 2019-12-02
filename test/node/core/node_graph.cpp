@@ -482,12 +482,16 @@ TEST_CASE("node_graph interface")
     REQUIRE(ng.get_info(i1)->output_sockets().empty());
     REQUIRE(ng.get_interfaces(n1_i0)[0] == i1);
     REQUIRE(ng.get_interfaces(n1_o0).empty());
+    REQUIRE(ng.get_info(n1_i0)->interfaces().size() == 1);
+    REQUIRE(ng.get_info(n1_i0)->node() == n1);
+    REQUIRE(ng.get_info(n1_i0)->interfaces()[0] == i1);
 
     REQUIRE(ng.attach_interface(i1, n1_o0));
     REQUIRE(ng.attach_interface(i1, n1_o0));
     REQUIRE(ng.get_info(i1)->input_sockets().size() == 1);
     REQUIRE(ng.get_info(i1)->output_sockets().size() == 1);
     REQUIRE(ng.get_interfaces(n1_o0)[0] == i1);
+    REQUIRE(ng.get_info(n1_o0)->interfaces()[0] == i1);
 
     REQUIRE(ng.input_sockets(i1).size() == 1);
     REQUIRE(ng.output_sockets(i1).size() == 1);
@@ -507,6 +511,8 @@ TEST_CASE("node_graph interface")
 
       REQUIRE(ng.get_interfaces(n1_i0).empty());
       REQUIRE(ng.get_interfaces(n1_o0).empty());
+      REQUIRE(ng.get_info(n1_i0)->interfaces().empty());
+      REQUIRE(ng.get_info(n1_o0)->interfaces().empty());
     }
 
     SECTION("remove")
