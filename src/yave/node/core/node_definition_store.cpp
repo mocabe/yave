@@ -6,7 +6,7 @@
 #include <yave/node/core/node_definition_store.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(node_definition_store);
+YAVE_DECL_G_LOGGER(node_definition_store)
 
 namespace yave {
 

@@ -8,7 +8,7 @@
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view.hpp>
 
-YAVE_DECL_G_LOGGER(node_graph);
+YAVE_DECL_G_LOGGER(node_graph)
 
 namespace yave {
 

@@ -6,7 +6,7 @@
 #include <yave/lib/scene/scene_config.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(scene_config);
+YAVE_DECL_G_LOGGER(scene_config)
 
 namespace yave {
 

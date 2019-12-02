@@ -9,7 +9,7 @@
 #include <yave/node/decl/constructor.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(node_parser);
+YAVE_DECL_G_LOGGER(node_parser)
 
 namespace yave {
 

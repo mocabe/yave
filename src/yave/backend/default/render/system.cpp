@@ -18,7 +18,7 @@
 #include <yave/backend/default/render/list.hpp>
 #include <yave/backend/default/render/image_io.hpp>
 
-YAVE_DECL_G_LOGGER(yave::backend::default_render);
+YAVE_DECL_G_LOGGER(yave::backend::default_render)
 
 namespace yave::backend::default_render {
 

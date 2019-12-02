@@ -8,7 +8,7 @@
 
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(buffer_manager);
+YAVE_DECL_G_LOGGER(buffer_manager)
 
 namespace yave {
 

@@ -6,7 +6,7 @@
 #include <yave/node/scene/layered_node_graph.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(layered_node_graph);
+YAVE_DECL_G_LOGGER(layered_node_graph)
 
 namespace yave {
 

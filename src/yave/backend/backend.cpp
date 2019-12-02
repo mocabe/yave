@@ -6,7 +6,7 @@
 #include <yave/backend/backend.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(backend);
+YAVE_DECL_G_LOGGER(backend)
 
 namespace yave {
 

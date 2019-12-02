@@ -17,7 +17,7 @@
 #include <yave/support/log.hpp>
 #include <yave/support/id.hpp>
 
-YAVE_DECL_G_LOGGER(scene_graph);
+YAVE_DECL_G_LOGGER(scene_graph)
 
 namespace yave {
 

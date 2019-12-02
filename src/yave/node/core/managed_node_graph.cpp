@@ -12,7 +12,7 @@
 #include <range/v3/algorithm.hpp>
 #include <memory>
 
-YAVE_DECL_G_LOGGER(managed_node_graph);
+YAVE_DECL_G_LOGGER(managed_node_graph)
 
 namespace yave {
 

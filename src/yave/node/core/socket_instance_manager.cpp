@@ -6,7 +6,7 @@
 #include <yave/node/core/socket_instance_manager.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(socket_instance_manager);
+YAVE_DECL_G_LOGGER(socket_instance_manager)
 
 namespace yave {
 

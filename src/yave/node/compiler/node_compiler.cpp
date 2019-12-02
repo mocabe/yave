@@ -13,7 +13,7 @@
 
 #include <range/v3/algorithm.hpp>
 
-YAVE_DECL_G_LOGGER(node_compiler);
+YAVE_DECL_G_LOGGER(node_compiler)
 
 namespace yave {
 
