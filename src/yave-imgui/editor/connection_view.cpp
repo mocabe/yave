@@ -69,7 +69,11 @@ namespace yave::editor::imgui {
     draw_connection_edge(src_pos, dst_pos, is_hovered, is_selected);
   }
 
-  void basic_connection_view::handle_input(const ImVec2&, const ImVec2&) const
+  void basic_connection_view::handle_input(
+    const ImVec2&,
+    const ImVec2&,
+    input_state&,
+    editor_context&) const
   {
     ImGui::PushID(handle.id().data);
 

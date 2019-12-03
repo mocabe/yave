@@ -140,7 +140,8 @@ namespace yave::editor::imgui {
   void basic_socket_view::handle_input(
     const ImVec2& base,
     const ImVec2& size,
-    input_state& state) const
+    input_state& state,
+    editor_context& ctx) const
   {
     ImGui::PushID(handle.id().data);
 

@@ -131,10 +131,10 @@ namespace yave::editor::imgui {
     auto cursor_y = header_size.y;
     for (auto&& s : sockets) {
 
-      auto socket_size = s->min_size();
+      auto min_size = s->min_size();
 
       auto socket_base = ImVec2 {base.x, base.y + cursor_y};
-      auto socket_size = ImVec2 {size.x, socket_size.y};
+      auto socket_size = ImVec2 {size.x, min_size.y};
 
       // draw socket
       s->draw(socket_base, socket_size); // use min height
@@ -159,7 +159,8 @@ namespace yave::editor::imgui {
   void basic_node_view::handle_input(
     const ImVec2& base,
     const ImVec2& size,
-    input_state& state) const
+    input_state& state,
+    editor_context& ctx) const
   {
     ImGui::PushID(handle.id().data);
 
@@ -168,16 +169,15 @@ namespace yave::editor::imgui {
     // handle socket input
     for (auto&& s : sockets) {
 
-      auto socket_size = s->min_size();
+      auto min_size = s->min_size();
 
       auto socket_base = ImVec2 {base.x, base.y + cursor_y};
-      auto socket_size = ImVec2 {size.x, socket_size.y};
+      auto socket_size = ImVec2 {size.x, min_size.y};
 
-      s->handle_input(socket_base, socket_size, state);
+      s->handle_input(socket_base, socket_size, state, ctx);
 
       cursor_y += socket_size.y;
     }
-
 
     // background
     ImGui::SetCursorScreenPos(base);

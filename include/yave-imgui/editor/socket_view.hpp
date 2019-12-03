@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/node/core/socket_handle.hpp>
-#include <yave/node/core/socket_info.hpp>
+#include <yave/node/core/managed_socket_info.hpp>
 #include <yave/lib/imgui/imgui_context.hpp>
 #include <yave-imgui/editor/input_state.hpp>
 
@@ -25,7 +25,7 @@ namespace yave::editor::imgui {
     /// handle
     socket_handle handle;
     /// info
-    socket_info info;
+    managed_socket_info info;
 
     /// calc minimum size of this socket
     virtual auto min_size() const -> ImVec2 = 0;
@@ -45,7 +45,8 @@ namespace yave::editor::imgui {
     virtual void handle_input(
       const ImVec2& pos,
       const ImVec2& size,
-      input_state& state) const = 0;
+      input_state& state,
+      editor_context& ctx) const = 0;
     /// dtor
     virtual ~socket_view() noexcept = 0;
   };
@@ -74,7 +75,8 @@ namespace yave::editor::imgui {
     virtual void handle_input(
       const ImVec2& pos,
       const ImVec2& size,
-      input_state& state) const override;
+      input_state& state,
+      editor_context& ctx) const override;
   };
 
 } // namespace yave::editor::imgui

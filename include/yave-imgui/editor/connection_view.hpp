@@ -6,9 +6,10 @@
 #pragma once
 
 #include <yave/node/core/connection_handle.hpp>
-#include <yave/node/core/connection_info.hpp>
+#include <yave/node/core/managed_connection_info.hpp>
 #include <yave/node/core/socket_handle.hpp>
 #include <yave/lib/imgui/imgui_context.hpp>
+#include <yave-imgui/editor/input_state.hpp>
 
 namespace yave::editor::imgui {
 
@@ -27,7 +28,7 @@ namespace yave::editor::imgui {
     connection_handle handle;
 
     /// info
-    connection_info info;
+    managed_connection_info info;
 
     /// draw connection
     ///\param src_pos src slot position
@@ -36,8 +37,11 @@ namespace yave::editor::imgui {
     /// handle input
     ///\param src_pos src slot position
     ///\param dst_pos dst slot position
-    virtual void handle_input(const ImVec2& src_pos, const ImVec2& dst_pos)
-      const = 0;
+    virtual void handle_input(
+      const ImVec2& src_pos,
+      const ImVec2& dst_pos,
+      input_state& state,
+      editor_context& ctx) const = 0;
     /// dtor
     virtual ~connection_view() noexcept = 0;
   };
@@ -72,7 +76,10 @@ namespace yave::editor::imgui {
 
   private:
     void draw(const ImVec2& src_pos, const ImVec2& dst_pos) const override;
-    void handle_input(const ImVec2& src_pos, const ImVec2& dst_pos)
-      const override;
+    void handle_input(
+      const ImVec2& src_pos,
+      const ImVec2& dst_pos,
+      input_state& state,
+      editor_context& ctx) const override;
   };
 }
