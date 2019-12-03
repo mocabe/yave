@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/lib/vulkan/vulkan_context.hpp>
+#include <yave/support/enum_flag.hpp>
 
 #include <imgui.h>
 #include <imgui_freetype.h> // use freetype for font rendering
@@ -18,8 +19,14 @@ namespace yave::imgui {
   class imgui_context
   {
   public:
+    enum class flags : uint32_t
+    {
+      enable_validation = 1,
+    };
+
+  public:
     /// Ctor
-    imgui_context(bool enableValidation = true);
+    imgui_context(flags flags = flags::enable_validation);
     /// Dtor
     ~imgui_context();
   
@@ -95,3 +102,13 @@ namespace yave::imgui {
 
   // clang-format on
 }
+
+namespace yave {
+
+  // enable flags
+  template <>
+  struct is_enum_flag<imgui::imgui_context::flags> : std::true_type
+  {
+  };
+
+} // namespace yave

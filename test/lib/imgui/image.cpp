@@ -15,7 +15,7 @@ using namespace yave::imgui;
 
 int main()
 {
-  imgui_context imgui(true);
+  imgui_context imgui {};
 
   auto layout = sln::TypedLayout(sln::PixelLength(800), sln::PixelLength(450));
   sln::ImageRGBA_8u image {layout};

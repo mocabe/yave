@@ -814,7 +814,7 @@ namespace yave::imgui {
   {
     // clang-format off
   public:
-    impl(bool enableValidation, uint32_t width, uint32_t height, const char* windowName);
+    impl(flags flags, uint32_t width, uint32_t height, const char* windowName);
     ~impl() noexcept;
 
   public: /* managed by impl */
@@ -853,12 +853,12 @@ namespace yave::imgui {
   };
 
   imgui_context::impl::impl(
-    bool enableValidation,
+    flags flags,
     uint32_t widt,
     uint32_t height,
     const char* windowName)
     : glfwCtx {}
-    , vulkanCtx {glfwCtx, enableValidation}
+    , vulkanCtx {glfwCtx, !!(flags & flags::enable_validation)}
     , glfwWindow {glfwCtx.create_window(widt, height, windowName)}
     , windowCtx {vulkanCtx.create_window_context(glfwWindow)}
     , imCtx {ImGui::CreateContext()}
@@ -870,14 +870,13 @@ namespace yave::imgui {
     ImGui::DestroyContext(imCtx);
   }
 
-  imgui_context::imgui_context(bool enableValidation)
+  imgui_context::imgui_context(flags flags)
   {
     using namespace yave;
     init_logger();
 
     // create context
-    m_pimpl =
-      std::make_unique<impl>(enableValidation, 1280, 720, "imgui_context");
+    m_pimpl = std::make_unique<impl>(flags, 1280, 720, "imgui_context");
 
     /* init ImGui */
     {
