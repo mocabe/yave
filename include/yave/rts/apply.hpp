@@ -116,11 +116,11 @@ namespace yave {
   private:
     /// static object info table
     alignas(32) inline static const object_info_table info_table {
-      object_type<Apply>(),            //
-      sizeof(Apply),                   //
-      object_type_traits<Apply>::name, //
-      vtbl_destroy_func<Apply>,        //
-      vtbl_clone_func<Apply>};         //
+      object_type<Apply>(),             //
+      sizeof(Apply),                    //
+      object_type_traits<Apply>::name,  //
+      detail::vtbl_destroy_func<Apply>, //
+      detail::vtbl_clone_func<Apply>};  //
   };
 
   /// compile time apply object

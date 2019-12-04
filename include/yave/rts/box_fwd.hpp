@@ -31,51 +31,42 @@ namespace yave {
 
 namespace yave {
 
-  /// tag type to initialize object with 0 reference count
-  struct static_construct_t
-  {
-    explicit static_construct_t() = default;
-  };
-
-  /// static_construct
-  inline constexpr static_construct_t static_construct = static_construct_t();
-
   // forward decl
   template <class T>
   [[nodiscard]] auto object_type() noexcept -> object_ptr<const Type>;
 
-  /// \brief vtable function to delete object
-  ///
-  /// vtable function to delete heap allocated object.
-  template <class T>
-  void vtbl_destroy_func(const Object *obj) noexcept
-  {
-    static_assert(
-      std::is_nothrow_destructible_v<T>,
-      "Boxed object should have nothrow destructor");
-    auto *p = static_cast<const T *>(obj);
-    delete p;
-  }
-
-  /// \brief vtable function to clone object.
-  ///
-  /// vtable function to clone heap-allocated object.
-  /// \param T value type
-  /// \returns pointer to generated object.
-  /// \notes return nullptr when allocation/initialization failed.
-  template <class T>
-  auto vtbl_clone_func(const Object *obj) noexcept -> Object *
-  {
-    try {
-      auto p = static_cast<const T *>(obj);
-      return new (std::nothrow) T {*p};
-    } catch (...) {
-      // TODO: return Exception object
-      return nullptr;
-    }
-  }
-
   namespace detail {
+
+    /// \brief vtable function to delete object
+    ///
+    /// vtable function to delete heap allocated object.
+    template <class T>
+    void vtbl_destroy_func(const Object *obj) noexcept
+    {
+      static_assert(
+        std::is_nothrow_destructible_v<T>,
+        "Boxed object should have nothrow destructor");
+      auto *p = static_cast<const T *>(obj);
+      delete p;
+    }
+
+    /// \brief vtable function to clone object.
+    ///
+    /// vtable function to clone heap-allocated object.
+    /// \param T value type
+    /// \returns pointer to generated object.
+    /// \notes return nullptr when allocation/initialization failed.
+    template <class T>
+    auto vtbl_clone_func(const Object *obj) noexcept -> Object *
+    {
+      try {
+        auto p = static_cast<const T *>(obj);
+        return new (std::nothrow) T {*p};
+      } catch (...) {
+        // TODO: return Exception object
+        return nullptr;
+      }
+    }
 
     /// inherit custom term from parameter type
     template <class T>
@@ -88,6 +79,15 @@ namespace yave {
     }
 
   } // namespace detail
+
+  /// tag type to initialize object with 0 reference count
+  struct static_construct_t
+  {
+    explicit static_construct_t() = default;
+  };
+
+  /// static_construct
+  inline constexpr static_construct_t static_construct = static_construct_t();
 
   /// \brief Heap-allocated object generator.
   /// \param T value type
@@ -195,11 +195,11 @@ namespace yave {
     private:
       /// static object info table
       alignas(32) inline static const object_info_table info_table {
-        object_type<Box>(),            //
-        sizeof(Box),                   //
-        object_type_traits<Box>::name, //
-        vtbl_destroy_func<Box>,        //
-        vtbl_clone_func<Box>};         //
+        object_type<Box>(),             //
+        sizeof(Box),                    //
+        object_type_traits<Box>::name,  //
+        detail::vtbl_destroy_func<Box>, //
+        detail::vtbl_clone_func<Box>};  //
     };
   };
 

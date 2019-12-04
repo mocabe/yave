@@ -99,21 +99,21 @@ namespace yave {
       return ret;
     }
 
-    /// Convert UUID to short string
-    [[nodiscard]] inline auto uuid_to_string_short(
-      const std::array<char, 16>& uuid) -> std::string
-    {
-      return uuid_to_string_impl(uuid, 4);
-    }
-
-    /// Convert full UUID to string
-    [[nodiscard]] inline auto uuid_to_string_full(
-      const std::array<char, 16>& uuid) -> std::string
-    {
-      return uuid_to_string_impl(uuid, 16);
-    }
-
   } // namespace detail
+
+  /// Convert UUID to short string
+  [[nodiscard]] inline auto uuid_to_string_short(
+    const std::array<char, 16>& uuid) -> std::string
+  {
+    return detail::uuid_to_string_impl(uuid, 4);
+  }
+
+  /// Convert full UUID to string
+  [[nodiscard]] inline auto uuid_to_string_full(
+    const std::array<char, 16>& uuid) -> std::string
+  {
+    return detail::uuid_to_string_impl(uuid, 16);
+  }
 
   // ------------------------------------------
   // 64bit ID
@@ -146,19 +146,20 @@ namespace yave {
       return ret;
     }
 
-    /// Convert 64bit ID to short string.
-    [[nodiscard]] inline auto id_to_string_short(
-      const std::array<uint8_t, 8>& id) -> std::string
-    {
-      return id_to_string_impl(id, 4);
-    }
-
-    /// Convert full 64bit ID to string.
-    [[nodiscard]] inline auto id_to_string_full(
-      const std::array<uint8_t, 8>& id) -> std::string
-    {
-      return id_to_string_impl(id, 8);
-    }
-
   } // namespace detail
+
+  /// Convert 64bit ID to short string.
+  [[nodiscard]] inline auto id_to_string_short(const std::array<uint8_t, 8>& id)
+    -> std::string
+  {
+    return detail::id_to_string_impl(id, 4);
+  }
+
+  /// Convert full 64bit ID to string.
+  [[nodiscard]] inline auto id_to_string_full(const std::array<uint8_t, 8>& id)
+    -> std::string
+  {
+    return detail::id_to_string_impl(id, 8);
+  }
+
 } // namespace yave

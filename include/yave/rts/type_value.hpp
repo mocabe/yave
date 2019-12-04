@@ -55,7 +55,7 @@ namespace yave {
     ret.reserve(ret.capacity() + 10);
 
     ret += '(';
-    ret += detail::uuid_to_string_short(v.data);
+    ret += uuid_to_string_short(v.data);
     ret += ')';
 
     return ret;
@@ -89,7 +89,7 @@ namespace yave {
   {
     std::array<uint8_t, 8> buff;
     std::memcpy(&buff, &v.id, 8);
-    return detail::id_to_string_short(buff);
+    return id_to_string_short(buff);
   }
 
   /// List type

@@ -22,180 +22,166 @@
 namespace yave {
 
   namespace detail {
+
     // fwd
     inline auto eval_obj(object_ptr<const Object> obj)
       -> object_ptr<const Object>;
-  } // namespace detail
 
-  // ------------------------------------------
-  // vtbl_code_func
+    // ------------------------------------------
+    // vtbl_code_func
 
-  /// vrtable function to call code()
-  template <class T>
-  auto vtbl_code_func(const Closure<>* _cthis) noexcept
-    -> object_ptr<const Object>
-  {
-    auto _this = static_cast<const T*>(_cthis);
+    /// vrtable function to call code()
+    template <class T>
+    auto vtbl_code_func(const Closure<>* _cthis) noexcept
+      -> object_ptr<const Object>
+    {
+      auto _this = static_cast<const T*>(_cthis);
 
-    auto ret = [&]() -> object_ptr<const Object> {
-      try {
+      auto ret = [&]() -> object_ptr<const Object> {
+        try {
 
-        // calls code() inside.
-        auto r = _this->_handle_exception().value();
-        assert(r);
+          // calls code() inside.
+          auto r = _this->_handle_exception().value();
+          assert(r);
 
-        // only cache PAP or values (see comments in eval_spine()).
-        // TODO: Since we know return type at compile time, we can directly
-        // convert applications into PAP without loop by analyzing TApply tree.
-        // Same on other return types; we can bypass some of runtime type checks
-        // which may improve performance.
-        r = detail::eval_obj(std::move(r));
+          // only cache PAP or values (see comments in eval_spine()).
+          // TODO: Since we know return type at compile time, we can directly
+          // convert applications into PAP without loop by analyzing TApply
+          // tree. Same on other return types; we can bypass some of runtime
+          // type checks which may improve performance.
+          r = detail::eval_obj(std::move(r));
 
-        // call self update method
-        return _this->_self_update(std::move(r));
+          // call self update method
+          return _this->_self_update(std::move(r));
 
-        // cast error
-      } catch (const bad_value_cast& e) {
-        return to_Exception(e);
+          // cast error
+        } catch (const bad_value_cast& e) {
+          return to_Exception(e);
 
-        // type error
-      } catch (const type_error::circular_constraint& e) {
-        return to_Exception(e);
-      } catch (const type_error::type_missmatch& e) {
-        return to_Exception(e);
-      } catch (const type_error::bad_type_check& e) {
-        return to_Exception(e);
-      } catch (const type_error::type_error& e) {
-        return to_Exception(e);
+          // type error
+        } catch (const type_error::circular_constraint& e) {
+          return to_Exception(e);
+        } catch (const type_error::type_missmatch& e) {
+          return to_Exception(e);
+        } catch (const type_error::bad_type_check& e) {
+          return to_Exception(e);
+        } catch (const type_error::type_error& e) {
+          return to_Exception(e);
 
-        // result error
-      } catch (const exception_result& e) {
-        return to_Exception(e);
+          // result error
+        } catch (const exception_result& e) {
+          return to_Exception(e);
 
-        // std::exception
-      } catch (const std::exception& e) {
-        return to_Exception(e);
+          // std::exception
+        } catch (const std::exception& e) {
+          return to_Exception(e);
 
-        // unknown
-      } catch (...) {
-        return make_object<Exception>(
-          make_object<String>("Unknown exception thrown while evaluation"),
-          object_ptr(nullptr));
+          // unknown
+        } catch (...) {
+          return make_object<Exception>(
+            make_object<String>("Unknown exception thrown while evaluation"),
+            object_ptr(nullptr));
+        }
+      }();
+
+      // vtbl_code_func should not return Undefined value
+      assert(ret);
+
+      return ret;
+    }
+
+    // ------------------------------------------
+    // return type checking
+
+    template <class T1, class T2>
+    constexpr auto check_return_type(meta_type<T1> t1, meta_type<T2> t2)
+    {
+      if constexpr (t1 != t2) {
+        static_assert(false_v<T1, T2>, "return type does not match.");
+        using lhs = typename T1::_show;
+        using rhs = typename T2::_show;
+        static_assert(false_v<lhs, rhs>, "compile-time type check failed.");
       }
-    }();
-
-    // vtbl_code_func should not return Undefined value
-    assert(ret);
-
-    return ret;
-  }
-
-  // ------------------------------------------
-  // return type checking
-
-  template <class T1, class T2>
-  constexpr auto check_return_type(meta_type<T1> t1, meta_type<T2> t2)
-  {
-    if constexpr (t1 != t2) {
-      static_assert(false_v<T1, T2>, "return type does not match.");
-      using lhs = typename T1::_show;
-      using rhs = typename T2::_show;
-      static_assert(false_v<lhs, rhs>, "compile-time type check failed.");
     }
-  }
 
-  /// Return type checker
-  template <class T>
-  class return_type_checker
-  {
-    static constexpr auto return_type = type_of(get_term<T>());
-
-  public:
-    /// object_ptr<U>&&
-    template <class U>
-    return_type_checker(object_ptr<U> obj) noexcept
-      : m_value {std::move(obj)}
+    /// Return type checker
+    template <class T>
+    class return_type_checker
     {
-      // check return type
-      check_return_type(return_type, type_of(get_term<U>()));
-    }
+      static constexpr auto return_type = type_of(get_term<T>());
 
-    /// U*
-    template <class U>
-    return_type_checker(U* ptr) noexcept
-      : m_value(ptr)
+    public:
+      /// object_ptr<U>&&
+      template <class U>
+      return_type_checker(object_ptr<U> obj) noexcept
+        : m_value {std::move(obj)}
+      {
+        // check return type
+        check_return_type(return_type, type_of(get_term<U>()));
+      }
+
+      /// U*
+      template <class U>
+      return_type_checker(U* ptr) noexcept
+        : m_value(ptr)
+      {
+        // check return type
+        check_return_type(return_type, type_of(get_term<U>()));
+      }
+
+      // deleted
+      return_type_checker()          = delete;
+      return_type_checker(nullptr_t) = delete;
+
+      /// value
+      auto value() && noexcept -> auto&&
+      {
+        return std::move(m_value);
+      }
+
+    private:
+      object_ptr<const Object> m_value;
+    };
+
+    /// Return type checker
+    template <class T>
+    class exception_handler_return_type_checker
     {
-      // check return type
-      check_return_type(return_type, type_of(get_term<U>()));
-    }
+    public:
+      /// return_type ctor
+      exception_handler_return_type_checker(return_type_checker<T> e) noexcept
+        : m_value {std::move(e).value()}
+      {
+      }
 
-    /// copy
-    return_type_checker(const return_type_checker& other) noexcept
-      : m_value {other.m_value}
-    {
-    }
+      /// Exception ctor
+      template <class U>
+      exception_handler_return_type_checker(object_ptr<U> e) noexcept
+        : m_value {object_ptr<const Exception>(std::move(e))}
+      {
+      }
 
-    /// move
-    return_type_checker(return_type_checker&& other) noexcept
-      : m_value {std::move(other.m_value)}
-    {
-    }
+      /// Exception ctor
+      exception_handler_return_type_checker(const Exception* e) noexcept
+        : exception_handler_return_type_checker(object_ptr(e))
+      {
+      }
 
-    // deleted
-    return_type_checker()          = delete;
-    return_type_checker(nullptr_t) = delete;
+      // deleted
+      exception_handler_return_type_checker()          = delete;
+      exception_handler_return_type_checker(nullptr_t) = delete;
 
-    /// value
-    auto value() && noexcept -> auto&&
-    {
-      return std::move(m_value);
-    }
+      /// value
+      auto value() && noexcept -> auto&&
+      {
+        return std::move(m_value);
+      }
 
-  private:
-    object_ptr<const Object> m_value;
-  };
+    private:
+      object_ptr<const Object> m_value;
+    };
 
-  /// Return type checker
-  template <class T>
-  class exception_handler_return_type_checker
-  {
-  public:
-    /// return_type ctor
-    exception_handler_return_type_checker(return_type_checker<T> e) noexcept
-      : m_value {std::move(e).value()}
-    {
-    }
-
-    /// Exception ctor
-    template <class U>
-    exception_handler_return_type_checker(object_ptr<U> e) noexcept
-      : m_value {object_ptr<const Exception>(std::move(e))}
-    {
-    }
-
-    /// Exception ctor
-    exception_handler_return_type_checker(const Exception* e) noexcept
-      : exception_handler_return_type_checker(object_ptr(e))
-    {
-    }
-
-    // deleted
-    exception_handler_return_type_checker()          = delete;
-    exception_handler_return_type_checker(nullptr_t) = delete;
-    exception_handler_return_type_checker(
-      const exception_handler_return_type_checker&) = delete;
-    exception_handler_return_type_checker(
-      exception_handler_return_type_checker&&) = delete;
-
-    /// value
-    auto value() && noexcept -> auto&&
-    {
-      return std::move(m_value);
-    }
-
-  private:
-    object_ptr<const Object> m_value;
-  };
+  } // namespace detail
 
   // ------------------------------------------
   // Function
@@ -268,11 +254,12 @@ namespace yave {
 
     /// return type for code()
     using return_type =
-      return_type_checker<argument_proxy_t<sizeof...(Ts) - 1>>;
+      detail::return_type_checker<argument_proxy_t<sizeof...(Ts) - 1>>;
 
     /// return type for exception_handler()
-    using exception_handler_return_type = exception_handler_return_type_checker<
-      argument_proxy_t<sizeof...(Ts) - 1>>;
+    using exception_handler_return_type =
+      detail::exception_handler_return_type_checker<
+        argument_proxy_t<sizeof...(Ts) - 1>>;
 
     /// get N'th argument thunk
     template <uint64_t N>
@@ -341,10 +328,10 @@ namespace yave {
         {object_type<T>(),                              //
          sizeof(T),                                     //
          closure_type_traits<Function<T, Ts...>>::name, //
-         vtbl_destroy_func<T>,                          //
-         vtbl_clone_func<T>},                           //
+         detail::vtbl_destroy_func<T>,                  //
+         detail::vtbl_clone_func<T>},                   //
         sizeof...(Ts) - 1,                              //
-        vtbl_code_func<T>};                             //
+        detail::vtbl_code_func<T>};                     //
     };
   };
 

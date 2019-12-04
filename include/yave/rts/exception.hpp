@@ -78,11 +78,11 @@ namespace yave {
   private:
     /// static object info table
     alignas(32) inline static const object_info_table info_table {
-      object_type<Exception>(),            //
-      sizeof(Exception),                   //
-      object_type_traits<Exception>::name, //
-      vtbl_destroy_func<Exception>,        //
-      vtbl_clone_func<Exception>};         //
+      object_type<Exception>(),             //
+      sizeof(Exception),                    //
+      object_type_traits<Exception>::name,  //
+      detail::vtbl_destroy_func<Exception>, //
+      detail::vtbl_clone_func<Exception>};  //
   };
 
   // ------------------------------------------
