@@ -301,7 +301,7 @@ namespace yave {
             // [tmp = it -> v]
             auto c = type_constr {tmp_tp, new Type(arrow_type {it, v})};
             // solve constraint
-            auto subst = unify({c}, nullptr);
+            auto subst = unify({c});
             // update result by substitution.
             node_tp = subst_type_all(subst, node_tp);
             // v contains curried return type.
@@ -377,7 +377,7 @@ namespace yave {
           auto& t = overloading_types[i];
 
           try {
-            auto c         = unify({type_constr {node_tp, t}}, nullptr);
+            auto c         = unify({type_constr {node_tp, t}});
             auto result_tp = subst_type_all(c, tmp_tp);
             hits.push_back({b, o, t, result_tp});
           } catch (type_error::type_error&) {

@@ -26,12 +26,12 @@ namespace yave {
     /// type
     type_error_type error_type;
 
-    // not null(undefined) when:
+    // not Undefined when:
     //  type_missmatch
     //  bad_type_check
     object_ptr<const Type> expected;
 
-    // not null(undefined) when:
+    // not Undefined when:
     //  circular_constraints
     //  type_missmatch
     //  bad_type_check
@@ -48,40 +48,24 @@ namespace yave {
     {
     public:
       /// Ctor string
-      template <class T>
-      explicit type_error(const std::string& what, object_ptr<T> src)
+      explicit type_error(const std::string& what)
         : std::logic_error(what)
-        , m_src {std::move(src)}
       {
       }
 
-      template <class T>
       /// Ctor const char*
-      explicit type_error(const char* what, object_ptr<T> src)
+      explicit type_error(const char* what)
         : std::logic_error(what)
-        , m_src {std::move(src)}
       {
       }
-
-      /// get source node
-      [[nodiscard]] auto src() const -> const object_ptr<const Object>&
-      {
-        return m_src;
-      }
-
-    private:
-      /// source node
-      object_ptr<const Object> m_src;
     };
 
     /// unification error(circular constraint)
     class circular_constraint : public type_error
     {
     public:
-      circular_constraint(
-        object_ptr<const Object> src,
-        object_ptr<const Type> var)
-        : type_error("Circular constraints", std::move(src))
+      circular_constraint(object_ptr<const Type> var)
+        : type_error("Circular constraints")
         , m_var {std::move(var)}
       {
       }
@@ -101,10 +85,9 @@ namespace yave {
     {
     public:
       type_missmatch(
-        object_ptr<const Object> src,
         object_ptr<const Type> expected,
         object_ptr<const Type> provided)
-        : type_error("Type missmatch", std::move(src))
+        : type_error("Type missmatch")
         , m_expected {std::move(expected)}
         , m_provided {std::move(provided)}
       {
@@ -135,9 +118,8 @@ namespace yave {
     public:
       bad_type_check(
         object_ptr<const Type> expected,
-        object_ptr<const Type> provided,
-        object_ptr<const Object> obj)
-        : type_error("type_error: Runtime type check failed", std::move(obj))
+        object_ptr<const Type> provided)
+        : type_error("type_error: Runtime type check failed")
         , m_expected {std::move(expected)}
         , m_provided {std::move(provided)}
       {
@@ -172,7 +154,10 @@ namespace yave {
   {
     return make_object<Exception>(
       e.what(),
-      make_object<TypeError>(type_error_type::unknown, nullptr, nullptr));
+      make_object<TypeError>(
+        type_error_type::unknown,
+        object_type<Undefined>(),
+        object_type<Undefined>()));
   }
 
   [[nodiscard]] inline auto to_Exception(
@@ -181,7 +166,9 @@ namespace yave {
     return make_object<Exception>(
       e.what(),
       make_object<TypeError>(
-        type_error_type::circular_constraints, nullptr, e.var()));
+        type_error_type::circular_constraints,
+        object_type<Undefined>(),
+        e.var()));
   }
 
   [[nodiscard]] inline auto to_Exception(const type_error::type_missmatch& e)

@@ -40,7 +40,7 @@ namespace yave {
     auto t1  = object_type<T>();
     auto t2  = type_of(tmp);
     if (unlikely(!same_type(t1, t2)))
-      throw type_error::bad_type_check(t1, t2, tmp);
+      throw type_error::bad_type_check(t1, t2);
   }
 
   /// check type at compile time

@@ -115,14 +115,14 @@ TEST_CASE("unify")
   SECTION("[X=int]")
   {
     std::vector cs = {type_constr {X, object_type<Int>()}};
-    auto result    = unify(cs, nullptr);
+    auto result    = unify(cs);
 
     SECTION("reunify")
     {
       for (auto&& ta : result) {
         cs = subst_constr_all(ta, cs);
       }
-      REQUIRE(unify(cs, nullptr).empty());
+      REQUIRE(unify(cs).empty());
     }
 
     SECTION("eq")
@@ -138,14 +138,14 @@ TEST_CASE("unify")
   {
     std::vector cs     = {type_constr {X, object_type<Int>()},
                       type_constr {Y, new Type(arrow_type {X, X})}};
-    std::vector result = unify(cs, nullptr);
+    std::vector result = unify(cs);
 
     SECTION("reunify")
     {
       for (auto&& ta : result) {
         cs = subst_constr_all(ta, cs);
       }
-      REQUIRE(unify(cs, nullptr).empty());
+      REQUIRE(unify(cs).empty());
     }
 
     SECTION("eq")
@@ -166,14 +166,14 @@ TEST_CASE("unify")
     std::vector cs     = {type_constr {
       new Type(arrow_type {object_type<Int>(), object_type<Int>()}),
       new Type(arrow_type {X, Y})}};
-    std::vector result = unify(cs, nullptr);
+    std::vector result = unify(cs);
 
     SECTION("reunify")
     {
       for (auto&& ta : result) {
         cs = subst_constr_all(ta, cs);
       }
-      REQUIRE(unify(cs, nullptr).empty());
+      REQUIRE(unify(cs).empty());
     }
 
     SECTION("eq")
@@ -191,14 +191,14 @@ TEST_CASE("unify")
     std::vector cs = {
       type_constr {new Type(arrow_type {X, Y}), new Type(arrow_type {Y, Z})},
       type_constr {Z, new Type(arrow_type {U, W})}};
-    auto result = unify(cs, nullptr);
+    auto result = unify(cs);
 
     SECTION("reunify")
     {
       for (auto&& ta : result) {
         cs = subst_constr_all(ta, cs);
       }
-      REQUIRE(unify(cs, nullptr).empty());
+      REQUIRE(unify(cs).empty());
     }
 
     SECTION("eq")
@@ -218,14 +218,14 @@ TEST_CASE("unify")
       new Type(arrow_type {new Type(list_type {object_type<Int>()}),
                            new Type(list_type {object_type<List<Double>>()})}),
       new Type(arrow_type {new Type(list_type {X}), new Type(list_type {Y})})}};
-    auto result    = unify(cs, nullptr);
+    auto result    = unify(cs);
 
     SECTION("reunify")
     {
       for (auto&& ta : result) {
         cs = subst_constr_all(ta, cs);
       }
-      REQUIRE(unify(cs, nullptr).empty());
+      REQUIRE(unify(cs).empty());
     }
 
     SECTION("eq")
@@ -241,7 +241,7 @@ TEST_CASE("unify")
   SECTION("[]")
   {
     std::vector<type_constr> cs;
-    auto result = unify(cs, nullptr);
+    auto result = unify(cs);
     REQUIRE(result.empty());
   }
 }

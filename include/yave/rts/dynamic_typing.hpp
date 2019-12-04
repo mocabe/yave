@@ -342,9 +342,8 @@ namespace yave {
   /// unify
   /// \param cs Type constraints
   /// \param src Source node (for error handling)
-  [[nodiscard]] inline auto unify(
-    std::vector<type_constr> constrs,
-    const object_ptr<const Object>& src) -> std::vector<type_arrow>
+  [[nodiscard]] inline auto unify(std::vector<type_constr> constrs)
+    -> std::vector<type_arrow>
   {
     auto cs = std::move(constrs);
     auto ta = std::vector<type_arrow> {};
@@ -363,7 +362,7 @@ namespace yave {
           compose_subst(ta, arr);
           continue;
         }
-        throw type_error::circular_constraint(src, c.t1);
+        throw type_error::circular_constraint(c.t1);
       }
 
       if (is_var_type(c.t1)) {
@@ -373,7 +372,7 @@ namespace yave {
           compose_subst(ta, arr);
           continue;
         }
-        throw type_error::circular_constraint(src, c.t1);
+        throw type_error::circular_constraint(c.t1);
       }
 
       if (is_arrow_type(c.t1) && is_arrow_type(c.t2)) {
@@ -391,7 +390,7 @@ namespace yave {
         continue;
       }
 
-      throw type_error::type_missmatch(src, c.t1, c.t2);
+      throw type_error::type_missmatch(c.t1, c.t2);
     }
     return ta;
   }
@@ -502,7 +501,7 @@ namespace yave {
         auto var = genvar();
         auto c   = std::vector {
           type_constr {t1, make_object<Type>(arrow_type {t2, var})}};
-        auto s = unify(std::move(c), obj);
+        auto s = unify(std::move(c));
         return subst_type_all(s, var);
       }
 

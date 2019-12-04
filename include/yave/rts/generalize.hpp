@@ -125,7 +125,7 @@ namespace yave {
     assert(t1 && t2);
 
     try {
-      (void)unify(detail::specializable_impl_constr(t1, t2), nullptr);
+      (void)unify(detail::specializable_impl_constr(t1, t2));
       return true;
     } catch (type_error::type_error&) {
       return false;
