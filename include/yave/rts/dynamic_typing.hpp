@@ -29,6 +29,20 @@ namespace yave {
   // ------------------------------------------
   // Utils
 
+  /// type substitution
+  struct type_arrow
+  {
+    object_ptr<const Type> from;
+    object_ptr<const Type> to;
+  };
+
+  /// type constraint
+  struct type_constr
+  {
+    object_ptr<const Type> t1;
+    object_ptr<const Type> t2;
+  };
+
   /// is_value_type
   [[nodiscard]] inline bool is_value_type(const object_ptr<const Type>& tp)
   {
@@ -77,170 +91,183 @@ namespace yave {
     return is_list_type(get_type(obj));
   }
 
-  /// flatten arrow type (non recursive)
+  // ------------------------------------------
+  // flatten
+
+  namespace detail {
+
+    inline void flatten_impl(
+      const object_ptr<const Type>& t,
+      std::vector<object_ptr<const Type>>& v)
+    {
+      if (auto arr = get_if<arrow_type>(&*t)) {
+        v.push_back(arr->captured);
+        flatten_impl(arr->returns, v);
+      } else {
+        v.push_back(t);
+      }
+    }
+  } // namespace detail
+
+  /// flatten arrow type
   [[nodiscard]] inline auto flatten(const object_ptr<const Type>& tp)
     -> std::vector<object_ptr<const Type>>
   {
-    struct
-    {
-      void rec(
-        const object_ptr<const Type>& t,
-        std::vector<object_ptr<const Type>>& v)
-      {
-        if (!t)
-          return;
-        if (auto arr = get_if<arrow_type>(&*t)) {
-          v.push_back(arr->captured);
-          rec(arr->returns, v);
-        } else
-          v.push_back(t);
-      }
-    } impl;
-
+    assert(tp);
     std::vector<object_ptr<const Type>> ret;
-    impl.rec(tp, ret);
+    detail::flatten_impl(tp, ret);
     return ret;
   }
 
-  struct type_arrow
-  {
-    object_ptr<const Type> from;
-    object_ptr<const Type> to;
-  };
+  // ------------------------------------------
+  // copy_type
 
-  struct type_constr
-  {
-    object_ptr<const Type> t1;
-    object_ptr<const Type> t2;
-  };
+  namespace detail {
+
+    inline auto copy_type_impl(const object_ptr<const Type>& t)
+      -> object_ptr<const Type>
+    {
+      if (auto value = get_if<value_type>(t.value()))
+        return make_object<Type>(value_type {*value});
+
+      if (auto var = get_if<var_type>(t.value()))
+        return make_object<Type>(var_type {var->id});
+
+      if (auto arrow = get_if<arrow_type>(t.value()))
+        return make_object<Type>(arrow_type {copy_type_impl(arrow->captured),
+                                             copy_type_impl(arrow->returns)});
+
+      if (auto list = get_if<list_type>(t.value()))
+        return make_object<Type>(list_type {copy_type_impl(list->t)});
+
+      unreachable();
+    }
+  } // namespace detail
 
   /// Deep copy type object
   [[nodiscard]] inline auto copy_type(const object_ptr<const Type>& tp)
     -> object_ptr<const Type>
   {
-    struct
-    {
-      auto rec(const object_ptr<const Type>& t) -> object_ptr<const Type>
-      {
-        if (auto value = get_if<value_type>(t.value()))
-          return make_object<Type>(value_type {*value});
-
-        if (auto var = get_if<var_type>(t.value()))
-          return make_object<Type>(var_type {var->id});
-
-        if (auto arrow = get_if<arrow_type>(t.value()))
-          return make_object<Type>(
-            arrow_type {rec(arrow->captured), rec(arrow->returns)});
-
-        if (auto list = get_if<list_type>(t.value()))
-          return make_object<Type>(list_type {rec(list->t)});
-
-        unreachable();
-      }
-    } impl;
-
-    if (!tp)
-      return tp;
-
-    return impl.rec(tp);
+    assert(tp);
+    return detail::copy_type_impl(tp);
   }
+
+  // ------------------------------------------
+  // same_type
+
+  namespace detail {
+
+    inline auto same_type_impl(
+      const object_ptr<const Type>& left,
+      const object_ptr<const Type>& right) -> bool
+    {
+      if (left.get() == right.get())
+        return true;
+
+      auto* l = left.value();
+      auto* r = right.value();
+
+      if (_get_storage(*l).index != _get_storage(*r).index)
+        return false;
+
+      if (auto lvar = get_if<value_type>(l))
+        if (auto rvar = get_if<value_type>(r))
+          return value_type::equal(*lvar, *rvar);
+
+      if (auto larr = get_if<arrow_type>(l))
+        if (auto rarr = get_if<arrow_type>(r))
+          return same_type_impl(larr->captured, rarr->captured) &&
+                 same_type_impl(larr->returns, rarr->returns);
+
+      if (auto lany = get_if<var_type>(l))
+        if (auto rany = get_if<var_type>(r))
+          return lany->id == rany->id;
+
+      if (auto llist = get_if<list_type>(l))
+        if (auto rlist = get_if<list_type>(r))
+          return same_type_impl(llist->t, rlist->t);
+
+      unreachable();
+    }
+  } // namespace detail
 
   /// check type equality
   [[nodiscard]] inline bool same_type(
     const object_ptr<const Type>& lhs,
     const object_ptr<const Type>& rhs)
   {
-    struct
-    {
-      auto rec(
-        const object_ptr<const Type>& left,
-        const object_ptr<const Type>& right) -> bool
-      {
-        if (left.get() == right.get())
-          return true;
-
-        if (!left || !right)
-          return false;
-
-        auto* l = left.value();
-        auto* r = right.value();
-
-        if (_get_storage(*l).index != _get_storage(*r).index)
-          return false;
-
-        if (auto lvar = get_if<value_type>(l))
-          if (auto rvar = get_if<value_type>(r))
-            return value_type::equal(*lvar, *rvar);
-
-        if (auto larr = get_if<arrow_type>(l))
-          if (auto rarr = get_if<arrow_type>(r))
-            return rec(larr->captured, rarr->captured) &&
-                   rec(larr->returns, rarr->returns);
-
-        if (auto lany = get_if<var_type>(l))
-          if (auto rany = get_if<var_type>(r))
-            return lany->id == rany->id;
-
-        if (auto llist = get_if<list_type>(l))
-          if (auto rlist = get_if<list_type>(r))
-            return rec(llist->t, rlist->t);
-
-        unreachable();
-      }
-    } impl;
-
-    return impl.rec(lhs, rhs);
+    assert(lhs && rhs);
+    return detail::same_type_impl(lhs, rhs);
   }
+
+  // ------------------------------------------
+  // subst_type
+
+  namespace detail {
+
+    // returns nullptr for identical subtree
+    inline auto subst_impl_rec(
+      const type_arrow& ta,
+      const object_ptr<const Type>& in) -> object_ptr<const Type>
+    {
+      auto& from = ta.from;
+      auto& to   = ta.to;
+
+      if (auto arrow = get_if<arrow_type>(in.value())) {
+        auto cap = subst_impl_rec(ta, arrow->captured);
+        auto ret = subst_impl_rec(ta, arrow->returns);
+        return (!cap && !ret)
+                 ? nullptr
+                 : make_object<Type>(arrow_type {cap ? cap : arrow->captured,
+                                                 ret ? ret : arrow->returns});
+      }
+
+      if (auto list = get_if<list_type>(in.value())) {
+        auto t = subst_impl_rec(ta, list->t);
+        return !t ? nullptr : make_object<Type>(list_type {t});
+      }
+
+      if (same_type(in, from))
+        return to;
+
+      return nullptr;
+    }
+
+    inline auto subst_impl(
+      const type_arrow& ta,
+      const object_ptr<const Type>& in) -> object_ptr<const Type>
+    {
+      auto r = subst_impl_rec(ta, in);
+      return r ? r : in;
+    }
+
+  } // namespace detail
 
   /// emulate type-substitution
   [[nodiscard]] inline auto subst_type(
     const type_arrow& ta,
     const object_ptr<const Type>& in) -> object_ptr<const Type>
   {
-    struct
-    {
-      auto rec(const type_arrow& ta, const object_ptr<const Type>& in)
-        -> object_ptr<const Type>
-      {
-        auto& from = ta.from;
-        auto& to   = ta.to;
-
-        if (auto arrow = get_if<arrow_type>(in.value())) {
-          auto cap = rec(ta, arrow->captured);
-          auto ret = rec(ta, arrow->returns);
-          return (!cap && !ret)
-                   ? nullptr
-                   : make_object<Type>(arrow_type {cap ? cap : arrow->captured,
-                                                   ret ? ret : arrow->returns});
-        }
-
-        if (auto list = get_if<list_type>(in.value())) {
-          auto t = rec(ta, list->t);
-          return !t ? nullptr : make_object<Type>(list_type {t});
-        }
-
-        if (same_type(in, from))
-          return to;
-
-        return nullptr;
-      }
-    } impl;
-
-    auto r = impl.rec(ta, in);
-    return !r ? in : r;
+    return detail::subst_impl(ta, in);
   }
+
+  // ------------------------------------------
+  // subst_all
 
   /// apply all substitution
   [[nodiscard]] inline auto subst_type_all(
     const std::vector<type_arrow>& tyarrows,
     const object_ptr<const Type>& ty) -> object_ptr<const Type>
   {
-    auto t = ty;
+    auto tmp = ty;
     for (auto ta : tyarrows) {
-      t = subst_type(ta, t);
+      tmp = subst_type(ta, tmp);
     }
-    return t;
+    return tmp;
   }
+
+  // ------------------------------------------
+  // compose_subst
 
   /// compose substitution
   inline void compose_subst(
@@ -251,14 +278,15 @@ namespace yave {
       ta.to = subst_type(a, ta.to);
     }
 
-    [&]() {
-      for (auto&& ta : tyarrows) {
-        if (same_type(ta.from, a.from))
-          return;
-      }
-      tyarrows.push_back(a);
-    }();
+    for (auto&& ta : tyarrows) {
+      if (same_type(ta.from, a.from))
+        return;
+    }
+    tyarrows.push_back(a);
   }
+
+  // ------------------------------------------
+  // subst_constr
 
   /// subst_constr
   [[nodiscard]] inline auto subst_constr(
@@ -267,6 +295,9 @@ namespace yave {
   {
     return {subst_type(ta, constr.t1), subst_type(ta, constr.t2)};
   }
+
+  // ------------------------------------------
+  // subst_constr_all
 
   /// subst_constr_all
   [[nodiscard]] inline auto subst_constr_all(
@@ -281,6 +312,9 @@ namespace yave {
 
     return ret;
   }
+
+  // ------------------------------------------
+  // occurs
 
   /// occurs
   [[nodiscard]] inline bool occurs(
@@ -302,14 +336,17 @@ namespace yave {
     unreachable();
   }
 
+  // ------------------------------------------
+  // unify
+
   /// unify
   /// \param cs Type constraints
   /// \param src Source node (for error handling)
   [[nodiscard]] inline auto unify(
-    const std::vector<type_constr>& constrs,
+    std::vector<type_constr> constrs,
     const object_ptr<const Object>& src) -> std::vector<type_arrow>
   {
-    auto cs = constrs;
+    auto cs = std::move(constrs);
     auto ta = std::vector<type_arrow> {};
 
     while (!cs.empty()) {
@@ -359,54 +396,62 @@ namespace yave {
     return ta;
   }
 
+  // ------------------------------------------
+  // genvar
+
   /// generate new type variable
   [[nodiscard]] inline auto genvar() -> object_ptr<const Type>
   {
-    auto var = make_object<Type>(var_type::random_generate());
-    return object_ptr<const Type>(var);
+    return make_object<Type>(var_type::random_generate());
   }
+
+  // ------------------------------------------
+  // vars
+
+  namespace detail {
+
+    inline void vars_impl(
+      const object_ptr<const Type>& tp,
+      std::vector<object_ptr<const Type>>& vars)
+    {
+      if (get_if<value_type>(tp.value()))
+        return;
+
+      if (get_if<var_type>(tp.value())) {
+        for (auto&& v : vars) {
+          if (same_type(v, tp))
+            return;
+        }
+        vars.push_back(tp);
+        return;
+      }
+
+      if (auto arrow = get_if<arrow_type>(tp.value())) {
+        vars_impl(arrow->captured, vars);
+        vars_impl(arrow->returns, vars);
+        return;
+      }
+
+      if (auto list = get_if<list_type>(tp.value())) {
+        vars_impl(list->t, vars);
+        return;
+      }
+
+      unreachable();
+    }
+  } // namespace detail
 
   /// get list of type variables
   [[nodiscard]] inline auto vars(const object_ptr<const Type>& tp)
     -> std::vector<object_ptr<const Type>>
   {
-    struct
-    {
-      void rec(
-        const object_ptr<const Type>& tp,
-        std::vector<object_ptr<const Type>>& vars)
-      {
-        if (get_if<value_type>(tp.value()))
-          return;
-
-        if (get_if<var_type>(tp.value())) {
-          for (auto&& v : vars) {
-            if (same_type(v, tp))
-              return;
-          }
-          vars.push_back(tp);
-          return;
-        }
-
-        if (auto arrow = get_if<arrow_type>(tp.value())) {
-          rec(arrow->captured, vars);
-          rec(arrow->returns, vars);
-          return;
-        }
-
-        if (auto list = get_if<list_type>(tp.value())) {
-          rec(list->t, vars);
-          return;
-        }
-
-        unreachable();
-      }
-    } impl;
-
     auto vars = std::vector<object_ptr<const Type>> {};
-    impl.rec(tp, vars);
+    detail::vars_impl(tp, vars);
     return vars;
   }
+
+  // ------------------------------------------
+  // genpoly
 
   /// create fresh polymorphic closure type
   [[nodiscard]] inline auto genpoly(const object_ptr<const Type>& tp)
@@ -425,69 +470,75 @@ namespace yave {
     return t;
   }
 
+  // ------------------------------------------
+  // type_of
+
+  namespace detail {
+
+    // fwd
+    inline auto type_of_impl(const object_ptr<const Object>& obj)
+      -> const object_ptr<const Type>;
+
+    inline auto type_of_impl_app(const object_ptr<const Object>& obj)
+      -> const object_ptr<const Type>
+    {
+      return has_arrow_type(obj) ? genpoly(get_type(obj)) : type_of_impl(obj);
+    }
+
+    inline auto type_of_impl(const object_ptr<const Object>& obj)
+      -> const object_ptr<const Type>
+    {
+      // Apply
+      if (auto apply = value_cast_if<const Apply>(obj)) {
+
+        auto& apply_storage = _get_storage(*apply);
+
+        // cached
+        if (apply_storage.is_result())
+          return type_of_impl(apply_storage.get_result());
+
+        auto t1  = type_of_impl_app(apply_storage.app());
+        auto t2  = type_of_impl(apply_storage.arg());
+        auto var = genvar();
+        auto c   = std::vector {
+          type_constr {t1, make_object<Type>(arrow_type {t2, var})}};
+        auto s = unify(std::move(c), obj);
+        return subst_type_all(s, var);
+      }
+
+      // arrow -> arrow or PAP
+      if (has_arrow_type(obj)) {
+        auto c = reinterpret_cast<const Closure<>*>(obj.get());
+        // pap: return root apply node
+        // app: get_type
+        return c->is_pap() ? type_of_impl(c->vertebrae(0)) : get_type(obj);
+      }
+
+      // value -> value
+      if (has_value_type(obj))
+        return get_type(obj);
+
+      // var -> var
+      if (has_var_type(obj))
+        return get_type(obj);
+
+      // list -> list
+      if (has_list_type(obj))
+        return get_type(obj);
+
+      unreachable();
+    }
+  } // namespace detail
+
   /// type_of
   [[nodiscard]] inline auto type_of(const object_ptr<const Object>& obj)
     -> object_ptr<const Type>
   {
-    struct
-    {
-      auto rec_app(const object_ptr<const Object>& obj)
-        -> const object_ptr<const Type>
-      {
-        if (has_arrow_type(obj))
-          return genpoly(get_type(obj));
-        else
-          return rec(obj);
-      }
-
-      auto rec(const object_ptr<const Object>& obj)
-        -> const object_ptr<const Type>
-      {
-        // Apply
-        if (auto apply = value_cast_if<const Apply>(obj)) {
-          auto& apply_storage = _get_storage(*apply);
-          // cached
-          if (apply_storage.is_result()) {
-            return rec(apply_storage.get_result());
-          }
-          auto _t1 = rec_app(apply_storage.app());
-          auto _t2 = rec(apply_storage.arg());
-          auto _t  = genvar();
-          auto c   = std::vector {
-            type_constr {_t1, make_object<Type>(arrow_type {_t2, _t})}};
-          auto s = unify(std::move(c), obj);
-          return subst_type_all(s, _t);
-        }
-
-        // arrow -> arrow or PAP
-        if (has_arrow_type(obj)) {
-          auto c = reinterpret_cast<const Closure<>*>(obj.get());
-          // pap: return root apply node
-          if (c->is_pap()) {
-            return rec(c->vertebrae(0));
-          }
-          // arrow: get_type
-          return get_type(obj);
-        }
-
-        // value -> value
-        if (has_value_type(obj))
-          return get_type(obj);
-
-        // var -> var
-        if (has_var_type(obj))
-          return get_type(obj);
-
-        // list -> list
-        if (has_list_type(obj))
-          return get_type(obj);
-
-        unreachable();
-      }
-    } impl;
-
-    return impl.rec(obj);
+    return detail::type_of_impl(obj);
   }
+
+  // ------------------------------------------
+  // has_type
 
   /// has_type
   template <class T, class U>
