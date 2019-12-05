@@ -1,1 +1,1 @@
-YAVE_Test(path obj)
+YAVE_Test(path obj yave::lib::filesystem)

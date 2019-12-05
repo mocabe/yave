@@ -8,13 +8,8 @@ add_library(yave::lib::imgui ALIAS yave-lib-imgui)
 
 target_link_libraries(yave-lib-imgui PRIVATE yave::config)
 target_link_libraries(yave-lib-imgui PRIVATE yave::support::log)
-target_link_libraries(yave-lib-imgui PRIVATE Boost::filesystem)
 
-if(YAVE_COMPILER_GNU)
-  # <experimental/filesystem>
-  target_link_libraries(yave-lib-imgui PRIVATE stdc++fs)
-endif()
-
+target_link_libraries(yave-lib-imgui PUBLIC yave::lib::filesystem)
 target_link_libraries(yave-lib-imgui PUBLIC yave::lib::glfw)
 target_link_libraries(yave-lib-imgui PUBLIC yave::lib::vulkan)
 target_link_libraries(yave-lib-imgui PUBLIC imgui-glfw-vulkan)
