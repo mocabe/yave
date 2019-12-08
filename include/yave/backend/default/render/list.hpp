@@ -21,7 +21,7 @@ namespace yave {
     {
       return_type code() const
       {
-        return make_list<forall<ListNil_X>>();
+        return make_list<VarValueProxy<ListNil_X>>();
       }
     };
 
@@ -33,7 +33,9 @@ namespace yave {
     {
       return_type code() const
       {
-        return make_object<List<forall<ListCons_X>>>(arg<0>(), arg<1>());
+        // arg<0>(): VarValueProxy<ListCons_X>
+        // arg<1>(): List<VarValueProxy<ListCons_X>>
+        return make_object<List<VarValueProxy<ListCons_X>>>(arg<0>(), arg<1>());
       }
     };
 
