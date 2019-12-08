@@ -7,6 +7,7 @@
 
 #include <yave/rts/type_gen.hpp>
 #include <yave/rts/apply.hpp>
+#include <yave/rts/lambda.hpp>
 #include <yave/rts/exception.hpp>
 #include <yave/rts/type_error.hpp>
 #include <yave/rts/utility.hpp>
@@ -15,6 +16,7 @@
 #include <yave/rts/closure.hpp>
 
 #include <vector>
+#include <algorithm>
 
 namespace yave {
 
@@ -475,34 +477,72 @@ namespace yave {
   namespace detail {
 
     // fwd
-    inline auto type_of_impl(const object_ptr<const Object>& obj)
-      -> const object_ptr<const Type>;
+    inline auto type_of_impl(
+      const object_ptr<const Object>& obj,
+      std::vector<type_arrow>& env) -> object_ptr<const Type>;
 
-    inline auto type_of_impl_app(const object_ptr<const Object>& obj)
-      -> const object_ptr<const Type>
+    inline auto type_of_impl_app(
+      const object_ptr<const Object>& obj,
+      std::vector<type_arrow>& env) -> object_ptr<const Type>
     {
-      return has_arrow_type(obj) ? genpoly(get_type(obj)) : type_of_impl(obj);
+      return genpoly(type_of_impl(obj, env));
     }
 
-    inline auto type_of_impl(const object_ptr<const Object>& obj)
-      -> const object_ptr<const Type>
+    inline auto type_of_impl(
+      const object_ptr<const Object>& obj,
+      std::vector<type_arrow>& env) -> object_ptr<const Type>
     {
       // Apply
       if (auto apply = value_cast_if<const Apply>(obj)) {
 
-        auto& apply_storage = _get_storage(*apply);
+        auto& storage = _get_storage(*apply);
 
         // cached
-        if (apply_storage.is_result())
-          return type_of_impl(apply_storage.get_result());
+        if (storage.is_result())
+          return type_of_impl(storage.get_result(), env);
 
-        auto t1  = type_of_impl_app(apply_storage.app());
-        auto t2  = type_of_impl(apply_storage.arg());
+        auto t1 = type_of_impl_app(storage.app(), env);
+        auto t2 = type_of_impl(storage.arg(), env);
+
         auto var = genvar();
-        auto c   = std::vector {
+        auto cs  = std::vector {
           type_constr {t1, make_object<Type>(arrow_type {t2, var})}};
-        auto s = unify(std::move(c));
-        return subst_type_all(s, var);
+        auto as = unify(std::move(cs));
+        auto ty = subst_type_all(as, var);
+
+        auto end = std::remove_if(as.begin(), as.end(), [&](auto&& a) {
+          return same_type(a.from, var);
+        });
+        as.erase(end, as.end());
+
+        for (auto&& s : as)
+          compose_subst(env, s);
+
+        return ty;
+      }
+
+      // Lambda
+      if (auto lambda = value_cast_if<const Lambda>(obj)) {
+
+        auto& storage = _get_storage(*lambda);
+
+        auto t1 = type_of_impl(storage.var, env);
+        auto t2 = type_of_impl(storage.body, env);
+
+        auto ty = make_object<Type>(arrow_type {subst_type_all(env, t1), t2});
+
+        auto end = std::remove_if(env.begin(), env.end(), [&](auto&& a) {
+          return same_type(a.from, t1);
+        });
+        env.erase(end, env.end());
+
+        return ty;
+      }
+
+      // Variable
+      if (auto variable = value_cast_if<const Variable>(obj)) {
+        auto var = make_object<Type>(var_type {variable->id});
+        return subst_type_all(env, var);
       }
 
       // arrow -> arrow or PAP
@@ -510,7 +550,7 @@ namespace yave {
         auto c = reinterpret_cast<const Closure<>*>(obj.get());
         // pap: return root apply node
         // app: get_type
-        return c->is_pap() ? type_of_impl(c->vertebrae(c->arity))
+        return c->is_pap() ? type_of_impl(c->vertebrae(c->arity), env)
                            : get_type(obj);
       }
 
@@ -534,7 +574,10 @@ namespace yave {
   [[nodiscard]] inline auto type_of(const object_ptr<const Object>& obj)
     -> object_ptr<const Type>
   {
-    return detail::type_of_impl(obj);
+    std::vector<type_arrow> env;
+    auto ty = detail::type_of_impl(obj, env);
+    // FIXME: Is subst_type_all(env, ty) necessary?
+    return ty;
   }
 
   // ------------------------------------------
