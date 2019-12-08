@@ -455,8 +455,9 @@ namespace yave {
   // genpoly
 
   /// create fresh polymorphic closure type
-  [[nodiscard]] inline auto genpoly(const object_ptr<const Type>& tp)
-    -> object_ptr<const Type>
+  [[nodiscard]] inline auto genpoly(
+    const object_ptr<const Type>& tp,
+    const std::vector<type_arrow>& env) -> object_ptr<const Type>
   {
     if (!is_arrow_type(tp))
       return tp;
@@ -465,6 +466,12 @@ namespace yave {
     auto t  = tp;
 
     for (auto v : vs) {
+
+      if (std::find_if(env.begin(), env.end(), [&](auto&& a) {
+            return same_type(a.from, v);
+          }) != env.end())
+        continue;
+
       auto a = type_arrow {v, genvar()};
       t      = subst_type(a, tp);
     }
@@ -485,7 +492,7 @@ namespace yave {
       const object_ptr<const Object>& obj,
       std::vector<type_arrow>& env) -> object_ptr<const Type>
     {
-      return genpoly(type_of_impl(obj, env));
+      return genpoly(type_of_impl(obj, env), env);
     }
 
     inline auto type_of_impl(
@@ -526,6 +533,9 @@ namespace yave {
 
         auto& storage = _get_storage(*lambda);
 
+        auto var = make_object<Type>(var_type {storage.var->id});
+        env.push_back(type_arrow {var, var});
+
         auto t1 = type_of_impl(storage.var, env);
         auto t2 = type_of_impl(storage.body, env);
 
@@ -542,7 +552,11 @@ namespace yave {
       // Variable
       if (auto variable = value_cast_if<const Variable>(obj)) {
         auto var = make_object<Type>(var_type {variable->id});
-        return subst_type_all(env, var);
+        for (auto&& s : env) {
+          if (same_type(s.from, var))
+            return s.to;
+        }
+        throw type_error::unbounded_variable(var);
       }
 
       // arrow -> arrow or PAP

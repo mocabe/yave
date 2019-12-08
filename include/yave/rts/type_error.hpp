@@ -55,6 +55,26 @@ namespace yave {
       }
     };
 
+    /// Invalid variable found
+    class unbounded_variable : public type_error
+    {
+    public:
+      unbounded_variable(object_ptr<const Type> var)
+        : type_error("Unbounded variable detected")
+        , m_var {std::move(var)}
+      {
+      }
+
+      /// var
+      [[nodiscard]] auto var() const -> const object_ptr<const Type>&
+      {
+        return m_var;
+      }
+
+    private:
+      object_ptr<const Type> m_var;
+    };
+
     /// unification error(circular constraint)
     class circular_constraint : public type_error
     {
