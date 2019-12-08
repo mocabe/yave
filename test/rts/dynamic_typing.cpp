@@ -8,10 +8,11 @@
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/rts/function.hpp>
 #include <yave/rts/fix.hpp>
+#include <yave/rts/id.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/list.hpp>
 
-#include <iostream>
+#include <fmt/format.h>
 
 using namespace yave;
 
@@ -99,11 +100,11 @@ TEST_CASE("unify")
   };
 
   auto print_tyarrows = [](auto&& tyarrows) {
-    std::cout << "[";
+    fmt::print("[");
     for (auto&& ta : tyarrows) {
-      std::cout << to_string(ta.from) << "->" << to_string(ta.to) << ", ";
+      fmt::print("{}->{}, ", to_string(ta.from), to_string(ta.to));
     }
-    std::cout << "]\n";
+    fmt::print("]\n");
   };
 
   auto X = genvar();
@@ -543,5 +544,128 @@ TEST_CASE("copy_type")
     auto tp  = object_type<F>();
     auto cpy = copy_type(tp);
     REQUIRE(same_type(tp, cpy));
+  }
+}
+
+TEST_CASE("lambda")
+{
+  SECTION("lx.x")
+  {
+    auto var                = make_object<Variable>();
+    auto lam                = make_object<Lambda>();
+    _get_storage(*lam).var  = var;
+    _get_storage(*lam).body = var;
+
+    auto ty = type_of(lam);
+    fmt::print("lx.x : {}\n", to_string(ty));
+
+    auto app = lam << make_object<Int>(1);
+    ty       = type_of(app);
+    fmt::print("(lx.x) 1 : {}\n", to_string(ty));
+    REQUIRE(same_type(ty, object_type<Int>()));
+  }
+
+  SECTION("lx.id x")
+  {
+    auto var                = make_object<Variable>();
+    auto lam                = make_object<Lambda>();
+    auto id                 = make_object<Identity>();
+    _get_storage(*lam).var  = var;
+    _get_storage(*lam).body = (id << var);
+
+    auto ty = type_of(lam);
+    fmt::print("lx.id x : {}\n", to_string(ty));
+
+    auto app = lam << make_object<Int>(1);
+    ty       = type_of(app);
+    fmt::print("(lx.id x) 1 : {}\n", to_string(ty));
+    REQUIRE(same_type(ty, object_type<Int>()));
+  }
+
+  SECTION("lx.id (id x)")
+  {
+    auto var                = make_object<Variable>();
+    auto lam                = make_object<Lambda>();
+    auto id                 = make_object<Identity>();
+    _get_storage(*lam).var  = var;
+    _get_storage(*lam).body = (id << (id << var));
+
+    auto ty = type_of(lam);
+    fmt::print("lx.id (id x) : {}\n", to_string(ty));
+
+    auto app = lam << make_object<Int>(1);
+    ty       = type_of(app);
+    fmt::print("(lx.id (id x)) 1 : {}\n", to_string(ty));
+    REQUIRE(same_type(ty, object_type<Int>()));
+  }
+
+  SECTION("lx.ly. id ((id y) (id x))")
+  {
+    auto var1 = make_object<Variable>();
+    auto var2 = make_object<Variable>();
+    auto lam1 = make_object<Lambda>();
+    auto lam2 = make_object<Lambda>();
+    auto id   = make_object<Identity>();
+
+    _get_storage(*lam1).var = var1;
+    _get_storage(*lam2).var = var2;
+
+    _get_storage(*lam1).body = (id << var1) << (id << var2);
+    _get_storage(*lam2).body = id << lam1;
+
+    auto ty = type_of(lam2);
+    fmt::print("lx.ly.id ((id y) (id x)): {}\n", to_string(ty));
+
+    auto app = lam2 << make_object<Int>(1) << (id << id);
+    ty       = type_of(app);
+    fmt::print("(lx.ly.id ((id y) (id x)) 1 (id id): {}\n", to_string(ty));
+    REQUIRE(same_type(ty, object_type<Int>()));
+  }
+
+  SECTION("lx.h (f x) (g x)")
+  {
+    using namespace yave;
+
+    struct H : Function<H, Int, Double, Float>
+    {
+      auto code() const -> return_type
+      {
+        throw;
+      }
+    };
+
+    struct F : Function<F, Int, Int>
+    {
+      auto code() const -> return_type
+      {
+        throw;
+      }
+    };
+
+    struct G : Function<G, Double, Double>
+    {
+      auto code() const -> return_type
+      {
+        throw;
+      }
+    };
+
+    auto h   = make_object<H>();
+    auto f   = make_object<F>();
+    auto g   = make_object<G>();
+    auto var = make_object<Variable>();
+    auto lam = make_object<Lambda>();
+    auto id  = make_object<Identity>();
+
+    _get_storage(*lam).var  = var;
+    _get_storage(*lam).body = (id << h) << (id << (f << var)) << (g << var);
+
+    try {
+      auto ty = type_of(lam);
+      REQUIRE(false);
+    } catch (type_error::type_missmatch& e) {
+      REQUIRE(same_type(e.expected(), object_type<Double>()));
+      REQUIRE(same_type(e.provided(), object_type<Int>()));
+    }
   }
 }
