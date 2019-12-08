@@ -622,6 +622,29 @@ TEST_CASE("lambda")
     REQUIRE(same_type(ty, object_type<Int>()));
   }
 
+  SECTION("lx.((ly.x) 1)")
+  {
+    auto var1 = make_object<Variable>();
+    auto var2 = make_object<Variable>();
+    auto lam1 = make_object<Lambda>();
+    auto lam2 = make_object<Lambda>();
+    auto id   = make_object<Identity>();
+
+    _get_storage(*lam1).var = var1;
+    _get_storage(*lam2).var = var2;
+
+    _get_storage(*lam1).body = var2;
+    _get_storage(*lam2).body = (lam1 << make_object<Int>());
+
+    auto ty = type_of(lam2);
+    fmt::print("lx.((ly.x) 1): {}\n", to_string(ty));
+
+    auto app = lam2 << make_object<Int>(1);
+    ty       = type_of(app);
+    fmt::print("(lx.((ly.x) 1)) 1: {}\n", to_string(ty));
+    REQUIRE(same_type(ty, object_type<Int>()));
+  }
+
   SECTION("lx.h (f x) (g x)")
   {
     using namespace yave;
