@@ -36,7 +36,7 @@ namespace yave {
   {
     /// term
     static constexpr auto term =
-      closure_term_export(make_tm_closure(get_term<Ts>()...));
+      polymorphic_term_export(make_tm_closure(get_term<Ts>()...));
   };
 
   /// proxy type of argument closure type
@@ -189,11 +189,11 @@ namespace yave {
       } else if constexpr (is_tm_var(term)) {
         return var_type_address(term);
       } else if constexpr (is_tm_varvalue(term)) {
-        return var_type_address(term);
+        return var_type_address(term); // fallback to var_type
       } else if constexpr (is_tm_list(term)) {
         return list_type_address(term);
       } else {
-        static_assert(false_v<T>);
+        static_assert(false_v<T>, "Invalid term");
       }
     }
 
@@ -203,11 +203,7 @@ namespace yave {
   template <class T>
   [[nodiscard]] auto object_type() noexcept -> object_ptr<const Type>
   {
-    constexpr auto spec = normalize_specifier(type_c<T>);
-    constexpr auto tp   = get_proxy_type(spec);
-    // get term through proxy type
-    // TODO: use `consteval` in C++20
-    constexpr auto ptr = detail::object_type_impl(get_term(tp));
+    constexpr auto ptr = detail::object_type_impl(get_term(type_c<T>));
     return ptr;
   }
 
