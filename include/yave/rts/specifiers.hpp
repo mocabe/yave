@@ -81,6 +81,7 @@ namespace yave {
   // normalize_specifier
 
   struct Object;
+  struct Undefined;
 
   /// lift all raw types to specifiers
   template <class T>
@@ -96,6 +97,11 @@ namespace yave {
       return type_c<object<T>>;
     else
       static_assert(false_v<T>, "T is not valid heap object");
+  }
+
+  [[nodiscard]] constexpr auto normalize_specifier(meta_type<Undefined>)
+  {
+    return type_c<object<Undefined>>;
   }
 
   template <class... Ts>

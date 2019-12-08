@@ -148,18 +148,15 @@ namespace yave {
   template <class T>
   [[nodiscard]] constexpr auto get_term(meta_type<T> = {})
   {
-    if constexpr (has_term<T>()) {
+    if constexpr (has_term<T>())
       // normal term
       return T::term;
-    } else
+    else if constexpr (std::is_same_v<T, struct Undefined>)
+      // case for Undefined
+      return type_c<tm_value<struct Undefined>>;
+    else
       // specifier -> term
       return get_term(get_proxy_type(normalize_specifier(type_c<T>)));
-  }
-
-  /// Special case for value type Undefined.
-  [[nodiscard]] constexpr auto get_term(meta_type<struct Undefined> = {})
-  {
-    return type_c<tm_value<struct Undefined>>;
   }
 
   // ------------------------------------------
@@ -437,29 +434,31 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // closure_term_export
+  // polymorphic_term_export
 
   namespace detail {
 
     template <class Term, class Target>
-    constexpr auto closure_term_export_impl(
+    constexpr auto polymorphic_term_export_impl(
       meta_type<Term> term,
       meta_type<Target> target)
     {
       if constexpr (is_tm_varvalue(term)) {
         return subst_term(term, make_tm_var(term.tag()), target);
       } else if constexpr (is_tm_closure(term)) {
-        if constexpr (term.size() == 1) {
-          return closure_term_export_impl(head(term), target);
+        if constexpr (term.size() == 0) {
+          return target;
+        } else if constexpr (term.size() == 1) {
+          return polymorphic_term_export_impl(head(term), target);
         } else {
-          return closure_term_export_impl(
-            tail(term), closure_term_export_impl(head(term), target));
+          return polymorphic_term_export_impl(
+            tail(term), polymorphic_term_export_impl(head(term), target));
         }
       } else if constexpr (is_tm_apply(term)) {
-        return closure_term_export_impl(
-          term.t2(), closure_term_export_impl(term.t1(), target));
+        return polymorphic_term_export_impl(
+          term.t2(), polymorphic_term_export_impl(term.t1(), target));
       } else if constexpr (is_tm_list(term)) {
-        return closure_term_export_impl(term.t(), target);
+        return polymorphic_term_export_impl(term.t(), target);
       } else
         return target;
     }
@@ -468,14 +467,9 @@ namespace yave {
 
   /// convert varvalue to var
   template <class Term>
-  [[nodiscard]] constexpr auto closure_term_export(meta_type<Term> term)
+  [[nodiscard]] constexpr auto polymorphic_term_export(meta_type<Term> term)
   {
-    return detail::closure_term_export_impl(term, term);
-  }
-
-  [[nodiscard]] constexpr auto closure_term_export(meta_type<tm_closure<>> c)
-  {
-    return c;
+    return detail::polymorphic_term_export_impl(term, term);
   }
 
 } // namespace yave
