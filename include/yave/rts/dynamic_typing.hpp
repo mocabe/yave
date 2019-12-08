@@ -510,7 +510,8 @@ namespace yave {
         auto c = reinterpret_cast<const Closure<>*>(obj.get());
         // pap: return root apply node
         // app: get_type
-        return c->is_pap() ? type_of_impl(c->vertebrae(0)) : get_type(obj);
+        return c->is_pap() ? type_of_impl(c->vertebrae(c->arity))
+                           : get_type(obj);
       }
 
       // value -> value
