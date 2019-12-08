@@ -113,15 +113,20 @@ namespace yave {
         throw std::invalid_argument("cdr == nullptr");
 
       constexpr auto elem_tp = type_of(get_term<T>());
-      constexpr auto list_tp = type_of(get_term<List<T>>());
+      constexpr auto list_tp = type_of(get_term<list<T>>());
 
-      if constexpr (
-        type_of(get_term<object_pointer_element_t<Car>>()) != elem_tp)
-        static_assert(false_v<Car>, "Invalid Car type. Should result T");
+      constexpr auto car_type =
+        type_of(get_term<object_pointer_element_t<Car>>());
+      constexpr auto cdr_type =
+        type_of(get_term<object_pointer_element_t<Cdr>>());
 
-      if constexpr (
-        type_of(get_term<object_pointer_element_t<Cdr>>()) != list_tp)
-        static_assert(false_v<Cdr>, "Invalid Cdr type. Should result List<T>");
+      if constexpr (car_type != elem_tp) {
+        static_assert(false_v<T>, "Invalid Car type. Should result T");
+      }
+
+      if constexpr (cdr_type != list_tp) {
+        static_assert(false_v<T>, "Invalid Cdr type. Should result List<T>");
+      }
     }
 
     /// Dtor
