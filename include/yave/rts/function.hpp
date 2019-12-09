@@ -40,9 +40,11 @@ namespace yave {
       auto ret = [&]() -> object_ptr<const Object> {
         try {
 
-          // calls code() inside.
-          auto r = _this->_handle_exception().value();
-          assert(r);
+          // code()
+          auto r = _this->code().value();
+
+          if (auto e = value_cast_if<Exception>(r))
+            return e;
 
           // only cache PAP or values (see comments in eval_spine()).
           // TODO: Since we know return type at compile time, we can directly
@@ -111,13 +113,15 @@ namespace yave {
       static constexpr auto return_type = type_of(get_term<T>());
 
     public:
-      /// object_ptr<U>&&
+      /// object_ptr<U>
       template <class U>
       return_type_checker(object_ptr<U> obj) noexcept
         : m_value {std::move(obj)}
       {
         // check return type
-        check_return_type(return_type, type_of(get_term<U>()));
+        if constexpr (!std::is_same_v<std::decay_t<U>, Exception>) {
+          check_return_type(return_type, type_of(get_term<U>()));
+        }
       }
 
       /// U*
@@ -126,50 +130,14 @@ namespace yave {
         : m_value(ptr)
       {
         // check return type
-        check_return_type(return_type, type_of(get_term<U>()));
+        if constexpr (!std::is_same_v<std::decay_t<U>, Exception>) {
+          check_return_type(return_type, type_of(get_term<U>()));
+        }
       }
 
       // deleted
       return_type_checker()          = delete;
       return_type_checker(nullptr_t) = delete;
-
-      /// value
-      auto value() && noexcept -> auto&&
-      {
-        return std::move(m_value);
-      }
-
-    private:
-      object_ptr<const Object> m_value;
-    };
-
-    /// Return type checker
-    template <class T>
-    class exception_handler_return_type_checker
-    {
-    public:
-      /// return_type ctor
-      exception_handler_return_type_checker(return_type_checker<T> e) noexcept
-        : m_value {std::move(e).value()}
-      {
-      }
-
-      /// Exception ctor
-      template <class U>
-      exception_handler_return_type_checker(object_ptr<U> e) noexcept
-        : m_value {object_ptr<const Exception>(std::move(e))}
-      {
-      }
-
-      /// Exception ctor
-      exception_handler_return_type_checker(const Exception* e) noexcept
-        : exception_handler_return_type_checker(object_ptr(e))
-      {
-      }
-
-      // deleted
-      exception_handler_return_type_checker()          = delete;
-      exception_handler_return_type_checker(nullptr_t) = delete;
 
       /// value
       auto value() && noexcept -> auto&&
@@ -256,11 +224,6 @@ namespace yave {
     using return_type =
       detail::return_type_checker<argument_proxy_t<sizeof...(Ts) - 1>>;
 
-    /// return type for exception_handler()
-    using exception_handler_return_type =
-      detail::exception_handler_return_type_checker<
-        argument_proxy_t<sizeof...(Ts) - 1>>;
-
     /// get N'th argument thunk
     template <uint64_t N>
     [[nodiscard]] auto arg() const noexcept
@@ -281,12 +244,6 @@ namespace yave {
     }
 
   public: /* customization points */
-    /// default exception handler.
-    auto _handle_exception() const -> exception_handler_return_type
-    {
-      return static_cast<const T*>(this)->code();
-    }
-
     /// default self-update function.
     auto _self_update(object_ptr<const Object> result) const noexcept
       -> object_ptr<const Object>
