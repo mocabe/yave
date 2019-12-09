@@ -58,15 +58,17 @@ TEST_CASE("runtime_error", "[rts][exception]")
 
 TEST_CASE("unknown exception", "[rts][exception]")
 {
-  struct my_awesome_exception
-  {
-  };
-
   struct F : Function<F, Int, Int>
   {
     return_type code() const
     {
-      throw my_awesome_exception();
+      auto msg = make_object<String>("custom exception");
+      auto err = make_object<Double>(3.14);
+
+      return make_object<Exception>(msg, err);
+      return make_object<const Exception>(msg, err);
+      return new Exception(msg, err);
+      return new const Exception(msg, err);
     }
   };
 
@@ -82,7 +84,8 @@ TEST_CASE("unknown exception", "[rts][exception]")
     try {
       (void)eval(app);
     } catch (exception_result& e) {
-      REQUIRE(!e.exception()->error());
+      REQUIRE(e.exception()->error());
+      REQUIRE(*value_cast<Double>(e.exception()->error()) == 3.14);
     }
   }
 
@@ -95,7 +98,8 @@ TEST_CASE("unknown exception", "[rts][exception]")
     try {
       (void)eval(app);
     } catch (exception_result& e) {
-      REQUIRE(!e.exception()->error());
+      REQUIRE(e.exception()->error());
+      REQUIRE(*value_cast<Double>(e.exception()->error()) == 3.14);
     }
   }
 }

@@ -47,15 +47,10 @@ namespace yave {
     class type_error : public std::logic_error
     {
     public:
-      /// Ctor string
-      explicit type_error(const std::string& what)
-        : std::logic_error(what)
-      {
-      }
+      using std::logic_error::logic_error;
 
-      /// Ctor const char*
-      explicit type_error(const char* what)
-        : std::logic_error(what)
+      type_error()
+        : logic_error("type_error")
       {
       }
     };
