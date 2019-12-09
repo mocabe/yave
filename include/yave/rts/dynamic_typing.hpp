@@ -533,7 +533,7 @@ namespace yave {
 
         auto& storage = _get_storage(*lambda);
 
-        auto var = make_object<Type>(var_type {storage.var->id});
+        auto var = make_object<Type>(var_type {storage.var->id()});
         env.push_back(type_arrow {var, var});
 
         auto t1 = type_of_impl(storage.var, env);
@@ -551,7 +551,7 @@ namespace yave {
 
       // Variable
       if (auto variable = value_cast_if<const Variable>(obj)) {
-        auto var = make_object<Type>(var_type {variable->id});
+        auto var = make_object<Type>(var_type {variable->id()});
         for (auto&& s : env) {
           if (same_type(s.from, var))
             return s.to;

@@ -109,7 +109,7 @@ namespace yave {
       }
 
       if (auto variable = value_cast_if<Variable>(obj)) {
-        return (variable->id == var->id) ? arg : variable;
+        return (variable->id() == var->id()) ? arg : variable;
       }
 
       return obj;
