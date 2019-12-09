@@ -37,59 +37,66 @@ namespace yave {
     {
       auto _this = static_cast<const T*>(_cthis);
 
-      auto ret = [&]() -> object_ptr<const Object> {
-        try {
+      try {
 
-          // code()
-          auto r = _this->code().value();
+        // code()
+        auto r = _this->code().value();
 
-          if (auto e = value_cast_if<Exception>(r))
-            return e;
+        if (unlikely(!r))
+          throw result_error::null_result();
 
-          // only cache PAP or values (see comments in eval_spine()).
-          // TODO: Since we know return type at compile time, we can directly
-          // convert applications into PAP without loop by analyzing TApply
-          // tree. Same on other return types; we can bypass some of runtime
-          // type checks which may improve performance.
-          r = detail::eval_obj(std::move(r));
+        if (auto e = value_cast_if<Exception>(std::move(r)))
+          return e;
 
-          // call self update method
-          return _this->_self_update(std::move(r));
+        // only cache PAP or values (see comments in eval_spine()).
+        // TODO: Since we know return type at compile time, we can directly
+        // convert applications into PAP without loop by analyzing TApply
+        // tree. Same on other return types; we can bypass some of runtime
+        // type checks which may improve performance.
+        r = detail::eval_obj(std::move(r));
 
-          // cast error
-        } catch (const bad_value_cast& e) {
-          return to_Exception(e);
+        // call self update method
+        r = _this->_self_update(std::move(r));
 
-          // type error
-        } catch (const type_error::circular_constraint& e) {
-          return to_Exception(e);
-        } catch (const type_error::type_missmatch& e) {
-          return to_Exception(e);
-        } catch (const type_error::bad_type_check& e) {
-          return to_Exception(e);
-        } catch (const type_error::type_error& e) {
-          return to_Exception(e);
+        if (unlikely(!r))
+          throw result_error::null_result();
 
-          // result error
-        } catch (const exception_result& e) {
-          return to_Exception(e);
+        return r;
 
-          // std::exception
-        } catch (const std::exception& e) {
-          return to_Exception(e);
+        /* cast error */
+      } catch (const bad_value_cast& e) {
+        return to_Exception(e);
 
-          // unknown
-        } catch (...) {
-          return make_object<Exception>(
-            make_object<String>("Unknown exception thrown while evaluation"),
-            object_ptr(nullptr));
-        }
-      }();
+        /* type error */
+      } catch (const type_error::circular_constraint& e) {
+        return to_Exception(e);
+      } catch (const type_error::type_missmatch& e) {
+        return to_Exception(e);
+      } catch (const type_error::bad_type_check& e) {
+        return to_Exception(e);
+      } catch (const type_error::type_error& e) {
+        return to_Exception(e);
 
-      // vtbl_code_func should not return Undefined value
-      assert(ret);
+        /* result error */
+      } catch (const result_error::null_result& e) {
+        return to_Exception(e);
+      } catch (const result_error::result_error& e) {
+        return to_Exception(e);
 
-      return ret;
+        /* exception result transfer */
+      } catch (const exception_result& e) {
+        return to_Exception(e);
+
+        /* std::exception */
+      } catch (const std::exception& e) {
+        return to_Exception(e);
+
+        /* unknown exception */
+      } catch (...) {
+        return make_object<Exception>(
+          make_object<String>("Unknown exception thrown while evaluation"),
+          make_object<ResultError>(result_error_type::unknown));
+      }
     }
 
     // ------------------------------------------
