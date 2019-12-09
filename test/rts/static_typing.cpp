@@ -446,10 +446,10 @@ void test_genpoly()
 {
   {
     // Double -> Var<X> -> Var<X>
-    constexpr auto term =
-      closure_term_export(type_c<tm_closure<
-                            tm_closure<tm_value<double>, tm_varvalue<class X>>,
-                            tm_varvalue<class X>>>);
+    constexpr auto term = polymorphic_term_export(
+      type_c<tm_closure<
+        tm_closure<tm_value<double>, tm_varvalue<class X>>,
+        tm_varvalue<class X>>>);
 
     // Double -> Var[0] -> Var[0]
     constexpr auto gterm = type_c<tm_closure<
