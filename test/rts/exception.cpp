@@ -56,6 +56,35 @@ TEST_CASE("runtime_error", "[rts][exception]")
   }
 }
 
+TEST_CASE("Null return", "[rts][exception]")
+{
+  struct F : Function<F, Int, Int>
+  {
+    return_type code() const
+    {
+      return object_ptr<Int>();
+    }
+  };
+
+  auto f = make_object<F>();
+  auto i = make_object<Int>();
+
+  auto app = f << i;
+
+  REQUIRE_NOTHROW(type_of(app));
+  REQUIRE_THROWS_AS(eval(app), exception_result);
+  REQUIRE_THROWS_AS(eval(app), exception_result);
+
+  try {
+    (void)eval(app);
+    REQUIRE(false);
+  } catch (exception_result& e) {
+    REQUIRE(
+      value_cast<ResultError>(e.exception()->error())->error_type ==
+      result_error_type::null_result);
+  }
+}
+
 TEST_CASE("unknown exception", "[rts][exception]")
 {
   struct F : Function<F, Int, Int>
