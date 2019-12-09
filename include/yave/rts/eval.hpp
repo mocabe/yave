@@ -8,6 +8,7 @@
 #include <yave/rts/value_cast.hpp>
 #include <yave/rts/function.hpp>
 #include <yave/rts/result_error.hpp>
+#include <yave/rts/lambda.hpp>
 
 #include <map>
 
@@ -83,6 +84,37 @@ namespace yave {
       return {std::move(next), std::move(stack)};
     }
 
+    /// instantiate lambda body with actual argument
+    [[nodiscard]] inline auto instantiate_lambda_body(
+      const object_ptr<const Object>& obj,
+      const object_ptr<const Variable>& var,
+      const object_ptr<const Object>& arg) -> object_ptr<const Object>
+    {
+      if (auto apply = value_cast_if<Apply>(obj)) {
+        auto& storage = _get_storage(*apply);
+
+        // assume result does not contain variable
+        if (storage.is_result())
+          return storage.get_result();
+
+        return make_object<Apply>(
+          instantiate_lambda_body(storage.app(), var, arg),
+          instantiate_lambda_body(storage.arg(), var, arg));
+      }
+
+      if (auto lambda = value_cast_if<Lambda>(obj)) {
+        auto& storage = _get_storage(*lambda);
+        return make_object<Lambda>(
+          storage.var, instantiate_lambda_body(storage.body, var, arg));
+      }
+
+      if (auto variable = value_cast_if<Variable>(obj)) {
+        return (variable->id == var->id) ? arg : variable;
+      }
+
+      return obj;
+    }
+
     [[nodiscard]] inline auto eval_spine(object_ptr<const Object> obj)
       -> object_ptr<const Object>
     {
@@ -98,11 +130,34 @@ namespace yave {
         if (apply_storage.is_result())
           return apply_storage.get_result();
 
-        // build stack and get bottom closure
+        // build stack and get bottom closure/lambda
         auto [bottom, stack] = build_spine_stack(apply_storage.app(), 1);
         stack[0]             = std::move(apply);
 
         for (;;) {
+
+          // Handle lambda application
+          // TODO: optimization
+          if (auto lam = value_cast_if<Lambda>(bottom)) {
+            // get next arg
+            auto& vert = _get_storage(*stack.back());
+            auto arg   = vert.arg();
+            // instantiate
+            auto& storage = _get_storage(*lam);
+            auto inst     = instantiate_lambda_body(
+              storage.body, storage.var, std::move(arg));
+
+            // eval body of lambda
+            auto result = eval_obj(inst);
+            vert.set_result(result);
+
+            if (stack.size() == 1)
+              return result;
+
+            stack.pop_back();
+            bottom = std::move(result);
+            continue;
+          }
 
           assert(has_arrow_type(bottom));
 
