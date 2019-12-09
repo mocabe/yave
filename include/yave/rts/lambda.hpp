@@ -32,6 +32,7 @@ namespace yave {
     object_ptr<const Object> body;
   };
 
+  /// value of Lambda
   struct lambda_object_value
   {
     [[nodiscard]] friend inline auto _get_storage(
@@ -47,11 +48,24 @@ namespace yave {
       return v.m_storage;
     }
 
+    lambda_object_value() noexcept
+      : m_storage {}
+    {
+    }
+
+    lambda_object_value(
+      object_ptr<const Variable> var,
+      object_ptr<const Object> body) noexcept
+      : m_storage {std::move(var), std::move(body)}
+    {
+    }
+
   private:
     lambda_object_value_storage m_storage;
   };
 
   /// Generic lambda abstraction node
+  /// TODO: Support templated version like TApply
   using Lambda = Box<lambda_object_value>;
 
 } // namespace yave
