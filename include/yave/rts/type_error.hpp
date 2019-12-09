@@ -15,9 +15,10 @@ namespace yave {
   enum class type_error_type : uint64_t
   {
     unknown              = 0,
-    circular_constraints = 1,
-    type_missmatch       = 2,
-    bad_type_check       = 3,
+    unbounded_variable   = 1,
+    circular_constraints = 2,
+    type_missmatch       = 3,
+    bad_type_check       = 4,
   };
 
   /// type_error_object_value
@@ -26,16 +27,17 @@ namespace yave {
     /// type
     type_error_type error_type;
 
-    // not Undefined when:
-    //  type_missmatch
-    //  bad_type_check
-    object_ptr<const Type> expected;
+    // Active when:
+    //  unbounded_variable   : var
+    //  type_missmatch       : expected
+    //  bad_type_check       : expected
+    object_ptr<const Type> t1;
 
-    // not Undefined when:
-    //  circular_constraints
-    //  type_missmatch
-    //  bad_type_check
-    object_ptr<const Type> provided;
+    // Active when:
+    //  circular_constraints : var
+    //  type_missmatch       : provided
+    //  bad_type_check       : provided
+    object_ptr<const Type> t2;
   };
 
   // TypeError
@@ -172,6 +174,17 @@ namespace yave {
       make_object<TypeError>(
         type_error_type::unknown,
         object_type<Undefined>(),
+        object_type<Undefined>()));
+  }
+
+  [[nodiscard]] inline auto to_Exception(
+    const type_error::unbounded_variable& e) -> object_ptr<Exception>
+  {
+    return make_object<Exception>(
+      e.what(),
+      make_object<TypeError>(
+        type_error_type::unbounded_variable,
+        e.var(),
         object_type<Undefined>()));
   }
 
