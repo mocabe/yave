@@ -32,6 +32,16 @@ namespace yave {
       if (likely(obj && _get_storage(obj).is_exception()))
         return static_object_cast<propagate_const_t<Exception, U>>(obj);
     }
+    // Lambda
+    else if constexpr (std::is_same_v<std::decay_t<T>, Lambda>) {
+      if (likely(obj && _get_storage(obj).is_lambda()))
+        return static_object_cast<propagate_const_t<Lambda, U>>(obj);
+    }
+    // Variable
+    else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
+      if (likely(obj && _get_storage(obj).is_variable()))
+        return static_object_cast<propagate_const_t<Variable, U>>(obj);
+    }
     // general
     else if constexpr (is_tm_value(get_term<T>())) {
       if (likely(obj && has_type<T>(obj)))
@@ -59,6 +69,17 @@ namespace yave {
     else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
       if (likely(obj && _get_storage(obj).is_exception()))
         return static_object_cast<propagate_const_t<Exception, U>>(
+          std::move(obj));
+    }
+    // Lambda
+    else if constexpr (std::is_same_v<std::decay_t<T>, Lambda>) {
+      if (likely(obj && _get_storage(obj).is_lambda()))
+        return static_object_cast<propagate_const_t<Lambda, U>>(std::move(obj));
+    }
+    // Variable
+    else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
+      if (likely(obj && _get_storage(obj).is_variable()))
+        return static_object_cast<propagate_const_t<Variable, U>>(
           std::move(obj));
     }
     // general
@@ -89,6 +110,16 @@ namespace yave {
       if (likely(obj && _get_storage(obj).is_exception()))
         return static_object_cast<propagate_const_t<Exception, U>>(obj);
     }
+    // Lambda
+    else if constexpr (std::is_same_v<std::decay_t<T>, Lambda>) {
+      if (likely(obj && _get_storage(obj).is_lambda()))
+        return static_object_cast<propagate_const_t<Lambda, U>>(obj);
+    }
+    // Variable
+    else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
+      if (likely(obj && _get_storage(obj).is_variable()))
+        return static_object_cast<propagate_const_t<Variable, U>>(obj);
+    }
     // general
     else if constexpr (is_tm_value(get_term<T>())) {
       if (likely(obj && has_type<T>(obj)))
@@ -116,6 +147,17 @@ namespace yave {
     else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
       if (likely(obj && _get_storage(obj).is_exception()))
         return static_object_cast<propagate_const_t<Exception, U>>(
+          std::move(obj));
+    }
+    // Lambda
+    else if constexpr (std::is_same_v<std::decay_t<T>, Lambda>) {
+      if (likely(obj && _get_storage(obj).is_lambda()))
+        return static_object_cast<propagate_const_t<Lambda, U>>(std::move(obj));
+    }
+    // Variable
+    else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
+      if (likely(obj && _get_storage(obj).is_variable()))
+        return static_object_cast<propagate_const_t<Variable, U>>(
           std::move(obj));
     }
     // general

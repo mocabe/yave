@@ -187,7 +187,7 @@ namespace yave {
       static_assert(offset_of_member(&Box::m_value) == sizeof(Object));
 
       /// get info table pointer
-      static constexpr const object_info_table *get_info_table()
+      static constexpr auto get_info_table() -> const object_info_table *
       {
         return &info_table;
       }

@@ -107,7 +107,7 @@ namespace yave {
   struct Apply::info_table_initializer
   {
     /// get info table pointer
-    static const object_info_table* get_info_table()
+    static auto get_info_table() -> const object_info_table*
     {
       // add apply tag
       return detail::add_apply_tag(&info_table);

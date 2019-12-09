@@ -26,6 +26,8 @@ namespace yave {
       vanilla      = 0,
       exception    = 1,                  // Exception
       apply        = 2,                  // Apply
+      lambda       = 3,                  // Lambda
+      variable     = 4,                  // Variable
       extract_mask = 0x0000000000000007, // 0...0111
       clear_mask   = 0xFFFFFFFFFFFFFFF8, // 1...1000
     };
@@ -85,8 +87,8 @@ namespace yave {
 
     // Apply
 
-    [[nodiscard]] inline const object_info_table* add_apply_tag(
-      const object_info_table* info)
+    [[nodiscard]] inline auto add_apply_tag(const object_info_table* info)
+      -> const object_info_table*
     {
       return add_info_table_tag(info, info_table_tags::apply);
     }
@@ -96,5 +98,30 @@ namespace yave {
       return check_info_table_tag(tagged, info_table_tags::apply);
     }
 
+    // Lambda
+
+    [[nodiscard]] inline auto add_lambda_tag(const object_info_table* info)
+      -> const object_info_table*
+    {
+      return add_info_table_tag(info, info_table_tags::lambda);
+    }
+
+    [[nodiscard]] inline bool has_lambda_tag(const object_info_table* tagged)
+    {
+      return check_info_table_tag(tagged, info_table_tags::lambda);
+    }
+
+    // Variable
+
+    [[nodiscard]] inline auto add_variable_tag(const object_info_table* info)
+      -> const object_info_table*
+    {
+      return add_info_table_tag(info, info_table_tags::variable);
+    }
+
+    [[nodiscard]] inline bool has_variable_tag(const object_info_table* tagged)
+    {
+      return check_info_table_tag(tagged, info_table_tags::variable);
+    }
   } // namespace detail
 } // namespace yave
