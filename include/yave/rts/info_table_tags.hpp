@@ -66,7 +66,8 @@ namespace yave {
     {
       uintptr_t tmp = 0;
       std::memcpy(&tmp, &tagged, sizeof(tagged));
-      return tmp & static_cast<uintptr_t>(tag);
+      tmp &= static_cast<uintptr_t>(info_table_tags::extract_mask);
+      return tmp == static_cast<uintptr_t>(tag);
     }
 
     // Exception
