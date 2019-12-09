@@ -15,7 +15,23 @@ namespace yave {
 
   struct variable_object_value
   {
-    uint64_t id = var_type::random_generate().id;
+    variable_object_value() noexcept
+      : m_id {var_type::random_generate().id}
+    {
+    }
+
+    variable_object_value(uint64_t id) noexcept
+      : m_id {id}
+    {
+    }
+
+    [[nodiscard]] auto id() const noexcept
+    {
+      return m_id;
+    }
+
+  private:
+    uint64_t m_id;
   };
 
   /// Generic variable for lambda abstraction
