@@ -558,8 +558,8 @@ TEST_CASE("lambda")
 
     REQUIRE(_get_storage(lam).is_lambda());
     REQUIRE(_get_storage(var).is_variable());
-    REQUIRE(value_cast_if<const Lambda>(lam));
-    REQUIRE(value_cast_if<const Variable>(var));
+    REQUIRE(value_cast_if<Lambda>(lam));
+    REQUIRE(value_cast_if<Variable>(var));
 
     auto ty = type_of(lam);
     fmt::print("lx.x : {}\n", to_string(ty));

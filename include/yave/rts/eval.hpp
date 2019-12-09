@@ -64,7 +64,7 @@ namespace yave {
       size_t depth) -> std::
       pair<object_ptr<const Object>, std::vector<object_ptr<const Apply>>>
     {
-      if (auto apply = value_cast_if<const Apply>(std::move(next))) {
+      if (auto apply = value_cast_if<Apply>(std::move(next))) {
 
         auto& apply_storage = _get_storage(*apply);
 
