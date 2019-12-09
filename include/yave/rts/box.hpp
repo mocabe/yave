@@ -7,3 +7,4 @@
 
 #include <yave/rts/box_fwd.hpp>
 #include <yave/rts/type_gen.hpp>
+#include <yave/rts/undefined.hpp>
