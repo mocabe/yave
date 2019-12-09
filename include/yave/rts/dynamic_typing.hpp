@@ -500,7 +500,7 @@ namespace yave {
       std::vector<type_arrow>& env) -> object_ptr<const Type>
     {
       // Apply
-      if (auto apply = value_cast_if<const Apply>(obj)) {
+      if (auto apply = value_cast_if<Apply>(obj)) {
 
         auto& storage = _get_storage(*apply);
 
@@ -529,7 +529,7 @@ namespace yave {
       }
 
       // Lambda
-      if (auto lambda = value_cast_if<const Lambda>(obj)) {
+      if (auto lambda = value_cast_if<Lambda>(obj)) {
 
         auto& storage = _get_storage(*lambda);
 
@@ -550,7 +550,7 @@ namespace yave {
       }
 
       // Variable
-      if (auto variable = value_cast_if<const Variable>(obj)) {
+      if (auto variable = value_cast_if<Variable>(obj)) {
         auto var = make_object<Type>(var_type {variable->id()});
         for (auto&& s : env) {
           if (same_type(s.from, var))
