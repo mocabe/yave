@@ -52,14 +52,14 @@ namespace yave {
 
   } // namespace result_error
 
-  [[nodiscard]] inline auto to_Exception(result_error::result_error& e)
+  [[nodiscard]] inline auto to_Exception(const result_error::result_error& e)
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(), make_object<ResultError>(result_error_type::unknown));
   }
 
-  [[nodiscard]] inline auto to_Exception(result_error::null_result& e)
+  [[nodiscard]] inline auto to_Exception(const result_error::null_result& e)
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
