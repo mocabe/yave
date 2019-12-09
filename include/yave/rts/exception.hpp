@@ -70,7 +70,7 @@ namespace yave {
   struct Exception::info_table_initializer
   {
     /// get info table pointer
-    static const object_info_table* get_info_table()
+    static auto get_info_table() -> const object_info_table*
     {
       return detail::add_exception_tag(&info_table);
     }

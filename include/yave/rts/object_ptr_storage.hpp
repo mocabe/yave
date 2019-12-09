@@ -67,6 +67,18 @@ namespace yave {
       return detail::has_apply_tag(this_head()->info_table);
     }
 
+    /// lambda?
+    [[nodiscard]] bool is_lambda() const noexcept
+    {
+      return detail::has_lambda_tag(this_head()->info_table);
+    }
+
+    /// variable?
+    [[nodiscard]] bool is_variable() const noexcept
+    {
+      return detail::has_variable_tag(this_head()->info_table);
+    }
+
     /// static?
     [[nodiscard]] bool is_static() const noexcept
     {

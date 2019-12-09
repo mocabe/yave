@@ -21,6 +21,30 @@ namespace yave {
   /// Generic variable for lambda abstraction
   using Variable = Box<variable_object_value>;
 
+  template <>
+  struct yave::object_type_traits<yave::Variable>
+  {
+    static constexpr char name[] = "yave::Variable";
+    static constexpr char uuid[] = "a2697d3d-3e17-452e-ab95-051797b4cf76";
+  };
+
+  template <>
+  struct Variable::info_table_initializer
+  {
+    static auto get_info_table() -> const object_info_table*
+    {
+      return detail::add_variable_tag(&info_table);
+    }
+
+  private:
+    alignas(32) inline static const object_info_table info_table {
+      object_type<Variable>(),             //
+      sizeof(Variable),                    //
+      object_type_traits<Variable>::name,  //
+      detail::vtbl_destroy_func<Variable>, //
+      detail::vtbl_clone_func<Variable>};  //
+  };
+
   // ------------------------------------------
   // Lambda
 
@@ -68,7 +92,28 @@ namespace yave {
   /// TODO: Support templated version like TApply
   using Lambda = Box<lambda_object_value>;
 
-} // namespace yave
+  template <>
+  struct yave::object_type_traits<yave::Lambda>
+  {
+    static constexpr char name[] = "yave::Lambda";
+    static constexpr char uuid[] = "8295af91-2224-486f-9f62-c5c519595cf6";
+  };
 
-YAVE_DECL_TYPE(yave::Lambda, "8295af91-2224-486f-9f62-c5c519595cf6");
-YAVE_DECL_TYPE(yave::Variable, "a2697d3d-3e17-452e-ab95-051797b4cf76");
+  template <>
+  struct Lambda::info_table_initializer
+  {
+    static auto get_info_table() -> const object_info_table*
+    {
+      return detail::add_lambda_tag(&info_table);
+    }
+
+  private:
+    alignas(32) inline static const object_info_table info_table {
+      object_type<Lambda>(),             //
+      sizeof(Lambda),                    //
+      object_type_traits<Lambda>::name,  //
+      detail::vtbl_destroy_func<Lambda>, //
+      detail::vtbl_clone_func<Lambda>};  //
+  };
+
+} // namespace yave
