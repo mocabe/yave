@@ -10,16 +10,15 @@
 namespace yave {
 
   namespace detail {
-    struct id_X;
+    struct identity_X;
   }
 
   // id = \x.x
-  struct Id : Function<Id, detail::id_X, detail::id_X>
+  struct Identity : Function<Identity, detail::identity_X, detail::identity_X>
   {
     auto code() const -> return_type
     {
       return arg<0>();
     }
   };
-
 }
