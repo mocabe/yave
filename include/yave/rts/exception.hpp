@@ -85,13 +85,4 @@ namespace yave {
       detail::vtbl_clone_func<Exception>};  //
   };
 
-  // ------------------------------------------
-  // conversion
-
-  [[nodiscard]] inline auto to_Exception(const std::exception& e)
-    -> object_ptr<Exception>
-  {
-    return make_object<Exception>(e.what(), object_ptr(nullptr));
-  }
-
 } // namespace yave

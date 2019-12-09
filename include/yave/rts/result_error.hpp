@@ -15,7 +15,8 @@ namespace yave {
   enum class result_error_type : uint64_t
   {
     unknown     = 0,
-    null_result = 1,
+    null_result = 1, // return value is null
+    stdexcept   = 2, // detected std::exception
   };
 
   struct result_error_object_value
@@ -97,6 +98,20 @@ namespace yave {
   {
     // forward
     return e.exception();
+  }
+
+  [[nodiscard]] inline auto to_Exception(const std::exception& e)
+    -> object_ptr<Exception>
+  {
+    return make_object<Exception>(
+      e.what(), make_object<ResultError>(result_error_type::stdexcept));
+  }
+
+  [[nodiscard]] inline auto to_Exception()
+  {
+    return make_object<Exception>(
+      "Unknown exception detected while evaluation",
+      make_object<ResultError>(result_error_type::unknown));
   }
 
 } // namespace yave

@@ -93,9 +93,7 @@ namespace yave {
 
         /* unknown exception */
       } catch (...) {
-        return make_object<Exception>(
-          make_object<String>("Unknown exception thrown while evaluation"),
-          make_object<ResultError>(result_error_type::unknown));
+        return to_Exception();
       }
     }
 
