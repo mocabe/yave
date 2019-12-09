@@ -85,6 +85,9 @@ TEST_CASE("eval")
     {
       auto part = eval(f << new Int(42));
       auto term = part << new Int(24);
+      REQUIRE(part);
+      REQUIRE(term);
+      REQUIRE(type_of(part));
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 66);
       REQUIRE(*value_cast<Int>(eval(term)) == 66);
@@ -301,5 +304,41 @@ TEST_CASE("copy_apply_graph", "[rts][eval]")
       REQUIRE_NOTHROW(copy);
       REQUIRE(count == 4);
     }
+  }
+}
+
+TEST_CASE("Deep tree", "[rts][eval]")
+{
+  struct F : Function<F, closure<Int, Int>, Int, Int>
+  {
+    return_type code() const
+    {
+      return arg<0>() << arg<1>();
+    }
+  };
+
+  struct G : Function<G, Int, Int>
+  {
+    return_type code() const
+    {
+      return eval_arg<0>();
+    }
+  };
+
+  auto f = make_object<F>();
+  auto g = make_object<G>();
+
+  SECTION("100")
+  {
+    object_ptr<> app = f << g;
+    for (auto i = 0; i < 1000; ++i) {
+      app = f << app;
+    }
+    app = app << make_object<Int>(42);
+
+    REQUIRE(same_type(type_of(app), object_type<Int>()));
+
+    auto r = eval(app);
+    REQUIRE(*value_cast<Int>(r) == 42);
   }
 }
