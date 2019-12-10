@@ -251,6 +251,96 @@ TEST_CASE("eval")
       REQUIRE(*value_cast<Int>(eval(term)) == 55 * 2);
     }
   }
+
+  SECTION("lambda")
+  {
+    SECTION("lx.x")
+    {
+      auto var = make_object<Variable>();
+      auto lam = make_object<Lambda>(var, var);
+
+      auto app = lam << make_object<Int>(42);
+
+      REQUIRE_NOTHROW(check_type_dynamic<Int>(app));
+
+      REQUIRE(*value_cast<Int>(eval(app)) == 42);
+      REQUIRE(*value_cast<Int>(eval(app)) == 42);
+    }
+
+    SECTION("lx. id (id x)")
+    {
+      auto var = make_object<Variable>();
+      auto id  = make_object<Identity>();
+      auto lam = make_object<Lambda>(var, id << (id << var));
+
+      auto app = lam << make_object<Int>(42);
+
+      REQUIRE_NOTHROW(check_type_dynamic<Int>(app));
+
+      REQUIRE(*value_cast<Int>(eval(app)) == 42);
+      REQUIRE(*value_cast<Int>(eval(app)) == 42);
+    }
+
+    SECTION("lx.ly. f y x")
+    {
+      struct F : Function<F, Int, Double, Float>
+      {
+        return_type code() const
+        {
+          return make_object<Float>((float)(*eval_arg<0>() + *eval_arg<1>()));
+        }
+      };
+
+      auto f   = make_object<F>();
+      auto x   = make_object<Variable>();
+      auto y   = make_object<Variable>();
+      auto lam = make_object<Lambda>(x, make_object<Lambda>(y, f << y << x));
+
+      auto app = lam << make_object<Double>(42.0) << make_object<Int>(24);
+
+      REQUIRE_NOTHROW(check_type_dynamic<Float>(app));
+
+      REQUIRE(*value_cast<Float>(eval(app)) == 66);
+      REQUIRE(*value_cast<Float>(eval(app)) == 66);
+    }
+
+    SECTION("lx.ly.x y")
+    {
+      struct F : Function<F, Int, Double>
+      {
+        return_type code() const
+        {
+          return make_object<Double>(*eval_arg<0>() * 2.0);
+        }
+      };
+
+      auto f   = make_object<F>();
+      auto x   = make_object<Variable>();
+      auto y   = make_object<Variable>();
+      auto lam = make_object<Lambda>(x, make_object<Lambda>(y, x << y));
+
+      auto app = lam << f << make_object<Int>(42);
+
+      REQUIRE_NOTHROW(check_type_dynamic<Double>(app));
+
+      REQUIRE(*value_cast<Double>(eval(app)) == 84);
+      REQUIRE(*value_cast<Double>(eval(app)) == 84);
+    }
+
+    SECTION("lx.((ly.x) 1)")
+    {
+      auto x   = make_object<Variable>();
+      auto y   = make_object<Variable>();
+      auto lam = make_object<Lambda>(
+        x, make_object<Lambda>(y, x) << make_object<Int>(24));
+
+      auto app = lam << make_object<Int>(42);
+
+      REQUIRE_NOTHROW(check_type_dynamic<Int>(app));
+      REQUIRE(*value_cast<Int>(eval(app)) == 42);
+      REQUIRE(*value_cast<Int>(eval(app)) == 42);
+    }
+  }
 }
 
 TEST_CASE("copy_apply_graph", "[rts][eval]")
