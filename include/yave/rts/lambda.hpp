@@ -38,7 +38,7 @@ namespace yave {
   using Variable = Box<variable_object_value>;
 
   template <>
-  struct yave::object_type_traits<yave::Variable>
+  struct object_type_traits<yave::Variable>
   {
     static constexpr char name[] = "yave::Variable";
     static constexpr char uuid[] = "a2697d3d-3e17-452e-ab95-051797b4cf76";
@@ -109,7 +109,7 @@ namespace yave {
   using Lambda = Box<lambda_object_value>;
 
   template <>
-  struct yave::object_type_traits<yave::Lambda>
+  struct object_type_traits<yave::Lambda>
   {
     static constexpr char name[] = "yave::Lambda";
     static constexpr char uuid[] = "8295af91-2224-486f-9f62-c5c519595cf6";
