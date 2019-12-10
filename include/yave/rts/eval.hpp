@@ -60,11 +60,11 @@ namespace yave {
     /// Only allocates memory once at bottom, but uses more stack compared to
     /// incremental buffer allocation.
     [[nodiscard]] inline auto build_spine_stack(
-      object_ptr<const Object> next,
+      const object_ptr<const Object>& obj,
       size_t depth) -> std::
       pair<object_ptr<const Object>, std::vector<object_ptr<const Apply>>>
     {
-      if (auto apply = value_cast_if<Apply>(std::move(next))) {
+      if (auto apply = value_cast_if<Apply>(obj)) {
 
         auto& apply_storage = _get_storage(*apply);
 
@@ -80,8 +80,7 @@ namespace yave {
         return {std::move(bottom), std::move(stack)};
       }
 
-      auto stack = std::vector<object_ptr<const Apply>>(depth);
-      return {std::move(next), std::move(stack)};
+      return {obj, std::vector<object_ptr<const Apply>>(depth)};
     }
 
     /// instantiate lambda body with actual argument
@@ -115,11 +114,10 @@ namespace yave {
       return obj;
     }
 
-    [[nodiscard]] inline auto eval_spine(object_ptr<const Object> obj)
+    [[nodiscard]] inline auto eval_spine(const object_ptr<const Object>& obj)
       -> object_ptr<const Object>
     {
-      // exploit value_cast_if does not modify rvalue ref on fail
-      if (auto apply = value_cast_if<Apply>(std::move(obj))) {
+      if (auto apply = value_cast_if<Apply>(obj)) {
 
         auto& apply_storage = _get_storage(*apply);
 
@@ -138,14 +136,13 @@ namespace yave {
 
           // Handle lambda application
           // TODO: optimization
-          if (auto lam = value_cast_if<Lambda>(bottom)) {
-            // get next arg
+          if (auto lam = value_cast_if<Lambda>(std::move(bottom))) {
+            // arg vartebrae
             auto& vert = _get_storage(*stack.back());
-            auto arg   = vert.arg();
             // instantiate
             auto& storage = _get_storage(*lam);
-            auto inst     = instantiate_lambda_body(
-              storage.body, storage.var, std::move(arg));
+            auto inst =
+              instantiate_lambda_body(storage.body, storage.var, vert.arg());
 
             // eval body of lambda
             auto result = eval_obj(inst);
@@ -184,8 +181,8 @@ namespace yave {
           auto result = cfun->call();
 
           // detect exception
-          if (auto excpt = value_cast_if<Exception>(result))
-            throw exception_result(excpt);
+          if (auto e = value_cast_if<Exception>(std::move(result)))
+            throw exception_result(e);
 
           // completed
           if (stack.size() == arity)
@@ -203,39 +200,53 @@ namespace yave {
     }
 
     /// evaluate apply tree
-    [[nodiscard]] inline auto eval_obj(object_ptr<const Object> obj)
+    [[nodiscard]] inline auto eval_obj(const object_ptr<const Object>& obj)
       -> object_ptr<const Object>
     {
-      return eval_spine(std::move(obj));
+      return eval_spine(obj);
+    }
+
+    template <class T>
+    [[nodiscard]] inline auto eval_return(object_ptr<const Object> result)
+    {
+      assert(result);
+
+      // for gcc 7
+      constexpr auto type = type_of(get_term<T>(), false_c);
+
+      // run compile time type check
+      if constexpr (!is_tyerror(type)) {
+        // Currently object_ptr<T> MUST have type T which has compatible memory
+        // layout with actual object pointing to.
+        // Since it's impossible to decide memory layout of closure types,
+        // we convert it to ClosureProxy<...> which is essentially equal to to
+        // Object. Type variables are also undecidable so we just convert
+        // them to proxy.
+        using To =
+          std::add_const_t<typename decltype(guess_object_type(type))::type>;
+        // cast to resutn type
+        return static_object_cast<To>(std::move(result));
+      } else {
+        // fallback to object_ptr<>
+        return result;
+      }
     }
   } // namespace detail
 
   /// evaluate each apply node and replace with result
   template <class T>
-  [[nodiscard]] auto eval(object_ptr<T> obj)
+  [[nodiscard]] auto eval(const object_ptr<T>& obj)
+  {
+    auto result = detail::eval_obj(obj);
+    return detail::eval_return<T>(std::move(result));
+  }
+
+  /// evaluate each apply node and replace with result
+  template <class T>
+  [[nodiscard]] auto eval(object_ptr<T>&& obj)
   {
     auto result = detail::eval_obj(std::move(obj));
-    assert(result);
-
-    // for gcc 7
-    constexpr auto type = type_of(get_term<T>(), false_c);
-
-    // run compile time type check
-    if constexpr (!is_tyerror(type)) {
-      // Currently object_ptr<T> MUST have type T which has compatible memory
-      // layout with actual object pointing to.
-      // Since it's impossible to decide memory layout of closure types,
-      // we convert it to ClosureProxy<...> which is essentially equal to to
-      // Object. Type variables are also undecidable so we just convert
-      // them to proxy.
-      using To =
-        std::add_const_t<typename decltype(guess_object_type(type))::type>;
-      // cast to resutn type
-      return static_object_cast<To>(std::move(result));
-    } else {
-      // fallback to object_ptr<>
-      return result;
-    }
+    return detail::eval_return<T>(std::move(result));
   }
 
 } // namespace yave

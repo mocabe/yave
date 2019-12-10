@@ -24,7 +24,7 @@ namespace yave {
   namespace detail {
 
     // fwd
-    inline auto eval_obj(object_ptr<const Object> obj)
+    inline auto eval_obj(const object_ptr<const Object>& obj)
       -> object_ptr<const Object>;
 
     // ------------------------------------------
