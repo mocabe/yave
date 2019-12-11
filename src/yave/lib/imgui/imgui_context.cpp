@@ -870,13 +870,13 @@ namespace yave::imgui {
     ImGui::DestroyContext(imCtx);
   }
 
-  imgui_context::imgui_context(flags flags)
+  imgui_context::imgui_context(flags init_flags)
   {
     using namespace yave;
     init_logger();
 
     // create context
-    m_pimpl = std::make_unique<impl>(flags, 1280, 720, "imgui_context");
+    m_pimpl = std::make_unique<impl>(init_flags, 1280, 720, "imgui_context");
 
     /* init ImGui */
     {
