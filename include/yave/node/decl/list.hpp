@@ -16,9 +16,9 @@ namespace yave {
     /// Cons
     struct ListCons;
     /// Head
-    struct ListDecompose_Head;
+    struct ListHead;
     /// Tail
-    struct ListDecompose_Tail;
+    struct ListTail;
   } // namespace node
 
   template <>
@@ -52,7 +52,7 @@ namespace yave {
   };
 
   template <>
-  struct node_declaration_traits<node::ListDecompose_Head>
+  struct node_declaration_traits<node::ListHead>
   {
     static auto get_node_declaration() -> node_declaration
     {
@@ -67,7 +67,7 @@ namespace yave {
   };
 
   template <>
-  struct node_declaration_traits<node::ListDecompose_Tail>
+  struct node_declaration_traits<node::ListTail>
   {
     static auto get_node_declaration() -> node_declaration
     {

@@ -16,9 +16,9 @@ namespace yave {
   /// node_declaration for backend interface.
   /// Only for communication with backends.
   /// TODO: support composite node.
-  struct backend_node_declaration
+  struct external_backend_node_declaration
   {
-    backend_node_declaration(const node_declaration& decl)
+    external_backend_node_declaration(const node_declaration& decl)
     {
       m_name         = decl.name();
       m_type_classes = decl.type_classes();
@@ -91,27 +91,28 @@ namespace yave {
     [[maybe_unused]] uint32_t padding;             // 4
   };
 
-  static_assert(sizeof(backend_node_declaration) == 72);
+  static_assert(sizeof(external_backend_node_declaration) == 72);
 
   /// BackendNodeDeclaration
-  using BackendNodeDeclaration = Box<backend_node_declaration>;
+  using ExternalBackendNodeDeclaration = Box<external_backend_node_declaration>;
 
   /// List of node declaration
-  struct backend_node_declaration_list
+  struct external_backend_node_declaration_list
   {
-    vector<object_ptr<BackendNodeDeclaration>> list; // 16
+    vector<object_ptr<ExternalBackendNodeDeclaration>> list; // 16
   };
 
-  static_assert(sizeof(backend_node_declaration_list) == 16);
+  static_assert(sizeof(external_backend_node_declaration_list) == 16);
 
   /// BackendNodeDeclarationList
-  using BackendNodeDeclarationList = Box<backend_node_declaration_list>;
+  using ExternalBackendNodeDeclarationList =
+    Box<external_backend_node_declaration_list>;
 
 } // namespace yave
 
 YAVE_DECL_TYPE(
-  yave::BackendNodeDeclaration,
+  yave::ExternalBackendNodeDeclaration,
   "6e5d0ee-a903-4881-92e4-451ad415db96");
 YAVE_DECL_TYPE(
-  yave::BackendNodeDeclarationList,
+  yave::ExternalBackendNodeDeclarationList,
   "aa67c4c0-4419-406e-9080-a029bf6b291c");

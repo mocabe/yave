@@ -13,15 +13,15 @@ namespace yave {
   template <class Tag>
   struct node_declaration_traits
   {
-    /// Specialize this function to provide declaration of node.
-    static auto get_node_declaration() -> node_declaration;
+    // Specialize this function to provide declaration of node.
+    // static auto get_node_declaration() -> node_declaration;
   };
 
   template <class Tag, class BackendTag>
   struct node_definition_traits
   {
-    /// For overloaded functions, return list of definitions.
-    static auto get_node_definitions() -> std::vector<node_definition>;
+    // For overloaded functions, return list of definitions.
+    // static auto get_node_definitions() -> std::vector<node_definition>;
   };
 
   /// Get node declaration

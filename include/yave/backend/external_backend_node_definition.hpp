@@ -16,9 +16,9 @@ namespace yave {
   /// node_definition for backend interface.
   /// Only for communication with backends.
   /// Keep data types as binary compatible as possible.
-  struct backend_node_definition
+  struct external_backend_node_definition
   {
-    backend_node_definition(const node_definition& def)
+    external_backend_node_definition(const node_definition& def)
     {
       m_name          = def.name();
       m_output        = def.output_socket();
@@ -64,26 +64,27 @@ namespace yave {
     object_ptr<const Object> m_instanec_func; // 8
   };
 
-  static_assert(sizeof(backend_node_definition) == 56);
+  static_assert(sizeof(external_backend_node_definition) == 56);
 
   /// BackendNodeDefinition
-  using BackendNodeDefinition = Box<backend_node_definition>;
+  using ExternalBackendNodeDefinition = Box<external_backend_node_definition>;
 
   /// List of node definition
-  struct backend_node_definition_list
+  struct external_backend_node_definition_list
   {
-    vector<object_ptr<BackendNodeDefinition>> list; // 16
+    vector<object_ptr<ExternalBackendNodeDefinition>> list; // 16
   };
 
-  static_assert(sizeof(backend_node_definition_list) == 16);
+  static_assert(sizeof(external_backend_node_definition_list) == 16);
 
   /// BackendNodeDefinitionList
-  using BackendNodeDefinitionList = Box<backend_node_definition_list>;
+  using ExternalBackendNodeDefinitionList =
+    Box<external_backend_node_definition_list>;
 }
 
 YAVE_DECL_TYPE(
-  yave::BackendNodeDefinition,
+  yave::ExternalBackendNodeDefinition,
   "e6bdef71-b50f-4591-a6fc-ee99aa78ba4c");
 YAVE_DECL_TYPE(
-  yave::BackendNodeDefinitionList,
+  yave::ExternalBackendNodeDefinitionList,
   "a292b66b-e8c2-4cae-a02e-3de38fa38cb7");

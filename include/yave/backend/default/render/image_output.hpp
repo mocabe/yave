@@ -11,7 +11,7 @@
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_render {
 
     /// FrameBuffer -> FrameBuffer
     struct LayerImageOutput
@@ -23,12 +23,12 @@ namespace yave {
       }
     };
 
-  } // namespace backend::default_render
+  } // namespace backends::default_render
 
   template <>
   struct node_definition_traits<
     node::LayerImageOutput,
-    backend::tags::default_render>
+    backend_tags::default_render>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
@@ -37,7 +37,7 @@ namespace yave {
         info.name(),
         info.output_sockets()[0],
         make_object<
-          InstanceGetterFunction<backend::default_render::LayerImageOutput>>(),
+          InstanceGetterFunction<backends::default_render::LayerImageOutput>>(),
         info.name() + ": Image output node for layers")};
     }
   };

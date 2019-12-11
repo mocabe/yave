@@ -6,9 +6,9 @@
 #include <yave/node/compiler/node_compiler.hpp>
 #include <yave/node/scene/scene_graph.hpp>
 #include <yave/node/core/function.hpp>
-#include <yave/backend/default/render/primitive_constructor.hpp>
-#include <yave/backend/default/render/control_flow.hpp>
-#include <yave/backend/default/render/list.hpp>
+#include <yave/backend/default/common/primitive_constructor.hpp>
+#include <yave/backend/default/common/control_flow.hpp>
+#include <yave/backend/default/common/list.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
@@ -104,17 +104,16 @@ TEST_CASE("add", "[node_compiler]")
 
   auto add_defs = get_node_definitions<n::Add, test_backend>();
   auto int_defs =
-    get_node_definitions<node::Int, backend::tags::default_render>();
+    get_node_definitions<node::Int, backend_tags::default_common>();
   auto double_defs =
-    get_node_definitions<node::Double, backend::tags::default_render>();
+    get_node_definitions<node::Double, backend_tags::default_common>();
   auto bool_defs =
-    get_node_definitions<node::Bool, backend::tags::default_render>();
-  auto if_defs =
-    get_node_definitions<node::If, backend::tags::default_render>();
+    get_node_definitions<node::Bool, backend_tags::default_common>();
+  auto if_defs = get_node_definitions<node::If, backend_tags::default_common>();
   auto nil_defs =
-    get_node_definitions<node::ListNil, backend::tags::default_render>();
+    get_node_definitions<node::ListNil, backend_tags::default_common>();
   auto cons_defs =
-    get_node_definitions<node::ListCons, backend::tags::default_render>();
+    get_node_definitions<node::ListCons, backend_tags::default_common>();
 
   REQUIRE(decls.add(int_decl));
   REQUIRE(decls.add(add_decl));

@@ -7,11 +7,11 @@
 
 #include <yave/backend/default/config.hpp>
 #include <yave/node/core/primitive.hpp>
-#include <yave/backend/default/render/primitive_constructor.hpp>
+#include <yave/backend/default/common/primitive_constructor.hpp>
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_common {
 
     /// generator to create list of info for each type of primitive
     template <size_t N, class P, class R, class F>
@@ -29,23 +29,23 @@ namespace yave {
         return primitive_list_gen<N - 1, P>(result, func);
     }
 
-  } // namespace backend::default_render
+  } // namespace backends::default_common
 
   template <>
-  auto get_primitive_type<backend::tags::default_render>(const primitive_t& v)
+  auto get_primitive_type<backend_tags::default_common>(const primitive_t& v)
     -> object_ptr<const Type>
   {
     return std::visit(
       overloaded {[](const auto& p) {
         using value_type = std::decay_t<decltype(p)>;
         return object_type<
-          backend::default_render::PrimitiveConstructor<Box<value_type>>>();
+          backends::default_common::PrimitiveConstructor<Box<value_type>>>();
       }},
       v);
   }
 
   template <>
-  auto get_primitive_node_definition<backend::tags::default_render>(
+  auto get_primitive_node_definition<backend_tags::default_common>(
     const primitive_t& v) -> std::vector<node_definition>
   {
     return std::visit(
@@ -53,19 +53,19 @@ namespace yave {
         using value_type = std::decay_t<decltype(p)>;
         return get_node_definitions<
           node::PrimitiveConstructor<Box<value_type>>,
-          backend::tags::default_render>();
+          backend_tags::default_common>();
       }},
       v);
   }
 
   template <>
-  auto get_primitive_node_definitions<backend::tags::default_render>()
+  auto get_primitive_node_definitions<backend_tags::default_common>()
     -> std::vector<node_definition>
   {
     std::vector<node_definition> ret;
-    backend::default_render::
+    backends::default_common::
       primitive_list_gen<std::variant_size_v<primitive_t> - 1, primitive_t>(
-        ret, get_primitive_node_definition<backend::tags::default_render>);
+        ret, get_primitive_node_definition<backend_tags::default_common>);
     return ret;
   }
 

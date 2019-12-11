@@ -1,7 +1,7 @@
 # yave::backend::default::render
 
 add_library(yave-backend-default-render
-  system.cpp
+  backend.cpp
 )
 add_library(yave::backend::default::render ALIAS yave-backend-default-render)
 

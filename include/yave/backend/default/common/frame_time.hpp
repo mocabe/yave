@@ -11,7 +11,7 @@
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_common {
 
     /// FrameDemand -> FrameTime
     struct FrameTimeConstructor
@@ -23,10 +23,10 @@ namespace yave {
       }
     };
 
-  } // namespace backend::default_render
+  } // namespace backends::default_common
 
   template <>
-  struct node_definition_traits<node::FrameTime, backend::tags::default_render>
+  struct node_definition_traits<node::FrameTime, backend_tags::default_common>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
@@ -35,7 +35,7 @@ namespace yave {
         info.name(),
         info.output_sockets()[0],
         make_object<InstanceGetterFunction<
-          backend::default_render::FrameTimeConstructor>>(),
+          backends::default_common::FrameTimeConstructor>>(),
         info.name())};
     }
   };

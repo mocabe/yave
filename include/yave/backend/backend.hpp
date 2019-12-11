@@ -6,58 +6,55 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/backend/backend_info.hpp>
 #include <yave/node/core/node_declaration.hpp>
 #include <yave/node/core/node_definition.hpp>
 #include <yave/obj/scene/scene_config.hpp>
 #include <yave/support/id.hpp>
 
+#include <memory>
+
 namespace yave {
 
-  /// Backend instance controller.
-  /// This class manages communication between backends.
+  /// backend instance base
   class backend
   {
   public:
-    backend(const object_ptr<const BackendInfo>& info);
+    virtual ~backend() = default;
 
     /// Initialize backend
-    void init(const scene_config& config);
-
+    virtual void init(const scene_config& config) = 0;
     /// Shutdown backend
-    void deinit();
-
+    virtual void deinit() = 0;
     /// Update backend scene config
-    void update(const scene_config& config);
-
+    virtual void update(const scene_config& config) = 0;
     /// Initialized?
-    [[nodiscard]] bool initialized() const;
-
+    [[nodiscard]] virtual bool initialized() const = 0;
     /// Get additional declaration list
-    [[nodiscard]] auto get_node_declarations() const
-      -> std::vector<node_declaration>;
-
+    [[nodiscard]] virtual auto get_node_declarations() const
+      -> std::vector<node_declaration> = 0;
     /// Get additional definition list
-    [[nodiscard]] auto get_node_definitions() const
-      -> std::vector<node_definition>;
-
+    [[nodiscard]] virtual auto get_node_definitions() const
+      -> std::vector<node_definition> = 0;
     /// Get current scene_config of backend
-    [[nodiscard]] auto get_scene_config() const -> scene_config;
-
+    [[nodiscard]] virtual auto get_scene_config() const -> scene_config = 0;
     /// Get instance ID
-    [[nodiscard]] auto instance_id() const -> uid;
-
+    [[nodiscard]] virtual auto instance_id() const -> uid = 0;
     /// Get name of backend
-    [[nodiscard]] auto name() const -> std::string;
-
+    [[nodiscard]] virtual auto name() const -> std::string = 0;
     /// Get namespace UUID of backend
-    [[nodiscard]] auto backend_id() const -> uuid;
-
-  private:
-    object_ptr<const BackendInfo> m_backend_info;
-
-  private:
-    bool m_initialized;
-    uid m_instance_id;
+    [[nodiscard]] virtual auto backend_id() const -> uuid = 0;
   };
+
+  template <class BackendTag>
+  struct backend_traits
+  {
+    // static auto get_backend() -> std::unique_ptr<backend>
+  };
+
+  template <class BackendTag, class... Args>
+  [[nodiscard]] auto get_backend(Args&&... args) -> std::unique_ptr<backend>
+  {
+    return backend_traits<BackendTag>::get_backend(std::forward<Args>(args)...);
+  }
+
 } // namespace yave

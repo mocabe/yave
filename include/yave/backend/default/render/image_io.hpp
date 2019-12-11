@@ -12,7 +12,7 @@
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_render {
 
     /// Load image from file
     struct LoadImage : NodeFunction<LoadImage, FilesystemPath, Image>
@@ -24,10 +24,10 @@ namespace yave {
         return make_object<Image>(std::move(image));
       }
     };
-  } // namespace backend::default_render
+  } // namespace backends::default_render
 
   template <>
-  struct node_definition_traits<node::LoadImage, backend::tags::default_render>
+  struct node_definition_traits<node::LoadImage, backend_tags::default_render>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
@@ -36,7 +36,7 @@ namespace yave {
         info.name(),
         info.output_sockets()[0],
         make_object<
-          InstanceGetterFunction<backend::default_render::LoadImage>>(),
+          InstanceGetterFunction<backends::default_render::LoadImage>>(),
         info.name() + ": Load image from file")};
     }
   };

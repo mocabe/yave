@@ -10,7 +10,7 @@
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_render {
 
     struct KeyframeEvaluatorInt
       : NodeFunction<KeyframeEvaluatorInt, KeyframeDataInt, FrameTime, Int>
@@ -52,24 +52,24 @@ namespace yave {
         return make_object<Float>(static_cast<float>(v.value));
       }
     };
-  } // namespace backend::default_render
+  } // namespace backends::default_render
 
-#define YAVE_DEFAULT_RENDER_DEF_KEYFRAME_EVALUATOR(TYPE)                   \
-  template <>                                                              \
-  struct node_definition_traits<node::TYPE, backend::tags::default_render> \
-  {                                                                        \
-    static auto get_node_definitions() -> std::vector<node_definition>     \
-    {                                                                      \
-      auto info = get_node_declaration<node::TYPE>();                      \
-      auto name = info.name();                                             \
-      auto os   = info.output_sockets();                                   \
-                                                                           \
-      return {node_definition(                                             \
-        name,                                                              \
-        os[0],                                                             \
-        make_object<backend::default_render::TYPE>(),                      \
-        "Calculate value of keyframe at current frame.")};                 \
-    }                                                                      \
+#define YAVE_DEFAULT_RENDER_DEF_KEYFRAME_EVALUATOR(TYPE)                  \
+  template <>                                                             \
+  struct node_definition_traits<node::TYPE, backend_tags::default_render> \
+  {                                                                       \
+    static auto get_node_definitions() -> std::vector<node_definition>    \
+    {                                                                     \
+      auto info = get_node_declaration<node::TYPE>();                     \
+      auto name = info.name();                                            \
+      auto os   = info.output_sockets();                                  \
+                                                                          \
+      return {node_definition(                                            \
+        name,                                                             \
+        os[0],                                                            \
+        make_object<backends::default_render::TYPE>(),                    \
+        "Calculate value of keyframe at current frame.")};                \
+    }                                                                     \
   }
 
   YAVE_DEFAULT_RENDER_DEF_KEYFRAME_EVALUATOR(KeyframeEvaluatorInt);

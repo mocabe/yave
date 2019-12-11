@@ -11,7 +11,7 @@
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_common {
 
     namespace detail {
       struct If_X;
@@ -29,10 +29,10 @@ namespace yave {
       }
     };
 
-  } // namespace backend::default_render
+  } // namespace backends::default_common
 
   template <>
-  struct node_definition_traits<node::If, backend::tags::default_render>
+  struct node_definition_traits<node::If, backend_tags::default_common>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
@@ -40,7 +40,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         info.output_sockets()[0],
-        make_object<InstanceGetterFunction<backend::default_render::If>>(),
+        make_object<InstanceGetterFunction<backends::default_common::If>>(),
         info.name())};
     }
   };

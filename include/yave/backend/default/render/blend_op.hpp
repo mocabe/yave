@@ -12,7 +12,7 @@
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_render {
 
     struct BlendOpSrc
       : NodeFunction<BlendOpSrc, FrameBuffer, FrameBuffer, FrameBuffer>
@@ -164,21 +164,21 @@ namespace yave {
       }
     };
 
-  } // namespace backend::default_render
+  } // namespace backends::default_render
 
-#define YAVE_DEFAULT_RENDER_DEF_BLEND_OP(TYPE)                                \
-  template <>                                                                 \
-  struct node_definition_traits<node::TYPE, backend::tags::default_render>    \
-  {                                                                           \
-    static auto get_node_definitions() -> std::vector<node_definition>        \
-    {                                                                         \
-      auto info = get_node_declaration<node::TYPE>();                         \
-      return {node_definition(                                                \
-        info.name(),                                                          \
-        info.output_sockets()[0],                                             \
-        make_object<InstanceGetterFunction<backend::default_render::TYPE>>(), \
-        info.name())};                                                        \
-    }                                                                         \
+#define YAVE_DEFAULT_RENDER_DEF_BLEND_OP(TYPE)                                 \
+  template <>                                                                  \
+  struct node_definition_traits<node::TYPE, backend_tags::default_render>      \
+  {                                                                            \
+    static auto get_node_definitions() -> std::vector<node_definition>         \
+    {                                                                          \
+      auto info = get_node_declaration<node::TYPE>();                          \
+      return {node_definition(                                                 \
+        info.name(),                                                           \
+        info.output_sockets()[0],                                              \
+        make_object<InstanceGetterFunction<backends::default_render::TYPE>>(), \
+        info.name())};                                                         \
+    }                                                                          \
   }
 
   YAVE_DEFAULT_RENDER_DEF_BLEND_OP(BlendOpSrc);

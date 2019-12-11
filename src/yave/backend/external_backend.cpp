@@ -3,50 +3,59 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/backend/backend.hpp>
+#include <yave/backend/external_backend.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(backend)
+YAVE_DECL_G_LOGGER(external_backend)
 
 namespace yave {
 
-  backend::backend(const object_ptr<const BackendInfo>& info)
+  external_backend::external_backend(
+    const object_ptr<const ExternalBackendInfo>& info)
     : m_backend_info {info}
   {
     init_logger();
   }
 
-  void backend::init(const scene_config& config)
+  external_backend::~external_backend()
+  {
+  }
+
+  void external_backend::init(const scene_config& config)
   {
     if (m_initialized) {
-      Info(g_logger, "backend::init(): backend already initialized, ignored.");
+      Info(
+        g_logger,
+        "external_backend::init(): backend already initialized, ignored.");
       return;
     }
 
     m_instance_id = m_backend_info->init(config);
 
     if (m_instance_id == uid()) {
-      Error(g_logger, "backend::init(): Failed to initialize backend");
+      Error(g_logger, "external_backend::init(): Failed to initialize backend");
       throw std::runtime_error("Failed to initialized backend");
     }
 
     m_initialized = true;
   }
 
-  void backend::deinit()
+  void external_backend::deinit()
   {
     if (!m_initialized) {
-      Info(g_logger, "backend::deinit(): Not initialized, ignored.");
+      Info(g_logger, "external_backend::deinit(): Not initialized, ignored.");
       return;
     }
     m_backend_info->deinit(m_instance_id);
     m_initialized = false;
   }
 
-  void backend::update(const scene_config& config)
+  void external_backend::update(const scene_config& config)
   {
     if (!m_initialized) {
-      Warning(g_logger, "backend::update(): Backend not initialized, ignored.");
+      Warning(
+        g_logger,
+        "external_backend::update(): Backend not initialized, ignored.");
       return;
     }
     if (!m_backend_info->update(m_instance_id, config)) {
@@ -54,16 +63,18 @@ namespace yave {
     }
   }
 
-  bool backend::initialized() const
+  bool external_backend::initialized() const
   {
     return m_initialized;
   }
 
-  auto backend::get_node_declarations() const -> std::vector<node_declaration>
+  auto external_backend::get_node_declarations() const
+    -> std::vector<node_declaration>
   {
     if (!m_initialized) {
       Error(
-        g_logger, "backend::get_node_declarations(): Backend not initialized");
+        g_logger,
+        "external_backend::get_node_declarations(): Backend not initialized");
       throw std::runtime_error("Failed to get declaration list from backend");
     }
 
@@ -73,7 +84,8 @@ namespace yave {
     if (!decls) {
       Error(
         g_logger,
-        "backend::get_node_declarations(): Failed to get backend declarations");
+        "external_backend::get_node_declarations(): Failed to get backend "
+        "declarations");
       throw std::runtime_error("Failed to get declaration list from backend");
     }
 
@@ -84,11 +96,13 @@ namespace yave {
     return ret;
   }
 
-  auto backend::get_node_definitions() const -> std::vector<node_definition>
+  auto external_backend::get_node_definitions() const
+    -> std::vector<node_definition>
   {
     if (!m_initialized) {
       Error(
-        g_logger, "backend::get_node_definitions(): Backend not initialized");
+        g_logger,
+        "external_backend::get_node_definitions(): Backend not initialized");
       throw std::runtime_error("Failed to get definition list from backend");
     }
 
@@ -97,7 +111,8 @@ namespace yave {
 
     if (!defs) {
       Error(
-        g_logger, "backend::get_node_definitions(): Failed to get definitios");
+        g_logger,
+        "external_backend::get_node_definitions(): Failed to get definitios");
       throw std::runtime_error("Failed to get definition list from backend");
     }
 
@@ -108,27 +123,28 @@ namespace yave {
     return ret;
   }
 
-  auto backend::get_scene_config() const -> scene_config
+  auto external_backend::get_scene_config() const -> scene_config
   {
     if (!m_initialized) {
-      Error(g_logger, "backend::get_config(): Backend not initialized");
+      Error(
+        g_logger, "external_backend::get_config(): Backend not initialized");
       throw std::runtime_error("Failed to get scene config from backend");
     }
     return *m_backend_info->get_scene_config(m_instance_id);
   }
 
-  auto backend::instance_id() const -> uid
+  auto external_backend::instance_id() const -> uid
   {
     return m_instance_id;
   }
 
-  auto backend::name() const -> std::string
+  auto external_backend::name() const -> std::string
   {
     return m_backend_info->name();
   }
 
-  auto backend::backend_id() const -> uuid
+  auto external_backend::backend_id() const -> uuid
   {
     return m_backend_info->backend_id();
   }
-}
+} // namespace yave

@@ -14,16 +14,16 @@
 #include <yave/rts/box.hpp>
 #include <yave/support/id.hpp>
 
-#include <yave/backend/backend_node_definition.hpp>
-#include <yave/backend/backend_node_declaration.hpp>
+#include <yave/backend/external_backend_node_definition.hpp>
+#include <yave/backend/external_backend_node_declaration.hpp>
 
 namespace yave {
 
   /// backend info
-  struct backend_info
+  struct external_backend_info
   {
     // clang-format off
-    backend_info(
+    external_backend_info(
       const string& name,
       const uuid& backend_id,
       void* handle,
@@ -31,8 +31,8 @@ namespace yave {
       void (*fp_deinit)(void* handle, uid instance) noexcept,
       bool (*fp_update)(void* handle, uid instance, const scene_config& config) noexcept,
       auto (*fp_get_config)(void* handle, uid instance) noexcept -> object_ptr<SceneConfig>,
-      auto (*fp_get_declarations)(void* handle, uid instance) noexcept -> object_ptr<BackendNodeDeclarationList>,
-      auto (*fp_get_definitions)(void* handle, uid instance) noexcept -> object_ptr<BackendNodeDefinitionList>)
+      auto (*fp_get_declarations)(void* handle, uid instance) noexcept -> object_ptr<ExternalBackendNodeDeclarationList>,
+      auto (*fp_get_definitions)(void* handle, uid instance) noexcept -> object_ptr<ExternalBackendNodeDefinitionList>)
       : m_name {name}
       , m_backend_id {backend_id}
       , m_handle {handle}
@@ -74,14 +74,14 @@ namespace yave {
 
     /// Get list of declarations
     [[nodiscard]] auto get_node_declarations(uid instance) const noexcept
-      -> object_ptr<BackendNodeDeclarationList>
+      -> object_ptr<ExternalBackendNodeDeclarationList>
     {
       return m_fp_get_declarations(m_handle, instance);
     }
 
     /// Get list of definitions
     [[nodiscard]] auto get_node_definitions(uid instance) const noexcept
-      -> object_ptr<BackendNodeDefinitionList>
+      -> object_ptr<ExternalBackendNodeDefinitionList>
     {
       return m_fp_get_definitions(m_handle, instance);
     }
@@ -144,18 +144,20 @@ namespace yave {
     /// \note Should return nullptr on fail, otherwise return set of
     /// declarations required to compile scene graph.
     auto (*m_fp_get_declarations)(void* handle, uid instance) noexcept
-      -> object_ptr<BackendNodeDeclarationList>;
+      -> object_ptr<ExternalBackendNodeDeclarationList>;
 
     /// Get list of backend definitions.
     /// \note Should return nullptr on fail, otherwise return set of definitions
     /// required to compile scene graph.
     auto (*m_fp_get_definitions)(void* handle, uid instance) noexcept
-      -> object_ptr<BackendNodeDefinitionList>;
+      -> object_ptr<ExternalBackendNodeDefinitionList>;
   };
 
   /// BackendInfo
-  using BackendInfo = Box<backend_info>;
+  using ExternalBackendInfo = Box<external_backend_info>;
 
 } // namespace yave
 
-YAVE_DECL_TYPE(yave::BackendInfo, "85023810-49d6-4bc8-b9fc-22415164934c");
+YAVE_DECL_TYPE(
+  yave::ExternalBackendInfo,
+  "85023810-49d6-4bc8-b9fc-22415164934c");

@@ -10,12 +10,12 @@
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_common {
 
     class ListNil_X;
     class ListCons_X;
-    class ListDecompose_Head_X;
-    class ListDecompose_Tail_X;
+    class ListHead_X;
+    class ListTail_X;
 
     struct ListNil : NodeFunction<ListNil, List<forall<ListNil_X>>>
     {
@@ -39,10 +39,8 @@ namespace yave {
       }
     };
 
-    struct ListDecompose_Head : NodeFunction<
-                                  ListDecompose_Head,
-                                  List<forall<ListDecompose_Head_X>>,
-                                  forall<ListDecompose_Head_X>>
+    struct ListHead
+      : NodeFunction<ListHead, List<forall<ListHead_X>>, forall<ListHead_X>>
     {
       return_type code() const
       {
@@ -50,20 +48,20 @@ namespace yave {
       }
     };
 
-    struct ListDecompose_Tail : NodeFunction<
-                                  ListDecompose_Tail,
-                                  List<forall<ListDecompose_Tail_X>>,
-                                  List<forall<ListDecompose_Tail_X>>>
+    struct ListTail : NodeFunction<
+                        ListTail,
+                        List<forall<ListTail_X>>,
+                        List<forall<ListTail_X>>>
     {
       return_type code() const
       {
         return eval_arg<0>()->tail();
       }
     };
-  } // namespace backend::default_render
+  } // namespace backends::default_common
 
   template <>
-  struct node_definition_traits<node::ListNil, backend::tags::default_render>
+  struct node_definition_traits<node::ListNil, backend_tags::default_common>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
@@ -72,13 +70,13 @@ namespace yave {
         info.name(),
         info.output_sockets()[0],
         make_object<
-          InstanceGetterFunction<yave::backend::default_render::ListNil>>(),
+          InstanceGetterFunction<yave::backends::default_common::ListNil>>(),
         info.name())};
     }
   };
 
   template <>
-  struct node_definition_traits<node::ListCons, backend::tags::default_render>
+  struct node_definition_traits<node::ListCons, backend_tags::default_common>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
@@ -87,41 +85,37 @@ namespace yave {
         info.name(),
         info.output_sockets()[0],
         make_object<
-          InstanceGetterFunction<yave::backend::default_render::ListCons>>(),
+          InstanceGetterFunction<yave::backends::default_common::ListCons>>(),
         info.name())};
     }
   };
 
   template <>
-  struct node_definition_traits<
-    node::ListDecompose_Head,
-    backend::tags::default_render>
+  struct node_definition_traits<node::ListHead, backend_tags::default_common>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
-      auto info = get_node_declaration<node::ListDecompose_Head>();
+      auto info = get_node_declaration<node::ListHead>();
       return {node_definition(
         info.name(),
         info.output_sockets()[0],
-        make_object<InstanceGetterFunction<
-          yave::backend::default_render::ListDecompose_Head>>(),
+        make_object<
+          InstanceGetterFunction<yave::backends::default_common::ListHead>>(),
         info.name())};
     }
   };
 
   template <>
-  struct node_definition_traits<
-    node::ListDecompose_Tail,
-    backend::tags::default_render>
+  struct node_definition_traits<node::ListTail, backend_tags::default_common>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
-      auto info = get_node_declaration<node::ListDecompose_Tail>();
+      auto info = get_node_declaration<node::ListTail>();
       return {node_definition(
         info.name(),
         info.output_sockets()[0],
-        make_object<InstanceGetterFunction<
-          yave::backend::default_render::ListDecompose_Tail>>(),
+        make_object<
+          InstanceGetterFunction<yave::backends::default_common::ListTail>>(),
         info.name())};
     }
   };

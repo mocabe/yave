@@ -11,7 +11,7 @@
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_render {
 
     /// Node function for frame buffer
     struct FrameBufferConstructor
@@ -50,12 +50,10 @@ namespace yave {
       frame_buffer_manager* manager;
     };
 
-  } // namespace backend::default_render
+  } // namespace backends::default_render
 
   template <>
-  struct node_definition_traits<
-    node::FrameBuffer,
-    backend::tags::default_render>
+  struct node_definition_traits<node::FrameBuffer, backend_tags::default_render>
   {
     static auto get_node_definitions(frame_buffer_manager* mngr)
       -> std::vector<node_definition>
@@ -65,7 +63,7 @@ namespace yave {
         info.name(),
         info.output_sockets()[0],
         make_object<
-          yave::backend::default_render::FrameBufferConstructorGetterFunction>(
+          yave::backends::default_render::FrameBufferConstructorGetterFunction>(
           mngr),
         info.name())};
     }

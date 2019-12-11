@@ -11,7 +11,7 @@
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_render {
 
     /// Compositor
     struct LayerCompositor
@@ -29,12 +29,12 @@ namespace yave {
       }
     };
 
-  } // namespace backend::default_render
+  } // namespace backends::default_render
 
   template <>
   struct node_definition_traits<
     node::LayerCompositor,
-    backend::tags::default_render>
+    backend_tags::default_render>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
@@ -43,7 +43,7 @@ namespace yave {
         info.name(),
         info.output_sockets()[0],
         make_object<
-          InstanceGetterFunction<backend::default_render::LayerCompositor>>(),
+          InstanceGetterFunction<backends::default_render::LayerCompositor>>(),
         info.name() + ": composite layer outputs")};
     }
   };

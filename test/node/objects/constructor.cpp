@@ -7,14 +7,14 @@
 
 #include <yave/node/decl/constructor.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
-#include <yave/backend/default/render/primitive_constructor.hpp>
+#include <yave/backend/default/common/primitive_constructor.hpp>
 #include <yave/rts/eval.hpp>
 
 using namespace yave;
 
 TEST_CASE("Constructor")
 {
-  using IntConstructor = backend::default_render::PrimitiveConstructor<Int>;
+  using IntConstructor = backends::default_common::PrimitiveConstructor<Int>;
 
   auto i = make_object<PrimitiveContainer>(42);
 

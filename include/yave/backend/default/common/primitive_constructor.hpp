@@ -13,7 +13,7 @@
 
 namespace yave {
 
-  namespace backend::default_render {
+  namespace backends::default_common {
 
     /// Constructor (factory) function for primitive data types
     template <class T>
@@ -68,12 +68,12 @@ namespace yave {
       }
     };
 
-  } // namespace backend::default_render
+  } // namespace backends::default_common
 
   template <class T>
   struct node_definition_traits<
     node::PrimitiveConstructor<T>,
-    backend::tags::default_render>
+    backend_tags::default_common>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
@@ -83,7 +83,7 @@ namespace yave {
         info.name(),
         info.output_sockets()[0],
         make_object<
-          backend::default_render::PrimitiveGetterFunction<value_type>>(),
+          backends::default_common::PrimitiveGetterFunction<value_type>>(),
         info.name())};
     }
   };

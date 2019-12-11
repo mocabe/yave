@@ -3,14 +3,14 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/backend/default/render/list.hpp>
-#include <yave/backend/default/render/primitive.hpp>
+#include <yave/backend/default/common/list.hpp>
+#include <yave/backend/default/common/primitive.hpp>
 #include <catch2/catch.hpp>
 
 #include <iostream>
 
 using namespace yave;
-using namespace yave::backend::default_render;
+using namespace yave::backends::default_common;
 
 TEST_CASE("ListNil")
 {
@@ -25,7 +25,7 @@ TEST_CASE("ListNil")
   SECTION("bind")
   {
     auto defs =
-      get_node_definitions<node::ListNil, backend::tags::default_render>();
+      get_node_definitions<node::ListNil, backend_tags::default_common>();
     REQUIRE(same_type(get_type(nil), get_type(defs[0].get_instance(nullptr))));
   }
 }
@@ -43,14 +43,14 @@ TEST_CASE("ListCons")
   SECTION("bind")
   {
     auto defs =
-      get_node_definitions<node::ListCons, backend::tags::default_render>();
+      get_node_definitions<node::ListCons, backend_tags::default_common>();
     REQUIRE(same_type(get_type(cons), get_type(defs[0].get_instance(nullptr))));
   }
 }
 
-TEST_CASE("ListDecompose_Head")
+TEST_CASE("ListHead")
 {
-  auto head = make_object<ListDecompose_Head>();
+  auto head = make_object<ListHead>();
 
   SECTION("init")
   {
@@ -60,16 +60,15 @@ TEST_CASE("ListDecompose_Head")
 
   SECTION("bind")
   {
-    auto defs = get_node_definitions<
-      node::ListDecompose_Head,
-      backend::tags::default_render>();
+    auto defs =
+      get_node_definitions<node::ListHead, backend_tags::default_common>();
     REQUIRE(same_type(get_type(head), get_type(defs[0].get_instance(nullptr))));
   }
 }
 
-TEST_CASE("ListDecompose_Tail")
+TEST_CASE("ListTail")
 {
-  auto tail = make_object<ListDecompose_Tail>();
+  auto tail = make_object<ListTail>();
 
   SECTION("init")
   {
@@ -79,9 +78,8 @@ TEST_CASE("ListDecompose_Tail")
 
   SECTION("bind")
   {
-    auto defs = get_node_definitions<
-      node::ListDecompose_Tail,
-      backend::tags::default_render>();
+    auto defs =
+      get_node_definitions<node::ListTail, backend_tags::default_common>();
     REQUIRE(same_type(get_type(tail), get_type(defs[0].get_instance(nullptr))));
   }
 }
@@ -90,8 +88,8 @@ TEST_CASE("List")
 {
   auto nil  = make_object<ListNil>();
   auto cons = make_object<ListCons>();
-  auto head = make_object<ListDecompose_Head>();
-  auto tail = make_object<ListDecompose_Tail>();
+  auto head = make_object<ListHead>();
+  auto tail = make_object<ListTail>();
 
   auto i42 = make_object<PrimitiveConstructor<Int>>(
     make_object<PrimitiveContainer>((int)42));
