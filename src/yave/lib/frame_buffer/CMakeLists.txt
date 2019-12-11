@@ -1,7 +1,6 @@
 # yave::lib::frame_buffer
 
 add_library(yave-lib-frame_buffer
-  frame_buffer.cpp
   frame_buffer_manager.cpp
 )
 

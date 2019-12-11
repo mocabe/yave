@@ -16,7 +16,8 @@ namespace yave {
     uint32_t height,
     const image_format& format,
     const uuid& backend_id)
-    : m_format {format}
+    : m_mngr {}
+    , m_format {format}
     , m_width {width}
     , m_height {height}
   {
@@ -26,18 +27,16 @@ namespace yave {
     m_pool = make_object<FrameBufferPool>(
       (void*)this,
       backend_id,
-      [](void* handle, uint64_t sz) noexcept -> uid { return ((frame_buffer_manager*)handle)->create(sz); },
-      [](void* handle, uid id) noexcept -> uid      { return ((frame_buffer_manager*)handle)->create_from(id); },
-      [](void* handle, uid id) noexcept -> void     { return ((frame_buffer_manager*)handle)->ref(id); },
-      [](void* handle, uid id) noexcept -> void     { return ((frame_buffer_manager*)handle)->unref(id); },
-      [](void* handle, uid id) noexcept -> uint64_t { return ((frame_buffer_manager*)handle)->use_count(id); },
-      [](void* handle, uid id) noexcept -> uint8_t* { return ((frame_buffer_manager*)handle)->data(id); },
-      [](void* handle, uid id) noexcept -> uint64_t { return ((frame_buffer_manager*)handle)->size(id); },
-      [](void* handle) noexcept -> uid              { return ((frame_buffer_manager*)handle)->create(); },
-      [](void* handle) noexcept -> image_format     { return ((frame_buffer_manager*)handle)->format(); },
-      [](void* handle) noexcept -> uint32_t         { return ((frame_buffer_manager*)handle)->width(); },
-      [](void* handle) noexcept -> uint32_t         { return ((frame_buffer_manager*)handle)->height(); },
-      [](void* handle) noexcept -> uint64_t         { return ((frame_buffer_manager*)handle)->byte_size(); });
+      [](void* handle)              noexcept -> uint64_t     { return ((frame_buffer_manager*)handle)->create().data; },
+      [](void* handle, uint64_t id) noexcept -> uint64_t     { return ((frame_buffer_manager*)handle)->create_from({id}).data; },
+      [](void* handle, uint64_t id) noexcept -> void         { return ((frame_buffer_manager*)handle)->ref({id}); },
+      [](void* handle, uint64_t id) noexcept -> void         { return ((frame_buffer_manager*)handle)->unref({id}); },
+      [](void* handle, uint64_t id) noexcept -> uint64_t     { return ((frame_buffer_manager*)handle)->use_count({id}); },
+      [](void* handle, uint64_t id) noexcept -> uint8_t*     { return ((frame_buffer_manager*)handle)->data({id}); },
+      [](void* handle)              noexcept -> uint64_t     { return ((frame_buffer_manager*)handle)->size(); },
+      [](void* handle)              noexcept -> image_format { return ((frame_buffer_manager*)handle)->format(); },
+      [](void* handle)              noexcept -> uint32_t     { return ((frame_buffer_manager*)handle)->width(); },
+      [](void* handle)              noexcept -> uint32_t     { return ((frame_buffer_manager*)handle)->height(); });
 
     // clang-format on
   }
@@ -46,16 +45,62 @@ namespace yave {
   {
   }
 
+  frame_buffer_manager::frame_buffer_manager(
+    frame_buffer_manager&& other) noexcept
+  {
+    m_mngr   = std::move(other.m_mngr);
+    m_format = std::move(other.m_format);
+    m_width  = std::move(other.m_width);
+    m_height = std::move(other.m_height);
+    m_pool   = std::move(other.m_pool);
+  }
+
+  frame_buffer_manager& frame_buffer_manager::operator=(
+    frame_buffer_manager&& other) noexcept
+  {
+    m_mngr   = std::move(other.m_mngr);
+    m_format = std::move(other.m_format);
+    m_width  = std::move(other.m_width);
+    m_height = std::move(other.m_height);
+    m_pool   = std::move(other.m_pool);
+    return *this;
+  }
+
   uid frame_buffer_manager::create() noexcept
   {
     // Use channel size as alignment value, we can use much larger alignment
     // for SIMD supoprt.
-    return buffer_manager::create(byte_size(), byte_per_channel(m_format));
+    return m_mngr.create(size(), byte_per_channel(m_format));
   }
 
   uid frame_buffer_manager::create_from(uid id) noexcept
   {
-    return buffer_manager::create_from(id);
+    return m_mngr.create_from(id);
+  }
+
+  void frame_buffer_manager::ref(uid id) noexcept
+  {
+    m_mngr.ref(id);
+  }
+
+  void frame_buffer_manager::unref(uid id) noexcept
+  {
+    m_mngr.unref(id);
+  }
+
+  auto frame_buffer_manager::use_count(uid id) const noexcept -> uint64_t
+  {
+    return m_mngr.use_count(id);
+  }
+
+  auto frame_buffer_manager::data(uid id) const noexcept -> uint8_t*
+  {
+    return m_mngr.data(id);
+  }
+
+  auto frame_buffer_manager::size() const noexcept -> uint64_t
+  {
+    return byte_per_pixel(m_format) * m_width * m_height;
   }
 
   auto frame_buffer_manager::format() const noexcept -> image_format
@@ -71,11 +116,6 @@ namespace yave {
   auto frame_buffer_manager::height() const noexcept -> uint32_t
   {
     return m_height;
-  }
-
-  auto frame_buffer_manager::byte_size() const noexcept -> uint64_t
-  {
-    return byte_per_pixel(m_format) * m_width * m_height;
   }
 
   auto frame_buffer_manager::get_pool_object() const noexcept

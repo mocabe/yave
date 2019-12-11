@@ -7,6 +7,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/support/id.hpp>
+#include <yave/support/uuid.hpp>
 
 namespace yave {
 
@@ -17,13 +18,13 @@ namespace yave {
     buffer_pool(
       void* handle,
       const uuid& backend_id,
-      auto (*create)(void*, uint64_t) noexcept->uid,
-      auto (*create_from)(void* handle, uid parent) noexcept->uid,
-      void (*ref)(void* handle, uid id) noexcept,
-      void (*unref)(void* handle, uid id) noexcept,
-      auto (*get_use_count)(void* handle, uid id) noexcept->uint64_t,
-      auto (*get_data)(void* handle, uid) noexcept->uint8_t*,
-      auto (*get_size)(void* handle, uid) noexcept->uint64_t)
+      auto (*create)(void*, uint64_t) noexcept->uint64_t,
+      auto (*create_from)(void* handle, uint64_t parent) noexcept->uint64_t,
+      void (*ref)(void* handle, uint64_t id) noexcept,
+      void (*unref)(void* handle, uint64_t id) noexcept,
+      auto (*get_use_count)(void* handle, uint64_t id) noexcept->uint64_t,
+      auto (*get_data)(void* handle, uint64_t) noexcept->uint8_t*,
+      auto (*get_size)(void* handle, uint64_t) noexcept->uint64_t)
       : m_handle {handle}
       , m_backend_id {backend_id}
       , m_create {create}
@@ -55,54 +56,54 @@ namespace yave {
     }
 
     /// Create new buffer from old buffer
-    [[nodiscard]] auto create_from(const uid& id) const noexcept
+    [[nodiscard]] auto create_from(const uint64_t& id) const noexcept
     {
       return m_create_from(m_handle, id);
     }
 
     /// Increment reference count of buffer
-    [[nodiscard]] auto ref(const uid& id) const noexcept
+    [[nodiscard]] auto ref(const uint64_t& id) const noexcept
     {
       return m_ref(m_handle, id);
     }
 
     /// Decrement reference count of buffer
-    [[nodiscard]] auto unref(const uid& id) const noexcept
+    [[nodiscard]] auto unref(const uint64_t& id) const noexcept
     {
       return m_unref(m_handle, id);
     }
 
     /// Get use count
-    [[nodiscard]] auto get_use_count(const uid& id) const noexcept
+    [[nodiscard]] auto get_use_count(const uint64_t& id) const noexcept
     {
       return m_get_use_count(m_handle, id);
     }
 
     /// Access to data of buffer
-    [[nodiscard]] auto get_data(const uid& id) const noexcept
+    [[nodiscard]] auto get_data(const uint64_t& id) const noexcept
     {
       return m_get_data(m_handle, id);
     }
 
     /// Get size of buffer
-    [[nodiscard]] auto get_size(const uid& id) const noexcept
+    [[nodiscard]] auto get_size(const uint64_t& id) const noexcept
     {
       return m_get_size(m_handle, id);
     }
 
-  protected: /* buffer pool info */
+  private: /* buffer pool info */
     /// Handle to buffer pool object
     void* m_handle;
     /// Backend ID
     uuid m_backend_id;
 
-  protected: /* buffer pool function pointers */
+  private: /* buffer pool function pointers */
     /// Create new buffer of specified size.
     /// \note Should return valid (non-zero) ID even when `size == 0`.
     /// \note Should return 0 when allocation failed.
     /// \note Initial reference count should be 1.
     /// \note Should be thread safe.
-    auto (*m_create)(void* handle, uint64_t size) noexcept -> uid;
+    auto (*m_create)(void* handle, uint64_t size) noexcept -> uint64_t;
 
     /// Create new buffer cpyied from exising buffer.
     /// \note Should return 0 when `id` is invalid.
@@ -110,33 +111,33 @@ namespace yave {
     /// \note Should contain same data to parent buffer.
     /// \note Initial reference count should be 1.
     /// \note Should be thread safe.
-    auto (*m_create_from)(void* handle, uid id) noexcept -> uid;
+    auto (*m_create_from)(void* handle, uint64_t id) noexcept -> uint64_t;
 
     /// Increment reference count.
     /// \note Should be thread safe.
-    void (*m_ref)(void* handle, uid id) noexcept;
+    void (*m_ref)(void* handle, uint64_t id) noexcept;
 
     /// Decrement reference count.
     /// \note Deallocate buffer only when refcount is zero.
     /// \note Should always success, even on invalid IDs.
     /// \note Should be thread safe.
-    void (*m_unref)(void* handle, uid id) noexcept;
+    void (*m_unref)(void* handle, uint64_t id) noexcept;
 
     /// Get current use count.
     /// \note Should return 0 on invalid IDs.
     /// \note Should be thread safe.
-    auto (*m_get_use_count)(void* handle, uid id) noexcept -> uint64_t;
+    auto (*m_get_use_count)(void* handle, uint64_t id) noexcept -> uint64_t;
 
     /// Get data pointer.
     /// \note Should return nullptr on invalid IDs.
     /// \note Should return nullptr on zero sized buffers.
     /// \note Should return readable and writable pointer.
     /// \note Should be thread safe.
-    auto (*m_get_data)(void* handle, uid) noexcept -> uint8_t*;
+    auto (*m_get_data)(void* handle, uint64_t) noexcept -> uint8_t*;
 
     /// Get size of buffer.
     /// \note Should return 0 on invlid IDs.
     /// \note Should be thread safe.
-    auto (*m_get_size)(void* handle, uid) noexcept -> uint64_t;
+    auto (*m_get_size)(void* handle, uint64_t) noexcept -> uint64_t;
   };
 }

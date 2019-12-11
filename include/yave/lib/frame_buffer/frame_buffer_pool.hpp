@@ -7,59 +7,94 @@
 
 #include <yave/config/config.hpp>
 #include <yave/lib/image/image_format.hpp>
-#include <yave/lib/buffer/buffer_pool.hpp>
-#include <yave/support/id.hpp>
 #include <yave/support/uuid.hpp>
-
-#include <vector>
-#include <mutex>
 
 namespace yave {
 
   /// Frame buffer pool interface
-  struct frame_buffer_pool : buffer_pool
+  struct frame_buffer_pool
   {
-  protected:
-    using buffer_pool::create;
-
   public:
     frame_buffer_pool(
       void* handle,
       uuid backend_id,
-      auto (*create)(void*, uint64_t) noexcept->uid,
-      auto (*create_from)(void*, uid) noexcept->uid,
-      void (*ref)(void*, uid) noexcept,
-      void (*unref)(void*, uid) noexcept,
-      auto (*get_use_count)(void* handle, uid id) noexcept->uint64_t,
-      auto (*get_data)(void*, uid) noexcept->uint8_t*,
-      auto (*get_size)(void*, uid) noexcept->uint64_t,
-      auto (*create_fb)(void*) noexcept->uid,
+      auto (*create)(void*) noexcept->uint64_t,
+      auto (*create_from)(void*, uint64_t) noexcept->uint64_t,
+      void (*ref)(void*, uint64_t) noexcept,
+      void (*unref)(void*, uint64_t) noexcept,
+      auto (*get_use_count)(void* handle, uint64_t id) noexcept->uint64_t,
+      auto (*get_data)(void*, uint64_t) noexcept->uint8_t*,
+      auto (*get_size)(void*) noexcept->uint64_t,
       auto (*get_format)(void*) noexcept->image_format,
       auto (*get_width)(void*) noexcept->uint32_t,
-      auto (*get_height)(void*) noexcept->uint32_t,
-      auto (*get_byte_size)(void*) noexcept->uint64_t)
-      : buffer_pool(
-          handle,
-          backend_id,
-          create,
-          create_from,
-          ref,
-          unref,
-          get_use_count,
-          get_data,
-          get_size)
-      , m_create_fb {create_fb}
+      auto (*get_height)(void*) noexcept->uint32_t)
+      : m_handle {handle}
+      , m_backend_id {backend_id}
+      , m_create {create}
+      , m_create_from {create_from}
+      , m_ref {ref}
+      , m_unref {unref}
+      , m_get_use_count {get_use_count}
+      , m_get_data {get_data}
+      , m_get_size {get_size}
       , m_get_format {get_format}
       , m_get_width {get_width}
       , m_get_height {get_height}
-      , m_get_byte_size {get_byte_size}
     {
     }
 
-    /// Create new buffer
-    [[nodiscard]] auto create() const noexcept -> uid
+    /// Get buffer pool handle
+    [[nodiscard]] auto handle() const noexcept
     {
-      return m_create_fb(m_handle);
+      return m_handle;
+    }
+
+    /// Get backend ID
+    [[nodiscard]] auto backend_id() const noexcept
+    {
+      return m_backend_id;
+    }
+
+    /// Create new buffer
+    [[nodiscard]] auto create() const noexcept -> uint64_t
+    {
+      return m_create(m_handle);
+    }
+
+    /// Create new buffer from old buffer
+    [[nodiscard]] auto create_from(const uint64_t& id) const noexcept
+    {
+      return m_create_from(m_handle, id);
+    }
+
+    /// Increment reference count of buffer
+    [[nodiscard]] auto ref(const uint64_t& id) const noexcept
+    {
+      return m_ref(m_handle, id);
+    }
+
+    /// Decrement reference count of buffer
+    [[nodiscard]] auto unref(const uint64_t& id) const noexcept
+    {
+      return m_unref(m_handle, id);
+    }
+
+    /// Get use count
+    [[nodiscard]] auto get_use_count(const uint64_t& id) const noexcept
+    {
+      return m_get_use_count(m_handle, id);
+    }
+
+    /// Access to data of buffer
+    [[nodiscard]] auto get_data(const uint64_t& id) const noexcept
+    {
+      return m_get_data(m_handle, id);
+    }
+
+    /// Get size of buffer
+    [[nodiscard]] auto get_size() const noexcept
+    {
+      return m_get_size(m_handle);
     }
 
     /// Get image format
@@ -80,17 +115,40 @@ namespace yave {
       return m_get_height(m_handle);
     }
 
-    /// Get byte size of format
-    [[nodiscard]] auto byte_size() const noexcept -> uint64_t
-    {
-      return m_get_byte_size(m_handle);
-    }
+  protected: /* buffer pool info */
+    /// Handle to buffer pool object
+    void* m_handle;
+    /// Backend ID
+    uuid m_backend_id;
 
-  protected:
+  private:
+    // See buffer_pool's members for more detailed specifications for similar
+    // function pointers.
+
     /// Create new frame buffer
     /// \note Should always create buffer of same size, format, etc.
+    auto (*m_create)(void* handle) noexcept -> uint64_t;
+
+    /// Create new frame buffer cpyied from exising buffer.
+    /// \note Should return 0 when `id` is invalid.
     /// \note Should return 0 when allocation failed.
-    auto (*m_create_fb)(void* handle) noexcept -> uid;
+    auto (*m_create_from)(void* handle, uint64_t id) noexcept -> uint64_t;
+
+    /// Increment refcount
+    void (*m_ref)(void* handle, uint64_t id) noexcept;
+
+    /// Decrement reference count.
+    void (*m_unref)(void* handle, uint64_t id) noexcept;
+
+    /// Get current use count.
+    auto (*m_get_use_count)(void* handle, uint64_t id) noexcept -> uint64_t;
+
+    /// Get data pointer.
+    auto (*m_get_data)(void* handle, uint64_t) noexcept -> uint8_t*;
+
+    /// Get byte size of frame buffer.
+    /// \note Should return same value to cuurent frame buffer size.
+    auto (*m_get_size)(void* handle) noexcept -> uint64_t;
 
     /// Get format of frame buffer.
     /// \note Should always return same format.
@@ -103,9 +161,5 @@ namespace yave {
     /// Get height of frame buffer.
     /// \note Should return same value to current frame buffer size.
     auto (*m_get_height)(void* handle) noexcept -> uint32_t;
-
-    /// Get byte size of frame buffer.
-    /// \note Should return same value to cuurent frame buffer size.
-    auto (*m_get_byte_size)(void* handle) noexcept -> uint64_t;
   };
 } // namespace yave

@@ -130,15 +130,34 @@ namespace yave {
     m_pool = make_object<BufferPool>(
       (void*)this,
       m_backend_id,
-      [](void* handle, uint64_t size) noexcept { return ((buffer_manager*)handle)->create(size); },
-      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->create_from(id); },
-      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->ref(id); },
-      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->unref(id); },
-      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->use_count(id); },
-      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->data(id); },
-      [](void* handle, uid id) noexcept { return ((buffer_manager*)handle)->size(id); });
-    
-    // clang-format off
+      [](void* handle, uint64_t size) noexcept -> uint64_t { return ((buffer_manager*)handle)->create(size).data; },
+      [](void* handle, uint64_t id)   noexcept -> uint64_t { return ((buffer_manager*)handle)->create_from({id}).data; },
+      [](void* handle, uint64_t id)   noexcept -> void     { return ((buffer_manager*)handle)->ref({id}); },
+      [](void* handle, uint64_t id)   noexcept -> void     { return ((buffer_manager*)handle)->unref({id}); },
+      [](void* handle, uint64_t id)   noexcept -> uint64_t { return ((buffer_manager*)handle)->use_count({id}); },
+      [](void* handle, uint64_t id)   noexcept -> uint8_t* { return ((buffer_manager*)handle)->data({id}); },
+      [](void* handle, uint64_t id)   noexcept -> uint64_t { return ((buffer_manager*)handle)->size({id}); });
+
+    // clang-format on
+  }
+
+  buffer_manager::buffer_manager(buffer_manager&& other) noexcept
+  {
+    std::lock_guard lck {other.m_mtx};
+    m_id         = std::move(other.m_id);
+    m_data       = std::move(other.m_data);
+    m_backend_id = std::move(other.m_backend_id);
+    m_pool       = std::move(other.m_pool);
+  }
+
+  buffer_manager& buffer_manager::operator=(buffer_manager&& other) noexcept
+  {
+    std::lock_guard lck {other.m_mtx};
+    m_id         = std::move(other.m_id);
+    m_data       = std::move(other.m_data);
+    m_backend_id = std::move(other.m_backend_id);
+    m_pool       = std::move(other.m_pool);
+    return *this;
   }
 
   buffer_manager::~buffer_manager() noexcept
@@ -149,9 +168,9 @@ namespace yave {
     }
   }
 
-  uid buffer_manager::create(uint64_t size, uint64_t alignment) noexcept
+  auto buffer_manager::create(uint64_t size, uint64_t alignment) noexcept -> uid
   {
-    auto lck   = _lock();
+    auto lck = _lock();
 
     uid id     = uid::random_generate();
     auto* buff = allocate_buffer(size, alignment);
@@ -164,7 +183,7 @@ namespace yave {
     return id;
   }
 
-  uid buffer_manager::create_from(uid parent_id) noexcept
+  auto buffer_manager::create_from(uid parent_id) noexcept -> uid
   {
     auto lck = _lock();
 
