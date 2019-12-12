@@ -40,28 +40,27 @@ namespace yave {
       try {
 
         // code()
-        auto r = _this->code().value();
+        auto code_result = _this->code().value();
 
-        if (unlikely(!r))
+        if (unlikely(!code_result))
           throw result_error::null_result();
 
-        if (auto e = value_cast_if<Exception>(std::move(r)))
-          return e;
+        if (unlikely(has_type<Exception>(code_result)))
+          return code_result;
 
-        // only cache PAP or values (see comments in eval_spine()).
         // TODO: Since we know return type at compile time, we can directly
         // convert applications into PAP without loop by analyzing TApply
         // tree. Same on other return types; we can bypass some of runtime
         // type checks which may improve performance.
-        r = detail::eval_obj(std::move(r));
+        auto eval_result = detail::eval_obj(std::move(code_result));
 
-        // call self update method
-        r = _this->_self_update(std::move(r));
+        assert(eval_result);
+        assert(!has_type<Exception>(eval_result));
 
-        if (unlikely(!r))
-          throw result_error::null_result();
+        // save result
+        _this->_cache(eval_result);
 
-        return r;
+        return eval_result;
 
         /* cast error */
       } catch (const bad_value_cast& e) {
@@ -250,12 +249,10 @@ namespace yave {
 
   public: /* customization points */
     /// default self-update function.
-    auto _self_update(object_ptr<const Object> result) const noexcept
-      -> object_ptr<const Object>
+    void _cache(const object_ptr<const Object>& result) const noexcept
     {
       auto cthis = reinterpret_cast<const Closure<>*>(this);
       _get_storage(*cthis->vertebrae(0)).set_result(result);
-      return result;
     }
 
   private:

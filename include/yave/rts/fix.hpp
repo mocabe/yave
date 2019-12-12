@@ -43,11 +43,9 @@ namespace yave {
         object_ptr<const Object>(app));
     }
 
-    auto _self_update(object_ptr<const Object> result) const noexcept
-      -> object_ptr<const Object>
+    void _cache(const object_ptr<const Object>&) const noexcept
     {
       // bypass
-      return result;
     }
   };
 } // namespace yave

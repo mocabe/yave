@@ -146,6 +146,11 @@ namespace yave {
 
             // eval body of lambda
             auto result = eval_obj(inst);
+
+            assert(result);
+            assert(!has_type<Exception>(result));
+
+            // cache result
             vert.set_result(result);
 
             if (stack.size() == 1)
