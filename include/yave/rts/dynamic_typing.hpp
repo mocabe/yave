@@ -159,9 +159,9 @@ namespace yave {
 
   namespace detail {
 
-    inline auto same_type_impl(
+    inline bool same_type_impl(
       const object_ptr<const Type>& left,
-      const object_ptr<const Type>& right) -> bool
+      const object_ptr<const Type>& right)
     {
       if (left.get() == right.get())
         return true;
@@ -512,10 +512,10 @@ namespace yave {
         auto t2 = type_of_impl(storage.arg(), env);
 
         auto var = genvar();
-        auto cs  = std::vector {
-          type_constr {t1, make_object<Type>(arrow_type {t2, var})}};
-        auto as = unify(std::move(cs));
-        auto ty = subst_type_all(as, var);
+        auto cs  = std::vector {type_constr {
+          subst_type_all(env, t1), make_object<Type>(arrow_type {t2, var})}};
+        auto as  = unify(std::move(cs));
+        auto ty  = subst_type_all(as, var);
 
         auto end = std::remove_if(as.begin(), as.end(), [&](auto&& a) {
           return same_type(a.from, var);

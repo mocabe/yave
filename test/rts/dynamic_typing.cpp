@@ -627,6 +627,29 @@ TEST_CASE("lambda")
     REQUIRE(same_type(ty, object_type<Int>()));
   }
 
+  SECTION("lf.lx. f (f x)")
+  {
+    auto var1 = make_object<Variable>();
+    auto var2 = make_object<Variable>();
+    auto lam  = make_object<Lambda>(
+      var1, make_object<Lambda>(var2, var1 << (var1 << var2)));
+
+    // (x->x) -> (x->x)
+    auto ty = type_of(lam);
+    fmt::print("lf.lx.f (f x): {}\n", to_string(ty));
+
+    struct F : Function<F, Int, Int>
+    {
+      return_type code() const
+      {
+        throw;
+      }
+    };
+
+    auto app = lam << make_object<F>();
+    REQUIRE(same_type(type_of(app), object_type<closure<Int, Int>>()));
+  }
+
   SECTION("lx.((ly.x) 1)")
   {
     auto var1 = make_object<Variable>();
