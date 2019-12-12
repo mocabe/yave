@@ -597,11 +597,40 @@ namespace yave {
   // ------------------------------------------
   // has_type
 
+  namespace detail {
+
+    template <class T, class U>
+    bool has_type_impl(const object_ptr<U>& obj)
+    {
+      // Apply
+      if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
+        return likely(obj) && _get_storage(obj).is_apply();
+      }
+      // Exception
+      else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
+        return likely(obj) && _get_storage(obj).is_exception();
+      }
+      // Lambda
+      else if constexpr (std::is_same_v<std::decay_t<T>, Lambda>) {
+        return likely(obj) && _get_storage(obj).is_lambda();
+      }
+      // Variable
+      else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
+        return likely(obj) && _get_storage(obj).is_variable();
+      }
+      // general
+      else if constexpr (is_tm_value(get_term<T>())) {
+        return same_type(get_type(obj), object_type<T>());
+      } else
+        static_assert(false_v<T>, "T is not value type");
+    }
+
+  } // namespace detail
+
   /// has_type
   template <class T, class U>
   [[nodiscard]] bool has_type(const object_ptr<U>& obj)
   {
-    return same_type(get_type(obj), object_type<T>());
+    return detail::has_type_impl<T>(obj);
   }
-
 } // namespace yave

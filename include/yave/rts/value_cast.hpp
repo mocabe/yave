@@ -14,84 +14,6 @@
 
 namespace yave {
 
-  /// value_cast
-  ///
-  /// dynamically cast object to specified value type.
-  /// \throws bad_value_cast when fail.
-  template <class T, class U>
-  [[nodiscard]] auto value_cast(const object_ptr<U>& obj)
-    -> object_ptr<propagate_const_t<T, U>>
-  {
-    // Apply
-    if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
-      if (likely(obj && _get_storage(obj).is_apply()))
-        return static_object_cast<propagate_const_t<Apply, U>>(obj);
-    }
-    // Exception
-    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
-      if (likely(obj && _get_storage(obj).is_exception()))
-        return static_object_cast<propagate_const_t<Exception, U>>(obj);
-    }
-    // Lambda
-    else if constexpr (std::is_same_v<std::decay_t<T>, Lambda>) {
-      if (likely(obj && _get_storage(obj).is_lambda()))
-        return static_object_cast<propagate_const_t<Lambda, U>>(obj);
-    }
-    // Variable
-    else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
-      if (likely(obj && _get_storage(obj).is_variable()))
-        return static_object_cast<propagate_const_t<Variable, U>>(obj);
-    }
-    // general
-    else if constexpr (is_tm_value(get_term<T>())) {
-      if (likely(obj && has_type<T>(obj)))
-        return static_object_cast<propagate_const_t<T, U>>(obj);
-    } else
-      static_assert(false_v<T>, "T is not value type");
-
-    throw bad_value_cast(get_type(obj), object_type<T>());
-  }
-
-  /// value_cast
-  ///
-  /// dynamically cast object to specified value type.
-  /// \throws bad_value_cast when fail.
-  template <class T, class U>
-  [[nodiscard]] auto value_cast(object_ptr<U>&& obj)
-    -> object_ptr<propagate_const_t<T, U>>
-  {
-    // Apply
-    if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
-      if (likely(obj && _get_storage(obj).is_apply()))
-        return static_object_cast<propagate_const_t<Apply, U>>(std::move(obj));
-    }
-    // Exception
-    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
-      if (likely(obj && _get_storage(obj).is_exception()))
-        return static_object_cast<propagate_const_t<Exception, U>>(
-          std::move(obj));
-    }
-    // Lambda
-    else if constexpr (std::is_same_v<std::decay_t<T>, Lambda>) {
-      if (likely(obj && _get_storage(obj).is_lambda()))
-        return static_object_cast<propagate_const_t<Lambda, U>>(std::move(obj));
-    }
-    // Variable
-    else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
-      if (likely(obj && _get_storage(obj).is_variable()))
-        return static_object_cast<propagate_const_t<Variable, U>>(
-          std::move(obj));
-    }
-    // general
-    else if constexpr (is_tm_value(get_term<T>())) {
-      if (likely(obj && has_type<T>(obj)))
-        return static_object_cast<propagate_const_t<T, U>>(std::move(obj));
-    } else
-      static_assert(false_v<T>, "T is not value type");
-
-    throw bad_value_cast(get_type(obj), object_type<T>());
-  }
-
   /// value_cast_if
   ///
   /// dynamically cast object to specified value type.
@@ -100,32 +22,8 @@ namespace yave {
   [[nodiscard]] auto value_cast_if(const object_ptr<U>& obj) noexcept
     -> object_ptr<propagate_const_t<T, U>>
   {
-    // Apply
-    if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
-      if (likely(obj && _get_storage(obj).is_apply()))
-        return static_object_cast<propagate_const_t<Apply, U>>(obj);
-    }
-    // Exception
-    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
-      if (likely(obj && _get_storage(obj).is_exception()))
-        return static_object_cast<propagate_const_t<Exception, U>>(obj);
-    }
-    // Lambda
-    else if constexpr (std::is_same_v<std::decay_t<T>, Lambda>) {
-      if (likely(obj && _get_storage(obj).is_lambda()))
-        return static_object_cast<propagate_const_t<Lambda, U>>(obj);
-    }
-    // Variable
-    else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
-      if (likely(obj && _get_storage(obj).is_variable()))
-        return static_object_cast<propagate_const_t<Variable, U>>(obj);
-    }
-    // general
-    else if constexpr (is_tm_value(get_term<T>())) {
-      if (likely(obj && has_type<T>(obj)))
-        return static_object_cast<propagate_const_t<T, U>>(obj);
-    } else
-      static_assert(false_v<T>, "T is not value");
+    if (has_type<T>(obj))
+      return static_object_cast<propagate_const_t<T, U>>(obj);
 
     return nullptr;
   }
@@ -138,36 +36,38 @@ namespace yave {
   [[nodiscard]] auto value_cast_if(object_ptr<U>&& obj) noexcept
     -> object_ptr<propagate_const_t<T, U>>
   {
-    // Apply
-    if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
-      if (likely(obj && _get_storage(obj).is_apply()))
-        return static_object_cast<propagate_const_t<Apply, U>>(std::move(obj));
-    }
-    // Exception
-    else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
-      if (likely(obj && _get_storage(obj).is_exception()))
-        return static_object_cast<propagate_const_t<Exception, U>>(
-          std::move(obj));
-    }
-    // Lambda
-    else if constexpr (std::is_same_v<std::decay_t<T>, Lambda>) {
-      if (likely(obj && _get_storage(obj).is_lambda()))
-        return static_object_cast<propagate_const_t<Lambda, U>>(std::move(obj));
-    }
-    // Variable
-    else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
-      if (likely(obj && _get_storage(obj).is_variable()))
-        return static_object_cast<propagate_const_t<Variable, U>>(
-          std::move(obj));
-    }
-    // general
-    else if constexpr (is_tm_value(get_term<T>())) {
-      if (likely(obj && has_type<T>(obj)))
-        return static_object_cast<propagate_const_t<T, U>>(std::move(obj));
-    } else
-      static_assert(false_v<T>, "T is not value type");
+    if (has_type<T>(obj))
+      return static_object_cast<propagate_const_t<T, U>>(std::move(obj));
 
     return nullptr;
+  }
+
+  /// value_cast
+  ///
+  /// dynamically cast object to specified value type.
+  /// \throws bad_value_cast when fail.
+  template <class T, class U>
+  [[nodiscard]] auto value_cast(const object_ptr<U>& obj)
+    -> object_ptr<propagate_const_t<T, U>>
+  {
+    if (auto r = value_cast_if<T>(obj))
+      return r;
+
+    throw bad_value_cast(get_type(obj), object_type<T>());
+  }
+
+  /// value_cast
+  ///
+  /// dynamically cast object to specified value type.
+  /// \throws bad_value_cast when fail.
+  template <class T, class U>
+  [[nodiscard]] auto value_cast(object_ptr<U>&& obj)
+    -> object_ptr<propagate_const_t<T, U>>
+  {
+    if (auto r = value_cast_if<T>(std::move(obj)))
+      return r;
+
+    throw bad_value_cast(get_type(obj), object_type<T>());
   }
 
 } // namespace yave
