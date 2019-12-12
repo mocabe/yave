@@ -17,7 +17,7 @@ namespace yave {
   [[nodiscard]] inline auto get_type(const object_ptr<const Object>& obj)
     -> object_ptr<const Type>
   {
-    if (obj)
+    if (likely(obj))
       return _get_storage(obj).this_info_table()->obj_type;
     else
       return object_type<Undefined>();
@@ -28,7 +28,7 @@ namespace yave {
   [[nodiscard]] inline auto get_name(const object_ptr<const Object>& obj)
     -> const char*
   {
-    if (obj)
+    if (likely(obj))
       return _get_storage(obj).this_info_table()->obj_name;
     else
       return object_type_traits<Undefined>::name;
@@ -39,7 +39,7 @@ namespace yave {
   [[nodiscard]] inline auto get_size(const object_ptr<const Object>& obj)
     -> uint64_t
   {
-    if (obj)
+    if (likely(obj))
       return _get_storage(obj).this_info_table()->obj_size;
     else
       return 0;
