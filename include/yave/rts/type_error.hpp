@@ -166,7 +166,7 @@ namespace yave {
   // ------------------------------------------
   // Type errors
 
-  [[nodiscard]] inline auto to_Exception(const type_error::type_error& e)
+  [[nodiscard]] inline auto make_exception(const type_error::type_error& e)
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
@@ -177,7 +177,7 @@ namespace yave {
         object_type<Undefined>()));
   }
 
-  [[nodiscard]] inline auto to_Exception(
+  [[nodiscard]] inline auto make_exception(
     const type_error::unbounded_variable& e) -> object_ptr<Exception>
   {
     return make_object<Exception>(
@@ -188,7 +188,7 @@ namespace yave {
         object_type<Undefined>()));
   }
 
-  [[nodiscard]] inline auto to_Exception(
+  [[nodiscard]] inline auto make_exception(
     const type_error::circular_constraint& e) -> object_ptr<Exception>
   {
     return make_object<Exception>(
@@ -199,7 +199,7 @@ namespace yave {
         e.var()));
   }
 
-  [[nodiscard]] inline auto to_Exception(const type_error::type_missmatch& e)
+  [[nodiscard]] inline auto make_exception(const type_error::type_missmatch& e)
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
@@ -208,7 +208,7 @@ namespace yave {
         type_error_type::type_missmatch, e.expected(), e.provided()));
   }
 
-  [[nodiscard]] inline auto to_Exception(const type_error::bad_type_check& e)
+  [[nodiscard]] inline auto make_exception(const type_error::bad_type_check& e)
     -> object_ptr<Exception>
   {
     return make_object<Exception>(

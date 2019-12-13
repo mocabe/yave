@@ -53,14 +53,14 @@ namespace yave {
 
   } // namespace result_error
 
-  [[nodiscard]] inline auto to_Exception(const result_error::result_error& e)
+  [[nodiscard]] inline auto make_exception(const result_error::result_error& e)
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(), make_object<ResultError>(result_error_type::unknown));
   }
 
-  [[nodiscard]] inline auto to_Exception(const result_error::null_result& e)
+  [[nodiscard]] inline auto make_exception(const result_error::null_result& e)
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
@@ -93,21 +93,21 @@ namespace yave {
   // ------------------------------------------
   // conversion
 
-  [[nodiscard]] inline auto to_Exception(const exception_result& e)
+  [[nodiscard]] inline auto make_exception(const exception_result& e)
     -> object_ptr<const Exception>
   {
     // forward
     return e.exception();
   }
 
-  [[nodiscard]] inline auto to_Exception(const std::exception& e)
+  [[nodiscard]] inline auto make_exception(const std::exception& e)
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
       e.what(), make_object<ResultError>(result_error_type::stdexcept));
   }
 
-  [[nodiscard]] inline auto to_Exception()
+  [[nodiscard]] inline auto make_exception()
   {
     return make_object<Exception>(
       "Unknown exception detected while evaluation",

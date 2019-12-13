@@ -64,35 +64,35 @@ namespace yave {
 
         /* cast error */
       } catch (const bad_value_cast& e) {
-        return to_Exception(e);
+        return make_exception(e);
 
         /* type error */
       } catch (const type_error::circular_constraint& e) {
-        return to_Exception(e);
+        return make_exception(e);
       } catch (const type_error::type_missmatch& e) {
-        return to_Exception(e);
+        return make_exception(e);
       } catch (const type_error::bad_type_check& e) {
-        return to_Exception(e);
+        return make_exception(e);
       } catch (const type_error::type_error& e) {
-        return to_Exception(e);
+        return make_exception(e);
 
         /* result error */
       } catch (const result_error::null_result& e) {
-        return to_Exception(e);
+        return make_exception(e);
       } catch (const result_error::result_error& e) {
-        return to_Exception(e);
+        return make_exception(e);
 
         /* exception result transfer */
       } catch (const exception_result& e) {
-        return to_Exception(e);
+        return make_exception(e);
 
         /* std::exception */
       } catch (const std::exception& e) {
-        return to_Exception(e);
+        return make_exception(e);
 
         /* unknown exception */
       } catch (...) {
-        return to_Exception();
+        return make_exception();
       }
     }
 
