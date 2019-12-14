@@ -52,13 +52,13 @@ namespace yave {
 
     /// Find definition
     [[nodiscard]] auto find(const std::string& name) const
-      -> std::vector<std::shared_ptr<node_definition>>;
+      -> std::vector<std::shared_ptr<const node_definition>>;
 
     /// Get compatible binds
     [[nodiscard]] auto get_binds(
       const std::string& name,
       const std::string& output_socket) const
-      -> std::vector<std::shared_ptr<node_definition>>;
+      -> std::vector<std::shared_ptr<const node_definition>>;
 
     /// Clear
     void clear();

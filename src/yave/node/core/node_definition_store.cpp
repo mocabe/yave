@@ -94,9 +94,9 @@ namespace yave {
   }
 
   auto node_definition_store::find(const std::string& name) const
-    -> std::vector<std::shared_ptr<node_definition>>
+    -> std::vector<std::shared_ptr<const node_definition>>
   {
-    std::vector<std::shared_ptr<node_definition>> ret;
+    std::vector<std::shared_ptr<const node_definition>> ret;
 
     auto [b, e] = m_map.equal_range(name);
 
@@ -109,9 +109,9 @@ namespace yave {
   auto node_definition_store::get_binds(
     const std::string& name,
     const std::string& os) const
-    -> std::vector<std::shared_ptr<node_definition>>
+    -> std::vector<std::shared_ptr<const node_definition>>
   {
-    std::vector<std::shared_ptr<node_definition>> ret;
+    std::vector<std::shared_ptr<const node_definition>> ret;
 
     auto [b, e] = m_map.equal_range(name);
 

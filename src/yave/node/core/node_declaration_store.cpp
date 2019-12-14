@@ -82,14 +82,14 @@ namespace yave {
   }
 
   auto node_declaration_store::find(const std::string& name) const
-    -> std::shared_ptr<node_declaration>
+    -> std::shared_ptr<const node_declaration>
   {
     auto iter = m_map.find(name);
 
-    if (iter != m_map.end())
-      return iter->second;
+    if (iter == m_map.end())
+      return nullptr;
 
-    return nullptr;
+    return iter->second;
   }
 
   void node_declaration_store::remove(const std::string& name)
