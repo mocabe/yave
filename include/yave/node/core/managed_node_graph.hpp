@@ -10,7 +10,7 @@
 #include <yave/node/core/managed_node_info.hpp>
 #include <yave/node/core/managed_socket_info.hpp>
 #include <yave/node/core/managed_connection_info.hpp>
-#include <yave/node/core/node_declaration_store.hpp>
+#include <yave/node/core/node_info_store.hpp>
 
 namespace yave {
 
@@ -32,18 +32,17 @@ namespace yave {
     managed_node_graph& operator=(managed_node_graph&&) noexcept;
 
   public: /* node info registration */
-    /// register new node decl
-    [[nodiscard]] bool register_node_declaration(const node_declaration&);
+    /// register new node info
+    [[nodiscard]] bool register_node_info(const node_info&);
 
-    /// register new node decls
-    [[nodiscard]] bool register_node_declaration(
-      const std::vector<node_declaration>&);
+    /// register new node info
+    [[nodiscard]] bool register_node_info(const std::vector<node_info>&);
 
-    /// unregister node decl
-    void unregister_node_declaration(const std::string&);
+    /// unregister node info
+    void unregister_node_info(const std::string&);
 
-    /// unregister node decls
-    void unregister_node_declaration(const std::vector<std::string>&);
+    /// unregister node info
+    void unregister_node_info(const std::vector<std::string>&);
 
   public: /* node grouping features */
     /// Create new group
@@ -149,14 +148,6 @@ namespace yave {
     [[nodiscard]] auto get_name(const socket_handle& socket) const
       -> std::optional<std::string>;
 
-    /// Get node declaration
-    [[nodiscard]] auto get_declaration(const node_handle& node) const
-      -> std::optional<node_declaration>;
-
-    /// Get socket type class
-    [[nodiscard]] auto get_type_class(const socket_handle& socket) const
-      -> object_ptr<const Type>;
-
   public:
     /// create new node
     [[nodiscard]] auto create(
@@ -251,7 +242,7 @@ namespace yave {
 
   private:
     node_graph m_ng;
-    node_declaration_store m_nim;
+    node_info_store m_nim;
 
   private:
     std::map<node_handle, node_group> m_groups;

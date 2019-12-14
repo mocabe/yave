@@ -101,10 +101,10 @@ namespace yave {
 
     // register group node info
     if (
-      !m_nim.add(get_node_declaration<node::NodeGroupInterface>()) ||
-      !m_nim.add(get_node_declaration<node::NodeGroupInput>()) ||
-      !m_nim.add(get_node_declaration<node::NodeGroupOutput>()) ||
-      !m_nim.add(get_node_declaration<node::NodeGroupIOBit>()))
+      !m_nim.add(to_node_info(get_node_declaration<node::NodeGroupInterface>())) ||
+      !m_nim.add(to_node_info(get_node_declaration<node::NodeGroupInput>())) ||
+      !m_nim.add(to_node_info(get_node_declaration<node::NodeGroupOutput>())) ||
+      !m_nim.add(to_node_info(get_node_declaration<node::NodeGroupIOBit>())))
       throw std::runtime_error("Failed to register node info");
 
     // initialize root group
@@ -161,24 +161,23 @@ namespace yave {
 
   /* reg/unreg */
 
-  bool managed_node_graph::register_node_declaration(
-    const node_declaration& decl)
+  bool managed_node_graph::register_node_info(const node_info& info)
   {
-    return m_nim.add(decl);
+    return m_nim.add(info);
   }
 
-  bool managed_node_graph::register_node_declaration(
-    const std::vector<node_declaration>& decls)
+  bool managed_node_graph::register_node_info(
+    const std::vector<node_info>& info)
   {
-    return m_nim.add(decls);
+    return m_nim.add(info);
   }
 
-  void managed_node_graph::unregister_node_declaration(const std::string& name)
+  void managed_node_graph::unregister_node_info(const std::string& name)
   {
     return m_nim.remove(name);
   }
 
-  void managed_node_graph::unregister_node_declaration(
+  void managed_node_graph::unregister_node_info(
     const std::vector<std::string>& names)
   {
     m_nim.remove(names);
@@ -1039,71 +1038,6 @@ namespace yave {
     return m_ng.get_name(socket);
   }
 
-  auto managed_node_graph::get_declaration(const node_handle& node) const
-    -> std::optional<node_declaration>
-  {
-    if (!exists(node))
-      return std::nullopt;
-
-    auto name = *m_ng.get_name(node);
-
-    auto decl = m_nim.find(name);
-
-    if (!decl)
-      return std::nullopt;
-
-    return *decl;
-  }
-
-  auto managed_node_graph::get_type_class(const socket_handle& socket) const
-    -> object_ptr<const Type>
-  {
-    if (!exists(socket))
-      return object_type<Undefined>();
-
-    auto info = *m_ng.get_info(socket);
-    auto name = *m_ng.get_name(info.node());
-
-    auto decl = m_nim.find(name);
-
-    if (!decl)
-      return object_type<Undefined>();
-
-    // is
-    if (info.type() == socket_type::input) {
-
-      auto ts = flatten(generalize(decl->type_classes()));
-
-      size_t idx = ranges::distance(
-        decl->input_sockets().begin(),
-        ranges::find(decl->input_sockets(), info.name()));
-
-      if (idx == decl->input_sockets().size())
-        return object_type<Undefined>();
-
-      assert(idx < ts.size());
-
-      return ts[idx];
-    }
-
-    // os
-    if (info.type() == socket_type::output) {
-
-      size_t idx = ranges::distance(
-        decl->output_sockets().begin(),
-        ranges::find(decl->output_sockets(), info.name()));
-
-      if (idx == decl->output_sockets().size())
-        return object_type<Undefined>();
-
-      assert(idx < decl->type_classes().size());
-
-      return decl->type_classes()[idx];
-    }
-
-    return object_type<Undefined>();
-  }
-
   /* create/connect */
 
   auto managed_node_graph::create(
@@ -1111,9 +1045,9 @@ namespace yave {
     const std::string& name) -> node_handle
   {
     // find declaration
-    auto decl = m_nim.find(name);
+    auto info = m_nim.find(name);
 
-    if (!decl) {
+    if (!info) {
       Error(g_logger, "Failed to create node: No such declaration: {}", name);
       return {nullptr};
     }
@@ -1135,8 +1069,7 @@ namespace yave {
 
     // non-composite nodes
     {
-      auto info = to_node_info(*decl);
-      auto node = m_ng.add(info);
+      auto node = m_ng.add(*info);
 
       assert(node);
 
