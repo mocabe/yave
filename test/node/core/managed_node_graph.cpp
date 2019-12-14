@@ -81,15 +81,9 @@ TEST_CASE("group with content")
 {
   managed_node_graph ng;
 
-  auto decl = node_declaration(
-    "node",
-    {"0", "1", "2"},
-    {"0", "1"},
-    {object_type<node_closure<Int, Double, Int, Double>>(),
-     object_type<node_closure<Int, Int, Int, Int>>()},
-    node_type::normal);
+  auto decl = node_info("node", {"0", "1", "2"}, {"0", "1"}, node_type::normal);
 
-  REQUIRE(ng.register_node_declaration(decl));
+  REQUIRE(ng.register_node_info(decl));
 
   SECTION("simple")
   {
@@ -331,27 +325,6 @@ TEST_CASE("group with content")
 
       ng.ungroup(g);
       REQUIRE(ng.get_node_graph().nodes().size() == 8);
-    }
-  }
-
-  SECTION("util")
-  {
-    auto n = ng.create(ng.root_group(), "node");
-    REQUIRE(n);
-    REQUIRE(ng.get_declaration(n)->name() == decl.name());
-
-    auto os = ng.output_sockets(n);
-    auto is = ng.input_sockets(n);
-
-    REQUIRE(ng.get_type_class(os[0]) == decl.type_classes()[0]);
-    REQUIRE(ng.get_type_class(os[1]) == decl.type_classes()[1]);
-
-    for (auto&& s : os) {
-      fmt::print("os: {}\n", to_string(ng.get_type_class(s)));
-    }
-
-    for (auto&& s : is) {
-      fmt::print("is: {}\n", to_string(ng.get_type_class(s)));
     }
   }
 }
