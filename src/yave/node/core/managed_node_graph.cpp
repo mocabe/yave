@@ -100,26 +100,41 @@ namespace yave {
     assert(!m_root_group);
 
     // register group node info
-    if (
-      !m_nim.add(to_node_info(get_node_declaration<node::NodeGroupInterface>())) ||
-      !m_nim.add(to_node_info(get_node_declaration<node::NodeGroupInput>())) ||
-      !m_nim.add(to_node_info(get_node_declaration<node::NodeGroupOutput>())) ||
-      !m_nim.add(to_node_info(get_node_declaration<node::NodeGroupIOBit>())))
+    std::vector info = {
+      to_node_info(get_node_declaration<node::NodeGroupInterface>()),
+      to_node_info(get_node_declaration<node::NodeGroupInput>()),
+      to_node_info(get_node_declaration<node::NodeGroupOutput>()),
+      to_node_info(get_node_declaration<node::NodeGroupIOBit>())};
+
+    if (!m_nim.add(info))
       throw std::runtime_error("Failed to register node info");
 
     // initialize root group
     {
-      m_root_group = m_ng.add(
+      auto root_group = m_ng.add(
         to_node_info(get_node_declaration<node::NodeGroupInterface>()));
+      auto root_input_handler =
+        m_ng.add(to_node_info(get_node_declaration<node::NodeGroupInput>()));
+      auto root_output_handler =
+        m_ng.add(to_node_info(get_node_declaration<node::NodeGroupOutput>()));
 
-      assert(m_root_group);
+      if (!root_group || !root_input_handler || !root_output_handler)
+        throw std::runtime_error("Failed to create root group interface");
 
-      // root group doesn't have input/output handler
-      [[maybe_unused]] auto [it, succ] = m_groups.emplace(
-        m_root_group,
-        node_group {nullptr, {}, m_root_group, {nullptr}, {}, {nullptr}, {}});
+      auto [it, succ] = m_groups.emplace(
+        root_group,
+        node_group {nullptr,
+                    {},
+                    root_group,
+                    root_input_handler,
+                    {},
+                    root_output_handler,
+                    {}});
 
-      assert(succ);
+      if (!succ)
+        throw std::runtime_error("Failed to create root group");
+
+      m_root_group = root_group;
     }
   }
 
@@ -239,7 +254,7 @@ namespace yave {
   {
     const auto* _this = this;
     auto cg           = _this->_find_parent_group(node);
-    return const_cast<node_group*>(cg); // I'm sorry!
+    return const_cast<node_group*>(cg); // FIXME
   }
 
   auto managed_node_graph::group(
@@ -275,11 +290,6 @@ namespace yave {
 
     // create new group
     {
-      // erase nodes from current group
-      for (auto&& n : nodes) {
-        parent->remove_content(n);
-      }
-
       // create new group interfaces
       auto interface = m_ng.add(
         to_node_info(get_node_declaration<node::NodeGroupInterface>()));
@@ -288,9 +298,8 @@ namespace yave {
       auto output_handler =
         m_ng.add(to_node_info(get_node_declaration<node::NodeGroupOutput>()));
 
-      assert(interface);
-      assert(input_handler);
-      assert(output_handler);
+      if (!interface || !input_handler || !output_handler)
+        throw std::runtime_error("Failed to create new node group");
 
       // I/O bits will be added later
       auto [it, succ] = m_groups.emplace(
@@ -298,10 +307,16 @@ namespace yave {
         node_group {
           parent, nodes, interface, input_handler, {}, output_handler, {}});
 
-      assert(succ);
+      if (!succ)
+        throw std::runtime_error("Failed to create new node group");
 
       // Add interface node to parent group
       parent->add_content(interface);
+
+      // erase nodes from current group
+      for (auto&& n : nodes) {
+        parent->remove_content(n);
+      }
 
       // rebuild connections
       {
@@ -371,35 +386,37 @@ namespace yave {
             to_node_info(get_node_declaration<node::NodeGroupIOBit>());
           bit_info.set_input_sockets({bit_name});
           bit_info.set_output_sockets({bit_name});
+
           auto bit = m_ng.add(bit_info);
-          assert(bit);
+
+          if (!bit)
+            throw std::runtime_error("Failed to create group IO bit");
 
           it->second.input_bits.push_back(bit);
 
           auto bit_in  = m_ng.input_sockets(bit)[0];
           auto bit_out = m_ng.output_sockets(bit)[0];
 
+          // attach input handler
+          auto b1 = m_ng.attach_interface(it->second.input_handler, bit_out);
+          // attach interface
+          auto b2 = m_ng.attach_interface(interface, bit_in);
+
+          if (!b1 || !b2)
+            throw std::runtime_error("Failed to attach IO bit");
+
           // build connections
           for (auto&& [ic, icinfo] : cs) {
 
             m_ng.disconnect(ic);
 
-            [[maybe_unused]] connection_handle c;
-            [[maybe_unused]] bool b;
-
             // src -> bit
-            c = m_ng.connect(icinfo.src_socket(), bit_in);
-            assert(c);
+            auto c1 = m_ng.connect(icinfo.src_socket(), bit_in);
             // bit -> dst
-            c = m_ng.connect(bit_out, icinfo.dst_socket());
-            assert(c);
+            auto c2 = m_ng.connect(bit_out, icinfo.dst_socket());
 
-            // attach input handler
-            b = m_ng.attach_interface(it->second.input_handler, bit_out);
-            assert(b);
-            // attach interface
-            b = m_ng.attach_interface(interface, bit_in);
-            assert(b);
+            if (!c1 || !c2)
+              throw std::runtime_error("Failed to build group connection");
           }
         }
 
@@ -416,34 +433,35 @@ namespace yave {
           bit_info.set_input_sockets({bit_name});
           bit_info.set_output_sockets({bit_name});
           auto bit = m_ng.add(bit_info);
-          assert(bit);
+
+          if (!bit)
+            throw std::runtime_error("Failed to create group IO bit");
 
           it->second.output_bits.push_back(bit);
 
           auto bit_in  = m_ng.input_sockets(bit)[0];
           auto bit_out = m_ng.output_sockets(bit)[0];
 
+          // attach handler
+          auto b1 = m_ng.attach_interface(it->second.output_handler, bit_in);
+          // attach interface
+          auto b2 = m_ng.attach_interface(interface, bit_out);
+
+          if (!b1 || !b2)
+            throw std::runtime_error("Failed to attach IO bit");
+
+          // build connection
           for (auto&& [oc, ocinfo] : cs) {
 
-            // build loop connection
             m_ng.disconnect(oc);
 
-            [[maybe_unused]] connection_handle c;
-            [[maybe_unused]] bool b;
-
             // src -> bit
-            c = m_ng.connect(ocinfo.src_socket(), bit_in);
-            assert(c);
+            auto c1 = m_ng.connect(ocinfo.src_socket(), bit_in);
             // bit -> dst
-            c = m_ng.connect(bit_out, ocinfo.dst_socket());
-            assert(c);
+            auto c2 = m_ng.connect(bit_out, ocinfo.dst_socket());
 
-            // attach handler
-            b = m_ng.attach_interface(it->second.output_handler, bit_in);
-            assert(b);
-            // attach interface
-            b = m_ng.attach_interface(interface, bit_out);
-            assert(b);
+            if (!c1 || !c2)
+              throw std::runtime_error("Failed to build group connection");
           }
         }
       }
@@ -498,13 +516,15 @@ namespace yave {
         auto ici = m_ng.get_info(ics[0]);
         m_ng.disconnect(ics[0]);
 
-        [[maybe_unused]] connection_handle c;
-
         for (auto&& oc : ocs) {
           auto oci = m_ng.get_info(oc);
+
           m_ng.disconnect(oc);
-          c = m_ng.connect(ici->src_socket(), oci->dst_socket());
-          assert(c);
+
+          auto c = m_ng.connect(ici->src_socket(), oci->dst_socket());
+
+          if (!c)
+            throw std::runtime_error("Failed to ungroup");
         }
       }
 
@@ -522,13 +542,15 @@ namespace yave {
         auto ici = m_ng.get_info(ics[0]);
         m_ng.disconnect(ics[0]);
 
-        [[maybe_unused]] connection_handle c;
-
         for (auto&& oc : ocs) {
           auto oci = m_ng.get_info(oc);
+
           m_ng.disconnect(oc);
-          c = m_ng.connect(ici->src_socket(), oci->dst_socket());
-          assert(c);
+
+          auto c = m_ng.connect(ici->src_socket(), oci->dst_socket());
+
+          if (!c)
+            throw std::runtime_error("Failed to ungroup");
         }
       }
     }
@@ -700,6 +722,8 @@ namespace yave {
         pInterfaceIn  = &group->output_handler;
         pBits         = &group->output_bits;
         break;
+      default:
+        throw std::runtime_error("Invalid socket type");
     }
 
     // detach
@@ -722,17 +746,19 @@ namespace yave {
       pBits->insert(pBits->begin() + index, bit);
     }
 
-    [[maybe_unused]] bool b;
-
     // attach
     for (auto&& bit : *pBits) {
       for (auto&& s : m_ng.input_sockets(bit)) {
-        b = m_ng.attach_interface(*pInterfaceIn, s);
-        assert(b);
+        auto b = m_ng.attach_interface(*pInterfaceIn, s);
+
+        if (!b)
+          throw std::runtime_error("Failed to attach IO bit");
       }
       for (auto&& s : m_ng.output_sockets(bit)) {
-        b = m_ng.attach_interface(*pInterfaceOut, s);
-        assert(b);
+        auto b = m_ng.attach_interface(*pInterfaceOut, s);
+
+        if (!b)
+          throw std::runtime_error("Failed to attach IO bit");
       }
     }
     return true;
@@ -799,6 +825,8 @@ namespace yave {
       case socket_type::output:
         pBits = &group->output_bits;
         break;
+      default:
+        throw std::runtime_error("Invalid socket type");
     }
 
     for (auto&& s : m_ng.input_sockets(pBits->operator[](index)))
@@ -867,6 +895,8 @@ namespace yave {
         pInterfaceIn  = &group->output_handler;
         pBits         = &group->output_bits;
         break;
+      default:
+        throw std::runtime_error("Invalid socket type");
     }
 
     // detach
@@ -887,18 +917,20 @@ namespace yave {
       pBits->erase(pBits->begin() + index);
     }
 
-    [[maybe_unused]] bool b;
-
     // attach
     {
       for (auto&& bit : *pBits) {
         for (auto&& s : m_ng.input_sockets(bit)) {
-          b = m_ng.attach_interface(*pInterfaceIn, s);
-          assert(b);
+          auto b = m_ng.attach_interface(*pInterfaceIn, s);
+
+          if (!b)
+            throw std::runtime_error("Failed to attach IO bit");
         }
         for (auto&& s : m_ng.output_sockets(bit)) {
-          b = m_ng.attach_interface(*pInterfaceOut, s);
-          assert(b);
+          auto b = m_ng.attach_interface(*pInterfaceOut, s);
+
+          if (!b)
+            throw std::runtime_error("Failed to attach IO bit");
         }
       }
     }
