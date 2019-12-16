@@ -24,29 +24,12 @@ namespace yave {
   {
   }
 
-  node_graph::node_graph(const node_graph& other)
-    : m_mtx {}
-  {
-    auto lck            = other._lock();
-    m_g                 = other.m_g.clone();
-    m_default_container = other.m_default_container;
-  }
-
   node_graph::node_graph(node_graph&& other) noexcept
     : m_mtx {}
   {
     auto lck            = other._lock();
     m_g                 = std::move(other.m_g);
     m_default_container = std::move(other.m_default_container);
-  }
-
-  node_graph& node_graph::operator=(const node_graph& other)
-  {
-    auto lck1 = _lock();
-    auto lck2 = other._lock();
-
-    m_g = other.m_g.clone();
-    return *this;
   }
 
   node_graph& node_graph::operator=(node_graph&& other) noexcept
@@ -1069,6 +1052,17 @@ namespace yave {
   {
     auto lck = _lock();
     return m_g.empty();
+  }
+
+  auto node_graph::clone() const -> node_graph
+  {
+    node_graph ret;
+
+    auto lck                = _lock();
+    ret.m_g                 = m_g.clone();
+    ret.m_default_container = m_default_container;
+
+    return ret;
   }
 
   auto node_graph::_find_loop(const node_handle& node) const

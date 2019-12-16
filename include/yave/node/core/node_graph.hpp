@@ -29,13 +29,13 @@ namespace yave {
     ~node_graph() noexcept;
 
     /// Copy
-    node_graph(const node_graph&);
+    node_graph(const node_graph&) = delete;
 
     /// Move constructor
     node_graph(node_graph&&) noexcept;
 
     /// Copy assignment
-    node_graph& operator=(const node_graph& other);
+    node_graph& operator=(const node_graph& other) = delete;
 
     /// Move assignment
     node_graph& operator=(node_graph&& other) noexcept;
@@ -250,7 +250,10 @@ namespace yave {
     void clear();
 
     /// empty?
-    bool empty() const;
+    [[nodiscard]] bool empty() const;
+
+    /// clone
+    [[nodiscard]] auto clone() const -> node_graph;
 
   private: /* non locking, non checking helpers */
     [[nodiscard]] bool _exists(const node_handle&) const;
