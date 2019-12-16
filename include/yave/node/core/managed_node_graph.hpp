@@ -210,8 +210,8 @@ namespace yave {
       const node_handle& node,
       const primitive_t& prim);
 
-    /// Get node graph copy
-    [[nodiscard]] auto get_node_graph() const -> const node_graph&;
+    /// acecss underlying node_graph
+    [[nodiscard]] auto node_graph() const -> const node_graph&;
 
     /// clear
     void clear();

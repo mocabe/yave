@@ -1257,7 +1257,7 @@ namespace yave {
     _init();
   }
 
-  auto managed_node_graph::get_node_graph() const -> const node_graph&
+  auto managed_node_graph::node_graph() const -> const yave::node_graph&
   {
     return m_ng;
   }
