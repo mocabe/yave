@@ -1178,6 +1178,47 @@ namespace yave {
     return m_ng.disconnect(handle);
   }
 
+  /* nodes */
+
+  auto managed_node_graph::nodes() const -> std::vector<node_handle>
+  {
+    std::vector<node_handle> ret;
+
+    for (auto&& n : m_ng.nodes()) {
+
+      // ignore I/O bits
+      if (
+        m_ng.get_info(n)->name() ==
+        get_node_declaration<node::NodeGroupIOBit>().name())
+        continue;
+
+      ret.push_back(n);
+    }
+
+    return ret;
+  }
+
+  auto managed_node_graph::nodes(const node_handle& group) const
+    -> std::vector<node_handle>
+  {
+    auto iter = m_groups.find(group);
+
+    if (iter == m_groups.end())
+      return {};
+
+    std::vector<node_handle> ret;
+
+    // I/O
+    ret.push_back(iter->second.input_handler);
+    ret.push_back(iter->second.output_handler);
+
+    // member
+    ret.insert(
+      ret.end(), iter->second.contents.begin(), iter->second.contents.end());
+
+    return ret;
+  }
+
   /* sockets */
 
   auto managed_node_graph::input_sockets(const node_handle& node) const

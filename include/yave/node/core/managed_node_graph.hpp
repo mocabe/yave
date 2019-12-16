@@ -173,6 +173,15 @@ namespace yave {
     void disconnect(const connection_handle& handle);
 
   public:
+    /// Get list of all nodes
+    /// \note includes I/O handlers
+    [[nodiscard]] auto nodes() const -> std::vector<node_handle>;
+    /// Get list of nodes in group
+    /// \note inclueds I/O handlers
+    [[nodiscard]] auto nodes(const node_handle& group) const
+      -> std::vector<node_handle>;
+
+  public:
     /// Get list of input sockets attached to the node.
     [[nodiscard]] auto input_sockets(const node_handle& node) const
       -> std::vector<socket_handle>;
