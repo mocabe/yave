@@ -216,6 +216,9 @@ namespace yave {
     /// clear
     void clear();
 
+    /// clone
+    [[nodiscard]] auto clone() const -> managed_node_graph;
+
   private:
     struct node_group;
 
@@ -241,7 +244,7 @@ namespace yave {
       size_t index);
 
   private:
-    node_graph m_ng;
+    yave::node_graph m_ng;
     node_info_store m_nim;
 
   private:

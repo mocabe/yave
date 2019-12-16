@@ -1262,4 +1262,77 @@ namespace yave {
     return m_ng;
   }
 
+  auto managed_node_graph::clone() const -> managed_node_graph
+  {
+    Info(
+      g_logger,
+      "cloning: node={}, socket={}",
+      m_ng.nodes().size(),
+      m_ng.sockets().size());
+
+    managed_node_graph ret;
+
+    ret.m_nim = m_nim;
+    ret.m_ng  = m_ng.clone();
+
+    ret.m_root_group = ret.m_ng.node(m_root_group.id());
+
+    ret.m_groups.clear();
+
+    // mapping from old parent to new
+    std::map<const node_group*, node_group*> group_map;
+
+    // copy node groups
+    for (auto&& [n, g] : m_groups) {
+
+      auto newn = ret.m_ng.node(n.id());
+
+      auto newg           = g;
+      newg.interface      = ret.m_ng.node(newg.interface.id());
+      newg.input_handler  = ret.m_ng.node(newg.input_handler.id());
+      newg.output_handler = ret.m_ng.node(newg.output_handler.id());
+
+      for (auto&& content : newg.contents) {
+        content = ret.m_ng.node(content.id());
+      }
+
+      for (auto&& bit : newg.input_bits) {
+        bit = ret.m_ng.node(bit.id());
+      }
+
+      for (auto&& bit : newg.output_bits) {
+        bit = ret.m_ng.node(bit.id());
+      }
+
+      auto [it, succ] = ret.m_groups.emplace(std::move(newn), std::move(newg));
+
+      if (!succ)
+        throw std::runtime_error("Failed to clone managed_node_graph");
+
+      auto [it2, succ2] = group_map.emplace(&g, &it->second);
+
+      if (!succ2)
+        throw std::runtime_error("Failed to clone managed_node_graph");
+    }
+
+    // fix parent pointers
+    for (auto&& [n, g] : ret.m_groups) {
+
+      // root
+      if (!g.parent) {
+        assert(g.interface == ret.m_root_group);
+        continue;
+      }
+
+      auto iter = group_map.find(g.parent);
+
+      if (iter == group_map.end())
+        throw std::runtime_error("Failed to clone manged_node_graph");
+
+      g.parent = iter->second;
+    }
+
+    return ret;
+  }
+
 } // namespace yave

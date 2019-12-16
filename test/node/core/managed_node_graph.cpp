@@ -14,6 +14,16 @@ using namespace yave;
 TEST_CASE("root group")
 {
   managed_node_graph ng;
+
+  SECTION("0")
+  {
+  }
+
+  SECTION("1")
+  {
+    ng = ng.clone();
+  }
+
   auto root = ng.root_group();
   REQUIRE(root);
   REQUIRE(ng.is_group(root));

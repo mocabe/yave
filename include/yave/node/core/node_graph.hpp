@@ -252,7 +252,9 @@ namespace yave {
     /// empty?
     [[nodiscard]] bool empty() const;
 
-    /// clone
+    /// clone node_graph.
+    /// \note cloning node does not change IDs of elements, but invalidates
+    /// descriptor handles since it changes address of elements.
     [[nodiscard]] auto clone() const -> node_graph;
 
   private: /* non locking, non checking helpers */
