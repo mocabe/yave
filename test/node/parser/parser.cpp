@@ -13,33 +13,50 @@ using namespace yave;
 
 TEST_CASE("node_parser _extract")
 {
-  node_graph graph;
+  managed_node_graph graph;
   node_parser parser;
 
   auto prim_info = node_info("prim", {}, {"value"}, node_type::primitive);
   auto norm_info = node_info("node", {"0", "1"}, {"0"}, node_type::normal);
 
+  REQUIRE(graph.register_node_info(prim_info));
+  REQUIRE(graph.register_node_info(norm_info));
+
+  auto g = graph.root_group();
+  graph.add_group_output_socket(g, "global_out");
+
+  // global out socket
+  auto gos = graph.input_sockets(graph.get_group_output(g))[0];
+
   SECTION("prim")
   {
-    auto n = graph.add(prim_info, 42);
+    // prim
+    auto n = graph.create(g, prim_info.name());
     REQUIRE(n);
 
-    auto parsed = parser.parse(graph, n);
+    REQUIRE(graph.set_primitive(n, 42));
+
+    // connect to global_out
+    auto c = graph.connect(graph.output_sockets(n)[0], gos);
+
+    REQUIRE(c);
+
+    auto parsed   = parser.parse(graph);
+    auto parsed_n = parsed->get_group_members(parsed->root_group())[0];
 
     REQUIRE(parsed);
-    REQUIRE(parsed->graph.nodes().size() == 1);
-    REQUIRE(parsed->graph.nodes()[0].id() == parsed->root.id());
+    REQUIRE(parsed->get_group_members(parsed->root_group()).size() == 1);
+    REQUIRE(parsed_n.id() == n.id());
 
-    auto parsed_root = parsed->graph.nodes()[0];
-    REQUIRE(parsed->graph.get_info(parsed_root)->name() == prim_info.name());
-    REQUIRE(parsed->graph.get_primitive(parsed_root));
-    REQUIRE(parsed->graph.get_primitive(parsed_root) == primitive_t(42));
+    REQUIRE(graph.set_primitive(n, 24));
+    REQUIRE(parsed->get_primitive(parsed_n));
+    REQUIRE(*parsed->get_primitive(parsed_n) == primitive_t(42));
   }
 
   SECTION("norm")
   {
-    auto prim = graph.add(prim_info, 42);
-    auto norm = graph.add(norm_info);
+    auto prim = graph.create(g, prim_info.name());
+    auto norm = graph.create(g, norm_info.name());
 
     auto prim_value = graph.output_sockets(prim)[0];
     auto norm_i0    = graph.input_sockets(norm)[0];
@@ -49,38 +66,90 @@ TEST_CASE("node_parser _extract")
     REQUIRE(prim);
     REQUIRE(norm);
 
-    SECTION("prim")
+    SECTION("no globl out")
     {
-      auto parsed = parser.parse(graph, prim);
-      REQUIRE(parsed);
-      REQUIRE(parsed->graph.nodes().size() == 1);
+      // gos
+      auto parsed = parser.parse(graph);
+      REQUIRE(!parsed);
     }
 
     SECTION("not sufficient")
     {
-      auto parsed = parser.parse(graph, norm);
+      // gos <- norm
+      REQUIRE(graph.connect(norm_o0, gos));
+      auto parsed = parser.parse(graph);
       REQUIRE(!parsed);
     }
 
     SECTION("single")
     {
-      auto c = graph.connect(prim_value, norm_i0);
-      REQUIRE(c);
-      auto parsed = parser.parse(graph, norm);
+      REQUIRE(graph.connect(norm_o0, gos));
+      REQUIRE(graph.connect(prim_value, norm_i0));
+
+      SECTION("0")
+      {
+        // gos <- norm <- prim
+      }
+
+      SECTION("1")
+      {
+        // gos <- [<- norm <-] <- prim
+        REQUIRE(graph.group(g, {norm}));
+      }
+
+      SECTION("2")
+      {
+        // gos <- norm <- [<- prim ]
+        REQUIRE(graph.group(g, {prim}));
+      }
+
+      SECTION("3")
+      {
+        REQUIRE(graph.group(g, {prim, norm}));
+      }
+
+      SECTION("4")
+      {
+        // gos <- [<- norm <-] <- prim
+        //                 <-]
+        auto g1 = graph.group(g, {norm});
+        REQUIRE(g1);
+        REQUIRE(graph.add_group_input_socket(g1, "test"));
+        REQUIRE(graph.connect(
+          graph.output_sockets(graph.get_group_input(g1))[1], norm_i1));
+      }
+
+      auto parsed = parser.parse(graph);
       REQUIRE(!parsed);
     }
 
     SECTION("multi")
     {
-      auto c0 = graph.connect(prim_value, norm_i0);
-      auto c1 = graph.connect(prim_value, norm_i1);
+      REQUIRE(graph.connect(norm_o0, gos));
+      REQUIRE(graph.connect(prim_value, norm_i0));
+      REQUIRE(graph.connect(prim_value, norm_i1));
 
-      REQUIRE(c0);
-      REQUIRE(c1);
+      SECTION("0")
+      {
+      }
 
-      auto parsed = parser.parse(graph, norm);
+      SECTION("1")
+      {
+        REQUIRE(graph.group(g, {norm}));
+      }
+
+      SECTION("2")
+      {
+        REQUIRE(graph.group(g, {prim}));
+      }
+
+      SECTION("3")
+      {
+        REQUIRE(graph.group(g, {norm, prim}));
+      }
+
+      auto parsed = parser.parse(graph);
       REQUIRE(parsed);
-      REQUIRE(parsed->graph.nodes().size() == 2);
     }
   }
 }
