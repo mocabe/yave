@@ -17,9 +17,9 @@ namespace yave {
   namespace parse_error {
 
     /// No sufficient inputs for non-primitive node
-    struct no_sufficient_input : error_info<no_sufficient_input>
+    struct missing_input : error_info<missing_input>
     {
-      no_sufficient_input(const uid& node_id, const uid& socket_id)
+      missing_input(const uid& node_id, const uid& socket_id)
         : m_node_id {node_id}
         , m_socket_id {socket_id}
       {

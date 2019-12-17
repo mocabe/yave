@@ -8,10 +8,10 @@
 
 namespace yave {
 
-  std::string parse_error::no_sufficient_input::message() const
+  std::string parse_error::missing_input::message() const
   {
     return fmt::format(
-      "No sufficient input connections on non primitive node: n={}, s={}",
+      "Missing input connections on node: n={}, s={}",
       to_string(m_node_id),
       to_string(m_socket_id));
   }

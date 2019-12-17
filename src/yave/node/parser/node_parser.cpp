@@ -60,6 +60,11 @@ namespace yave {
     return tmp;
   }
 
+  /// Extract active nodes from managed_node_graph.
+  /// First clone entire graph, then omit detached subtrees.
+  /// Input graph should have signle output socket, without input sockets.
+  /// Currently relying on internal representation of managed_node_graph. Should
+  /// fix that later.
   auto node_parser::_extract(const managed_node_graph& graph)
     -> std::optional<managed_node_graph>
   {
@@ -130,10 +135,62 @@ namespace yave {
     return clone;
   }
 
+  /// Validate active tree.
+  /// Also relying on internals of managed_node_graph.
   auto node_parser::_validate(managed_node_graph&& graph)
     -> std::optional<managed_node_graph>
   {
-    // TODO
+    auto& ng = graph.node_graph();
+
+    std::vector<node_handle> stack;
+    stack.push_back(
+      ng.get_info(graph.output_sockets(graph.root_group())[0])->node());
+
+    while (!stack.empty()) {
+
+      auto node = stack.back();
+      stack.pop_back();
+
+      auto is = ng.input_sockets(node);
+      auto os = ng.output_sockets(node);
+
+      // no input: ignore
+      if (is.empty())
+        continue;
+
+      // check input connections
+      for (auto&& s : is) {
+
+        auto cs = ng.connections(s);
+
+        if (cs.empty()) {
+
+          // error parameters.
+          std::vector<std::pair<node_handle, socket_handle>> es;
+
+          auto interfaces = ng.get_interfaces(s);
+          for (auto&& i : interfaces) {
+            es.emplace_back(i, s);
+          }
+
+          if (es.empty())
+            es.emplace_back(node, s);
+
+          for (auto&& [en, es] : es) {
+            m_errors.push_back(
+              make_error<parse_error::missing_input>(en.id(), es.id()));
+          }
+        }
+
+        for (auto&& c : cs) {
+          stack.push_back(ng.get_info(c)->src_node());
+        }
+      }
+    }
+
+    if (!m_errors.empty())
+      return std::nullopt;
+
     return std::move(graph);
   }
 
