@@ -47,6 +47,8 @@ namespace yave {
       const primitive_t& prim);
     /// Interface construct
     node_property(interface_construct_t, const std::string& name);
+    /// Copy ctor
+    node_property(const node_property& other);
 
     /// Normal node?
     [[nodiscard]] bool is_normal() const;
@@ -91,7 +93,7 @@ namespace yave {
     /// Node type
     const node_type m_type;
     /// Primitive value.
-    /// If the node is not primitive node, stores std::monostate.
+    /// If the node is not primitive node, stores std::nullopt.
     std::optional<object_ptr<PrimitiveContainer>> m_prim;
     /// marking variable for dfs
     mutable bool m_visited;
