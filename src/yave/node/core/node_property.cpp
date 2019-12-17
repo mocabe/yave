@@ -4,6 +4,7 @@
 //
 
 #include <yave/node/core/node_property.hpp>
+#include <yave/rts/utility.hpp>
 
 namespace yave {
 
@@ -32,6 +33,17 @@ namespace yave {
     , m_prim {std::nullopt}
     , m_visited {0}
   {
+  }
+
+  node_property::node_property(const node_property& other)
+    : m_name {other.m_name}
+    , m_type {other.m_type}
+    , m_prim {other.m_prim}
+    , m_visited {0}
+  {
+    // clone prim container
+    if (m_prim)
+      *m_prim = clone(*m_prim);
   }
 
   bool node_property::is_normal() const
