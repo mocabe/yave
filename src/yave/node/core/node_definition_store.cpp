@@ -122,6 +122,11 @@ namespace yave {
     return ret;
   }
 
+  auto node_definition_store::size() const -> size_t
+  {
+    return m_map.size();
+  }
+
   void node_definition_store::clear()
   {
     m_map.clear();
