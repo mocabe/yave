@@ -16,15 +16,15 @@ YAVE_DECL_G_LOGGER(managed_node_graph)
 
 namespace yave {
 
-    // convert decl to node info
+  // convert decl to node info
   static auto to_node_info(const node_declaration& decl) -> node_info
-    {
-      return node_info(
-        decl.name(),
-        decl.input_sockets(),
-        decl.output_sockets(),
-        decl.node_type());
-    }
+  {
+    return node_info(
+      decl.name(),
+      decl.input_sockets(),
+      decl.output_sockets(),
+      decl.node_type());
+  }
 
   /// Node group data.
   /// Node group is a way to create custom node which contains multiple nodes
@@ -689,11 +689,11 @@ namespace yave {
     m_ng.set_name(iter->second.interface, name);
   }
 
-  bool managed_node_graph::_add_group_socket(
+  auto managed_node_graph::_add_group_socket(
     node_group* group,
     socket_type type,
     const std::string& socket,
-    size_t index)
+    size_t index) -> socket_handle
   {
     node_handle* pInterfaceIn       = nullptr;
     node_handle* pInterfaceOut      = nullptr;
@@ -725,14 +725,17 @@ namespace yave {
     }
 
     // insert new bit
+    node_handle bit;
     {
       auto info = to_node_info(get_node_declaration<node::NodeGroupIOBit>());
       info.set_input_sockets({socket});
       info.set_output_sockets({socket});
-      auto bit = m_ng.add(info);
-      assert(bit);
+      bit = m_ng.add(info);
       pBits->insert(pBits->begin() + index, bit);
     }
+
+    if (!bit)
+      throw std::runtime_error("Failed to add IO bit");
 
     // attach
     for (auto&& bit : *pBits) {
@@ -749,16 +752,25 @@ namespace yave {
           throw std::runtime_error("Failed to attach IO bit");
       }
     }
-    return true;
+
+    // return socket for interface
+    switch (type) {
+      case socket_type::input:
+        return m_ng.input_sockets(bit)[0];
+      case socket_type::output:
+        return m_ng.output_sockets(bit)[0];
+    }
+
+    return {nullptr};
   }
 
-  bool managed_node_graph::add_group_input_socket(
+  auto managed_node_graph::add_group_input_socket(
     const node_handle& group,
     const std::string& socket,
-    size_t index)
+    size_t index) -> socket_handle
   {
     if (!is_group(group))
-      return false;
+      return {nullptr};
 
     auto size = m_ng.input_sockets(group).size();
 
@@ -767,7 +779,7 @@ namespace yave {
     }
 
     if (size < index)
-      return false;
+      return {nullptr};
 
     auto iter = m_groups.find(group);
     assert(iter != m_groups.end());
@@ -775,13 +787,13 @@ namespace yave {
     return _add_group_socket(&iter->second, socket_type::input, socket, index);
   }
 
-  bool managed_node_graph::add_group_output_socket(
+  auto managed_node_graph::add_group_output_socket(
     const node_handle& group,
     const std::string& socket,
-    size_t index)
+    size_t index) -> socket_handle
   {
     if (!is_group(group))
-      return false;
+      return {nullptr};
 
     auto size = m_ng.output_sockets(group).size();
 
@@ -790,7 +802,7 @@ namespace yave {
     }
 
     if (size < index)
-      return false;
+      return {nullptr};
 
     auto iter = m_groups.find(group);
     assert(iter != m_groups.end());

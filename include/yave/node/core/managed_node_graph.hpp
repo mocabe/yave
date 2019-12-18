@@ -93,15 +93,18 @@ namespace yave {
     /// Add group input socket
     /// \note index -1 treated as size of sockets
     /// \requires -1 <= index <= number of sockets
-    bool add_group_input_socket(
+    auto add_group_input_socket(
       const node_handle& group,
       const std::string& socket,
-      size_t index = -1);
+      size_t index = -1) -> socket_handle;
 
-    bool add_group_output_socket(
+    /// Add group output socket
+    /// \note index -1 treated as size of sockets
+    /// \requires -1 <= index <= number of sockets
+    auto add_group_output_socket(
       const node_handle& group,
       const std::string& socket,
-      size_t index = -1);
+      size_t index = -1) -> socket_handle;
 
     /// \requires index < number of sockets
     bool set_group_input_socket(
@@ -237,11 +240,11 @@ namespace yave {
       -> node_group*;
     [[nodiscard]] auto _find_parent_group(const node_handle& node) const
       -> const node_group*;
-    [[nodiscard]] bool _add_group_socket(
+    [[nodiscard]] auto _add_group_socket(
       node_group* group,
       socket_type type,
       const std::string& socket,
-      size_t index);
+      size_t index) -> socket_handle;
     [[nodiscard]] bool _set_group_socket(
       node_group* group,
       socket_type type,
