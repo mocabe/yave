@@ -10,7 +10,7 @@
 #include <yave/node/core/managed_node_info.hpp>
 #include <yave/node/core/managed_socket_info.hpp>
 #include <yave/node/core/managed_connection_info.hpp>
-#include <yave/node/core/node_info_store.hpp>
+#include <yave/node/core/node_declaration_store.hpp>
 
 namespace yave {
 
@@ -31,18 +31,18 @@ namespace yave {
     /// Move assignment.
     managed_node_graph& operator=(managed_node_graph&&) noexcept;
 
-  public: /* node info registration */
+  public: /* node decl registration */
     /// register new node info
-    [[nodiscard]] bool register_node_info(const node_info&);
+    [[nodiscard]] bool register_node_decl(const node_declaration&);
 
     /// register new node info
-    [[nodiscard]] bool register_node_info(const std::vector<node_info>&);
+    [[nodiscard]] bool register_node_decl(const std::vector<node_declaration>&);
 
     /// unregister node info
-    void unregister_node_info(const std::string&);
+    void unregister_node_decl(const std::string&);
 
     /// unregister node info
-    void unregister_node_info(const std::vector<std::string>&);
+    void unregister_node_decl(const std::vector<std::string>&);
 
   public: /* node grouping features */
     /// Create new group
@@ -254,7 +254,7 @@ namespace yave {
 
   private:
     yave::node_graph m_ng;
-    node_info_store m_nim;
+    node_declaration_store m_nim;
 
   private:
     std::map<node_handle, node_group> m_groups;

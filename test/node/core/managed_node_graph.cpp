@@ -112,9 +112,17 @@ TEST_CASE("group with content")
 {
   managed_node_graph ng;
 
-  auto decl = node_info("node", {"0", "1", "2"}, {"0", "1"}, node_type::normal);
+  class X;
 
-  REQUIRE(ng.register_node_info(decl));
+  auto decl = node_declaration(
+    "node",
+    {"0", "1", "2"},
+    {"0", "1"},
+    {object_type<node_closure<X, X, X, X>>(),
+     object_type<node_closure<X, X, X, X>>()},
+    node_type::normal);
+
+  REQUIRE(ng.register_node_decl(decl));
 
   SECTION("simple")
   {

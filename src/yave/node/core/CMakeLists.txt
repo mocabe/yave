@@ -18,7 +18,6 @@ add_library(yave-node-core
   node_initializer.cpp
   node_declaration_store.cpp
   node_definition_store.cpp
-  node_info_store.cpp
 )
 
 add_library(yave::node::core ALIAS yave-node-core)
