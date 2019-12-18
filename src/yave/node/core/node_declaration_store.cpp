@@ -92,6 +92,11 @@ namespace yave {
     return iter->second;
   }
 
+  auto node_declaration_store::size() const -> size_t
+  {
+    return m_map.size();
+  }
+
   void node_declaration_store::remove(const std::string& name)
   {
     auto iter = m_map.find(name);

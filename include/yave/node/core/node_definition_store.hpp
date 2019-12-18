@@ -60,6 +60,9 @@ namespace yave {
       const std::string& output_socket) const
       -> std::vector<std::shared_ptr<const node_definition>>;
 
+    // size
+    [[nodiscard]] auto size() const -> size_t;
+
     /// Clear
     void clear();
 

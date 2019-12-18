@@ -46,6 +46,9 @@ namespace yave {
     [[nodiscard]] auto find(const std::string& name) const
       -> std::shared_ptr<const node_declaration>;
 
+    /// size
+    [[nodiscard]] auto size() const -> size_t;
+
     /// Remove declaration
     void remove(const std::string& name);
 
