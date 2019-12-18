@@ -33,14 +33,29 @@ namespace yave {
     return m_errors.clone();
   }
 
+  // return group IO bit for global output of graph
+  static auto get_root_out_bit(const managed_node_graph& graph) -> node_handle
+  {
+    assert(graph.input_sockets(graph.root_group()).empty());
+    assert(graph.output_sockets(graph.root_group()).size() == 1);
+    return graph.node_graph()
+      .get_info(graph.output_sockets(graph.root_group())[0])
+      ->node();
+  }
+
   auto node_compiler::compile(
-    parsed_node_graph&& parsed_graph,
+    managed_node_graph&& parsed_graph,
     const node_declaration_store& decls,
     const node_definition_store& defs) -> std::optional<executable>
   {
     auto lck = _lock();
 
     m_errors.clear();
+
+    Info(g_logger, "Start compiling node tree:");
+    Info(g_logger, "  Total {} nodes in graph", parsed_graph.nodes().size());
+    Info(g_logger, "  Total {} node declarations", decls.size());
+    Info(g_logger, "  Total {} node definitions", defs.size());
 
     // early optimize stage?
     auto ng = _optimize_early(std::move(parsed_graph));
@@ -89,8 +104,8 @@ namespace yave {
   }
 
   // AST optimization stage.
-  auto node_compiler::_optimize_early(parsed_node_graph&& parsed_graph)
-    -> std::optional<parsed_node_graph>
+  auto node_compiler::_optimize_early(managed_node_graph&& parsed_graph)
+    -> std::optional<managed_node_graph>
   {
     // TODO...
     return std::move(parsed_graph);
@@ -99,7 +114,7 @@ namespace yave {
   // Graph optimization stage.
   auto node_compiler::_optimize(
     executable&& exe,
-    const parsed_node_graph& graph) -> executable
+    const managed_node_graph& graph) -> executable
   {
     // TODO...
     (void)graph;
@@ -113,6 +128,9 @@ namespace yave {
     specific node/socket combination to share instance objects across multiple
     inputs.
 
+    TODO: Use something like Algorithm W_o for type check, which supports lambda
+    abstractions.
+
     Type checking each node is done by following algorithm:
     1. Type check all input sockets.
     2. Enumerate avalable definitions.
@@ -121,7 +139,7 @@ namespace yave {
     6. Store result to cache.
    */
   auto node_compiler::_type(
-    const parsed_node_graph& parsed_graph,
+    const managed_node_graph& parsed_graph,
     const node_declaration_store& decls,
     const node_definition_store& defs) -> std::optional<socket_instance_manager>
   {
@@ -446,8 +464,8 @@ namespace yave {
       }
     } impl;
 
-    auto& graph      = parsed_graph.graph;
-    auto& root_node  = parsed_graph.root;
+    auto& graph      = parsed_graph.node_graph();
+    auto root_node   = get_root_out_bit(parsed_graph);
     auto root_info   = *graph.get_info(root_node);
     auto root_socket = graph.output_sockets(root_node)[0];
     auto sim         = socket_instance_manager();
@@ -464,7 +482,7 @@ namespace yave {
   }
 
   auto node_compiler::_generate(
-    const parsed_node_graph& parsed_graph,
+    const managed_node_graph& parsed_graph,
     const socket_instance_manager& sim) -> std::optional<executable>
   {
     struct
@@ -506,9 +524,8 @@ namespace yave {
       }
     } impl;
 
-    auto& graph = parsed_graph.graph;
-    auto& root  = parsed_graph.root;
-
+    auto& graph    = parsed_graph.node_graph();
+    auto root      = get_root_out_bit(parsed_graph);
     auto root_info = graph.get_info(root);
 
     assert(root_info);
@@ -523,7 +540,7 @@ namespace yave {
   }
 
   auto node_compiler::_verbose_check(
-    const parsed_node_graph& parsed_graph,
+    const managed_node_graph& parsed_graph,
     const socket_instance_manager& sim,
     const executable& exe) -> bool
   {
@@ -532,8 +549,8 @@ namespace yave {
       Info(g_logger, "[ Verbose check result ]");
       Info(g_logger, "- type of apply graph: {}", to_string(tp));
 
-      auto& graph = parsed_graph.graph;
-      auto& root  = parsed_graph.root;
+      auto& graph = parsed_graph.node_graph();
+      auto root   = get_root_out_bit(parsed_graph);
 
       auto inst = sim.find(graph.output_sockets(root)[0]);
 
