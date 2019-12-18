@@ -16,9 +16,8 @@ YAVE_DECL_G_LOGGER(managed_node_graph)
 
 namespace yave {
 
-  namespace {
     // convert decl to node info
-    auto to_node_info(const node_declaration& decl)
+  static auto to_node_info(const node_declaration& decl) -> node_info
     {
       return node_info(
         decl.name(),
@@ -26,7 +25,6 @@ namespace yave {
         decl.output_sockets(),
         decl.node_type());
     }
-  } // namespace
 
   /// Node group data.
   /// Node group is a way to create custom node which contains multiple nodes
@@ -99,16 +97,6 @@ namespace yave {
     assert(m_groups.empty());
     assert(!m_root_group);
 
-    // register group node info
-    std::vector info = {
-      to_node_info(get_node_declaration<node::NodeGroupInterface>()),
-      to_node_info(get_node_declaration<node::NodeGroupInput>()),
-      to_node_info(get_node_declaration<node::NodeGroupOutput>()),
-      to_node_info(get_node_declaration<node::NodeGroupIOBit>())};
-
-    if (!m_nim.add(info))
-      throw std::runtime_error("Failed to register node info");
-
     // initialize root group
     {
       auto root_group = m_ng.add(
@@ -176,23 +164,23 @@ namespace yave {
 
   /* reg/unreg */
 
-  bool managed_node_graph::register_node_info(const node_info& info)
+  bool managed_node_graph::register_node_decl(const node_declaration& decl)
   {
-    return m_nim.add(info);
+    return m_nim.add(decl);
   }
 
-  bool managed_node_graph::register_node_info(
-    const std::vector<node_info>& info)
+  bool managed_node_graph::register_node_decl(
+    const std::vector<node_declaration>& decl)
   {
-    return m_nim.add(info);
+    return m_nim.add(decl);
   }
 
-  void managed_node_graph::unregister_node_info(const std::string& name)
+  void managed_node_graph::unregister_node_decl(const std::string& name)
   {
     return m_nim.remove(name);
   }
 
-  void managed_node_graph::unregister_node_info(
+  void managed_node_graph::unregister_node_decl(
     const std::vector<std::string>& names)
   {
     m_nim.remove(names);
@@ -1101,7 +1089,7 @@ namespace yave {
 
     // non-composite nodes
     {
-      auto node = m_ng.add(*info);
+      auto node = m_ng.add(to_node_info(*info));
 
       assert(node);
 
