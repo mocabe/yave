@@ -55,7 +55,7 @@ void image_canvas(imgui_context& ctx)
 
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, IM_COL32(128, 128, 128, 255));
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(128, 128, 128, 255));
 
   ImGui::BeginChild(
     "canvas",
