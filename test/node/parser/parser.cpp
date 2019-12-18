@@ -16,11 +16,24 @@ TEST_CASE("node_parser _extract")
   managed_node_graph graph;
   node_parser parser;
 
-  auto prim_info = node_info("prim", {}, {"value"}, node_type::primitive);
-  auto norm_info = node_info("node", {"0", "1"}, {"0"}, node_type::normal);
+  class X;
 
-  REQUIRE(graph.register_node_info(prim_info));
-  REQUIRE(graph.register_node_info(norm_info));
+  auto prim_decl = node_declaration(
+    "prim",
+    {},
+    {"value"},
+    {object_type<node_closure<X>>()},
+    node_type::primitive);
+
+  auto norm_decl = node_declaration(
+    "node",
+    {"0", "1"},
+    {"0"},
+    {object_type<node_closure<X, X, X>>()},
+    node_type::normal);
+
+  REQUIRE(graph.register_node_decl(prim_decl));
+  REQUIRE(graph.register_node_decl(norm_decl));
 
   auto g = graph.root_group();
   graph.add_group_output_socket(g, "global_out");
@@ -31,7 +44,7 @@ TEST_CASE("node_parser _extract")
   SECTION("prim")
   {
     // prim
-    auto n = graph.create(g, prim_info.name());
+    auto n = graph.create(g, prim_decl.name());
     REQUIRE(n);
 
     REQUIRE(graph.set_primitive(n, 42));
@@ -55,8 +68,8 @@ TEST_CASE("node_parser _extract")
 
   SECTION("norm")
   {
-    auto prim = graph.create(g, prim_info.name());
-    auto norm = graph.create(g, norm_info.name());
+    auto prim = graph.create(g, prim_decl.name());
+    auto norm = graph.create(g, norm_decl.name());
 
     auto prim_value = graph.output_sockets(prim)[0];
     auto norm_i0    = graph.input_sockets(norm)[0];
