@@ -37,6 +37,14 @@ namespace yave {
       , m_id {id}
     {
     }
+    /// Constructor
+    explicit constexpr descriptor_handle(
+      const Descriptor& d,
+      uint64_t id) noexcept
+      : m_descriptor {d}
+      , m_id {id}
+    {
+    }
     /// Copy Constructor
     constexpr descriptor_handle(const descriptor_handle&) = default;
     /// Move Constructor
