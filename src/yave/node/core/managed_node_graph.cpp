@@ -16,16 +16,6 @@ YAVE_DECL_G_LOGGER(managed_node_graph)
 
 namespace yave {
 
-  // convert decl to node info
-  static auto to_node_info(const node_declaration& decl) -> node_info
-  {
-    return node_info(
-      decl.name(),
-      decl.input_sockets(),
-      decl.output_sockets(),
-      decl.node_type());
-  }
-
   /// Node group data.
   /// Node group is a way to create custom node which contains multiple nodes
   /// inside. Node gorup is implemented by 'interface' node feature of
@@ -97,32 +87,42 @@ namespace yave {
     assert(m_groups.empty());
     assert(!m_root_group);
 
+    m_nim.add(get_node_declaration<node::NodeGroupIOBit>());
+
     // initialize root group
     {
-      auto root_group = m_ng.add(
-        to_node_info(get_node_declaration<node::NodeGroupInterface>()));
-      auto root_input_handler =
-        m_ng.add(to_node_info(get_node_declaration<node::NodeGroupInput>()));
-      auto root_output_handler =
-        m_ng.add(to_node_info(get_node_declaration<node::NodeGroupOutput>()));
+      auto g_decl = get_node_declaration<node::NodeGroupInterface>();
+      auto i_decl = get_node_declaration<node::NodeGroupInput>();
+      auto o_decl = get_node_declaration<node::NodeGroupOutput>();
 
-      if (!root_group || !root_input_handler || !root_output_handler)
+      auto root_g = m_ng.add(
+        g_decl.name(),
+        g_decl.input_sockets(),
+        g_decl.output_sockets(),
+        g_decl.node_type());
+
+      auto root_i = m_ng.add(
+        i_decl.name(),
+        i_decl.input_sockets(),
+        i_decl.output_sockets(),
+        i_decl.node_type());
+
+      auto root_o = m_ng.add(
+        o_decl.name(),
+        o_decl.input_sockets(),
+        o_decl.output_sockets(),
+        o_decl.node_type());
+
+      if (!root_g || !root_i || !root_o)
         throw std::runtime_error("Failed to create root group interface");
 
       auto [it, succ] = m_groups.emplace(
-        root_group,
-        node_group {nullptr,
-                    {},
-                    root_group,
-                    root_input_handler,
-                    {},
-                    root_output_handler,
-                    {}});
+        root_g, node_group {nullptr, {}, root_g, root_i, {}, root_o, {}});
 
       if (!succ)
         throw std::runtime_error("Failed to create root group");
 
-      m_root_group = root_group;
+      m_root_group = root_g;
     }
   }
 
@@ -278,13 +278,28 @@ namespace yave {
 
     // create new group
     {
+      auto g_decl = get_node_declaration<node::NodeGroupInterface>();
+      auto i_decl = get_node_declaration<node::NodeGroupInput>();
+      auto o_decl = get_node_declaration<node::NodeGroupOutput>();
+
       // create new group interfaces
       auto interface = m_ng.add(
-        to_node_info(get_node_declaration<node::NodeGroupInterface>()));
-      auto input_handler =
-        m_ng.add(to_node_info(get_node_declaration<node::NodeGroupInput>()));
-      auto output_handler =
-        m_ng.add(to_node_info(get_node_declaration<node::NodeGroupOutput>()));
+        g_decl.name(),
+        g_decl.input_sockets(),
+        g_decl.output_sockets(),
+        g_decl.node_type());
+
+      auto input_handler = m_ng.add(
+        i_decl.name(),
+        i_decl.input_sockets(),
+        i_decl.output_sockets(),
+        i_decl.node_type());
+
+      auto output_handler = m_ng.add(
+        o_decl.name(),
+        o_decl.input_sockets(),
+        o_decl.output_sockets(),
+        o_decl.node_type());
 
       if (!interface || !input_handler || !output_handler)
         throw std::runtime_error("Failed to create new node group");
@@ -369,13 +384,11 @@ namespace yave {
             continue;
 
           // create I/O bit node
-          auto bit_name = *m_ng.get_name(is);
-          auto bit_info =
-            to_node_info(get_node_declaration<node::NodeGroupIOBit>());
-          bit_info.set_input_sockets({bit_name});
-          bit_info.set_output_sockets({bit_name});
+          auto bit_decl   = get_node_declaration<node::NodeGroupIOBit>();
+          auto bit_socket = *m_ng.get_name(is);
 
-          auto bit = m_ng.add(bit_info);
+          auto bit = m_ng.add(
+            bit_decl.name(), {bit_socket}, {bit_socket}, bit_decl.node_type());
 
           if (!bit)
             throw std::runtime_error("Failed to create group IO bit");
@@ -415,12 +428,11 @@ namespace yave {
             continue;
 
           // create I/O bit node
-          auto bit_name = *m_ng.get_name(os);
-          auto bit_info =
-            to_node_info(get_node_declaration<node::NodeGroupIOBit>());
-          bit_info.set_input_sockets({bit_name});
-          bit_info.set_output_sockets({bit_name});
-          auto bit = m_ng.add(bit_info);
+          auto bit_decl   = get_node_declaration<node::NodeGroupIOBit>();
+          auto bit_socket = *m_ng.get_name(os);
+
+          auto bit = m_ng.add(
+            bit_decl.name(), {bit_socket}, {bit_socket}, bit_decl.node_type());
 
           if (!bit)
             throw std::runtime_error("Failed to create group IO bit");
@@ -725,30 +737,31 @@ namespace yave {
     }
 
     // insert new bit
-    node_handle bit;
+    node_handle newbit;
     {
-      auto info = to_node_info(get_node_declaration<node::NodeGroupIOBit>());
-      info.set_input_sockets({socket});
-      info.set_output_sockets({socket});
-      bit = m_ng.add(info);
-      pBits->insert(pBits->begin() + index, bit);
+      auto bit_decl = get_node_declaration<node::NodeGroupIOBit>();
+      newbit =
+        m_ng.add(bit_decl.name(), {socket}, {socket}, bit_decl.node_type());
+      pBits->insert(pBits->begin() + index, newbit);
     }
 
-    if (!bit)
+    if (!newbit)
       throw std::runtime_error("Failed to add IO bit");
 
     // attach
     for (auto&& bit : *pBits) {
-      for (auto&& s : m_ng.input_sockets(bit)) {
-        auto b = m_ng.attach_interface(*pInterfaceIn, s);
-
-        if (!b)
+      {
+        assert(m_ng.input_sockets(bit).size() == 1);
+        auto attached =
+          m_ng.attach_interface(*pInterfaceIn, m_ng.input_sockets(bit)[0]);
+        if (!attached)
           throw std::runtime_error("Failed to attach IO bit");
       }
-      for (auto&& s : m_ng.output_sockets(bit)) {
-        auto b = m_ng.attach_interface(*pInterfaceOut, s);
-
-        if (!b)
+      {
+        assert(m_ng.output_sockets(bit).size() == 1);
+        auto attached =
+          m_ng.attach_interface(*pInterfaceOut, m_ng.output_sockets(bit)[0]);
+        if (!attached)
           throw std::runtime_error("Failed to attach IO bit");
       }
     }
@@ -756,9 +769,9 @@ namespace yave {
     // return socket for interface
     switch (type) {
       case socket_type::input:
-        return m_ng.input_sockets(bit)[0];
+        return m_ng.input_sockets(newbit)[0];
       case socket_type::output:
-        return m_ng.output_sockets(bit)[0];
+        return m_ng.output_sockets(newbit)[0];
     }
 
     return {nullptr};
@@ -1077,9 +1090,9 @@ namespace yave {
     const std::string& name) -> node_handle
   {
     // find declaration
-    auto info = m_nim.find(name);
+    auto decl = m_nim.find(name);
 
-    if (!info) {
+    if (!decl) {
       Error(g_logger, "Failed to create node: No such declaration: {}", name);
       return {nullptr};
     }
@@ -1101,8 +1114,13 @@ namespace yave {
 
     // non-composite nodes
     {
-      auto node = m_ng.add(to_node_info(*info));
+      auto node = m_ng.add(
+        decl->name(),
+        decl->input_sockets(),
+        decl->output_sockets(),
+        decl->node_type());
 
+      // all valid node_declarations are valid to create new node.
       assert(node);
 
       // create and add to node group

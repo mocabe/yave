@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/core/node_property.hpp>
+#include <yave/node/core/socket_handle.hpp>
 #include <string>
 #include <vector>
 
@@ -26,20 +27,20 @@ namespace yave {
 
     node_info(
       std::string name,
-      std::vector<std::string> input_sockets,
-      std::vector<std::string> output_sockets,
+      std::vector<socket_handle> input_sockets,
+      std::vector<socket_handle> output_sockets,
       node_type = node_type::normal);
 
     /// name
     [[nodiscard]] auto name() const -> const std::string&;
 
     /// input sockets
-    [[nodiscard]] auto input_sockets() const 
-      -> const std::vector<std::string>&;
+    [[nodiscard]] auto input_sockets() const
+      -> const std::vector<socket_handle>&;
 
     /// output sockets
     [[nodiscard]] auto output_sockets() const
-      -> const std::vector<std::string>&;
+      -> const std::vector<socket_handle>&;
 
     /// normal?
     [[nodiscard]] bool is_normal() const;
@@ -53,19 +54,13 @@ namespace yave {
     /// set name
     void set_name(std::string name);
 
-    /// set input sockets
-    void set_input_sockets(std::vector<std::string> sockets);
-
-    /// set output sockets
-    void set_output_sockets(std::vector<std::string> sockets);
-
   private:
     /// Unique name of node.
     std::string m_name;
     /// List of input sockets.
-    std::vector<std::string> m_input_sockets;
+    std::vector<socket_handle> m_input_sockets;
     /// List of output sockets.
-    std::vector<std::string> m_output_sockets;
+    std::vector<socket_handle> m_output_sockets;
     /// node type
     node_type m_type;
   };

@@ -30,8 +30,8 @@ namespace yave {
 
     managed_node_info(
       std::string name,
-      std::vector<std::string> input_sockets,
-      std::vector<std::string> output_sockets,
+      std::vector<socket_handle> input_sockets,
+      std::vector<socket_handle> output_sockets,
       managed_node_type type);
 
     /// name
@@ -39,11 +39,11 @@ namespace yave {
 
     /// input sockets
     [[nodiscard]] auto input_sockets() const //
-      -> const std::vector<std::string>&;
+      -> const std::vector<socket_handle>&;
 
     /// output sockets
     [[nodiscard]] auto output_sockets() const //
-      -> const std::vector<std::string>&;
+      -> const std::vector<socket_handle>&;
 
     /// normal?
     [[nodiscard]] bool is_normal() const;
@@ -62,9 +62,9 @@ namespace yave {
     /// Unique name of node.
     std::string m_name;
     /// List of input sockets.
-    std::vector<std::string> m_input_sockets;
+    std::vector<socket_handle> m_input_sockets;
     /// List of output sockets.
-    std::vector<std::string> m_output_sockets;
+    std::vector<socket_handle> m_output_sockets;
     /// node type
     managed_node_type m_type;
   };

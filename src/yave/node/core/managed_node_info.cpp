@@ -9,8 +9,8 @@ namespace yave {
 
   managed_node_info::managed_node_info(
     std::string name,
-    std::vector<std::string> input_sockets,
-    std::vector<std::string> output_sockets,
+    std::vector<socket_handle> input_sockets,
+    std::vector<socket_handle> output_sockets,
     managed_node_type type)
     : m_name {std::move(name)}
     , m_input_sockets {std::move(input_sockets)}
@@ -25,13 +25,13 @@ namespace yave {
   }
 
   auto managed_node_info::input_sockets() const
-    -> const std::vector<std::string>&
+    -> const std::vector<socket_handle>&
   {
     return m_input_sockets;
   }
 
   auto managed_node_info::output_sockets() const
-    -> const std::vector<std::string>&
+    -> const std::vector<socket_handle>&
   {
     return m_output_sockets;
   }

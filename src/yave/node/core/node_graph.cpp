@@ -84,14 +84,14 @@ namespace yave {
     // node
     auto& n = m_g[h.descriptor()];
 
-    std::vector<std::string> input_sockets;
-    std::vector<std::string> output_sockets;
+    std::vector<socket_handle> input_sockets;
+    std::vector<socket_handle> output_sockets;
 
     for (auto&& s : m_g.sockets(h.descriptor())) {
       if (m_g[s].is_input())
-        input_sockets.emplace_back(m_g[s].name());
-      else
-        output_sockets.emplace_back(m_g[s].name());
+        input_sockets.emplace_back(s, m_g.id(s));
+      if (m_g[s].is_output())
+        output_sockets.emplace_back(s, m_g.id(s));
     }
 
     auto ret = node_info(n.name(), input_sockets, output_sockets, n.type());
@@ -164,10 +164,10 @@ namespace yave {
       dst_interfaces.emplace_back(dst_nodes[i], uid {m_g.id(dst_nodes[i])});
     }
 
-    return connection_info {node_handle(src_nodes[0], {m_g.id(src_nodes[0])}),
-                            socket_handle(src, {m_g.id(src)}),
-                            node_handle(dst_nodes[0], {m_g.id(dst_nodes[0])}),
-                            socket_handle(dst, {m_g.id(dst)}),
+    return connection_info {node_handle(src_nodes[0], m_g.id(src_nodes[0])),
+                            socket_handle(src, m_g.id(src)),
+                            node_handle(dst_nodes[0], m_g.id(dst_nodes[0])),
+                            socket_handle(dst, m_g.id(dst)),
                             src_interfaces,
                             dst_interfaces};
   }
@@ -231,46 +231,65 @@ namespace yave {
     m_g[h.descriptor()].set_name(name);
   }
 
-  auto node_graph::add(const yave::node_info& info, const primitive_t& prim)
-    -> node_handle
+  auto node_graph::add(
+    const std::string& name,
+    const std::vector<std::string>& input_sockets,
+    const std::vector<std::string>& output_sockets,
+    node_type type,
+    const primitive_t& prim) -> node_handle
   {
     auto lck = _lock();
+
+    // validate parameters
+    {
+      if (name == "")
+        return {nullptr};
+
+      for (auto&& s : input_sockets)
+        if (s == "")
+          return {nullptr};
+
+      for (auto&& s : output_sockets)
+        if (s == "")
+          return {nullptr};
+
+      auto _has_unique_names = [](auto names) {
+        ranges::sort(names);
+        return ranges::unique(names) == names.end();
+      };
+
+      if (
+        !_has_unique_names(input_sockets) || !_has_unique_names(output_sockets))
+        return {nullptr};
+    }
 
     auto id = uid::random_generate();
 
     // add node
-    auto node = [&]() {
-      switch (info.type()) {
-
+    auto node = [&]() -> typename graph_t::node_descriptor_type
+    {
+      switch (type) {
         case node_type::normal:
           return m_g.add_node_with_id(
-            id.data, node_property::normal_construct_t {}, info.name());
-
+            id.data, node_property::normal_construct_t {}, name);
         case node_type::primitive:
           return m_g.add_node_with_id(
-            id.data,
-            node_property::primitive_construct_t {},
-            info.name(),
-            prim);
-
+            id.data, node_property::primitive_construct_t {}, name, prim);
         case node_type::interface:
-          if (!info.input_sockets().empty() || !info.output_sockets().empty()) {
-            throw std::runtime_error(
-              "Failed to create node: Interface node cannot have sockets");
-          }
+          if (!input_sockets.empty() || !output_sockets.empty())
+            return nullptr;
           return m_g.add_node_with_id(
-            id.data, node_property::interface_construct_t {}, info.name());
-
+            id.data, node_property::interface_construct_t {}, name);
         default:
           throw std::runtime_error("Invalid node type");
       }
-    }();
+    }
+    ();
 
     if (!node)
-      throw std::runtime_error(
-        "Failed to add node to node_graph: Failed to create new node.");
+      return {nullptr};
 
-    auto _attach_sockets = [&](auto&& names, auto io) {
+    auto _add_attach_sockets = [&](auto&& names, auto io) {
       for (auto&& name : names) {
         auto socket = m_g.add_socket(name, io);
         if (!m_g.attach_socket(node, socket)) {
@@ -281,8 +300,8 @@ namespace yave {
     };
 
     try {
-      _attach_sockets(info.input_sockets(), socket_type::input);
-      _attach_sockets(info.output_sockets(), socket_type::output);
+      _add_attach_sockets(input_sockets, socket_type::input);
+      _add_attach_sockets(output_sockets, socket_type::output);
     } catch (...) {
       for (auto&& s : m_g.sockets(node)) {
         m_g.remove_socket(s);
@@ -291,12 +310,12 @@ namespace yave {
       throw;
     }
 
-    auto handle = node_handle(node, {m_g.id(node)});
+    auto handle = node_handle(node, m_g.id(node));
 
     Info(
       g_logger,
       "Created Node: name=\"{}\", id={}",
-      info.name(),
+      name,
       to_string(handle.id()));
 
     return handle;
@@ -359,7 +378,7 @@ namespace yave {
       info.name(),
       to_string(node.id()));
 
-    return node_handle(cpy_n, {m_g.id(cpy_n)});
+    return node_handle(cpy_n, m_g.id(cpy_n));
   }
 
   bool node_graph::attach_interface(
@@ -481,7 +500,7 @@ namespace yave {
           g_logger,
           "Connection already exists. Return existing connection "
           "handle.");
-        return connection_handle(e, {m_g.id(e)});
+        return connection_handle(e, m_g.id(e));
       }
     }
 
@@ -530,7 +549,7 @@ namespace yave {
       to_string(dst_node.id()),
       _get_name(dst_socket));
 
-    return connection_handle(new_edge, {m_g.id(new_edge)});
+    return connection_handle(new_edge, m_g.id(new_edge));
   }
 
   auto node_graph::connect(
@@ -551,9 +570,9 @@ namespace yave {
 
     // unchecked connect
     return _connect(
-      node_handle(sn, {m_g.id(sn)}),
+      node_handle(sn, m_g.id(sn)),
       src_socket,
-      node_handle(dn, {m_g.id(dn)}),
+      node_handle(dn, m_g.id(dn)),
       dst_socket);
   }
 
@@ -825,7 +844,7 @@ namespace yave {
 
     assert(!m_g.nodes(socket.descriptor()).empty());
     auto n = m_g.nodes(socket.descriptor())[0];
-    return node_handle(n, {m_g.id(n)});
+    return node_handle(n, m_g.id(n));
   }
 
   auto node_graph::_input_sockets(const node_handle& h) const
@@ -978,7 +997,7 @@ namespace yave {
 
     // TODO: Improve performance.
     for (auto&& n : m_g.nodes()) {
-      for (auto&& root : _root_of(node_handle(n, {m_g.id(n)}))) {
+      for (auto&& root : _root_of(node_handle(n, m_g.id(n)))) {
         [&] {
           for (auto&& r : ret) {
             if (root == r)

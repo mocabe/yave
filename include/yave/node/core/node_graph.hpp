@@ -84,8 +84,12 @@ namespace yave {
     /// \returns Non-null handle of new node.
     /// \throws std::bad_alloc, std::runtime_error and other exceptions which
     /// can be thrown from edge_property constructors.
-    [[nodiscard]] auto add(const node_info& info, const primitive_t& prim = {})
-      -> node_handle;
+    [[nodiscard]] auto add(
+      const std::string& name,
+      const std::vector<std::string>& input_sockets,
+      const std::vector<std::string>& output_sockets,
+      node_type type,
+      const primitive_t& prim = {}) -> node_handle;
 
     /// Add copy of node.
     /// \note `node` should not be interface node.

@@ -81,12 +81,6 @@ struct yave::node_definition_traits<n::Add, test_backend>
   }
 };
 
-auto to_node_info(const node_declaration& decl)
-{
-  return node_info(
-    decl.name(), decl.input_sockets(), decl.output_sockets(), decl.node_type());
-};
-
 TEST_CASE("add", "[node_compiler]")
 {
   managed_node_graph graph;
