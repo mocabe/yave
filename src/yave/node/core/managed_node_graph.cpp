@@ -1466,7 +1466,7 @@ namespace yave {
     for (auto&& [n, i] : m_extra_info) {
       auto newn = ret.m_ng.node(n.id());
       assert(newn);
-      if (!ret.m_extra_info.emplace(newn, std::move(i)).second)
+      if (!ret.m_extra_info.emplace(newn, i).second)
         assert(false);
     }
 
