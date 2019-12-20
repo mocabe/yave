@@ -673,6 +673,28 @@ TEST_CASE("lambda")
     REQUIRE(same_type(ty, object_type<Int>()));
   }
 
+  SECTION("lx. f x [f:=a->a]")
+  {
+    class X;
+    struct F : Function<F, X, X>
+    {
+      return_type code() const
+      {
+        throw;
+      }
+    };
+
+    auto f   = make_object<F>();
+    auto v   = make_object<Variable>();
+    auto lam = make_object<Lambda>(v, f << v);
+
+    auto ty = type_of(lam);
+    fmt::print("lx.f x [f:=a->a]: {}\n", to_string(ty));
+
+    auto app = lam << make_object<Int>();
+    REQUIRE(same_type(type_of(app), object_type<Int>()));
+  }
+
   SECTION("lx.h (f x) (g x)")
   {
     using namespace yave;
