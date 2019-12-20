@@ -11,11 +11,13 @@ namespace yave {
     std::string name,
     std::vector<socket_handle> input_sockets,
     std::vector<socket_handle> output_sockets,
-    managed_node_type type)
+    managed_node_type type,
+    tvec2<float> pos)
     : m_name {std::move(name)}
     , m_input_sockets {std::move(input_sockets)}
     , m_output_sockets {std::move(output_sockets)}
     , m_type {type}
+    , m_pos {pos}
   {
   }
 
@@ -39,6 +41,11 @@ namespace yave {
   auto managed_node_info::type() const -> managed_node_type
   {
     return m_type;
+  }
+
+  auto managed_node_info::pos() const -> tvec2<float>
+  {
+    return m_pos;
   }
 
   bool managed_node_info::is_normal() const

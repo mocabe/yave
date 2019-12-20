@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/core/node_info.hpp>
+#include <yave/lib/vec/tvec2.hpp>
 
 namespace yave {
 
@@ -32,7 +33,8 @@ namespace yave {
       std::string name,
       std::vector<socket_handle> input_sockets,
       std::vector<socket_handle> output_sockets,
-      managed_node_type type);
+      managed_node_type type,
+      tvec2<float> pos);
 
     /// name
     [[nodiscard]] auto name() const -> const std::string&;
@@ -57,6 +59,8 @@ namespace yave {
     [[nodiscard]] bool is_group_output() const;
     /// type
     [[nodiscard]] auto type() const -> managed_node_type;
+    /// pos
+    [[nodiscard]] auto pos() const -> tvec2<float>;
 
   private:
     /// Unique name of node.
@@ -67,5 +71,8 @@ namespace yave {
     std::vector<socket_handle> m_output_sockets;
     /// node type
     managed_node_type m_type;
+
+  private:
+    tvec2<float> m_pos;
   };
 }

@@ -80,14 +80,19 @@ namespace yave {
     }
   };
 
+  /// Extra information for nodes.
+  struct managed_node_graph::extra_info
+  {
+    /// node position
+    tvec2<float> pos;
+  };
+
   void managed_node_graph::_init()
   {
     assert(m_ng.empty());
     assert(m_nim.empty());
     assert(m_groups.empty());
     assert(!m_root_group);
-
-    m_nim.add(get_node_declaration<node::NodeGroupIOBit>());
 
     // initialize root group
     {
@@ -116,11 +121,20 @@ namespace yave {
       if (!root_g || !root_i || !root_o)
         throw std::runtime_error("Failed to create root group interface");
 
-      auto [it, succ] = m_groups.emplace(
-        root_g, node_group {nullptr, {}, root_g, root_i, {}, root_o, {}});
+      // group
+      if (!m_groups
+             .emplace(
+               root_g, node_group {nullptr, {}, root_g, root_i, {}, root_o, {}})
+             .second)
+        assert(false);
 
-      if (!succ)
-        throw std::runtime_error("Failed to create root group");
+      // extra node info
+      if (!m_extra_info.emplace(root_g, extra_info {}).second)
+        assert(false);
+      if (!m_extra_info.emplace(root_i, extra_info {}).second)
+        assert(false);
+      if (!m_extra_info.emplace(root_o, extra_info {}).second)
+        assert(false);
 
       m_root_group = root_g;
     }
@@ -131,6 +145,7 @@ namespace yave {
     , m_nim {}
     , m_groups {}
     , m_root_group {}
+    , m_extra_info {}
   {
     init_logger();
     _init();
@@ -145,11 +160,13 @@ namespace yave {
     , m_nim {}
     , m_groups {}
     , m_root_group {}
+    , m_extra_info {}
   {
     m_ng         = std::move(other.m_ng);
     m_nim        = std::move(other.m_nim);
     m_groups     = std::move(other.m_groups);
     m_root_group = std::move(other.m_root_group);
+    m_extra_info = std::move(other.m_extra_info);
   }
 
   managed_node_graph& managed_node_graph::operator=(
@@ -159,6 +176,7 @@ namespace yave {
     m_nim        = std::move(other.m_nim);
     m_groups     = std::move(other.m_groups);
     m_root_group = std::move(other.m_root_group);
+    m_extra_info = std::move(other.m_extra_info);
     return *this;
   }
 
@@ -304,14 +322,21 @@ namespace yave {
       if (!interface || !input_handler || !output_handler)
         throw std::runtime_error("Failed to create new node group");
 
-      // I/O bits will be added later
+      // group (IO bits will be added later)
       auto [it, succ] = m_groups.emplace(
         interface,
         node_group {
           parent, nodes, interface, input_handler, {}, output_handler, {}});
 
-      if (!succ)
-        throw std::runtime_error("Failed to create new node group");
+      assert(succ);
+
+      // extra node info
+      if (!m_extra_info.emplace(interface, extra_info {}).second)
+        assert(false);
+      if (!m_extra_info.emplace(input_handler, extra_info {}).second)
+        assert(false);
+      if (!m_extra_info.emplace(output_handler, extra_info {}).second)
+        assert(false);
 
       // Add interface node to parent group
       parent->add_content(interface);
@@ -578,6 +603,13 @@ namespace yave {
       for (auto&& bit : group->output_bits) {
         m_ng.remove(bit);
       }
+    }
+
+    // remove extra info
+    {
+      m_extra_info.erase(node);
+      m_extra_info.erase(group->output_handler);
+      m_extra_info.erase(group->output_handler);
     }
 
     // remove group
@@ -1031,8 +1063,16 @@ namespace yave {
       throw std::runtime_error("Invalid node type");
     }();
 
+    auto it = m_extra_info.find(node);
+
+    assert(it != m_extra_info.end());
+
     return managed_node_info(
-      info.name(), info.input_sockets(), info.output_sockets(), type);
+      info.name(),
+      info.input_sockets(),
+      info.output_sockets(),
+      type,
+      it->second.pos);
   }
 
   auto managed_node_graph::get_info(const socket_handle& socket) const
@@ -1083,7 +1123,32 @@ namespace yave {
     return m_ng.get_name(socket);
   }
 
-  /* create/connect */
+  auto managed_node_graph::get_pos(const node_handle& node) const
+    -> std::optional<tvec2<float>>
+  {
+    if (!exists(node))
+      return std::nullopt;
+
+    auto it = m_extra_info.find(node);
+
+    assert(it != m_extra_info.end());
+
+    return it->second.pos;
+  }
+
+  void managed_node_graph::set_pos(
+    const node_handle& node,
+    const tvec2<float>& new_pos)
+  {
+    if (!exists(node))
+      return;
+
+    auto it = m_extra_info.find(node);
+
+    assert(it != m_extra_info.end());
+
+    it->second.pos = new_pos;
+  }
 
   auto managed_node_graph::create(
     const node_handle& parent_group,
@@ -1125,6 +1190,9 @@ namespace yave {
 
       // create and add to node group
       group->add_content(node);
+
+      if (!m_extra_info.emplace(node, extra_info {}).second)
+        assert(false);
 
       Info(
         g_logger,
@@ -1169,9 +1237,15 @@ namespace yave {
       m_ng.remove(iter->second.input_handler);
       m_ng.remove(iter->second.output_handler);
 
+      // remove extra node info
+      m_extra_info.erase(node);
+      m_extra_info.erase(iter->second.input_handler);
+      m_extra_info.erase(iter->second.output_handler);
+
       // remove contents
       for (auto&& n : iter->second.contents) {
         m_ng.remove(n);
+        m_extra_info.erase(n);
       }
 
       parent->remove_content(node);
@@ -1181,6 +1255,7 @@ namespace yave {
     // member
     m_ng.remove(node);
     parent->remove_content(node);
+    m_extra_info.erase(node);
     return;
   }
 
@@ -1365,13 +1440,10 @@ namespace yave {
 
       auto [it, succ] = ret.m_groups.emplace(std::move(newn), std::move(newg));
 
-      if (!succ)
-        throw std::runtime_error("Failed to clone managed_node_graph");
+      assert(succ);
 
-      auto [it2, succ2] = group_map.emplace(&g, &it->second);
-
-      if (!succ2)
-        throw std::runtime_error("Failed to clone managed_node_graph");
+      if (!group_map.emplace(&g, &it->second).second)
+        assert(false);
     }
 
     // fix parent pointers
@@ -1385,10 +1457,17 @@ namespace yave {
 
       auto iter = group_map.find(g.parent);
 
-      if (iter == group_map.end())
-        throw std::runtime_error("Failed to clone manged_node_graph");
+      assert(iter != group_map.end());
 
       g.parent = iter->second;
+    }
+
+    // copy extra info
+    for (auto&& [n, i] : m_extra_info) {
+      auto newn = ret.m_ng.node(n.id());
+      assert(newn);
+      if (!ret.m_extra_info.emplace(newn, std::move(i)).second)
+        assert(false);
     }
 
     return ret;

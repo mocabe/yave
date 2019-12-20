@@ -151,6 +151,12 @@ namespace yave {
     [[nodiscard]] auto get_name(const socket_handle& socket) const
       -> std::optional<std::string>;
 
+    /// get pos
+    [[nodiscard]] auto get_pos(const node_handle& node) const
+      -> std::optional<tvec2<float>>;
+    /// set pos
+    void set_pos(const node_handle& node, const tvec2<float>& new_pos);
+
   public:
     /// create new node
     [[nodiscard]] auto create(
@@ -233,6 +239,7 @@ namespace yave {
 
   private:
     struct node_group;
+    struct extra_info;
 
   private:
     void _init();
@@ -262,6 +269,9 @@ namespace yave {
   private:
     std::map<node_handle, node_group> m_groups;
     node_handle m_root_group;
+
+  private:
+    std::map<node_handle, extra_info> m_extra_info;
   };
 
 } // namespace yave

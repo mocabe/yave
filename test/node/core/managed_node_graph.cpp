@@ -383,3 +383,41 @@ TEST_CASE("group with content")
     }
   }
 }
+
+TEST_CASE("pos")
+{
+  managed_node_graph ng {};
+
+  class X;
+
+  auto decl = node_declaration(
+    "node",
+    {"0", "1", "2"},
+    {"0", "1"},
+    {object_type<node_closure<X, X, X, X>>(),
+     object_type<node_closure<X, X, X, X>>()},
+    node_type::normal);
+
+  REQUIRE(ng.register_node_decl(decl));
+
+  auto g = ng.root_group();
+  auto n = ng.create(g, "node");
+
+  REQUIRE(ng.get_info(g)->pos() == tvec2<float> {});
+  REQUIRE(*ng.get_pos(g) == tvec2<float> {});
+  REQUIRE(ng.get_info(n)->pos() == tvec2<float> {});
+  REQUIRE(*ng.get_pos(n) == tvec2<float> {});
+
+  ng.set_pos(g, {4, 2});
+  ng.set_pos(n, {2, 4});
+
+  REQUIRE(ng.get_pos(g) == tvec2<float> {4, 2});
+  REQUIRE(ng.get_pos(n) == tvec2<float> {2, 4});
+
+  SECTION("clone")
+  {
+    auto ng2 = ng.clone();
+    REQUIRE(ng2.get_pos(ng2.root_group()) == tvec2<float> {4, 2});
+    REQUIRE(ng2.get_pos(ng2.root_group()) == tvec2<float> {4, 2});
+  }
+}
