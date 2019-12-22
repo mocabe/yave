@@ -38,7 +38,7 @@ namespace yave {
       case sample_format::UnsignedScaled:     return "UnsignedScaled";
       case sample_format::SignedScaled:       return "SignedScaled";
       case sample_format::SRGB:               return "SRGB";
-      default:                                return "(unrecognized sample format)";
+      default:                                unreachable();
     }
     // clang-format on
   }

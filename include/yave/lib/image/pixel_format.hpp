@@ -40,7 +40,7 @@ namespace yave {
       case pixel_format::RGBA:    return 4;
       case pixel_format::CMYK:    return 4;
       case pixel_format::YCCK:    return 4;
-      default:                    return 0;
+      default:                    unreachable();
     }
     // clang-format on
   }
@@ -61,7 +61,7 @@ namespace yave {
       case pixel_format::RGBA:    return true;
       case pixel_format::CMYK:    return false;
       case pixel_format::YCCK:    return false;
-      default:                    return false;
+      default:                    unreachable();
     }
     // clang-format on
   }
@@ -82,7 +82,7 @@ namespace yave {
       case pixel_format::RGBA:    return "RGBA";
       case pixel_format::CMYK:    return "CMYK";
       case pixel_format::YCCK:    return "YCCK";
-      default:                    return "(unrecognized pixel format)";
+      default:                    unreachable();
     }
     // clang-format on
   }

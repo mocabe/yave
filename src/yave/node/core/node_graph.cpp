@@ -281,7 +281,7 @@ namespace yave {
           return m_g.add_node_with_id(
             id.data, node_property::interface_construct_t {}, name);
         default:
-          throw std::runtime_error("Invalid node type");
+          unreachable();
       }
     }
     ();

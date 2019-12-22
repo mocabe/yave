@@ -755,7 +755,7 @@ namespace yave {
         pBits         = &group->output_bits;
         break;
       default:
-        throw std::runtime_error("Invalid socket type");
+        unreachable();
     }
 
     // detach
@@ -871,7 +871,7 @@ namespace yave {
         pBits = &group->output_bits;
         break;
       default:
-        throw std::runtime_error("Invalid socket type");
+        unreachable();
     }
 
     for (auto&& s : m_ng.input_sockets(pBits->operator[](index)))
@@ -941,7 +941,7 @@ namespace yave {
         pBits         = &group->output_bits;
         break;
       default:
-        throw std::runtime_error("Invalid socket type");
+        unreachable();
     }
 
     // detach
