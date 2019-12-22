@@ -1321,6 +1321,15 @@ namespace yave {
 
   /* nodes */
 
+  auto managed_node_graph::node(const socket_handle& socket) const
+    -> node_handle
+  {
+    if (!exists(socket))
+      return {nullptr};
+
+    return m_ng.node(socket);
+  }
+
   auto managed_node_graph::nodes() const -> std::vector<node_handle>
   {
     std::vector<node_handle> ret;
