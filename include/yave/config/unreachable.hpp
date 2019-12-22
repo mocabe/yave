@@ -8,13 +8,17 @@
 // unreachable
 #if !defined(unreachable)
 #  if defined(__GNUC__)
-#    define unreachable() \
-      assert(false);      \
-      __builtin_unreachable()
+#    define unreachable()        \
+      do {                       \
+        assert(false);           \
+        __builtin_unreachable(); \
+      } while (0)
 #  elif defined(_MSC_VER)
 #    define unreachable() \
-      assert(false);      \
-      __assume(0)
+      do {                \
+        assert(false);    \
+        __assume(0);      \
+      } while (0)
 #  else
 #    define unreachable() assert(false)
 #  endif
