@@ -640,6 +640,35 @@ namespace yave {
     return connection_handle(dsc, id);
   }
 
+  auto node_graph::node(const socket_handle& socket) const -> node_handle
+  {
+    auto lck = _lock();
+
+    if (!_exists(socket))
+      return {nullptr};
+
+    auto dsc = socket.descriptor();
+
+    return node_handle(m_g.nodes(dsc)[0], m_g.id(dsc));
+  }
+
+  auto node_graph::interfaces(const socket_handle& socket) const
+    -> std::vector<node_handle>
+  {
+    auto lck = _lock();
+
+    if (!_exists(socket))
+      return {};
+
+    std::vector<node_handle> ret;
+    auto ns = m_g.nodes(socket.descriptor());
+    for (size_t i = 1; i < ns.size(); ++i) {
+      assert(m_g[ns[i]].type() == node_type::interface);
+      ret.emplace_back(ns[i], uid {m_g.id(ns[i])});
+    }
+    return ret;
+  }
+
   auto node_graph::nodes() const -> std::vector<node_handle>
   {
     auto lck = _lock();
@@ -816,23 +845,6 @@ namespace yave {
     }
 
     return false;
-  }
-
-  auto node_graph::get_interfaces(const socket_handle& socket) const
-    -> std::vector<node_handle>
-  {
-    auto lck = _lock();
-
-    if (!_exists(socket))
-      return {};
-
-    std::vector<node_handle> ret;
-    auto ns = m_g.nodes(socket.descriptor());
-    for (size_t i = 1; i < ns.size(); ++i) {
-      assert(m_g[ns[i]].type() == node_type::interface);
-      ret.emplace_back(ns[i], uid {m_g.id(ns[i])});
-    }
-    return ret;
   }
 
   auto node_graph::get_owner(const socket_handle& socket) const -> node_handle

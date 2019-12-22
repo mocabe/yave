@@ -168,7 +168,7 @@ namespace yave {
           // error parameters.
           std::vector<std::pair<node_handle, socket_handle>> es;
 
-          auto interfaces = ng.get_interfaces(s);
+          auto interfaces = ng.interfaces(s);
           for (auto&& i : interfaces) {
             es.emplace_back(i, s);
           }

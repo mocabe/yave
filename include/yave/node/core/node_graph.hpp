@@ -144,6 +144,13 @@ namespace yave {
     /// \returns Null handle when not found
     [[nodiscard]] auto connection(const uid& id) const -> connection_handle;
 
+    /// Get node attached to the socket
+    [[nodiscard]] auto node(const socket_handle& socket) const -> node_handle;
+
+    /// Get list of interfaces nodes attached to the socket
+    [[nodiscard]] auto interfaces(const socket_handle& socket) const
+      -> std::vector<node_handle>;
+
     /// Get all nodes.
     [[nodiscard]] auto nodes() const -> std::vector<node_handle>;
 
@@ -219,10 +226,6 @@ namespace yave {
     /// primitive container.
     [[nodiscard]] auto get_primitive_container(const node_handle& node) const
       -> object_ptr<const PrimitiveContainer>;
-
-    /// Get list of interfaces nodes attached to the socket
-    [[nodiscard]] auto get_interfaces(const socket_handle& socket) const
-      -> std::vector<node_handle>;
 
     /// Get owner node of socket.
     [[nodiscard]] auto get_owner(const socket_handle& socket) const
