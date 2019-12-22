@@ -1017,6 +1017,54 @@ namespace yave {
     return _remove_group_socket(&iter->second, socket_type::output, index);
   }
 
+  auto managed_node_graph::get_group_socket_inside(
+    const socket_handle& socket) const -> socket_handle
+  {
+    if (exists(socket))
+      return {nullptr};
+
+    auto info = get_info(socket);
+
+    if (!is_group(info->node()))
+      return {nullptr};
+
+    auto bit = m_ng.get_info(socket)->node();
+
+    if (info->type() == socket_type::input) {
+      return m_ng.output_sockets(bit)[0];
+    }
+
+    if (info->type() == socket_type::output) {
+      return m_ng.input_sockets(bit)[0];
+    }
+
+    unreachable();
+  }
+
+  auto managed_node_graph::get_group_socket_outside(
+    const socket_handle& socket) const -> socket_handle
+  {
+    if (exists(socket))
+      return {nullptr};
+
+    auto info = get_info(socket);
+
+    if (!is_group_input(info->node()) || !is_group_output(info->node()))
+      return {nullptr};
+
+    auto bit = m_ng.get_info(socket)->node();
+
+    if (info->type() == socket_type::input) {
+      return m_ng.output_sockets(bit)[0];
+    }
+
+    if (info->type() == socket_type::output) {
+      return m_ng.input_sockets(bit)[0];
+    }
+
+    unreachable();
+  }
+
   /* exists */
 
   bool managed_node_graph::exists(const node_handle& node) const

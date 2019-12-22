@@ -126,6 +126,16 @@ namespace yave {
     /// \note destroy all connections to the socket
     void remove_group_output_socket(const node_handle& group, size_t index);
 
+    /// Peek in group socket
+    /// \param socket Group interface output socket
+    [[nodiscard]] auto get_group_socket_inside(
+      const socket_handle& socket) const -> socket_handle;
+
+    /// Peek out group socket
+    /// \param socket Group input handler socket
+    [[nodiscard]] auto get_group_socket_outside(
+      const socket_handle& socket) const -> socket_handle;
+
   public:
     /// exist?
     [[nodiscard]] bool exists(const node_handle& node) const;
