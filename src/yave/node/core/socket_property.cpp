@@ -10,6 +10,7 @@ namespace yave {
   socket_property::socket_property(const std::string& name, socket_type type)
     : m_name {name}
     , m_type {type}
+    , m_data {std::nullopt}
   {
   }
 
@@ -31,6 +32,21 @@ namespace yave {
   auto socket_property::name() const -> const std::string&
   {
     return m_name;
+  }
+
+  bool socket_property::has_data() const
+  {
+    return m_data.has_value();
+  }
+
+  auto socket_property::get_data() const -> std::optional<object_ptr<Object>>
+  {
+    return m_data;
+  }
+
+  void socket_property::set_data(object_ptr<Object> data)
+  {
+    m_data = data;
   }
 
   void socket_property::set_name(std::string new_name)
