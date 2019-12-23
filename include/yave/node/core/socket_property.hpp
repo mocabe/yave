@@ -6,8 +6,10 @@
 #pragma once
 
 #include <yave/config/config.hpp>
+#include <yave/rts/object_ptr.hpp>
 
 #include <string>
+#include <optional>
 
 namespace yave {
 
@@ -37,6 +39,15 @@ namespace yave {
     /// Get name of socket.
     [[nodiscard]] auto name() const -> const std::string&;
 
+    /// Has data?
+    [[nodiscard]] bool has_data() const;
+
+    /// Get data
+    [[nodiscard]] auto get_data() const -> std::optional<object_ptr<Object>>;
+
+    /// Set data. Enables has_data() after this call.
+    void set_data(object_ptr<Object> data);
+
     /// Set new name
     void set_name(std::string new_name);
 
@@ -45,6 +56,9 @@ namespace yave {
     std::string m_name;
     /// input or output
     const socket_type m_type;
+
+  private:
+    std::optional<object_ptr<Object>> m_data;
   };
 
 } // namespace yave
