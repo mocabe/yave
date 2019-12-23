@@ -17,7 +17,6 @@ namespace yave {
   enum class node_type
   {
     normal,    // normal node
-    primitive, // primitive node
     interface, // interface node
   };
 
@@ -25,61 +24,24 @@ namespace yave {
   class node_property
   {
   public:
-    struct normal_construct_t
-    {
-    };
-
-    struct primitive_construct_t
-    {
-    };
-
-    struct interface_construct_t
-    {
-    };
-
-  public:
     /// Non-primitive ctor.
-    node_property(normal_construct_t, const std::string& name);
-    /// Primitive ctor.
-    node_property(
-      primitive_construct_t,
-      const std::string& name,
-      const primitive_t& prim);
-    /// Interface construct
-    node_property(interface_construct_t, const std::string& name);
-    /// Copy ctor
-    node_property(const node_property& other);
+    node_property(const std::string& name, node_type type);
 
     /// Normal node?
     [[nodiscard]] bool is_normal() const;
-    /// Primitive node?
-    [[nodiscard]] bool is_primitive() const;
     /// Interface node?
     [[nodiscard]] bool is_interface() const;
     /// Get node name.
     [[nodiscard]] auto name() const -> const std::string&;
     /// Get node type
     [[nodiscard]] auto type() const -> node_type;
+    /// visited?
+    [[nodiscard]] bool is_visited() const;
+    /// !visited?
+    [[nodiscard]] bool is_unvisited() const;
 
     /// Set name
     void set_name(const std::string& new_name);
-
-    /// Get primitive value.
-    /// \requires is_prim() == true
-    [[nodiscard]] auto get_primitive() const -> primitive_t;
-
-    /// Get shared primitive container.
-    [[nodiscard]] auto get_shared_primitive() const
-      -> object_ptr<PrimitiveContainer>;
-
-    /// visited?
-    [[nodiscard]] bool is_visited() const;
-
-    /// unvisited?
-    [[nodiscard]] bool is_unvisited() const;
-
-    /// Set primitive value.
-    void set_primitive(const primitive_t& prim);
 
     /// Set as visited.
     void set_visited() const;
@@ -92,9 +54,6 @@ namespace yave {
     std::string m_name;
     /// Node type
     const node_type m_type;
-    /// Primitive value.
-    /// If the node is not primitive node, stores std::nullopt.
-    std::optional<object_ptr<PrimitiveContainer>> m_prim;
     /// marking variable for dfs
     mutable bool m_visited;
   };
