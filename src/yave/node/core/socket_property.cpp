@@ -5,6 +5,8 @@
 
 #include <yave/node/core/socket_property.hpp>
 
+#include <yave/rts/utility.hpp>
+
 namespace yave {
 
   socket_property::socket_property(const std::string& name, socket_type type)
@@ -12,6 +14,15 @@ namespace yave {
     , m_type {type}
     , m_data {std::nullopt}
   {
+  }
+
+  socket_property::socket_property(const socket_property& other)
+    : m_name {other.name}
+    , m_type {other.type}
+    , m_data {other.m_data}
+  {
+    if (m_data)
+      *m_data = clone(*m_data);
   }
 
   bool socket_property::is_input() const

@@ -27,6 +27,9 @@ namespace yave {
     /// Ctor
     socket_property(const std::string& name, socket_type type);
 
+    /// Copy ctor
+    socket_property(const socket_property&);
+
     /// Check input.
     [[nodiscard]] bool is_input() const;
 
