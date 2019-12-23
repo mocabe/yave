@@ -633,4 +633,14 @@ namespace yave {
   {
     return detail::has_type_impl<T>(obj);
   }
+
+  // ------------------------------------------
+  // is_type
+
+  template <class T>
+  [[nodiscard]] bool is_type(const object_ptr<const Type>& type)
+  {
+    return same_type(type, object_type<T>());
+  }
+
 } // namespace yave
