@@ -23,8 +23,9 @@ namespace yave {
     /// \param name Name of this node
     /// \param iss input socket names
     /// \param oss output socket names
-    /// \param type_classes type classes for each output
-    /// \param node_type type of node
+    /// \param type_classe type class for this node
+    /// \param default_data default data value of this node. Can be nullptr when
+    /// no data value required.
     /// \requires oss.size() == type_classes.size().
     /// \requires number of arguments of each type class should match the number
     /// of inputs. for interface nodes, types will be ignored.
@@ -32,29 +33,20 @@ namespace yave {
       std::string name,
       std::vector<std::string> iss,
       std::vector<std::string> oss,
-      std::vector<object_ptr<const Type>> type_classes,
-      node_type node_type)
+      object_ptr<const Type> type_class,
+      object_ptr<const Object> default_data = nullptr)
       : m_name {std::move(name)}
       , m_iss {std::move(iss)}
       , m_oss {std::move(oss)}
-      , m_node_type {std::move(node_type)}
-      , m_type_classes {std::move(type_classes)}
+      , m_type_class {std::move(type_class)}
+      , m_default_data {std::move(default_data)}
     {
-      if (m_node_type == node_type::interface)
-        m_type_classes = {m_oss.size(), object_type<Undefined>()};
+      if (!m_type_class)
+        throw std::runtime_error("Invalid type class");
 
-      if (m_type_classes.size() != m_oss.size())
-        throw std::runtime_error("Invalid number of type classes");
-
-      for (auto&& tc : m_type_classes) {
-
-        if (!tc)
-          throw std::runtime_error("Invalid type class");
-
-        // inputs + demand + return type
-        if (flatten(tc).size() != m_iss.size() + 2)
-          throw std::runtime_error("Invalid number of inputs in type class: ");
-      }
+      // inputs + demand + return type
+      if (flatten(m_type_class).size() != m_iss.size() + 2)
+        throw std::runtime_error("Invalid number of inputs in type class: ");
     }
 
     [[nodiscard]] auto name() const -> const auto&
@@ -72,25 +64,26 @@ namespace yave {
       return m_oss;
     }
 
-    [[nodiscard]] auto node_type() const -> const auto&
+    [[nodiscard]] auto type_class() const -> const auto&
     {
-      return m_node_type;
+      return m_type_class;
     }
 
-    [[nodiscard]] auto type_classes() const -> const auto&
+    /// \note Can return nullptr!
+    [[nodiscard]] auto default_data() const -> const auto&
     {
-      assert(m_node_type != node_type::interface);
-      return m_type_classes;
+      return m_default_data;
     }
 
   private:
     std::string m_name;
     std::vector<std::string> m_iss;
     std::vector<std::string> m_oss;
-    yave::node_type m_node_type;
 
   private:
-    /// for non-composite node
-    std::vector<object_ptr<const Type>> m_type_classes;
+    object_ptr<const Type> m_type_class;
+
+  private:
+    object_ptr<const Object> m_default_data;
   };
 }
