@@ -47,11 +47,6 @@ namespace yave {
     return m_type == node_type::normal;
   }
 
-  bool node_info::is_primitive() const
-  {
-    return m_type == node_type::primitive;
-  }
-
   bool node_info::is_interface() const
   {
     return m_type == node_type::interface;
