@@ -1383,6 +1383,11 @@ namespace yave {
     return m_ng.output_connections(node);
   }
 
+  bool managed_node_graph::has_data(const node_handle& node) const
+  {
+    return m_ng.has_data(node);
+  }
+
   auto managed_node_graph::get_data_type(const node_handle& node) const
     -> std::optional<object_ptr<const Type>>
   {
