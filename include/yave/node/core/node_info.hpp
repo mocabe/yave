@@ -44,8 +44,6 @@ namespace yave {
 
     /// normal?
     [[nodiscard]] bool is_normal() const;
-    /// primitive?
-    [[nodiscard]] bool is_primitive() const;
     /// interface?
     [[nodiscard]] bool is_interface() const;
     /// node type
