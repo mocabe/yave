@@ -29,8 +29,7 @@ namespace yave {
           FrameBuffer,
           FrameBuffer,
           node_closure<FrameBuffer, FrameBuffer, FrameBuffer>,
-          FrameBuffer>>()},
-        node_type::normal);
+          FrameBuffer>>()});
     }
   };
 

@@ -21,36 +21,46 @@ namespace yave {
     class NodeGroupIOBit;
   } // namespace node
 
+  // dummy declaration
   template <>
   struct node_declaration_traits<node::NodeGroupInterface>
   {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "NodeGroupInterface", {}, {}, {}, node_type::interface);
+        "NodeGroupInterface",
+        {},
+        {},
+        object_type<closure<Undefined, Undefined>>());
     }
   };
 
+  // dummy declaration
   template <>
   struct node_declaration_traits<node::NodeGroupInput>
   {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "NodeGroupInput", {}, {}, {}, node_type::interface);
+        "NodeGroupInput", {}, {}, object_type<closure<Undefined, Undefined>>());
     }
   };
 
+  // dummy declaration
   template <>
   struct node_declaration_traits<node::NodeGroupOutput>
   {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "NodeGroupOutput", {}, {}, {}, node_type::interface);
+        "NodeGroupOutput",
+        {},
+        {},
+        object_type<closure<Undefined, Undefined>>());
     }
   };
 
+  // dummy declaration
   template <>
   struct node_declaration_traits<node::NodeGroupIOBit>
   {
@@ -59,10 +69,9 @@ namespace yave {
       class X;
       return node_declaration(
         "NodeGroupIOBit",
-        {"in"},  // will change dynamically
-        {"out"}, // will change dynamically
-        {object_type<node_closure<X, X>>()},
-        node_type::normal);
+        {""}, // will change dynamically
+        {""}, // will change dynamically
+        {object_type<node_closure<X, X>>()});
     }
   };
 

@@ -21,13 +21,8 @@ namespace yave {
   {
     static auto get_node_declaration() -> node_declaration
     {
-      // pseudo primitive
       return node_declaration(
-        "FrameBuffer",
-        {},
-        {"value"},
-        {object_type<node_closure<FrameBuffer>>()},
-        node_type::primitive);
+        "FrameBuffer", {}, {"value"}, object_type<node_closure<FrameBuffer>>());
     }
   };
 } // namespace yave

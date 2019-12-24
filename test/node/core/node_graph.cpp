@@ -59,9 +59,9 @@ TEST_CASE("node_graph init")
   REQUIRE(ng.input_sockets(node_handle()).empty());
   REQUIRE(ng.output_sockets(node_handle()).empty());
 
-  REQUIRE(!ng.is_primitive(node_handle()));
-  REQUIRE(!ng.get_primitive(node_handle()));
-  REQUIRE_NOTHROW(ng.set_primitive(node_handle(), {}));
+  REQUIRE(!ng.has_data(node_handle()));
+  REQUIRE(!ng.get_data(node_handle()));
+  REQUIRE_NOTHROW(ng.set_data(node_handle(), {}));
 
   REQUIRE_NOTHROW(ng.clear());
 }
@@ -90,14 +90,12 @@ TEST_CASE("node_graph control")
     auto p_name = "prim test node"s;
     auto p_iss  = std::vector<std::string> {};
     auto p_oss  = std::vector<std::string> {"value"};
-    auto p_type = node_type::primitive;
+    auto p_type = node_type::normal;
 
-    auto add_p = [&] {
-      return ng.add(p_name, p_iss, p_oss, node_type::primitive);
-    };
+    auto add_p = [&] { return ng.add(p_name, p_iss, p_oss, p_type); };
 
     auto n3 = add_p();
-    REQUIRE(ng.is_primitive(n3));
+    REQUIRE(ng.is_normal(n3));
     REQUIRE(n3);
     REQUIRE(ng.exists(n3));
     REQUIRE(ng.nodes().size() == 3);
@@ -116,7 +114,7 @@ TEST_CASE("node_graph control")
     REQUIRE(i1->input_sockets().size() == 2);
     REQUIRE(i1->output_sockets().size() == 2);
 
-    REQUIRE(i3->is_primitive());
+    REQUIRE(i3->is_normal());
     REQUIRE(i3->input_sockets().empty());
     REQUIRE(i3->output_sockets().size() == 1);
   }
@@ -482,11 +480,15 @@ TEST_CASE("node_graph control")
   SECTION("dfs")
   {
     auto add_n1 = [&](auto p) {
-      return ng.add("n1", {"0", "1", "2"}, {"0"}, node_type::primitive, p);
+      auto n = ng.add("n1", {"0", "1", "2"}, {"0"}, node_type::normal);
+      ng.set_data(n, make_object<Box<decltype(p)>>(p));
+      return n;
     };
 
     auto add_n2 = [&](auto p) {
-      return ng.add("n2", {}, {"0"}, node_type::primitive, p);
+      auto n = ng.add("n2", {}, {"0"}, node_type::normal);
+      ng.set_data(n, make_object<Box<decltype(p)>>(p));
+      return n;
     };
 
     auto n1 = add_n1(1);
@@ -542,7 +544,7 @@ TEST_CASE("node_graph interface")
     REQUIRE(ng.get_info(interface)->type() == node_type::interface);
 
     REQUIRE(ng.is_interface(interface));
-    REQUIRE(!ng.is_primitive(interface));
+    REQUIRE(!ng.is_normal(interface));
 
     REQUIRE(ng.input_connections(interface).empty());
     REQUIRE(ng.output_connections(interface).empty());

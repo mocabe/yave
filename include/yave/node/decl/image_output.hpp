@@ -26,8 +26,7 @@ namespace yave {
         "LayerImageOutput",
         {"in"},
         {"out"},
-        {object_type<node_closure<X, FrameBuffer>>()},
-        node_type::normal);
+        object_type<node_closure<X, FrameBuffer>>());
     }
   };
 } // namespace yave
