@@ -22,11 +22,7 @@ namespace yave {
     {
       class X;
       return node_declaration(
-        "Identity",
-        {"in"},
-        {"out"},
-        {object_type<node_closure<X, X>>()},
-        node_type::normal);
+        "Identity", {"in"}, {"out"}, object_type<node_closure<X, X>>());
     }
   };
 } // namespace yave

@@ -232,14 +232,16 @@ namespace yave {
     [[nodiscard]] auto output_connections(const node_handle& node) const
       -> std::vector<connection_handle>;
 
-    /// primitive?
-    [[nodiscard]] auto get_primitive(const node_handle& node) const
-      -> std::optional<primitive_t>;
+    /// data type
+    [[nodiscard]] auto get_data_type(const node_handle& node) const
+      -> std::optional<object_ptr<const Type>>;
 
-    /// set primitive
-    [[nodiscard]] bool set_primitive(
-      const node_handle& node,
-      const primitive_t& prim);
+    /// has data?
+    [[nodiscard]] auto get_data(const node_handle& node) const
+      -> std::optional<object_ptr<Object>>;
+
+    /// set data
+    void set_data(const node_handle& node, object_ptr<Object> data);
 
     /// acecss underlying node_graph
     [[nodiscard]] auto node_graph() const -> const node_graph&;

@@ -28,11 +28,7 @@ namespace yave {
     {
       class X;
       return node_declaration(
-        "ListNil",
-        {},
-        {"nil"},
-        {object_type<node_closure<List<X>>>()},
-        node_type::normal);
+        "ListNil", {}, {"nil"}, object_type<node_closure<List<X>>>());
     }
   };
 
@@ -46,8 +42,7 @@ namespace yave {
         "ListCons",
         {"head", "tail"},
         {"cons"},
-        {object_type<node_closure<X, List<X>, List<X>>>()},
-        node_type::normal);
+        object_type<node_closure<X, List<X>, List<X>>>());
     }
   };
 
@@ -61,8 +56,7 @@ namespace yave {
         "ListDecompose",
         {"list"},
         {"head"},
-        {object_type<node_closure<List<X>, X>>()},
-        node_type::normal);
+        {object_type<node_closure<List<X>, X>>()});
     }
   };
 
@@ -76,8 +70,7 @@ namespace yave {
         "ListDecompose",
         {"list"},
         {"tail"},
-        {object_type<node_closure<List<X>, List<X>>>()},
-        node_type::normal);
+        {object_type<node_closure<List<X>, List<X>>>()});
     }
   };
 }

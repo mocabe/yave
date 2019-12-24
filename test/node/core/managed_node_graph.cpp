@@ -118,9 +118,7 @@ TEST_CASE("group with content")
     "node",
     {"0", "1", "2"},
     {"0", "1"},
-    {object_type<node_closure<X, X, X, X>>(),
-     object_type<node_closure<X, X, X, X>>()},
-    node_type::normal);
+    object_type<node_closure<X, X, X, X>>());
 
   REQUIRE(ng.register_node_decl(decl));
 
@@ -394,9 +392,7 @@ TEST_CASE("pos")
     "node",
     {"0", "1", "2"},
     {"0", "1"},
-    {object_type<node_closure<X, X, X, X>>(),
-     object_type<node_closure<X, X, X, X>>()},
-    node_type::normal);
+    object_type<node_closure<X, X, X, X>>());
 
   REQUIRE(ng.register_node_decl(decl));
 

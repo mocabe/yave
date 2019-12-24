@@ -171,19 +171,18 @@ namespace yave {
     return ret;
   }
 
-#define YAVE_DECL_BLEND_OP_NODE(TYPE)                                         \
-  template <>                                                                 \
-  struct node_declaration_traits<node::TYPE>                                  \
-  {                                                                           \
-    static auto get_node_declaration() -> node_declaration                    \
-    {                                                                         \
-      return node_declaration(                                                \
-        #TYPE,                                                                \
-        {"src", "dst"},                                                       \
-        {"out"},                                                              \
-        {object_type<node_closure<FrameBuffer, FrameBuffer, FrameBuffer>>()}, \
-        node_type::normal);                                                   \
-    }                                                                         \
+#define YAVE_DECL_BLEND_OP_NODE(TYPE)                                          \
+  template <>                                                                  \
+  struct node_declaration_traits<node::TYPE>                                   \
+  {                                                                            \
+    static auto get_node_declaration() -> node_declaration                     \
+    {                                                                          \
+      return node_declaration(                                                 \
+        #TYPE,                                                                 \
+        {"src", "dst"},                                                        \
+        {"out"},                                                               \
+        {object_type<node_closure<FrameBuffer, FrameBuffer, FrameBuffer>>()}); \
+    }                                                                          \
   }
 
   YAVE_DECL_BLEND_OP_NODE(BlendOpSrc);
@@ -193,20 +192,19 @@ namespace yave {
   YAVE_DECL_BLEND_OP_NODE(BlendOpOut);
   YAVE_DECL_BLEND_OP_NODE(BlendOpAdd);
 
-#define YAVE_DECL_BLEND_OP_GETTER_NODE(TYPE)                        \
-  template <>                                                       \
-  struct node_declaration_traits<node::TYPE##Getter>                \
-  {                                                                 \
-    static auto get_node_declaration() -> node_declaration          \
-    {                                                               \
-      return node_declaration(                                      \
-        #TYPE "Getter",                                             \
-        {},                                                         \
-        {"op"},                                                     \
-        {object_type<node_closure<                                  \
-          node_closure<FrameBuffer, FrameBuffer, FrameBuffer>>>()}, \
-        node_type::normal);                                         \
-    }                                                               \
+#define YAVE_DECL_BLEND_OP_GETTER_NODE(TYPE)                         \
+  template <>                                                        \
+  struct node_declaration_traits<node::TYPE##Getter>                 \
+  {                                                                  \
+    static auto get_node_declaration() -> node_declaration           \
+    {                                                                \
+      return node_declaration(                                       \
+        #TYPE "Getter",                                              \
+        {},                                                          \
+        {"op"},                                                      \
+        {object_type<node_closure<                                   \
+          node_closure<FrameBuffer, FrameBuffer, FrameBuffer>>>()}); \
+    }                                                                \
   }
 
   YAVE_DECL_BLEND_OP_GETTER_NODE(BlendOpSrc);

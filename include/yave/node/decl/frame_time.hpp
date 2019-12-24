@@ -22,11 +22,7 @@ namespace yave {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "FrameTime",
-        {},
-        {"value"},
-        {object_type<node_closure<FrameTime>>()},
-        node_type::primitive);
+        "FrameTime", {}, {"value"}, object_type<node_closure<FrameTime>>());
     }
   };
 } // namespace yave

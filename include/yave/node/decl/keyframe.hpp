@@ -21,31 +21,22 @@ namespace yave {
 
   } // namespace node
 
-#define YAVE_DECL_KEYFRAME_EVALUATOR(TYPE)                                  \
-  template <>                                                               \
-  struct node_declaration_traits<node::KeyframeEvaluator##TYPE>             \
-  {                                                                         \
-    static auto get_node_declaration() -> node_declaration                  \
-    {                                                                       \
-      return node_declaration(                                              \
-        "KeyframeEvaluator" #TYPE,                                          \
-        {"keyframes", "frame"},                                             \
-        {"value"},                                                          \
-        {object_type<node_closure<KeyframeData##TYPE, FrameTime, TYPE>>()}, \
-        node_type::normal);                                                 \
-    }                                                                       \
+#define YAVE_DECL_KEYFRAME_EVALUATOR(TYPE)                                 \
+  template <>                                                              \
+  struct node_declaration_traits<node::KeyframeEvaluator##TYPE>            \
+  {                                                                        \
+    static auto get_node_declaration() -> node_declaration                 \
+    {                                                                      \
+      return node_declaration(                                             \
+        "KeyframeEvaluator" #TYPE,                                         \
+        {"keyframes", "frame"},                                            \
+        {"value"},                                                         \
+        object_type<node_closure<KeyframeData##TYPE, FrameTime, TYPE>>()); \
+    }                                                                      \
   }
 
   YAVE_DECL_KEYFRAME_EVALUATOR(Int);
   YAVE_DECL_KEYFRAME_EVALUATOR(Float);
   YAVE_DECL_KEYFRAME_EVALUATOR(Bool);
-
-  inline auto get_keyframe_node_info_list() -> std::vector<node_declaration>
-  {
-    return {/* evaluators */
-            get_node_declaration<node::KeyframeEvaluatorInt>(),
-            get_node_declaration<node::KeyframeEvaluatorFloat>(),
-            get_node_declaration<node::KeyframeEvaluatorBool>()};
-  }
 
 } // namespace yave

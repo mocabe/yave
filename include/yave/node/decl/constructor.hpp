@@ -57,8 +57,8 @@ namespace yave {
         get_primitive_name(primitive_t {value_type {}}),
         {},
         {"value"},
-        {object_type<node_closure<T>>()},
-        node_type::primitive);
+        object_type<node_closure<T>>(),
+        object_type<T>());
     }
   };
 

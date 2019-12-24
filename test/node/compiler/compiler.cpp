@@ -50,11 +50,7 @@ struct yave::node_declaration_traits<n::Add>
   {
     class X;
     return node_declaration(
-      "add",
-      {"x", "y"},
-      {"out"},
-      {object_type<node_closure<X, X, X>>()},
-      node_type::normal);
+      "add", {"x", "y"}, {"out"}, object_type<node_closure<X, X, X>>());
   }
 };
 
