@@ -235,8 +235,7 @@ namespace yave {
     const std::string& name,
     const std::vector<std::string>& input_sockets,
     const std::vector<std::string>& output_sockets,
-    node_type type,
-    const primitive_t& prim) -> node_handle
+    node_type type) -> node_handle
   {
     auto lck = _lock();
 
@@ -265,26 +264,10 @@ namespace yave {
 
     auto id = uid::random_generate();
 
+    assert(type == node_type::normal || type == node_type::interface);
+
     // add node
-    auto node = [&]() -> typename graph_t::node_descriptor_type
-    {
-      switch (type) {
-        case node_type::normal:
-          return m_g.add_node_with_id(
-            id.data, node_property::normal_construct_t {}, name);
-        case node_type::primitive:
-          return m_g.add_node_with_id(
-            id.data, node_property::primitive_construct_t {}, name, prim);
-        case node_type::interface:
-          if (!input_sockets.empty() || !output_sockets.empty())
-            return nullptr;
-          return m_g.add_node_with_id(
-            id.data, node_property::interface_construct_t {}, name);
-        default:
-          unreachable();
-      }
-    }
-    ();
+    auto node = m_g.add_node_with_id(id.data, name, type);
 
     if (!node)
       return {nullptr};
@@ -336,39 +319,30 @@ namespace yave {
     auto os   = other._output_sockets(node);
     auto info = other._get_info(node);
 
-    if (!info.is_normal() && !info.is_primitive()) {
+    if (!info.is_normal()) {
       Error(g_logger, "copy_add(): Invalid node type");
       return {nullptr};
     }
 
-    node_handle::descriptor_type cpy_n = nullptr;
-
-    if (info.is_normal())
-      cpy_n = m_g.add_node_with_id(
-        node.id().data, node_property::normal_construct_t {}, info.name());
-
-    if (info.is_primitive())
-      cpy_n = m_g.add_node_with_id(
-        node.id().data,
-        node_property::primitive_construct_t {},
-        info.name(),
-        other._get_primitive(node));
+    auto cpy_n =
+      m_g.add_node_with_id(node.id().data, other.m_g[node.descriptor()]);
 
     assert(cpy_n);
 
     [[maybe_unused]] bool b;
 
     for (auto&& s : is) {
-      auto si    = other._get_info(s);
-      auto cpy_s = m_g.add_socket_with_id(s.id().data, si.name(), si.type());
-      b          = m_g.attach_socket(cpy_n, cpy_s);
+      auto cpy_s =
+        m_g.add_socket_with_id(s.id().data, other.m_g[s.descriptor()]);
+      b = m_g.attach_socket(cpy_n, cpy_s);
       assert(b);
     }
 
     for (auto&& s : os) {
-      auto si    = other._get_info(s);
-      auto cpy_s = m_g.add_socket_with_id(s.id().data, si.name(), si.type());
-      b          = m_g.attach_socket(cpy_n, cpy_s);
+      auto si = other._get_info(s);
+      auto cpy_s =
+        m_g.add_socket_with_id(s.id().data, other.m_g[s.descriptor()]);
+      b = m_g.attach_socket(cpy_n, cpy_s);
       assert(b);
     }
 
@@ -921,18 +895,6 @@ namespace yave {
     return m_g[h.descriptor()].is_normal();
   }
 
-  bool node_graph::is_primitive(const node_handle& h) const
-  {
-    auto lck = _lock();
-
-    if (!_exists(h)) {
-      Warning(g_logger, "node_graph::is_primitive() on invalid node handle.");
-      return false;
-    }
-
-    return m_g[h.descriptor()].is_primitive();
-  }
-
   bool node_graph::is_interface(const node_handle& node) const
   {
     auto lck = _lock();
@@ -943,62 +905,40 @@ namespace yave {
     return m_g[node.descriptor()].is_interface();
   }
 
-  auto node_graph::_get_primitive(const node_handle& h) const -> primitive_t
-  {
-    return m_g[h.descriptor()].get_primitive();
-  }
-
-  auto node_graph::get_primitive(const node_handle& h) const
-    -> std::optional<primitive_t>
+  bool node_graph::has_data(const socket_handle& socket) const
   {
     auto lck = _lock();
 
-    if (!_exists(h)) {
-      Warning(g_logger, "node_graph::get_primitive() on invalid node handle.");
+    if (!_exists(socket))
+      return false;
+
+    return m_g[socket.descriptor()].has_data();
+  }
+
+  auto node_graph::get_data(const socket_handle& socket) const
+    -> std::optional<object_ptr<Object>>
+  {
+    auto lck = _lock();
+
+    if (!_exists(socket))
       return std::nullopt;
-    }
 
-    if (m_g[h.descriptor()].is_primitive())
-      return _get_primitive(h);
-
-    return std::nullopt;
+    return m_g[socket.descriptor()].get_data();
   }
 
-  void node_graph::set_primitive(const node_handle& h, const primitive_t& prim)
+  void node_graph::set_data(
+    const socket_handle& socket,
+    object_ptr<Object> data)
   {
     auto lck = _lock();
 
-    if (!_exists(h)) {
-      Warning(g_logger, "node_graph::set_primitive() on invalid node handle.");
+    if (!_exists(socket))
       return;
-    }
 
-    if (!m_g[h.descriptor()].is_primitive()) {
-      Error(
-        g_logger, "Cannot set primitive value to non-primitive node. Ignored.");
-      return;
-    }
-    m_g[h.descriptor()].set_primitive(prim);
-  }
+    if (!m_g[socket.descriptor()].has_data())
+      Info(g_logger, "Enable custom data on socket: id={}", to_string(socket.id()));
 
-  auto node_graph::get_primitive_container(const node_handle& node) const
-    -> object_ptr<const PrimitiveContainer>
-  {
-    auto lck = _lock();
-
-    assert(m_default_container);
-
-    if (!_exists(node)) {
-      Warning(
-        g_logger,
-        "node_graph::get_primitive_container() on invalid node handle.");
-      return m_default_container;
-    }
-
-    if (m_g[node.descriptor()].is_primitive())
-      return m_g[node.descriptor()].get_shared_primitive();
-
-    return m_default_container;
+    m_g[socket.descriptor()].set_data(std::move(data));
   }
 
   auto node_graph::roots() const -> std::vector<node_handle>

@@ -88,8 +88,7 @@ namespace yave {
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets,
-      node_type type,
-      const primitive_t& prim = {}) -> node_handle;
+      node_type type) -> node_handle;
 
     /// Add copy of node.
     /// \note `node` should not be interface node.
@@ -206,26 +205,18 @@ namespace yave {
     /// Normal node?
     [[nodiscard]] bool is_normal(const node_handle& node) const;
 
-    /// Primitive node?
-    [[nodiscard]] bool is_primitive(const node_handle& node) const;
-
     /// Interface node?
     [[nodiscard]] bool is_interface(const node_handle& node) const;
 
-    /// Get primitive value.
-    /// \returns std::nullopt when `node` is not primitive node.
-    [[nodiscard]] auto get_primitive(const node_handle& node) const
-      -> std::optional<primitive_t>;
+    /// Has data?
+    [[nodiscard]] bool has_data(const socket_handle& socket) const;
 
-    /// Set primitive value.
-    /// When `is_primitive(prim_node) == false`, no effect.
-    void set_primitive(const node_handle& prim_node, const primitive_t& prim);
+    /// Get custom data object
+    [[nodiscard]] auto get_data(const socket_handle& socket) const
+      -> std::optional<object_ptr<Object>>;
 
-    /// Get primitive container object.
-    /// If `node` is not primitive, retuens pointer to default initialized
-    /// primitive container.
-    [[nodiscard]] auto get_primitive_container(const node_handle& node) const
-      -> object_ptr<const PrimitiveContainer>;
+    /// Set custom data
+    void set_data(const socket_handle& socket, object_ptr<Object> data);
 
     /// Get owner node of socket.
     [[nodiscard]] auto get_owner(const socket_handle& socket) const
