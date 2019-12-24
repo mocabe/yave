@@ -17,8 +17,8 @@ namespace yave {
   }
 
   socket_property::socket_property(const socket_property& other)
-    : m_name {other.name}
-    , m_type {other.type}
+    : m_name {other.m_name}
+    , m_type {other.m_type}
     , m_data {other.m_data}
   {
     if (m_data)
