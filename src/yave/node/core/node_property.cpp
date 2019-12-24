@@ -11,8 +11,19 @@ namespace yave {
   node_property::node_property(const std::string& name, node_type type)
     : m_name {name}
     , m_type {type}
+    , m_data {std::nullopt}
     , m_visited {false}
   {
+  }
+
+  node_property::node_property(const node_property& other)
+    : m_name {other.m_name}
+    , m_type {other.m_type}
+    , m_data {other.m_data}
+    , m_visited {false}
+  {
+    if (m_data)
+      *m_data = clone(*m_data);
   }
 
   auto node_property::name() const -> const std::string&
@@ -48,6 +59,21 @@ namespace yave {
   bool node_property::is_unvisited() const
   {
     return !m_visited;
+  }
+
+  bool node_property::has_data() const
+  {
+    return m_data.has_value();
+  }
+
+  auto node_property::get_data() const -> std::optional<object_ptr<Object>>
+  {
+    return m_data;
+  }
+
+  void node_property::set_data(object_ptr<Object> data)
+  {
+    m_data = std::move(data);
   }
 
   void node_property::set_visited() const

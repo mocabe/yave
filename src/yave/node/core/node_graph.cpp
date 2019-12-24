@@ -905,40 +905,72 @@ namespace yave {
     return m_g[node.descriptor()].is_interface();
   }
 
-  bool node_graph::has_data(const socket_handle& socket) const
+  bool node_graph::has_data(const socket_handle& h) const
   {
     auto lck = _lock();
 
-    if (!_exists(socket))
+    if (!_exists(h))
       return false;
 
-    return m_g[socket.descriptor()].has_data();
+    return m_g[h.descriptor()].has_data();
   }
 
-  auto node_graph::get_data(const socket_handle& socket) const
+  bool node_graph::has_data(const node_handle& h) const
+  {
+    auto lck = _lock();
+
+    if (!_exists(h))
+      return false;
+
+    return m_g[h.descriptor()].has_data();
+  }
+
+  auto node_graph::get_data(const socket_handle& h) const
     -> std::optional<object_ptr<Object>>
   {
     auto lck = _lock();
 
-    if (!_exists(socket))
+    if (!_exists(h))
       return std::nullopt;
 
-    return m_g[socket.descriptor()].get_data();
+    return m_g[h.descriptor()].get_data();
   }
 
-  void node_graph::set_data(
-    const socket_handle& socket,
-    object_ptr<Object> data)
+  auto node_graph::get_data(const node_handle& h) const
+    -> std::optional<object_ptr<Object>>
   {
     auto lck = _lock();
 
-    if (!_exists(socket))
+    if (!_exists(h))
+      return std::nullopt;
+
+    return m_g[h.descriptor()].get_data();
+  }
+
+  void node_graph::set_data(const socket_handle& h, object_ptr<Object> data)
+  {
+    auto lck = _lock();
+
+    if (!_exists(h))
       return;
 
-    if (!m_g[socket.descriptor()].has_data())
-      Info(g_logger, "Enable custom data on socket: id={}", to_string(socket.id()));
+    if (!m_g[h.descriptor()].has_data())
+      Info(g_logger, "Enable custom data on socket: id={}", to_string(h.id()));
 
-    m_g[socket.descriptor()].set_data(std::move(data));
+    m_g[h.descriptor()].set_data(std::move(data));
+  }
+
+  void node_graph::set_data(const node_handle& h, object_ptr<Object> data)
+  {
+    auto lck = _lock();
+
+    if (!_exists(h))
+      return;
+
+    if (!m_g[h.descriptor()].has_data())
+      Info(g_logger, "Enable custom data on node: id={}", to_string(h.id()));
+
+    m_g[h.descriptor()].set_data(std::move(data));
   }
 
   auto node_graph::roots() const -> std::vector<node_handle>

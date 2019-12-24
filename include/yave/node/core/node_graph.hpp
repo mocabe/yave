@@ -209,14 +209,24 @@ namespace yave {
     [[nodiscard]] bool is_interface(const node_handle& node) const;
 
     /// Has data?
-    [[nodiscard]] bool has_data(const socket_handle& socket) const;
+    [[nodiscard]] bool has_data(const socket_handle& h) const;
+
+    /// Has data?
+    [[nodiscard]] bool has_data(const node_handle& h) const;
 
     /// Get custom data object
-    [[nodiscard]] auto get_data(const socket_handle& socket) const
+    [[nodiscard]] auto get_data(const socket_handle& h) const
+      -> std::optional<object_ptr<Object>>;
+
+    /// Get custom data object
+    [[nodiscard]] auto get_data(const node_handle& h) const
       -> std::optional<object_ptr<Object>>;
 
     /// Set custom data
-    void set_data(const socket_handle& socket, object_ptr<Object> data);
+    void set_data(const socket_handle& h, object_ptr<Object> data);
+
+    /// Set custom data
+    void set_data(const node_handle& h, object_ptr<Object> data);
 
     /// Get owner node of socket.
     [[nodiscard]] auto get_owner(const socket_handle& socket) const
