@@ -26,6 +26,8 @@ namespace yave {
   public:
     /// Non-primitive ctor.
     node_property(const std::string& name, node_type type);
+    /// Copy ctor
+    node_property(const node_property&);
 
     /// Normal node?
     [[nodiscard]] bool is_normal() const;
@@ -39,6 +41,14 @@ namespace yave {
     [[nodiscard]] bool is_visited() const;
     /// !visited?
     [[nodiscard]] bool is_unvisited() const;
+
+    /// Has data?
+    [[nodiscard]] bool has_data() const;
+    /// Get data
+    [[nodiscard]] auto get_data() const -> std::optional<object_ptr<Object>>;
+
+    /// Set data
+    void set_data(object_ptr<Object> data);
 
     /// Set name
     void set_name(const std::string& new_name);
@@ -54,6 +64,10 @@ namespace yave {
     std::string m_name;
     /// Node type
     const node_type m_type;
+    /// Custom data
+    std::optional<object_ptr<Object>> m_data;
+
+  private:
     /// marking variable for dfs
     mutable bool m_visited;
   };
