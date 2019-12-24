@@ -20,9 +20,9 @@ namespace yave {
   {
     external_backend_node_declaration(const node_declaration& decl)
     {
-      m_name         = decl.name();
-      m_type_classes = decl.type_classes();
-      m_node_type    = decl.node_type();
+      m_name          = decl.name();
+      m_type_class    = decl.type_class();
+      m_default_data  = decl.default_data();
 
       std::vector<string> iss;
       for (auto&& s : decl.input_sockets()) {
@@ -64,34 +64,37 @@ namespace yave {
     }
 
     /// Get type class
-    auto type_classes() const -> std::vector<object_ptr<const Type>>
+    auto type_class() const -> object_ptr<const Type>
     {
-      return m_type_classes;
+      return m_type_class;
     }
 
-    /// Get node type
-    auto node_type() const -> node_type
+    /// Get default data value
+    /// \note Can return nullptr!
+    auto default_data() const -> object_ptr<const Object>
     {
-      return m_node_type;
+      return m_default_data;
     }
 
     /// Get node declaration
     auto node_declaration() const -> node_declaration
     {
-      return {
-        name(), input_sockets(), output_sockets(), type_classes(), node_type()};
+      return {name(),
+              input_sockets(),
+              output_sockets(),
+              type_class(),
+              default_data()};
     }
 
   private:
-    string m_name;                                 // 16
-    vector<string> m_iss;                          // 16
-    vector<string> m_oss;                          // 16
-    vector<object_ptr<const Type>> m_type_classes; // 16
-    yave::node_type m_node_type;                   // 4
-    [[maybe_unused]] uint32_t padding;             // 4
+    string m_name;                           // 16
+    vector<string> m_iss;                    // 16
+    vector<string> m_oss;                    // 16
+    object_ptr<const Type> m_type_class;     // 8
+    object_ptr<const Object> m_default_data; // 8
   };
 
-  static_assert(sizeof(external_backend_node_declaration) == 72);
+  static_assert(sizeof(external_backend_node_declaration) == 64);
 
   /// BackendNodeDeclaration
   using ExternalBackendNodeDeclaration = Box<external_backend_node_declaration>;
