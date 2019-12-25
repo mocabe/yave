@@ -56,7 +56,7 @@ namespace yave {
         "ListDecompose",
         {"list"},
         {"head"},
-        {object_type<node_closure<List<X>, X>>()});
+        object_type<node_closure<List<X>, X>>());
     }
   };
 
@@ -70,7 +70,7 @@ namespace yave {
         "ListDecompose",
         {"list"},
         {"tail"},
-        {object_type<node_closure<List<X>, List<X>>>()});
+        object_type<node_closure<List<X>, List<X>>>());
     }
   };
 }

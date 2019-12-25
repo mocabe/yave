@@ -30,11 +30,13 @@ namespace yave {
       object_ptr<FrameBufferPool> pool;
     };
 
+    class FrameBufferConstructorGetterFunction_X;
+
     /// Getter function for FrameBufferConstructor
     struct FrameBufferConstructorGetterFunction
       : Function<
           FrameBufferConstructorGetterFunction,
-          PrimitiveContainer,
+          FrameBufferConstructorGetterFunction_X,
           FrameBufferConstructor>
     {
       FrameBufferConstructorGetterFunction(frame_buffer_manager* mngr)

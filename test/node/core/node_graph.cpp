@@ -493,7 +493,7 @@ TEST_CASE("node_graph control")
 
     auto n1 = add_n1(1);
     auto n2 = add_n2(2);
-    auto n3 = add_n2(primitive_t {});
+    auto n3 = add_n2(3.14);
 
     auto c1 = ng.connect(ng.output_sockets(n2)[0], ng.input_sockets(n1)[0]);
     auto c2 = ng.connect(ng.output_sockets(n2)[0], ng.input_sockets(n1)[2]);

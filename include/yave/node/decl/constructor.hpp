@@ -58,7 +58,7 @@ namespace yave {
         {},
         {"value"},
         object_type<node_closure<T>>(),
-        object_type<T>());
+        make_object<T>());
     }
   };
 

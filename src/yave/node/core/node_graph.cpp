@@ -4,6 +4,8 @@
 //
 
 #include <yave/node/core/node_graph.hpp>
+#include <yave/rts/unit.hpp>
+#include <yave/rts/utility.hpp>
 #include <yave/support/log.hpp>
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view.hpp>
@@ -17,7 +19,6 @@ namespace yave {
     , m_mtx {}
   {
     init_logger();
-    m_default_container = make_object<PrimitiveContainer>();
   }
 
   node_graph::~node_graph() noexcept
@@ -27,9 +28,8 @@ namespace yave {
   node_graph::node_graph(node_graph&& other) noexcept
     : m_mtx {}
   {
-    auto lck            = other._lock();
-    m_g                 = std::move(other.m_g);
-    m_default_container = std::move(other.m_default_container);
+    auto lck = other._lock();
+    m_g      = std::move(other.m_g);
   }
 
   node_graph& node_graph::operator=(node_graph&& other) noexcept
@@ -925,26 +925,26 @@ namespace yave {
     return m_g[h.descriptor()].has_data();
   }
 
-  auto node_graph::get_data(const socket_handle& h) const
-    -> std::optional<object_ptr<Object>>
+  auto node_graph::get_data(const socket_handle& h) const -> object_ptr<Object>
   {
     auto lck = _lock();
 
     if (!_exists(h))
-      return std::nullopt;
+      return nullptr;
 
-    return m_g[h.descriptor()].get_data();
+    auto data = m_g[h.descriptor()].get_data();
+    return data ? *data : nullptr;
   }
 
-  auto node_graph::get_data(const node_handle& h) const
-    -> std::optional<object_ptr<Object>>
+  auto node_graph::get_data(const node_handle& h) const -> object_ptr<Object>
   {
     auto lck = _lock();
 
     if (!_exists(h))
-      return std::nullopt;
+      return nullptr;
 
-    return m_g[h.descriptor()].get_data();
+    auto data = m_g[h.descriptor()].get_data();
+    return data ? *data : nullptr;
   }
 
   void node_graph::set_data(const socket_handle& h, object_ptr<Object> data)
@@ -952,6 +952,9 @@ namespace yave {
     auto lck = _lock();
 
     if (!_exists(h))
+      return;
+
+    if (!data)
       return;
 
     if (!m_g[h.descriptor()].has_data())
@@ -965,6 +968,9 @@ namespace yave {
     auto lck = _lock();
 
     if (!_exists(h))
+      return;
+
+    if (!data)
       return;
 
     if (!m_g[h.descriptor()].has_data())
@@ -1061,9 +1067,8 @@ namespace yave {
   {
     node_graph ret;
 
-    auto lck                = _lock();
-    ret.m_g                 = m_g.clone();
-    ret.m_default_container = m_default_container;
+    auto lck = _lock();
+    ret.m_g  = m_g.clone();
 
     return ret;
   }
