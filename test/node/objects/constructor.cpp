@@ -16,7 +16,7 @@ TEST_CASE("Constructor")
 {
   using IntConstructor = backends::default_common::PrimitiveConstructor<Int>;
 
-  auto i = make_object<PrimitiveContainer>(42);
+  auto i = make_object<Int>(42);
 
   SECTION("make_object")
   {

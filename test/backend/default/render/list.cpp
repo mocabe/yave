@@ -91,10 +91,8 @@ TEST_CASE("List")
   auto head = make_object<ListHead>();
   auto tail = make_object<ListTail>();
 
-  auto i42 = make_object<PrimitiveConstructor<Int>>(
-    make_object<PrimitiveContainer>((int)42));
-  auto i24 = make_object<PrimitiveConstructor<Int>>(
-    make_object<PrimitiveContainer>((int)24));
+  auto i42 = make_object<PrimitiveConstructor<Int>>(make_object<Int>(42));
+  auto i24 = make_object<PrimitiveConstructor<Int>>(make_object<Int>(24));
 
   auto frame = make_object<FrameDemand>();
 

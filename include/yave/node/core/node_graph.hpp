@@ -215,12 +215,14 @@ namespace yave {
     [[nodiscard]] bool has_data(const node_handle& h) const;
 
     /// Get custom data object
+    /// \returns nullptr when no data set
     [[nodiscard]] auto get_data(const socket_handle& h) const
-      -> std::optional<object_ptr<Object>>;
+      -> object_ptr<Object>;
 
     /// Get custom data object
+    /// \returns nullptr when no data set
     [[nodiscard]] auto get_data(const node_handle& h) const
-      -> std::optional<object_ptr<Object>>;
+      -> object_ptr<Object>;
 
     /// Set custom data
     void set_data(const socket_handle& h, object_ptr<Object> data);
@@ -300,10 +302,6 @@ namespace yave {
   private:
     /// graph type
     graph_t m_g;
-
-  private:
-    /// default initialized PrimitiveContainer
-    object_ptr<const PrimitiveContainer> m_default_container;
 
   private:
     /// mutex

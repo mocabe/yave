@@ -22,15 +22,11 @@ TEST_CASE("node_parser _extract")
     "prim",
     {},
     {"value"},
-    {object_type<node_closure<X>>()},
-    node_type::primitive);
+    object_type<node_closure<Int>>(),
+    make_object<Int>());
 
   auto norm_decl = node_declaration(
-    "node",
-    {"0", "1"},
-    {"0"},
-    {object_type<node_closure<X, X, X>>()},
-    node_type::normal);
+    "node", {"0", "1"}, {"0"}, object_type<node_closure<X, X, X>>());
 
   REQUIRE(graph.register_node_decl(prim_decl));
   REQUIRE(graph.register_node_decl(norm_decl));
@@ -47,7 +43,13 @@ TEST_CASE("node_parser _extract")
     auto n = graph.create(g, prim_decl.name());
     REQUIRE(n);
 
-    REQUIRE(graph.set_primitive(n, 42));
+    REQUIRE(has_type<Int>(graph.get_data(n)));
+
+    auto prim = value_cast<Int>(graph.get_data(n));
+    *prim     = 42;
+
+    REQUIRE(graph.get_data(n));
+    REQUIRE(*value_cast<Int>(graph.get_data(n)) == 42);
 
     // connect to global_out
     auto c = graph.connect(graph.output_sockets(n)[0], gos);
@@ -61,9 +63,11 @@ TEST_CASE("node_parser _extract")
     REQUIRE(parsed->get_group_members(parsed->root_group()).size() == 1);
     REQUIRE(parsed_n.id() == n.id());
 
-    REQUIRE(graph.set_primitive(n, 24));
-    REQUIRE(parsed->get_primitive(parsed_n));
-    REQUIRE(*parsed->get_primitive(parsed_n) == primitive_t(42));
+    *prim = 24;
+
+    REQUIRE(parsed->get_data(parsed_n));
+    REQUIRE(*value_cast<Int>(graph.get_data(n)) == 24);
+    REQUIRE(*value_cast<Int>(parsed->get_data(parsed_n)) == 42);
   }
 
   SECTION("norm")

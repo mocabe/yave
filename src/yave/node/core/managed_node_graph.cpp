@@ -1383,32 +1383,8 @@ namespace yave {
     return m_ng.output_connections(node);
   }
 
-  bool managed_node_graph::has_data(const node_handle& node) const
-  {
-    return m_ng.has_data(node);
-  }
-
-  auto managed_node_graph::get_data_type(const node_handle& node) const
-    -> std::optional<object_ptr<const Type>>
-  {
-    if (!exists(node))
-      return std::nullopt;
-
-    if (!m_ng.is_normal(node))
-      return std::nullopt;
-
-    auto decl = m_nim.find(*m_ng.get_name(node));
-
-    assert(decl);
-
-    if (!decl->default_data())
-      return std::nullopt;
-
-    return get_type(decl->default_data());
-  }
-
   auto managed_node_graph::get_data(const node_handle& node) const
-    -> std::optional<object_ptr<Object>>
+    -> object_ptr<Object>
   {
     return m_ng.get_data(node);
   }
@@ -1423,16 +1399,10 @@ namespace yave {
     if (!m_ng.is_normal(node))
       return;
 
-    auto decl = m_nim.find(*m_ng.get_name(node));
-
-    assert(decl);
-
-    if (!decl->default_data())
+    if (!m_ng.has_data(node))
       return;
 
-    assert(m_ng.has_data(node));
-
-    auto type_from = get_type(decl->default_data());
+    auto type_from = get_type(get_data(node));
     auto type_to   = get_type(data);
 
     if (!same_type(type_from, type_to)) {

@@ -232,16 +232,10 @@ namespace yave {
     [[nodiscard]] auto output_connections(const node_handle& node) const
       -> std::vector<connection_handle>;
 
-    /// has data?
-    [[nodiscard]] bool has_data(const node_handle& node) const;
-
-    /// data type
-    [[nodiscard]] auto get_data_type(const node_handle& node) const
-      -> std::optional<object_ptr<const Type>>;
-
-    /// has data?
+    /// get data.
+    /// \returns nullptr when no data set
     [[nodiscard]] auto get_data(const node_handle& node) const
-      -> std::optional<object_ptr<Object>>;
+      -> object_ptr<Object>;
 
     /// set data
     void set_data(const node_handle& node, object_ptr<Object> data);

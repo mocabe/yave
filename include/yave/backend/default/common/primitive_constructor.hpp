@@ -26,7 +26,7 @@ namespace yave {
       }
 
       /// Ctor
-      PrimitiveConstructor(object_ptr<const PrimitiveContainer> value)
+      PrimitiveConstructor(object_ptr<const Object> value)
         : m_value {std::move(value)}
       {
       }
@@ -34,37 +34,32 @@ namespace yave {
       /// code
       typename PrimitiveConstructor::return_type code() const
       {
-        if (m_value) {
-          auto prim = m_value->get();
-          if (auto v = get_if<typename T::value_type>(&prim)) {
-            return make_object<T>(*v);
-          }
-        }
-        assert(false);
-        return make_object<T>();
+        return value_cast<T>(m_value);
       }
 
     private:
       /// value
-      object_ptr<const PrimitiveContainer> m_value;
+      object_ptr<const Object> m_value;
     };
+
+    class PrimitiveGetterFunction_X;
 
     /// Getter function of primitive constructors
     template <class T>
     struct PrimitiveGetterFunction : Function<
                                        PrimitiveGetterFunction<T>,
-                                       PrimitiveContainer,
+                                       PrimitiveGetterFunction_X,
                                        PrimitiveConstructor<Box<T>>>
     {
       typename PrimitiveGetterFunction::return_type code() const
       {
-        auto container = PrimitiveGetterFunction::template eval_arg<0>();
-        auto prim      = container->get();
-        if (auto v = std::get_if<T>(&prim)) {
-          return make_object<PrimitiveConstructor<Box<T>>>(container);
-        } else {
-          return make_object<PrimitiveConstructor<Box<T>>>();
-        }
+        auto obj = PrimitiveGetterFunction::template eval_arg<0>();
+
+        if (same_type(get_type(obj), object_type<Box<T>>()))
+          return make_object<PrimitiveConstructor<Box<T>>>(obj);
+
+        throw std::runtime_error(
+          "PrimitiveGetterFunction: Invalid type of data");
       }
     };
 

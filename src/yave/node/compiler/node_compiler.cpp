@@ -253,7 +253,7 @@ namespace yave {
         auto overloading_types     = std::vector<object_ptr<const Type>> {};
 
         for (auto&& o : overloadings) {
-          auto prim     = graph.get_primitive_container(node);
+          auto prim     = graph.get_data(node);
           auto instance = o->get_instance(prim);
           overloading_instances.push_back(instance);
           overloading_types.push_back(type_of(instance));
@@ -261,15 +261,7 @@ namespace yave {
 
         // generalized overloading type.
         // uses type class of declaration here.
-        object_ptr<const Type> type_class;
-        {
-          size_t idx = ranges::distance(
-            node_decl->output_sockets().begin(),
-            ranges::find(node_decl->output_sockets(), socket_info->name()));
-
-          assert(idx != node_decl->output_sockets().size());
-          type_class = node_decl->type_classes()[idx];
-        }
+        object_ptr<const Type> type_class = node_decl->type_class();
 
         // check overloading types
         for (auto&& type : overloading_types) {

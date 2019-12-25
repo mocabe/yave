@@ -15,14 +15,12 @@ namespace yave {
   class node_definition
   {
   public:
+    /// Construct node definition.
     /// \param name name of bind (should match to target node_info::name())
     /// \param output_socket name of output socket
     /// \param description Description of this bind.
-    /// \throws std::invalid_argument when arguments are invalid.
     /// \param inst_getter A non-null managed pointer to a closure object
-    /// which takes sintle Primitive object and returns instance of node object
-    /// (closure). Thus `type_of(instance_func
-    /// << make_object<Primitive>())` should not throw.
+    /// \throws std::invalid_argument when arguments are invalid.
     node_definition(
       std::string name,
       std::string output_socket,
@@ -40,7 +38,7 @@ namespace yave {
 
       // check type of getter func
       try {
-        auto prim = make_object<PrimitiveContainer>();
+        auto prim = make_object<Int>();
         auto app  = m_inst_getter << prim;
         auto tp   = type_of(app);
       } catch (type_error::type_error& e) {
@@ -50,8 +48,8 @@ namespace yave {
     }
 
     /// Get instance by calling instance function.
-    [[nodiscard]] auto get_instance(object_ptr<const PrimitiveContainer> prim)
-      const -> object_ptr<const Object>
+    [[nodiscard]] auto get_instance(object_ptr<const Object> prim) const
+      -> object_ptr<const Object>
     {
       auto app = m_inst_getter << std::move(prim);
       return eval(app);
