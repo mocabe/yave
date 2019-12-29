@@ -57,6 +57,15 @@ TEST_CASE("root group")
 
   REQUIRE(ng.add_group_input_socket(root, "test", 0));
   REQUIRE(ng.add_group_output_socket(root, "test", 0));
+  REQUIRE(ng.output_sockets(root).size() == 1);
+  REQUIRE(ng.input_sockets(root).size() == 1);
+
+  auto s1 = ng.output_sockets(root)[0];
+  auto s2 = ng.input_sockets(root)[0];
+  REQUIRE(ng.get_info(s1)->node() == root);
+  REQUIRE(ng.get_info(s2)->node() == root);
+  REQUIRE(ng.node(s1) == root);
+  REQUIRE(ng.node(s2) == root);
 }
 
 TEST_CASE("empty group")

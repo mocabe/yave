@@ -1099,7 +1099,8 @@ namespace yave {
 
     auto info = *m_ng.get_info(socket);
 
-    return managed_socket_info(info.name(), info.type(), info.node());
+    auto n = info.interfaces().empty() ? info.node() : info.interfaces()[0];
+    return managed_socket_info(info.name(), info.type(), n);
   }
 
   auto managed_node_graph::get_info(const connection_handle& connection) const
@@ -1295,7 +1296,8 @@ namespace yave {
     if (!exists(socket))
       return {nullptr};
 
-    return m_ng.node(socket);
+    auto is = m_ng.interfaces(socket);
+    return is.empty() ? m_ng.node(socket) : is[0];
   }
 
   auto managed_node_graph::nodes() const -> std::vector<node_handle>
