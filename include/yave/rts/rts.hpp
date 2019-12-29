@@ -13,5 +13,4 @@
 #include <yave/rts/unit.hpp>
 #include <yave/rts/identity.hpp>
 #include <yave/rts/undefined.hpp>
-#include <yave/rts/utility.hpp>
 #include <yave/rts/to_string.hpp>

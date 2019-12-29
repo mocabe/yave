@@ -164,7 +164,7 @@ namespace yave {
           assert(has_arrow_type(bottom));
 
           // clone bottom closure
-          auto fun   = clone(bottom);
+          auto fun   = bottom.clone();
           auto cfun  = reinterpret_cast<const Closure<>*>(fun.get());
           auto arity = cfun->arity;
           auto size  = stack.size();

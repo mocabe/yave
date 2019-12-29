@@ -5,8 +5,6 @@
 
 #include <yave/node/core/socket_property.hpp>
 
-#include <yave/rts/utility.hpp>
-
 namespace yave {
 
   socket_property::socket_property(const std::string& name, socket_type type)

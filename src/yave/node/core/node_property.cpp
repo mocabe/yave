@@ -4,7 +4,6 @@
 //
 
 #include <yave/node/core/node_property.hpp>
-#include <yave/rts/utility.hpp>
 
 namespace yave {
 

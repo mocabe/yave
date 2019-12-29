@@ -6,7 +6,6 @@
 #include <yave/node/core/managed_node_graph.hpp>
 #include <yave/node/core/node_group.hpp>
 #include <yave/rts/generalize.hpp>
-#include <yave/rts/utility.hpp>
 
 #include <yave/support/log.hpp>
 
@@ -1218,7 +1217,7 @@ namespace yave {
 
     // add default data
     if (decl->default_data())
-      m_ng.set_data(node, yave::clone(decl->default_data()));
+      m_ng.set_data(node, decl->default_data().clone());
 
     return node;
   }

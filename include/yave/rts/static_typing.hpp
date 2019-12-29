@@ -11,6 +11,7 @@
 #include <yave/rts/meta_pair.hpp>
 #include <yave/rts/terms.hpp>
 #include <yave/rts/types.hpp>
+#include <yave/rts/object.hpp>
 
 namespace yave {
 
@@ -584,6 +585,21 @@ namespace yave {
     auto t = p.first(); // type
     // return result type
     return t;
+  }
+
+  /// check type at compile time
+  template <class T, class U, class = std::enable_if_t<is_object_pointer_v<U>>>
+  void check_type_static(U&&)
+  {
+    auto t1 = type_of(get_term<T>(), true_c);
+    auto t2 = type_of(get_term<object_pointer_element_t<U>>(), true_c);
+
+    if constexpr (t1 != t2) {
+      static_assert(false_v<T>, "Compile time type check failed!");
+      using expected = typename decltype(t1)::_show;
+      using provided = typename decltype(t2)::_show;
+      static_assert(false_v<expected, provided>);
+    }
   }
 
 } // namespace yave

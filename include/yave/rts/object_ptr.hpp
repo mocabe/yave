@@ -10,6 +10,11 @@
 
 namespace yave {
 
+  // fwd
+  template <class T, class U>
+  [[nodiscard]] auto static_object_cast(object_ptr<U>&& o) noexcept
+    -> object_ptr<T>;
+
   // ------------------------------------------
   // object_ptr
 
@@ -174,6 +179,26 @@ namespace yave {
     [[nodiscard]] auto* operator-> () const noexcept
     {
       return value();
+    }
+
+    /// Clone object
+    /// \effects Call copy constructor of the object from vtable.
+    /// \returns `object_ptr<remove_const_t<T>>` pointing new object.
+    /// \throws `std::bad_alloc` when `clone` returned nullptr.
+    /// \notes Reference count of new object will be set to 1.
+    /// \requires not null.
+    [[nodiscard]] auto clone() const -> object_ptr<std::remove_const_t<T>>
+    {
+      assert(m_storage.get());
+
+      object_ptr<Object> tmp =
+        m_storage.this_info_table()->clone(m_storage.get());
+
+      if (unlikely(!tmp))
+        throw std::bad_alloc();
+
+      using To = std::remove_const_t<T>;
+      return static_object_cast<To>(std::move(tmp));
     }
 
     // destroy

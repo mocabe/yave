@@ -10,7 +10,6 @@
 #include <yave/rts/lambda.hpp>
 #include <yave/rts/exception.hpp>
 #include <yave/rts/type_error.hpp>
-#include <yave/rts/utility.hpp>
 #include <yave/rts/undefined.hpp>
 #include <yave/rts/object_util.hpp>
 #include <yave/rts/closure.hpp>
@@ -643,4 +642,17 @@ namespace yave {
     return same_type(type, object_type<T>());
   }
 
+  // ------------------------------------------
+  // check_type_dynamic
+
+  /// check type at runtime
+  template <class T, class U, class = std::enable_if_t<is_object_pointer_v<U>>>
+  void check_type_dynamic(U&& obj)
+  {
+    auto tmp = object_ptr(std::forward<U>(obj));
+    auto t1  = object_type<T>();
+    auto t2  = type_of(tmp);
+    if (unlikely(!same_type(t1, t2)))
+      throw type_error::bad_type_check(t1, t2);
+  }
 } // namespace yave
