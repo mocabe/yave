@@ -22,8 +22,6 @@ namespace yave {
     , m_data {other.m_data}
     , m_visited {false}
   {
-    if (m_data)
-      *m_data = clone(*m_data);
   }
 
   auto node_property::name() const -> const std::string&

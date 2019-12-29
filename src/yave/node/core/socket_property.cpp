@@ -21,8 +21,6 @@ namespace yave {
     , m_type {other.m_type}
     , m_data {other.m_data}
   {
-    if (m_data)
-      *m_data = clone(*m_data);
   }
 
   bool socket_property::is_input() const

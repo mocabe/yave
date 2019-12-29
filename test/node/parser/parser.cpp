@@ -63,11 +63,12 @@ TEST_CASE("node_parser _extract")
     REQUIRE(parsed->get_group_members(parsed->root_group()).size() == 1);
     REQUIRE(parsed_n.id() == n.id());
 
+    // primitive values are shared
     *prim = 24;
 
     REQUIRE(parsed->get_data(parsed_n));
     REQUIRE(*value_cast<Int>(graph.get_data(n)) == 24);
-    REQUIRE(*value_cast<Int>(parsed->get_data(parsed_n)) == 42);
+    REQUIRE(*value_cast<Int>(parsed->get_data(parsed_n)) == 24);
   }
 
   SECTION("norm")
