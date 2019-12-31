@@ -623,19 +623,17 @@ namespace yave {
 
   bool managed_node_graph::is_group_output(const node_handle& node) const
   {
-    if (auto info = m_ng.get_info(node)) {
-      return info->name() ==
-             get_node_declaration<node::NodeGroupOutput>().name();
-    }
+    if (auto name = m_ng.get_name(node))
+      return *name == get_node_declaration<node::NodeGroupOutput>().name();
+
     return false;
   }
 
   bool managed_node_graph::is_group_input(const node_handle& node) const
   {
-    if (auto info = m_ng.get_info(node)) {
-      return info->name() ==
-             get_node_declaration<node::NodeGroupInput>().name();
-    }
+    if (auto name = m_ng.get_name(node))
+      return *name == get_node_declaration<node::NodeGroupInput>().name();
+
     return false;
   }
 
