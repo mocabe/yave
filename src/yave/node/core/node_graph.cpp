@@ -734,7 +734,7 @@ namespace yave {
     for (auto&& e : m_g.dst_edges(socket.descriptor()))
       ret.emplace_back(e, uid {m_g.id(e)});
 
-    assert(std::unique(ret) == ret.end());
+    assert(ranges::unique(ret) == ret.end());
     return ret;
   }
 

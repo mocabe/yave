@@ -626,18 +626,18 @@ namespace yave {
     if (auto name = m_ng.get_name(node)) {
 
       if (*name == get_node_declaration<node::NodeGroupInput>().name())
-      return false;
+        return false;
 
       if (*name == get_node_declaration<node::NodeGroupOutput>().name())
-      return false;
+        return false;
 
       if (*name == get_node_declaration<node::NodeGroupInterface>().name())
-      return false;
+        return false;
 
       assert(*name != get_node_declaration<node::NodeGroupIOBit>().name());
 
-    return true;
-  }
+      return true;
+    }
     return false;
   }
 
@@ -1102,6 +1102,7 @@ namespace yave {
             info.name() ==
             get_node_declaration<node::NodeGroupInterface>().name())
             return managed_node_type::group;
+          unreachable();
         default:
           unreachable();
       }
@@ -1325,7 +1326,12 @@ namespace yave {
       return {nullptr};
 
     auto is = m_ng.interfaces(socket);
-    return is.empty() ? m_ng.node(socket) : is[0];
+    if (!is.empty()) {
+      assert(is.size() == 1);
+      return is[0];
+    }
+
+    return m_ng.node(socket);
   }
 
   auto managed_node_graph::nodes() const -> std::vector<node_handle>
