@@ -8,6 +8,8 @@
 #include <atomic>
 #include <mutex>
 
+#include <yave/config/intrin.hpp>
+
 namespace yave {
 
   /// Atomic reference count.
@@ -91,8 +93,11 @@ namespace yave {
     /// Lock.
     void lock() noexcept
     {
+      /* spin lock */
       while (test_and_set()) {
-        /* spin lock */
+#if defined(YAVE_SSE2)
+        _mm_pause();
+#endif
       }
     }
 
