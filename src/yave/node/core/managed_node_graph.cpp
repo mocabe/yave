@@ -170,13 +170,33 @@ namespace yave {
 
   bool managed_node_graph::register_node_decl(const node_declaration& decl)
   {
+    if (decl.name() == get_node_declaration<node::NodeGroupInterface>().name())
+      return false;
+    if (decl.name() == get_node_declaration<node::NodeGroupInput>().name())
+      return false;
+    if (decl.name() == get_node_declaration<node::NodeGroupOutput>().name())
+      return false;
+    if (decl.name() == get_node_declaration<node::NodeGroupIOBit>().name())
+      return false;
+
     return m_nim.add(decl);
   }
 
   bool managed_node_graph::register_node_decl(
-    const std::vector<node_declaration>& decl)
+    const std::vector<node_declaration>& decls)
   {
-    return m_nim.add(decl);
+    for (auto&& decl : decls) {
+      if (
+        decl.name() == get_node_declaration<node::NodeGroupInterface>().name())
+        return false;
+      if (decl.name() == get_node_declaration<node::NodeGroupInput>().name())
+        return false;
+      if (decl.name() == get_node_declaration<node::NodeGroupOutput>().name())
+        return false;
+      if (decl.name() == get_node_declaration<node::NodeGroupIOBit>().name())
+        return false;
+    }
+    return m_nim.add(decls);
   }
 
   void managed_node_graph::unregister_node_decl(const std::string& name)
