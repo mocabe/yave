@@ -1009,7 +1009,7 @@ namespace yave {
   auto managed_node_graph::get_group_socket_inside(
     const socket_handle& socket) const -> socket_handle
   {
-    if (exists(socket))
+    if (!exists(socket))
       return {nullptr};
 
     auto info = get_info(socket);
@@ -1018,6 +1018,10 @@ namespace yave {
       return {nullptr};
 
     auto bit = m_ng.get_info(socket)->node();
+
+    assert(
+      *m_ng.get_name(bit) ==
+      get_node_declaration<node::NodeGroupIOBit>().name());
 
     if (info->type() == socket_type::input) {
       return m_ng.output_sockets(bit)[0];
@@ -1033,15 +1037,19 @@ namespace yave {
   auto managed_node_graph::get_group_socket_outside(
     const socket_handle& socket) const -> socket_handle
   {
-    if (exists(socket))
+    if (!exists(socket))
       return {nullptr};
 
     auto info = get_info(socket);
 
-    if (!is_group_input(info->node()) || !is_group_output(info->node()))
+    if (!is_group_input(info->node()) && !is_group_output(info->node()))
       return {nullptr};
 
     auto bit = m_ng.get_info(socket)->node();
+
+    assert(
+      *m_ng.get_name(bit) ==
+      get_node_declaration<node::NodeGroupIOBit>().name());
 
     if (info->type() == socket_type::input) {
       return m_ng.output_sockets(bit)[0];
