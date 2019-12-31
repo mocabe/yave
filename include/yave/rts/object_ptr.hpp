@@ -181,25 +181,8 @@ namespace yave {
       return value();
     }
 
-    /// Clone object
-    /// \effects Call copy constructor of the object from vtable.
-    /// \returns `object_ptr<remove_const_t<T>>` pointing new object.
-    /// \throws `std::bad_alloc` when `clone` returned nullptr.
-    /// \notes Reference count of new object will be set to 1.
-    /// \requires not null.
-    [[nodiscard]] auto clone() const -> object_ptr<std::remove_const_t<T>>
-    {
-      assert(m_storage.get());
-
-      object_ptr<Object> tmp =
-        m_storage.this_info_table()->clone(m_storage.get());
-
-      if (unlikely(!tmp))
-        throw std::bad_alloc();
-
-      using To = std::remove_const_t<T>;
-      return static_object_cast<To>(std::move(tmp));
-    }
+    // clone
+    [[nodiscard]] auto clone() const -> object_ptr<std::remove_const_t<T>>;
 
     // destroy
     ~object_ptr() noexcept;
@@ -242,6 +225,28 @@ namespace yave {
         root_info_table()->destroy(get());
       }
     }
+  }
+
+  /// Clone object
+  /// \effects Call copy constructor of the object from vtable.
+  /// \returns `object_ptr<remove_const_t<T>>` pointing new object.
+  /// \throws `std::bad_alloc` when `clone` returned nullptr.
+  /// \notes Reference count of new object will be set to 1.
+  /// \requires not null.
+  template <class T>
+  [[nodiscard]] auto object_ptr<T>::clone() const
+    -> object_ptr<std::remove_const_t<T>>
+  {
+    assert(m_storage.get());
+
+    object_ptr<Object> tmp =
+      m_storage.this_info_table()->clone(m_storage.get());
+
+    if (unlikely(!tmp))
+      throw std::bad_alloc();
+
+    using To = std::remove_const_t<T>;
+    return static_object_cast<To>(std::move(tmp));
   }
 
   /// Destructor
