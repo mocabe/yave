@@ -603,20 +603,22 @@ namespace yave {
 
   bool managed_node_graph::is_group_member(const node_handle& node) const
   {
-    auto info = m_ng.get_info(node);
+    if (auto name = m_ng.get_name(node)) {
 
-    if (info->name() == get_node_declaration<node::NodeGroupInput>().name())
+      if (*name == get_node_declaration<node::NodeGroupInput>().name())
       return false;
 
-    if (info->name() == get_node_declaration<node::NodeGroupOutput>().name())
+      if (*name == get_node_declaration<node::NodeGroupOutput>().name())
       return false;
 
-    if (info->name() == get_node_declaration<node::NodeGroupInterface>().name())
+      if (*name == get_node_declaration<node::NodeGroupInterface>().name())
       return false;
 
-    assert(info->name() != get_node_declaration<node::NodeGroupIOBit>().name());
+      assert(*name != get_node_declaration<node::NodeGroupIOBit>().name());
 
     return true;
+  }
+    return false;
   }
 
   bool managed_node_graph::is_group_output(const node_handle& node) const
