@@ -63,8 +63,6 @@ namespace yave {
   /// Extract active nodes from managed_node_graph.
   /// First clone entire graph, then omit detached subtrees.
   /// Input graph should have signle output socket, without input sockets.
-  /// Currently relying on internal representation of managed_node_graph. Should
-  /// fix that later.
   auto node_parser::_extract(const managed_node_graph& graph)
     -> std::optional<managed_node_graph>
   {
@@ -90,23 +88,18 @@ namespace yave {
 
     // init stack
     for (auto&& s : clone.output_sockets(clone.root_group())) {
-      Info(g_logger, "Global out: {}", *clone.get_name(s));
       stack.push_back(s);
     }
 
     while (!stack.empty()) {
+
+      // socket
       auto os = stack.back();
       stack.pop_back();
-
       assert(clone.exists(os));
 
-      // record node
+      // node
       auto n = clone.node(os);
-
-      Info(g_logger, "socket: {}({})", to_string(os.id()), *clone.get_name(os));
-      Info(g_logger, "node: {}", to_string(n.id()));
-
-      assert(clone.node_graph().exists(n));
       assert(clone.exists(n));
 
       map.emplace(n, std::monostate {});
@@ -114,11 +107,7 @@ namespace yave {
       // handle group
       if (clone.is_group(n)) {
         auto ss = clone.get_group_socket_inside(os);
-        assert(clone.exists(ss));
-        assert(clone.get_name(ss));
         for (auto&& c : clone.connections(ss)) {
-          assert(clone.exists(c));
-          assert(clone.get_info(c));
           stack.push_back(clone.get_info(c)->src_socket());
         }
         continue;
@@ -127,10 +116,7 @@ namespace yave {
       // leave group
       if (clone.is_group_input(n)) {
         auto ss = clone.get_group_socket_outside(os);
-        assert(clone.exists(ss));
         for (auto&& c : clone.connections(ss)) {
-          assert(clone.exists(c));
-          assert(clone.get_info(c));
           stack.push_back(clone.get_info(c)->src_socket());
         }
         continue;
@@ -138,7 +124,6 @@ namespace yave {
 
       assert(!clone.is_group_output(n));
 
-      Info(g_logger, "normal");
       // normal node
       for (auto&& c : clone.input_connections(n)) {
         stack.push_back(clone.get_info(c)->src_socket());
@@ -160,62 +145,69 @@ namespace yave {
   }
 
   /// Validate active tree.
-  /// Also relying on internals of managed_node_graph.
   auto node_parser::_validate(managed_node_graph&& graph)
     -> std::optional<managed_node_graph>
   {
-    auto& ng = graph.node_graph();
+    for (auto&& n : graph.nodes()) {
 
-    std::vector<node_handle> stack;
-    stack.push_back(
-      ng.get_info(graph.output_sockets(graph.root_group())[0])->node());
-
-    while (!stack.empty()) {
-
-      auto node = stack.back();
-      stack.pop_back();
-
-      auto is = ng.input_sockets(node);
-      auto os = ng.output_sockets(node);
-
-      // no input: ignore
-      if (is.empty())
+      // root
+      if (graph.root_group() == n) {
+        // check missing connection for root output
+        for (auto&& s : graph.output_sockets(n)) {
+          if (graph.connections(graph.get_group_socket_inside(s)).empty()) {
+            m_errors.push_back(make_error<parse_error::missing_output>(
+              graph.get_group_output(n).id(),
+              graph.get_group_socket_inside(s).id()));
+          }
+        }
         continue;
-
-      // check input connections
-      for (auto&& s : is) {
-
-        auto cs = ng.connections(s);
-
-        if (cs.empty()) {
-
-          // error parameters.
-          std::vector<std::pair<node_handle, socket_handle>> es;
-
-          auto interfaces = ng.interfaces(s);
-          for (auto&& i : interfaces) {
-            es.emplace_back(i, s);
-          }
-
-          if (es.empty())
-            es.emplace_back(node, s);
-
-          for (auto&& [en, es] : es) {
-            m_errors.push_back(
-              make_error<parse_error::missing_input>(en.id(), es.id()));
-          }
-        }
-
-        for (auto&& c : cs) {
-          stack.push_back(ng.get_info(c)->src_node());
-        }
       }
+
+      // group
+      if (graph.is_group(n)) {
+        // check missing inputs for interface
+        for (auto&& s : graph.input_sockets(n)) {
+          if (graph.connections(s).empty()) {
+            m_errors.push_back(
+              make_error<parse_error::missing_input>(n.id(), s.id()));
+          }
+        }
+        // check missing connection to active output
+        for (auto&& s : graph.output_sockets(n)) {
+          if (
+            !graph.connections(s).empty() &&
+            graph.connections(graph.get_group_socket_inside(s)).empty()) {
+            m_errors.push_back(make_error<parse_error::missing_output>(
+              graph.get_group_output(n).id(),
+              graph.get_group_socket_inside(s).id()));
+          }
+        }
+        continue;
+      }
+
+      // normal
+      if (graph.is_group_member(n)) {
+        // check missing input
+        for (auto&& s : graph.input_sockets(n)) {
+          if (graph.connections(s).empty()) {
+            m_errors.push_back(
+              make_error<parse_error::missing_input>(n.id(), s.id()));
+          }
+        }
+        continue;
+      }
+
+      if (graph.is_group_input(n) || graph.is_group_output(n)) {
+        continue;
+      }
+
+      unreachable();
     }
 
     if (!m_errors.empty())
       return std::nullopt;
 
-    return std::move(graph);
+    return {std::move(graph)};
   }
 
 } // namespace yave

@@ -21,18 +21,20 @@ TEST_CASE("node_parser _extract")
   auto prim_decl = node_declaration(
     "prim",
     {},
-    {"value"},
+    {"prim_o0"},
     object_type<node_closure<Int>>(),
     make_object<Int>());
 
   auto norm_decl = node_declaration(
-    "node", {"0", "1"}, {"0"}, object_type<node_closure<X, X, X>>());
+    "node", {"norm_i0", "norm_i1"}, {"norm_o0"}, object_type<node_closure<X, X, X>>());
 
   REQUIRE(graph.register_node_decl(prim_decl));
   REQUIRE(graph.register_node_decl(norm_decl));
 
   auto g = graph.root_group();
   graph.add_group_output_socket(g, "global_out");
+
+  REQUIRE(graph.output_sockets(graph.root_group()).size() == 1);
 
   // global out socket
   auto gos = graph.input_sockets(graph.get_group_output(g))[0];
@@ -56,7 +58,8 @@ TEST_CASE("node_parser _extract")
 
     REQUIRE(c);
 
-    auto parsed   = parser.parse(graph);
+    auto parsed = parser.parse(graph);
+    REQUIRE(parsed);
     auto parsed_n = parsed->get_group_members(parsed->root_group())[0];
 
     REQUIRE(parsed);
@@ -168,6 +171,39 @@ TEST_CASE("node_parser _extract")
 
       auto parsed = parser.parse(graph);
       REQUIRE(parsed);
+    }
+
+    SECTION("misc")
+    {
+      auto g1    = graph.group(g, {norm, prim});
+      auto g1_o0 = graph.add_group_output_socket(g1, "g1_o0");
+      auto g1_o1 = graph.add_group_output_socket(g1, "g1_o1");
+
+      REQUIRE(g1);
+      REQUIRE(g1_o0);
+      REQUIRE(g1_o1);
+
+      SECTION("0")
+      {
+        REQUIRE(graph.connect(g1_o0, gos));
+        REQUIRE(!parser.parse(graph));
+      }
+
+      SECTION("1")
+      {
+        REQUIRE(graph.connect(g1_o0, gos));
+        REQUIRE(
+          graph.connect(prim_value, graph.get_group_socket_inside(g1_o0)));
+        REQUIRE(parser.parse(graph));
+      }
+
+      SECTION("2")
+      {
+        REQUIRE(graph.connect(g1_o0, gos));
+        REQUIRE(
+          graph.connect(prim_value, graph.get_group_socket_inside(g1_o1)));
+        REQUIRE(!parser.parse(graph));
+      }
     }
   }
 }
