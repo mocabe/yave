@@ -621,8 +621,8 @@ namespace yave {
       return {nullptr};
 
     auto dsc = socket.descriptor();
-
-    return node_handle(m_g.nodes(dsc)[0], m_g.id(dsc));
+    auto n   = m_g.nodes(dsc)[0];
+    return node_handle(n, m_g.id(n));
   }
 
   auto node_graph::interfaces(const socket_handle& socket) const
