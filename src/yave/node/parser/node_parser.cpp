@@ -84,55 +84,79 @@ namespace yave {
     }
 
     auto clone = graph.clone();
-    auto& ng   = clone.node_graph();
 
     std::map<node_handle, std::monostate> map;
-    std::vector<node_handle> stack;
+    std::vector<socket_handle> stack;
 
-    stack.push_back(
-      ng.get_info(clone.output_sockets(clone.root_group())[0])->node());
+    // init stack
+    for (auto&& s : clone.output_sockets(clone.root_group())) {
+      Info(g_logger, "Global out: {}", *clone.get_name(s));
+      stack.push_back(s);
+    }
 
-    // mark valid nodes
     while (!stack.empty()) {
-
-      auto node = stack.back();
+      auto os = stack.back();
       stack.pop_back();
 
-      map.emplace(node, std::monostate {});
+      assert(clone.exists(os));
 
-      for (auto&& c : ng.input_connections(node)) {
+      // record node
+      auto n = clone.node(os);
 
-        auto info = ng.get_info(c);
+      Info(g_logger, "socket: {}({})", to_string(os.id()), *clone.get_name(os));
+      Info(g_logger, "node: {}", to_string(n.id()));
 
-        for (auto&& i : info->src_interfaces()) {
-          map.emplace(i, std::monostate {});
+      assert(clone.node_graph().exists(n));
+      assert(clone.exists(n));
+
+      map.emplace(n, std::monostate {});
+
+      // handle group
+      if (clone.is_group(n)) {
+        auto ss = clone.get_group_socket_inside(os);
+        assert(clone.exists(ss));
+        assert(clone.get_name(ss));
+        for (auto&& c : clone.connections(ss)) {
+          assert(clone.exists(c));
+          assert(clone.get_info(c));
+          stack.push_back(clone.get_info(c)->src_socket());
         }
+        continue;
+      }
 
-        for (auto&& i : info->dst_interfaces()) {
-          map.emplace(i, std::monostate {});
+      // leave group
+      if (clone.is_group_input(n)) {
+        auto ss = clone.get_group_socket_outside(os);
+        assert(clone.exists(ss));
+        for (auto&& c : clone.connections(ss)) {
+          assert(clone.exists(c));
+          assert(clone.get_info(c));
+          stack.push_back(clone.get_info(c)->src_socket());
         }
+        continue;
+      }
 
-        stack.push_back(ng.get_info(c)->src_node());
+      assert(!clone.is_group_output(n));
+
+      Info(g_logger, "normal");
+      // normal node
+      for (auto&& c : clone.input_connections(n)) {
+        stack.push_back(clone.get_info(c)->src_socket());
       }
     }
 
-    // remove orphan trees
+    // remove unused nodes
     for (auto&& n : clone.nodes()) {
-
-      // already removed
       if (!clone.exists(n))
         continue;
-      // io handler
       if (clone.is_group_input(n) || clone.is_group_output(n))
         continue;
-      // found
       if (map.find(n) != map.end())
         continue;
-
       clone.destroy(n);
     }
 
-    return clone;
+    return {std::move(clone)};
   }
 
   /// Validate active tree.
