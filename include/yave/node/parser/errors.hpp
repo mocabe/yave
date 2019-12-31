@@ -45,6 +45,35 @@ namespace yave {
       uid m_socket_id;
     };
 
+    /// Missing output connection for active node group output
+    struct missing_output : error_info<missing_output>
+    {
+      missing_output(const uid& node_id, const uid& socket_id)
+        : m_node_id {node_id}
+        , m_socket_id {socket_id}
+      {
+      }
+
+      /// Error message
+      [[nodiscard]] auto message() const -> std::string override;
+
+      /// Get node ID
+      [[nodiscard]] auto node_id() const -> const auto&
+      {
+        return m_node_id;
+      }
+
+      /// Get socket ID
+      [[nodiscard]] auto socket_id() const -> const auto&
+      {
+        return m_socket_id;
+      }
+
+    private:
+      uid m_node_id;
+      uid m_socket_id;
+    };
+
     /// Unexpected parser error
     struct unexpected_error : error_info<unexpected_error>
     {

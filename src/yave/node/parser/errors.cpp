@@ -11,7 +11,15 @@ namespace yave {
   std::string parse_error::missing_input::message() const
   {
     return fmt::format(
-      "Missing input connections on node: n={}, s={}",
+      "Missing input connections: n={}, s={}",
+      to_string(m_node_id),
+      to_string(m_socket_id));
+  }
+
+  std::string parse_error::missing_output::message() const
+  {
+    return fmt::format(
+      "Missing output connections: n={}, s={}",
       to_string(m_node_id),
       to_string(m_socket_id));
   }
