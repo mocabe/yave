@@ -343,11 +343,13 @@ TEST_CASE("node_graph control")
 
     REQUIRE(ng.connections(n1_i).size() == 0);
     REQUIRE(ng.connections(n1_o).size() == 2);
+    REQUIRE(ng.connections(n1).size() == 2);
 
     REQUIRE(ng.connections(n2_i1).size() == 1);
     REQUIRE(ng.connections(n2_i2).size() == 1);
     REQUIRE(ng.connections(n2_o1).size() == 0);
     REQUIRE(ng.connections(n2_o2).size() == 0);
+    REQUIRE(ng.connections(n2).size() == 2);
   }
 
   SECTION("root_of")
