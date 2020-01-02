@@ -6,12 +6,34 @@
 #include <yave/node/core/node_graph.hpp>
 #include <yave/rts/unit.hpp>
 #include <yave/support/log.hpp>
+
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view.hpp>
+#include <range/v3/action.hpp>
 
 YAVE_DECL_G_LOGGER(node_graph)
 
+using namespace ranges;
+
 namespace yave {
+
+  constexpr auto to_node_handles = [](const graph_t& graph) {
+    return views::transform(
+             [&](auto&& n) { return node_handle(n, graph.id(n)); })
+           | to_vector;
+  };
+
+  constexpr auto to_socket_handles = [](const graph_t& graph) {
+    return views::transform(
+             [&](auto&& s) { return socket_handle(s, graph.id(s)); })
+           | to_vector;
+  };
+
+  constexpr auto to_connection_handles = [](const graph_t& graph) {
+    return views::transform(
+             [&](auto&& e) { return connection_handle(e, graph.id(e)); })
+           | to_vector;
+  };
 
   node_graph::node_graph()
     : m_g {}
@@ -80,22 +102,19 @@ namespace yave {
   {
     assert(_exists(h));
 
-    // node
-    auto& n = m_g[h.descriptor()];
+    auto&& ss = m_g.sockets(h.descriptor());
 
-    std::vector<socket_handle> input_sockets;
-    std::vector<socket_handle> output_sockets;
+    auto iss = ss //
+               | views::filter([&](auto s) { return m_g[s].is_input(); })
+               | to_socket_handles(m_g);
 
-    for (auto&& s : m_g.sockets(h.descriptor())) {
-      if (m_g[s].is_input())
-        input_sockets.emplace_back(s, m_g.id(s));
-      if (m_g[s].is_output())
-        output_sockets.emplace_back(s, m_g.id(s));
-    }
+    auto oss = ss //
+               | views::filter([&](auto s) { return m_g[s].is_output(); })
+               | to_socket_handles(m_g);
 
-    auto ret = node_info(n.name(), input_sockets, output_sockets, n.type());
+    auto&& n = m_g[h.descriptor()];
 
-    return ret;
+    return node_info(n.name(), iss, oss, n.type());
   }
 
   auto node_graph::get_info(const node_handle& h) const
@@ -112,16 +131,15 @@ namespace yave {
     assert(_exists(h));
     assert(!m_g.nodes(h.descriptor()).empty());
 
+    auto&& ns = m_g.nodes(h.descriptor());
 
-    auto s  = m_g[h.descriptor()];
-    auto ns = m_g.nodes(h.descriptor());
+    auto nodes      = ns | to_node_handles(m_g);
+    auto node       = nodes.front();
+    auto interfaces = nodes | move | actions::drop(1);
 
-    auto nodes = ns | ranges::views::transform([&](auto&& n) {
-                   return node_handle {n, {m_g.id(n)}};
-                 });
+    auto s = m_g[h.descriptor()];
 
-    return socket_info(
-      s.name(), s.type(), nodes.front(), {nodes.begin() + 1, nodes.end()});
+    return socket_info(s.name(), s.type(), node, interfaces);
   }
 
   auto node_graph::get_info(const socket_handle& h) const
@@ -150,25 +168,21 @@ namespace yave {
     assert(!m_g[src_nodes[0]].is_interface());
     assert(!m_g[dst_nodes[0]].is_interface());
 
-    std::vector<node_handle> src_interfaces;
-    std::vector<node_handle> dst_interfaces;
+    auto src_handles    = src_nodes | to_node_handles(m_g);
+    auto src_node       = src_handles.front();
+    auto src_interfaces = src_handles | move | actions::drop(1);
 
-    for (size_t i = 1; i < src_nodes.size(); ++i) {
-      assert(m_g[src_nodes[i]].is_interface());
-      src_interfaces.emplace_back(src_nodes[i], uid {m_g.id(src_nodes[i])});
-    }
+    auto dst_handles    = dst_nodes | to_node_handles(m_g);
+    auto dst_node       = dst_handles.front();
+    auto dst_interfaces = dst_handles | move | actions::drop(1);
 
-    for (size_t i = 1; i < dst_nodes.size(); ++i) {
-      assert(m_g[dst_nodes[i]].is_interface());
-      dst_interfaces.emplace_back(dst_nodes[i], uid {m_g.id(dst_nodes[i])});
-    }
-
-    return connection_info {node_handle(src_nodes[0], m_g.id(src_nodes[0])),
-                            socket_handle(src, m_g.id(src)),
-                            node_handle(dst_nodes[0], m_g.id(dst_nodes[0])),
-                            socket_handle(dst, m_g.id(dst)),
-                            src_interfaces,
-                            dst_interfaces};
+    return connection_info(
+      src_node,
+      socket_handle(src, m_g.id(src)),
+      dst_node,
+      socket_handle(dst, m_g.id(dst)),
+      src_interfaces,
+      dst_interfaces);
   }
 
   auto node_graph::get_info(const connection_handle& h) const
@@ -252,8 +266,8 @@ namespace yave {
           return {nullptr};
 
       auto _has_unique_names = [](auto names) {
-        ranges::sort(names);
-        return ranges::unique(names) == names.end();
+        sort(names);
+        return unique(names) == names.end();
       };
 
       if (
@@ -633,23 +647,16 @@ namespace yave {
     if (!_exists(socket))
       return {};
 
-    std::vector<node_handle> ret;
-    auto ns = m_g.nodes(socket.descriptor());
-    for (size_t i = 1; i < ns.size(); ++i) {
-      assert(m_g[ns[i]].type() == node_type::interface);
-      ret.emplace_back(ns[i], uid {m_g.id(ns[i])});
-    }
-    return ret;
+    auto&& ns = m_g.nodes(socket.descriptor());
+    return ns | views::drop(1) | to_node_handles(m_g);
   }
 
   auto node_graph::nodes() const -> std::vector<node_handle>
   {
     auto lck = _lock();
 
-    std::vector<node_handle> ret;
-    for (auto&& n : m_g.nodes())
-      ret.emplace_back(n, uid {m_g.id(n)});
-    return ret;
+    auto&& ns = m_g.nodes();
+    return ns | to_node_handles(m_g);
   }
 
   auto node_graph::nodes(const std::string& name) const
@@ -657,21 +664,19 @@ namespace yave {
   {
     auto lck = _lock();
 
-    std::vector<node_handle> ret;
-    for (auto&& n : m_g.nodes())
-      if (m_g[n].name() == name)
-        ret.emplace_back(n, uid {m_g.id(n)});
-    return ret;
+    auto&& ns = m_g.nodes();
+
+    return ns //
+           | views::filter([&](auto n) { return m_g[n].name() == name; })
+           | to_node_handles(m_g);
   }
 
   auto node_graph::sockets() const -> std::vector<socket_handle>
   {
     auto lck = _lock();
 
-    std::vector<socket_handle> ret;
-    for (auto&& s : m_g.sockets())
-      ret.emplace_back(s, uid {m_g.id(s)});
-    return ret;
+    auto&& ss = m_g.sockets();
+    return ss | to_socket_handles(m_g);
   }
 
   auto node_graph::sockets(const node_handle& node) const
@@ -682,20 +687,16 @@ namespace yave {
     if (!_exists(node))
       return {};
 
-    std::vector<socket_handle> ret;
-    for (auto&& s : m_g.sockets(node.descriptor()))
-      ret.emplace_back(s, uid {m_g.id(s)});
-    return ret;
+    auto&& ss = m_g.sockets(node.descriptor());
+    return ss | to_socket_handles(m_g);
   }
 
   auto node_graph::connections() const -> std::vector<connection_handle>
   {
     auto lck = _lock();
 
-    std::vector<connection_handle> ret;
-    for (auto&& e : m_g.edges())
-      ret.emplace_back(e, uid {m_g.id(e)});
-    return ret;
+    auto&& es = m_g.edges();
+    return es | to_connection_handles(m_g);
   }
 
   auto node_graph::connections(const node_handle& node) const
@@ -706,18 +707,14 @@ namespace yave {
     if (!_exists(node))
       return {};
 
-    std::vector<connection_handle> ret;
-    for (auto&& s : m_g.sockets(node.descriptor())) {
-      for (auto&& e : m_g.src_edges(s)) {
-        ret.emplace_back(e, uid {m_g.id(e)});
-      }
-      for (auto&& e : m_g.dst_edges(s)) {
-        ret.emplace_back(e, uid {m_g.id(e)});
-      }
-    }
+    auto&& ss = m_g.sockets(node.descriptor());
 
-    assert(ranges::unique(ret) == ret.end());
-    return ret;
+    auto es = views::concat(
+                ss | views::transform([&](auto s) { return m_g.src_edges(s); }),
+                ss | views::transform([&](auto s) { return m_g.dst_edges(s); }))
+              | actions::join;
+
+    return es | to_connection_handles(m_g);
   }
 
   auto node_graph::connections(const socket_handle& socket) const
@@ -728,16 +725,10 @@ namespace yave {
     if (!_exists(socket))
       return {};
 
-    std::vector<connection_handle> ret;
+    auto&& se = m_g.src_edges(socket.descriptor());
+    auto&& de = m_g.dst_edges(socket.descriptor());
 
-    for (auto&& e : m_g.src_edges(socket.descriptor()))
-      ret.emplace_back(e, uid {m_g.id(e)});
-
-    for (auto&& e : m_g.dst_edges(socket.descriptor()))
-      ret.emplace_back(e, uid {m_g.id(e)});
-
-    assert(ranges::unique(ret) == ret.end());
-    return ret;
+    return views::concat(se, de) | to_connection_handles(m_g);
   }
 
   bool node_graph::is_input_socket(const socket_handle& h) const
@@ -772,16 +763,14 @@ namespace yave {
     if (!_exists(node))
       return {};
 
-    std::vector<connection_handle> ret;
-    for (auto&& s : m_g.sockets(node.descriptor())) {
-      if (m_g[s].is_input()) {
-        assert(m_g.src_edges(s).empty());
-        for (auto&& e : m_g.dst_edges(s)) {
-          ret.emplace_back(e, uid {m_g.id(e)});
-        }
-      }
-    }
-    return ret;
+    auto&& ss = m_g.sockets(node.descriptor());
+
+    auto es = ss //
+              | views::filter([&](auto s) { return m_g[s].is_input(); })
+              | views::transform([&](auto s) { return m_g.dst_edges(s); })
+              | actions::join;
+
+    return es | to_connection_handles(m_g);
   }
 
   auto node_graph::output_connections(const node_handle& node) const
@@ -792,16 +781,14 @@ namespace yave {
     if (!_exists(node))
       return {};
 
-    std::vector<connection_handle> ret;
-    for (auto&& s : m_g.sockets(node.descriptor())) {
-      if (m_g[s].is_output()) {
-        assert(m_g.dst_edges(s).empty());
-        for (auto&& e : m_g.src_edges(s)) {
-          ret.emplace_back(e, uid {m_g.id(e)});
-        }
-      }
-    }
-    return ret;
+    auto&& ss = m_g.sockets(node.descriptor());
+
+    auto es = ss //
+              | views::filter([&](auto s) { return m_g[s].is_output(); })
+              | views::transform([&](auto s) { return m_g.src_edges(s); })
+              | actions::join;
+
+    return es | to_connection_handles(m_g);
   }
 
   bool node_graph::has_connection(const socket_handle& h) const
@@ -842,24 +829,20 @@ namespace yave {
     -> std::vector<socket_handle>
   {
     auto&& sockets = m_g.sockets(h.descriptor());
-    std::vector<socket_handle> ret;
-    for (auto&& s : sockets) {
-      if (m_g[s].is_input())
-        ret.emplace_back(s, uid {m_g.id(s)});
-    }
-    return ret;
+
+    return sockets //
+           | views::filter([&](auto s) { return m_g[s].is_input(); })
+           | to_socket_handles(m_g);
   }
 
   auto node_graph::_output_sockets(const node_handle& h) const
     -> std::vector<socket_handle>
   {
     auto&& sockets = m_g.sockets(h.descriptor());
-    std::vector<socket_handle> ret;
-    for (auto&& s : sockets) {
-      if (m_g[s].is_output())
-        ret.emplace_back(s, uid {m_g.id(s)});
-    }
-    return ret;
+
+    return sockets //
+           | views::filter([&](auto s) { return m_g[s].is_output(); })
+           | to_socket_handles(m_g);
   }
 
   auto node_graph::input_sockets(const node_handle& h) const
