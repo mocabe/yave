@@ -20,6 +20,7 @@ option(YAVE_BUILD_TESTS "Build tests" ON)
 # ------------------------------------------
 # Build type
 
+set(CMAKE_BUILD_TYPE "Debug")
 set(BUILD_SHARED_LIBS OFF)
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
