@@ -723,6 +723,8 @@ namespace yave {
   auto node_graph::connections(const socket_handle& socket) const
     -> std::vector<connection_handle>
   {
+    auto lck = _lock();
+
     if (!_exists(socket))
       return {};
 
@@ -765,6 +767,8 @@ namespace yave {
   auto node_graph::input_connections(const node_handle& node) const
     -> std::vector<connection_handle>
   {
+    auto lck = _lock();
+
     if (!_exists(node))
       return {};
 
@@ -783,6 +787,8 @@ namespace yave {
   auto node_graph::output_connections(const node_handle& node) const
     -> std::vector<connection_handle>
   {
+    auto lck = _lock();
+
     if (!_exists(node))
       return {};
 
