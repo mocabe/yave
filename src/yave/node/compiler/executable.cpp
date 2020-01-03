@@ -24,7 +24,7 @@ namespace yave {
   {
   }
 
-  executable::executable(executable&& other)
+  executable::executable(executable&& other) noexcept
     : m_obj {std::move(other.m_obj)}
     , m_type {std::move(other.m_type)}
   {
@@ -37,7 +37,7 @@ namespace yave {
     return *this;
   }
 
-  executable& executable::operator=(executable&& other)
+  executable& executable::operator=(executable&& other) noexcept
   {
     m_obj  = std::move(other.m_obj);
     m_type = std::move(other.m_type);

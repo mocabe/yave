@@ -34,11 +34,11 @@ namespace yave {
     /// Copy constructor
     socket_instance_manager(const socket_instance_manager& other);
     /// Move constructor
-    socket_instance_manager(socket_instance_manager&& other);
+    socket_instance_manager(socket_instance_manager&& other) noexcept;
     /// operator=
     socket_instance_manager& operator=(const socket_instance_manager& other);
     /// operator=
-    socket_instance_manager& operator=(socket_instance_manager&& other);
+    socket_instance_manager& operator=(socket_instance_manager&& other) noexcept;
 
     /// find instance
     auto find(const socket_handle& socket) const

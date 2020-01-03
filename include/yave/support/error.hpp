@@ -62,10 +62,10 @@ namespace yave {
     error(std::unique_ptr<error_info_base>&& err);
 
     /// Move ctor.
-    error(error&& other);
+    error(error&& other) noexcept;
 
     /// operator=
-    error& operator=(error&&);
+    error& operator=(error&&) noexcept;
 
     /// Copy constructor (deleted)
     error(const error&) = delete;
@@ -74,9 +74,11 @@ namespace yave {
 
     /// Initialize from success
     explicit error(const class success&);
+    explicit error(class success&&) noexcept;
 
     /// Initialize from success
     error& operator=(const class success&);
+    error& operator=(class success&&) noexcept;
 
     /// operator bool
     [[nodiscard]] explicit operator bool() const;
@@ -109,11 +111,11 @@ namespace yave {
     /// Copy ctor.
     success(const success& other);
     /// Move ctor.
-    success(const success&& other);
+    success(success&& other) noexcept;
     /// Copy assignment operator.
     success& operator=(const success& other);
     /// Move assignment operator.
-    success& operator=(success&& other);
+    success& operator=(success&& other) noexcept;
 
   private:
     using error::error;
@@ -132,10 +134,10 @@ namespace yave {
     error_list();
 
     /// Move constructor.
-    error_list(error_list&& other);
+    error_list(error_list&& other) noexcept;
 
     /// Move assignment operator.
-    error_list& operator=(error_list&&);
+    error_list& operator=(error_list&&) noexcept;
 
     /// Copy ctor (deleted)
     error_list(const error_list&) = delete;

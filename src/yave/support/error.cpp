@@ -31,7 +31,12 @@ namespace yave {
   {
   }
 
-  error::error(error&& other)
+  error::error(success&&) noexcept
+    : m_error_info {nullptr}
+  {
+  }
+
+  error::error(error&& other) noexcept
     : m_error_info {std::move(other.m_error_info)}
   {
   }
@@ -42,7 +47,13 @@ namespace yave {
     return *this;
   }
 
-  error& error::operator=(error&& other)
+  error& error::operator=(success&&) noexcept
+  {
+    m_error_info = nullptr;
+    return *this;
+  }
+
+  error& error::operator=(error&& other) noexcept
   {
     m_error_info = std::move(other.m_error_info);
     return *this;
@@ -91,7 +102,7 @@ namespace yave {
     assert(other.is_success());
   }
 
-  success::success([[maybe_unused]] const success&& other)
+  success::success([[maybe_unused]] success&& other) noexcept
     : error(nullptr)
   {
     assert(other.is_success());
@@ -103,7 +114,7 @@ namespace yave {
     return *this;
   }
 
-  success& success::operator=([[maybe_unused]] success&& other)
+  success& success::operator=([[maybe_unused]] success&& other) noexcept
   {
     assert(other.is_success());
     return *this;
@@ -113,12 +124,12 @@ namespace yave {
   {
   }
 
-  error_list::error_list(error_list&& other)
+  error_list::error_list(error_list&& other) noexcept
     : m_errors {std::move(other.m_errors)}
   {
   }
 
-  error_list& error_list::operator=(error_list&& other)
+  error_list& error_list::operator=(error_list&& other) noexcept
   {
     m_errors = std::move(other.m_errors);
     return *this;

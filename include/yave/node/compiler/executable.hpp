@@ -19,11 +19,11 @@ namespace yave {
     /// Ctor
     executable(const executable& exe);
     /// Ctor
-    executable(executable&& exe);
+    executable(executable&& exe) noexcept;
     /// operator=
     executable& operator=(const executable& exe);
     /// operator=
-    executable& operator=(executable&& exe);
+    executable& operator=(executable&& exe) noexcept;
 
     /// Get type.
     [[nodiscard]] auto type() const -> const object_ptr<const Type>&;

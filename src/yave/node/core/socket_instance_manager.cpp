@@ -26,7 +26,7 @@ namespace yave {
   }
 
   socket_instance_manager::socket_instance_manager(
-    socket_instance_manager&& other)
+    socket_instance_manager&& other) noexcept
     : m_map {std::move(other.m_map)}
     , m_mtx {}
   {
@@ -44,7 +44,7 @@ namespace yave {
   }
 
   socket_instance_manager& socket_instance_manager::operator=(
-    socket_instance_manager&& other)
+    socket_instance_manager&& other) noexcept
   {
     auto lck1 = _lock();
     auto lck2 = other._lock();
