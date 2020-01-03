@@ -77,7 +77,7 @@ namespace yave::vulkan {
   /// Find memory type
   uint32_t find_memory_type(
     uint32_t typeBits,
-    vk::MemoryPropertyFlags properties,
+    const vk::MemoryPropertyFlags& properties,
     const vk::PhysicalDevice& physicalDevice)
   {
     auto memProperties = physicalDevice.getMemoryProperties();

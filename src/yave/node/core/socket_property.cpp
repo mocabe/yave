@@ -7,8 +7,8 @@
 
 namespace yave {
 
-  socket_property::socket_property(const std::string& name, socket_type type)
-    : m_name {name}
+  socket_property::socket_property(std::string name, socket_type type)
+    : m_name {std::move(name)}
     , m_type {type}
     , m_data {std::nullopt}
   {

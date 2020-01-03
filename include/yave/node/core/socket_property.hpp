@@ -25,7 +25,7 @@ namespace yave {
   {
   public:
     /// Ctor
-    socket_property(const std::string& name, socket_type type);
+    socket_property(std::string name, socket_type type);
 
     /// Copy ctor
     socket_property(const socket_property&);
