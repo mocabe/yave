@@ -345,9 +345,12 @@ namespace {
     std::vector<const char*> lNames;
     std::vector<const char*> eNames;
 
+    lNames.reserve(layers.size());
     for (auto&& l : layers) {
       lNames.push_back(l.c_str());
     }
+
+    eNames.reserve(extensions.size());
     for (auto&& e : extensions) {
       eNames.push_back(e.c_str());
     }
@@ -608,11 +611,14 @@ namespace {
     std::vector<const char*> eNames;
     std::vector<const char*> lNames;
 
-    for (auto&& e : extensions) {
-      eNames.push_back(e.c_str());
-    }
+    lNames.reserve(layers.size());
     for (auto&& l : layers) {
       lNames.push_back(l.c_str());
+    }
+
+    eNames.reserve(extensions.size());
+    for (auto&& e : extensions) {
+      eNames.push_back(e.c_str());
     }
 
     vk::DeviceCreateInfo info;
