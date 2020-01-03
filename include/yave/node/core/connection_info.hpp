@@ -28,8 +28,8 @@ namespace yave {
       const socket_handle& src_socket,
       const node_handle& dst_node,
       const socket_handle& dst_socket,
-      const std::vector<node_handle>& src_interfaces,
-      const std::vector<node_handle>& dst_interfaces);
+      std::vector<node_handle> src_interfaces,
+      std::vector<node_handle> dst_interfaces);
 
     /// Get source node.
     [[nodiscard]] auto src_node() const -> const node_handle&;

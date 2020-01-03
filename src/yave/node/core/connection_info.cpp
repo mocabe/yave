@@ -24,14 +24,14 @@ namespace yave {
     const socket_handle& src_socket,
     const node_handle& dst_node,
     const socket_handle& dst_socket,
-    const std::vector<node_handle>& src_interfaces,
-    const std::vector<node_handle>& dst_interfaces)
+    std::vector<node_handle> src_interfaces,
+    std::vector<node_handle> dst_interfaces)
     : m_src_node {src_node}
     , m_src_socket {src_socket}
     , m_dst_node {dst_node}
     , m_dst_socket {dst_socket}
-    , m_src_interfaces {src_interfaces}
-    , m_dst_interfaces {dst_interfaces}
+    , m_src_interfaces {std::move(src_interfaces)}
+    , m_dst_interfaces {std::move(dst_interfaces)}
   {
   }
 
