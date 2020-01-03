@@ -103,16 +103,6 @@ target_link_libraries(yave-config INTERFACE range-v3)
 target_link_libraries(yave-config INTERFACE fmt::fmt)
 
 # ------------------------------------------
-# Valgrind Target
-
-if(UNIX AND YAVE_BUILD_TESTS)
-  add_custom_target(yave-valgrind-tests
-      COMMAND ${CMAKE_CTEST_COMMAND} 
-          --force-new-ctest-process --test-action memcheck
-  COMMAND cat "${CMAKE_BINARY_DIR}/Testing/Temporary/MemoryChecker.*.log")
-endif()
-
-# ------------------------------------------
 # Subdirectories
 
 add_subdirectory(${YAVE_SOURCE_DIR})
