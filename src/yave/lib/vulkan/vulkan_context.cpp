@@ -93,9 +93,9 @@ namespace {
   // platform surface extensions
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
   //  VK_USE_PLATFORM_WIN32_KHR  - Microsoft Windows
-  static constexpr const char* PlatformSurfaceExtensionName =
+  constexpr const char* PlatformSurfaceExtensionName =
     VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
-  static constexpr uint32_t PlatformSurfaceSpecVersion =
+  constexpr uint32_t PlatformSurfaceSpecVersion =
     VK_KHR_WIN32_SURFACE_SPEC_VERSION;
 #else
   // VK_USE_PLATFORM_ANDROID_KHR - Android
@@ -103,21 +103,19 @@ namespace {
   // VK_USE_PLATFORM_WAYLAND_KHR - Wayland
   // VK_USE_PLATFORM_XCB_KHR     - X Window System, using the XCB library
   // VK_USE_PLATFORM_XLIB_KHR    - X Window System, using the Xlib libra
-  static constexpr const char* PlatformSurfaceExtensionName =
+  constexpr const char* PlatformSurfaceExtensionName =
     VK_KHR_SURFACE_EXTENSION_NAME;
-  static constexpr uint32_t PlatformSurfaceSpecVersion =
-    VK_KHR_SURFACE_SPEC_VERSION;
+  constexpr uint32_t PlatformSurfaceSpecVersion = VK_KHR_SURFACE_SPEC_VERSION;
 #endif
 
   // validation layer name
-  static constexpr const char* ValidationLayerName =
+  constexpr const char* ValidationLayerName =
     "VK_LAYER_LUNARG_standard_validation";
 
   // debug report extension
-  static constexpr const char* DebugReportExtensionName =
+  constexpr const char* DebugReportExtensionName =
     VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
-  static constexpr uint32_t DebugReportSpecVersion =
-    VK_EXT_DEBUG_REPORT_SPEC_VERSION;
+  constexpr uint32_t DebugReportSpecVersion = VK_EXT_DEBUG_REPORT_SPEC_VERSION;
 
   /// Check vk::PhysicalDeviceFeatures compatibility
   bool checkPhysicalDeviceFeatureSupport(
