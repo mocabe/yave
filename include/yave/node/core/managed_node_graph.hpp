@@ -144,6 +144,13 @@ namespace yave {
     /// exists?
     [[nodiscard]] bool exists(const socket_handle& socket) const;
 
+    /// Find node fron ID
+    [[nodiscard]] auto node(const uid& id) const -> node_handle;
+    /// Find socket from ID
+    [[nodiscard]] auto socket(const uid& id) const -> socket_handle;
+    /// Find connection from ID
+    [[nodiscard]] auto connection(const uid& id) const -> connection_handle;
+
     /// get node info
     [[nodiscard]] auto get_info(const node_handle& node) const
       -> std::optional<managed_node_info>;

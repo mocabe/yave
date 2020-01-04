@@ -1079,6 +1079,19 @@ namespace yave {
     return m_ng.exists(connection);
   }
 
+  auto managed_node_graph::node(const uid& id) const -> node_handle
+  {
+    return m_ng.node(id);
+  }
+  auto managed_node_graph::socket(const uid& id) const -> socket_handle
+  {
+    return m_ng.socket(id);
+  }
+  auto managed_node_graph::connection(const uid& id) const -> connection_handle
+  {
+    return m_ng.connection(id);
+  }
+
   auto managed_node_graph::get_info(const node_handle& node) const
     -> std::optional<managed_node_info>
   {
