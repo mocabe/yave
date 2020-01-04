@@ -273,7 +273,7 @@ namespace {
 
   auto findMemoryType(
     uint32_t typeFilter,
-    vk::MemoryPropertyFlags properties,
+    const vk::MemoryPropertyFlags& properties,
     const vk::PhysicalDevice& physicalDevice) -> uint32_t
   {
     auto memProperties = physicalDevice.getMemoryProperties();
