@@ -16,6 +16,7 @@ set(YAVE_TOOL_DIR ${YAVE_DIR}/tools)
 # Options
 
 option(YAVE_BUILD_TESTS "Build tests" ON)
+option(YAVE_CLANG_TIDY "Enabe clang-tidy" OFF)
 
 # ------------------------------------------
 # Build type
@@ -105,9 +106,11 @@ target_link_libraries(yave-config INTERFACE fmt::fmt)
 # ------------------------------------------
 # Add clang-tidy
 
-set(CMAKE_CXX_CLANG_TIDY
-  clang-tidy;
-    -checks=-*,bugprone-*;)
+if(YAVE_CLANG_TIDY)
+  set(CMAKE_CXX_CLANG_TIDY
+    clang-tidy;
+      -checks=-*,bugprone-*;)
+endif()
 
 # ------------------------------------------
 # Subdirectories
