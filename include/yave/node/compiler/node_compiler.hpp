@@ -22,7 +22,7 @@ namespace yave {
 
     /// Compile parsed graph
     [[nodiscard]] auto compile(
-      managed_node_graph&& input,
+      managed_node_graph&& graph,
       const node_declaration_store& decls,
       const node_definition_store& defs) -> std::optional<executable>;
 
@@ -31,13 +31,13 @@ namespace yave {
 
   private:
     /// Optimize parsed graph
-    [[nodiscard]] auto _optimize_early(managed_node_graph&& parsed_graph)
+    [[nodiscard]] auto _optimize_early(managed_node_graph&& graph)
       -> std::optional<managed_node_graph>;
 
     /// Optimize executable
     [[nodiscard]] auto _optimize(
       executable&& exe,
-      const managed_node_graph& parsed_graph) -> executable;
+      const managed_node_graph& graph) -> executable;
 
     /// Resolve overloadings and check type
     [[nodiscard]] auto _type(
@@ -53,7 +53,7 @@ namespace yave {
 
     /// Verbose type check
     [[nodiscard]] auto _verbose_check(
-      const managed_node_graph& pasred_graph,
+      const managed_node_graph& graph,
       const socket_instance_manager& sim,
       const executable& executable) -> bool;
 

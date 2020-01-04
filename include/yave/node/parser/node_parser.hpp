@@ -22,7 +22,7 @@ namespace yave {
     node_parser();
 
     /// Parser node tree.
-    [[nodiscard]] auto parse(const managed_node_graph& input)
+    [[nodiscard]] auto parse(const managed_node_graph& graph)
       -> std::optional<managed_node_graph>;
 
     /// Get last errors.

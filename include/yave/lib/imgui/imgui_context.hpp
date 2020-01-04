@@ -26,7 +26,7 @@ namespace yave::imgui {
 
   public:
     /// Ctor
-    imgui_context(flags flags = flags::enable_validation);
+    imgui_context(flags init_flags = flags::enable_validation);
     /// Dtor
     ~imgui_context();
   

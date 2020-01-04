@@ -277,15 +277,15 @@ namespace yave {
       -> connection_info;
     [[nodiscard]] auto _get_name(const node_handle&) const -> std::string;
     [[nodiscard]] auto _get_name(const socket_handle&) const -> std::string;
-    [[nodiscard]] auto _input_sockets(const node_handle& node) const
+    [[nodiscard]] auto _input_sockets(const node_handle&) const
       -> std::vector<socket_handle>;
-    [[nodiscard]] auto _output_sockets(const node_handle& node) const
+    [[nodiscard]] auto _output_sockets(const node_handle&) const
       -> std::vector<socket_handle>;
     [[nodiscard]] auto _connect(
-      const node_handle& src_node,
-      const socket_handle& src_socket,
-      const node_handle& dst_node,
-      const socket_handle& dst_socket) -> connection_handle;
+      const node_handle&,
+      const socket_handle&,
+      const node_handle&,
+      const socket_handle&) -> connection_handle;
     [[nodiscard]] auto _get_primitive(const node_handle&) const -> primitive_t;
     [[nodiscard]] auto _root_of(const node_handle&) const
       -> std::vector<node_handle>;
