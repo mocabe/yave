@@ -268,9 +268,6 @@ namespace yave {
     [[nodiscard]] auto clone() const -> node_graph;
 
   private: /* non locking, non checking helpers */
-    [[nodiscard]] bool _exists(const node_handle&) const;
-    [[nodiscard]] bool _exists(const socket_handle&) const;
-    [[nodiscard]] bool _exists(const connection_handle&) const;
     [[nodiscard]] auto _get_info(const node_handle&) const -> node_info;
     [[nodiscard]] auto _get_info(const socket_handle&) const -> socket_info;
     [[nodiscard]] auto _get_info(const connection_handle&) const
@@ -291,7 +288,6 @@ namespace yave {
       -> std::vector<node_handle>;
     [[nodiscard]] auto _find_loop(const node_handle&) const
       -> std::vector<node_handle>;
-    [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
 
     template <class Lambda1, class Lambda2>
     void _depth_first_search_until(
@@ -302,10 +298,6 @@ namespace yave {
   private:
     /// graph type
     graph_t m_g;
-
-  private:
-    /// mutex
-    mutable std::mutex m_mtx;
   };
 
   /* impl */
@@ -316,7 +308,7 @@ namespace yave {
     Lambda1&& on_visit,
     Lambda2&& on_visited) const
   {
-    if (!_exists(node))
+    if (!exists(node))
       return;
 
     for ([[maybe_unused]] auto&& n : m_g.nodes()) {
@@ -401,7 +393,6 @@ namespace yave {
     const node_handle& node,
     Lambda1&& on_visit) const
   {
-    auto lck = _lock();
     return _depth_first_search_until(
       node, std::forward<Lambda1>(on_visit), [](auto&&, auto&&) {
         return false;
@@ -413,7 +404,6 @@ namespace yave {
     const yave::node_handle& node,
     Lambda&& lambda) const
   {
-    auto lck = _lock();
     return _depth_first_search_until(
       node,
       [&](const node_handle& n, const std::vector<node_handle>& path) {
