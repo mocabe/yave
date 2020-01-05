@@ -4,7 +4,6 @@
 //
 
 #include <yave/node/compiler/node_compiler.hpp>
-#include <yave/node/scene/scene_graph.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/backend/default/common/primitive_constructor.hpp>
 #include <yave/backend/default/common/control_flow.hpp>
