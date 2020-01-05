@@ -55,4 +55,13 @@ TEST_CASE("node_data_thread")
       th.stop();
     }
   }
+
+  SECTION("wait")
+  {
+    th.start();
+    auto t = std::chrono::steady_clock::now();
+    th.send(node_data_thread_op_create {});
+    th.wait_update(t);
+    th.stop();
+  }
 }

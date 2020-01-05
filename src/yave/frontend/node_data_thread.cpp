@@ -176,6 +176,11 @@ namespace yave {
               m_graph->clone(),
               top.request_time,
               std::chrono::steady_clock::now()));
+          // notify update
+          {
+            std::lock_guard lck2 {m_notify_mtx};
+            m_notify_cond.notify_all();
+          }
         } catch (const std::exception& e) {
           Info(
             g_logger,
@@ -199,4 +204,13 @@ namespace yave {
     return std::atomic_load(&m_snapshot);
   }
 
+  auto node_data_thread::wait_update(
+    std::chrono::time_point<std::chrono::steady_clock>
+      min_request_time) noexcept -> std::shared_ptr<const node_data_snapshot>
+  {
+    std::unique_lock lck {m_notify_mtx};
+    m_notify_cond.wait(
+      lck, [&] { return snapshot()->request_time > min_request_time; });
+    return snapshot();
+  }
 } // namespace yave

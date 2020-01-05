@@ -209,6 +209,11 @@ namespace yave {
     /// Get snapshot of node graph
     auto snapshot() const noexcept -> std::shared_ptr<const node_data_snapshot>;
 
+    /// Wait until snapshot update
+    auto wait_update(std::chrono::time_point<std::chrono::steady_clock>
+                       min_request_time) noexcept
+      -> std::shared_ptr<const node_data_snapshot>;
+
   private:
     std::shared_ptr<managed_node_graph> m_graph;
     std::shared_ptr<const node_data_snapshot> m_snapshot;
@@ -222,5 +227,9 @@ namespace yave {
     std::mutex m_mtx;
     std::condition_variable m_cond;
     std::atomic<int> m_terminate_flag;
+
+  private:
+    std::mutex m_notify_mtx;
+    std::condition_variable m_notify_cond;
   };
 } // namespace yave
