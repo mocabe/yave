@@ -12,6 +12,7 @@
 #include <condition_variable>
 #include <queue>
 #include <variant>
+#include <chrono>
 
 namespace yave {
 
@@ -157,6 +158,26 @@ namespace yave {
     void exec(managed_node_graph& g) const;
   };
 
+  struct node_data_snapshot
+  {
+    node_data_snapshot(
+      managed_node_graph&& g,
+      std::chrono::time_point<std::chrono::steady_clock> rt,
+      std::chrono::time_point<std::chrono::steady_clock> pt)
+      : graph {std::move(g)}
+      , request_time {rt}
+      , process_time {pt}
+    {
+    }
+
+    /// node graph
+    managed_node_graph graph;
+    /// timestamp of request
+    std::chrono::time_point<std::chrono::steady_clock> request_time;
+    /// timestamp on process
+    std::chrono::time_point<std::chrono::steady_clock> process_time;
+  };
+
   /// Single-Write, Single-Read node data thread
   class node_data_thread
   {
@@ -186,18 +207,18 @@ namespace yave {
     bool is_running() const noexcept;
 
     /// Get snapshot of node graph
-    auto snapshot() const noexcept
-      -> const std::shared_ptr<const managed_node_graph>&;
+    auto snapshot() const noexcept -> std::shared_ptr<const node_data_snapshot>;
 
   private:
     std::shared_ptr<managed_node_graph> m_graph;
-    std::shared_ptr<const managed_node_graph> m_snapshot;
+    std::shared_ptr<const node_data_snapshot> m_snapshot;
 
   private:
     std::thread m_thread;
 
   private:
-    std::queue<node_data_thread_op> m_queue;
+    struct _queue_data;
+    std::queue<_queue_data> m_queue;
     std::mutex m_mtx;
     std::condition_variable m_cond;
     std::atomic<int> m_terminate_flag;
