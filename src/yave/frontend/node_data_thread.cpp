@@ -101,6 +101,18 @@ namespace yave {
     g.remove_group_output_socket(n, index);
   }
 
+  void node_data_thread_op_set_pos::exec(managed_node_graph& g) const
+  {
+    auto n = g.node(node.id());
+    g.set_pos(n, new_pos);
+  }
+
+  void node_data_thread_op_set_data::exec(managed_node_graph& g) const
+  {
+    auto n = g.node(node.id());
+    g.set_data(n, data);
+  }
+
   struct node_data_thread::_queue_data
   {
     /// node data operation

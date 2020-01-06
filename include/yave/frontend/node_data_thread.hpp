@@ -134,6 +134,24 @@ namespace yave {
     void exec(managed_node_graph& g) const;
   };
 
+  /// op set node pos
+  struct node_data_thread_op_set_pos
+  {
+    node_handle node;
+    tvec2<float> new_pos;
+
+    void exec(managed_node_graph& g) const;
+  };
+
+  /// op set data
+  struct node_data_thread_op_set_data
+  {
+    node_handle node;
+    object_ptr<Object> data;
+
+    void exec(managed_node_graph& g) const;
+  };
+
   /// Node data thread operations
   using node_data_thread_op = std::variant<
     node_data_thread_op_nop,
@@ -149,7 +167,9 @@ namespace yave {
     node_data_thread_op_set_group_input,
     node_data_thread_op_set_group_output,
     node_data_thread_op_remove_group_input,
-    node_data_thread_op_remove_group_output>;
+    node_data_thread_op_remove_group_output,
+    node_data_thread_op_set_pos,
+    node_data_thread_op_set_data>;
 
   struct node_data_thread_op_list
   {
