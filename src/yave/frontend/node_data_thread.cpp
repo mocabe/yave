@@ -147,8 +147,11 @@ namespace yave {
 
   void node_data_thread::send(node_data_thread_op op)
   {
-    std::unique_lock lck {m_mtx};
-    m_queue.push(_queue_data {std::move(op), std::chrono::steady_clock::now()});
+    {
+      std::unique_lock lck {m_mtx};
+      m_queue.push(
+        _queue_data {std::move(op), std::chrono::steady_clock::now()});
+    }
     m_cond.notify_one();
   }
 
@@ -171,28 +174,25 @@ namespace yave {
 
     m_thread = std::thread([&]() {
       while (m_terminate_flag == 0) {
-        // wait
+        // wait queue
         std::unique_lock lck {m_mtx};
         m_cond.wait(lck, [&] { return !m_queue.empty(); });
         // pop
         auto top = std::move(m_queue.front());
         m_queue.pop();
-        // exec
+
         try {
-          // dispatch
+          // dispatch commands
           std::visit(overloaded {[&](auto&& x) { x.exec(*m_graph); }}, top.op);
-          // update snapshot
+          // update snapshot atomically
           std::atomic_store(
             &m_snapshot,
             std::make_shared<const node_data_snapshot>(
               m_graph->clone(),
               top.request_time,
               std::chrono::steady_clock::now()));
-          // notify update
-          {
-            std::lock_guard lck2 {m_notify_mtx};
-            m_notify_cond.notify_all();
-          }
+          // notify update for waiting threads
+          m_notify_cond.notify_all();
         } catch (const std::exception& e) {
           Info(
             g_logger,
@@ -220,9 +220,11 @@ namespace yave {
     std::chrono::time_point<std::chrono::steady_clock>
       min_request_time) noexcept -> std::shared_ptr<const node_data_snapshot>
   {
-    std::unique_lock lck {m_notify_mtx};
-    m_notify_cond.wait(
-      lck, [&] { return snapshot()->request_time > min_request_time; });
+    {
+      std::unique_lock lck {m_notify_mtx};
+      m_notify_cond.wait(
+        lck, [&] { return snapshot()->request_time > min_request_time; });
+    }
     return snapshot();
   }
 } // namespace yave
