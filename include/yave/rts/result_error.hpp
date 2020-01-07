@@ -30,13 +30,13 @@ namespace yave {
   namespace result_error {
 
     /// result_error
-    class result_error : public std::runtime_error
+    class result_error : public exception_base
     {
     public:
-      using std::runtime_error::runtime_error;
+      using exception_base::exception_base;
 
       result_error()
-        : runtime_error("result_error")
+        : exception_base(u8"yave::result_error")
       {
       }
     };
@@ -46,7 +46,7 @@ namespace yave {
     {
     public:
       null_result()
-        : result_error("Null result detected while evaluation")
+        : result_error(u8"Null result detected while evaluation")
       {
       }
     };
@@ -57,25 +57,25 @@ namespace yave {
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
-      e.what(), make_object<ResultError>(result_error_type::unknown));
+      e.message(), make_object<ResultError>(result_error_type::unknown));
   }
 
   [[nodiscard]] inline auto make_exception(const result_error::null_result& e)
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
-      e.what(), make_object<ResultError>(result_error_type::null_result));
+      e.message(), make_object<ResultError>(result_error_type::null_result));
   }
 
   // ------------------------------------------
   // Exception result
 
   /// exception_result
-  class exception_result : public std::runtime_error
+  class exception_result : public exception_base
   {
   public:
     exception_result(object_ptr<const Exception> e)
-      : runtime_error("Exception detected while evaluation")
+      : exception_base(u8"Exception detected while evaluation")
       , m_exception {std::move(e)}
     {
     }
@@ -103,14 +103,16 @@ namespace yave {
   [[nodiscard]] inline auto make_exception(const std::exception& e)
     -> object_ptr<Exception>
   {
+    /// TODO: check UTF-8?
     return make_object<Exception>(
-      e.what(), make_object<ResultError>(result_error_type::stdexcept));
+      (const char8_t*)e.what(),
+      make_object<ResultError>(result_error_type::stdexcept));
   }
 
   [[nodiscard]] inline auto make_exception()
   {
     return make_object<Exception>(
-      "Unknown exception detected while evaluation",
+      u8"Unknown exception detected while evaluation",
       make_object<ResultError>(result_error_type::unknown));
   }
 

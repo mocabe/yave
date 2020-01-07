@@ -46,13 +46,13 @@ namespace yave {
   namespace type_error {
 
     /// type_error
-    class type_error : public std::logic_error
+    class type_error : public exception_base
     {
     public:
-      using std::logic_error::logic_error;
+      using exception_base::exception_base;
 
       type_error()
-        : logic_error("type_error")
+        : exception_base(u8"type_error")
       {
       }
     };
@@ -62,7 +62,7 @@ namespace yave {
     {
     public:
       unbounded_variable(object_ptr<const Type> var)
-        : type_error("Unbounded variable detected")
+        : type_error(u8"Unbounded variable detected")
         , m_var {std::move(var)}
       {
       }
@@ -82,7 +82,7 @@ namespace yave {
     {
     public:
       circular_constraint(object_ptr<const Type> var)
-        : type_error("Circular constraints")
+        : type_error(u8"Circular constraints")
         , m_var {std::move(var)}
       {
       }
@@ -104,7 +104,7 @@ namespace yave {
       type_missmatch(
         object_ptr<const Type> expected,
         object_ptr<const Type> provided)
-        : type_error("Type missmatch")
+        : type_error(u8"Type missmatch")
         , m_expected {std::move(expected)}
         , m_provided {std::move(provided)}
       {
@@ -136,7 +136,7 @@ namespace yave {
       bad_type_check(
         object_ptr<const Type> expected,
         object_ptr<const Type> provided)
-        : type_error("type_error: Runtime type check failed")
+        : type_error(u8"type_error: Runtime type check failed")
         , m_expected {std::move(expected)}
         , m_provided {std::move(provided)}
       {
@@ -170,7 +170,7 @@ namespace yave {
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
-      e.what(),
+      e.message(),
       make_object<TypeError>(
         type_error_type::unknown,
         object_type<Undefined>(),
@@ -181,7 +181,7 @@ namespace yave {
     const type_error::unbounded_variable& e) -> object_ptr<Exception>
   {
     return make_object<Exception>(
-      e.what(),
+      e.message(),
       make_object<TypeError>(
         type_error_type::unbounded_variable,
         e.var(),
@@ -192,7 +192,7 @@ namespace yave {
     const type_error::circular_constraint& e) -> object_ptr<Exception>
   {
     return make_object<Exception>(
-      e.what(),
+      e.message(),
       make_object<TypeError>(
         type_error_type::circular_constraints,
         object_type<Undefined>(),
@@ -203,7 +203,7 @@ namespace yave {
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
-      e.what(),
+      e.message(),
       make_object<TypeError>(
         type_error_type::type_missmatch, e.expected(), e.provided()));
   }
@@ -212,7 +212,7 @@ namespace yave {
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
-      e.what(),
+      e.message(),
       make_object<TypeError>(
         type_error_type::bad_type_check, e.expected(), e.provided()));
   }

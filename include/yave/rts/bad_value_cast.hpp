@@ -10,13 +10,13 @@
 namespace yave {
 
   /// bad_value_cast exception
-  class bad_value_cast : public std::logic_error
+  class bad_value_cast : public exception_base
   {
   public:
     explicit bad_value_cast(
       object_ptr<const Type> from,
       object_ptr<const Type> to)
-      : std::logic_error("bad_value_cast")
+      : exception_base(u8"bad_value_cast")
       , m_from {std::move(from)}
       , m_to {std::move(to)}
     {
@@ -59,7 +59,7 @@ namespace yave {
     -> object_ptr<Exception>
   {
     return make_object<Exception>(
-      e.what(), make_object<BadValueCast>(e.from(), e.to()));
+      e.message(), make_object<BadValueCast>(e.from(), e.to()));
   }
 
 } // namespace yave
