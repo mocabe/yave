@@ -14,6 +14,41 @@
 
 namespace yave {
 
+  /// \brief C++ exception base
+  class exception_base : public std::exception
+  {
+  public:
+    exception_base(const char8_t* str)
+      : m_str {make_object<String>(str)}
+    {
+    }
+
+    exception_base(const exception_base& other) noexcept
+      : m_str {other.m_str}
+    {
+    }
+
+    exception_base(exception_base&& other) noexcept
+      : m_str {std::move(other.m_str)}
+    {
+    }
+
+    /// std::exception::what()
+    const char* what() const noexcept override
+    {
+      return m_str->char_str();
+    }
+
+    /// UTF-8 error message
+    const char8_t* message() const noexcept
+    {
+      return m_str->c_str();
+    }
+
+  private:
+    object_ptr<const String> m_str;
+  };
+
   /// \brief Exception value
   ///
   /// Exception object holds a pointer to arbitary error value.
@@ -30,13 +65,13 @@ namespace yave {
     }
 
     template <class T>
-    exception_object_value(const char* msg, object_ptr<T> err)
+    exception_object_value(const char8_t* msg, object_ptr<T> err)
       : exception_object_value(make_object<String>(msg), std::move(err))
     {
     }
 
     /// Get error message
-    [[nodiscard]] auto message() const -> std::string
+    [[nodiscard]] auto message() const -> std::u8string
     {
       return m_message->c_str();
     }
