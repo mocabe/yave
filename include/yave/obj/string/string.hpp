@@ -22,8 +22,9 @@ namespace yave {
   namespace literals {
 
     /// String object literal
-    [[nodiscard]] inline object_ptr<String>
-      operator"" _S(const char* str, size_t)
+    [[nodiscard]] inline object_ptr<String> operator"" _S(
+      const char8_t* str,
+      size_t)
     {
       return make_object<String>(str);
     }
