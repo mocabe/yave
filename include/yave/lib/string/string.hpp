@@ -25,10 +25,10 @@ namespace yave {
   class string
   {
   public:
-    using pointer                = char*;
-    using const_pointer          = const char*;
+    using pointer                = char8_t*;
+    using const_pointer          = const char8_t*;
     using size_type              = uint64_t;
-    using value_type             = char;
+    using value_type             = char8_t;
     using reference              = value_type&;
     using const_reference        = const value_type&;
     using iterator               = yave::iterator<pointer, string>;
@@ -45,17 +45,6 @@ namespace yave {
       m_size = 0;
     }
 
-    /// Construct from char pointer.
-    /// \param str UTF-8 encoded C-style string.
-    string(const char* str)
-    {
-      auto len  = std::strlen(str);
-      auto buff = _alloc(len + 1);
-      std::copy(str, str + len, buff);
-      m_ptr  = buff;
-      m_size = len;
-    }
-
     /// Construct from char8_t pointer
     /// \param UTF-8 string.
     string(const char8_t* str)
@@ -67,20 +56,9 @@ namespace yave {
       m_size = len;
     }
 
-    /// Construct from std::string.
-    /// \param str std::string which contains UTF-8 encoded string.
-    string(const std::string& str)
-    {
-      auto len  = str.length();
-      auto buff = _alloc(len + 1);
-      std::copy(str.c_str(), str.c_str() + len, buff);
-      m_ptr  = buff;
-      m_size = len;
-    }
-
     /// Construct from std::u8string.
     /// \param str UTF-8 string.
-    string(const std::basic_string<char8_t>& str)
+    string(const std::u8string& str)
     {
       auto len  = str.length();
       auto buff = _alloc(len + 1);
@@ -137,62 +115,68 @@ namespace yave {
       _dealloc(m_ptr, m_size + 1);
     }
 
+    /// Conversion to std::u8string
+    [[nodiscard]] operator std::u8string() const
+    {
+      return std::u8string(c_str());
+    }
+
     /// Conversion to std::string
     [[nodiscard]] operator std::string() const
     {
-      return std::string(c_str());
+      return std::string(char_str());
     }
 
     /// Get C style string.
-    [[nodiscard]] const char* c_str() const noexcept
+    [[nodiscard]] auto c_str() const noexcept -> const_pointer
     {
-      return reinterpret_cast<const char*>(m_ptr);
+      return (const_pointer)m_ptr;
     }
 
-    /// Get char8_t string.
-    [[nodiscard]] const char8_t* u8_str() const noexcept
+    /// Get C style string.
+    [[nodiscard]] auto char_str() const noexcept -> const char*
     {
-      return reinterpret_cast<const char8_t*>(m_ptr);
+      return m_ptr;
     }
 
     /// Get string length.
-    [[nodiscard]] size_t length() const noexcept
+    [[nodiscard]] auto length() const noexcept -> size_t
     {
       return m_size;
     }
 
     /// begin
-    [[nodiscard]] iterator begin() noexcept
+    [[nodiscard]] auto begin() noexcept -> iterator
     {
-      return iterator(m_ptr);
+      return iterator((pointer)m_ptr);
     }
 
     /// end
-    [[nodiscard]] iterator end() noexcept
+    [[nodiscard]] auto end() noexcept -> iterator
     {
-      return iterator(m_ptr + m_size);
+      return iterator((pointer)m_ptr + m_size);
     }
 
     /// begin
-    [[nodiscard]] const_iterator begin() const noexcept
+    [[nodiscard]] auto begin() const noexcept -> const_iterator
     {
-      return const_iterator(m_ptr);
+      return const_iterator((const_pointer)m_ptr);
     }
 
     /// end
-    [[nodiscard]] const_iterator end() const noexcept
+    [[nodiscard]] auto end() const noexcept -> const_iterator
     {
-      return const_iterator(m_ptr);
+      return const_iterator((const_pointer)m_ptr + m_size);
     }
 
     /// begin
-    [[nodiscard]] const_iterator cbegin() const noexcept
+    [[nodiscard]] auto cbegin() const noexcept -> const_iterator
     {
       return begin();
     }
 
     /// end
-    [[nodiscard]] const_iterator cend() const noexcept
+    [[nodiscard]] auto cend() const noexcept -> const_iterator
     {
       return end();
     }
@@ -237,19 +221,19 @@ namespace yave {
   /// operator== for yave::string
   inline bool operator==(const string& lhs, const string& rhs)
   {
-    return std::strcmp(lhs.c_str(), rhs.c_str()) == 0;
+    return std::strcmp(lhs.char_str(), rhs.char_str()) == 0;
   }
 
   /// operator== for yave::string
-  inline bool operator==(const char* lhs, const string& rhs)
+  inline bool operator==(const char8_t* lhs, const string& rhs)
   {
-    return std::strcmp(lhs, rhs.c_str()) == 0;
+    return std::strcmp((const char*)lhs, rhs.char_str()) == 0;
   }
 
   /// operator== for yave::string
-  inline bool operator==(const string& lhs, const char* rhs)
+  inline bool operator==(const string& lhs, const char8_t* rhs)
   {
-    return std::strcmp(lhs.c_str(), rhs) == 0;
+    return std::strcmp(lhs.char_str(), (const char*)rhs) == 0;
   }
 
 } // namespace yave
