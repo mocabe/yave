@@ -13,8 +13,6 @@
 
 namespace yave::imgui {
 
-  // clang-format off
-
   /// imgui application
   class imgui_context
   {
@@ -29,7 +27,7 @@ namespace yave::imgui {
     imgui_context(flags init_flags = flags::enable_validation);
     /// Dtor
     ~imgui_context();
-  
+
   public:
     /// Set current context
     void set_current();
@@ -45,7 +43,8 @@ namespace yave::imgui {
     using texture_type = const vk::DescriptorSet*;
 
     /// get texture ID from image descriptor
-    [[nodiscard]] auto get_texture_id(vk::DescriptorSet& tex) const -> ImTextureID;
+    [[nodiscard]] auto get_texture_id(const vk::DescriptorSet& tex) const
+      -> ImTextureID;
 
     // clang-format off
   public:
@@ -55,16 +54,16 @@ namespace yave::imgui {
     // clang-format on
 
   public:
-    [[nodiscard]] auto font_sampler() const          -> vk::Sampler;
-    [[nodiscard]] auto descriptor_pool() const       -> vk::DescriptorPool;
+    [[nodiscard]] auto font_sampler() const -> vk::Sampler;
+    [[nodiscard]] auto descriptor_pool() const -> vk::DescriptorPool;
     [[nodiscard]] auto descriptor_set_layout() const -> vk::DescriptorSetLayout;
-    [[nodiscard]] auto descriptor_set() const        -> vk::DescriptorSet;
-    [[nodiscard]] auto pipeline_cache() const        -> vk::PipelineCache;
-    [[nodiscard]] auto pipeline_layout() const       -> vk::PipelineLayout;
-    [[nodiscard]] auto pipeline() const              -> vk::Pipeline;
-    [[nodiscard]] auto font_image_memory() const     -> vk::DeviceMemory;
-    [[nodiscard]] auto font_image() const            -> vk::Image;
-    [[nodiscard]] auto font_image_view() const       -> vk::ImageView;
+    [[nodiscard]] auto descriptor_set() const -> vk::DescriptorSet;
+    [[nodiscard]] auto pipeline_cache() const -> vk::PipelineCache;
+    [[nodiscard]] auto pipeline_layout() const -> vk::PipelineLayout;
+    [[nodiscard]] auto pipeline() const -> vk::Pipeline;
+    [[nodiscard]] auto font_image_memory() const -> vk::DeviceMemory;
+    [[nodiscard]] auto font_image() const -> vk::Image;
+    [[nodiscard]] auto font_image_view() const -> vk::ImageView;
 
   public: /* texture management */
     /// Add texture data
@@ -100,8 +99,7 @@ namespace yave::imgui {
     std::unique_ptr<impl> m_pimpl;
   };
 
-  // clang-format on
-}
+} // namespace yave::imgui
 
 namespace yave {
 

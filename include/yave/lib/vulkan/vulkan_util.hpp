@@ -46,7 +46,7 @@ namespace yave::vulkan {
   };
 
   /// Upload image to GPU
-  auto upload_image(
+  [[nodiscard]] auto upload_image(
     const vk::Extent2D& image_extent,
     const vk::DeviceSize& byte_size,
     const vk::Format& format,
@@ -58,7 +58,7 @@ namespace yave::vulkan {
     -> std::tuple<vk::UniqueImage, vk::UniqueImageView, vk::UniqueDeviceMemory>;
 
   /// Create descriptor set from image view
-  auto create_image_descriptor(
+  [[nodiscard]] auto create_image_descriptor(
     const vk::ImageView& image,
     const vk::DescriptorSetLayout& layout,
     const vk::DescriptorPool& pool,

@@ -537,9 +537,9 @@ namespace {
     }
   }
 
-  auto toImTextureId(vk::DescriptorSet& dsc) -> ImTextureID
+  auto toImTextureId(const vk::DescriptorSet* dsc) -> ImTextureID
   {
-    return (ImTextureID)&dsc;
+    return (ImTextureID)dsc;
   }
 
   auto fromImTextureId(const ImTextureID& tex) -> const vk::DescriptorSet*
@@ -972,7 +972,8 @@ namespace yave::imgui {
       m_pimpl->vulkanCtx.device().updateDescriptorSets(write, {});
 
       // set font texture ID
-      ImGui::GetIO().Fonts->TexID = toImTextureId(m_pimpl->descriptorSet.get());
+      ImGui::GetIO().Fonts->TexID =
+        toImTextureId(&m_pimpl->descriptorSet.get());
 
       Info(g_logger, "Updated ImGui descriptor set");
     }
@@ -1128,10 +1129,10 @@ namespace yave::imgui {
     }
   }
 
-  auto imgui_context::get_texture_id(vk::DescriptorSet& tex) const
+  auto imgui_context::get_texture_id(const vk::DescriptorSet& tex) const
     -> ImTextureID
   {
-    return toImTextureId(tex);
+    return toImTextureId(&tex);
   }
 
   auto imgui_context::glfw_context() const -> const glfw::glfw_context&
@@ -1223,7 +1224,7 @@ namespace yave::imgui {
 
     ImTextureID get_texture()
     {
-      return toImTextureId(rawDsc);
+      return toImTextureId(&rawDsc);
     }
   };
 
