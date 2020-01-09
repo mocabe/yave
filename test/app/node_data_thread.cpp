@@ -5,7 +5,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/frontend/node_data_thread.hpp>
+#include <yave/app/node_data_thread.hpp>
 
 using namespace yave;
 

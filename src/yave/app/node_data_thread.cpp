@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/frontend/node_data_thread.hpp>
+#include <yave/app/node_data_thread.hpp>
 #include <yave/support/log.hpp>
 
 #include <range/v3/view.hpp>

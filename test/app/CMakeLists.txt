@@ -1,0 +1,1 @@
+YAVE_TEST(node_data_thread app yave::app)
