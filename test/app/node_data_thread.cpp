@@ -8,6 +8,7 @@
 #include <yave/app/node_data_thread.hpp>
 
 using namespace yave;
+using namespace yave::app;
 
 TEST_CASE("node_data_thread")
 {

@@ -11,7 +11,7 @@ using namespace ranges;
 
 YAVE_DECL_G_LOGGER(node_data_thread)
 
-namespace yave {
+namespace yave::app {
 
   void node_data_thread_op_nop::exec(managed_node_graph&) const noexcept
   {

@@ -14,7 +14,7 @@
 #include <variant>
 #include <chrono>
 
-namespace yave {
+namespace yave::app {
 
   /// op nop
   struct node_data_thread_op_nop
