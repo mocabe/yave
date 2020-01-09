@@ -984,7 +984,7 @@ namespace yave::imgui {
     set_clear_color(0.45f, 0.55f, 0.60f, 1.f);
 
     // default fps
-    set_fps(60);
+    set_fps(m_pimpl->glfwWindow.refresh_rate());
   }
 
   imgui_context::~imgui_context()

@@ -32,26 +32,26 @@ namespace yave::glfw {
     [[nodiscard]] auto get() const -> GLFWwindow*;
 
   public:
-    // clang-format off
-
     /// Add key-value pair of user data pointer.
     /// \note Adding to existing key fails.
-    [[nodiscard]]
-    static bool add_user_data(
+    [[nodiscard]] static bool add_user_data(
       GLFWwindow* window,
       const std::string& key,
       void* data) noexcept;
 
     /// Get window data
-    [[nodiscard]]
-    static void* get_user_data(
+    [[nodiscard]] static auto get_user_data(
+      GLFWwindow* window,
+      const std::string& key) noexcept -> void*;
+
+    /// Remove window data
+    static void remove_user_data(
       GLFWwindow* window,
       const std::string& key) noexcept;
 
-    /// Remove window data
-    static void remove_user_data(GLFWwindow* window, const std::string& key) noexcept;
-
-    // clang-format on
+  public:
+    /// Get current refresh rate of window
+    auto refresh_rate() const -> uint32_t;
 
   private:
     glfw_window(GLFWwindow* window);

@@ -6,6 +6,8 @@
 #include <yave/lib/glfw/glfw_context.hpp>
 #include <yave/support/log.hpp>
 
+#include <map>
+
 namespace {
 
   // logger
@@ -40,28 +42,23 @@ namespace yave::glfw {
     void remove(const std::string& key) noexcept;
 
   private:
-    /// for sanity check
-    [[maybe_unused]] uint32_t m_magic = 0xdeadbeef;
-    /// flat map of (key,pointer) pairs
-    std::vector<std::pair<std::string, void*>> m_map;
+    /// map of user data
+    std::map<std::string, void*> m_map;
   };
+
+  glfw_window_data::glfw_window_data()
+  {
+  }
 
   bool glfw_window_data::add(const std::string& key, void* data) noexcept
   {
-    assert(m_magic == 0xdeadbeef);
+    auto r = m_map.emplace(key, data);
 
-    auto lb =
-      std::lower_bound(m_map.begin(), m_map.end(), key, [](auto& l, auto& r) {
-        return l.first < r;
-      });
-
-    if (lb != m_map.end() && lb->first == key) {
+    if (!r.second) {
       Error(
         g_glfw_logger, "Failed to set window data: key {} already exists", key);
       return false;
     }
-
-    m_map.emplace(lb, key, data);
 
     Info(g_glfw_logger, "Set new window data: key={}", key);
 
@@ -70,32 +67,17 @@ namespace yave::glfw {
 
   void* glfw_window_data::find(const std::string& key) const noexcept
   {
-    assert(m_magic == 0xdeadbeef);
+    auto iter = m_map.find(key);
 
-    auto lb =
-      std::lower_bound(m_map.begin(), m_map.end(), key, [](auto& l, auto& r) {
-        return l.first < r;
-      });
+    if (iter == m_map.end())
+      return nullptr;
 
-    if (lb != m_map.end() && lb->first == key) {
-      return lb->second;
-    }
-
-    return nullptr;
+    return iter->second;
   }
 
   void glfw_window_data::remove(const std::string& key) noexcept
   {
-    assert(m_magic == 0xdeadbeef);
-
-    auto lb =
-      std::lower_bound(m_map.begin(), m_map.end(), key, [](auto& l, auto& r) {
-        return l.first < r;
-      });
-
-    if (lb != m_map.end() && lb->first == key) {
-      m_map.erase(lb);
-    }
+    m_map.erase(key);
   }
 
   glfw_window::glfw_window(GLFWwindow* window)
@@ -136,10 +118,10 @@ namespace yave::glfw {
     return m_window;
   }
 
-  auto glfw_window::add_user_data(
+  bool glfw_window::add_user_data(
     GLFWwindow* window,
     const std::string& key,
-    void* data) noexcept -> bool
+    void* data) noexcept 
   {
     if (!window)
       return false;
@@ -177,6 +159,18 @@ namespace yave::glfw {
     assert(wd);
 
     wd->remove(key);
+  }
+
+  auto glfw_window::refresh_rate() const -> uint32_t
+  {
+    auto monitor = glfwGetWindowMonitor(m_window);
+
+    // windowed mode
+    if (!monitor)
+      monitor = glfwGetPrimaryMonitor();
+
+    auto mode = glfwGetVideoMode(monitor);
+    return mode->refreshRate;
   }
 
   glfw_context::glfw_context()
@@ -225,10 +219,6 @@ namespace yave::glfw {
   void glfw_context::wait_events() const
   {
     glfwWaitEvents();
-  }
-
-  glfw_window_data::glfw_window_data()
-  {
   }
 
 } // namespace yave::glfw
