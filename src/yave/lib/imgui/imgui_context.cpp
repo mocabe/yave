@@ -104,7 +104,7 @@ namespace {
 
     // vertex shader
     vk::UniqueShaderModule vertShaderModule = createShaderModule(
-      loadShaderFile(u8"" YAVE_TOSTR(YAVE_IMGUI_VERT_SHADER)), device);
+      loadShaderFile(YAVE_TOSTR(YAVE_IMGUI_VERT_SHADER)), device);
 
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
     vertShaderStageInfo.stage  = vk::ShaderStageFlagBits::eVertex;
@@ -113,7 +113,7 @@ namespace {
 
     // fragment shader
     vk::UniqueShaderModule fragShaderModule = createShaderModule(
-      loadShaderFile(u8"" YAVE_TOSTR(YAVE_IMGUI_FRAG_SHADER)), device);
+      loadShaderFile(YAVE_TOSTR(YAVE_IMGUI_FRAG_SHADER)), device);
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
     fragShaderStageInfo.stage  = vk::ShaderStageFlagBits::eFragment;
