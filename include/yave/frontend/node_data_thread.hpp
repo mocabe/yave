@@ -183,7 +183,7 @@ namespace yave {
     node_data_snapshot(
       managed_node_graph&& g,
       std::chrono::time_point<std::chrono::steady_clock> rt,
-      std::chrono::time_point<std::chrono::steady_clock> pt)
+      std::chrono::time_point<std::chrono::steady_clock> pt) noexcept
       : graph {std::move(g)}
       , request_time {rt}
       , process_time {pt}
