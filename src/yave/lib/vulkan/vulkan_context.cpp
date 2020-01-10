@@ -196,14 +196,13 @@ namespace {
 
     // extensions required for glfw
     uint32_t n_glfwExtensions = 0;
-    const char** glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&n_glfwExtensions);
+    const char** glfwExtensions =
+      glfwGetRequiredInstanceExtensions(&n_glfwExtensions);
 
-    if (!glfwExtensions)
-      Warning(g_logger, "glfwGetRequiredInstanceExtensions() retuend NULL.");
+    assert(glfwExtensions);
 
     // default extensions
-    static constexpr const char* extensions[] = {
+    constexpr std::array extensions = {
       VK_KHR_SURFACE_EXTENSION_NAME, // for surface
       PlatformSurfaceExtensionName,  // for surface
     };
@@ -211,19 +210,17 @@ namespace {
     Info(g_logger, "Surface spec version: {}", PlatformSurfaceSpecVersion);
 
     // for validation layer
-    static constexpr const char* debugReportExtension =
-      DebugReportExtensionName;
+    constexpr const char* debugReportExtension = DebugReportExtensionName;
 
     Info(g_logger, "Debug spec version: {}", DebugReportSpecVersion);
 
+    // collect enabling extensions
+
     std::vector<std::string> ret;
 
-    for (size_t i = 0; i < n_glfwExtensions; ++i) {
-      ret.emplace_back(glfwExtensions[i]);
-    }
-    for (auto&& e : extensions) {
-      ret.emplace_back(e);
-    }
+    ret.insert(ret.end(), glfwExtensions, glfwExtensions + n_glfwExtensions);
+    ret.insert(ret.end(), extensions.begin(), extensions.end());
+
     if (enableValidationLayer) {
       ret.push_back(debugReportExtension);
     }
@@ -239,7 +236,7 @@ namespace {
   auto getInstanceLayers(bool enableValidaitonLayer) -> std::vector<std::string>
   {
     // validation layer
-    static constexpr const char* validationLayer = ValidationLayerName;
+    constexpr const char* validationLayer = ValidationLayerName;
 
     std::vector<std::string> ret;
 
@@ -459,8 +456,7 @@ namespace {
   auto getOptimalPhysicalDeviceIndex(
     const std::vector<vk::PhysicalDevice>& physicalDevices) -> uint32_t
   {
-    uint32_t index = 0;
-    for (; index < physicalDevices.size(); ++index) {
+    for (uint32_t index = 0; index < physicalDevices.size(); ++index) {
       if (physicalDeviceMeetsRequirements(physicalDevices[index]))
         return index;
     }
@@ -484,8 +480,6 @@ namespace {
   auto getGraphicsQueueIndex(const vk::PhysicalDevice& physicalDevice)
     -> uint32_t
   {
-    using namespace yave;
-
     auto properties = physicalDevice.getQueueFamilyProperties();
 
     for (uint32_t i = 0; i < properties.size(); ++i) {
@@ -525,14 +519,15 @@ namespace {
 
   auto getDeviceExtensions() -> std::vector<std::string>
   {
-    static constexpr const char* extensions[] = {
+    // default extensions
+    constexpr std::array extensions = {
       VK_KHR_SWAPCHAIN_EXTENSION_NAME, // for swapchain
     };
 
     std::vector<std::string> ret;
-    for (auto&& e : extensions) {
-      ret.emplace_back(e);
-    }
+
+    ret.insert(ret.end(), extensions.begin(), extensions.end());
+
     return ret;
   }
 
@@ -541,19 +536,55 @@ namespace {
     return {};
   }
 
+  void checkDeviceExtensionSupport(
+    const std::vector<std::string>& extensions,
+    const vk::PhysicalDevice& physicalDevice)
+  {
+    auto supportedExtensions =
+      physicalDevice.enumerateDeviceExtensionProperties();
+
+    for (auto&& e : extensions) {
+      [&] {
+        for (auto&& supported : supportedExtensions) {
+          if (supported.extensionName == e)
+            return;
+        }
+        throw std::runtime_error("Device extension not supported");
+      }();
+    }
+  }
+
+  void checkDeviceLayerSupport(
+    const std::vector<std::string>& layers,
+    const vk::PhysicalDevice& physicalDevice)
+  {
+    auto supportedLayers = physicalDevice.enumerateDeviceLayerProperties();
+
+    for (auto&& l : layers) {
+      [&] {
+        for (auto&& supported : supportedLayers) {
+          if (supported.layerName == l)
+            return;
+        }
+        throw std::runtime_error("Device layer not supported");
+      }();
+    }
+  }
+
   auto createDevice(
     uint32_t graphicsQueueIndex,
     uint32_t presentQueueIndex,
     const vk::PhysicalDevice& physicalDevice) -> vk::UniqueDevice
   {
-    std::vector<uint32_t> queueFamilyIndicies = {graphicsQueueIndex,
-                                                 presentQueueIndex};
+    std::vector queueFamilyIndicies = {graphicsQueueIndex, presentQueueIndex};
 
     // Vulkan API requires queue family indicies to be unqiue.
-    std::sort(queueFamilyIndicies.begin(), queueFamilyIndicies.end());
-    auto unique_end =
-      std::unique(queueFamilyIndicies.begin(), queueFamilyIndicies.end());
-    queueFamilyIndicies.erase(unique_end, queueFamilyIndicies.end());
+    {
+      std::sort(queueFamilyIndicies.begin(), queueFamilyIndicies.end());
+      auto end =
+        std::unique(queueFamilyIndicies.begin(), queueFamilyIndicies.end());
+      queueFamilyIndicies.erase(end, queueFamilyIndicies.end());
+    }
 
     float queuePriority = 0.f;
 
@@ -568,31 +599,10 @@ namespace {
     }
 
     auto extensions = getDeviceExtensions();
-    auto layers     = getDeviceLayers();
+    checkDeviceExtensionSupport(extensions, physicalDevice);
 
-    auto supportedExtensions =
-      physicalDevice.enumerateDeviceExtensionProperties();
-    auto supportedLayers = physicalDevice.enumerateDeviceLayerProperties();
-
-    for (auto&& e : extensions) {
-      [&] {
-        for (auto&& supported : supportedExtensions) {
-          if (supported.extensionName == e)
-            return;
-        }
-        throw std::runtime_error("Device extension not supported");
-      }();
-    }
-
-    for (auto&& l : layers) {
-      [&] {
-        for (auto&& supported : supportedLayers) {
-          if (supported.layerName == l)
-            return;
-        }
-        throw std::runtime_error("Device layer not supported");
-      }();
-    }
+    auto layers = getDeviceLayers();
+    checkDeviceLayerSupport(layers, physicalDevice);
 
     std::vector<const char*> eNames;
     std::vector<const char*> lNames;
@@ -747,7 +757,7 @@ namespace {
         return vk::CompositeAlphaFlagBitsKHR::eInherit;
 
       if (supported & vk::CompositeAlphaFlagBitsKHR::eOpaque)
-      return vk::CompositeAlphaFlagBitsKHR::eOpaque;
+        return vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
       throw std::runtime_error("No supported composite alpha option");
     }();
@@ -790,8 +800,7 @@ namespace {
       capabilities.maxImageCount == 0 ? std::numeric_limits<uint32_t>::max()
                                       : capabilities.maxImageCount);
 
-    auto preTransform = chooseSwapchainPreTransform(capabilities);
-
+    auto preTransform   = chooseSwapchainPreTransform(capabilities);
     auto compositeAlpha = chooseSwapchainCompositeAlpha(capabilities);
 
     vk::SwapchainCreateInfoKHR info;
@@ -810,7 +819,7 @@ namespace {
     // directly render (as color attachment)
     info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
-    uint32_t queueFamilyIndicies[] = {graphicsQueueIndex, presentQueueIndex};
+    std::array queueFamilyIndicies = {graphicsQueueIndex, presentQueueIndex};
 
     if (graphicsQueueIndex == presentQueueIndex) {
       info.imageSharingMode      = vk::SharingMode::eExclusive;
@@ -818,8 +827,8 @@ namespace {
       info.pQueueFamilyIndices   = nullptr;
     } else {
       info.imageSharingMode      = vk::SharingMode::eConcurrent;
-      info.queueFamilyIndexCount = 2;
-      info.pQueueFamilyIndices   = queueFamilyIndicies;
+      info.queueFamilyIndexCount = queueFamilyIndicies.size();
+      info.pQueueFamilyIndices   = queueFamilyIndicies.data();
     }
 
     // create swapchain

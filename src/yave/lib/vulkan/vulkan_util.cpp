@@ -91,16 +91,16 @@ namespace yave::vulkan {
     throw std::runtime_error("Failed to find suitable memory type");
   }
 
-  std::tuple<vk::UniqueImage, vk::UniqueImageView, vk::UniqueDeviceMemory>
-    upload_image(
-      const vk::Extent2D& extent,
-      const vk::DeviceSize& byte_size,
-      const vk::Format& format,
-      const uint8_t* data,
-      const vk::CommandPool& commandPool,
-      const vk::Queue queue,
-      const vk::PhysicalDevice& physicalDevice,
-      const vk::Device& device)
+  auto upload_image(
+    const vk::Extent2D& extent,
+    const vk::DeviceSize& byte_size,
+    const vk::Format& format,
+    const uint8_t* data,
+    const vk::CommandPool& commandPool,
+    const vk::Queue queue,
+    const vk::PhysicalDevice& physicalDevice,
+    const vk::Device& device)
+    -> std::tuple<vk::UniqueImage, vk::UniqueImageView, vk::UniqueDeviceMemory>
   {
     assert(data);
 
