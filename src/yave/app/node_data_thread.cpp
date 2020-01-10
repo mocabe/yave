@@ -23,6 +23,11 @@ namespace yave::app {
       std::visit(overloaded {[&](auto&& x) { x.exec(g); }}, op);
   }
 
+  void node_data_thread_op_func::exec(managed_node_graph& g) const
+  {
+    function(g);
+  }
+
   void node_data_thread_op_create::exec(managed_node_graph& g) const
   {
     auto p = g.node(parent_group.id());

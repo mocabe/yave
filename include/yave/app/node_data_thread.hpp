@@ -13,6 +13,7 @@
 #include <queue>
 #include <variant>
 #include <chrono>
+#include <functional>
 
 namespace yave::app {
 
@@ -24,6 +25,14 @@ namespace yave::app {
 
   /// op list
   struct node_data_thread_op_list;
+
+  /// op func
+  struct node_data_thread_op_func
+  {
+    std::function<void(managed_node_graph&)> function;
+
+    void exec(managed_node_graph& g) const;
+  };
 
   /// op create
   struct node_data_thread_op_create
@@ -156,6 +165,7 @@ namespace yave::app {
   using node_data_thread_op = std::variant<
     node_data_thread_op_nop,
     node_data_thread_op_list,
+    node_data_thread_op_func,
     node_data_thread_op_create,
     node_data_thread_op_destroy,
     node_data_thread_op_connect,
