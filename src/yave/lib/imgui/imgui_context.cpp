@@ -773,7 +773,7 @@ namespace yave::imgui {
 
     // Avoid allocation when new size is smaller than current capacity unless
     // required size is very small.
-    if (newSize <= m_capacity && newSize > m_capacity / 8) {
+    if (newSize <= m_capacity && newSize > m_capacity / 16) {
       // Bind existing memory to new buffer.
       device.bindBufferMemory(buff.get(), m_memory.get(), 0);
       // Update
@@ -782,10 +782,16 @@ namespace yave::imgui {
       return;
     }
 
-    // Double buffer capacity (or half when we can shrink).
-    auto newCapacity = (memReq.size < m_capacity)
-                         ? std::max(memReq.size, m_capacity / 2)
-                         : std::max(memReq.size, m_capacity * 2);
+    // Find new buffer capacity
+    auto newCapacity = std::max(m_capacity, vk::DeviceSize(1));
+
+    while (memReq.size > newCapacity)
+      newCapacity *= 2;
+
+    while (memReq.size < newCapacity / 2)
+      newCapacity /= 2;
+
+    assert(newCapacity >= memReq.size);
 
     vk::MemoryAllocateInfo allocInfo;
     allocInfo.allocationSize  = newCapacity;
