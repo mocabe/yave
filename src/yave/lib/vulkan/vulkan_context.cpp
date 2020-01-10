@@ -742,29 +742,21 @@ namespace {
     const vk::SurfaceCapabilitiesKHR& capabilities)
     -> vk::CompositeAlphaFlagBitsKHR
   {
-    using namespace yave;
-
     auto supported = capabilities.supportedCompositeAlpha;
 
-    auto flag = [&] {
-      if (supported & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied)
-        return vk::CompositeAlphaFlagBitsKHR::ePreMultiplied;
+    if (supported & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied)
+      return vk::CompositeAlphaFlagBitsKHR::ePreMultiplied;
 
-      if (supported & vk::CompositeAlphaFlagBitsKHR::ePostMultiplied)
-        return vk::CompositeAlphaFlagBitsKHR::ePostMultiplied;
+    if (supported & vk::CompositeAlphaFlagBitsKHR::ePostMultiplied)
+      return vk::CompositeAlphaFlagBitsKHR::ePostMultiplied;
 
-      if (supported & vk::CompositeAlphaFlagBitsKHR::eInherit)
-        return vk::CompositeAlphaFlagBitsKHR::eInherit;
+    if (supported & vk::CompositeAlphaFlagBitsKHR::eInherit)
+      return vk::CompositeAlphaFlagBitsKHR::eInherit;
 
-      if (supported & vk::CompositeAlphaFlagBitsKHR::eOpaque)
-        return vk::CompositeAlphaFlagBitsKHR::eOpaque;
+    if (supported & vk::CompositeAlphaFlagBitsKHR::eOpaque)
+      return vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
-      throw std::runtime_error("No supported composite alpha option");
-    }();
-
-    Info(g_logger, "Swapchain composite alpha: {}", vk::to_string(flag));
-
-    return flag;
+    throw std::runtime_error("No supported composite alpha option");
   }
 
   auto createSwapchain(
