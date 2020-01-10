@@ -9,14 +9,14 @@
 #include <yave/lib/vulkan/vulkan_context.hpp>
 #include <yave/support/log.hpp>
 
+YAVE_DECL_G_LOGGER(vulkan)
+
 /* Global definitions */
 
-namespace {
-  // Vulkan debug callback API
-  PFN_vkCreateDebugReportCallbackEXT pfn_vkCreateDebugReportCallbackEXT;
-  // Vulkan debug callback API
-  PFN_vkDestroyDebugReportCallbackEXT pfn_vkDestroyDebugReportCallbackEXT;
-} // namespace
+// Vulkan debug callback API
+static PFN_vkCreateDebugReportCallbackEXT pfn_vkCreateDebugReportCallbackEXT;
+// Vulkan debug callback API
+static PFN_vkDestroyDebugReportCallbackEXT pfn_vkDestroyDebugReportCallbackEXT;
 
 /// implements vkCreateDebugReportCallbackEXT
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugReportCallbackEXT(
@@ -42,18 +42,6 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyDebugReportCallbackEXT(
 
 namespace {
 
-  // logger
-  std::shared_ptr<spdlog::logger> g_vulkan_logger;
-
-  // init
-  void init_vulkan_logger()
-  {
-    [[maybe_unused]] static auto init_logger = [] {
-      g_vulkan_logger = yave::add_logger("vulkan_context");
-      return 1;
-    }();
-  }
-
   /// Debug callback
   VKAPI_ATTR VkBool32 VKAPI_CALL validationCallback(
     VkDebugReportFlagsEXT flags,
@@ -74,17 +62,17 @@ namespace {
     (void)pLayerPrefix;
     (void)pUserData;
 
-    init_vulkan_logger();
+    init_logger();
 
     switch (flags) {
       case VK_DEBUG_REPORT_INFORMATION_BIT_EXT:
-        Info(g_vulkan_logger, "{}", pMessage);
+        Info(g_logger, "{}", pMessage);
         break;
       case VK_DEBUG_REPORT_WARNING_BIT_EXT:
-        Warning(g_vulkan_logger, "{}", pMessage);
+        Warning(g_logger, "{}", pMessage);
         break;
       case VK_DEBUG_REPORT_ERROR_BIT_EXT:
-        Error(g_vulkan_logger, "{}", pMessage);
+        Error(g_logger, "{}", pMessage);
         break;
     }
     return VK_FALSE;
@@ -212,8 +200,7 @@ namespace {
     glfwExtensions = glfwGetRequiredInstanceExtensions(&n_glfwExtensions);
 
     if (!glfwExtensions)
-      Warning(
-        g_vulkan_logger, "glfwGetRequiredInstanceExtensions() retuend NULL.");
+      Warning(g_logger, "glfwGetRequiredInstanceExtensions() retuend NULL.");
 
     // default extensions
     static constexpr const char* extensions[] = {
@@ -221,14 +208,13 @@ namespace {
       PlatformSurfaceExtensionName,  // for surface
     };
 
-    Info(
-      g_vulkan_logger, "Surface spec version: {}", PlatformSurfaceSpecVersion);
+    Info(g_logger, "Surface spec version: {}", PlatformSurfaceSpecVersion);
 
     // for validation layer
     static constexpr const char* debugReportExtension =
       DebugReportExtensionName;
 
-    Info(g_vulkan_logger, "Debug spec version: {}", DebugReportSpecVersion);
+    Info(g_logger, "Debug spec version: {}", DebugReportSpecVersion);
 
     std::vector<std::string> ret;
 
@@ -334,11 +320,13 @@ namespace {
     auto extensions = getInstanceExtensions(enableValidationLayer);
     checkInstanceExtensionSupport(extensions);
 
-    Info(g_vulkan_logger, "Following instance extensions will be enabled:");
-    for (auto&& e : extensions) Info(g_vulkan_logger, " {}", e);
+    Info(g_logger, "Following instance extensions will be enabled:");
+    for (auto&& e : extensions)
+      Info(g_logger, " {}", e);
 
-    Info(g_vulkan_logger, "Following instance layers will be enabled:");
-    for (auto&& l : layers) Info(g_vulkan_logger, "  {}", l);
+    Info(g_logger, "Following instance layers will be enabled:");
+    for (auto&& l : layers)
+      Info(g_logger, "  {}", l);
 
     std::vector<const char*> lNames;
     std::vector<const char*> eNames;
@@ -386,8 +374,8 @@ namespace {
     vk::DebugReportCallbackCreateInfoEXT info;
     // enable for error and warning
     info.setFlags(vk::DebugReportFlagsEXT(
-      vk::DebugReportFlagBitsEXT::eError |
-      vk::DebugReportFlagBitsEXT::eWarning));
+      vk::DebugReportFlagBitsEXT::eError
+      | vk::DebugReportFlagBitsEXT::eWarning));
     // set callback
     info.setPfnCallback(validationCallback);
 
@@ -426,8 +414,8 @@ namespace {
     auto required = getRequiredPhysicalDeviceTypes();
     auto property = physicalDevice.getProperties();
 
-    return std::find(required.begin(), required.end(), property.deviceType) !=
-           required.end();
+    return std::find(required.begin(), required.end(), property.deviceType)
+           != required.end();
   }
 
   /// check if physical device supports required features
@@ -462,9 +450,9 @@ namespace {
   /// check if physical device is valid
   bool physicalDeviceMeetsRequirements(const vk::PhysicalDevice& physicalDevice)
   {
-    return physicalDeviceMeetsDeviceTypeRequirements(physicalDevice) &&
-           physicalDeviceMeetsDeviceFeatureRequirements(physicalDevice) &&
-           physicalDeviceMeetsQueueFamilyRequirements(physicalDevice);
+    return physicalDeviceMeetsDeviceTypeRequirements(physicalDevice)
+           && physicalDeviceMeetsDeviceFeatureRequirements(physicalDevice)
+           && physicalDeviceMeetsQueueFamilyRequirements(physicalDevice);
   }
 
   /// find optimal physical device
@@ -521,7 +509,7 @@ namespace {
       return graphicsQueueIndex;
     }
 
-    Warning(g_vulkan_logger, "Graphics queue does not support presentation.");
+    Warning(g_logger, "Graphics queue does not support presentation.");
 
     auto queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
     for (uint32_t index = 0; index < queueFamilyProperties.size(); ++index) {
@@ -691,7 +679,7 @@ namespace {
     }
 
     Warning(
-      g_vulkan_logger,
+      g_logger,
       "Default surface format is not avalable. Return first format avalable.");
 
     // fallback to first format
@@ -747,12 +735,12 @@ namespace {
     using namespace yave;
 
     if (
-      capabilities.supportedCompositeAlpha &
-      vk::CompositeAlphaFlagBitsKHR::eOpaque)
+      capabilities.supportedCompositeAlpha
+      & vk::CompositeAlphaFlagBitsKHR::eOpaque)
       return vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
     Warning(
-      g_vulkan_logger,
+      g_logger,
       "vk::CompositeAlphaFlagBitsKHR::eOpaque is not supported. Use eInherit");
 
     return vk::CompositeAlphaFlagBitsKHR::eInherit;
@@ -980,8 +968,8 @@ namespace {
     dep.srcStageMask  = vk::PipelineStageFlagBits::eColorAttachmentOutput;
     dep.srcAccessMask = vk::AccessFlags();
     dep.dstStageMask  = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-    dep.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead |
-                        vk::AccessFlagBits::eColorAttachmentWrite;
+    dep.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead
+                        | vk::AccessFlagBits::eColorAttachmentWrite;
     return {dep};
   }
 
@@ -1124,12 +1112,12 @@ namespace yave::vulkan {
     [[maybe_unused]] glfw::glfw_context& glfw_ctx,
     bool enableValidationLayer)
   {
-    init_vulkan_logger();
+    init_logger();
 
     if (!glfwVulkanSupported())
       throw std::runtime_error("GLFW could not find Vulkan");
 
-    Info(g_vulkan_logger, "Initializing vulkan_context");
+    Info(g_logger, "Initializing vulkan_context");
 
     /// pimpl
     auto impl = std::make_unique<vulkan_context::impl>();
@@ -1154,20 +1142,19 @@ namespace yave::vulkan {
 
     impl->graphicsQueueIndex = getGraphicsQueueIndex(impl->physicalDevice);
 
-    Info(g_vulkan_logger, "Graphs queue idex: {}", impl->graphicsQueueIndex);
+    Info(g_logger, "Graphs queue idex: {}", impl->graphicsQueueIndex);
 
     impl->presentQueueIndex = getPresentQueueIndex(
       impl->graphicsQueueIndex, impl->instance.get(), impl->physicalDevice);
 
-    Info(
-      g_vulkan_logger, "Presentation queue index: {}", impl->presentQueueIndex);
+    Info(g_logger, "Presentation queue index: {}", impl->presentQueueIndex);
 
     /* logical device */
 
     impl->device = createDevice(
       impl->graphicsQueueIndex, impl->presentQueueIndex, impl->physicalDevice);
 
-    Info(g_vulkan_logger, "Created new logical device");
+    Info(g_logger, "Created new logical device");
 
     /* get queue */
 
@@ -1181,12 +1168,12 @@ namespace yave::vulkan {
     }
 
     m_pimpl = std::move(impl);
-    Info(g_vulkan_logger, "Initialized Vulkan context");
+    Info(g_logger, "Initialized Vulkan context");
   }
 
   vulkan_context::~vulkan_context() noexcept
   {
-    Info(g_vulkan_logger, "Destroying Vulkan context");
+    Info(g_logger, "Destroying Vulkan context");
   }
 
   auto vulkan_context::instance() const -> vk::Instance
@@ -1268,7 +1255,7 @@ namespace yave::vulkan {
   auto vulkan_context::create_window_context(glfw::glfw_window& window) const
     -> window_context
   {
-    Info(g_vulkan_logger, "Initializing window context");
+    Info(g_logger, "Initializing window context");
 
     auto impl = std::make_unique<window_context::impl>();
 
@@ -1290,7 +1277,7 @@ namespace yave::vulkan {
 
     // set window resize callback
     glfwSetFramebufferSizeCallback(
-      window.get(), [](GLFWwindow * window, int width, int height) noexcept {
+      window.get(), [](GLFWwindow* window, int width, int height) noexcept {
         if (
           auto* ctx = (window_context::impl*)glfw::glfw_window::get_user_data(
             window, wd_key)) {
@@ -1304,7 +1291,7 @@ namespace yave::vulkan {
     // create surface
     impl->surface = createWindowSurface(window.get(), m_pimpl->instance.get());
 
-    Info(g_vulkan_logger, "Created new surface");
+    Info(g_logger, "Created new surface");
 
     // create swapchain
     impl->swapchain = createSwapchain(
@@ -1319,7 +1306,7 @@ namespace yave::vulkan {
       &impl->swapchain_extent,       // out
       &impl->swapchain_image_count); // out
 
-    Info(g_vulkan_logger, "Created new swapchain");
+    Info(g_logger, "Created new swapchain");
 
     // get swapchain images
     impl->swapchain_images =
@@ -1332,13 +1319,13 @@ namespace yave::vulkan {
     assert(impl->swapchain_images.size() == impl->swapchain_image_views.size());
     assert(impl->swapchain_images.size() == impl->swapchain_image_count);
 
-    Info(g_vulkan_logger, "Created swapchain image views");
+    Info(g_logger, "Created swapchain image views");
 
     // create render pass
     impl->render_pass =
       createRenderPass(impl->swapchain_format, m_pimpl->device.get());
 
-    Info(g_vulkan_logger, "Created render pass");
+    Info(g_logger, "Created render pass");
 
     // create frame buffers
     impl->frame_buffers = createFrameBuffers(
@@ -1347,13 +1334,13 @@ namespace yave::vulkan {
       impl->swapchain_extent,
       m_pimpl->device.get());
 
-    Info(g_vulkan_logger, "Created frame buffers");
+    Info(g_logger, "Created frame buffers");
 
     // create command pool
     impl->command_pool =
       createCommandPool(m_pimpl->graphicsQueueIndex, m_pimpl->device.get());
 
-    Info(g_vulkan_logger, "Created command pool");
+    Info(g_logger, "Created command pool");
 
     // create command buffers
     impl->command_buffers = createCommandBuffers(
@@ -1364,7 +1351,7 @@ namespace yave::vulkan {
 
     assert(impl->command_buffers.size() == impl->frame_buffers.size());
 
-    Info(g_vulkan_logger, "Created command buffers");
+    Info(g_logger, "Created command buffers");
 
     /* semaphores */
 
@@ -1373,7 +1360,7 @@ namespace yave::vulkan {
     impl->complete_semaphores =
       createSemaphores(impl->swapchain_image_count, m_pimpl->device.get());
 
-    Info(g_vulkan_logger, "Created semaphores");
+    Info(g_logger, "Created semaphores");
 
     /* fences */
 
@@ -1386,12 +1373,12 @@ namespace yave::vulkan {
     impl->acquire_fence =
       createFence(m_pimpl->device.get(), vk::FenceCreateFlags());
 
-    Info(g_vulkan_logger, "Created fences");
+    Info(g_logger, "Created fences");
 
     window_context ctx;
     ctx.m_pimpl = std::move(impl);
 
-    Info(g_vulkan_logger, "Initialized new window context");
+    Info(g_logger, "Initialized new window context");
 
     return ctx;
   }
@@ -1639,8 +1626,7 @@ namespace yave::vulkan {
     return buffer;
   }
 
-  void window_context::end_record(
-    const vk::CommandBuffer& buffer) const
+  void window_context::end_record(const vk::CommandBuffer& buffer) const
   {
     // end render pass
     buffer.endRenderPass();
@@ -1653,8 +1639,7 @@ namespace yave::vulkan {
     // m_pimpl will be initialized by vulkan_context.
   }
 
-  window_context::window_context(
-    window_context&& other) noexcept
+  window_context::window_context(window_context&& other) noexcept
     : m_pimpl {std::move(other.m_pimpl)}
   {
   }
@@ -1667,7 +1652,7 @@ namespace yave::vulkan {
       return;
 
     m_pimpl->context->device().waitIdle();
-    Info(g_vulkan_logger, "Destroying window context");
+    Info(g_logger, "Destroying window context");
   }
 
   auto window_context::window() const -> GLFWwindow*
@@ -1688,8 +1673,7 @@ namespace yave::vulkan {
     return m_pimpl->swapchain.get();
   }
 
-  auto window_context::swapchain_format() const
-    -> vk::SurfaceFormatKHR
+  auto window_context::swapchain_format() const -> vk::SurfaceFormatKHR
   {
     assert(m_pimpl->swapchain_format.format != vk::Format::eUndefined);
     return m_pimpl->swapchain_format;
@@ -1700,8 +1684,7 @@ namespace yave::vulkan {
     return m_pimpl->swapchain_extent;
   }
 
-  auto window_context::swapchain_images() const
-    -> std::vector<vk::Image>
+  auto window_context::swapchain_images() const -> std::vector<vk::Image>
   {
     assert(!m_pimpl->swapchain_images.empty());
     return m_pimpl->swapchain_images;
@@ -1718,8 +1701,7 @@ namespace yave::vulkan {
     return ret;
   }
 
-  auto window_context::frame_buffers() const
-    -> std::vector<vk::Framebuffer>
+  auto window_context::frame_buffers() const -> std::vector<vk::Framebuffer>
   {
     assert(!m_pimpl->frame_buffers.empty());
     std::vector<vk::Framebuffer> ret;
@@ -1741,8 +1723,7 @@ namespace yave::vulkan {
     return m_pimpl->command_pool.get();
   }
 
-  auto window_context::command_buffers() const
-    -> std::vector<vk::CommandBuffer>
+  auto window_context::command_buffers() const -> std::vector<vk::CommandBuffer>
   {
     assert(!m_pimpl->command_buffers.empty());
     assert(m_pimpl->command_buffers.size() == m_pimpl->swapchain_image_count);
@@ -1765,11 +1746,7 @@ namespace yave::vulkan {
     return glfwWindowShouldClose(m_pimpl->window);
   }
 
-  void window_context::set_clear_color(
-    float r,
-    float g,
-    float b,
-    float a)
+  void window_context::set_clear_color(float r, float g, float b, float a)
   {
     m_pimpl->clearColor = std::array {r, g, b, a};
   }

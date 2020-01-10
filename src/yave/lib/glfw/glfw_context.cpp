@@ -8,21 +8,7 @@
 
 #include <map>
 
-namespace {
-
-  // logger
-  std::shared_ptr<spdlog::logger> g_glfw_logger;
-
-  /// init
-  void init_glfw_logger()
-  {
-    [[maybe_unused]] static auto init_logger = [] {
-      g_glfw_logger = yave::add_logger("glfw");
-      return 1;
-    }();
-  }
-
-} // namespace
+YAVE_DECL_G_LOGGER(glfw)
 
 namespace yave::glfw {
 
@@ -55,12 +41,11 @@ namespace yave::glfw {
     auto r = m_map.emplace(key, data);
 
     if (!r.second) {
-      Error(
-        g_glfw_logger, "Failed to set window data: key {} already exists", key);
+      Error(g_logger, "Failed to set window data: key {} already exists", key);
       return false;
     }
 
-    Info(g_glfw_logger, "Set new window data: key={}", key);
+    Info(g_logger, "Set new window data: key={}", key);
 
     return true;
   }
@@ -89,7 +74,7 @@ namespace yave::glfw {
     // should delete window data in destructor.
     glfwSetWindowUserPointer(m_window, new glfw_window_data());
 
-    Info(g_glfw_logger, "Created user data for window");
+    Info(g_logger, "Created user data for window");
   }
 
   glfw_window::glfw_window(glfw_window&& other) noexcept
@@ -121,7 +106,7 @@ namespace yave::glfw {
   bool glfw_window::add_user_data(
     GLFWwindow* window,
     const std::string& key,
-    void* data) noexcept 
+    void* data) noexcept
   {
     if (!window)
       return false;
@@ -175,24 +160,22 @@ namespace yave::glfw {
 
   glfw_context::glfw_context()
   {
-    init_glfw_logger();
+    init_logger();
 
     glfwSetErrorCallback([](int error, const char* msg) {
-      using namespace yave;
-      (void)error;
-      Error(g_glfw_logger, "{}", msg);
+      Error(g_logger, "{}: {}", error, msg);
     });
 
     if (!glfwInit())
       throw std::runtime_error("Failed to initialize GLFW");
 
-    Info(g_glfw_logger, "Initialized GLFW");
+    Info(g_logger, "Initialized GLFW");
   }
 
   glfw_context::~glfw_context() noexcept
   {
     glfwTerminate();
-    Info(g_glfw_logger, "Terminated GLFW");
+    Info(g_logger, "Terminated GLFW");
   }
 
   auto glfw_context::create_window(
@@ -206,7 +189,7 @@ namespace yave::glfw {
     auto window =
       glfw_window(glfwCreateWindow(width, height, title, nullptr, nullptr));
 
-    Info(g_glfw_logger, "Created new window: {}({}*{})", title, width, height);
+    Info(g_logger, "Created new window: {}({}*{})", title, width, height);
 
     return window;
   }

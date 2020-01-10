@@ -29,8 +29,7 @@
 #define YAVE_TOSTR_(id) #id
 #define YAVE_TOSTR(id) YAVE_TOSTR_(id)
 
-
-YAVE_DECL_G_LOGGER(imgui_context)
+YAVE_DECL_G_LOGGER(imgui)
 
 namespace {
 
