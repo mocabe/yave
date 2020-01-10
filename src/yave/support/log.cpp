@@ -34,7 +34,12 @@ namespace yave {
 
   std::shared_ptr<spdlog::logger> add_logger(const char* name)
   {
-    Info(g_logger, "Added new logger {}", name);
+    if (auto logger = spdlog::get(name)) {
+      Info(g_logger, "Found logger: {}", name);
+      return logger;
+    }
+
+    Info(g_logger, "Added new logger: {}", name);
     return spdlog::stdout_logger_mt(name);
   }
 
