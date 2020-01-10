@@ -23,10 +23,11 @@
 
 namespace yave {
 
-  /// Default logger named "yave".
+  /// Get default logger named "yave".
   [[nodiscard]] std::shared_ptr<spdlog::logger> get_default_logger();
 
   /// Add new logger.
+  /// If a logger with the name already existed, return it.
   [[nodiscard]] std::shared_ptr<spdlog::logger> add_logger(const char* name);
 
   /// Get logger from name.
