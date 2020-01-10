@@ -888,14 +888,23 @@ namespace yave::imgui {
       IMGUI_CHECKVERSION();
       ImGui::StyleColorsDark();
 
-      /* setup GLFW input binding */
-      ImGui_ImplGlfw_InitForVulkan(m_pimpl->glfwWindow.get(), true);
+      ImGuiIO& io = ImGui::GetIO();
+
+      /* Enable docking */
+      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+      /* Enable viewport */
+      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
       /* setup vulkan binding */
-      ImGuiIO& io            = ImGui::GetIO();
       io.BackendRendererName = "yave::imgui_context";
 
       Info(g_logger, "Initialized ImGui context");
+    }
+
+    /* setup GLFW input binding */
+    {
+      ImGui_ImplGlfw_InitForVulkan(m_pimpl->glfwWindow.get(), true);
     }
 
     /* register fonts */
