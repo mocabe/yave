@@ -734,16 +734,27 @@ namespace {
   {
     using namespace yave;
 
-    if (
-      capabilities.supportedCompositeAlpha
-      & vk::CompositeAlphaFlagBitsKHR::eOpaque)
+    auto supported = capabilities.supportedCompositeAlpha;
+
+    auto flag = [&] {
+      if (supported & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied)
+        return vk::CompositeAlphaFlagBitsKHR::ePreMultiplied;
+
+      if (supported & vk::CompositeAlphaFlagBitsKHR::ePostMultiplied)
+        return vk::CompositeAlphaFlagBitsKHR::ePostMultiplied;
+
+      if (supported & vk::CompositeAlphaFlagBitsKHR::eInherit)
+        return vk::CompositeAlphaFlagBitsKHR::eInherit;
+
+      if (supported & vk::CompositeAlphaFlagBitsKHR::eOpaque)
       return vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
-    Warning(
-      g_logger,
-      "vk::CompositeAlphaFlagBitsKHR::eOpaque is not supported. Use eInherit");
+      throw std::runtime_error("No supported composite alpha option");
+    }();
 
-    return vk::CompositeAlphaFlagBitsKHR::eInherit;
+    Info(g_logger, "Swapchain composite alpha: {}", vk::to_string(flag));
+
+    return flag;
   }
 
   auto createSwapchain(
