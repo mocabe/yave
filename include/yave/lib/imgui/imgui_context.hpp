@@ -24,7 +24,12 @@ namespace yave::imgui {
 
   public:
     /// Ctor
-    imgui_context(flags init_flags = flags::enable_validation);
+    imgui_context(
+      uint32_t width,
+      uint32_t height,
+      const std::string& window_name,
+      flags init_flags = flags::enable_validation);
+
     /// Dtor
     ~imgui_context();
 
@@ -50,6 +55,7 @@ namespace yave::imgui {
   public:
     [[nodiscard]] auto glfw_context() const   -> const glfw::glfw_context&;
     [[nodiscard]] auto vulkan_context() const -> const vulkan::vulkan_context&;
+    /// Main window context
     [[nodiscard]] auto window_context() const -> const vulkan::window_context&;
     // clang-format on
 
@@ -60,7 +66,6 @@ namespace yave::imgui {
     [[nodiscard]] auto descriptor_set() const -> vk::DescriptorSet;
     [[nodiscard]] auto pipeline_cache() const -> vk::PipelineCache;
     [[nodiscard]] auto pipeline_layout() const -> vk::PipelineLayout;
-    [[nodiscard]] auto pipeline() const -> vk::Pipeline;
     [[nodiscard]] auto font_image_memory() const -> vk::DeviceMemory;
     [[nodiscard]] auto font_image() const -> vk::Image;
     [[nodiscard]] auto font_image_view() const -> vk::ImageView;

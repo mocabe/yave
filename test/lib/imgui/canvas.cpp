@@ -103,7 +103,7 @@ void image_canvas(imgui_context& ctx)
 
 int main()
 {
-  imgui_context imgui {};
+  imgui_context imgui {1280, 720, "imgui"};
   while (!imgui.window_context().should_close()) {
     imgui.begin();
     {

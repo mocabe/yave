@@ -33,6 +33,206 @@ YAVE_DECL_G_LOGGER(imgui)
 
 namespace {
 
+  /// TextureID conversion
+  auto toImTextureId(const vk::DescriptorSet* dsc) -> ImTextureID
+  {
+    return (ImTextureID)dsc;
+  }
+
+  /// TextureID conversion
+  auto fromImTextureId(const ImTextureID& tex) -> const vk::DescriptorSet*
+  {
+    return (const vk::DescriptorSet*)tex;
+  }
+
+  // fwd
+  auto findMemoryType(
+    uint32_t typeFilter,
+    const vk::MemoryPropertyFlags& properties,
+    const vk::PhysicalDevice& physicalDevice) -> uint32_t;
+  // fwd
+  auto createImGuiPipeline(
+    const vk::Extent2D& swapchainExtent,
+    const vk::RenderPass& renderPass,
+    const vk::PipelineCache& pipelineCache,
+    const vk::PipelineLayout& pipelineLayout,
+    const vk::Device& device) -> vk::UniquePipeline;
+
+} // namespace
+
+namespace yave::imgui {
+
+  /// for vertex/index buffers
+  class ImGuiRenderBuffer
+  {
+  public:
+    ImGuiRenderBuffer(const vk::BufferUsageFlags& usage)
+      : m_usage {usage}
+    {
+      // Leave all resources uninitialized. Use reisze() before using.
+    }
+
+    auto size() const -> vk::DeviceSize
+    {
+      return m_size;
+    }
+
+    auto capacity() const -> vk::DeviceSize
+    {
+      return m_capacity;
+    }
+
+    auto buffer() const -> vk::Buffer
+    {
+      return m_buffer.get();
+    }
+
+    auto memory() const -> vk::DeviceMemory
+    {
+      return m_memory.get();
+    }
+
+    void resize(
+      const vk::DeviceSize& size,
+      const vk::PhysicalDevice& physicalDevice,
+      const vk::Device& device);
+
+  private:
+    vk::BufferUsageFlags m_usage; // init by ctor
+    vk::DeviceSize m_size           = 0;
+    vk::DeviceSize m_capacity       = 0;
+    vk::UniqueBuffer m_buffer       = vk::UniqueBuffer();
+    vk::UniqueDeviceMemory m_memory = vk::UniqueDeviceMemory();
+  };
+
+  void ImGuiRenderBuffer::resize(
+    const vk::DeviceSize& newSize,
+    const vk::PhysicalDevice& physicalDevice,
+    const vk::Device& device)
+  {
+    // create new buffer
+    vk::BufferCreateInfo info;
+    info.size        = newSize;
+    info.usage       = m_usage;
+    info.sharingMode = vk::SharingMode::eExclusive;
+
+    // Vulkan does not allow zero sized buffer.
+    // Just use dymmy size here.
+    if (info.size == 0)
+      info.size = 1;
+
+    // create new buffer
+    auto buff   = device.createBufferUnique(info);
+    auto memReq = device.getBufferMemoryRequirements(buff.get());
+
+    // Avoid allocation when new size is smaller than current capacity unless
+    // required size is very small.
+    if (newSize <= m_capacity && newSize > m_capacity / 16) {
+      // Bind existing memory to new buffer.
+      device.bindBufferMemory(buff.get(), m_memory.get(), 0);
+      // Update
+      m_buffer = std::move(buff);
+      m_size   = newSize;
+      return;
+    }
+
+    // Find new buffer capacity
+    auto newCapacity = std::max(m_capacity, vk::DeviceSize(1));
+
+    while (memReq.size > newCapacity)
+      newCapacity *= 2;
+
+    while (memReq.size < newCapacity / 2)
+      newCapacity /= 2;
+
+    assert(newCapacity >= memReq.size);
+
+    vk::MemoryAllocateInfo allocInfo;
+    allocInfo.allocationSize  = newCapacity;
+    allocInfo.memoryTypeIndex = findMemoryType(
+      memReq.memoryTypeBits,
+      vk::MemoryPropertyFlagBits::eHostVisible,
+      physicalDevice);
+
+    // allocate new device memory.
+    auto mem = device.allocateMemoryUnique(allocInfo);
+
+    // Bind new memory to new buffer.
+    device.bindBufferMemory(buff.get(), mem.get(), 0);
+
+    // Update
+    m_size     = newSize;
+    m_capacity = newCapacity;
+    m_buffer   = std::move(buff);
+    m_memory   = std::move(mem);
+  }
+
+  // Pipeline data for each viewport
+  struct ImGuiViewportData
+  {
+    ImGuiViewportData(
+      uint32_t width,
+      uint32_t height,
+      const char* name,
+      const vk::PipelineCache& pipelineCache,
+      const vk::PipelineLayout& pipelineLayout,
+      glfw::glfw_context& glfwCtx,
+      vulkan::vulkan_context& vulkanCtx)
+      : glfwWindow {glfwCtx.create_window(width, height, name)}
+      , windowCtx {vulkanCtx.create_window_context(glfwWindow)}
+    {
+      pipeline = createImGuiPipeline(
+        windowCtx.swapchain_extent(),
+        windowCtx.render_pass(),
+        pipelineCache,
+        pipelineLayout,
+        vulkanCtx.device());
+    }
+
+  public: /* viewport context */
+    glfw::glfw_window glfwWindow;
+    vulkan::window_context windowCtx;
+
+  public: /* rendering pipeline */
+    vk::UniquePipeline pipeline;
+
+  public: /* buffers */
+    std::vector<ImGuiRenderBuffer> vertexBuffers;
+    std::vector<ImGuiRenderBuffer> indexBuffers;
+  };
+
+  class ImGuiTextureDataHolder
+  {
+  public:
+    ImGuiTextureDataHolder(
+      vk::UniqueImage img,
+      vk::UniqueImageView viw,
+      vk::UniqueDeviceMemory mem,
+      vk::UniqueDescriptorSet dsc)
+      : image {std::move(img)}
+      , view {std::move(viw)}
+      , memory {std::move(mem)}
+      , descriptor {std::move(dsc)}
+    {
+      rawDsc = descriptor.get();
+    }
+
+    vk::UniqueImage image;
+    vk::UniqueImageView view;
+    vk::UniqueDeviceMemory memory;
+    vk::UniqueDescriptorSet descriptor;
+    vk::DescriptorSet rawDsc; // for texture_type
+
+    ImTextureID get_texture()
+    {
+      return toImTextureId(&rawDsc);
+    }
+  };
+
+} // namespace yave::imgui
+
+namespace {
+
   auto createImGuiPipelineLayout(
     const vk::DescriptorSetLayout& setLayout,
     const vk::Device& device) -> vk::UniquePipelineLayout
@@ -536,16 +736,6 @@ namespace {
     }
   }
 
-  auto toImTextureId(const vk::DescriptorSet* dsc) -> ImTextureID
-  {
-    return (ImTextureID)dsc;
-  }
-
-  auto fromImTextureId(const ImTextureID& tex) -> const vk::DescriptorSet*
-  {
-    return (const vk::DescriptorSet*)tex;
-  }
-
   void initImGuiPipeline(
     const ImDrawData* drawData,
     const vk::PipelineLayout& pipelineLayout,
@@ -703,130 +893,114 @@ namespace {
       vtxOffset += cmdList->VtxBuffer.Size;
     }
   }
+
+  void renderImGuiViewport(
+    ImGuiViewport* viewport,
+    yave::imgui::ImGuiViewportData* viewportData,
+    const std::array<float, 4>& clearColor,
+    const vk::PipelineLayout& pipelineLayout,
+    const vk::DescriptorSet& descriptorSet,
+    yave::vulkan::vulkan_context& vulkanCtx)
+  {
+    auto& windowCtx     = viewportData->windowCtx;
+    auto& vertexBuffers = viewportData->vertexBuffers;
+    auto& indexBuffers  = viewportData->indexBuffers;
+    auto& pipeline      = viewportData->pipeline;
+
+    const auto* drawData = viewport->DrawData;
+    assert(drawData->Valid);
+
+    windowCtx.set_clear_color(
+      clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+
+    /* Render with Vulkan */
+    {
+      // begin new frame (use RAII recorder)
+      auto recorder      = windowCtx.new_recorder();
+      auto commandBuffer = recorder.command_buffer();
+
+      // device
+      auto physicalDevice = vulkanCtx.physical_device();
+      auto device         = vulkanCtx.device();
+
+      /* Resize buffers vector to match current in-flight frames */
+      {
+        auto frameCount = windowCtx.frame_index_count();
+        // vertec buffer
+        if (vertexBuffers.size() > frameCount) {
+          for (size_t i = 0; i < vertexBuffers.size() - frameCount; ++i)
+            vertexBuffers.pop_back();
+        } else {
+          for (size_t i = 0; i < frameCount - vertexBuffers.size(); ++i)
+            vertexBuffers.emplace_back(vk::BufferUsageFlagBits::eVertexBuffer);
+        }
+        // index buffer
+        if (indexBuffers.size() > frameCount) {
+          for (size_t i = 0; i < indexBuffers.size() - frameCount; ++i)
+            indexBuffers.pop_back();
+        } else {
+          for (size_t i = 0; i < frameCount - indexBuffers.size(); ++i)
+            indexBuffers.emplace_back(vk::BufferUsageFlagBits::eIndexBuffer);
+        }
+      }
+
+      auto& vertexBuffer = vertexBuffers[windowCtx.frame_index()];
+      auto& indexBuffer  = indexBuffers[windowCtx.frame_index()];
+
+      /* Resize vertex/index buffers */
+      {
+        {
+          auto newSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
+          vertexBuffer.resize(newSize, physicalDevice, device);
+          assert(vertexBuffer.size() == newSize);
+        }
+        {
+          auto newSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+          indexBuffer.resize(newSize, physicalDevice, device);
+          assert(indexBuffer.size() == newSize);
+        }
+      }
+
+      /* Upload vertex/index data to GPU */
+      uploadImGuiDrawData(vertexBuffer, indexBuffer, drawData, device);
+
+      /* Initialize pipeline */
+      initImGuiPipeline(
+        drawData,
+        pipelineLayout,
+        pipeline.get(),
+        vertexBuffer.buffer(),
+        indexBuffer.buffer(),
+        windowCtx.swapchain_extent(),
+        commandBuffer);
+
+      /* Record draw commands */
+      renderImGuiDrawData(
+        drawData,
+        descriptorSet,
+        pipelineLayout,
+        pipeline.get(),
+        vertexBuffer.buffer(),
+        indexBuffer.buffer(),
+        windowCtx.swapchain_extent(),
+        commandBuffer);
+    }
+  }
+
 } // namespace
 
 namespace yave::imgui {
-
-  /// for vertex/index buffers
-  class ImGuiRenderBuffer
-  {
-  public:
-    ImGuiRenderBuffer(const vk::BufferUsageFlags& usage)
-      : m_usage {usage}
-    {
-      // Leave all resources uninitialized. Use reisze() before using.
-    }
-
-    auto size() const -> vk::DeviceSize
-    {
-      return m_size;
-    }
-
-    auto capacity() const -> vk::DeviceSize
-    {
-      return m_capacity;
-    }
-
-    auto buffer() const -> vk::Buffer
-    {
-      return m_buffer.get();
-    }
-
-    auto memory() const -> vk::DeviceMemory
-    {
-      return m_memory.get();
-    }
-
-    void resize(
-      const vk::DeviceSize& size,
-      const vk::PhysicalDevice& physicalDevice,
-      const vk::Device& device);
-
-  private:
-    vk::BufferUsageFlags m_usage; // init by ctor
-    vk::DeviceSize m_size           = 0;
-    vk::DeviceSize m_capacity       = 0;
-    vk::UniqueBuffer m_buffer       = vk::UniqueBuffer();
-    vk::UniqueDeviceMemory m_memory = vk::UniqueDeviceMemory();
-  };
-
-  void ImGuiRenderBuffer::resize(
-    const vk::DeviceSize& newSize,
-    const vk::PhysicalDevice& physicalDevice,
-    const vk::Device& device)
-  {
-    // create new buffer
-    vk::BufferCreateInfo info;
-    info.size        = newSize;
-    info.usage       = m_usage;
-    info.sharingMode = vk::SharingMode::eExclusive;
-
-    // Vulkan does not allow zero sized buffer.
-    // Just use dymmy size here.
-    if (info.size == 0)
-      info.size = 1;
-
-    // create new buffer
-    auto buff   = device.createBufferUnique(info);
-    auto memReq = device.getBufferMemoryRequirements(buff.get());
-
-    // Avoid allocation when new size is smaller than current capacity unless
-    // required size is very small.
-    if (newSize <= m_capacity && newSize > m_capacity / 16) {
-      // Bind existing memory to new buffer.
-      device.bindBufferMemory(buff.get(), m_memory.get(), 0);
-      // Update
-      m_buffer = std::move(buff);
-      m_size   = newSize;
-      return;
-    }
-
-    // Find new buffer capacity
-    auto newCapacity = std::max(m_capacity, vk::DeviceSize(1));
-
-    while (memReq.size > newCapacity)
-      newCapacity *= 2;
-
-    while (memReq.size < newCapacity / 2)
-      newCapacity /= 2;
-
-    assert(newCapacity >= memReq.size);
-
-    vk::MemoryAllocateInfo allocInfo;
-    allocInfo.allocationSize  = newCapacity;
-    allocInfo.memoryTypeIndex = findMemoryType(
-      memReq.memoryTypeBits,
-      vk::MemoryPropertyFlagBits::eHostVisible,
-      physicalDevice);
-
-    // allocate new device memory.
-    auto mem = device.allocateMemoryUnique(allocInfo);
-
-    // Bind new memory to new buffer.
-    device.bindBufferMemory(buff.get(), mem.get(), 0);
-
-    // Update
-    m_size     = newSize;
-    m_capacity = newCapacity;
-    m_buffer   = std::move(buff);
-    m_memory   = std::move(mem);
-  }
-
-  // fwd
-  class ImGuiTextureDataHolder;
 
   class imgui_context::impl
   {
     // clang-format off
   public:
-    impl(flags flags, uint32_t width, uint32_t height, const char* windowName);
+    impl(flags flags);
     ~impl() noexcept;
 
   public: /* managed by impl */
     glfw::glfw_context     glfwCtx;
     vulkan::vulkan_context vulkanCtx;
-    glfw::glfw_window      glfwWindow;
-    vulkan::window_context windowCtx;
     ImGuiContext*          imCtx;
 
   public:
@@ -836,36 +1010,31 @@ namespace yave::imgui {
     vk::UniqueDescriptorSet       descriptorSet;
     vk::UniquePipelineCache       pipelineCache;
     vk::UniquePipelineLayout      pipelineLayout;
-    vk::UniquePipeline            pipeline;
     vk::UniqueDeviceMemory        fontImageMemory;
     vk::UniqueImage               fontImage;
     vk::UniqueImageView           fontImageView;
 
   public:
-    std::vector<class ImGuiRenderBuffer> vertexBuffers;
-    std::vector<class ImGuiRenderBuffer> indexBuffers;
-
-    std::chrono::high_resolution_clock::time_point lastTime;
+    /// List of viewports
+    std::vector<ImGuiViewportData> viewports;
+    /// Pointer to first viewport in viewports
+    ImGuiViewportData* mainViewport;
 
   public:
+    /// textures
     std::map<std::string, std::unique_ptr<ImGuiTextureDataHolder>> textures;
   
   public:
+    std::chrono::high_resolution_clock::time_point lastTime;
     uint32_t fps;
     std::array<float, 4> clearColor;
 
     // clang-format on
   };
 
-  imgui_context::impl::impl(
-    flags flags,
-    uint32_t widt,
-    uint32_t height,
-    const char* windowName)
+  imgui_context::impl::impl(flags flags)
     : glfwCtx {}
     , vulkanCtx {glfwCtx, !!(flags & flags::enable_validation)}
-    , glfwWindow {glfwCtx.create_window(widt, height, windowName)}
-    , windowCtx {vulkanCtx.create_window_context(glfwWindow)}
     , imCtx {ImGui::CreateContext()}
   {
   }
@@ -875,13 +1044,17 @@ namespace yave::imgui {
     ImGui::DestroyContext(imCtx);
   }
 
-  imgui_context::imgui_context(flags init_flags)
+  imgui_context::imgui_context(
+    uint32_t width,
+    uint32_t height,
+    const std::string& windowName,
+    flags init_flags)
   {
     using namespace yave;
     init_logger();
 
     // create context
-    m_pimpl = std::make_unique<impl>(init_flags, 1280, 720, "imgui_context");
+    m_pimpl = std::make_unique<impl>(init_flags);
 
     /* init ImGui */
     {
@@ -900,11 +1073,6 @@ namespace yave::imgui {
       io.BackendRendererName = "yave::imgui_context";
 
       Info(g_logger, "Initialized ImGui context");
-    }
-
-    /* setup GLFW input binding */
-    {
-      ImGui_ImplGlfw_InitForVulkan(m_pimpl->glfwWindow.get(), true);
     }
 
     /* register fonts */
@@ -937,25 +1105,36 @@ namespace yave::imgui {
       Info(g_logger, "Created ImGui descriptor set");
     }
 
+    /* prepare pipeline */
     {
       m_pimpl->pipelineCache = createPipelineCache(m_pimpl->vulkanCtx.device());
       m_pimpl->pipelineLayout = createImGuiPipelineLayout(
         m_pimpl->descriptorSetLayout.get(), m_pimpl->vulkanCtx.device());
-      m_pimpl->pipeline = createImGuiPipeline(
-        m_pimpl->windowCtx.swapchain_extent(),
-        m_pimpl->windowCtx.render_pass(),
+    }
+
+    /* create main viewport */
+    {
+      m_pimpl->mainViewport = &m_pimpl->viewports.emplace_back(
+        width,
+        height,
+        windowName.c_str(),
         m_pimpl->pipelineCache.get(),
         m_pimpl->pipelineLayout.get(),
-        m_pimpl->vulkanCtx.device());
+        m_pimpl->glfwCtx,
+        m_pimpl->vulkanCtx);
+    }
 
-      Info(g_logger, "Created ImGui pipeline");
+    /* setup GLFW input binding */
+    {
+      ImGui_ImplGlfw_InitForVulkan(
+        m_pimpl->mainViewport->glfwWindow.get(), true);
     }
 
     /* upload font texture */
     {
-      auto cmd = m_pimpl->windowCtx.single_time_command();
+      auto cmd = m_pimpl->mainViewport->windowCtx.single_time_command();
       auto [imageMemory, image, imageView] = createImGuiFontTexture(
-        m_pimpl->windowCtx,
+        m_pimpl->mainViewport->windowCtx,
         m_pimpl->vulkanCtx.physical_device(),
         m_pimpl->vulkanCtx.device());
       m_pimpl->fontImageMemory = std::move(imageMemory);
@@ -999,7 +1178,7 @@ namespace yave::imgui {
     set_clear_color(0.45f, 0.55f, 0.60f, 1.f);
 
     // default fps
-    set_fps(m_pimpl->glfwWindow.refresh_rate());
+    set_fps(m_pimpl->mainViewport->glfwWindow.refresh_rate());
   }
 
   imgui_context::~imgui_context()
@@ -1036,97 +1215,17 @@ namespace yave::imgui {
 
   void imgui_context::render()
   {
+    auto& platormIO = ImGui::GetPlatformIO();
+
     /* render Vulkan frame */
 
-    // ImGui draw data
-    const auto* drawData = ImGui::GetDrawData();
-
-    assert(drawData->Valid);
-
-    m_pimpl->windowCtx.set_clear_color(
-      m_pimpl->clearColor[0],
-      m_pimpl->clearColor[1],
-      m_pimpl->clearColor[2],
-      m_pimpl->clearColor[3]);
-
-    /* Render with Vulkan */
-    {
-      // begin new frame (use RAII recorder)
-      auto recorder      = m_pimpl->windowCtx.new_recorder();
-      auto commandBuffer = recorder.command_buffer();
-
-      // device
-      auto physicalDevice = m_pimpl->vulkanCtx.physical_device();
-      auto device         = m_pimpl->vulkanCtx.device();
-
-      /* Resize buffers vector to match current in-flight frames */
-      {
-        auto frameCount = m_pimpl->windowCtx.frame_index_count();
-        // vertec buffer
-        if (m_pimpl->vertexBuffers.size() > frameCount) {
-          for (size_t i = 0; i < m_pimpl->vertexBuffers.size() - frameCount;
-               ++i)
-            m_pimpl->vertexBuffers.pop_back();
-        } else {
-          for (size_t i = 0; i < frameCount - m_pimpl->vertexBuffers.size();
-               ++i)
-            m_pimpl->vertexBuffers.emplace_back(
-              vk::BufferUsageFlagBits::eVertexBuffer);
-        }
-        // index buffer
-        if (m_pimpl->indexBuffers.size() > frameCount) {
-          for (size_t i = 0; i < m_pimpl->indexBuffers.size() - frameCount; ++i)
-            m_pimpl->indexBuffers.pop_back();
-        } else {
-          for (size_t i = 0; i < frameCount - m_pimpl->indexBuffers.size(); ++i)
-            m_pimpl->indexBuffers.emplace_back(
-              vk::BufferUsageFlagBits::eIndexBuffer);
-        }
-      }
-
-      auto& vertexBuffer =
-        m_pimpl->vertexBuffers[m_pimpl->windowCtx.frame_index()];
-      auto& indexBuffer =
-        m_pimpl->indexBuffers[m_pimpl->windowCtx.frame_index()];
-
-      /* Resize vertex/index buffers */
-      {
-        {
-          auto newSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
-          vertexBuffer.resize(newSize, physicalDevice, device);
-          assert(vertexBuffer.size() == newSize);
-        }
-        {
-          auto newSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
-          indexBuffer.resize(newSize, physicalDevice, device);
-          assert(indexBuffer.size() == newSize);
-        }
-      }
-
-      /* Upload vertex/index data to GPU */
-      uploadImGuiDrawData(vertexBuffer, indexBuffer, drawData, device);
-
-      /* Initialize pipeline */
-      initImGuiPipeline(
-        drawData,
-        m_pimpl->pipelineLayout.get(),
-        m_pimpl->pipeline.get(),
-        vertexBuffer.buffer(),
-        indexBuffer.buffer(),
-        m_pimpl->windowCtx.swapchain_extent(),
-        commandBuffer);
-
-      /* Record draw commands */
-      renderImGuiDrawData(
-        drawData,
-        m_pimpl->descriptorSet.get(),
-        m_pimpl->pipelineLayout.get(),
-        m_pimpl->pipeline.get(),
-        vertexBuffer.buffer(),
-        indexBuffer.buffer(),
-        m_pimpl->windowCtx.swapchain_extent(),
-        commandBuffer);
-    }
+    renderImGuiViewport(
+      platormIO.MainViewport,
+      m_pimpl->mainViewport,
+      m_pimpl->clearColor,
+      m_pimpl->pipelineLayout.get(),
+      m_pimpl->descriptorSet.get(),
+      m_pimpl->vulkanCtx);
 
     /* frame rate limiter */
 
@@ -1161,7 +1260,7 @@ namespace yave::imgui {
 
   auto imgui_context::window_context() const -> const vulkan::window_context&
   {
-    return m_pimpl->windowCtx;
+    return m_pimpl->mainViewport->windowCtx;
   }
 
   auto imgui_context::font_sampler() const -> vk::Sampler
@@ -1194,11 +1293,6 @@ namespace yave::imgui {
     return m_pimpl->pipelineLayout.get();
   }
 
-  auto imgui_context::pipeline() const -> vk::Pipeline
-  {
-    return m_pimpl->pipeline.get();
-  }
-
   auto imgui_context::font_image_memory() const -> vk::DeviceMemory
   {
     return m_pimpl->fontImageMemory.get();
@@ -1213,34 +1307,6 @@ namespace yave::imgui {
   {
     return m_pimpl->fontImageView.get();
   }
-
-  class ImGuiTextureDataHolder
-  {
-  public:
-    ImGuiTextureDataHolder(
-      vk::UniqueImage img,
-      vk::UniqueImageView viw,
-      vk::UniqueDeviceMemory mem,
-      vk::UniqueDescriptorSet dsc)
-      : image {std::move(img)}
-      , view {std::move(viw)}
-      , memory {std::move(mem)}
-      , descriptor {std::move(dsc)}
-    {
-      rawDsc = descriptor.get();
-    }
-
-    vk::UniqueImage image;
-    vk::UniqueImageView view;
-    vk::UniqueDeviceMemory memory;
-    vk::UniqueDescriptorSet descriptor;
-    vk::DescriptorSet rawDsc; // for texture_type
-
-    ImTextureID get_texture()
-    {
-      return toImTextureId(&rawDsc);
-    }
-  };
 
   auto imgui_context::add_texture(
     const std::string& name,
@@ -1258,7 +1324,7 @@ namespace yave::imgui {
 
     auto device         = m_pimpl->vulkanCtx.device();
     auto physicalDevice = m_pimpl->vulkanCtx.physical_device();
-    auto commandPool    = m_pimpl->windowCtx.command_pool();
+    auto commandPool    = m_pimpl->mainViewport->windowCtx.command_pool();
     auto queue          = m_pimpl->vulkanCtx.graphics_queue();
 
     auto [image, view, memory] = vulkan::upload_image(

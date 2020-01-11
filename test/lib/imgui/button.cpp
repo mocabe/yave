@@ -85,7 +85,7 @@ void test_invisible_button_ex()
 
 int main()
 {
-  imgui_context imgui {};
+  imgui_context imgui {100, 100, "imgui"};
   while (!imgui.window_context().should_close()) {
     imgui.begin();
     {

@@ -10,7 +10,7 @@ using namespace yave::imgui;
 
 int main()
 {
-  imgui_context imgui(true);
+  imgui_context imgui {1280, 720, "imgui"};
   while (!imgui.window_context().should_close()) {
     imgui.begin();
     {
