@@ -2,6 +2,7 @@
 
 add_library(yave-app
   node_data_thread.cpp
+  editor_context.cpp
 )
 
 add_library(yave::app ALIAS yave-app)
