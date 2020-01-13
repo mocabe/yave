@@ -94,6 +94,17 @@ namespace yave {
     return m_map.size();
   }
 
+  auto node_declaration_store::enumerate() const
+    -> std::vector<std::shared_ptr<node_declaration>>
+  {
+    std::vector<std::shared_ptr<node_declaration>> ret;
+    for (auto&& [key, decl] : m_map) {
+      (void)key;
+      ret.push_back(decl);
+    }
+    return ret;
+  }
+
   void node_declaration_store::remove(const std::string& name)
   {
     auto iter = m_map.find(name);

@@ -44,6 +44,10 @@ namespace yave {
     /// unregister node info
     void unregister_node_decl(const std::vector<std::string>&);
 
+    /// get decls
+    [[nodiscard]] auto get_node_decls() const
+      -> std::vector<std::shared_ptr<node_declaration>>;
+
   public: /* node grouping features */
     /// Create new group
     /// \note All nodes should be under same group.

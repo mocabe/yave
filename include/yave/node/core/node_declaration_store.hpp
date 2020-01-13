@@ -49,6 +49,10 @@ namespace yave {
     /// size
     [[nodiscard]] auto size() const -> size_t;
 
+    /// enumerate
+    [[nodiscard]] auto enumerate() const
+      -> std::vector<std::shared_ptr<node_declaration>>;
+
     /// Remove declaration
     void remove(const std::string& name);
 

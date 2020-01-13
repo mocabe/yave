@@ -210,6 +210,12 @@ namespace yave {
     m_nim.remove(names);
   }
 
+  auto managed_node_graph::get_node_decls() const
+    -> std::vector<std::shared_ptr<node_declaration>>
+  {
+    return m_nim.enumerate();
+  }
+
   auto managed_node_graph::_find_parent_group(const node_handle& node) const
     -> const node_group*
   {
