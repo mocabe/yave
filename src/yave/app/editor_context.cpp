@@ -28,6 +28,14 @@ namespace yave::app {
 
     auto& g = m_snapshot->graph;
 
+    // update group
+    m_current_group = g.node(m_current_group.id());
+
+    if (!g.is_group(m_current_group)) {
+      m_current_group = g.root_group();
+      m_scroll_pos    = {};
+    }
+
     // reset hovered state
     m_n_hovered = {};
     m_s_hovered = {};
@@ -158,6 +166,27 @@ namespace yave::app {
       return std::nullopt;
 
     return editor_connection_info {c, is_selected(c), is_hovered(c)};
+  }
+
+  auto editor_context::get_group() const -> node_handle
+  {
+    assert(m_in_frame);
+    return m_current_group;
+  }
+
+  void editor_context::set_group(const node_handle& node)
+  {
+    assert(m_in_frame);
+
+    auto& g = m_snapshot->graph;
+
+    m_command_queue.emplace_back([&, node] {
+      auto n = g.node(node.id());
+      if (g.is_group(n)) {
+        m_current_group = n;
+        m_scroll_pos    = {};
+      }
+    });
   }
 
   auto editor_context::get_pos(const node_handle& node) const

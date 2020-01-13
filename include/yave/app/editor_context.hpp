@@ -62,6 +62,11 @@ namespace yave::app {
       -> std::optional<editor_connection_info>;
 
   public: /* model data accessors */
+    /// Get current node group
+    auto get_group() const -> node_handle;
+    /// Set next node group
+    void set_group(const node_handle& node);
+
     /// Get position of node
     auto get_pos(const node_handle& node) const -> std::optional<tvec2<float>>;
     /// Set new position of node
@@ -140,6 +145,9 @@ namespace yave::app {
     node_data_thread& m_data_thread;
     /// current snapshot of graph
     std::shared_ptr<const node_data_snapshot> m_snapshot;
+
+  private:
+    node_handle m_current_group;
 
   private:
     std::vector<std::function<void(void)>> m_command_queue;
