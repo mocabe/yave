@@ -5,17 +5,24 @@
 
 #include <yave/app/editor_context.hpp>
 
+#include <yave/support/log.hpp>
+
 #include <algorithm>
+
+YAVE_DECL_G_LOGGER(editor_context)
 
 namespace yave::app {
 
   editor_context::editor_context(node_data_thread& data_thread)
     : m_data_thread {data_thread}
   {
+    init_logger();
   }
 
   void editor_context::begin_frame()
   {
+    assert(!m_in_frame);
+
     // update snapshot
     m_snapshot = m_data_thread.snapshot();
 
