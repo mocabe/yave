@@ -91,7 +91,7 @@ namespace yave {
     }
 
   public:
-    T values[2];
+    T values[2] = {};
   };
 
   template <class T>

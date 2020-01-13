@@ -120,7 +120,7 @@ namespace yave {
     }
 
   public:
-    T values[4];
+    T values[4] = {};
   };
 
   template <class T>
