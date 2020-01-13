@@ -176,6 +176,18 @@ namespace yave::app {
     m_data_thread.send(node_data_thread_op_set_pos {node, new_pos});
   }
 
+  auto editor_context::get_scroll() const -> tvec2<float>
+  {
+    assert(m_in_frame);
+    return m_scroll_pos;
+  }
+
+  void editor_context::set_scroll(const tvec2<float>& new_pos)
+  {
+    assert(m_in_frame);
+    m_command_queue.emplace_back([&, new_pos] { m_scroll_pos = new_pos; });
+  }
+
   void editor_context::set_hovered(const node_handle& node)
   {
     assert(m_in_frame);

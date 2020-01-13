@@ -67,6 +67,11 @@ namespace yave::app {
     /// Set new position of node
     void set_pos(const node_handle& node, const tvec2<float>& new_pos);
 
+    /// Get current scroll position
+    auto get_scroll() const -> tvec2<float>;
+    /// Set scroll position
+    void set_scroll(const tvec2<float>& new_pos);
+
     /// Set as hovered
     void set_hovered(const node_handle& node);
     /// Set as hovered
@@ -148,6 +153,9 @@ namespace yave::app {
     std::vector<node_handle> m_n_selected;
     std::vector<socket_handle> m_s_selected;
     std::vector<connection_handle> m_c_selected;
+
+  private:
+    tvec2<float> m_scroll_pos;
 
   private:
     bool m_in_frame;
