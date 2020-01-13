@@ -172,7 +172,7 @@ namespace yave::app {
   void editor_context::set_hovered(const node_handle& node)
   {
     assert(m_in_frame);
-    m_command_queue.emplace_back([&] {
+    m_command_queue.emplace_back([&, node] {
       auto& g = m_snapshot->graph;
 
       if (auto n = g.node(node.id()))
@@ -183,7 +183,7 @@ namespace yave::app {
   void editor_context::set_hovered(const socket_handle& socket)
   {
     assert(m_in_frame);
-    m_command_queue.emplace_back([&] {
+    m_command_queue.emplace_back([&, socket] {
       auto& g = m_snapshot->graph;
 
       if (auto s = g.socket(socket.id()))
@@ -194,7 +194,7 @@ namespace yave::app {
   void editor_context::set_hovered(const connection_handle& connection)
   {
     assert(m_in_frame);
-    m_command_queue.emplace_back([&] {
+    m_command_queue.emplace_back([&, connection] {
       auto& g = m_snapshot->graph;
 
       if (auto c = g.connection(connection.id()))
@@ -277,7 +277,7 @@ namespace yave::app {
   void editor_context::add_selected(const node_handle& node)
   {
     assert(m_in_frame);
-    m_command_queue.emplace_back([&] {
+    m_command_queue.emplace_back([&, node] {
       auto& g = m_snapshot->graph;
 
       if (auto n = g.node(node.id())) {
@@ -293,7 +293,7 @@ namespace yave::app {
   void editor_context::add_selected(const socket_handle& socket)
   {
     assert(m_in_frame);
-    m_command_queue.emplace_back([&] {
+    m_command_queue.emplace_back([&, socket] {
       auto& g = m_snapshot->graph;
 
       if (auto s = g.socket(socket.id())) {
@@ -309,7 +309,7 @@ namespace yave::app {
   void editor_context::add_selected(const connection_handle& connection)
   {
     assert(m_in_frame);
-    m_command_queue.emplace_back([&] {
+    m_command_queue.emplace_back([&, connection] {
       auto& g = m_snapshot->graph;
 
       if (auto c = g.connection(connection.id())) {
@@ -325,7 +325,7 @@ namespace yave::app {
   void editor_context::remove_selected(const node_handle& node)
   {
     assert(m_in_frame);
-    m_command_queue.emplace_back([&] {
+    m_command_queue.emplace_back([&, node] {
       auto& g = m_snapshot->graph;
 
       if (auto n = g.node(node.id())) {
@@ -340,7 +340,7 @@ namespace yave::app {
   void editor_context::remove_selected(const socket_handle& socket)
   {
     assert(m_in_frame);
-    m_command_queue.emplace_back([&] {
+    m_command_queue.emplace_back([&, socket] {
       auto& g = m_snapshot->graph;
 
       if (auto s = g.socket(socket.id())) {
@@ -355,7 +355,7 @@ namespace yave::app {
   void editor_context::remove_selected(const connection_handle& connection)
   {
     assert(m_in_frame);
-    m_command_queue.emplace_back([&] {
+    m_command_queue.emplace_back([&, connection] {
       auto& g = m_snapshot->graph;
 
       if (auto c = g.connection(connection.id())) {
