@@ -13,7 +13,7 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // Grid
 
-  [[nodiscard]] size_t gridpx(size_t n = 1)
+  [[nodiscard]] inline size_t gridpx(size_t n = 1)
   {
     return n * 8;
   }
@@ -41,14 +41,14 @@ namespace yave::editor::imgui {
   };
 
   /// Get font
-  [[nodiscard]] ImFont* get_font_data(font_size_level level)
+  [[nodiscard]] inline ImFont* get_font_data(font_size_level level)
   {
     (void)level;
     return ImGui::GetFont();
   }
 
   /// Get font size in px
-  [[nodiscard]] float get_font_size(font_size_level level)
+  [[nodiscard]] inline float get_font_size(font_size_level level)
   {
     switch (level) {
       case font_size_level::e36:
@@ -68,7 +68,7 @@ namespace yave::editor::imgui {
   }
 
   /// Get font weight
-  [[nodiscard]] float get_font_weight(font_size_level level)
+  [[nodiscard]] inline float get_font_weight(font_size_level level)
   {
     switch (level) {
       case font_size_level::e36:
@@ -88,13 +88,13 @@ namespace yave::editor::imgui {
   }
 
   /// Text padding px
-  [[nodiscard]] float get_text_padding()
+  [[nodiscard]] inline float get_text_padding()
   {
     return gridpx(1);
   }
 
   /// calculate text size
-  [[nodiscard]] auto calc_text_size(
+  [[nodiscard]] inline auto calc_text_size(
     const std::string& text,
     font_size_level level) -> ImVec2
   {
@@ -107,7 +107,7 @@ namespace yave::editor::imgui {
   }
 
   /// calculate aligned text position
-  [[nodiscard]] auto calc_text_pos(
+  [[nodiscard]] inline auto calc_text_pos(
     const std::string& text,
     font_size_level level,
     ImVec2 region,
@@ -135,72 +135,72 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // Colors
 
-  [[nodiscard]] ImColor get_background_color()
+  [[nodiscard]] inline ImColor get_background_color()
   {
     return {53, 41, 59, 255};
   }
 
-  [[nodiscard]] ImColor get_background_grid_color()
+  [[nodiscard]] inline ImColor get_background_grid_color()
   {
     return {51, 51, 51, 255};
   }
 
-  [[nodiscard]] ImColor get_node_header_fill_color()
+  [[nodiscard]] inline ImColor get_node_header_fill_color()
   {
     return {120, 80, 110, 255};
   }
 
-  [[nodiscard]] ImColor get_node_header_fill_color_hovered()
+  [[nodiscard]] inline ImColor get_node_header_fill_color_hovered()
   {
     return {120, 80, 110, 255};
   }
 
-  [[nodiscard]] ImColor get_node_header_fill_color_selected()
+  [[nodiscard]] inline ImColor get_node_header_fill_color_selected()
   {
     return {120, 80, 110, 255};
   }
 
-  [[nodiscard]] ImColor get_node_background_fill_color()
+  [[nodiscard]] inline ImColor get_node_background_fill_color()
   {
     return {125, 125, 125, 230};
   }
 
-  [[nodiscard]] ImColor get_node_background_fill_color_hovered()
+  [[nodiscard]] inline ImColor get_node_background_fill_color_hovered()
   {
     return {125, 125, 125, 230};
   }
 
-  [[nodiscard]] ImColor get_node_background_fill_color_selected()
+  [[nodiscard]] inline ImColor get_node_background_fill_color_selected()
   {
     return {125, 125, 125, 230};
   }
 
-  [[nodiscard]] ImColor get_node_edge_color()
+  [[nodiscard]] inline ImColor get_node_edge_color()
   {
     return {150, 115, 165, 255};
   }
 
-  [[nodiscard]] ImColor get_node_edge_color_hovered()
+  [[nodiscard]] inline ImColor get_node_edge_color_hovered()
   {
     return {150, 115, 165, 255};
   }
 
-  [[nodiscard]] ImColor get_node_edge_color_selected()
+  [[nodiscard]] inline ImColor get_node_edge_color_selected()
   {
     return {150, 115, 165, 255};
   }
 
-  [[nodiscard]] ImColor get_node_header_text_color()
+  [[nodiscard]] inline ImColor get_node_header_text_color()
   {
     return {3, 3, 3, 255};
   }
 
-  [[nodiscard]] ImColor get_socket_text_color()
+  [[nodiscard]] inline ImColor get_socket_text_color()
   {
     return {3, 3, 3, 255};
   }
 
-  [[nodiscard]] ImColor get_socket_slot_color(socket_type type)
+  [[nodiscard]] inline ImColor get_socket_slot_color(socket_type type)
   {
     switch (type) {
       case socket_type::input:
@@ -211,12 +211,12 @@ namespace yave::editor::imgui {
     unreachable();
   }
 
-  [[nodiscard]] ImColor get_socket_slot_color_hovered(socket_type type)
+  [[nodiscard]] inline ImColor get_socket_slot_color_hovered(socket_type type)
   {
     return get_socket_slot_color(type);
   }
 
-  [[nodiscard]] ImColor get_socket_slot_color_selected(socket_type type)
+  [[nodiscard]] inline ImColor get_socket_slot_color_selected(socket_type type)
   {
     return get_socket_slot_color(type);
   }
@@ -224,7 +224,7 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // Drawing layers
 
-  [[nodiscard]] size_t get_channel_count()
+  [[nodiscard]] inline size_t get_channel_count()
   {
     // Ch:
     // 4. Foreground layer
@@ -235,27 +235,27 @@ namespace yave::editor::imgui {
     return 5;
   }
 
-  [[nodiscard]] size_t get_background_channel_index()
+  [[nodiscard]] inline size_t get_background_channel_index()
   {
     return 0;
   }
 
-  [[nodiscard]] size_t get_foreground_channel_index()
+  [[nodiscard]] inline size_t get_foreground_channel_index()
   {
     return 4;
   }
 
-  [[nodiscard]] size_t get_node_channel_index()
+  [[nodiscard]] inline size_t get_node_channel_index()
   {
     return 2;
   }
 
-  [[nodiscard]] size_t get_socket_channel_index()
+  [[nodiscard]] inline size_t get_socket_channel_index()
   {
     return 3;
   }
 
-  [[nodiscard]] size_t get_connection_channel_index()
+  [[nodiscard]] inline size_t get_connection_channel_index()
   {
     return 1;
   }
@@ -263,7 +263,7 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // Grid
 
-  [[nodiscard]] float get_background_grid_size()
+  [[nodiscard]] inline float get_background_grid_size()
   {
     return 50;
   }
@@ -271,7 +271,7 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // Rouding
 
-  [[nodiscard]] float get_node_rounding()
+  [[nodiscard]] inline float get_node_rounding()
   {
     return 2;
   }
