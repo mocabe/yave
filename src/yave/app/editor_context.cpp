@@ -18,6 +18,9 @@ namespace yave::app {
     , m_in_frame {false}
   {
     init_logger();
+
+    // init snapshot
+    m_snapshot = m_data_thread.snapshot();
   }
 
   void editor_context::begin_frame()
@@ -315,6 +318,9 @@ namespace yave::app {
   void editor_context::add_selected(const node_handle& node)
   {
     assert(m_in_frame);
+
+    m_data_thread.send(node_data_thread_op_bring_front {node});
+
     m_command_queue.emplace_back([&, node] {
       auto& g = m_snapshot->graph;
 
