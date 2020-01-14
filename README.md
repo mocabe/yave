@@ -1,6 +1,6 @@
-# (Work in progress) YAVE - Functional Reactive Visual Programming Language for Multimedia Processing.
+# (Work in progress) YAVE - Functional Reactive Visual Programming Language for Multimedia Processing
 
-`YAVE` is a research project to build an open-source backend for functional reactive visual programming language (FRVPL) for multimedia processing such as video editing or audio processing.  
+`YAVE` is a research project to build an open-source backend for functional reactive visual programming language (FRVPL) for multimedia processing such as video editing and audio processing.  
 
 ## What is Functional Reactive Programming?  
 
@@ -13,15 +13,15 @@ This project is aiming to implement reliable, easy-to-use backend (and some fron
 
 The main advantages of FRVPL compared to traditional data-driven VPLs are:
 * Avoiding unneccesary computations with lazy evaluation.
-* Parameter value independent representation of reactive execution.
-* Implicit representation of parameter dependency.  
+* Parameter-independent representation of program.
 * Incremental computation by graph reduction and data flow analysis.
 * Modern language functionality like higher-order functions.
 
 Some disclaimers:
-* `YAVE` can be used for realtime media interaction, but it uses discrete time representation so that might be disappointment for people who like continuous time representation. 
-* `YAVE` is dynamic language. It behaves like a glue to connect functions compiled elsewhere i.e. C/C++.
-* `YAVE` is NOT **pure** functional visual programming language strictly speaking, but backends are expected to encapsulate internal memory pooling and other kind of side effects. As the result, `YAVE` looks exactly like purely functional language, but backends still have full access to C/C++ feature, which makes it much easier to implement low-level operations.
+* `YAVE` can probably be used for realtime media interaction, but that is not in current scope of development.
+* `YAVE` uses discrete time representation, which might be disappointment for people who like continuous time representation. 
+* `YAVE` is dynamic language. It behaves like a glue to connect low-level codes written in C++.
+* `YAVE` is NOT **pure** functional visual programming language strictly speaking, but backends are expected to encapsulate internal side effects. As a result, `YAVE` looks like purely functional language, but backends still have full access to C/C++ features, which makes it much easier to implement low-level operations.
 
 ## Development   
 
@@ -36,13 +36,13 @@ Current development targets:
 * Concurrent execution.
 * Lifetime based constant caching.
 
-## Creating node function with `YAVE`
+## Creating custom node function in C++
 
-Here's sneak peak of implementation of node functions in `YAVE`.  
+Here's sneak peak of implementation of node functions in `YAVE` using C++.  
 In FRP, functions like `a1 -> a2 -> ... -> an` are lifted into `(time->a1) -> ... -> (time->an-1) -> time -> an`.  
 Evaluation of each input values are done by applying given `time` parameter to input closure.  
 
-`YAVE` supports automatic generation of dynamically-typed closure object of lifted functions.   
+`YAVE` supports automatic generation of dynamically-typed closure object of lifted functions, which can be executed by runtime.
 
 ```cpp
   // lifted function of (Int->Int->Int)
@@ -59,4 +59,7 @@ Evaluation of each input values are done by applying given `time` parameter to i
       return make_object<Double>(42);
     }
   };
+
+  // create object with vtables and type info.
+  auto addInt = make_object<AddInt>();
 ```
