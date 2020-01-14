@@ -201,6 +201,12 @@ namespace yave {
 
     /// disconnect sockets
     void disconnect(const connection_handle& handle);
+  
+  public:
+    /// bring node to from in group member
+    void bring_front(const node_handle& node);
+    /// bring node to back in group member
+    void bring_back(const node_handle& node);
 
   public:
     /// Get node

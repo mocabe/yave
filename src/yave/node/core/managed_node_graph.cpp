@@ -50,33 +50,38 @@ namespace yave {
 
     void add_content(const node_handle& node)
     {
-      auto lb = ranges::lower_bound(contents, node);
-
-      if (lb != contents.end() && *lb == node)
-        return;
-
-      contents.insert(lb, node);
+      assert(ranges::find(contents, node) == contents.end());
+      contents.push_back(node);
     }
 
     void remove_content(const node_handle& node)
     {
-      auto lb = ranges::lower_bound(contents, node);
+      assert(ranges::find(contents, node) != contents.end());
+      contents.erase(ranges::remove(contents, node), contents.end());
+    }
 
-      if (lb == contents.end())
-        return;
+    void bring_front(const node_handle& node)
+    {
+      auto it = ranges::find(contents, node);
+      assert(it != contents.end());
+      auto tmp = *it;
+      contents.erase(it);
+      contents.insert(contents.end(), tmp);
+      return;
+    }
 
-      if (*lb == node)
-        contents.erase(lb);
+    void bring_back(const node_handle& node)
+    {
+      auto it = ranges::find(contents, node);
+      assert(it != contents.end());
+      auto tmp = *it;
+      contents.erase(it);
+      contents.insert(contents.begin(), tmp);
     }
 
     bool find_content(const node_handle& node) const
     {
-      auto lb = ranges::lower_bound(contents, node);
-
-      if (lb == contents.end())
-        return false;
-
-      return *lb == node;
+      return ranges::find(contents, node) != contents.end();
     }
   };
 
@@ -1334,6 +1339,34 @@ namespace yave {
   void managed_node_graph::disconnect(const connection_handle& handle)
   {
     return m_ng.disconnect(handle);
+  }
+
+  /* member order */
+
+  void managed_node_graph::bring_front(const node_handle& node)
+  {
+    if (!exists(node))
+      return;
+
+    auto parent = _find_parent_group(node);
+
+    if (!parent)
+      return;
+
+    parent->bring_front(node);
+  }
+
+  void managed_node_graph::bring_back(const node_handle& node)
+  {
+    if (!exists(node))
+      return;
+
+    auto parent = _find_parent_group(node);
+
+    if (!parent)
+      return;
+
+    parent->bring_back(node);
   }
 
   /* nodes */
