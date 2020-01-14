@@ -144,7 +144,6 @@ namespace yave::app {
   auto editor_context::get_editor_info(const socket_handle& handle) const
     -> std::optional<editor_socket_info>
   {
-    assert(m_in_frame);
     auto& g = m_snapshot->graph;
 
     auto s = g.socket(handle.id());
@@ -158,7 +157,6 @@ namespace yave::app {
   auto editor_context::get_editor_info(const connection_handle& handle) const
     -> std::optional<editor_connection_info>
   {
-    assert(m_in_frame);
     auto& g = m_snapshot->graph;
 
     auto c = g.connection(handle.id());
@@ -171,7 +169,6 @@ namespace yave::app {
 
   auto editor_context::get_group() const -> node_handle
   {
-    assert(m_in_frame);
     return m_current_group;
   }
 
@@ -193,7 +190,6 @@ namespace yave::app {
   auto editor_context::get_pos(const node_handle& node) const
     -> std::optional<tvec2<float>>
   {
-    assert(m_in_frame);
     auto& g = m_snapshot->graph;
     return g.get_pos(g.node(node.id()));
   }
@@ -208,7 +204,6 @@ namespace yave::app {
 
   auto editor_context::get_scroll() const -> tvec2<float>
   {
-    assert(m_in_frame);
     return m_scroll_pos;
   }
 
@@ -271,25 +266,21 @@ namespace yave::app {
 
   bool editor_context::is_node_hovered() const
   {
-    assert(m_in_frame);
     return m_n_hovered.has_value();
   }
 
   bool editor_context::is_socket_hovered() const
   {
-    assert(m_in_frame);
     return m_s_hovered.has_value();
   }
 
   bool editor_context::is_connection_hovered() const
   {
-    assert(m_in_frame);
     return m_c_hovered.has_value();
   }
 
   bool editor_context::is_hovered(const node_handle& node) const
   {
-    assert(m_in_frame);
     auto& g = m_snapshot->graph;
 
     if (m_n_hovered) {
@@ -301,7 +292,6 @@ namespace yave::app {
 
   bool editor_context::is_hovered(const socket_handle& socket) const
   {
-    assert(m_in_frame);
     auto& g = m_snapshot->graph;
 
     if (m_s_hovered) {
@@ -313,7 +303,6 @@ namespace yave::app {
 
   bool editor_context::is_hovered(const connection_handle& connection) const
   {
-    assert(m_in_frame);
     auto& g = m_snapshot->graph;
 
     if (m_c_hovered) {
@@ -436,25 +425,21 @@ namespace yave::app {
 
   bool editor_context::is_node_selected() const
   {
-    assert(m_in_frame);
     return !m_n_selected.empty();
   }
 
   bool editor_context::is_socket_selected() const
   {
-    assert(m_in_frame);
     return !m_s_selected.empty();
   }
 
   bool editor_context::is_connection_selected() const
   {
-    assert(m_in_frame);
     return !m_c_selected.empty();
   }
 
   bool editor_context::is_selected(const node_handle& node) const
   {
-    assert(m_in_frame);
     auto& g = m_snapshot->graph;
 
     if (auto n = g.node(node.id())) {
@@ -466,7 +451,6 @@ namespace yave::app {
 
   bool editor_context::is_selected(const socket_handle& socket) const
   {
-    assert(m_in_frame);
     auto& g = m_snapshot->graph;
 
     if (auto s = g.socket(socket.id())) {
@@ -478,7 +462,6 @@ namespace yave::app {
 
   bool editor_context::is_selected(const connection_handle& connection) const
   {
-    assert(m_in_frame);
     auto& g = m_snapshot->graph;
 
     if (auto c = g.connection(connection.id())) {
