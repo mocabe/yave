@@ -15,6 +15,7 @@ namespace yave::app {
 
   editor_context::editor_context(node_data_thread& data_thread)
     : m_data_thread {data_thread}
+    , m_in_frame {false}
   {
     init_logger();
   }
