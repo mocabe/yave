@@ -118,6 +118,18 @@ namespace yave::app {
     g.set_data(n, data);
   }
 
+  void node_data_thread_op_bring_back::exec(managed_node_graph& g) const
+  {
+    auto n = g.node(node.id());
+    g.bring_back(n);
+  }
+
+  void node_data_thread_op_bring_front::exec(managed_node_graph& g) const
+  {
+    auto n = g.node(node.id());
+    g.bring_front(n);
+  }
+
   struct node_data_thread::_queue_data
   {
     /// node data operation

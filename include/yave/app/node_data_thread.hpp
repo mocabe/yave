@@ -161,6 +161,22 @@ namespace yave::app {
     void exec(managed_node_graph& g) const;
   };
 
+  /// op bring back
+  struct node_data_thread_op_bring_back
+  {
+    node_handle node;
+
+    void exec(managed_node_graph& g) const;
+  };
+
+  /// op bring front
+  struct node_data_thread_op_bring_front
+  {
+    node_handle node;
+
+    void exec(managed_node_graph& g) const;
+  };
+
   /// Node data thread operations
   using node_data_thread_op = std::variant<
     node_data_thread_op_nop,
@@ -179,7 +195,9 @@ namespace yave::app {
     node_data_thread_op_remove_group_input,
     node_data_thread_op_remove_group_output,
     node_data_thread_op_set_pos,
-    node_data_thread_op_set_data>;
+    node_data_thread_op_set_data,
+    node_data_thread_op_bring_front,
+    node_data_thread_op_bring_back>;
 
   struct node_data_thread_op_list
   {
