@@ -39,12 +39,12 @@ int main()
     view.byte_ptr());
 
   while (!imgui.window_context().should_close()) {
-    imgui.begin();
+    imgui.begin_frame();
     {
       ImGui::Image(
         tex, {(float)layout.width.value(), (float)layout.height.value()});
     }
-    imgui.end();
+    imgui.end_frame();
     imgui.render();
   }
 

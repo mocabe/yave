@@ -10,14 +10,17 @@ using namespace yave::imgui;
 
 int main()
 {
-  imgui_context imgui(true);
+  imgui_context imgui {};
+
   while (!imgui.window_context().should_close()) {
-    imgui.begin();
+
+    imgui.begin_frame();
     {
       static bool show_demo_window = true;
       ImGui::ShowDemoWindow(&show_demo_window);
     }
-    imgui.end();
+    imgui.end_frame();
+
     imgui.render();
   }
 }

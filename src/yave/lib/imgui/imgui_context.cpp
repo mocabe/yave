@@ -1016,7 +1016,7 @@ namespace yave::imgui {
     ImGui::SetCurrentContext(m_pimpl->imCtx);
   }
 
-  void imgui_context::begin()
+  void imgui_context::begin_frame()
   {
     /* start ImGui frame */
     {
@@ -1026,10 +1026,11 @@ namespace yave::imgui {
     }
   }
 
-  void imgui_context::end()
+  void imgui_context::end_frame()
   {
     /* end ImGui frame */
     {
+      ImGui::EndFrame();
       ImGui::Render();
     }
   }

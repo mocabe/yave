@@ -105,11 +105,11 @@ int main()
 {
   imgui_context imgui {};
   while (!imgui.window_context().should_close()) {
-    imgui.begin();
+    imgui.begin_frame();
     {
       image_canvas(imgui);
     }
-    imgui.end();
+    imgui.end_frame();
     imgui.render();
   }
 }

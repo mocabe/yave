@@ -32,9 +32,9 @@ namespace yave::imgui {
     /// Set current context
     void set_current();
     /// Begin ImGui frame
-    void begin();
+    void begin_frame();
     /// End ImGui frame
-    void end();
+    void end_frame();
     /// Render ImGui frame with Vulkan
     void render();
 

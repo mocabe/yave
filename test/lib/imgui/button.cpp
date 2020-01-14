@@ -87,13 +87,13 @@ int main()
 {
   imgui_context imgui {};
   while (!imgui.window_context().should_close()) {
-    imgui.begin();
+    imgui.begin_frame();
     {
       test_normal_button();
       test_invisible_button();
       test_invisible_button_ex();
     }
-    imgui.end();
+    imgui.end_frame();
     imgui.render();
   }
 }
