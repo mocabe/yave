@@ -13,7 +13,7 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // Grid
 
-  [[nodiscard]] inline size_t gridpx(size_t n = 1)
+  [[nodiscard]] inline float gridpx(size_t n = 1)
   {
     return n * 8;
   }
@@ -177,27 +177,27 @@ namespace yave::editor::imgui {
 
   [[nodiscard]] inline ImColor get_node_edge_color()
   {
-    return {150, 115, 165, 255};
+    return {136, 133, 138, 230};
   }
 
   [[nodiscard]] inline ImColor get_node_edge_color_hovered()
   {
-    return {150, 115, 165, 255};
+    return {255, 150, 50, 230};
   }
 
   [[nodiscard]] inline ImColor get_node_edge_color_selected()
   {
-    return {150, 115, 165, 255};
+    return {255, 150, 50, 230};
   }
 
   [[nodiscard]] inline ImColor get_node_header_text_color()
   {
-    return {3, 3, 3, 255};
+    return {250, 250, 250, 255};
   }
 
   [[nodiscard]] inline ImColor get_socket_text_color()
   {
-    return {3, 3, 3, 255};
+    return {250, 250, 250, 255};
   }
 
   [[nodiscard]] inline ImColor get_socket_slot_color(socket_type type)
@@ -261,19 +261,21 @@ namespace yave::editor::imgui {
   }
 
   // ------------------------------------------
-  // Grid
+  // Other
 
   [[nodiscard]] inline float get_background_grid_size()
   {
     return 50;
   }
 
-  // ------------------------------------------
-  // Rouding
-
   [[nodiscard]] inline float get_node_rounding()
   {
     return 2;
+  }
+
+  [[nodiscard]] inline ImVec2 get_socket_padding()
+  {
+    return {gridpx(3) / 2, gridpx(1)};
   }
 
 } // namespace yave::editor::imgui
