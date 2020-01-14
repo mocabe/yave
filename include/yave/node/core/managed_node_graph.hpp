@@ -271,6 +271,7 @@ namespace yave {
     struct extra_info;
 
   private:
+    managed_node_graph(std::nullptr_t);
     void _init();
     [[nodiscard]] auto _find_parent_group(const node_handle& node)
       -> node_group*;

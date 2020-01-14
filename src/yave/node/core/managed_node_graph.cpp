@@ -131,12 +131,13 @@ namespace yave {
     }
   }
 
+  // for clone()
+  managed_node_graph::managed_node_graph(std::nullptr_t)
+  {
+    init_logger();
+  }
+
   managed_node_graph::managed_node_graph()
-    : m_ng {}
-    , m_nim {}
-    , m_groups {}
-    , m_root_group {}
-    , m_extra_info {}
   {
     init_logger();
     _init();
@@ -147,11 +148,6 @@ namespace yave {
   }
 
   managed_node_graph::managed_node_graph(managed_node_graph&& other) noexcept
-    : m_ng {}
-    , m_nim {}
-    , m_groups {}
-    , m_root_group {}
-    , m_extra_info {}
   {
     m_ng         = std::move(other.m_ng);
     m_nim        = std::move(other.m_nim);
@@ -1524,11 +1520,12 @@ namespace yave {
   {
     Info(
       g_logger,
-      "cloning: node={}, socket={}",
+      "clone(): n={}, s={}, c={}",
       m_ng.nodes().size(),
-      m_ng.sockets().size());
+      m_ng.sockets().size(),
+      m_ng.connections().size());
 
-    managed_node_graph ret;
+    managed_node_graph ret(nullptr);
 
     ret.m_nim = m_nim;
     ret.m_ng  = m_ng.clone();
