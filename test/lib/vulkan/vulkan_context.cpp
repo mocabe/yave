@@ -11,14 +11,14 @@ using namespace yave;
 TEST_CASE("vulkan_context without validation")
 {
   glfw::glfw_context glfw_ctx;
-  vulkan::vulkan_context vulkan_ctx(glfw_ctx, false);
+  vulkan::vulkan_context vulkan_ctx(glfw_ctx);
   vulkan_ctx.device().waitIdle();
 }
 
 TEST_CASE("vulkan_context with validation")
 {
   glfw::glfw_context glfw_ctx;
-  vulkan::vulkan_context vulkan_ctx(glfw_ctx, true);
+  vulkan::vulkan_context vulkan_ctx(glfw_ctx);
   vulkan_ctx.device().waitIdle();
 }
 

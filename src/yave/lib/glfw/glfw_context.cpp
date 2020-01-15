@@ -158,9 +158,17 @@ namespace yave::glfw {
     return mode->refreshRate;
   }
 
-  glfw_context::glfw_context()
+  auto glfw_context::_init_flags() noexcept -> init_flags
+  {
+    return init_flags::enable_logging;
+  }
+
+  glfw_context::glfw_context(init_flags flags)
   {
     init_logger();
+
+    if (!(flags & init_flags::enable_logging))
+      g_logger->set_level(spdlog::level::off);
 
     glfwSetErrorCallback([](int error, const char* msg) {
       Error(g_logger, "{}: {}", error, msg);

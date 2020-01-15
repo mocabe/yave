@@ -7,6 +7,7 @@
 
 #include <yave/lib/glfw/glfw_context.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
+#include <yave/support/enum_flag.hpp>
 
 namespace yave::vulkan {
 
@@ -149,10 +150,20 @@ namespace yave::vulkan {
   class vulkan_context
   {
   public:
+    enum class init_flags
+    {
+      enable_validation = 1 << 0,
+      enable_logging    = 1 << 1,
+    };
+
+  private:
+    static auto _init_flags() noexcept -> init_flags;
+
+  public:
     /// Ctor.
     vulkan_context(
       glfw::glfw_context& glfw_ctx,
-      bool enable_validation_layer = true);
+      init_flags flags = _init_flags());
     /// Dtor.
     ~vulkan_context() noexcept;
 
@@ -183,3 +194,11 @@ namespace yave::vulkan {
   };
 
 } // namespace yave::vulkan
+
+namespace yave {
+
+  template <>
+  struct is_enum_flag<vulkan::vulkan_context::init_flags> : std::true_type
+  {
+  };
+}

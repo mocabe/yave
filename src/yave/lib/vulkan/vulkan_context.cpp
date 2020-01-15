@@ -1120,14 +1120,22 @@ namespace yave::vulkan {
     vk::UniqueDevice device;
   };
 
+  auto vulkan_context::_init_flags() noexcept -> init_flags
+  {
+    return init_flags::enable_validation | init_flags::enable_logging;
+  }
+
   vulkan_context::vulkan_context(
     [[maybe_unused]] glfw::glfw_context& glfw_ctx,
-    bool enableValidationLayer)
+    init_flags flags)
   {
     init_logger();
 
     if (!glfwVulkanSupported())
       throw std::runtime_error("GLFW could not find Vulkan");
+
+    if (!(flags & init_flags::enable_logging))
+      g_logger->set_level(spdlog::level::off);
 
     Info(g_logger, "Initializing vulkan_context");
 
@@ -1138,6 +1146,8 @@ namespace yave::vulkan {
     impl->glfw = &glfw_ctx;
 
     /* instance */
+
+    bool enableValidationLayer = !!(flags & init_flags::enable_validation);
 
     impl->instance = createInstance(enableValidationLayer);
     impl->debugCallback =

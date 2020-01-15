@@ -17,14 +17,18 @@ namespace yave::imgui {
   class imgui_context
   {
   public:
-    enum class flags : uint32_t
+    enum class init_flags : uint32_t
     {
-      enable_validation = 1,
+      enable_validation = 1 << 0,
+      enable_logging    = 1 << 1,
     };
+
+  private:
+    static auto _init_flags() noexcept -> init_flags;
 
   public:
     /// Ctor
-    imgui_context(flags init_flags = flags::enable_validation);
+    imgui_context(init_flags flags = _init_flags());
     /// Dtor
     ~imgui_context();
 
@@ -105,7 +109,7 @@ namespace yave {
 
   // enable flags
   template <>
-  struct is_enum_flag<imgui::imgui_context::flags> : std::true_type
+  struct is_enum_flag<imgui::imgui_context::init_flags> : std::true_type
   {
   };
 

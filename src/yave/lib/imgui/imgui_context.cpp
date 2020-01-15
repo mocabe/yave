@@ -817,29 +817,33 @@ namespace yave::imgui {
 
   class imgui_context::impl
   {
-    // clang-format off
   public:
-    impl(flags flags, uint32_t width, uint32_t height, const char* windowName);
+    impl(
+      glfw::glfw_context::init_flags glfw_flags,
+      vulkan::vulkan_context::init_flags vulkan_flags,
+      uint32_t width,
+      uint32_t height,
+      const char* windowName);
     ~impl() noexcept;
 
   public: /* managed by impl */
-    glfw::glfw_context     glfwCtx;
+    glfw::glfw_context glfwCtx;
     vulkan::vulkan_context vulkanCtx;
-    glfw::glfw_window      glfwWindow;
+    glfw::glfw_window glfwWindow;
     vulkan::window_context windowCtx;
-    ImGuiContext*          imCtx;
+    ImGuiContext* imCtx;
 
   public:
-    vk::UniqueSampler             fontSampler;
-    vk::UniqueDescriptorPool      descriptorPool;
+    vk::UniqueSampler fontSampler;
+    vk::UniqueDescriptorPool descriptorPool;
     vk::UniqueDescriptorSetLayout descriptorSetLayout;
-    vk::UniqueDescriptorSet       descriptorSet;
-    vk::UniquePipelineCache       pipelineCache;
-    vk::UniquePipelineLayout      pipelineLayout;
-    vk::UniquePipeline            pipeline;
-    vk::UniqueDeviceMemory        fontImageMemory;
-    vk::UniqueImage               fontImage;
-    vk::UniqueImageView           fontImageView;
+    vk::UniqueDescriptorSet descriptorSet;
+    vk::UniquePipelineCache pipelineCache;
+    vk::UniquePipelineLayout pipelineLayout;
+    vk::UniquePipeline pipeline;
+    vk::UniqueDeviceMemory fontImageMemory;
+    vk::UniqueImage fontImage;
+    vk::UniqueImageView fontImageView;
 
   public:
     std::vector<class ImGuiRenderBuffer> vertexBuffers;
@@ -849,21 +853,20 @@ namespace yave::imgui {
 
   public:
     std::map<std::string, std::unique_ptr<ImGuiTextureDataHolder>> textures;
-  
+
   public:
     uint32_t fps;
     std::array<float, 4> clearColor;
-
-    // clang-format on
   };
 
   imgui_context::impl::impl(
-    flags flags,
+    glfw::glfw_context::init_flags glfw_flags,
+    vulkan::vulkan_context::init_flags vulkan_flags,
     uint32_t widt,
     uint32_t height,
     const char* windowName)
-    : glfwCtx {}
-    , vulkanCtx {glfwCtx, !!(flags & flags::enable_validation)}
+    : glfwCtx {glfw_flags}
+    , vulkanCtx {glfwCtx, vulkan_flags}
     , glfwWindow {glfwCtx.create_window(widt, height, windowName)}
     , windowCtx {vulkanCtx.create_window_context(glfwWindow)}
     , imCtx {ImGui::CreateContext()}
@@ -875,13 +878,35 @@ namespace yave::imgui {
     ImGui::DestroyContext(imCtx);
   }
 
-  imgui_context::imgui_context(flags init_flags)
+  auto imgui_context::_init_flags() noexcept -> init_flags
+  {
+    return init_flags::enable_logging | init_flags::enable_validation;
+  }
+
+  imgui_context::imgui_context(init_flags flags)
   {
     using namespace yave;
     init_logger();
 
+    glfw::glfw_context::init_flags glfw_flags {0};
+    vulkan::vulkan_context::init_flags vulkan_flags {0};
+
+    if (!(flags & init_flags::enable_logging)) {
+      g_logger->set_level(spdlog::level::off);
+    }
+
+    if (!!(flags & init_flags::enable_logging)) {
+      glfw_flags |= glfw::glfw_context::init_flags::enable_logging;
+      vulkan_flags |= vulkan::vulkan_context::init_flags::enable_logging;
+    }
+
+    if (!!(flags & init_flags::enable_validation)) {
+      vulkan_flags |= vulkan::vulkan_context::init_flags::enable_validation;
+    }
+
     // create context
-    m_pimpl = std::make_unique<impl>(init_flags, 1280, 720, "imgui_context");
+    m_pimpl = std::make_unique<impl>(
+      glfw_flags, vulkan_flags, 1280, 720, "imgui_context");
 
     /* init ImGui */
     {
@@ -917,9 +942,9 @@ namespace yave::imgui {
 
     /* build fonts with FreeType */
     {
-      ImGuiIO& io = ImGui::GetIO();
-      auto flags  = ImGuiFreeType::RasterizerFlags::NoHinting;
-      ImGuiFreeType::BuildFontAtlas(io.Fonts, flags);
+      ImGuiIO& io       = ImGui::GetIO();
+      auto raster_flags = ImGuiFreeType::RasterizerFlags::NoHinting;
+      ImGuiFreeType::BuildFontAtlas(io.Fonts, raster_flags);
     }
 
     /* prepare uploading font texture */
