@@ -147,17 +147,17 @@ namespace yave::editor::imgui {
 
   [[nodiscard]] inline ImColor get_node_header_fill_color()
   {
-    return {120, 80, 110, 255};
+    return {120, 80, 110, 230};
   }
 
   [[nodiscard]] inline ImColor get_node_header_fill_color_hovered()
   {
-    return {120, 80, 110, 255};
+    return {120, 80, 110, 230};
   }
 
   [[nodiscard]] inline ImColor get_node_header_fill_color_selected()
   {
-    return {120, 80, 110, 255};
+    return {120, 80, 110, 230};
   }
 
   [[nodiscard]] inline ImColor get_node_background_fill_color()
@@ -213,12 +213,12 @@ namespace yave::editor::imgui {
 
   [[nodiscard]] inline ImColor get_socket_slot_color_hovered(socket_type type)
   {
-    return get_socket_slot_color(type);
+    return color_glow(get_socket_slot_color(type), 0.2);
   }
 
   [[nodiscard]] inline ImColor get_socket_slot_color_selected(socket_type type)
   {
-    return get_socket_slot_color(type);
+    return color_glow(get_socket_slot_color(type), 0.2);
   }
 
   // ------------------------------------------
