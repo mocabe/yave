@@ -538,12 +538,19 @@ namespace {
 
   auto toImTextureId(const vk::DescriptorSet* dsc) -> ImTextureID
   {
-    return (ImTextureID)dsc;
+    // we don't assume anything about what ImTextureID actually is, so use
+    // memcpy() here.
+    static_assert(sizeof(ImTextureID) == sizeof(vk::DescriptorSet*));
+    ImTextureID ret;
+    std::memcpy(&ret, &dsc, sizeof(ImTextureID));
+    return ret;
   }
 
   auto fromImTextureId(const ImTextureID& tex) -> const vk::DescriptorSet*
   {
-    return (const vk::DescriptorSet*)tex;
+    const vk::DescriptorSet* ret;
+    std::memcpy(&ret, &tex, sizeof(vk::DescriptorSet*));
+    return ret;
   }
 
   void initImGuiPipeline(
@@ -1279,7 +1286,7 @@ namespace yave::imgui {
 
     if (m_pimpl->textures.find(name) != m_pimpl->textures.end()) {
       Error(g_logger, "Failed to add texture data: Texute name already used");
-      return ImTextureID(nullptr);
+      return ImTextureID();
     }
 
     auto device         = m_pimpl->vulkanCtx.device();
@@ -1328,7 +1335,7 @@ namespace yave::imgui {
     auto iter = m_pimpl->textures.find(name);
 
     if (iter == m_pimpl->textures.end())
-      return ImTextureID(nullptr);
+      return ImTextureID();
 
     return iter->second->get_texture();
   }
