@@ -93,47 +93,16 @@ namespace yave::editor::imgui {
     return gridpx(1);
   }
 
-  /// calculate text size
-  [[nodiscard]] inline auto calc_text_size(
-    const std::string& text,
-    font_size_level level) -> ImVec2
-  {
-    auto font = get_font_data(level);
-    return font->CalcTextSizeA(
-      get_font_size(level),
-      std::numeric_limits<float>::max(),
-      0.0,
-      text.c_str());
-  }
-
-  /// calculate aligned text position
-  [[nodiscard]] inline auto calc_text_pos(
-    const std::string& text,
-    font_size_level level,
-    ImVec2 region,
-    text_alignment alignment) -> ImVec2
-  {
-    auto text_size = calc_text_size(text, level);
-
-    assert(region.x >= text_size.x);
-    assert(region.y >= text_size.y);
-
-    switch (alignment) {
-      case text_alignment::center:
-        return {(region.x - text_size.x) / 2, (region.y - text_size.y) / 2};
-      case text_alignment::left:
-        return {std::min(get_text_padding(), (region.x - text_size.x) / 2),
-                (region.y - text_size.y) / 2};
-      case text_alignment::right:
-        return {(region.x - text_size.x) / 2,
-                std::min(get_text_padding(), (region.y - text_size.y) / 2)};
-    }
-
-    unreachable();
-  }
-
   // ------------------------------------------
   // Colors
+
+  [[nodiscard]] inline ImColor color_glow(const ImColor& col, float glow)
+  {
+    return {std::min(1.f, col.Value.x * (1.f + glow)),
+            std::min(1.f, col.Value.y * (1.f + glow)),
+            std::min(1.f, col.Value.z * (1.f + glow)),
+            col.Value.w};
+  }
 
   [[nodiscard]] inline ImColor get_background_color()
   {
@@ -276,6 +245,11 @@ namespace yave::editor::imgui {
   [[nodiscard]] inline ImVec2 get_socket_padding()
   {
     return {gridpx(3) / 2, gridpx(1)};
+  }
+
+  [[nodiscard]] inline float get_socket_slot_radius()
+  {
+    return 5;
   }
 
 } // namespace yave::editor::imgui
