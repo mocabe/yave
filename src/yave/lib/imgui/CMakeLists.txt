@@ -2,7 +2,7 @@
 
 add_library(yave-lib-imgui 
   imgui_context.cpp
-  ext_invisible_button.cpp)
+  invisible_button_ex.cpp)
 
 add_library(yave::lib::imgui ALIAS yave-lib-imgui)
 

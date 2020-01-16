@@ -3,9 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/imgui/ext_invisible_button.hpp>
+#include <yave/lib/imgui/extension.hpp>
 
-#include <yave/lib/imgui/ext_vec2_ops.hpp>
 #include <imgui_internal.h>
 
 namespace yave::imgui {
