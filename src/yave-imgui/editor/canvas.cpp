@@ -154,10 +154,18 @@ namespace yave::editor::imgui {
       auto area_base = ImVec2 {pos.x + padding_x, pos.y + padding_y};
       auto area_size = ImVec2 {size.x - 2 * padding_x, size.y - 2 * padding_y};
 
-      auto align = (type == socket_type::input)
-                     ? text_alignment::right
-                     : (type == socket_type::output) ? text_alignment::left
-                                                     : text_alignment::center;
+      text_alignment align;
+
+      switch (type) {
+        case socket_type::input:
+          align = text_alignment::right;
+          break;
+        case socket_type::output:
+          align = text_alignment::left;
+          break;
+        default:
+          unreachable();
+      }
 
       auto text_pos =
         calc_text_pos(name, font_size_level::e15, area_size, align);
