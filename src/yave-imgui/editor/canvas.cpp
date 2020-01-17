@@ -332,6 +332,76 @@ namespace yave::editor::imgui {
       }
     }
 
+    struct SocketDnDPayload
+    {
+      socket_handle socket;
+      socket_type type;
+    };
+
+    void handle_socket_input(
+      const ImVec2& node_screen_pos,
+      const socket_type& socket_type,
+      const ImVec2& slot_pos,
+      const float& slot_size,
+      const socket_handle& s,
+      const managed_node_graph& g,
+      editor_context& editor_ctx)
+    {
+      ImGui::PushID(s.id().data);
+      {
+        // handle slot
+        bool hovered;
+        ImGui::SetCursorScreenPos(slot_pos - ImVec2 {slot_size, slot_size});
+        InvisibleButtonEx("slot", {2 * slot_size, 2 * slot_size}, &hovered);
+
+        if (hovered) {
+          // set hovered
+          editor_ctx.set_hovered(s);
+          // left click: select
+          // TODO:
+          if (ImGui::IsMouseClicked(0)) {
+            editor_ctx.clear_selected_nodes();
+            editor_ctx.clear_selected_sockets();
+            editor_ctx.clear_selected_connections();
+            editor_ctx.add_selected(s);
+            Info("output slot clicked!");
+          }
+        }
+
+        // handle drag source
+        if (ImGui::BeginDragDropSource()) {
+          SocketDnDPayload payload {s, socket_type};
+          ImGui::SetDragDropPayload(
+            "SocketDnDPayload", &payload, sizeof(SocketDnDPayload));
+          ImGui::Text("hello");
+          ImGui::EndDragDropSource();
+        }
+
+        // handle drag target
+        if (ImGui::BeginDragDropTarget()) {
+          if (auto pld = ImGui::AcceptDragDropPayload("SocketDnDPayload")) {
+            auto payload = (const SocketDnDPayload*)pld->Data;
+            if (payload->type != socket_type) {
+              // connect
+              switch (socket_type) {
+                case socket_type::input:
+                  editor_ctx.connect(payload->socket, s);
+                  break;
+                case socket_type::output:
+                  editor_ctx.connect(s, payload->socket);
+                  break;
+                default:
+                  unreachable();
+              }
+            } else
+              Info("invalid dnd");
+            ImGui::EndDragDropTarget();
+          }
+        }
+      }
+      ImGui::PopID();
+    }
+
     void handle_node_channel(
       imgui_context& imgui_ctx,
       editor_context& editor_ctx)
@@ -363,54 +433,22 @@ namespace yave::editor::imgui {
         ImVec2 cursor = {0, node_header_size.y};
 
         // output sockets
-        // TODO make this function
         for (auto&& s : g.output_sockets(n)) {
 
-          auto type        = socket_type::output;
+          auto socket_type = socket_type::output;
           auto socket_size = calc_socket_size(n, s, g);
-
-          ImGui::PushID(s.id().data);
-          {
-            // handle slot
-            auto slot_pos =
-              calc_socket_slot_pos(type, node_screen_pos + cursor, socket_size);
+          auto slot_pos    = calc_socket_slot_pos(
+            socket_type, node_screen_pos + cursor, socket_size);
             auto slot_size = get_socket_slot_radius() * 2;
 
-            ImGui::SetCursorScreenPos(slot_pos - ImVec2 {slot_size, slot_size});
-
-            bool hovered;
-            InvisibleButtonEx("slot", {slot_size, slot_size}, &hovered);
-
-            if (hovered) {
-              // set hovered
-              editor_ctx.set_hovered(s);
-              // left click: select
-              // TODO:
-              if (ImGui::IsMouseClicked(0)) {
-                editor_ctx.clear_selected_nodes();
-                editor_ctx.clear_selected_sockets();
-                editor_ctx.clear_selected_connections();
-                editor_ctx.add_selected(s);
-                Info("output slot clicked!");
-              }
-            }
-
-            // handle dragging
-            // TODO
-            if (
-              ImGui::IsWindowFocused() && ImGui::IsMouseDragging(0)
-              && editor_ctx.is_selected(s)) {
-
-              auto dl = ImGui::GetWindowDrawList();
-              dl->ChannelsSetCurrent(get_foreground_channel_index());
-              dl->AddLine(
+          handle_socket_input(
+            node_screen_pos,
+            socket_type,
                 slot_pos,
-                ImGui::GetMousePos(),
-                ImColor(240, 240, 240, 255),
-                2.0);
-            }
-          }
-          ImGui::PopID();
+            slot_size,
+            s,
+            g,
+            editor_ctx);
 
           // move cursor
           cursor.y += socket_size.y;
@@ -419,36 +457,20 @@ namespace yave::editor::imgui {
         // input sockets
         for (auto&& s : g.input_sockets(n)) {
 
-          auto type        = socket_type::input;
+          auto socket_type = socket_type::input;
           auto socket_size = calc_socket_size(n, s, g);
-
-          ImGui::PushID(s.id().data);
-          {
-            // handle slot
-            auto slot_pos =
-              calc_socket_slot_pos(type, node_screen_pos + cursor, socket_size);
+          auto slot_pos    = calc_socket_slot_pos(
+            socket_type, node_screen_pos + cursor, socket_size);
             auto slot_size = get_socket_slot_radius() * 2;
 
-            ImGui::SetCursorScreenPos(slot_pos - ImVec2 {slot_size, slot_size});
-
-            bool hovered;
-            InvisibleButtonEx("slot", {slot_size, slot_size}, &hovered);
-
-            if (hovered) {
-              // set hovered
-              editor_ctx.set_hovered(s);
-              // left click: select
-              // TODO:
-              if (ImGui::IsMouseClicked(0)) {
-                editor_ctx.clear_selected_nodes();
-                editor_ctx.clear_selected_sockets();
-                editor_ctx.clear_selected_connections();
-                editor_ctx.add_selected(s);
-                Info("output slot clicked!");
-              }
-            }
-          }
-          ImGui::PopID();
+          handle_socket_input(
+            node_screen_pos,
+            socket_type,
+            slot_pos,
+            slot_size,
+            s,
+            g,
+            editor_ctx);
 
           // move cursor
           cursor.y += socket_size.y;
