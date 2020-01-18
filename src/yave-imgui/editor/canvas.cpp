@@ -19,24 +19,18 @@ namespace yave::editor::imgui {
     using namespace yave::imgui;
     using namespace yave::app;
 
-    ImVec2 to_ImVec2(const tvec2<float>& v)
-    {
-      return {v.x(), v.y()};
-    }
-
-    tvec2<float> to_tvec2(const ImVec2& v)
-    {
-      return {v.x, v.y};
-    }
-
     // ------------------------------------------
     // Canvas
 
     /// draw background color, grid, etc.
     void draw_background_channel(
-      imgui_context& imgui_ctx,
-      editor_context& editor_ctx)
+      const imgui_context& imgui_ctx,
+      const editor_context& editor_ctx,
+      const canvas_layout& layout)
     {
+      (void)imgui_ctx;
+      (void)layout;
+
       auto wpos  = ImGui::GetWindowPos();
       auto wsize = ImGui::GetWindowSize();
       auto dl    = ImGui::GetWindowDrawList();
@@ -76,8 +70,12 @@ namespace yave::editor::imgui {
 
     void handle_background_channel(
       imgui_context& imgui_ctx,
-      editor_context& editor_ctx)
+      editor_context& editor_ctx,
+      const canvas_layout& layout)
     {
+      (void)imgui_ctx;
+      (void)layout;
+
       auto wpos   = ImGui::GetWindowPos();
       auto wsize  = ImGui::GetWindowSize();
       auto scroll = to_ImVec2(editor_ctx.get_scroll());
@@ -145,9 +143,12 @@ namespace yave::editor::imgui {
       socket_type type,
       const ImVec2& pos,
       const ImVec2& size,
-      bool is_hovered,
-      bool is_selected)
+      bool hovered,
+      bool selected)
     {
+      (void)hovered;
+      (void)selected;
+
       auto padding_x = gridpx(3) / 2;
       auto padding_y = gridpx(1);
 
@@ -259,75 +260,87 @@ namespace yave::editor::imgui {
       dl->AddRect(pos, pos + size, col, get_node_rounding());
     }
 
-    void draw_node_channel(imgui_context& imgui_ctx, editor_context& editor_ctx)
+    void draw_node(
+      const node_handle& n,
+      const node_layout& nlayout,
+      const editor_context& editor_ctx)
     {
-      auto wpos   = ImGui::GetWindowPos();
-      auto wsize  = ImGui::GetWindowSize();
-      auto scroll = to_ImVec2(editor_ctx.get_scroll());
-      auto dl     = ImGui::GetWindowDrawList();
+      auto& g = editor_ctx.node_graph();
+
+      auto npos         = nlayout.pos;
+      auto nsize        = nlayout.size;
+      auto nheader_size = nlayout.header_size;
+      auto nhovered     = editor_ctx.is_hovered(n);
+      auto nselected    = editor_ctx.is_selected(n);
+      auto nname        = *g.get_name(n);
+
+      // draw background
+      draw_node_background(npos, nsize, nhovered, nselected);
+      draw_node_header(nname, npos, nheader_size, nhovered, nselected);
+      draw_node_edge(npos, nsize, nhovered, nselected);
+    }
+
+    void draw_socket(
+      const socket_handle& s,
+      const socket_layout& slayout,
+      const editor_context& editor_ctx)
+    {
+      auto& g = editor_ctx.node_graph();
+
+      auto spos      = slayout.pos;
+      auto ssize     = slayout.size;
+      auto shovered  = editor_ctx.is_hovered(s);
+      auto sselected = editor_ctx.is_selected(s);
+      auto sname     = *g.get_name(s);
+      auto stype     = g.get_info(s)->type();
+
+      // draw
+      draw_socket_content(sname, stype, spos, ssize, shovered, sselected);
+      draw_socket_slot(stype, spos, ssize, shovered, sselected);
+    }
+
+    void draw_node_channel(
+      const imgui_context& imgui_ctx,
+      const editor_context& editor_ctx,
+      const canvas_layout& layout)
+    {
+      (void)imgui_ctx;
+
+      auto wpos = ImGui::GetWindowPos();
+      auto dl   = ImGui::GetWindowDrawList();
 
       dl->ChannelsSetCurrent(get_node_channel_index());
       ImGui::SetCursorScreenPos(wpos);
 
       auto& g = editor_ctx.node_graph();
 
-      /// (0,0) in screen coord
-      auto origin = wpos + scroll;
+      for (auto&& n : layout.nodes) {
 
-      for (auto&& n : g.get_group_members(editor_ctx.get_group())) {
+        auto niter = layout.map.find(n);
+        assert(niter != layout.map.end());
 
-        auto node_pos  = origin + to_ImVec2(*editor_ctx.get_pos(n));
-        auto node_name = *g.get_name(n);
+        auto& nlayout = niter->second;
 
-        auto hovered  = editor_ctx.is_hovered(n);
-        auto selected = editor_ctx.is_selected(n);
-
-        auto bg_size = calc_node_background_size(n, g);
-        auto hd_size = calc_node_header_size(node_name, bg_size);
-
-        // draw background
-        draw_node_background(node_pos, bg_size, hovered, selected);
-        draw_node_header(node_name, node_pos, hd_size, hovered, selected);
-        draw_node_edge(node_pos, bg_size, hovered, selected);
-
-        // draw sockets
-
-        ImVec2 cursor = {0, hd_size.y};
+        draw_node(n, nlayout, editor_ctx);
 
         for (auto&& s : g.output_sockets(n)) {
 
-          auto socket_size = calc_socket_size(n, s, g);
-          auto name        = *g.get_name(s);
-          auto hovered     = editor_ctx.is_hovered(s);
-          auto selected    = editor_ctx.is_selected(s);
-          auto type        = socket_type::output;
+          auto siter = niter->second.sockets.find(s);
+          assert(siter != niter->second.sockets.end());
 
-          // draw
-          draw_socket_content(
-            name, type, node_pos + cursor, socket_size, hovered, selected);
-          draw_socket_slot(
-            type, node_pos + cursor, socket_size, hovered, selected);
+          auto& slayout = siter->second;
 
-          // move cursor
-          cursor.y += socket_size.y;
+          draw_socket(s, slayout, editor_ctx);
         }
 
         for (auto&& s : g.input_sockets(n)) {
 
-          auto socket_size = calc_socket_size(n, s, g);
-          auto name        = *g.get_name(s);
-          auto hovered     = editor_ctx.is_hovered(s);
-          auto selected    = editor_ctx.is_selected(s);
-          auto type        = socket_type::input;
+          auto siter = niter->second.sockets.find(s);
+          assert(siter != niter->second.sockets.end());
 
-          // draw
-          draw_socket_content(
-            name, type, node_pos + cursor, socket_size, hovered, selected);
-          draw_socket_slot(
-            type, node_pos + cursor, socket_size, hovered, selected);
+          auto& slayout = siter->second;
 
-          // move cursor
-          cursor.y += socket_size.y;
+          draw_socket(s, slayout, editor_ctx);
         }
       }
     }
@@ -339,14 +352,22 @@ namespace yave::editor::imgui {
     };
 
     void handle_socket_input(
-      const ImVec2& node_screen_pos,
-      const socket_type& socket_type,
-      const ImVec2& slot_pos,
-      const float& slot_size,
+      const node_handle& n,
       const socket_handle& s,
-      const managed_node_graph& g,
+      const canvas_layout& layout,
       editor_context& editor_ctx)
     {
+      auto& g = editor_ctx.node_graph();
+
+      auto niter = layout.map.find(n);
+      auto siter = niter->second.sockets.find(s);
+
+      auto& slayout = siter->second;
+
+      auto socket_type = g.get_info(s)->type();
+      auto slot_pos    = slayout.slot_pos;
+      auto slot_size   = get_socket_slot_radius() * 2;
+
       ImGui::PushID(s.id().data);
       {
         // handle slot
@@ -360,11 +381,8 @@ namespace yave::editor::imgui {
           // left click: select
           // TODO:
           if (ImGui::IsMouseClicked(0)) {
-            editor_ctx.clear_selected_nodes();
-            editor_ctx.clear_selected_sockets();
-            editor_ctx.clear_selected_connections();
+            editor_ctx.clear_selected();
             editor_ctx.add_selected(s);
-            Info("output slot clicked!");
           }
         }
 
@@ -373,7 +391,7 @@ namespace yave::editor::imgui {
           SocketDnDPayload payload {s, socket_type};
           ImGui::SetDragDropPayload(
             "SocketDnDPayload", &payload, sizeof(SocketDnDPayload));
-          ImGui::Text("hello");
+          ImGui::Text("%s::%s", g.get_name(n)->c_str(), g.get_name(s)->c_str());
           ImGui::EndDragDropSource();
         }
 
@@ -402,123 +420,202 @@ namespace yave::editor::imgui {
       ImGui::PopID();
     }
 
-    void handle_node_channel(
-      imgui_context& imgui_ctx,
+    void handle_node_input(
+      const node_handle& n,
+      const canvas_layout& layout,
       editor_context& editor_ctx)
     {
-      auto wpos   = ImGui::GetWindowPos();
-      auto wsize  = ImGui::GetWindowSize();
-      auto scroll = to_ImVec2(editor_ctx.get_scroll());
-      auto origin = wpos + scroll;
-
-      ImGui::SetCursorScreenPos(wpos);
-
       auto& g = editor_ctx.node_graph();
 
-      auto nodes = g.get_group_members(editor_ctx.get_group());
+      auto niter = layout.map.find(n);
+      assert(niter != layout.map.end());
+
+      auto& nlayout = niter->second;
+
+      auto npos  = nlayout.pos;
+      auto nsize = nlayout.size;
+
+      // handle node input
+      ImGui::PushID(n.id().data);
+      {
+        ImGui::SetCursorScreenPos(npos);
+
+        const char* popup_name = "node_info_popup";
+
+        bool hovered;
+        InvisibleButtonEx("node", nsize, &hovered);
+
+        if (hovered) {
+          // set hover
+          editor_ctx.set_hovered(n);
+          // right click: select
+          if (ImGui::IsMouseClicked(0)) {
+            editor_ctx.clear_selected();
+            editor_ctx.add_selected(n);
+          }
+          // left click: open info popup
+          if (ImGui::IsMouseClicked(1)) {
+            Info(popup_name);
+            ImGui::OpenPopup("node_info_popup");
+          }
+        }
+
+        // handle dragging
+        if (
+          ImGui::IsWindowFocused() && ImGui::IsMouseDragging(0)
+          && editor_ctx.is_selected(n)) {
+          auto delta = ImGui::GetIO().MouseDelta;
+          if (delta != ImVec2(0, 0))
+            editor_ctx.set_pos(n, *editor_ctx.get_pos(n) + to_tvec2(delta));
+        }
+
+        if (ImGui::BeginPopup(popup_name)) {
+          ImGui::Text("Node: %s", g.get_name(n)->c_str());
+          ImGui::EndPopup();
+        }
+        }
+        ImGui::PopID();
+    }
+
+    void handle_node_channel(
+      imgui_context& imgui_ctx,
+      editor_context& editor_ctx,
+      const canvas_layout& layout)
+    {
+      (void)imgui_ctx;
+
+      auto wpos = ImGui::GetWindowPos();
+      ImGui::SetCursorScreenPos(wpos);
+
+      auto& g     = editor_ctx.node_graph();
+      auto& nodes = layout.nodes;
 
       // traverse in reverse order
       for (auto it = nodes.rbegin(); it != nodes.rend(); ++it) {
 
         auto& n = *it;
 
-        auto node_name        = *g.get_name(n);
-        auto node_pos         = to_ImVec2(*editor_ctx.get_pos(n));
-        auto node_screen_pos  = origin + node_pos;
-        auto node_size        = calc_node_background_size(n, g);
-        auto node_header_size = calc_node_header_size(node_name, node_size);
+        for (auto&& s : g.output_sockets(n)) {
+          handle_socket_input(n, s, layout, editor_ctx);
+        }
 
-        // handle socket input
+        for (auto&& s : g.input_sockets(n)) {
+          handle_socket_input(n, s, layout, editor_ctx);
+        }
 
-        ImVec2 cursor = {0, node_header_size.y};
+        handle_node_input(n, layout, editor_ctx);
+      }
+    }
 
-        // output sockets
+    // ------------------------------------------
+    // Connection
+
+    void draw_connection(
+      const ImVec2& p1,
+      const ImVec2& p2,
+      bool hovered,
+      bool selected)
+    {
+      auto dl = ImGui::GetWindowDrawList();
+
+      auto col = hovered ? get_connection_color_hovered()
+                         : selected ? get_connection_color_selected()
+                                    : get_connection_color();
+
+      auto thickness = get_connection_thickness();
+
+      ImVec2 disp {gridpx(5), 0};
+      dl->AddBezierCurve(p1, p1 - disp, p2 + disp, p2, col, thickness);
+      // dl->AddLine(p1, p2, col, thickness);
+    }
+
+    void draw_connection_channel(
+      const imgui_context& imgui_ctx,
+      const editor_context& editor_ctx,
+      const canvas_layout& layout)
+    {
+      (void)imgui_ctx;
+
+      auto dl = ImGui::GetWindowDrawList();
+      dl->ChannelsSetCurrent(get_connection_channel_index());
+
+      auto& g = editor_ctx.node_graph();
+
+      for (auto&& n : layout.nodes) {
+
+        auto nit = layout.map.find(n);
+        assert(nit != layout.map.end());
+
         for (auto&& s : g.output_sockets(n)) {
 
-          auto socket_type = socket_type::output;
-          auto socket_size = calc_socket_size(n, s, g);
-          auto slot_pos    = calc_socket_slot_pos(
-            socket_type, node_screen_pos + cursor, socket_size);
-            auto slot_size = get_socket_slot_radius() * 2;
+          auto sit = nit->second.sockets.find(s);
+          assert(sit != nit->second.sockets.end());
 
-          handle_socket_input(
-            node_screen_pos,
-            socket_type,
-                slot_pos,
-            slot_size,
-            s,
-            g,
-            editor_ctx);
+          for (auto&& c : g.connections(s)) {
 
-          // move cursor
-          cursor.y += socket_size.y;
+            auto cinfo = g.get_info(c);
+
+            auto ndstit = layout.map.find(cinfo->dst_node());
+            assert(ndstit != layout.map.end());
+
+            auto sdstit = ndstit->second.sockets.find(cinfo->dst_socket());
+            assert(sdstit != ndstit->second.sockets.end());
+
+            auto src_pos = sit->second.slot_pos;
+            auto dst_pos = sdstit->second.slot_pos;
+
+            auto chovered  = editor_ctx.is_hovered(c);
+            auto cselected = editor_ctx.is_selected(c);
+
+            // draw
+            draw_connection(src_pos, dst_pos, chovered, cselected);
+          }
         }
+      }
+    }
 
-        // input sockets
-        for (auto&& s : g.input_sockets(n)) {
+    // ------------------------------------------
+    // Foreground
+    void draw_foreground_channel(
+      const imgui_context& imgui_ctx,
+      const editor_context& editor_ctx,
+      const canvas_layout& layout)
+    {
+      (void)imgui_ctx;
 
-          auto socket_type = socket_type::input;
-          auto socket_size = calc_socket_size(n, s, g);
-          auto slot_pos    = calc_socket_slot_pos(
-            socket_type, node_screen_pos + cursor, socket_size);
-            auto slot_size = get_socket_slot_radius() * 2;
+      auto dl = ImGui::GetWindowDrawList();
+      dl->ChannelsSetCurrent(get_foreground_channel_index());
 
-          handle_socket_input(
-            node_screen_pos,
-            socket_type,
-            slot_pos,
-            slot_size,
-            s,
-            g,
-            editor_ctx);
+      auto& g = editor_ctx.node_graph();
 
-          // move cursor
-          cursor.y += socket_size.y;
-        }
+      // connection
+      if (editor_ctx.is_socket_selected() && ImGui::IsMouseDragging(0)) {
 
-        // handle node input
-        ImGui::PushID(n.id().data);
-        {
-          ImGui::SetCursorScreenPos(node_screen_pos);
+        auto ss = editor_ctx.get_selected_sockets();
 
-          const char* popup_name = "node_info_popup";
+        if (ss.size() == 1) {
+          // socket
+          auto s = ss.front();
 
-          bool hovered;
-          InvisibleButtonEx("node", node_size, &hovered);
+          if (auto n = g.node(s)) {
+            auto niter = layout.map.find(n);
+            auto siter = niter->second.sockets.find(s);
 
-          if (hovered) {
-            // set hover
-            editor_ctx.set_hovered(n);
-            // right click: select
-            if (ImGui::IsMouseClicked(0)) {
-              Info("node right cligk");
-              editor_ctx.clear_selected_nodes();
-              editor_ctx.clear_selected_sockets();
-              editor_ctx.clear_selected_connections();
-              editor_ctx.add_selected(n);
+            ImVec2 src, dst;
+
+            if (g.get_info(s)->type() == socket_type::input) {
+              src = ImGui::GetMousePos();
+              dst = siter->second.slot_pos;
             }
-            // left click: open info popup
-            if (ImGui::IsMouseClicked(1)) {
-              Info(popup_name);
-              ImGui::OpenPopup("node_info_popup");
+
+            if (g.get_info(s)->type() == socket_type::output) {
+              src = siter->second.slot_pos;
+              dst = ImGui::GetMousePos();
             }
-          }
 
-          // handle dragging
-          if (
-            ImGui::IsWindowFocused() && ImGui::IsMouseDragging(0)
-            && editor_ctx.is_selected(n)) {
-            auto delta = ImGui::GetIO().MouseDelta;
-            if (delta != ImVec2(0, 0))
-              editor_ctx.set_pos(n, to_tvec2(node_pos + delta));
-          }
-
-          if (ImGui::BeginPopup(popup_name)) {
-            ImGui::Text("Node: %s", g.get_name(n)->c_str());
-            ImGui::EndPopup();
+            draw_connection(src, dst, false, false);
           }
         }
-        ImGui::PopID();
       }
     }
 
@@ -531,6 +628,9 @@ namespace yave::editor::imgui {
       editor_context& editor_ctx,
       F&& f)
     {
+      (void)imgui_ctx;
+      (void)editor_ctx;
+
       auto wname = "node region";
       auto wflag = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove
                    | ImGuiWindowFlags_AlwaysUseWindowPadding;
@@ -556,24 +656,37 @@ namespace yave::editor::imgui {
       ImGui::PopStyleVar(2);
     }
 
+    [[nodiscard]] auto get_nodes_to_render(const editor_context& editor_ctx)
+    {
+      auto& g = editor_ctx.node_graph();
+
+      auto group = editor_ctx.get_group();
+      auto nodes = g.get_group_members(group);
+      nodes.push_back(g.get_group_output(group));
+      nodes.push_back(g.get_group_input(group));
+      return nodes;
+    }
+
   } // namespace
 
   // impl
   void draw_node_canvas(imgui_context& imgui_ctx, editor_context& editor_ctx)
   {
-    // node canvas
     node_region(imgui_ctx, editor_ctx, [&] {
-      // draw (bottom up)
-      draw_background_channel(imgui_ctx, editor_ctx);
-      draw_node_channel(imgui_ctx, editor_ctx);
-
-      // handle input (top down)
+      /* handle input */
       editor_ctx.begin_frame();
+      auto nodes  = get_nodes_to_render(editor_ctx);
+      auto layout = calc_canvas_layout(nodes, editor_ctx);
       {
-        handle_node_channel(imgui_ctx, editor_ctx);
-        handle_background_channel(imgui_ctx, editor_ctx);
+        handle_node_channel(imgui_ctx, editor_ctx, layout);
+        handle_background_channel(imgui_ctx, editor_ctx, layout);
       }
       editor_ctx.end_frame();
+      /* draw canvas */
+      draw_connection_channel(imgui_ctx, editor_ctx, layout);
+      draw_background_channel(imgui_ctx, editor_ctx, layout);
+      draw_node_channel(imgui_ctx, editor_ctx, layout);
+      draw_foreground_channel(imgui_ctx, editor_ctx, layout);
     });
   }
 } // namespace yave::editor::imgui
