@@ -267,6 +267,13 @@ namespace yave::app {
     m_command_queue.emplace_back([&] { m_c_hovered = {nullptr}; });
   }
 
+  void editor_context::clear_hovered()
+  {
+    clear_hovered_node();
+    clear_hovered_socket();
+    clear_hovered_connection();
+  }
+
   bool editor_context::is_node_hovered() const
   {
     return m_n_hovered.has_value();
@@ -429,6 +436,13 @@ namespace yave::app {
     m_command_queue.emplace_back([&] { m_c_selected.clear(); });
   }
 
+  void editor_context::clear_selected()
+  {
+    clear_selected_nodes();
+    clear_selected_sockets();
+    clear_selected_connections();
+  }
+
   bool editor_context::is_node_selected() const
   {
     return !m_n_selected.empty();
@@ -475,6 +489,38 @@ namespace yave::app {
       return it != m_c_selected.end();
     }
     return false;
+  }
+
+  auto editor_context::get_selected_nodes() const -> std::vector<node_handle>
+  {
+    return m_n_selected;
+  }
+
+  auto editor_context::get_selected_sockets() const
+    -> std::vector<socket_handle>
+  {
+    return m_s_selected;
+  }
+
+  auto editor_context::get_selected_connections() const
+    -> std::vector<connection_handle>
+  {
+    return m_c_selected;
+  }
+
+  auto editor_context::get_hovered_node() const -> node_handle
+  {
+    return m_n_hovered;
+  }
+
+  auto editor_context::get_hovered_socket() const -> socket_handle
+  {
+    return m_s_hovered;
+  }
+
+  auto editor_context::get_hovered_connection() const -> connection_handle
+  {
+    return m_c_hovered;
   }
 
 } // namespace yave::app

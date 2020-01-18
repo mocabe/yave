@@ -90,6 +90,8 @@ namespace yave::app {
     void clear_hovered_socket();
     /// Clear hovered
     void clear_hovered_connection();
+    /// Clear hovered all
+    void clear_hovered();
 
     /// Hovered?
     bool is_node_hovered() const;
@@ -125,6 +127,8 @@ namespace yave::app {
     void clear_selected_sockets();
     /// Clear selected list
     void clear_selected_connections();
+    /// Clear selected all
+    void clear_selected();
 
     /// Selected?
     bool is_node_selected() const;
@@ -139,6 +143,20 @@ namespace yave::app {
     bool is_selected(const socket_handle& socket) const;
     /// Selected?
     bool is_selected(const connection_handle& connection) const;
+
+    /// Selected nodes
+    auto get_selected_nodes() const -> std::vector<node_handle>;
+    /// Selected sockets
+    auto get_selected_sockets() const -> std::vector<socket_handle>;
+    /// Selected connections
+    auto get_selected_connections() const -> std::vector<connection_handle>;
+
+    /// Hovered node
+    auto get_hovered_node() const -> node_handle;
+    /// Hovered socket
+    auto get_hovered_socket() const -> socket_handle;
+    /// Hovered connection
+    auto get_hovered_connection() const -> connection_handle;
 
   private:
     /// data thread ref
