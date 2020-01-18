@@ -190,6 +190,22 @@ namespace yave::editor::imgui {
     return color_glow(get_socket_slot_color(type), 0.2);
   }
 
+  [[nodiscard]] inline ImColor get_connection_color()
+  {
+    return {240, 240, 240, 240};
+  }
+
+  [[nodiscard]] inline ImColor get_connection_color_hovered()
+  {
+    return get_connection_color();
+  }
+
+  [[nodiscard]] inline ImColor get_connection_color_selected()
+  {
+    return get_connection_color();
+  }
+
+
   // ------------------------------------------
   // Drawing layers
 
@@ -250,6 +266,11 @@ namespace yave::editor::imgui {
   [[nodiscard]] inline float get_socket_slot_radius()
   {
     return 5;
+  }
+
+  [[nodiscard]] inline float get_connection_thickness()
+  {
+    return 1.f;
   }
 
 } // namespace yave::editor::imgui
