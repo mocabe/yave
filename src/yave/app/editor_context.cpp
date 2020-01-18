@@ -20,7 +20,8 @@ namespace yave::app {
     init_logger();
 
     // init snapshot
-    m_snapshot = m_data_thread.snapshot();
+    m_snapshot      = m_data_thread.snapshot();
+    m_current_group = m_snapshot->graph.root_group();
   }
 
   void editor_context::begin_frame()
