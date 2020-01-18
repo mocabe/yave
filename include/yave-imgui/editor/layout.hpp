@@ -11,16 +11,6 @@
 
 namespace yave::editor::imgui {
 
-  ImVec2 to_ImVec2(const tvec2<float>& v)
-  {
-    return {v.x(), v.y()};
-  }
-
-  tvec2<float> to_tvec2(const ImVec2& v)
-  {
-    return {v.x, v.y};
-  }
-
   // ------------------------------------------
   // Text layout helpers
 

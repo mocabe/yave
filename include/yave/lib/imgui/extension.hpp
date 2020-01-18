@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/config/config.hpp>
+#include <yave/lib/vec/tvec2.hpp>
 #include <imgui.h>
 
 namespace yave::imgui {
@@ -43,6 +44,16 @@ namespace yave::imgui {
     return !(lhs == rhs);
   }
 
+  inline ImVec2 to_ImVec2(const tvec2<float>& v)
+  {
+    return {v.x(), v.y()};
+  }
+
+  inline tvec2<float> to_tvec2(const ImVec2& v)
+  {
+    return {v.x, v.y};
+  }
+
   // ------------------------------------------
   // InvisibleButtonEx
 
@@ -52,4 +63,4 @@ namespace yave::imgui {
     bool* out_hovered = nullptr,
     bool* out_held    = nullptr);
 
-} // namespace yave
+} // namespace yave::imgui
