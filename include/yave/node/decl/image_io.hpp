@@ -13,17 +13,17 @@ namespace yave {
 
   namespace node {
     /// Load image
-    struct LoadImage;
+    struct ImageLoad;
   } // namespace node
 
   template <>
-  struct node_declaration_traits<node::LoadImage>
+  struct node_declaration_traits<node::ImageLoad>
   {
     static auto get_node_declaration() -> node_declaration
     {
       class X;
       return node_declaration(
-        "LoadImage",
+        "ImageLoad",
         {"path"},
         {"image"},
         object_type<node_closure<X, Image>>());

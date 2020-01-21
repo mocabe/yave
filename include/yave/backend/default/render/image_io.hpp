@@ -15,7 +15,7 @@ namespace yave {
   namespace backends::default_render {
 
     /// Load image from file
-    struct LoadImage : NodeFunction<LoadImage, FilesystemPath, Image>
+    struct ImageLoad : NodeFunction<ImageLoad, FilesystemPath, Image>
     {
       return_type code() const
       {
@@ -27,16 +27,16 @@ namespace yave {
   } // namespace backends::default_render
 
   template <>
-  struct node_definition_traits<node::LoadImage, backend_tags::default_render>
+  struct node_definition_traits<node::ImageLoad, backend_tags::default_render>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
-      auto info = get_node_declaration<node::LoadImage>();
+      auto info = get_node_declaration<node::ImageLoad>();
       return {node_definition(
         info.name(),
         info.output_sockets()[0],
         make_object<
-          InstanceGetterFunction<backends::default_render::LoadImage>>(),
+          InstanceGetterFunction<backends::default_render::ImageLoad>>(),
         info.name() + ": Load image from file")};
     }
   };

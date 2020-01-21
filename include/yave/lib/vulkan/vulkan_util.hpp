@@ -9,6 +9,7 @@
 
 // https://github.com/KhronosGroup/Vulkan-Hpp/pull/431
 #if defined(YAVE_OS_WINDOWS)
+#  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
 #endif
 

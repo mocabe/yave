@@ -87,7 +87,7 @@ namespace yave::backends::default_render {
       ret.push_back(get_node_declaration<node::BlendOpAdd>());
       ret.push_back(get_node_declaration<node::LayerCompositor>());
       ret.push_back(get_node_declaration<node::FrameBuffer>());
-      ret.push_back(get_node_declaration<node::LoadImage>());
+      ret.push_back(get_node_declaration<node::ImageLoad>());
       ret.push_back(get_node_declaration<node::LayerImageOutput>());
       ret.push_back(get_node_declaration<node::KeyframeEvaluatorInt>());
       ret.push_back(get_node_declaration<node::KeyframeEvaluatorFloat>());
@@ -116,7 +116,7 @@ namespace yave::backends::default_render {
       def(yave::get_node_definitions<node::BlendOpAdd, backend_tags::default_render>());
       def(yave::get_node_definitions<node::LayerCompositor, backend_tags::default_render>());
       def(yave::get_node_definitions<node::FrameBuffer, backend_tags::default_render>(&(*m_pimpl->fb_manager)));
-      def(yave::get_node_definitions<node::LoadImage, backend_tags::default_render>());
+      def(yave::get_node_definitions<node::ImageLoad, backend_tags::default_render>());
       def(yave::get_node_definitions<node::LayerImageOutput, backend_tags::default_render>());
       def(yave::get_node_definitions<node::KeyframeEvaluatorInt, backend_tags::default_render>());
       def(yave::get_node_definitions<node::KeyframeEvaluatorFloat, backend_tags::default_render>());
