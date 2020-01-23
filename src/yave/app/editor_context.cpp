@@ -22,6 +22,7 @@ namespace yave::app {
     // init snapshot
     m_snapshot      = m_data_thread.snapshot();
     m_current_group = m_snapshot->graph.root_group();
+    m_state         = editor_state::neutral;
   }
 
   void editor_context::begin_frame()
@@ -524,4 +525,104 @@ namespace yave::app {
     return m_c_hovered;
   }
 
+  auto editor_context::get_state() const -> editor_state
+  {
+    return m_state;
+  }
+
+  void editor_context::begin_background_drag(const tvec2<float>& pos)
+  {
+    m_command_queue.emplace_back([&, pos] {
+      Info(
+        g_logger,
+        "state: {} -> {}",
+        to_string(m_state),
+        to_string(editor_state::background));
+
+      assert(m_state == editor_state::neutral);
+      m_state           = editor_state::background;
+      m_drag_source_pos = pos;
+    });
+  }
+
+  void editor_context::begin_node_drag(const tvec2<float>& pos)
+  {
+    m_command_queue.emplace_back([&, pos] {
+      Info(
+        g_logger,
+        "state: {} -> {}",
+        to_string(m_state),
+        to_string(editor_state::node));
+
+      assert(m_state == editor_state::neutral);
+      m_state           = editor_state::node;
+      m_drag_source_pos = pos;
+    });
+  }
+
+  void editor_context::begin_socket_drag(const tvec2<float>& pos)
+  {
+    m_command_queue.emplace_back([&, pos] {
+      Info(
+        g_logger,
+        "state: {} -> {}",
+        to_string(m_state),
+        to_string(editor_state::socket));
+
+      assert(m_state == editor_state::neutral);
+      m_state           = editor_state::socket;
+      m_drag_source_pos = pos;
+    });
+  }
+
+  void editor_context::end_background_drag()
+  {
+    m_command_queue.emplace_back([&] {
+      Info(
+        g_logger,
+        "state: {} -> {}",
+        to_string(m_state),
+        to_string(editor_state::neutral));
+
+      assert(m_state == editor_state::background);
+      m_state           = editor_state::neutral;
+      m_drag_source_pos = {};
+    });
+  }
+
+  void editor_context::end_node_drag()
+  {
+    m_command_queue.emplace_back([&] {
+      Info(
+        g_logger,
+        "state: {} -> {}",
+        to_string(m_state),
+        to_string(editor_state::neutral));
+
+      assert(m_state == editor_state::node);
+      m_state            = editor_state::neutral;
+      m_drag_source_pos  = {};
+    });
+  }
+
+  void editor_context::end_socket_drag()
+  {
+    m_command_queue.emplace_back([&] {
+      Info(
+        g_logger,
+        "state: {} -> {}",
+        to_string(m_state),
+        to_string(editor_state::neutral));
+
+      assert(m_state == editor_state::socket);
+      m_state           = editor_state::neutral;
+      m_drag_source_pos = {};
+    });
+  }
+
+  auto editor_context::get_drag_source_pos() const -> tvec2<float>
+  {
+    assert(m_state != editor_state::neutral);
+    return m_drag_source_pos;
+  }
 } // namespace yave::app

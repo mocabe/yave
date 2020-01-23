@@ -10,6 +10,7 @@
 #include <yave/app/editor_node_info.hpp>
 #include <yave/app/editor_socket_info.hpp>
 #include <yave/app/editor_connection_info.hpp>
+#include <yave/app/editor_state.hpp>
 
 namespace yave::app {
 
@@ -158,6 +159,25 @@ namespace yave::app {
     /// Hovered connection
     auto get_hovered_connection() const -> connection_handle;
 
+  public: /* state transition events. only for state context management */
+    /// Get current editor state
+    auto get_state() const -> editor_state;
+    /// Store pos and handle, transition to Background state
+    void begin_background_drag(const tvec2<float>& pos);
+    /// Store pos and handle, transition to Node state
+    void begin_node_drag(const tvec2<float>& pos);
+    /// Store pos and handle, transition to Socket state
+    void begin_socket_drag(const tvec2<float>& pos);
+    /// Transition to Neutral state
+    void end_background_drag();
+    /// Transition to Neutral state
+    void end_node_drag();
+    /// Transition to Neutral state
+    void end_socket_drag();
+
+    /// Get drag source pos
+    auto get_drag_source_pos() const -> tvec2<float>;
+
   private:
     /// data thread ref
     node_data_thread& m_data_thread;
@@ -185,5 +205,10 @@ namespace yave::app {
 
   private:
     bool m_in_frame;
+
+  private:
+    editor_state m_state;
+    tvec2<float> m_drag_source_pos;
   };
+
 } // namespace yave::app
