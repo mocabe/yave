@@ -12,7 +12,7 @@
 
 #include <yave/support/log.hpp>
 
-#include <boost/geometry.hpp>
+#include <boost/geometry/algorithms/intersects.hpp>
 #include <boost/geometry/geometries/register/point.hpp>
 #include <utility>
 
@@ -385,12 +385,6 @@ namespace yave::editor::imgui {
         }
       }
     }
-
-    struct SocketDnDPayload
-    {
-      socket_handle socket;
-      socket_type type;
-    };
 
     void handle_socket_input(
       const node_handle& n,
