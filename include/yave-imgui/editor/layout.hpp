@@ -268,6 +268,15 @@ namespace yave::editor::imgui {
 
       auto node_screen_pos = wpos + scroll + to_ImVec2(*editor_ctx.get_pos(n));
 
+      // handle dragged node
+      if (editor_ctx.get_state() == app::editor_state::node) {
+        if (editor_ctx.is_selected(n)) {
+          auto drag_src_pos = to_ImVec2(editor_ctx.get_drag_source_pos());
+          node_screen_pos =
+            node_screen_pos + ImGui::GetMousePos() - drag_src_pos;
+        }
+      }
+
       // layout
       node_layout nlayout = calc_node_layout(node_screen_pos, n, g);
 

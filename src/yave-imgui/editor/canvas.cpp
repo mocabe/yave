@@ -12,12 +12,49 @@
 
 #include <yave/support/log.hpp>
 
+#include <utility>
+
 namespace yave::editor::imgui {
 
   namespace {
 
     using namespace yave::imgui;
     using namespace yave::app;
+
+    // ------------------------------------------
+    // Util
+
+    bool rectHit(ImVec2 p1, ImVec2 p2, const ImVec2& p)
+    {
+      if (p1.x > p2.x)
+        std::swap(p1.x, p2.x);
+      if (p1.y > p2.y)
+        std::swap(p1.y, p2.y);
+      return p1.x < p.x && p.x < p2.x && p1.y < p.y && p.y < p2.y;
+    }
+
+    bool rectIntersec(ImVec2 p1, ImVec2 p2, ImVec2 q1, ImVec2 q2)
+    {
+      if (p1.x > p2.x)
+        std::swap(p1.x, p2.x);
+      if (p1.y > p2.y)
+        std::swap(p1.y, p2.y);
+      if (q1.x > q2.x)
+        std::swap(q1.x, q2.x);
+      if (q1.y > q2.y)
+        std::swap(q1.y, q2.y);
+
+      if (p2.x < q1.x)
+        return false;
+      if (p1.x > q2.x)
+        return false;
+      if (p2.y < q1.y)
+        return false;
+      if (p1.y > q2.y)
+        return false;
+
+      return true;
+    }
 
     // ------------------------------------------
     // Canvas
@@ -96,43 +133,62 @@ namespace yave::editor::imgui {
       bool hovered;
       InvisibleButtonEx("node background input", wsize, &hovered);
 
-      if (hovered) {
-        // left: clear selected items
-        if (ImGui::IsMouseClicked(0)) {
-          editor_ctx.clear_selected_nodes();
-          editor_ctx.clear_selected_sockets();
-          editor_ctx.clear_selected_connections();
-        }
-        // right: open popup menu
-        if (ImGui::IsMouseClicked(1)) {
-          ImGui::OpenPopup(popup_name);
-        }
-      }
+      // switch by current state
 
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {8, 8});
-      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {3, 3});
-      {
-        // popup menu
-        if (ImGui::BeginPopup(popup_name)) {
+      if (editor_ctx.get_state() == editor_state::neutral) {
 
-          // pos to create node
-          auto npos = ImGui::GetMousePosOnOpeningCurrentPopup() - wpos - scroll;
-
-          // list nodes avalable
-          if (ImGui::BeginMenu("Add Node")) {
-            for (auto&& decl : editor_ctx.node_graph().get_node_decls()) {
-              if (ImGui::Selectable(decl->name().c_str())) {
-                editor_ctx.create(
-                  decl->name(), editor_ctx.get_group(), {npos.x, npos.y});
-                break;
-              }
-            }
-            ImGui::EndMenu();
+        if (hovered) {
+          // left: clear selected items
+          if (ImGui::IsMouseClicked(0)) {
+            editor_ctx.clear_selected();
+            editor_ctx.begin_background_drag(to_tvec2(ImGui::GetMousePos()));
           }
-          ImGui::EndPopup();
+          // right: open popup menu
+          if (ImGui::IsMouseClicked(1)) {
+            ImGui::OpenPopup(popup_name);
+          }
+        }
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {8, 8});
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {3, 3});
+        {
+          // popup menu
+          if (ImGui::BeginPopup(popup_name)) {
+
+            // pos to create node
+            auto npos =
+              ImGui::GetMousePosOnOpeningCurrentPopup() - wpos - scroll;
+
+            // list nodes avalable
+            if (ImGui::BeginMenu("Add Node")) {
+              for (auto&& decl : editor_ctx.node_graph().get_node_decls()) {
+                if (ImGui::Selectable(decl->name().c_str())) {
+                  editor_ctx.create(
+                    decl->name(), editor_ctx.get_group(), {npos.x, npos.y});
+                  break;
+                }
+              }
+              ImGui::EndMenu();
+            }
+            ImGui::EndPopup();
+          }
+        }
+        ImGui::PopStyleVar(2);
+      }
+
+      if (editor_ctx.get_state() == editor_state::background) {
+        if (ImGui::IsMouseReleased(0)) {
+          for (auto&& [n, nlayout] : layout.map) {
+            if (rectIntersec(
+                  nlayout.pos,
+                  nlayout.pos + nlayout.size,
+                  to_ImVec2(editor_ctx.get_drag_source_pos()),
+                  ImGui::GetMousePos()))
+              editor_ctx.add_selected(n);
+          }
+          editor_ctx.end_background_drag();
         }
       }
-      ImGui::PopStyleVar(2);
     }
 
     // ------------------------------------------
@@ -376,44 +432,69 @@ namespace yave::editor::imgui {
         InvisibleButtonEx("slot", {2 * slot_size, 2 * slot_size}, &hovered);
 
         if (hovered) {
-          // set hovered
           editor_ctx.set_hovered(s);
-          // left click: select
-          // TODO:
-          if (ImGui::IsMouseClicked(0)) {
+        }
+
+        // switch by current state
+
+        // In-frame socket hit detection flag
+        // FIXME: this should be handled by editor_context
+        static bool socket_hit;
+
+        if (editor_ctx.get_state() == editor_state::neutral) {
+          // neutral -> socket
+          if (hovered && ImGui::IsMouseClicked(0)) {
+
+            auto select_src = s;
+
+            // when input socket already has connections, disconnect.
+            if (socket_type == socket_type::input) {
+              if (auto cs = g.connections(s); !cs.empty()) {
+                auto cinfo = g.get_info(cs[0]);
+                assert(cs.size() == 1);
+                editor_ctx.disconnect(cs[0]);
+                select_src = cinfo->src_socket();
+              }
+            }
+
+            // start dragging
             editor_ctx.clear_selected();
-            editor_ctx.add_selected(s);
+            editor_ctx.add_selected(select_src);
+            editor_ctx.begin_socket_drag(to_tvec2(ImGui::GetMousePos()));
+            socket_hit = false;
           }
         }
 
-        // handle drag source
-        if (ImGui::BeginDragDropSource()) {
-          SocketDnDPayload payload {s, socket_type};
-          ImGui::SetDragDropPayload(
-            "SocketDnDPayload", &payload, sizeof(SocketDnDPayload));
-          ImGui::Text("%s::%s", g.get_name(n)->c_str(), g.get_name(s)->c_str());
-          ImGui::EndDragDropSource();
-        }
+        if (editor_ctx.get_state() == editor_state::socket) {
 
-        // handle drag target
-        if (ImGui::BeginDragDropTarget()) {
-          if (auto pld = ImGui::AcceptDragDropPayload("SocketDnDPayload")) {
-            auto payload = (const SocketDnDPayload*)pld->Data;
-            if (payload->type != socket_type) {
-              // connect
-              switch (socket_type) {
-                case socket_type::input:
-                  editor_ctx.connect(payload->socket, s);
-                  break;
-                case socket_type::output:
-                  editor_ctx.connect(s, payload->socket);
-                  break;
-                default:
-                  unreachable();
+          if (ImGui::IsMouseReleased(0)) {
+
+            assert(editor_ctx.get_selected_sockets().size() == 1);
+            auto drag_src_socket = editor_ctx.get_selected_sockets()[0];
+
+            // InvisibleButtonEx cannot detect hit when mouse is pressed, so
+            // we just manually check hover.
+            auto mouse_pos = ImGui::GetMousePos();
+            auto p1        = slot_pos - ImVec2 {slot_size, slot_size};
+            auto p2        = slot_pos + ImVec2 {slot_size, slot_size};
+
+            if (!socket_hit) {
+
+              if (rectHit(p1, p2, mouse_pos)) {
+                auto src = drag_src_socket;
+                auto dst = s;
+
+                if (socket_type != socket_type::input)
+                  std::swap(src, dst);
+
+                editor_ctx.connect(src, dst);
+
+                socket_hit = true;
               }
-            } else
-              Info("invalid dnd");
-            ImGui::EndDragDropTarget();
+            }
+
+            if (s == drag_src_socket)
+              editor_ctx.end_socket_drag();
           }
         }
       }
@@ -445,36 +526,48 @@ namespace yave::editor::imgui {
         bool hovered;
         InvisibleButtonEx("node", nsize, &hovered);
 
-        if (hovered) {
-          // set hover
-          editor_ctx.set_hovered(n);
-          // right click: select
-          if (ImGui::IsMouseClicked(0)) {
-            editor_ctx.clear_selected();
-            editor_ctx.add_selected(n);
-          }
-          // left click: open info popup
-          if (ImGui::IsMouseClicked(1)) {
-            Info(popup_name);
-            ImGui::OpenPopup("node_info_popup");
-          }
-        }
+        // switch by current state
 
-        // handle dragging
-        if (
-          ImGui::IsWindowFocused() && ImGui::IsMouseDragging(0)
-          && editor_ctx.is_selected(n)) {
-          auto delta = ImGui::GetIO().MouseDelta;
-          if (delta != ImVec2(0, 0))
-            editor_ctx.set_pos(n, *editor_ctx.get_pos(n) + to_tvec2(delta));
+        if (editor_ctx.get_state() == editor_state::neutral) {
+          if (hovered) {
+            // set hover
+            editor_ctx.set_hovered(n);
+            // right click: select
+            if (ImGui::IsMouseClicked(0)) {
+              if (!editor_ctx.is_selected(n))
+                editor_ctx.clear_selected();
+              editor_ctx.add_selected(n);
+              editor_ctx.begin_node_drag(to_tvec2(ImGui::GetMousePos()));
+            }
+            // left click: open info popup
+            if (ImGui::IsMouseClicked(1)) {
+              Info(popup_name);
+              ImGui::OpenPopup("node_info_popup");
+            }
+          }
         }
 
         if (ImGui::BeginPopup(popup_name)) {
           ImGui::Text("Node: %s", g.get_name(n)->c_str());
           ImGui::EndPopup();
         }
+
+        if (editor_ctx.get_state() == editor_state::node) {
+          if (ImGui::IsMouseReleased(0)) {
+            if (editor_ctx.is_selected(n)) {
+              // apply new position to data. notice layout engine provides new
+              // position for dragged nodes.
+              auto new_pos = to_tvec2(npos) - editor_ctx.get_scroll()
+                             - to_tvec2(ImGui::GetWindowPos());
+              editor_ctx.set_pos(n, new_pos);
+              // back to neutral
+              if (n == editor_ctx.get_selected_nodes()[0])
+                editor_ctx.end_node_drag();
+            }
+          }
         }
-        ImGui::PopID();
+      }
+      ImGui::PopID();
     }
 
     void handle_node_channel(
@@ -588,33 +681,38 @@ namespace yave::editor::imgui {
 
       auto& g = editor_ctx.node_graph();
 
-      // connection
-      if (editor_ctx.is_socket_selected() && ImGui::IsMouseDragging(0)) {
+      if (editor_ctx.get_state() == editor_state::background) {
+        dl->AddRect(
+          to_ImVec2(editor_ctx.get_drag_source_pos()),
+          ImGui::GetMousePos(),
+          ImColor(0, 0, 0, 255));
+      }
 
-        auto ss = editor_ctx.get_selected_sockets();
+      if (editor_ctx.get_state() == editor_state::socket) {
 
-        if (ss.size() == 1) {
-          // socket
-          auto s = ss.front();
+        // socket
+        assert(editor_ctx.get_selected_sockets().size() == 1);
+        auto s = editor_ctx.get_selected_sockets()[0];
 
-          if (auto n = g.node(s)) {
-            auto niter = layout.map.find(n);
-            auto siter = niter->second.sockets.find(s);
+        if (auto n = g.node(s)) {
+          auto niter = layout.map.find(n);
+          auto siter = niter->second.sockets.find(s);
 
-            ImVec2 src, dst;
+          ImVec2 src, dst;
 
-            if (g.get_info(s)->type() == socket_type::input) {
-              src = ImGui::GetMousePos();
-              dst = siter->second.slot_pos;
-            }
-
-            if (g.get_info(s)->type() == socket_type::output) {
-              src = siter->second.slot_pos;
-              dst = ImGui::GetMousePos();
-            }
-
-            draw_connection(src, dst, false, false);
+          if (g.get_info(s)->type() == socket_type::input) {
+            src = ImGui::GetMousePos();
+            dst = siter->second.slot_pos;
           }
+
+          if (g.get_info(s)->type() == socket_type::output) {
+            src = siter->second.slot_pos;
+            dst = ImGui::GetMousePos();
+          }
+
+          if (
+            to_ImVec2(editor_ctx.get_drag_source_pos()) != ImGui::GetMousePos())
+            draw_connection(src, dst, false, false);
         }
       }
     }
