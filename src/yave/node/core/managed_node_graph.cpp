@@ -1349,6 +1349,9 @@ namespace yave {
     if (!parent)
       return;
 
+    if (!parent->find_content(node))
+      return;
+
     parent->bring_front(node);
   }
 
@@ -1360,6 +1363,9 @@ namespace yave {
     auto parent = _find_parent_group(node);
 
     if (!parent)
+      return;
+
+    if (!parent->find_content(node))
       return;
 
     parent->bring_back(node);
