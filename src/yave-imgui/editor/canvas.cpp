@@ -12,7 +12,11 @@
 
 #include <yave/support/log.hpp>
 
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/register/point.hpp>
 #include <utility>
+
+BOOST_GEOMETRY_REGISTER_POINT_2D(ImVec2, float, boost::geometry::cs::cartesian, x, y)
 
 namespace yave::editor::imgui {
 
@@ -26,34 +30,15 @@ namespace yave::editor::imgui {
 
     bool rectHit(ImVec2 p1, ImVec2 p2, const ImVec2& p)
     {
-      if (p1.x > p2.x)
-        std::swap(p1.x, p2.x);
-      if (p1.y > p2.y)
-        std::swap(p1.y, p2.y);
-      return p1.x < p.x && p.x < p2.x && p1.y < p.y && p.y < p2.y;
+      boost::geometry::model::box<ImVec2> b(p1, p2);
+      return boost::geometry::intersects(b, p);
     }
 
     bool rectIntersec(ImVec2 p1, ImVec2 p2, ImVec2 q1, ImVec2 q2)
     {
-      if (p1.x > p2.x)
-        std::swap(p1.x, p2.x);
-      if (p1.y > p2.y)
-        std::swap(p1.y, p2.y);
-      if (q1.x > q2.x)
-        std::swap(q1.x, q2.x);
-      if (q1.y > q2.y)
-        std::swap(q1.y, q2.y);
-
-      if (p2.x < q1.x)
-        return false;
-      if (p1.x > q2.x)
-        return false;
-      if (p2.y < q1.y)
-        return false;
-      if (p1.y > q2.y)
-        return false;
-
-      return true;
+      boost::geometry::model::box<ImVec2> b1(p1, p2);
+      boost::geometry::model::box<ImVec2> b2(q1, q2);
+      return boost::geometry::intersects(b1, b2);
     }
 
     // ------------------------------------------
