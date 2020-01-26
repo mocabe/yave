@@ -120,13 +120,13 @@ TEST_CASE("unify")
 
     auto b = true;
 
-    result.for_each([&](auto& r) {
-      if (!ans.find(r.from))
+    result.for_each([&](auto& from, auto&) {
+      if (!ans.find(from))
         b = false;
     });
 
-    ans.for_each([&](auto& a) {
-      if (!result.find(a.from))
+    ans.for_each([&](auto& from, auto&) {
+      if (!result.find(from))
         b = false;
     });
 
@@ -135,8 +135,8 @@ TEST_CASE("unify")
 
   auto print_tyarrows = [](auto&& tyarrows) {
     fmt::print("[");
-    tyarrows.for_each([&](auto&& ta) {
-      fmt::print("{}->{}, ", to_string(ta.from), to_string(ta.to));
+    tyarrows.for_each([&](auto& from, auto& to) {
+      fmt::print("{}->{}, ", to_string(from), to_string(to));
     });
     fmt::print("]\n");
   };
@@ -154,7 +154,9 @@ TEST_CASE("unify")
 
     SECTION("reunify")
     {
-      result.for_each([&](auto&& ta) { cs = subst_constr_all(ta, cs); });
+      result.for_each([&](auto& from, auto& to) {
+        cs = subst_constr_all({from, to}, cs);
+      });
       REQUIRE(unify(cs).empty());
     }
 
@@ -176,7 +178,9 @@ TEST_CASE("unify")
 
     SECTION("reunify")
     {
-      result.for_each([&](auto&& ta) { cs = subst_constr_all(ta, cs); });
+      result.for_each([&](auto& from, auto& to) {
+        cs = subst_constr_all({from, to}, cs);
+      });
       REQUIRE(unify(cs).empty());
     }
 
@@ -202,7 +206,9 @@ TEST_CASE("unify")
 
     SECTION("reunify")
     {
-      result.for_each([&](auto&& ta) { cs = subst_constr_all(ta, cs); });
+      result.for_each([&](auto& from, auto& to) {
+        cs = subst_constr_all({from, to}, cs);
+      });
       REQUIRE(unify(cs).empty());
     }
 
@@ -227,7 +233,9 @@ TEST_CASE("unify")
 
     SECTION("reunify")
     {
-      result.for_each([&](auto&& ta) { cs = subst_constr_all(ta, cs); });
+      result.for_each([&](auto& from, auto& to) {
+        cs = subst_constr_all({from, to}, cs);
+      });
       REQUIRE(unify(cs).empty());
     }
 
@@ -254,7 +262,9 @@ TEST_CASE("unify")
 
     SECTION("reunify")
     {
-      result.for_each([&](auto&& ta) { cs = subst_constr_all(ta, cs); });
+      result.for_each([&](auto& from, auto& to) {
+        cs = subst_constr_all({from, to}, cs);
+      });
       REQUIRE(unify(cs).empty());
     }
 

@@ -209,17 +209,14 @@ namespace yave {
   class type_arrow_map
   {
   public:
-    type_arrow_map()
-    {
-    }
-
+    type_arrow_map()                          = default;
     type_arrow_map(const type_arrow_map&)     = default;
     type_arrow_map(type_arrow_map&&) noexcept = default;
 
     void insert(const type_arrow& ta)
     {
       assert(is_var_type(ta.from));
-      auto p = m_map.try_emplace(ta.from, ta);
+      auto p = m_map.try_emplace(ta.from, ta.to);
 
       if (!p.second)
         std::logic_error("duplicated insertion");
@@ -233,7 +230,7 @@ namespace yave {
       if (it == m_map.end())
         return std::nullopt;
 
-      return it->second;
+      return type_arrow {it->first, it->second};
     }
 
     void erase(const object_ptr<const Type>& from)
@@ -245,7 +242,7 @@ namespace yave {
     void for_each(F&& func) const
     {
       for (auto&& p : m_map) {
-        std::forward<F>(func)(p.second);
+        std::forward<F>(func)(p.first, p.second);
       }
     }
 
@@ -253,13 +250,7 @@ namespace yave {
     void for_each(F&& func)
     {
       for (auto&& p : m_map) {
-        type_arrow tyarrow = p.second;
-        std::forward<F>(func)(tyarrow);
-
-        if (tyarrow.from != p.second.from)
-          throw std::logic_error("changing key is not allowed");
-
-        p.second.to = tyarrow.to;
+        std::forward<F>(func)(p.first, p.second);
       }
     }
 
@@ -285,8 +276,8 @@ namespace yave {
       };
     };
 
-    // from, (from, to)
-    std::map<object_ptr<const Type>, type_arrow, _comp> m_map;
+    /// map of (from, to)
+    std::map<object_ptr<const Type>, object_ptr<const Type>, _comp> m_map;
   };
 
   // ------------------------------------------
@@ -349,7 +340,9 @@ namespace yave {
     const object_ptr<const Type>& ty) -> object_ptr<const Type>
   {
     auto tmp = ty;
-    tyarrows.for_each([&](auto& ta) { tmp = subst_type(ta, tmp); });
+    tyarrows.for_each([&](auto& from, auto& to) {
+      tmp = subst_type({from, to}, tmp);
+    });
     return tmp;
   }
 
@@ -359,7 +352,7 @@ namespace yave {
   /// compose substitution
   inline void compose_subst(type_arrow_map& tyarrows, const type_arrow& a)
   {
-    tyarrows.for_each([&](auto& ta) { ta.to = subst_type(a, ta.to); });
+    tyarrows.for_each([&](auto&, auto& to) { to = subst_type(a, to); });
 
     if (tyarrows.find(a.from))
       return;
@@ -596,7 +589,9 @@ namespace yave {
         auto ty  = subst_type_all(as, var);
 
         as.erase(var);
-        as.for_each([&](const auto& s) { compose_subst(env, s); });
+        as.for_each([&](auto& from, auto& to) {
+          compose_subst(env, {from, to});
+        });
 
         return ty;
       }
