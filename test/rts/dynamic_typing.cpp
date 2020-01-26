@@ -28,6 +28,36 @@ YAVE_DECL_TYPE(Double, "9cc69b38-8766-44f1-93e9-337cfb3d3bc5");
 YAVE_DECL_TYPE(Float, "51b6aa8c-b54a-417f-bfea-5bbff6ef00c2");
 YAVE_DECL_TYPE(Bool, "7ba340e7-8c41-41bc-a1f9-bea2a2db077d");
 
+TEST_CASE("env")
+{
+  auto var = genvar();
+  auto ty  = object_type<Int>();
+
+  type_arrow_map env;
+
+  REQUIRE(env.empty());
+
+  env.insert(type_arrow {var, ty});
+
+  REQUIRE(env.size() == 1);
+  REQUIRE(!env.empty());
+
+  REQUIRE(env.find(var));
+
+  auto var2 = genvar();
+
+  env.insert({var2, ty});
+
+  REQUIRE(env.size() == 2);
+
+  REQUIRE(env.find(var));
+  REQUIRE(env.find(var2));
+
+  auto var3 = make_object<Type>(var_type {get<var_type>(*var).id});
+
+  REQUIRE(env.find(var3));
+}
+
 TEST_CASE("subst_type")
 {
 
@@ -65,11 +95,13 @@ TEST_CASE("subst_type_all")
   {
     auto X               = genvar();
     auto Y               = genvar();
-    std::vector tyarrows = {type_arrow {X, object_type<Int>()},
-                            type_arrow {Y, object_type<Float>()}};
     auto type            = make_object<Type>(
       arrow_type {new Type(arrow_type {Y, X}),
                   new Type(arrow_type {object_type<Float>(), Y})});
+
+    type_arrow_map tyarrows;
+    tyarrows.insert(type_arrow {X, object_type<Int>()});
+    tyarrows.insert(type_arrow {Y, object_type<Float>()});
 
     REQUIRE(same_type(
       subst_type_all(tyarrows, type),
@@ -85,25 +117,27 @@ TEST_CASE("unify")
   auto eq_arrows = [](auto&& result, auto&& ans) {
     if (result.size() != ans.size())
       return false;
-    for (auto&& r : result) {
-      auto b = [&]() {
-        for (auto&& a : ans) {
-          if (same_type(r.from, a.from) && same_type(r.to, a.to))
-            return true;
-        }
-        return false;
-      }();
-      if (!b)
-        return false;
-    }
-    return true;
+
+    auto b = true;
+
+    result.for_each([&](auto& r) {
+      if (!ans.find(r.from))
+        b = false;
+    });
+
+    ans.for_each([&](auto& a) {
+      if (!result.find(a.from))
+        b = false;
+    });
+
+    return b;
   };
 
   auto print_tyarrows = [](auto&& tyarrows) {
     fmt::print("[");
-    for (auto&& ta : tyarrows) {
+    tyarrows.for_each([&](auto&& ta) {
       fmt::print("{}->{}, ", to_string(ta.from), to_string(ta.to));
-    }
+    });
     fmt::print("]\n");
   };
 
@@ -120,15 +154,14 @@ TEST_CASE("unify")
 
     SECTION("reunify")
     {
-      for (auto&& ta : result) {
-        cs = subst_constr_all(ta, cs);
-      }
+      result.for_each([&](auto&& ta) { cs = subst_constr_all(ta, cs); });
       REQUIRE(unify(cs).empty());
     }
 
     SECTION("eq")
     {
-      std::vector ans = {type_arrow {X, object_type<Int>()}};
+      type_arrow_map ans;
+      ans.insert(type_arrow {X, object_type<Int>()});
       print_tyarrows(result);
       print_tyarrows(ans);
       CHECK(eq_arrows(result, ans));
@@ -137,24 +170,22 @@ TEST_CASE("unify")
 
   SECTION("[X=Int, Y=X->X]")
   {
-    std::vector cs     = {type_constr {X, object_type<Int>()},
+    std::vector cs = {type_constr {X, object_type<Int>()},
                       type_constr {Y, new Type(arrow_type {X, X})}};
-    std::vector result = unify(cs);
+    auto result    = unify(cs);
 
     SECTION("reunify")
     {
-      for (auto&& ta : result) {
-        cs = subst_constr_all(ta, cs);
-      }
+      result.for_each([&](auto&& ta) { cs = subst_constr_all(ta, cs); });
       REQUIRE(unify(cs).empty());
     }
 
     SECTION("eq")
     {
-      std::vector ans = {
-        type_arrow {X, object_type<Int>()},
-        type_arrow {
-          Y, new Type(arrow_type {object_type<Int>(), object_type<Int>()})}};
+      type_arrow_map ans;
+      ans.insert(type_arrow {X, object_type<Int>()});
+      ans.insert(type_arrow {
+        Y, new Type(arrow_type {object_type<Int>(), object_type<Int>()})});
 
       print_tyarrows(result);
       print_tyarrows(ans);
@@ -164,28 +195,28 @@ TEST_CASE("unify")
 
   SECTION("[Int-Int=X->Y]")
   {
-    std::vector cs     = {type_constr {
+    std::vector cs = {type_constr {
       new Type(arrow_type {object_type<Int>(), object_type<Int>()}),
       new Type(arrow_type {X, Y})}};
-    std::vector result = unify(cs);
+    auto result    = unify(cs);
 
     SECTION("reunify")
     {
-      for (auto&& ta : result) {
-        cs = subst_constr_all(ta, cs);
-      }
+      result.for_each([&](auto&& ta) { cs = subst_constr_all(ta, cs); });
       REQUIRE(unify(cs).empty());
     }
 
     SECTION("eq")
     {
-      std::vector ans = {type_arrow {X, object_type<Int>()},
-                         type_arrow {Y, object_type<Int>()}};
+      type_arrow_map ans;
+      ans.insert(type_arrow {X, object_type<Int>()});
+      ans.insert(type_arrow {Y, object_type<Int>()});
+
       print_tyarrows(result);
       print_tyarrows(ans);
       CHECK(eq_arrows(result, ans));
     }
-  }
+    }
 
   SECTION("[X->Y=Y->Z, Z=U->W]")
   {
@@ -196,17 +227,17 @@ TEST_CASE("unify")
 
     SECTION("reunify")
     {
-      for (auto&& ta : result) {
-        cs = subst_constr_all(ta, cs);
-      }
+      result.for_each([&](auto&& ta) { cs = subst_constr_all(ta, cs); });
       REQUIRE(unify(cs).empty());
     }
 
     SECTION("eq")
     {
-      std::vector ans = {type_arrow {X, new Type(arrow_type {U, W})},
-                         type_arrow {Y, new Type(arrow_type {U, W})},
-                         type_arrow {Z, new Type(arrow_type {U, W})}};
+      type_arrow_map ans;
+      ans.insert(type_arrow {X, new Type(arrow_type {U, W})});
+      ans.insert(type_arrow {Y, new Type(arrow_type {U, W})});
+      ans.insert(type_arrow {Z, new Type(arrow_type {U, W})});
+
       print_tyarrows(result);
       print_tyarrows(ans);
       CHECK(eq_arrows(result, ans));
@@ -223,16 +254,16 @@ TEST_CASE("unify")
 
     SECTION("reunify")
     {
-      for (auto&& ta : result) {
-        cs = subst_constr_all(ta, cs);
-      }
+      result.for_each([&](auto&& ta) { cs = subst_constr_all(ta, cs); });
       REQUIRE(unify(cs).empty());
     }
 
     SECTION("eq")
     {
-      std::vector ans = {type_arrow {X, object_type<Int>()},
-                         type_arrow {Y, object_type<List<Double>>()}};
+      type_arrow_map ans;
+      ans.insert(type_arrow {X, object_type<Int>()});
+      ans.insert(type_arrow {Y, object_type<List<Double>>()});
+
       print_tyarrows(result);
       print_tyarrows(ans);
       CHECK(eq_arrows(result, ans));
@@ -695,7 +726,7 @@ TEST_CASE("lambda")
     REQUIRE(same_type(type_of(app), object_type<Int>()));
   }
 
-  SECTION("lx.h (f x) (g x)")
+  SECTION("lx. (id h) (id (f x)) (g x)")
   {
     using namespace yave;
 

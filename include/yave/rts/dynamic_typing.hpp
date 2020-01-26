@@ -16,6 +16,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <map>
 
 namespace yave {
 
@@ -202,6 +203,93 @@ namespace yave {
   }
 
   // ------------------------------------------
+  // type arrow map
+
+  /// type_arrow map
+  class type_arrow_map
+  {
+  public:
+    type_arrow_map()
+    {
+    }
+
+    type_arrow_map(const type_arrow_map&)     = default;
+    type_arrow_map(type_arrow_map&&) noexcept = default;
+
+    void insert(const type_arrow& ta)
+    {
+      assert(is_var_type(ta.from));
+      auto p = m_map.try_emplace(ta.from, ta);
+
+      if (!p.second)
+        std::logic_error("duplicated insertion");
+    }
+
+    [[nodiscard]] auto find(const object_ptr<const Type>& from) const
+      -> std::optional<type_arrow>
+    {
+      auto it = m_map.find(from);
+
+      if (it == m_map.end())
+        return std::nullopt;
+
+      return it->second;
+    }
+
+    void erase(const object_ptr<const Type>& from)
+    {
+      m_map.erase(from);
+    }
+
+    template <class F>
+    void for_each(F&& func) const
+    {
+      for (auto&& p : m_map) {
+        std::forward<F>(func)(p.second);
+      }
+    }
+
+    template <class F>
+    void for_each(F&& func)
+    {
+      for (auto&& p : m_map) {
+        type_arrow tyarrow = p.second;
+        std::forward<F>(func)(tyarrow);
+
+        if (tyarrow.from != p.second.from)
+          throw std::logic_error("changing key is not allowed");
+
+        p.second.to = tyarrow.to;
+      }
+    }
+
+    [[nodiscard]] auto size() const -> size_t
+    {
+      return m_map.size();
+    }
+
+    [[nodiscard]] bool empty() const
+    {
+      return m_map.empty();
+    }
+
+  private:
+    struct _comp
+    {
+      bool operator()(
+        const object_ptr<const Type>& l,
+        const object_ptr<const Type>& r) const noexcept
+      {
+        return (
+          get_if<var_type>(l.value())->id < get_if<var_type>(r.value())->id);
+      };
+    };
+
+    // from, (from, to)
+    std::map<object_ptr<const Type>, type_arrow, _comp> m_map;
+  };
+
+  // ------------------------------------------
   // subst_type
 
   namespace detail {
@@ -257,13 +345,11 @@ namespace yave {
 
   /// apply all substitution
   [[nodiscard]] inline auto subst_type_all(
-    const std::vector<type_arrow>& tyarrows,
+    const type_arrow_map& tyarrows,
     const object_ptr<const Type>& ty) -> object_ptr<const Type>
   {
     auto tmp = ty;
-    for (auto ta : tyarrows) {
-      tmp = subst_type(ta, tmp);
-    }
+    tyarrows.for_each([&](auto& ta) { tmp = subst_type(ta, tmp); });
     return tmp;
   }
 
@@ -271,19 +357,14 @@ namespace yave {
   // compose_subst
 
   /// compose substitution
-  inline void compose_subst(
-    std::vector<type_arrow>& tyarrows,
-    const type_arrow& a)
+  inline void compose_subst(type_arrow_map& tyarrows, const type_arrow& a)
   {
-    for (auto&& ta : tyarrows) {
-      ta.to = subst_type(a, ta.to);
-    }
+    tyarrows.for_each([&](auto& ta) { ta.to = subst_type(a, ta.to); });
 
-    for (auto&& ta : tyarrows) {
-      if (same_type(ta.from, a.from))
-        return;
-    }
-    tyarrows.push_back(a);
+    if (tyarrows.find(a.from))
+      return;
+
+    tyarrows.insert(a);
   }
 
   // ------------------------------------------
@@ -343,11 +424,11 @@ namespace yave {
   /// unify
   /// \param cs Type constraints
   /// \param src Source node (for error handling)
-  [[nodiscard]] inline auto unify(std::vector<type_constr> constrs)
-    -> std::vector<type_arrow>
+  [[nodiscard]] inline auto unify(const std::vector<type_constr>& constrs)
+    -> type_arrow_map
   {
-    auto cs = std::move(constrs);
-    auto ta = std::vector<type_arrow> {};
+    auto cs = constrs;
+    auto ta = type_arrow_map {};
 
     while (!cs.empty()) {
       auto c = cs.back();
@@ -456,7 +537,7 @@ namespace yave {
   /// create fresh polymorphic closure type
   [[nodiscard]] inline auto genpoly(
     const object_ptr<const Type>& tp,
-    const std::vector<type_arrow>& env) -> object_ptr<const Type>
+    const type_arrow_map& env) -> object_ptr<const Type>
   {
     if (!is_arrow_type(tp))
       return tp;
@@ -466,9 +547,7 @@ namespace yave {
 
     for (auto v : vs) {
 
-      if (std::find_if(env.begin(), env.end(), [&](auto&& a) {
-            return same_type(a.from, v);
-          }) != env.end())
+      if (env.find(v))
         continue;
 
       auto a = type_arrow {v, genvar()};
@@ -485,18 +564,18 @@ namespace yave {
     // fwd
     inline auto type_of_impl(
       const object_ptr<const Object>& obj,
-      std::vector<type_arrow>& env) -> object_ptr<const Type>;
+      type_arrow_map& env) -> object_ptr<const Type>;
 
     inline auto type_of_impl_app(
       const object_ptr<const Object>& obj,
-      std::vector<type_arrow>& env) -> object_ptr<const Type>
+      type_arrow_map& env) -> object_ptr<const Type>
     {
       return genpoly(type_of_impl(obj, env), env);
     }
 
     inline auto type_of_impl(
       const object_ptr<const Object>& obj,
-      std::vector<type_arrow>& env) -> object_ptr<const Type>
+      type_arrow_map& env) -> object_ptr<const Type>
     {
       // Apply
       if (auto apply = value_cast_if<Apply>(obj)) {
@@ -516,13 +595,8 @@ namespace yave {
         auto as  = unify(std::move(cs));
         auto ty  = subst_type_all(as, var);
 
-        auto end = std::remove_if(as.begin(), as.end(), [&](auto&& a) {
-          return same_type(a.from, var);
-        });
-        as.erase(end, as.end());
-
-        for (auto&& s : as)
-          compose_subst(env, s);
+        as.erase(var);
+        as.for_each([&](const auto& s) { compose_subst(env, s); });
 
         return ty;
       }
@@ -533,28 +607,25 @@ namespace yave {
         auto& storage = _get_storage(*lambda);
 
         auto var = make_object<Type>(var_type {storage.var->id()});
-        env.push_back(type_arrow {var, var});
+        env.insert(type_arrow {var, var});
 
         auto t1 = type_of_impl(storage.var, env);
         auto t2 = type_of_impl(storage.body, env);
 
         auto ty = make_object<Type>(arrow_type {subst_type_all(env, t1), t2});
 
-        auto end = std::remove_if(env.begin(), env.end(), [&](auto&& a) {
-          return same_type(a.from, t1);
-        });
-        env.erase(end, env.end());
+        env.erase(t1);
 
         return ty;
       }
 
       // Variable
       if (auto variable = value_cast_if<Variable>(obj)) {
+
         auto var = make_object<Type>(var_type {variable->id()});
-        for (auto&& s : env) {
-          if (same_type(s.from, var))
-            return s.to;
-        }
+        if (auto s = env.find(var))
+          return s->to;
+
         throw type_error::unbounded_variable(var);
       }
 
@@ -587,7 +658,7 @@ namespace yave {
   [[nodiscard]] inline auto type_of(const object_ptr<const Object>& obj)
     -> object_ptr<const Type>
   {
-    std::vector<type_arrow> env;
+    type_arrow_map env;
     auto ty = detail::type_of_impl(obj, env);
     // FIXME: Is subst_type_all(env, ty) necessary?
     return ty;
