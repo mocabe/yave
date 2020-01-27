@@ -13,6 +13,7 @@
 #include <yave/rts/undefined.hpp>
 #include <yave/rts/object_util.hpp>
 #include <yave/rts/closure.hpp>
+#include <yave/rts/overloaded.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -91,6 +92,15 @@ namespace yave {
   [[nodiscard]] inline bool has_list_type(const object_ptr<const Object>& obj)
   {
     return is_list_type(get_type(obj));
+  }
+
+  // ------------------------------------------
+  // genvar
+
+  /// generate new type variable
+  [[nodiscard]] inline auto genvar() -> object_ptr<const Type>
+  {
+    return make_object<Type>(var_type::random_generate());
   }
 
   // ------------------------------------------
@@ -205,6 +215,19 @@ namespace yave {
   // ------------------------------------------
   // type arrow map
 
+  namespace detail {
+    struct type_comp
+    {
+      bool operator()(
+        const object_ptr<const Type>& l,
+        const object_ptr<const Type>& r) const noexcept
+      {
+        return (
+          get_if<var_type>(l.value())->id < get_if<var_type>(r.value())->id);
+      }
+    };
+  } // namespace detail
+
   /// type_arrow map
   class type_arrow_map
   {
@@ -265,19 +288,32 @@ namespace yave {
     }
 
   private:
-    struct _comp
-    {
-      bool operator()(
-        const object_ptr<const Type>& l,
-        const object_ptr<const Type>& r) const noexcept
-      {
-        return (
-          get_if<var_type>(l.value())->id < get_if<var_type>(r.value())->id);
-      };
-    };
-
     /// map of (from, to)
-    std::map<object_ptr<const Type>, object_ptr<const Type>, _comp> m_map;
+    std::map<object_ptr<const Type>, object_ptr<const Type>, detail::type_comp>
+      m_map;
+  };
+
+  // ------------------------------------------
+  // oveloading_env
+
+  struct overloading_env
+  {
+    /// overloading assumptions.
+    /// map of (instance, assumption)
+    type_arrow_map assumptions;
+
+    /// overloading references.
+    /// map of (instance, overloaded)
+    std::map<
+      object_ptr<const Type>,
+      object_ptr<const Overloaded>,
+      detail::type_comp>
+      references;
+
+    /// caching generalized types for overloading nodes
+    /// map of (overloaded, lcg'ed type)
+    std::map<object_ptr<const Overloaded>, object_ptr<const Type>>
+      generalized_types;
   };
 
   // ------------------------------------------
@@ -471,12 +507,165 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // genvar
+  // generalize
 
-  /// generate new type variable
-  [[nodiscard]] inline auto genvar() -> object_ptr<const Type>
+  namespace detail {
+
+    struct generalize_table
+    {
+      object_ptr<const Type> t1;
+      object_ptr<const Type> t2;
+      object_ptr<const Type> g;
+    };
+
+    inline auto generalize_impl_rec(
+      const object_ptr<const Type>& t1,
+      const object_ptr<const Type>& t2,
+      std::vector<generalize_table>& table) -> object_ptr<const Type>
+    {
+      // arrow
+      if (is_arrow_type(t1) && is_arrow_type(t2)) {
+        auto* a1 = get_if<arrow_type>(t1.value());
+        auto* a2 = get_if<arrow_type>(t2.value());
+        return make_object<Type>(
+          arrow_type {generalize_impl_rec(a1->captured, a2->captured, table),
+                      generalize_impl_rec(a1->returns, a2->returns, table)});
+      }
+
+      // list
+      if (is_list_type(t1) && is_list_type(t2)) {
+        auto* l1 = get_if<list_type>(t1.value());
+        auto* l2 = get_if<list_type>(t2.value());
+        return make_object<Type>(
+          list_type {generalize_impl_rec(l1->t, l2->t, table)});
+      }
+
+      // (T,T) -> T
+      if (same_type(t1, t2))
+        return t1;
+
+      // (S,T) -> X
+      for (auto&& e : table) {
+        if (same_type(e.t1, t1) && same_type(e.t2, t2))
+          return e.g;
+      }
+
+      auto gv = genvar();
+      table.push_back({t1, t2, gv});
+      return gv;
+    }
+
+    inline auto generalize_impl(const std::vector<object_ptr<const Type>>& ts)
+      -> object_ptr<const Type>
+    {
+      object_ptr<const Type> tp = ts.front();
+
+      std::vector<generalize_table> table;
+      std::for_each(ts.begin() + 1, ts.end(), [&](auto&& t) {
+        tp = generalize_impl_rec(tp, t, table);
+        table.clear();
+      });
+
+      return tp;
+    }
+
+  } // namespace detail
+
+  /// Anti-unification.
+  /// \param ts Not-empty list of types
+  [[nodiscard]] inline auto generalize(
+    const std::vector<object_ptr<const Type>>& ts) -> object_ptr<const Type>
   {
-    return make_object<Type>(var_type::random_generate());
+    assert(!ts.empty());
+    return detail::generalize_impl(ts);
+  }
+
+  // ------------------------------------------
+  // specializable
+
+  namespace detail {
+
+    inline void specializable_impl_constr(
+      const object_ptr<const Type>& t1,
+      const object_ptr<const Type>& t2,
+      std::vector<type_constr>& constrs)
+    {
+      // arrow
+      if (is_arrow_type(t1) && is_arrow_type(t2)) {
+        auto* a1 = get_if<arrow_type>(t1.value());
+        auto* a2 = get_if<arrow_type>(t2.value());
+        specializable_impl_constr(a1->captured, a2->captured, constrs);
+        specializable_impl_constr(a1->returns, a2->returns, constrs);
+      }
+
+      // list
+      if (is_list_type(t1) && is_list_type(t2)) {
+        auto* l1 = get_if<list_type>(t1.value());
+        auto* l2 = get_if<list_type>(t2.value());
+        specializable_impl_constr(l1->t, l2->t, constrs);
+      }
+
+      constrs.push_back({t1, t2});
+    }
+
+    inline bool specializable_impl_unify(std::vector<type_constr>& cs)
+    {
+      while (!cs.empty()) {
+        auto c = cs.back();
+        cs.pop_back();
+
+        // var
+        if (is_var_type(c.t1)) {
+          for (auto& cc : cs) {
+            if (same_type(cc.t1, c.t1) && !same_type(cc.t2, c.t2))
+              return false;
+          }
+          continue;
+        }
+
+        // arrow
+        if (auto arrow1 = get_if<arrow_type>(c.t1.value())) {
+          if (auto arrow2 = get_if<arrow_type>(c.t2.value())) {
+            cs.push_back({arrow1->captured, arrow2->captured});
+            cs.push_back({arrow1->returns, arrow2->returns});
+            continue;
+          }
+          return false;
+        }
+
+        // list
+        if (auto list1 = get_if<list_type>(c.t1.value())) {
+          if (auto list2 = get_if<list_type>(c.t2.value())) {
+            cs.push_back({list1->t, list2->t});
+            continue;
+          }
+          return false;
+        }
+
+        // value
+        if (is_value_type(c.t1)) {
+          if (!same_type(c.t1, c.t2))
+            return false;
+          else
+            continue;
+        }
+
+        unreachable();
+      }
+      return true;
+    }
+
+  } // namespace detail
+
+  /// specializable
+  [[nodiscard]] inline bool specializable(
+    const object_ptr<const Type>& t1,
+    const object_ptr<const Type>& t2)
+  {
+    assert(t1 && t2);
+    std::vector<type_constr> constrs;
+    detail::specializable_impl_constr(t1, t2, constrs);
+    return detail::specializable_impl_unify(constrs);
   }
 
   // ------------------------------------------
@@ -552,23 +741,18 @@ namespace yave {
   // ------------------------------------------
   // type_of
 
+  // fwd
+  [[nodiscard]] inline auto type_of_overloaded(
+    const object_ptr<const Object>& obj)
+    -> std::pair<object_ptr<const Type>, object_ptr<const Object>>;
+
   namespace detail {
 
-    // fwd
-    inline auto type_of_impl(
+    template <bool EnableOverload>
+    auto type_of_impl(
       const object_ptr<const Object>& obj,
-      type_arrow_map& env) -> object_ptr<const Type>;
-
-    inline auto type_of_impl_app(
-      const object_ptr<const Object>& obj,
-      type_arrow_map& env) -> object_ptr<const Type>
-    {
-      return genpoly(type_of_impl(obj, env), env);
-    }
-
-    inline auto type_of_impl(
-      const object_ptr<const Object>& obj,
-      type_arrow_map& env) -> object_ptr<const Type>
+      type_arrow_map& env,
+      overloading_env& ovl) -> object_ptr<const Type>
     {
       // Apply
       if (auto apply = value_cast_if<Apply>(obj)) {
@@ -577,10 +761,10 @@ namespace yave {
 
         // cached
         if (storage.is_result())
-          return type_of_impl(storage.get_result(), env);
+          return type_of_impl<EnableOverload>(storage.get_result(), env, ovl);
 
-        auto t1 = type_of_impl_app(storage.app(), env);
-        auto t2 = type_of_impl(storage.arg(), env);
+        auto t1 = type_of_impl<EnableOverload>(storage.app(), env, ovl);
+        auto t2 = type_of_impl<EnableOverload>(storage.arg(), env, ovl);
 
         auto var = genvar();
         auto cs  = std::vector {type_constr {
@@ -593,6 +777,13 @@ namespace yave {
           compose_subst(env, {from, to});
         });
 
+        if constexpr (EnableOverload) {
+          ovl.assumptions.for_each([&](auto&, auto& to) {
+            if (!vars(to).empty())
+              to = subst_type_all(env, to);
+          });
+        }
+
         return ty;
       }
 
@@ -604,8 +795,8 @@ namespace yave {
         auto var = make_object<Type>(var_type {storage.var->id()});
         env.insert(type_arrow {var, var});
 
-        auto t1 = type_of_impl(storage.var, env);
-        auto t2 = type_of_impl(storage.body, env);
+        auto t1 = type_of_impl<EnableOverload>(storage.var, env, ovl);
+        auto t2 = type_of_impl<EnableOverload>(storage.body, env, ovl);
 
         auto ty = make_object<Type>(arrow_type {subst_type_all(env, t1), t2});
 
@@ -624,13 +815,51 @@ namespace yave {
         throw type_error::unbounded_variable(var);
       }
 
+      if constexpr (EnableOverload) {
+        // Overloaded
+        if (auto overloaded = value_cast_if<Overloaded>(obj)) {
+
+          auto& storage = _get_storage(*overloaded);
+
+          // get generalized type of overloaded candidates
+          object_ptr<const Type> generalized;
+          {
+            auto it = ovl.generalized_types.find(overloaded);
+            // store into cache
+            if (it == ovl.generalized_types.end()) {
+              std::vector<object_ptr<const Type>> ts;
+              for (auto&& cand : storage.candidates) {
+                auto candty = type_of_overloaded(cand).first;
+                ts.push_back(candty);
+              }
+              generalized = generalize(ts);
+              ovl.generalized_types.insert({overloaded, generalized});
+            } else
+              // from cache
+              generalized = it->second;
+          }
+
+          // fresh lcg'ed type
+          auto poly = genpoly(generalized, env);
+          // instance identifier
+          auto inst = genvar();
+
+          // register to env
+          ovl.assumptions.insert({inst, poly});
+          ovl.references.insert({inst, overloaded});
+
+          return poly;
+        }
+      }
+
       // arrow -> arrow or PAP
       if (has_arrow_type(obj)) {
         auto c = reinterpret_cast<const Closure<>*>(obj.get());
         // pap: return root apply node
         // app: get_type
-        return c->is_pap() ? type_of_impl(c->vertebrae(c->arity), env)
-                           : get_type(obj);
+        return c->is_pap() ? type_of_impl<EnableOverload>(
+                 c->vertebrae(c->arity), env, ovl)
+                           : genpoly(get_type(obj), env);
       }
 
       // value -> value
@@ -649,14 +878,136 @@ namespace yave {
     }
   } // namespace detail
 
-  /// type_of
+  /// dynamic type checker.
   [[nodiscard]] inline auto type_of(const object_ptr<const Object>& obj)
     -> object_ptr<const Type>
   {
-    type_arrow_map env;
-    auto ty = detail::type_of_impl(obj, env);
+    type_arrow_map env;  // type environment
+    overloading_env ovl; // (unused)
+
+    auto ty = detail::type_of_impl<false>(obj, env, ovl);
+
     // FIXME: Is subst_type_all(env, ty) necessary?
     return ty;
+  }
+
+  // ------------------------------------------
+  // type_of_overloaded
+
+  namespace detail {
+
+    inline auto collect_valid_oveloads(
+      const object_ptr<const Type>& inst, // instance identifier
+      const object_ptr<const Type>& type, // result type
+      const overloading_env& ovl)
+      -> std::vector<
+        std::pair<object_ptr<const Type>, object_ptr<const Object>>>
+    {
+      auto it       = ovl.references.find(inst);
+      auto& storage = _get_storage(*it->second);
+
+      std::vector<std::pair<object_ptr<const Type>, object_ptr<const Object>>>
+        ret;
+
+      for (auto&& cand : storage.candidates) {
+        auto candty = type_of_overloaded(cand).first;
+        if (specializable(candty, type)) {
+          ret.emplace_back(candty, cand);
+        }
+      }
+      return ret;
+    }
+
+    inline auto find_most_specialized_overload(
+      const std::vector<
+        std::pair<object_ptr<const Type>, object_ptr<const Object>>>&
+        valid_overloads)
+      -> std::pair<object_ptr<const Type>, object_ptr<const Object>>
+    {
+      auto most_specialized = valid_overloads.front();
+      std::for_each(
+        valid_overloads.begin() + 1, valid_overloads.end(), [&](auto& o) {
+          if (specializable(most_specialized.first, o.first)) {
+            if (specializable(o.first, most_specialized.first)) {
+              std::vector<object_ptr<const Type>> candts;
+              for (auto&& vo : valid_overloads) {
+                candts.push_back(vo.first);
+              }
+              throw type_error::ambiguous_overloading(candts);
+            }
+            most_specialized = o;
+          }
+        });
+
+      return most_specialized;
+    }
+
+    inline auto rebuild_overloads(
+      const object_ptr<const Object>& obj,
+      const std::map<object_ptr<const Overloaded>, object_ptr<const Object>>&
+        map) -> object_ptr<const Object>
+    {
+      if (auto apply = value_cast_if<Apply>(obj)) {
+        auto& storage = _get_storage(*apply);
+
+        if (storage.is_result())
+          return rebuild_overloads(storage.get_result(), map);
+
+        return make_object<Apply>(
+          rebuild_overloads(storage.app(), map),
+          rebuild_overloads(storage.arg(), map));
+      }
+
+      if (auto lambda = value_cast_if<Lambda>(obj)) {
+        auto& storage = _get_storage(*lambda);
+        return make_object<Lambda>(
+          storage.var, rebuild_overloads(storage.body, map));
+      }
+
+      if (auto overloaded = value_cast_if<Overloaded>(obj)) {
+
+        auto it = map.find(overloaded);
+
+        if (it != map.end())
+          return it->second;
+
+        return overloaded;
+      }
+
+      return obj;
+    }
+
+  } // namespace detail
+
+  /// dynamic type checker with overloading extension.
+  /// \returns pair of type of apply tree and overloading resolved app tree.
+  [[nodiscard]] inline auto type_of_overloaded(
+    const object_ptr<const Object>& obj)
+    -> std::pair<object_ptr<const Type>, object_ptr<const Object>>
+  {
+    type_arrow_map env;  // type environment
+    overloading_env ovl; // overloading context
+
+    auto ty = detail::type_of_impl<true>(obj, env, ovl);
+
+    // overloading selection
+    std::map<object_ptr<const Overloaded>, object_ptr<const Object>> select;
+
+    ovl.assumptions.for_each([&](auto& inst, auto& ty) {
+      auto valid_overloads = detail::collect_valid_oveloads(inst, ty, ovl);
+
+      if (valid_overloads.empty())
+        throw type_error::no_valid_overloading();
+
+      auto most_specialized =
+        detail::find_most_specialized_overload(valid_overloads);
+
+      // remember result
+      select.insert(
+        {ovl.references.find(inst)->second, most_specialized.second});
+    });
+
+    return {ty, detail::rebuild_overloads(obj, select)};
   }
 
   // ------------------------------------------

@@ -161,6 +161,37 @@ namespace yave {
       object_ptr<const Type> m_provided;
     };
 
+    /// no valid overloading
+    class no_valid_overloading : public type_error
+    {
+    public:
+      no_valid_overloading()
+        : type_error("type_error: No valid overloading")
+      {
+      }
+    };
+
+    // ambiguous overloading(s)
+    class ambiguous_overloading : public type_error
+    {
+    public:
+      ambiguous_overloading(
+        const std::vector<object_ptr<const Type>>& candidates)
+        : type_error("type_error: Ambiguous overloading")
+        , m_candidates {candidates}
+      {
+      }
+
+      [[nodiscard]] auto candidates() const
+        -> const std::vector<object_ptr<const Type>>&
+      {
+        return m_candidates;
+      }
+
+    private:
+      std::vector<object_ptr<const Type>> m_candidates;
+    };
+
   } // namespace type_error
 
   // ------------------------------------------

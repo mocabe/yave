@@ -5,7 +5,7 @@
 
 #include <yave/node/core/managed_node_graph.hpp>
 #include <yave/node/core/node_group.hpp>
-#include <yave/rts/generalize.hpp>
+#include <yave/rts/dynamic_typing.hpp>
 
 #include <yave/support/log.hpp>
 

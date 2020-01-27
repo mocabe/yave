@@ -7,7 +7,6 @@
 #include <yave/support/log.hpp>
 #include <yave/node/core/socket_instance_manager.hpp>
 #include <yave/rts/dynamic_typing.hpp>
-#include <yave/rts/generalize.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/value_cast.hpp>
 
