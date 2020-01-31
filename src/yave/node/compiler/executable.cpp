@@ -10,8 +10,11 @@
 
 namespace yave {
 
-  executable::executable(object_ptr<const Object> obj)
+  executable::executable(
+    object_ptr<const Object> obj,
+    object_ptr<const Type> type)
     : m_obj {std::move(obj)}
+    , m_type {std::move(type)}
   {
   }
 
@@ -40,6 +43,11 @@ namespace yave {
   auto executable::object() const -> const object_ptr<const Object>&
   {
     return m_obj;
+  }
+
+  auto executable::type() const -> const object_ptr<const Type>&
+  {
+    return m_type;
   }
 
   auto executable::execute(frame_time frame) -> object_ptr<const Object>

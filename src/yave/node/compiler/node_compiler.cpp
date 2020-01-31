@@ -30,16 +30,6 @@ namespace yave {
     return m_errors.clone();
   }
 
-  // return group IO bit for global output of graph
-  static auto get_root_out_bit(const managed_node_graph& graph) -> node_handle
-  {
-    assert(graph.input_sockets(graph.root_group()).empty());
-    assert(graph.output_sockets(graph.root_group()).size() == 1);
-    return graph.node_graph()
-      .get_info(graph.output_sockets(graph.root_group())[0])
-      ->node();
-  }
-
   auto node_compiler::compile(
     managed_node_graph&& parsed_graph,
     const node_definition_store& defs) -> std::optional<executable>
@@ -62,21 +52,20 @@ namespace yave {
     }
 
     // type check and create apply tree
-    auto tc = _type(*ng, defs);
-    if (!tc) {
+    auto exe = _type(*ng, defs);
+    if (!exe) {
       Error(g_logger, "Failed to type node graph");
       for (auto&& e : m_errors) {
         Error(g_logger, "error: {}", e.message());
       }
       return std::nullopt;
     }
-    auto& [app, type] = *tc;
 
     // optimize executable
-    auto exe = _optimize(std::move(app), *ng);
+    exe = _optimize(std::move(*exe), *ng);
 
     // verbose type check
-    auto succ = _verbose_check(exe, type, *ng);
+    auto succ = _verbose_check(*exe, *ng);
     if (!succ) {
       Error(g_logger, "Verbose check failed");
       for (auto&& e : m_errors) {
@@ -98,13 +87,13 @@ namespace yave {
 
   // Graph optimization stage.
   auto node_compiler::_optimize(
-    object_ptr<const Object>&& app,
+    executable&& exe,
     const managed_node_graph& graph) -> executable
   {
     // TODO...
     (void)graph;
 
-    return executable(std::move(app));
+    return std::move(exe);
   }
 
   /*
@@ -145,9 +134,7 @@ namespace yave {
 
   auto node_compiler::_type(
     const managed_node_graph& parsed_graph,
-    const node_definition_store& defs)
-    -> std::optional<
-      std::pair<object_ptr<const Object>, object_ptr<const Type>>>
+    const node_definition_store& defs) -> std::optional<executable>
   {
     struct
     {
@@ -242,7 +229,7 @@ namespace yave {
 
       // return result tree
       if (m_errors.empty())
-        return std::make_pair(app2, ty);
+        return executable(app2, ty);
       else
         return std::nullopt;
 
@@ -288,14 +275,13 @@ namespace yave {
 
   auto node_compiler::_verbose_check(
     const executable& exe,
-    const object_ptr<const Type>& type,
     const managed_node_graph& graph) -> bool
   {
     try {
 
       auto tp = type_of(exe.object());
 
-      if (!same_type(tp, type)) {
+      if (!same_type(tp, exe.type())) {
         auto [n, s] = map_obj_to_node(nullptr, {}, graph);
         m_errors.push_back(make_error<compile_error::unexpected_error>(
           n, s, "Verbose type check failed: result type does not match"));

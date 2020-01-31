@@ -36,19 +36,16 @@ namespace yave {
     /// Resolve overloadings and check type
     [[nodiscard]] auto _type(
       const managed_node_graph& graph,
-      const node_definition_store& defs)
-      -> std::optional<
-        std::pair<object_ptr<const Object>, object_ptr<const Type>>>;
+      const node_definition_store& defs) -> std::optional<executable>;
 
     /// Verbose type check
     [[nodiscard]] auto _verbose_check(
       const executable& executable,
-      const object_ptr<const Type>& type,
       const managed_node_graph& graph) -> bool;
 
     /// Optimize executable
     [[nodiscard]] auto _optimize(
-      object_ptr<const Object>&& exe,
+      executable&& exe,
       const managed_node_graph& graph) -> executable;
 
   private:

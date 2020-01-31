@@ -15,7 +15,7 @@ namespace yave {
   {
   public:
     /// Ctor
-    executable(object_ptr<const Object> obj);
+    executable(object_ptr<const Object> obj, object_ptr<const Type> type);
     /// Ctor
     executable(const executable& other);
     /// Ctor
@@ -28,10 +28,14 @@ namespace yave {
     /// Get object.
     [[nodiscard]] auto object() const -> const object_ptr<const Object>&;
 
+    /// Get type.
+    [[nodiscard]] auto type() const -> const object_ptr<const Type>&;
+
     /// Execute.
     [[nodiscard]] auto execute(frame_time frame) -> object_ptr<const Object>;
 
   private:
     object_ptr<const Object> m_obj;
+    object_ptr<const Type> m_type;
   };
 } // namespace yave
