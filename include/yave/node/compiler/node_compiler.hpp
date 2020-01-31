@@ -23,7 +23,6 @@ namespace yave {
     /// Compile parsed graph
     [[nodiscard]] auto compile(
       managed_node_graph&& graph,
-      const node_declaration_store& decls,
       const node_definition_store& defs) -> std::optional<executable>;
 
     /// Get last errors
@@ -34,34 +33,23 @@ namespace yave {
     [[nodiscard]] auto _optimize_early(managed_node_graph&& graph)
       -> std::optional<managed_node_graph>;
 
-    /// Optimize executable
-    [[nodiscard]] auto _optimize(
-      executable&& exe,
-      const managed_node_graph& graph) -> executable;
-
     /// Resolve overloadings and check type
     [[nodiscard]] auto _type(
       const managed_node_graph& graph,
-      const node_declaration_store& decls,
       const node_definition_store& defs)
-      -> std::optional<socket_instance_manager>;
-
-    /// Generate apply graph
-    [[nodiscard]] auto _generate(
-      const managed_node_graph& graph,
-      const socket_instance_manager& sim) -> std::optional<executable>;
+      -> std::optional<
+        std::pair<object_ptr<const Object>, object_ptr<const Type>>>;
 
     /// Verbose type check
     [[nodiscard]] auto _verbose_check(
-      const managed_node_graph& graph,
-      const socket_instance_manager& sim,
-      const executable& executable) -> bool;
+      const executable& executable,
+      const object_ptr<const Type>& type,
+      const managed_node_graph& graph) -> bool;
 
-  private:
-    [[nodiscard]] auto _lock() const -> std::unique_lock<std::mutex>;
-
-  private:
-    mutable std::mutex m_mtx;
+    /// Optimize executable
+    [[nodiscard]] auto _optimize(
+      object_ptr<const Object>&& exe,
+      const managed_node_graph& graph) -> executable;
 
   private:
     error_list m_errors;

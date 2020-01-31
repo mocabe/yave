@@ -20,13 +20,9 @@ namespace yave {
     /// No valid overloading error
     struct no_valid_overloading : error_info<no_valid_overloading>
     {
-      no_valid_overloading(
-        const node_handle& node,
-        const socket_handle& socket,
-        const std::vector<std::shared_ptr<const node_definition>>& defs)
+      no_valid_overloading(const node_handle& node, const socket_handle& socket)
         : m_node {node}
         , m_socket {socket}
-        , m_defs {defs}
       {
       }
 
@@ -45,58 +41,9 @@ namespace yave {
         return m_socket;
       }
 
-      /// Get overloading bindings
-      [[nodiscard]] auto definitions() const
-        -> const std::vector<std::shared_ptr<const node_definition>>&
-      {
-        return m_defs;
-      }
-
     private:
       node_handle m_node;
       socket_handle m_socket;
-      std::vector<std::shared_ptr<const node_definition>> m_defs;
-    };
-
-    /// Ambiguous overloading error
-    struct ambiguous_overloading : error_info<ambiguous_overloading>
-    {
-      ambiguous_overloading(
-        const node_handle& node,
-        const socket_handle& socket,
-        const std::vector<std::shared_ptr<const node_definition>>& defs)
-        : m_node {node}
-        , m_socket {socket}
-        , m_defs {defs}
-      {
-      }
-
-      /// Get error message
-      [[nodiscard]] auto message() const -> std::string override;
-
-      /// Get node ID
-      [[nodiscard]] auto id() const -> const node_handle&
-      {
-        return m_node;
-      }
-
-      /// Get socket
-      [[nodiscard]] auto socket() const -> const socket_handle&
-      {
-        return m_socket;
-      }
-
-      /// Get overloading bindings
-      [[nodiscard]] auto definitions() const
-        -> const std::vector<std::shared_ptr<const node_definition>>&
-      {
-        return m_defs;
-      }
-
-    private:
-      node_handle m_node;
-      socket_handle m_socket;
-      std::vector<std::shared_ptr<const node_definition>> m_defs;
     };
 
     /// Type missmatch error
@@ -151,14 +98,34 @@ namespace yave {
     /// Unexpected compile error
     struct unexpected_error : error_info<unexpected_error>
     {
-      unexpected_error(const std::string& msg)
-        : m_msg {msg}
+      unexpected_error(
+        const node_handle& node,
+        const socket_handle& socket,
+        const std::string& msg)
+        : m_node {node}
+        , m_socket {socket}
+        , m_msg {msg}
       {
       }
 
+      /// get message
       [[nodiscard]] auto message() const -> std::string override;
 
+      /// get node
+      [[nodiscard]] auto node() const -> const node_handle&
+      {
+        return m_node;
+      }
+
+      /// get socket
+      [[nodiscard]] auto socket() const -> const socket_handle&
+      {
+        return m_socket;
+      }
+
     private:
+      node_handle m_node;
+      socket_handle m_socket;
       std::string m_msg;
     };
 

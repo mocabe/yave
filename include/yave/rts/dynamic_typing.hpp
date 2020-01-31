@@ -441,8 +441,9 @@ namespace yave {
   /// unify
   /// \param cs Type constraints
   /// \param src Source node (for error handling)
-  [[nodiscard]] inline auto unify(const std::vector<type_constr>& constrs)
-    -> type_arrow_map
+  [[nodiscard]] inline auto unify(
+    const std::vector<type_constr>& constrs,
+    const object_ptr<const Object>& src) -> type_arrow_map
   {
     auto cs = constrs;
     auto ta = type_arrow_map {};
@@ -461,7 +462,7 @@ namespace yave {
           compose_subst(ta, arr);
           continue;
         }
-        throw type_error::circular_constraint(c.t1);
+        throw type_error::circular_constraint(src, c.t1);
       }
 
       if (is_var_type(c.t1)) {
@@ -471,7 +472,7 @@ namespace yave {
           compose_subst(ta, arr);
           continue;
         }
-        throw type_error::circular_constraint(c.t1);
+        throw type_error::circular_constraint(src, c.t1);
       }
 
       if (is_arrow_type(c.t1) && is_arrow_type(c.t2)) {
@@ -489,7 +490,7 @@ namespace yave {
         continue;
       }
 
-      throw type_error::type_missmatch(c.t1, c.t2);
+      throw type_error::type_missmatch(src, c.t1, c.t2);
     }
     return ta;
   }
@@ -771,7 +772,7 @@ namespace yave {
         auto var = genvar();
         auto cs  = std::vector {type_constr {
           subst_type_all(env, t1), make_object<Type>(arrow_type {t2, var})}};
-        auto as  = unify(std::move(cs));
+        auto as  = unify(std::move(cs), obj);
         auto ty  = subst_type_all(as, var);
 
         as.erase(var);
@@ -807,7 +808,7 @@ namespace yave {
         if (auto s = env.find(var))
           return s->to;
 
-        throw type_error::unbounded_variable(var);
+        throw type_error::unbounded_variable(obj, var);
       }
 
       // arrow -> arrow or PAP
@@ -891,7 +892,7 @@ namespace yave {
 
         for (auto&& t : types) {
           try {
-            (void)unify({{t, instp}});
+            (void)unify({{t, instp}}, nullptr);
             throw std::invalid_argument("Overlapping class instance");
           } catch (type_error::type_error&) {
             // ok
@@ -951,7 +952,7 @@ namespace yave {
         auto it = classes.map.find(id);
 
         if (it == classes.map.end())
-          throw type_error::type_error("Invalid class ID");
+          throw type_error::type_error(src, "Invalid class ID");
 
         auto var = genvar();
         auto tp  = genpoly(it->second.type, envA);
@@ -967,36 +968,11 @@ namespace yave {
     // ------------------------------------------
     // type_of_overloaded
 
-    /// Find one most specialized overloading candidate type from list of valid
-    /// caididates
-    inline auto find_most_specialized_overload(
-      const std::vector<
-        std::pair<object_ptr<const Type>, object_ptr<const Object>>>&
-        valid_overloads)
-      -> std::pair<object_ptr<const Type>, object_ptr<const Object>>
-    {
-      auto most_specialized = valid_overloads.front();
-      std::for_each(
-        valid_overloads.begin() + 1, valid_overloads.end(), [&](auto& o) {
-          if (specializable(most_specialized.first, o.first)) {
-            if (specializable(o.first, most_specialized.first)) {
-              std::vector<object_ptr<const Type>> candts;
-              for (auto&& vo : valid_overloads) {
-                candts.push_back(vo.first);
-              }
-              throw type_error::ambiguous_overloading(candts);
-            }
-            most_specialized = o;
-          }
-        });
-
-      return most_specialized;
-    }
-
     /// close assumption of overloading
     inline auto close_assumption(
       overloading_env& env,
-      object_ptr<const Type> ty) -> object_ptr<const Type>
+      object_ptr<const Type> ty,
+      const object_ptr<const Object>& src) -> object_ptr<const Type>
     {
       // lsit of closed assumptions
       std::vector<object_ptr<const Type>> closed;
@@ -1024,9 +1000,9 @@ namespace yave {
           }
         }
 
-        // invalid overloading set
+        // could not match overloading
         if (!result_type)
-          throw type_error::no_valid_overloading();
+          throw type_error::no_valid_overloading(src);
 
         // get substitition to fix
         // use empty set if it's not specializable
@@ -1077,7 +1053,7 @@ namespace yave {
         auto cs =
           std::vector {type_constr {subst_type_all(env.envA, t1),
                                     make_object<Type>(arrow_type {t2, var})}};
-        auto as = unify(std::move(cs));
+        auto as = unify(std::move(cs), obj);
         auto ty = subst_type_all(as, var);
 
         as.erase(var);
@@ -1088,7 +1064,7 @@ namespace yave {
 
         // only close when envA has no free variable
         if (vars(env.envA).empty())
-          ty = close_assumption(env, ty);
+          ty = close_assumption(env, ty, obj);
 
         return ty;
       }
@@ -1119,7 +1095,7 @@ namespace yave {
         if (auto s = env.envA.find(var))
           return s->to;
 
-        throw type_error::unbounded_variable(var);
+        throw type_error::unbounded_variable(obj, var);
       }
 
       // Overloaded
@@ -1231,7 +1207,7 @@ namespace yave {
     detail::overloading_env env(std::move(classes));
     auto tree = detail::duplicate_overloads(obj);
     auto ty   = detail::type_of_overloaded_impl(tree, env);
-    ty        = detail::close_assumption(env, ty);
+    ty        = detail::close_assumption(env, ty, tree);
     return {ty, detail::rebuild_overloads(tree, env)};
   }
 
@@ -1295,6 +1271,6 @@ namespace yave {
     auto t1  = object_type<T>();
     auto t2  = type_of(tmp);
     if (unlikely(!same_type(t1, t2)))
-      throw type_error::bad_type_check(t1, t2);
+      throw type_error::bad_type_check(obj, t1, t2);
   }
 } // namespace yave

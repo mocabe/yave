@@ -14,12 +14,6 @@ namespace yave::compile_error {
     return fmt::format("No valid overloading: node={}", to_string(m_node.id()));
   }
 
-  std::string ambiguous_overloading::message() const
-  {
-    return fmt::format(
-      "Ambiguous overloading: node={}", to_string(m_node.id()));
-  }
-
   std::string type_missmatch::message() const
   {
     return fmt::format(
@@ -31,6 +25,9 @@ namespace yave::compile_error {
 
   std::string unexpected_error::message() const
   {
-    return fmt::format("Unexpected compile error occured: msg = {}", m_msg);
+    return fmt::format(
+      "Unexpected compile error occured: node={}, msg = {}",
+      to_string(m_node.id()),
+      m_msg);
   }
 }

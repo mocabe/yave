@@ -150,14 +150,14 @@ TEST_CASE("unify")
   SECTION("[X=int]")
   {
     std::vector cs = {type_constr {X, object_type<Int>()}};
-    auto result    = unify(cs);
+    auto result    = unify(cs, nullptr);
 
     SECTION("reunify")
     {
       result.for_each([&](auto& from, auto& to) {
         cs = subst_constr_all({from, to}, cs);
       });
-      REQUIRE(unify(cs).empty());
+      REQUIRE(unify(cs, nullptr).empty());
     }
 
     SECTION("eq")
@@ -174,14 +174,14 @@ TEST_CASE("unify")
   {
     std::vector cs = {type_constr {X, object_type<Int>()},
                       type_constr {Y, new Type(arrow_type {X, X})}};
-    auto result    = unify(cs);
+    auto result    = unify(cs, nullptr);
 
     SECTION("reunify")
     {
       result.for_each([&](auto& from, auto& to) {
         cs = subst_constr_all({from, to}, cs);
       });
-      REQUIRE(unify(cs).empty());
+      REQUIRE(unify(cs, nullptr).empty());
     }
 
     SECTION("eq")
@@ -202,14 +202,14 @@ TEST_CASE("unify")
     std::vector cs = {type_constr {
       new Type(arrow_type {object_type<Int>(), object_type<Int>()}),
       new Type(arrow_type {X, Y})}};
-    auto result    = unify(cs);
+    auto result    = unify(cs, nullptr);
 
     SECTION("reunify")
     {
       result.for_each([&](auto& from, auto& to) {
         cs = subst_constr_all({from, to}, cs);
       });
-      REQUIRE(unify(cs).empty());
+      REQUIRE(unify(cs, nullptr).empty());
     }
 
     SECTION("eq")
@@ -222,21 +222,21 @@ TEST_CASE("unify")
       print_tyarrows(ans);
       CHECK(eq_arrows(result, ans));
     }
-    }
+  }
 
   SECTION("[X->Y=Y->Z, Z=U->W]")
   {
     std::vector cs = {
       type_constr {new Type(arrow_type {X, Y}), new Type(arrow_type {Y, Z})},
       type_constr {Z, new Type(arrow_type {U, W})}};
-    auto result = unify(cs);
+    auto result = unify(cs, nullptr);
 
     SECTION("reunify")
     {
       result.for_each([&](auto& from, auto& to) {
         cs = subst_constr_all({from, to}, cs);
       });
-      REQUIRE(unify(cs).empty());
+      REQUIRE(unify(cs, nullptr).empty());
     }
 
     SECTION("eq")
@@ -258,14 +258,14 @@ TEST_CASE("unify")
       new Type(arrow_type {new Type(list_type {object_type<Int>()}),
                            new Type(list_type {object_type<List<Double>>()})}),
       new Type(arrow_type {new Type(list_type {X}), new Type(list_type {Y})})}};
-    auto result    = unify(cs);
+    auto result    = unify(cs, nullptr);
 
     SECTION("reunify")
     {
       result.for_each([&](auto& from, auto& to) {
         cs = subst_constr_all({from, to}, cs);
       });
-      REQUIRE(unify(cs).empty());
+      REQUIRE(unify(cs, nullptr).empty());
     }
 
     SECTION("eq")
@@ -283,7 +283,7 @@ TEST_CASE("unify")
   SECTION("[]")
   {
     std::vector<type_constr> cs;
-    auto result = unify(cs);
+    auto result = unify(cs, nullptr);
     REQUIRE(result.empty());
   }
 }
@@ -813,7 +813,7 @@ TEST_CASE("lambda")
 
     SECTION("f (f 42)")
     {
-      auto app        =  o << (o << i);
+      auto app        = o << (o << i);
       auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<Int>()));
@@ -960,12 +960,12 @@ TEST_CASE("lambda")
       }
     };
 
-    auto f   = make_object<F>();
-    auto g   = make_object<G>();
-    auto h   = make_object<H>();
-    auto i   = make_object<I>();
-    auto j   = make_object<J>();
-    auto id  = make_object<Identity>();
+    auto f  = make_object<F>();
+    auto g  = make_object<G>();
+    auto h  = make_object<H>();
+    auto i  = make_object<I>();
+    auto j  = make_object<J>();
+    auto id = make_object<Identity>();
 
     class_env env;
     auto ovl = env.add_overloading({j, i, h, g, f});

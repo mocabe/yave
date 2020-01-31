@@ -38,7 +38,8 @@ namespace yave {
     /// operator=
     socket_instance_manager& operator=(const socket_instance_manager& other);
     /// operator=
-    socket_instance_manager& operator=(socket_instance_manager&& other) noexcept;
+    socket_instance_manager& operator=(
+      socket_instance_manager&& other) noexcept;
 
     /// find instance
     auto find(const socket_handle& socket) const
