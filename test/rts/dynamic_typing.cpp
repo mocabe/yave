@@ -796,13 +796,25 @@ TEST_CASE("lambda")
     auto f  = make_object<F>();
     auto i  = make_object<Int>(42);
     auto id = make_object<Identity>();
-    auto o  = make_object<Overloaded>();
-    _get_storage(*o).candidates.push_back(f);
+
+    class_env env;
+    auto o = env.add_overloading({f});
+
+    SECTION("f 42")
+    {
+      auto app        = o << i;
+      auto [ty, app2] = type_of_overloaded(app, env);
+
+      REQUIRE(same_type(ty, object_type<Int>()));
+
+      auto ty2 = type_of(app2);
+      REQUIRE(same_type(ty, ty2));
+    }
 
     SECTION("f (f 42)")
     {
       auto app        =  o << (o << i);
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -813,7 +825,7 @@ TEST_CASE("lambda")
     SECTION("(id f) 42")
     {
       auto app        = (id << o) << i;
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -830,28 +842,19 @@ TEST_CASE("lambda")
       _get_storage(*lam).body = o << var;
 
       auto app        = lam << i;
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
       auto ty2 = type_of(app2);
       REQUIRE(same_type(ty, ty2));
     }
-
-    SECTION("f2")
-    {
-      auto f2 = make_object<F>();
-      _get_storage(*o).candidates.push_back(f2);
-      auto app = o << make_object<Int>();
-      REQUIRE_THROWS_AS(
-        type_of_overloaded(app), type_error::ambiguous_overloading);
-    }
   }
 
-  SECTION("f: X->X with X->X, Int->Int")
+  SECTION("f: X->X with Double->Double, Int->Int")
   {
     class X;
-    struct F : Function<F, X, X>
+    struct F : Function<F, Double, Double>
     {
       auto code() const -> return_type
       {
@@ -871,14 +874,14 @@ TEST_CASE("lambda")
     auto g  = make_object<G>();
     auto i  = make_object<Int>(42);
     auto id = make_object<Identity>();
-    auto o  = make_object<Overloaded>();
-    _get_storage(*o).candidates.push_back(f);
-    _get_storage(*o).candidates.push_back(g);
+
+    class_env env;
+    auto o = env.add_overloading({f, g});
 
     SECTION("(id f) (f 42)")
     {
       auto app        = (id << o) << (o << i);
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -889,7 +892,7 @@ TEST_CASE("lambda")
     SECTION("(id f) 42")
     {
       auto app        = (id << o) << i;
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -906,7 +909,7 @@ TEST_CASE("lambda")
       _get_storage(*lam).body = (id << o) << var;
 
       auto app        = (id << lam) << i;
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -933,9 +936,7 @@ TEST_CASE("lambda")
       }
     };
 
-    class X;
-
-    struct H : Function<H, X, X>
+    struct H : Function<H, Float, Float>
     {
       auto code() const -> return_type
       {
@@ -943,7 +944,7 @@ TEST_CASE("lambda")
       }
     };
 
-    struct I : Function<I, List<X>, List<X>>
+    struct I : Function<I, List<Int>, List<Int>>
     {
       auto code() const -> return_type
       {
@@ -965,17 +966,14 @@ TEST_CASE("lambda")
     auto i   = make_object<I>();
     auto j   = make_object<J>();
     auto id  = make_object<Identity>();
-    auto ovl = make_object<Overloaded>();
-    _get_storage(*ovl).candidates.push_back(j);
-    _get_storage(*ovl).candidates.push_back(i);
-    _get_storage(*ovl).candidates.push_back(h);
-    _get_storage(*ovl).candidates.push_back(g);
-    _get_storage(*ovl).candidates.push_back(f);
+
+    class_env env;
+    auto ovl = env.add_overloading({j, i, h, g, f});
 
     SECTION("f Int")
     {
       auto app        = (id << ovl) << make_object<Int>();
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -986,7 +984,7 @@ TEST_CASE("lambda")
     SECTION("f Float")
     {
       auto app        = (id << ovl) << make_object<Float>();
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<Float>()));
 
@@ -997,7 +995,7 @@ TEST_CASE("lambda")
     SECTION("f List<Int>")
     {
       auto app        = (id << ovl) << make_object<List<Int>>();
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<List<Int>>()));
 
@@ -1008,7 +1006,7 @@ TEST_CASE("lambda")
     SECTION("f List<Double>")
     {
       auto app        = (id << ovl) << make_object<List<Double>>();
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<List<Double>>()));
 
@@ -1025,7 +1023,7 @@ TEST_CASE("lambda")
       _get_storage(*lam).body = ovl << var;
 
       auto app        = lam << make_object<Int>();
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -1042,9 +1040,68 @@ TEST_CASE("lambda")
       _get_storage(*lam).body = id << ovl << var;
 
       auto app        = lam << make_object<List<Double>>();
-      auto [ty, app2] = type_of_overloaded(app);
+      auto [ty, app2] = type_of_overloaded(app, env);
 
       REQUIRE(same_type(ty, object_type<List<Double>>()));
+
+      auto ty2 = type_of(app2);
+      REQUIRE(same_type(ty, ty2));
+    }
+  }
+
+  SECTION("f: X->Y")
+  {
+    struct F : Function<F, Int, Double>
+    {
+      auto code() const -> return_type
+      {
+        throw;
+      }
+    };
+
+    struct G : Function<G, Float, Bool>
+    {
+      auto code() const -> return_type
+      {
+        throw;
+      }
+    };
+
+    auto f  = make_object<F>();
+    auto g  = make_object<G>();
+    auto id = make_object<Identity>();
+
+    class_env env;
+    auto o = env.add_overloading({f, g});
+
+    SECTION("f Int")
+    {
+      auto app        = o << make_object<Int>();
+      auto [ty, app2] = type_of_overloaded(app, env);
+
+      REQUIRE(same_type(ty, object_type<Double>()));
+
+      auto ty2 = type_of(app2);
+      REQUIRE(same_type(ty, ty2));
+    }
+
+    SECTION("f Float")
+    {
+      auto app        = o << make_object<Float>();
+      auto [ty, app2] = type_of_overloaded(app, env);
+
+      REQUIRE(same_type(ty, object_type<Bool>()));
+
+      auto ty2 = type_of(app2);
+      REQUIRE(same_type(ty, ty2));
+    }
+
+    SECTION("id ((id f) Int)")
+    {
+      auto app        = (id << o) << make_object<Int>();
+      auto [ty, app2] = type_of_overloaded(app, env);
+
+      REQUIRE(same_type(ty, object_type<Double>()));
 
       auto ty2 = type_of(app2);
       REQUIRE(same_type(ty, ty2));

@@ -11,7 +11,19 @@ namespace yave {
 
   struct overloaded_object_value_storage
   {
-    std::vector<object_ptr<const Object>> candidates;
+    overloaded_object_value_storage(
+      uint64_t id = var_type::random_generate().id) noexcept
+      : m_id {id}
+    {
+    }
+
+    [[nodiscard]] auto class_id() const noexcept
+    {
+      return m_id;
+    }
+
+  private:
+    uint64_t m_id;
   };
 
   struct overloaded_object_value
