@@ -283,7 +283,6 @@ namespace yave {
       const socket_handle&,
       const node_handle&,
       const socket_handle&) -> connection_handle;
-    [[nodiscard]] auto _get_primitive(const node_handle&) const -> primitive_t;
     [[nodiscard]] auto _root_of(const node_handle&) const
       -> std::vector<node_handle>;
     [[nodiscard]] auto _find_loop(const node_handle&) const

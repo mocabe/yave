@@ -5,6 +5,7 @@
 
 #include <yave/app/node_data_thread.hpp>
 #include <yave/support/log.hpp>
+#include <yave/support/overloaded.hpp>
 
 #include <range/v3/view.hpp>
 using namespace ranges;
@@ -190,24 +191,46 @@ namespace yave::app {
     Info(g_logger, "Starting data thread");
 
     m_thread = std::thread([&]() {
+      // check terminate flag every loop
       while (m_terminate_flag == 0) {
+
         // wait queue
         std::unique_lock lck {m_mtx};
         m_cond.wait(lck, [&] { return !m_queue.empty(); });
-        // pop
-        auto top = std::move(m_queue.front());
-        m_queue.pop();
 
         try {
-          // dispatch commands
-          std::visit(overloaded {[&](auto&& x) { x.exec(*m_graph); }}, top.op);
+
+          auto start = std::chrono::steady_clock::now();
+
+          // execute current commands in queue
+          std::chrono::steady_clock::time_point request_time;
+          while (!m_queue.empty()) {
+            // pop
+            auto top = std::move(m_queue.front());
+            m_queue.pop();
+            // dispatch commands
+            std::visit(
+              overloaded {[&](auto&& x) { x.exec(*m_graph); }}, top.op);
+
+            //std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            // update time stamp
+            request_time = top.request_time;
+
+            // force update after 16ms
+            if (
+              std::chrono::steady_clock::now() - start
+              > std::chrono::milliseconds(16))
+              break;
+          }
+
           // update snapshot atomically
           std::atomic_store(
             &m_snapshot,
             std::make_shared<const node_data_snapshot>(
               m_graph->clone(),
-              top.request_time,
+              request_time,
               std::chrono::steady_clock::now()));
+
           // notify update for waiting threads
           m_notify_cond.notify_all();
         } catch (const std::exception& e) {

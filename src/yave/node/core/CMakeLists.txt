@@ -1,7 +1,6 @@
 # yave::node::core
 
 add_library(yave-node-core 
-  primitive.cpp
   node_info.cpp
   socket_info.cpp
   connection_info.cpp
