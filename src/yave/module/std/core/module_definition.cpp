@@ -37,6 +37,10 @@ namespace yave::modules::_std::core {
     m_pimpl->id = uid::random_generate();
   }
 
+  module::~module() noexcept
+  {
+  }
+
   void module::init(const scene_config& config)
   {
     if (m_pimpl->initialized) {

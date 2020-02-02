@@ -14,6 +14,7 @@ namespace yave::modules::_std::core {
   {
   public:
     module();
+    ~module() noexcept override;
     void init(const scene_config& config)override;
     void deinit() override;
     void update(const scene_config& config) override;

@@ -38,7 +38,7 @@ namespace yave {
 
   YAVE_DECL_PRIM_NODE_DECL(Int, Int);
   YAVE_DECL_PRIM_NODE_DECL(Float, Float);
-  YAVE_DECL_PRIM_NODE_DECL(Bool, Float);
+  YAVE_DECL_PRIM_NODE_DECL(Bool, Bool);
   YAVE_DECL_PRIM_NODE_DECL(String, String);
 
   template <class T>
