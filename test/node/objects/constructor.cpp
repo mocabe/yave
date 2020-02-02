@@ -5,22 +5,21 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/node/decl/constructor.hpp>
+#include <yave/module/std/core/decl/primitive.hpp>
+#include <yave/module/std/core/def/primitive.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
-#include <yave/backend/default/common/primitive_constructor.hpp>
 #include <yave/rts/eval.hpp>
 
 using namespace yave;
 
 TEST_CASE("Constructor")
 {
-  using IntConstructor = backends::default_common::PrimitiveConstructor<Int>;
+  using IntConstructor = modules::_std::core::PrimitiveConstructor<Int>;
 
   auto i = make_object<Int>(42);
 
   SECTION("make_object")
   {
-    auto v0 = make_object<IntConstructor>();
     auto v1 = make_object<IntConstructor>(i);
   }
 
