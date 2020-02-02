@@ -20,23 +20,27 @@ namespace yave {
 
   executable::executable(const executable& other)
     : m_obj {other.m_obj}
+    , m_type {other.m_type}
   {
   }
 
   executable::executable(executable&& other) noexcept
     : m_obj {std::move(other.m_obj)}
+    , m_type {std::move(other.m_type)}
   {
   }
 
   executable& executable::operator=(const executable& other)
   {
-    m_obj = other.m_obj;
+    m_obj  = other.m_obj;
+    m_type = other.m_type;
     return *this;
   }
 
   executable& executable::operator=(executable&& other) noexcept
   {
-    m_obj = std::move(other.m_obj);
+    m_obj  = std::move(other.m_obj);
+    m_type = std::move(other.m_type);
     return *this;
   }
 
