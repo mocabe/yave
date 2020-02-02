@@ -13,6 +13,7 @@
 #include <yave/rts/value_cast.hpp>
 
 #include <range/v3/algorithm.hpp>
+#include <boost/uuid/uuid_hash.hpp>
 
 YAVE_DECL_G_LOGGER(node_compiler)
 

@@ -51,13 +51,13 @@ namespace yave {
   template <class ModuleTag>
   struct module_traits
   {
-    static auto get_module() -> std::unique_ptr<backend>; // not defined
+    // static auto get_module() -> std::unique_ptr<module>; // not defined
   };
 
   template <class ModuleTag, class... Args>
   [[nodiscard]] auto get_module(Args&&... args) -> std::unique_ptr<module>
   {
-    return module_traits<BackendTag>::get_backend(std::forward<Args>(args)...);
+    return module_traits<ModuleTag>::get_module(std::forward<Args>(args)...);
   }
 
 } // namespace yave

@@ -6,7 +6,6 @@
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/parser/errors.hpp>
 #include <yave/node/core/node_group.hpp>
-#include <yave/node/decl/constructor.hpp>
 #include <yave/support/log.hpp>
 
 YAVE_DECL_G_LOGGER(node_parser)

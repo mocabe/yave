@@ -5,9 +5,9 @@
 
 #include <yave/node/compiler/node_compiler.hpp>
 #include <yave/node/core/function.hpp>
-#include <yave/backend/default/common/primitive_constructor.hpp>
-#include <yave/backend/default/common/control_flow.hpp>
-#include <yave/backend/default/common/list.hpp>
+#include <yave/module/std/core/def/primitive.hpp>
+#include <yave/module/std/core/def/list.hpp>
+#include <yave/module/std/core/def/if.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
@@ -85,27 +85,27 @@ TEST_CASE("add", "[node_compiler]")
 
   // clang-format off 
 
-  auto double_decl = get_node_declaration<node::Double>();
   auto int_decl    = get_node_declaration<node::Int>();
   auto bool_decl   = get_node_declaration<node::Bool>();
+  auto float_decl  = get_node_declaration<node::Float>();
   auto if_decl     = get_node_declaration<node::If>();
   auto nil_decl    = get_node_declaration<node::ListNil>();
   auto cons_decl   = get_node_declaration<node::ListCons>();
   auto add_decl    = get_node_declaration<n::Add>();
 
   auto add_defs    = get_node_definitions<n::Add, test_backend>();
-  auto int_defs    = get_node_definitions<node::Int, backend_tags::default_common>();
-  auto double_defs = get_node_definitions<node::Double, backend_tags::default_common>();
-  auto bool_defs   = get_node_definitions<node::Bool, backend_tags::default_common>();
-  auto if_defs     = get_node_definitions<node::If, backend_tags::default_common>();
-  auto nil_defs    = get_node_definitions<node::ListNil, backend_tags::default_common>();
-  auto cons_defs   = get_node_definitions<node::ListCons, backend_tags::default_common>();
+  auto int_defs    = get_node_definitions<node::Int, modules::_std::core::tag>();
+  auto bool_defs   = get_node_definitions<node::Bool, modules::_std::core::tag>();
+  auto float_defs  = get_node_definitions<node::String, modules::_std::core::tag>();
+  auto if_defs     = get_node_definitions<node::If, modules::_std::core::tag>();
+  auto nil_defs    = get_node_definitions<node::ListNil, modules::_std::core::tag>();
+  auto cons_defs   = get_node_definitions<node::ListCons, modules::_std::core::tag>();
 
   // clang-format on
 
   REQUIRE(decls.add(int_decl));
   REQUIRE(decls.add(add_decl));
-  REQUIRE(decls.add(double_decl));
+  REQUIRE(decls.add(float_decl));
   REQUIRE(decls.add(bool_decl));
   REQUIRE(decls.add(if_decl));
   REQUIRE(decls.add(nil_decl));
@@ -113,7 +113,7 @@ TEST_CASE("add", "[node_compiler]")
 
   REQUIRE(graph.register_node_decl(int_decl));
   REQUIRE(graph.register_node_decl(add_decl));
-  REQUIRE(graph.register_node_decl(double_decl));
+  REQUIRE(graph.register_node_decl(float_decl));
   REQUIRE(graph.register_node_decl(bool_decl));
   REQUIRE(graph.register_node_decl(if_decl));
   REQUIRE(graph.register_node_decl(nil_decl));
@@ -121,7 +121,7 @@ TEST_CASE("add", "[node_compiler]")
 
   defs.add(add_defs);
   defs.add(int_defs);
-  defs.add(double_defs);
+  defs.add(float_defs);
   defs.add(bool_defs);
   defs.add(if_defs);
   defs.add(nil_defs);
@@ -202,7 +202,7 @@ TEST_CASE("add", "[node_compiler]")
   {
     auto add = graph.create(g, add_decl.name());
     auto i   = graph.create(g, int_decl.name());
-    auto d   = graph.create(g, double_decl.name());
+    auto d   = graph.create(g, float_decl.name());
 
     REQUIRE(add);
     REQUIRE(i);
@@ -226,7 +226,7 @@ TEST_CASE("add", "[node_compiler]")
     auto add1 = graph.create(g, add_decl.name());
     auto add2 = graph.create(g, add_decl.name());
     auto i    = graph.create(g, int_decl.name());
-    auto d    = graph.create(g, double_decl.name());
+    auto d    = graph.create(g, float_decl.name());
 
     REQUIRE(add1);
     REQUIRE(add2);
@@ -316,7 +316,7 @@ TEST_CASE("add", "[node_compiler]")
   {
     auto _if = graph.create(g, if_decl.name());
     auto i   = graph.create(g, int_decl.name());
-    auto d   = graph.create(g, double_decl.name());
+    auto d   = graph.create(g, float_decl.name());
     auto b   = graph.create(g, bool_decl.name());
 
     REQUIRE(_if);
@@ -363,7 +363,7 @@ TEST_CASE("add", "[node_compiler]")
   SECTION("add<double> x y")
   {
     auto add = graph.create(g, add_decl.name());
-    auto d   = graph.create(g, double_decl.name());
+    auto d   = graph.create(g, float_decl.name());
 
     REQUIRE(add);
     REQUIRE(d);
@@ -384,7 +384,7 @@ TEST_CASE("add", "[node_compiler]")
   {
     auto add = graph.create(g, add_decl.name());
     auto i   = graph.create(g, int_decl.name());
-    auto d   = graph.create(g, double_decl.name());
+    auto d   = graph.create(g, float_decl.name());
 
     REQUIRE(add);
     REQUIRE(i);

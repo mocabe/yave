@@ -8,7 +8,7 @@
 #include <yave-imgui/editor/layout.hpp>
 
 #include <yave/lib/imgui/extension.hpp>
-#include <yave/node/decl/constructor.hpp>
+#include <yave/module/std/core/decl/primitive.hpp>
 
 #include <yave/support/log.hpp>
 
@@ -520,7 +520,6 @@ namespace yave::editor::imgui {
             }
             // left click: open info popup
             if (ImGui::IsMouseClicked(1)) {
-              Info(popup_name);
               ImGui::OpenPopup("node_info_popup");
             }
           }
@@ -528,6 +527,7 @@ namespace yave::editor::imgui {
 
         if (ImGui::BeginPopup(popup_name)) {
           ImGui::Text("Node: %s", g.get_name(n)->c_str());
+          ImGui::Text("id: %s", to_string(n.id()).c_str());
           ImGui::EndPopup();
         }
 
