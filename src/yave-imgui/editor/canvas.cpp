@@ -739,8 +739,16 @@ namespace yave::editor::imgui {
 
       auto group = editor_ctx.get_group();
       auto nodes = g.get_group_members(group);
-      nodes.push_back(g.get_group_output(group));
-      nodes.push_back(g.get_group_input(group));
+
+      auto go = g.get_group_output(group);
+      auto gi = g.get_group_input(group);
+
+      if (!g.input_sockets(go).empty())
+        nodes.push_back(go);
+
+      if (!g.output_sockets(gi).empty())
+        nodes.push_back(gi);
+
       return nodes;
     }
 
