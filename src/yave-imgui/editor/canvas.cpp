@@ -59,7 +59,7 @@ namespace yave::editor::imgui {
 
       // setup
       ImGui::SetCursorScreenPos(wpos);
-      dl->ChannelsSetCurrent(get_background_channel_index());
+      dl->ChannelsSetCurrent(layout.background_channel_index);
 
       // draw background
       dl->AddRectFilled(wpos, wpos + wsize, get_background_color());
@@ -308,6 +308,8 @@ namespace yave::editor::imgui {
     {
       auto& g = editor_ctx.node_graph();
 
+      ImGui::GetWindowDrawList()->ChannelsSetCurrent(nlayout.channel_index);
+
       auto npos         = nlayout.pos;
       auto nsize        = nlayout.size;
       auto nheader_size = nlayout.header_size;
@@ -350,7 +352,7 @@ namespace yave::editor::imgui {
       auto wpos = ImGui::GetWindowPos();
       auto dl   = ImGui::GetWindowDrawList();
 
-      dl->ChannelsSetCurrent(get_node_channel_index());
+      dl->ChannelsSetCurrent(layout.node_channel_index);
       ImGui::SetCursorScreenPos(wpos);
 
       auto& g = editor_ctx.node_graph();
@@ -613,7 +615,7 @@ namespace yave::editor::imgui {
       (void)imgui_ctx;
 
       auto dl = ImGui::GetWindowDrawList();
-      dl->ChannelsSetCurrent(get_connection_channel_index());
+      dl->ChannelsSetCurrent(layout.connection_channel_index);
 
       auto& g = editor_ctx.node_graph();
 
@@ -660,7 +662,7 @@ namespace yave::editor::imgui {
       (void)imgui_ctx;
 
       auto dl = ImGui::GetWindowDrawList();
-      dl->ChannelsSetCurrent(get_foreground_channel_index());
+      dl->ChannelsSetCurrent(layout.foreground_channel_index);
 
       auto& g = editor_ctx.node_graph();
 
@@ -703,40 +705,6 @@ namespace yave::editor::imgui {
     // ------------------------------------------
     // toplevel
 
-    template <class F>
-    void node_region(
-      imgui_context& imgui_ctx,
-      editor_context& editor_ctx,
-      F&& f)
-    {
-      (void)imgui_ctx;
-      (void)editor_ctx;
-
-      auto wname = "node region";
-      auto wflag = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove
-                   | ImGuiWindowFlags_AlwaysUseWindowPadding;
-      auto wsize   = ImGui::GetContentRegionAvail();
-      auto wborder = false;
-
-      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {1, 1});
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
-      {
-        if (ImGui::BeginChild(wname, wsize, wborder, wflag)) {
-
-          auto dl = ImGui::GetWindowDrawList();
-
-          dl->ChannelsSplit(get_channel_count());
-          dl->ChannelsSetCurrent(get_foreground_channel_index());
-          {
-            std::forward<F>(f)();
-          }
-          dl->ChannelsMerge();
-        }
-        ImGui::EndChild();
-      }
-      ImGui::PopStyleVar(2);
-    }
-
     [[nodiscard]] auto get_nodes_to_render(const editor_context& editor_ctx)
     {
       auto& g = editor_ctx.node_graph();
@@ -761,21 +729,45 @@ namespace yave::editor::imgui {
   // impl
   void draw_node_canvas(imgui_context& imgui_ctx, editor_context& editor_ctx)
   {
-    node_region(imgui_ctx, editor_ctx, [&] {
-      /* handle input */
-      editor_ctx.begin_frame();
-      auto nodes  = get_nodes_to_render(editor_ctx);
-      auto layout = calc_canvas_layout(nodes, editor_ctx);
-      {
-        handle_node_channel(imgui_ctx, editor_ctx, layout);
-        handle_background_channel(imgui_ctx, editor_ctx, layout);
+    auto wname = "node region";
+    auto wflag = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove
+                 | ImGuiWindowFlags_AlwaysUseWindowPadding;
+    auto wsize   = ImGui::GetContentRegionAvail();
+    auto wborder = false;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {1, 1});
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
+    {
+      if (ImGui::BeginChild(wname, wsize, wborder, wflag)) {
+
+        auto dl = ImGui::GetWindowDrawList();
+
+        editor_ctx.begin_frame();
+        {
+          // generate layout
+          auto nodes  = get_nodes_to_render(editor_ctx);
+          auto layout = calc_canvas_layout(nodes, editor_ctx);
+
+          // split channels
+          dl->ChannelsSplit(layout.channel_size);
+          dl->ChannelsSetCurrent(layout.foreground_channel_index);
+          {
+            /* handle input */
+            handle_node_channel(imgui_ctx, editor_ctx, layout);
+            handle_background_channel(imgui_ctx, editor_ctx, layout);
+
+            /* draw canvas */
+            draw_background_channel(imgui_ctx, editor_ctx, layout);
+            draw_connection_channel(imgui_ctx, editor_ctx, layout);
+            draw_node_channel(imgui_ctx, editor_ctx, layout);
+            draw_foreground_channel(imgui_ctx, editor_ctx, layout);
+          }
+          dl->ChannelsMerge();
+        }
+        editor_ctx.end_frame();
       }
-      editor_ctx.end_frame();
-      /* draw canvas */
-      draw_connection_channel(imgui_ctx, editor_ctx, layout);
-      draw_background_channel(imgui_ctx, editor_ctx, layout);
-      draw_node_channel(imgui_ctx, editor_ctx, layout);
-      draw_foreground_channel(imgui_ctx, editor_ctx, layout);
-    });
+      ImGui::EndChild();
+    }
+    ImGui::PopStyleVar(2);
   }
 } // namespace yave::editor::imgui

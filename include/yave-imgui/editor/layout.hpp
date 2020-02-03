@@ -143,6 +143,9 @@ namespace yave::editor::imgui {
       size    = {std::max(size.x, sz.x), size.y + sz.y};
     }
 
+    // set minimum node width
+    size.x = std::max(size.x, get_background_grid_size() * 3);
+
     return size;
   }
 
@@ -183,6 +186,8 @@ namespace yave::editor::imgui {
     ImVec2 socket_area_size;
     /// socket layouts
     std::map<socket_handle, socket_layout> sockets;
+    /// channel index.
+    size_t channel_index;
   };
 
   /// Canvas draw layout
@@ -192,6 +197,16 @@ namespace yave::editor::imgui {
     std::vector<node_handle> nodes;
     // layout tree
     std::map<node_handle, node_layout> map;
+    // channel size including subchannels
+    size_t channel_size;
+    // background channel index
+    size_t background_channel_index;
+    // connection channel index
+    size_t connection_channel_index;
+    // node channel index (which is base index of node subchannels)
+    size_t node_channel_index;
+    // foreground index
+    size_t foreground_channel_index;
   };
 
   /// Claculate node layout
@@ -252,9 +267,15 @@ namespace yave::editor::imgui {
   {
     using namespace yave::imgui;
 
-    // ret
     canvas_layout layout;
     layout.nodes = nodes;
+
+    // set channel index
+    layout.background_channel_index = 0;
+    layout.connection_channel_index = 1;
+    layout.node_channel_index       = 2; // includes nodes.size() subchannels
+    layout.foreground_channel_index = 2 + nodes.size();
+    layout.channel_size             = 3 + nodes.size();
 
     auto wpos   = ImGui::GetWindowPos();
     auto scroll = to_ImVec2(editor_ctx.get_scroll());
@@ -264,7 +285,9 @@ namespace yave::editor::imgui {
     for (auto&& n : nodes)
       assert(g.exists(n));
 
-    for (auto&& n : nodes) {
+    for (size_t i = 0; i < nodes.size(); ++i) {
+
+      auto& n = nodes[i];
 
       auto node_screen_pos = wpos + scroll + to_ImVec2(*editor_ctx.get_pos(n));
 
@@ -279,6 +302,9 @@ namespace yave::editor::imgui {
 
       // layout
       node_layout nlayout = calc_node_layout(node_screen_pos, n, g);
+
+      // set subchannel index
+      nlayout.channel_index = layout.node_channel_index + i;
 
       // calc socket layouts
 

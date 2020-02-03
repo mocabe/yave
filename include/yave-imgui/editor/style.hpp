@@ -205,52 +205,12 @@ namespace yave::editor::imgui {
     return get_connection_color();
   }
 
-
-  // ------------------------------------------
-  // Drawing layers
-
-  [[nodiscard]] inline size_t get_channel_count()
-  {
-    // Ch:
-    // 4. Foreground layer
-    // 3. Socket layer
-    // 2. Node layer
-    // 1. Connection layer
-    // 0. Background layer
-    return 5;
-  }
-
-  [[nodiscard]] inline size_t get_background_channel_index()
-  {
-    return 0;
-  }
-
-  [[nodiscard]] inline size_t get_foreground_channel_index()
-  {
-    return 4;
-  }
-
-  [[nodiscard]] inline size_t get_node_channel_index()
-  {
-    return 2;
-  }
-
-  [[nodiscard]] inline size_t get_socket_channel_index()
-  {
-    return 3;
-  }
-
-  [[nodiscard]] inline size_t get_connection_channel_index()
-  {
-    return 1;
-  }
-
   // ------------------------------------------
   // Other
 
   [[nodiscard]] inline float get_background_grid_size()
   {
-    return 50;
+    return gridpx(6);
   }
 
   [[nodiscard]] inline float get_node_rounding()
