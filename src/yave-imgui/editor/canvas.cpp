@@ -466,6 +466,10 @@ namespace yave::editor::imgui {
                 if (socket_type != socket_type::input)
                   std::swap(src, dst);
 
+                // allow overwriting connection
+                for (auto&& c : g.connections(dst))
+                  editor_ctx.disconnect(c);
+
                 editor_ctx.connect(src, dst);
 
                 socket_hit = true;
