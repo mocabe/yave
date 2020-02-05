@@ -6,8 +6,6 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave-imgui/editor/style.hpp>
-
 #include <yave/lib/imgui/imgui_context.hpp>
 #include <yave/app/editor_context.hpp>
 
