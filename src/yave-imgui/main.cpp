@@ -6,8 +6,7 @@
 #include <yave/lib/imgui/imgui_context.hpp>
 
 #include <yave-imgui/editor/canvas.hpp>
-#include <yave/module/std/core/decl/primitive.hpp>
-#include <yave/module/std/core/decl/list.hpp>
+#include <yave/module/std/core/module_definition.hpp>
 
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/compiler/node_compiler.hpp>
@@ -21,10 +20,11 @@ int main()
 
   auto graph = std::make_shared<managed_node_graph>();
 
-  graph->register_node_decl(get_node_declaration<node::Int>());
-  graph->register_node_decl(get_node_declaration<node::Float>());
-  graph->register_node_decl(get_node_declaration<node::Bool>());
-  graph->register_node_decl(get_node_declaration<node::ListCons>());
+  auto core = modules::_std::core::module();
+  node_definition_store defs;
+
+  graph->register_node_decl(core.get_node_declarations());
+  defs.add(core.get_node_definitions());
 
   graph->add_group_output_socket(graph->root_group(), "out");
 
@@ -32,8 +32,6 @@ int main()
   app::editor_context editor_ctx(data_thread);
 
   node_parser parser;
-
-  node_definition_store defs;
   node_compiler compiler;
 
   data_thread.start();
@@ -64,7 +62,8 @@ int main()
           else {
             Info("parsed!");
 
-            auto exe = compiler.compile(std::move(*parsed), defs);
+            auto exe =
+              compiler.compile(std::move(*parsed), defs);
 
             if (!exe)
               Info("Could not compile!");
