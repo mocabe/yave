@@ -169,6 +169,16 @@ namespace yave::editor::imgui {
     return {250, 250, 250, 255};
   }
 
+  [[nodiscard]] inline ImColor get_socket_slider_color()
+  {
+    return {170, 181, 196, 255};
+  }
+
+  [[nodiscard]] inline ImColor get_socket_slider_text_color()
+  {
+    return {50, 50, 50, 255};
+  }
+
   [[nodiscard]] inline ImColor get_socket_slot_color(socket_type type)
   {
     switch (type) {
