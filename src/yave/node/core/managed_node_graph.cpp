@@ -1478,6 +1478,12 @@ namespace yave {
     return m_ng.get_data(node);
   }
 
+  auto managed_node_graph::get_data(const socket_handle& socket) const
+    -> object_ptr<Object>
+  {
+    return m_ng.get_data(socket);
+  }
+
   void managed_node_graph::set_data(
     const node_handle& node,
     object_ptr<Object> data)
@@ -1505,6 +1511,29 @@ namespace yave {
     }
 
     m_ng.set_data(node, std::move(data));
+  }
+
+  void managed_node_graph::set_data(
+    const socket_handle& socket,
+    object_ptr<Object> data)
+  {
+    if (!exists(socket))
+      return;
+
+    auto type_from = get_type(get_data(socket));
+    auto type_to   = get_type(data);
+
+    if (m_ng.has_data(socket) && !same_type(type_from, type_to)) {
+      Error(
+        g_logger,
+        "Cannot assign incompatible data type: socket={}, from={}, to={}",
+        to_string(socket.id()),
+        to_string(type_from),
+        to_string(type_to));
+      return;
+    }
+
+    m_ng.set_data(socket, std::move(data));
   }
 
   void managed_node_graph::clear()

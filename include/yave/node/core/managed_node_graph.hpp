@@ -254,8 +254,15 @@ namespace yave {
     [[nodiscard]] auto get_data(const node_handle& node) const
       -> object_ptr<Object>;
 
+    /// get data.
+    /// \returns nullptr when no data set
+    [[nodiscard]] auto get_data(const socket_handle& socket) const
+      -> object_ptr<Object>;
+
     /// set data
     void set_data(const node_handle& node, object_ptr<Object> data);
+    /// set data
+    void set_data(const socket_handle& socket, object_ptr<Object> data);
 
     /// acecss underlying node_graph
     [[nodiscard]] auto node_graph() const -> const node_graph&;

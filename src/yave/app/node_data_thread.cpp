@@ -113,10 +113,16 @@ namespace yave::app {
     g.set_pos(n, new_pos);
   }
 
-  void node_data_thread_op_set_data::exec(managed_node_graph& g) const
+  void node_data_thread_op_set_node_data::exec(managed_node_graph& g) const
   {
     auto n = g.node(node.id());
     g.set_data(n, data);
+  }
+
+  void node_data_thread_op_set_socket_data::exec(managed_node_graph& g) const
+  {
+    auto s = g.socket(socket.id());
+    g.set_data(s, data);
   }
 
   void node_data_thread_op_bring_back::exec(managed_node_graph& g) const

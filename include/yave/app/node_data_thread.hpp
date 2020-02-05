@@ -153,9 +153,17 @@ namespace yave::app {
   };
 
   /// op set data
-  struct node_data_thread_op_set_data
+  struct node_data_thread_op_set_node_data
   {
     node_handle node;
+    object_ptr<Object> data;
+
+    void exec(managed_node_graph& g) const;
+  };
+
+  struct node_data_thread_op_set_socket_data
+  {
+    socket_handle socket;
     object_ptr<Object> data;
 
     void exec(managed_node_graph& g) const;
@@ -195,7 +203,8 @@ namespace yave::app {
     node_data_thread_op_remove_group_input,
     node_data_thread_op_remove_group_output,
     node_data_thread_op_set_pos,
-    node_data_thread_op_set_data,
+    node_data_thread_op_set_node_data,
+    node_data_thread_op_set_socket_data,
     node_data_thread_op_bring_front,
     node_data_thread_op_bring_back>;
 

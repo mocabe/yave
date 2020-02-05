@@ -129,6 +129,20 @@ namespace yave::app {
     m_data_thread.send(node_data_thread_op_disconnect {c});
   }
 
+  void editor_context::set_data(
+    const socket_handle& socket,
+    const object_ptr<Object>& data)
+  {
+    m_data_thread.send(node_data_thread_op_set_socket_data {socket, data});
+  }
+
+  void editor_context::set_data(
+    const node_handle& node,
+    const object_ptr<Object>& data)
+  {
+    m_data_thread.send(node_data_thread_op_set_node_data {node, data});
+  }
+
   auto editor_context::get_editor_info(const node_handle& handle) const
     -> std::optional<editor_node_info>
   {
