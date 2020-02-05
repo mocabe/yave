@@ -28,7 +28,11 @@ namespace yave {
     {
       class X;
       return node_declaration(
-        "ListNil", {}, {"nil"}, object_type<node_closure<List<X>>>());
+        "ListNil",
+        {},
+        {"[]"},
+        "Constructs empty list. Result can be passed to any type of node which "
+        "takes list as input.");
     }
   };
 
@@ -39,10 +43,7 @@ namespace yave {
     {
       class X;
       return node_declaration(
-        "ListCons",
-        {"head", "tail"},
-        {"cons"},
-        object_type<node_closure<X, List<X>, List<X>>>());
+        "ListCons", {"head", "tail"}, {"cons"}, "Construct new list node");
     }
   };
 
@@ -53,10 +54,7 @@ namespace yave {
     {
       class X;
       return node_declaration(
-        "ListDecompose",
-        {"list"},
-        {"head"},
-        object_type<node_closure<List<X>, X>>());
+        "ListHead", {"list"}, {"head"}, "Take head of list");
     }
   };
 
@@ -67,10 +65,7 @@ namespace yave {
     {
       class X;
       return node_declaration(
-        "ListDecompose",
-        {"list"},
-        {"tail"},
-        object_type<node_closure<List<X>, List<X>>>());
+        "ListTail", {"list"}, {"tail"}, "Take Tail of list");
     }
   };
 }

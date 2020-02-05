@@ -26,7 +26,7 @@ namespace yave {
         "TimeTransform",
         {"target", "time"},
         {"out"},
-        object_type<node_closure<forall<X>, FrameTime, forall<X>>>());
+        "Transform time of subtree");
     }
   };
 } // namespace yave

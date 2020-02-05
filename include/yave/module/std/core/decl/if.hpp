@@ -26,7 +26,9 @@ namespace yave {
         "If",
         {"cond", "then", "else"},
         {"out"},
-        object_type<node_closure<Bool, X, X, X>>());
+        "Basic control primitive. Takes single (Bool) value to switch call to "
+        "subgraph. Because of lazy evaluation, subgraph not taken will not be "
+        "evaluated");
     }
   };
 

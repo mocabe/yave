@@ -47,11 +47,7 @@ namespace yave {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        primitive_type_traits<T>::name,
-        {},
-        {"value"},
-        object_type<node_closure<T>>(),
-        make_object<T>());
+        primitive_type_traits<T>::name, {}, {"value"}, "Primitive constructor");
     }
   };
 } // namespace yave

@@ -22,7 +22,12 @@ namespace yave {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "FrameTime", {}, {"value"}, object_type<node_closure<FrameTime>>());
+        "FrameTime",
+        {},
+        {"value"},
+        "Constructor of time value. This node construct new FrameTime object "
+        "from argument, or creates FrameTime object which represents current "
+        "time applied to the tree.");
     }
   };
 } // namespace yave

@@ -1265,10 +1265,6 @@ namespace yave {
       to_string(node.id()),
       to_string(group->interface.id()));
 
-    // add default data
-    if (decl->default_data())
-      m_ng.set_data(node, decl->default_data().clone());
-
     return node;
   }
 

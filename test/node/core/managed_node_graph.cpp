@@ -123,11 +123,7 @@ TEST_CASE("group with content")
 
   class X;
 
-  auto decl = node_declaration(
-    "node",
-    {"0", "1", "2"},
-    {"0", "1"},
-    object_type<node_closure<X, X, X, X>>());
+  auto decl = node_declaration("node", {"0", "1", "2"}, {"0", "1"}, "");
 
   REQUIRE(ng.register_node_decl(decl));
 
@@ -397,11 +393,7 @@ TEST_CASE("pos")
 
   class X;
 
-  auto decl = node_declaration(
-    "node",
-    {"0", "1", "2"},
-    {"0", "1"},
-    object_type<node_closure<X, X, X, X>>());
+  auto decl = node_declaration("node", {"0", "1", "2"}, {"0", "1"}, "");
 
   REQUIRE(ng.register_node_decl(decl));
 

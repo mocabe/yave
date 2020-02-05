@@ -48,8 +48,7 @@ struct yave::node_declaration_traits<n::Add>
   static auto get_node_declaration()
   {
     class X;
-    return node_declaration(
-      "add", {"x", "y"}, {"out"}, object_type<node_closure<X, X, X>>());
+    return node_declaration("add", {"x", "y"}, {"out"}, "");
   }
 };
 

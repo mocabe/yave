@@ -16,15 +16,10 @@ TEST_CASE("node_parser _extract")
 
   class X;
 
-  auto prim_decl = node_declaration(
-    "prim",
-    {},
-    {"prim_o0"},
-    object_type<node_closure<Int>>(),
-    make_object<Int>());
+  auto prim_decl = node_declaration("prim", {}, {"prim_o0"}, "");
 
-  auto norm_decl = node_declaration(
-    "node", {"norm_i0", "norm_i1"}, {"norm_o0"}, object_type<node_closure<X, X, X>>());
+  auto norm_decl =
+    node_declaration("node", {"norm_i0", "norm_i1"}, {"norm_o0"}, "");
 
   REQUIRE(graph.register_node_decl(prim_decl));
   REQUIRE(graph.register_node_decl(norm_decl));

@@ -28,10 +28,7 @@ namespace yave {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "NodeGroupInterface",
-        {},
-        {},
-        object_type<closure<Undefined, Undefined>>());
+        "NodeGroupInterface", {}, {}, "Internal: NodeGroupInterface");
     }
   };
 
@@ -42,7 +39,7 @@ namespace yave {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "NodeGroupInput", {}, {}, object_type<closure<Undefined, Undefined>>());
+        "NodeGroupInput", {}, {}, "Imternal: NodeGroupInput");
     }
   };
 
@@ -53,10 +50,7 @@ namespace yave {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "NodeGroupOutput",
-        {},
-        {},
-        object_type<closure<Undefined, Undefined>>());
+        "NodeGroupOutput", {}, {}, "Internal: NodeGroupOutput");
     }
   };
 
@@ -71,7 +65,7 @@ namespace yave {
         "NodeGroupIOBit",
         {""}, // will change dynamically
         {""}, // will change dynamically
-        {object_type<node_closure<X, X>>()});
+        "Internal: NodeGroupIOBit");
     }
   };
 
