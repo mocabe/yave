@@ -167,6 +167,10 @@ namespace yave::editor::imgui {
     ImVec2 pos;
     /// size
     ImVec2 size;
+    /// inner area pos
+    ImVec2 area_pos;
+    /// inner area size
+    ImVec2 area_size;
     /// slot screen pos
     ImVec2 slot_pos;
   };
@@ -255,6 +259,12 @@ namespace yave::editor::imgui {
     slayout.pos      = socket_screen_pos;
     slayout.size     = socket_size;
     slayout.slot_pos = socket_slot_screen_pos;
+
+    // cauclate padding
+    ImVec2 padding = {gridpx(1), gridpx(1)};
+
+    slayout.area_pos  = slayout.pos + padding;
+    slayout.area_size = slayout.size - padding * 2;
 
     return slayout;
   }
