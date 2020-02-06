@@ -2,6 +2,7 @@
 
 add_library(yave-editor-imgui 
   canvas.cpp
+  layout.cpp
 )
 
 add_library(yave::editor::imgui ALIAS yave-editor-imgui)
