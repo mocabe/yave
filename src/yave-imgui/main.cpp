@@ -7,7 +7,9 @@
 
 #include <yave-imgui/editor/canvas.hpp>
 #include <yave/module/std/core/module_definition.hpp>
-
+#include <yave/obj/frame_time/frame_time.hpp>
+#include <yave/rts/to_string.hpp>
+#include <yave/obj/primitive/primitive.hpp>
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/compiler/node_compiler.hpp>
 #include <yave/support/log.hpp>
@@ -53,22 +55,57 @@ int main()
 
       ImGui::Begin("parser");
       {
-        if (ImGui::Button("parse")) {
+        static auto snapshot                 = data_thread.snapshot();
+        static std::optional<executable> exe = std::nullopt;
+        static std::string msg               = "";
+        static auto ftime                    = 0.f;
+        static auto result                   = object_ptr<const Object>();
+
+        if (snapshot != data_thread.snapshot()) {
+
+          snapshot = data_thread.snapshot();
 
           auto parsed = parser.parse(*graph);
 
-          if (!parsed)
-            Info("Could not parse!");
-          else {
-            Info("parsed!");
+          if (!parsed) {
+            msg = "Could to parse graph!";
+            exe = std::nullopt;
+          } else {
+            auto e = compiler.compile(std::move(*parsed), defs);
 
-            auto exe =
-              compiler.compile(std::move(*parsed), defs);
+            if (!e) {
+              msg = "Could not compile!";
+              exe = std::nullopt;
+            } else {
+              msg = "Compiled!";
+              exe = e;
+            }
+          }
+        }
 
-            if (!exe)
-              Info("Could not compile!");
-            else
-              Info("compiled!");
+        ImGui::Text("%s", msg.c_str());
+        if (exe) {
+          ImGui::Text("Result Type: %s", to_string(exe->type()).c_str());
+        }
+        ImGui::SliderFloat("time", &ftime, 0, 10);
+
+        if (exe) {
+
+          auto t = time::seconds(ftime);
+          result = exe->execute(frame_time {t});
+
+          ImGui::Text("Result Type: %s", to_string(get_type(result)).c_str());
+
+          if (auto i = value_cast_if<Int>(result)) {
+            ImGui::Text("Result: %d", *i);
+          }
+
+          if (auto f = value_cast_if<Float>(result)) {
+            ImGui::Text("Result: %f", *f);
+          }
+
+          if (auto t = value_cast_if<FrameTime>(result)) {
+            ImGui::Text("Result: %lf", t->time_point.seconds());
           }
         }
       }

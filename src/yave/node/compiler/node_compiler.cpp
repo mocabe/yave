@@ -11,6 +11,8 @@
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/value_cast.hpp>
+#include <yave/rts/unit.hpp>
+#include <yave/module/std/core/decl/primitive.hpp>
 
 #include <range/v3/algorithm.hpp>
 #include <boost/uuid/uuid_hash.hpp>
@@ -178,7 +180,7 @@ namespace yave {
 
         std::vector<object_ptr<const Object>> insts;
         for (auto&& def : defs) {
-          insts.push_back(def->get_instance(graph.get_data(node)));
+          insts.push_back(def->get_instance(make_object<Unit>()));
         }
 
         auto overloaded =
@@ -189,14 +191,31 @@ namespace yave {
         // apply inputs
 
         for (auto&& s : graph.input_sockets(node)) {
-          assert(graph.connections(s).size() == 1);
-          overloaded = overloaded << rec(
-                         env,
-                         sim,
-                         hmap,
-                         nds,
-                         graph,
-                         graph.get_info(graph.connections(s)[0])->src_socket());
+
+          if (graph.connections(s).empty()) {
+
+            auto data = graph.get_data(s);
+            assert(data);
+
+            // default argument
+            if (auto holder = value_cast_if<PrimitiveDataHolder>(data)) {
+              overloaded = overloaded << holder->get_ctor();
+            } else {
+              overloaded = overloaded << graph.get_data(s);
+            }
+
+          } else {
+            // normal argument
+            assert(graph.connections(s).size() == 1);
+            overloaded =
+              overloaded << rec(
+                env,
+                sim,
+                hmap,
+                nds,
+                graph,
+                graph.get_info(graph.connections(s)[0])->src_socket());
+          }
 
           hmap.emplace(overloaded, std::pair {node, socket});
         }

@@ -188,7 +188,7 @@ namespace yave {
       if (graph.is_group_member(n)) {
         // check missing input
         for (auto&& s : graph.input_sockets(n)) {
-          if (graph.connections(s).empty()) {
+          if (graph.connections(s).empty() && !graph.get_data(s)) {
             m_errors.push_back(
               make_error<parse_error::missing_input>(n.id(), s.id()));
           }

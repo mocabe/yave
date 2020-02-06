@@ -449,15 +449,6 @@ namespace yave::editor::imgui {
       auto n = g.node(s);
 
       // enable data
-
-      if (*g.get_name(n) == "Float" && !g.get_data(s)) {
-        editor_ctx.set_data(s, make_object<Float>());
-      }
-
-      if (*g.get_name(n) == "Int" && !g.get_data(s)) {
-        editor_ctx.set_data(s, make_object<Int>());
-      }
-
       auto slider_bg_col   = get_socket_slider_color();
       auto slider_text_col = get_socket_slider_text_color();
 
@@ -472,12 +463,14 @@ namespace yave::editor::imgui {
           ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
           ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
           {
-            // Float slider
-            if (auto f = value_cast_if<Float>(data)) {
-              ImGui::DragFloat("", &*f);
-            }
-            if (auto i = value_cast_if<Int>(data)) {
-              ImGui::DragInt("", &*i);
+            if (auto holder = value_cast_if<PrimitiveDataHolder>(data)) {
+              // Float slider
+              if (auto f = value_cast_if<Float>(holder->data)) {
+                ImGui::DragFloat("", &*f);
+              }
+              if (auto i = value_cast_if<Int>(holder->data)) {
+                ImGui::DragInt("", &*i);
+              }
             }
           }
           ImGui::PopStyleColor(4);

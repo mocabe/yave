@@ -15,18 +15,19 @@ using namespace yave;
 TEST_CASE("Constructor")
 {
   using IntConstructor = modules::_std::core::PrimitiveConstructor<Int>;
+  using IntDataConstructor = PrimitiveDataCtor<Int>;
 
-  auto i = make_object<Int>(42);
+  auto i = make_object<IntDataConstructor>() << make_object<Int>(42);
 
   SECTION("make_object")
   {
-    auto v1 = make_object<IntConstructor>(i);
+    auto v1 = make_object<IntConstructor>();
   }
 
   SECTION("eval")
   {
-    auto v = make_object<IntConstructor>(i);
-    auto r = eval(v << make_object<FrameDemand>());
+    auto v = make_object<IntConstructor>();
+    auto r = eval(v << i << make_object<FrameDemand>());
     REQUIRE(*r == 42);
   }
 }

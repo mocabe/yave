@@ -13,35 +13,11 @@ namespace yave {
   namespace modules::_std::core {
 
     template <class T>
-    struct PrimitiveConstructor : Function<PrimitiveConstructor<T>, FrameDemand, T>
+    struct PrimitiveConstructor : NodeFunction<PrimitiveConstructor<T>, T, T>
     {
-      PrimitiveConstructor(object_ptr<const T> value)
-        : m_value {std::move(value)}
-      {
-      }
-
       auto code() const -> typename PrimitiveConstructor::return_type
       {
-        return m_value;
-      }
-
-    private:
-      object_ptr<const T> m_value;
-    };
-
-    class PrimitiveGetterFunction_X;
-
-    template <class T>
-    struct PrimitiveGetterFunction : Function<
-                                       PrimitiveGetterFunction<T>,
-                                       PrimitiveGetterFunction_X,
-                                       PrimitiveConstructor<T>>
-    {
-      auto code() const -> typename PrimitiveGetterFunction<T>::return_type
-      {
-        auto arg = PrimitiveGetterFunction::template eval_arg<0>();
-        return make_object<PrimitiveConstructor<T>>(
-          value_cast<const T>(object_ptr<const Object>(arg)));
+        return PrimitiveConstructor::template eval_arg<0>();
       }
     };
 
@@ -59,7 +35,8 @@ namespace yave {
       return {node_definition(
         info.name(),
         info.output_sockets()[0],
-        make_object<modules::_std::core::PrimitiveGetterFunction<T>>(),
+        make_object<InstanceGetterFunction<
+          modules::_std::core::PrimitiveConstructor<T>>>(),
         info.name())};
     }
   };

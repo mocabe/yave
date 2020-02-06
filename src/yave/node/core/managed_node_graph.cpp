@@ -1265,6 +1265,12 @@ namespace yave {
       to_string(node.id()),
       to_string(group->interface.id()));
 
+    // set default arguments
+    auto is = m_ng.input_sockets(node);
+    for (auto&& [idx, defval] : decl->default_arg()) {
+      set_data(is[idx], defval.clone());
+    }
+
     return node;
   }
 
