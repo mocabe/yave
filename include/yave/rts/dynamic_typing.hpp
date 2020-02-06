@@ -993,10 +993,12 @@ namespace yave {
         for (auto&& inst : class_val.instances) {
           auto insty = genpoly(get_type(inst), env.envA);
           if (specializable(to, insty)) {
+            // ambiguous
+            if (result_type)
+              return;
+            // first find
             result_type = insty;
             result_inst = inst;
-            break; // when no overlapping is allowed, there's only one matching
-                   // candidate might exist.
           }
         }
 

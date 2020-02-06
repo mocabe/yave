@@ -1107,4 +1107,68 @@ TEST_CASE("lambda")
       REQUIRE(same_type(ty, ty2));
     }
   }
+
+  SECTION("ho")
+  {
+    struct F : Function<F, closure<Int, Int>, Int, Double>
+    {
+      return_type code() const
+      {
+        throw;
+      }
+    };
+
+    struct G : Function<G, closure<Int, Double>, Int, Double>
+    {
+      return_type code() const
+      {
+        throw;
+      }
+    };
+
+    struct H : Function<H, Int, Double>
+    {
+      return_type code() const
+      {
+        throw;
+      }
+    };
+
+    class X;
+    struct I : Function<I, closure<X, Double>, Int, Double>
+    {
+      return_type code() const
+      {
+        throw;
+      }
+    };
+
+    auto f = make_object<F>();
+    auto g = make_object<G>();
+    auto h = make_object<H>();
+    auto i = make_object<I>();
+
+    SECTION("1")
+    {
+      auto app = i << (i << h);
+      auto ty  = type_of(app);
+      REQUIRE(same_type(ty, object_type<closure<Int, Double>>()));
+    }
+
+    SECTION("2")
+    {
+      class_env env;
+      auto overloaded = env.add_overloading({f, g});
+
+      auto app = overloaded << (overloaded << h);
+
+      auto [ty, app2] = type_of_overloaded(app, env);
+
+      REQUIRE(same_type(ty, object_type<closure<Int, Double>>()));
+
+      auto ty2 = type_of(app2);
+
+      REQUIRE(same_type(ty, ty2));
+    }
+  }
 }
