@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/compiler/executable.hpp>
-#include <yave/obj/frame_time/frame_time.hpp>
+#include <yave/obj/behaviour/frame_demand.hpp>
 
 #include <yave/rts/rts.hpp>
 
@@ -56,7 +56,7 @@ namespace yave {
 
   auto executable::execute(frame_time frame) -> object_ptr<const Object>
   {
-    auto app = m_obj << make_object<FrameTime>(frame);
+    auto app = m_obj << make_object<FrameDemand>(frame);
     return eval(app);
   }
 }
