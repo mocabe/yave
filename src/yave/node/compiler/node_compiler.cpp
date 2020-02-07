@@ -154,6 +154,13 @@ namespace yave {
 
         auto node = graph.node(socket);
 
+        size_t socket_index = 0;
+        for (auto&& s : graph.output_sockets(node)) {
+          if (s == socket)
+            break;
+          ++socket_index;
+        }
+
         if (auto inst = sim.find(socket)) {
           return inst->instance;
         }
@@ -173,7 +180,7 @@ namespace yave {
 
         // acquire node object
 
-        auto defs = nds.find(*graph.get_name(node));
+        auto defs = nds.get_binds(*graph.get_name(node), socket_index);
 
         if (defs.empty())
           throw compile_error::no_valid_overloading(node, socket);
@@ -198,8 +205,8 @@ namespace yave {
             assert(data);
 
             // default argument
-            if (auto holder = value_cast_if<PrimitiveDataHolder>(data)) {
-              overloaded = overloaded << holder->get_ctor();
+            if (auto holder = value_cast_if<DataTypeHolder>(data)) {
+              overloaded = overloaded << holder->get_data_constructor();
             } else {
               overloaded = overloaded << graph.get_data(s);
             }
@@ -244,13 +251,12 @@ namespace yave {
       // now we can check type and resolve overloadings
       auto [ty, app2] = type_of_overloaded(app, env);
 
-      Info(
-        g_logger, "Successfully type checked node tree! : {}", to_string(ty));
-
       // return result tree
-      if (m_errors.empty())
+      if (m_errors.empty()) {
+        Info(
+          g_logger, "Successfully type checked node tree! : {}", to_string(ty));
         return executable(app2, ty);
-      else
+      } else
         return std::nullopt;
 
       // common type errors
