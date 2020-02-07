@@ -13,6 +13,7 @@
 #include <yave/rts/undefined.hpp>
 #include <yave/rts/object_util.hpp>
 #include <yave/rts/closure.hpp>
+#include <yave/rts/list.hpp>
 #include <yave/rts/overloaded.hpp>
 
 #include <vector>
@@ -820,16 +821,27 @@ namespace yave {
                            : genpoly(get_type(obj), env);
       }
 
+      // list:
+      //  | []   : [] a
+      //  | x:xs : [type_of(x)]
+      if (has_list_type(obj)) {
+
+        auto list = static_object_cast<const List<Object>>(obj);
+
+        auto& storage = _get_storage(*list);
+
+        if (storage.is_nil())
+          return get_type(obj);
+        else
+          return make_object<Type>(list_type {type_of_impl(storage.car, env)});
+      }
+
       // value -> value
       if (has_value_type(obj))
         return get_type(obj);
 
       // var -> var
       if (has_var_type(obj))
-        return get_type(obj);
-
-      // list -> list
-      if (has_list_type(obj))
         return get_type(obj);
 
       unreachable();
@@ -1115,6 +1127,22 @@ namespace yave {
                  : genpoly(get_type(obj), env.envA);
       }
 
+      // list:
+      //  | []   : [] a
+      //  | x:xs : [type_of(x)]
+      if (has_list_type(obj)) {
+
+        auto list = static_object_cast<const List<Object>>(obj);
+
+        auto& storage = _get_storage(*list);
+
+        if (storage.is_nil())
+          return get_type(obj);
+        else
+          return make_object<Type>(
+            list_type {type_of_overloaded_impl(storage.car, env)});
+      }
+
       // value -> value
       if (has_value_type(obj))
         return get_type(obj);
@@ -1123,9 +1151,6 @@ namespace yave {
       if (has_var_type(obj))
         return get_type(obj);
 
-      // list -> list
-      if (has_list_type(obj))
-        return get_type(obj);
 
       unreachable();
     }
@@ -1236,6 +1261,23 @@ namespace yave {
       // Variable
       else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
         return likely(obj) && _get_storage(obj).is_variable();
+      }
+      // List
+      else if constexpr (has_tm_list<T>()) {
+
+        if (unlikely(!obj) || !has_list_type(obj))
+          return false;
+
+        auto& storage =
+          _get_storage(*static_object_cast<const List<Object>>(obj));
+
+        // [] can be any type
+        if (storage.is_nil())
+          return true;
+
+        using elem_tp = typename decltype(get_term<T>().t().tag())::type;
+
+        return has_type_impl<elem_tp>(storage.car);
       }
       // general
       else if constexpr (is_tm_value(get_term<T>())) {

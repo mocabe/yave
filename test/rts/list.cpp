@@ -4,6 +4,7 @@
 //
 
 #include <yave/rts/list.hpp>
+#include <yave/rts/eval.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
@@ -29,6 +30,8 @@ TEST_CASE("List<Int>")
     REQUIRE(l->is_nil());
     REQUIRE_THROWS(l->head());
     REQUIRE_THROWS(l->tail());
+    REQUIRE(value_cast_if<List<Int>>(l));
+    REQUIRE(value_cast_if<List<Double>>(l));
   }
 
   SECTION("make_object")
@@ -41,6 +44,9 @@ TEST_CASE("List<Int>")
     REQUIRE(l->tail());
     REQUIRE(eval(l->head()) == i);
     REQUIRE(eval(l->tail())->is_nil());
+    REQUIRE(value_cast_if<List<Int>>(l));
+    REQUIRE(value_cast_if<const List<Int>>(l));
+    REQUIRE(!value_cast_if<List<Double>>(l));
   }
 
   SECTION("make_object")
