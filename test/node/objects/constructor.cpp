@@ -8,26 +8,23 @@
 #include <yave/module/std/core/decl/primitive.hpp>
 #include <yave/module/std/core/def/primitive.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
-#include <yave/rts/eval.hpp>
+#include <yave/rts/rts.hpp>
 
 using namespace yave;
 
 TEST_CASE("Constructor")
 {
-  using IntConstructor = modules::_std::core::PrimitiveConstructor<Int>;
-  using IntDataConstructor = PrimitiveDataCtor<Int>;
-
-  auto i = make_object<IntDataConstructor>() << make_object<Int>(42);
-
   SECTION("make_object")
   {
-    auto v1 = make_object<IntConstructor>();
+    auto v = make_data_type_holder<Int>();
+    REQUIRE(has_type<Int>(v->data()));
   }
 
   SECTION("eval")
   {
-    auto v = make_object<IntConstructor>();
-    auto r = eval(v << i << make_object<FrameDemand>());
-    REQUIRE(*r == 42);
+    auto v                      = make_data_type_holder<Int>();
+    *value_cast<Int>(v->data()) = 42;
+    auto r                      = eval(v << make_object<FrameDemand>());
+    REQUIRE(*value_cast<Int>(r) == 42);
   }
 }
