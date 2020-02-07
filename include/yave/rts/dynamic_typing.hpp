@@ -1189,6 +1189,9 @@ namespace yave {
     {
       auto& map = env.results;
 
+      if (!env.envB.empty())
+        throw type_error::no_valid_overloading(obj);
+
       if (auto apply = value_cast_if<Apply>(obj)) {
         auto& storage = _get_storage(*apply);
 
