@@ -68,7 +68,7 @@ namespace yave {
       auto info = get_node_declaration<node::ListNil>();
       return {node_definition(
         info.name(),
-        info.output_sockets()[0],
+        0,
         make_object<
           InstanceGetterFunction<yave::modules::_std::core::ListNil>>(),
         info.name())};
@@ -83,7 +83,7 @@ namespace yave {
       auto info = get_node_declaration<node::ListCons>();
       return {node_definition(
         info.name(),
-        info.output_sockets()[0],
+        0,
         make_object<
           InstanceGetterFunction<yave::modules::_std::core::ListCons>>(),
         info.name())};
@@ -91,32 +91,27 @@ namespace yave {
   };
 
   template <>
-  struct node_definition_traits<node::ListHead, modules::_std::core::tag>
+  struct node_definition_traits<node::ListDecompose, modules::_std::core::tag>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
-      auto info = get_node_declaration<node::ListHead>();
-      return {node_definition(
+      auto info = get_node_declaration<node::ListDecompose>();
+
+      auto d1 = node_definition(
         info.name(),
-        info.output_sockets()[0],
+        0,
         make_object<
           InstanceGetterFunction<yave::modules::_std::core::ListHead>>(),
-        info.name())};
-    }
-  };
+        info.description());
 
-  template <>
-  struct node_definition_traits<node::ListTail, modules::_std::core::tag>
-  {
-    static auto get_node_definitions() -> std::vector<node_definition>
-    {
-      auto info = get_node_declaration<node::ListTail>();
-      return {node_definition(
+      auto d2 = node_definition(
         info.name(),
-        info.output_sockets()[0],
+        1,
         make_object<
           InstanceGetterFunction<yave::modules::_std::core::ListTail>>(),
-        info.name())};
+        info.description());
+
+      return {std::move(d1), std::move(d2)};
     }
   };
 } // namespace yave

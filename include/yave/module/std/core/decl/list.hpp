@@ -15,10 +15,8 @@ namespace yave {
     struct ListNil;
     /// Cons
     struct ListCons;
-    /// Head
-    struct ListHead;
-    /// Tail
-    struct ListTail;
+    /// Decompose
+    struct ListDecompose;
   } // namespace node
 
   template <>
@@ -26,7 +24,6 @@ namespace yave {
   {
     static auto get_node_declaration() -> node_declaration
     {
-      class X;
       return node_declaration(
         "ListNil",
         {},
@@ -41,31 +38,21 @@ namespace yave {
   {
     static auto get_node_declaration() -> node_declaration
     {
-      class X;
       return node_declaration(
         "ListCons", {"head", "tail"}, {"cons"}, "Construct new list node");
     }
   };
 
   template <>
-  struct node_declaration_traits<node::ListHead>
+  struct node_declaration_traits<node::ListDecompose>
   {
     static auto get_node_declaration() -> node_declaration
     {
-      class X;
       return node_declaration(
-        "ListHead", {"list"}, {"head"}, "Take head of list");
-    }
-  };
-
-  template <>
-  struct node_declaration_traits<node::ListTail>
-  {
-    static auto get_node_declaration() -> node_declaration
-    {
-      class X;
-      return node_declaration(
-        "ListTail", {"list"}, {"tail"}, "Take Tail of list");
+        "ListDecompose",
+        {"list"},
+        {"head", "tail"},
+        "Decompose list into head and tail");
     }
   };
 }

@@ -13,21 +13,22 @@ namespace yave {
 
   namespace node {
     /// Pesudo primitive node for frame time.
-    struct FrameTime;
+    struct Time;
   } // namespace node
 
   template <>
-  struct node_declaration_traits<node::FrameTime>
+  struct node_declaration_traits<node::Time>
   {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "FrameTime",
-        {},
+        "Time",
+        {"value"},
         {"value"},
         "Constructor of time value. This node construct new FrameTime object "
         "from argument, or creates FrameTime object which represents current "
-        "time applied to the tree.");
+        "time applied to the tree.",
+        {{0, make_object<Identity>()}});
     }
   };
 } // namespace yave

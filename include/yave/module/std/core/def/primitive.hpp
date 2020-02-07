@@ -13,11 +13,11 @@ namespace yave {
   namespace modules::_std::core {
 
     template <class T>
-    struct PrimitiveConstructor : NodeFunction<PrimitiveConstructor<T>, T, T>
+    struct DataTypeConstructor : NodeFunction<DataTypeConstructor<T>, T, T>
     {
-      auto code() const -> typename PrimitiveConstructor::return_type
+      auto code() const -> typename DataTypeConstructor::return_type
       {
-        return PrimitiveConstructor::template eval_arg<0>();
+        return DataTypeConstructor::template eval_arg<0>();
       }
     };
 
@@ -25,18 +25,18 @@ namespace yave {
 
   template <class T>
   struct node_definition_traits<
-    node::PrimitiveConstructor<T>,
+    node::DataTypeConstructor<T>,
     modules::_std::core::tag>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
-      auto info = get_node_declaration<node::PrimitiveConstructor<T>>();
+      auto info = get_node_declaration<node::DataTypeConstructor<T>>();
 
       return {node_definition(
         info.name(),
-        info.output_sockets()[0],
+        0,
         make_object<InstanceGetterFunction<
-          modules::_std::core::PrimitiveConstructor<T>>>(),
+          modules::_std::core::DataTypeConstructor<T>>>(),
         info.name())};
     }
   };

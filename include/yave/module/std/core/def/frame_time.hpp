@@ -15,8 +15,8 @@ namespace yave {
   namespace modules::_std::core {
 
     /// FrameDemand -> FrameTime
-    struct FrameTimeConstructor
-      : Function<FrameTimeConstructor, FrameDemand, FrameTime>
+    struct TimeConstructor
+      : NodeFunction<TimeConstructor, FrameDemand, FrameTime>
     {
       return_type code() const
       {
@@ -24,20 +24,39 @@ namespace yave {
       }
     };
 
+    struct TimeConstructor2
+      : NodeFunction<TimeConstructor2, FrameTime, FrameTime>
+    {
+      return_type code() const
+      {
+        return eval_arg<0>();
+      }
+    };
+
   } // namespace modules::_std::core
 
   template <>
-  struct node_definition_traits<node::FrameTime, modules::_std::core::tag>
+  struct node_definition_traits<node::Time, modules::_std::core::tag>
   {
     static auto get_node_definitions() -> std::vector<node_definition>
     {
-      auto info = get_node_declaration<node::FrameTime>();
-      return {node_definition(
+      auto info = get_node_declaration<node::Time>();
+
+      auto def1 = node_definition(
         info.name(),
-        info.output_sockets()[0],
+        0,
         make_object<
-          InstanceGetterFunction<modules::_std::core::FrameTimeConstructor>>(),
-        info.name())};
+          InstanceGetterFunction<modules::_std::core::TimeConstructor>>(),
+        "Internal: Construct Time from FrameDemand object");
+
+      auto def2 = node_definition(
+        info.name(),
+        0,
+        make_object<
+          InstanceGetterFunction<modules::_std::core::TimeConstructor2>>(),
+        "Construct Time fromt Time");
+
+      return {std::move(def1), std::move(def2)};
     }
   };
 

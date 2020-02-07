@@ -39,7 +39,7 @@ namespace yave {
       auto info = get_node_declaration<node::TimeTransform>();
       return {node_definition(
         info.name(),
-        info.output_sockets()[0],
+        0,
         make_object<
           InstanceGetterFunction<modules::_std::core::TimeTransform>>(),
         info.name())};

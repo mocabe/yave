@@ -37,7 +37,7 @@ namespace yave {
       auto info = get_node_declaration<node::If>();
       return {node_definition(
         info.name(),
-        info.output_sockets()[0],
+        0,
         make_object<InstanceGetterFunction<modules::_std::core::If>>(),
         info.name())};
     }
