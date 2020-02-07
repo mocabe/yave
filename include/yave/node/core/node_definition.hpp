@@ -23,7 +23,7 @@ namespace yave {
     /// \throws std::invalid_argument when arguments are invalid.
     node_definition(
       std::string name,
-      std::string output_socket,
+      size_t output_socket,
       object_ptr<const Object> inst_getter,
       std::string description)
       : m_name {std::move(name)}
@@ -78,8 +78,8 @@ namespace yave {
   private:
     /// name of name
     std::string m_name;
-    /// output socket name
-    std::string m_os;
+    /// output socket index
+    size_t m_os;
     /// instance getter
     object_ptr<const Object> m_inst_getter;
     /// instance description

@@ -48,7 +48,7 @@ namespace yave {
     /// Exists?
     [[nodiscard]] bool exists(
       const std::string& name,
-      const std::string& output_socket) const;
+      const size_t& output_socket) const;
 
     /// Find definition
     [[nodiscard]] auto find(const std::string& name) const
@@ -57,7 +57,7 @@ namespace yave {
     /// Get compatible binds
     [[nodiscard]] auto get_binds(
       const std::string& name,
-      const std::string& output_socket) const
+      const size_t& output_socket) const
       -> std::vector<std::shared_ptr<const node_definition>>;
 
     // size

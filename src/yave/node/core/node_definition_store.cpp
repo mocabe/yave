@@ -81,9 +81,8 @@ namespace yave {
     return iter != m_map.end();
   }
 
-  bool node_definition_store::exists(
-    const std::string& name,
-    const std::string& os) const
+  bool node_definition_store::exists(const std::string& name, const size_t& os)
+    const
   {
     auto [b, e] = m_map.equal_range(name);
     for (auto iter = b; iter != e; ++iter) {
@@ -108,7 +107,7 @@ namespace yave {
 
   auto node_definition_store::get_binds(
     const std::string& name,
-    const std::string& os) const
+    const size_t& os) const
     -> std::vector<std::shared_ptr<const node_definition>>
   {
     std::vector<std::shared_ptr<const node_definition>> ret;
