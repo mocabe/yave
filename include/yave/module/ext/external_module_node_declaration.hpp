@@ -20,9 +20,17 @@ namespace yave {
   {
     external_module_node_declaration(const node_declaration& decl)
     {
-      m_name         = decl.name();
-      m_type_class   = decl.type_class();
-      m_default_data = decl.default_data();
+      m_name        = decl.name();
+      m_description = decl.description();
+
+      std::vector<uint64_t> idx;
+      std::vector<object_ptr<Object>> dat;
+      for (auto&& arg : decl.default_arg()) {
+        idx.push_back(arg.first);
+        dat.push_back(arg.second);
+      }
+      m_default_arg_idx  = idx;
+      m_default_arg_data = dat;
 
       std::vector<string> iss;
       for (auto&& s : decl.input_sockets()) {
@@ -63,17 +71,22 @@ namespace yave {
       return ret;
     }
 
-    /// Get type class
-    auto type_class() const -> object_ptr<const Type>
+    auto description() const -> std::string
     {
-      return m_type_class;
+      return m_description;
     }
 
-    /// Get default data value
-    /// \note Can return nullptr!
-    auto default_data() const -> object_ptr<const Object>
+    /// Get default arguments
+    auto default_arg() const
+      -> std::vector<std::pair<size_t, object_ptr<Object>>>
     {
-      return m_default_data;
+      std::vector<std::pair<size_t, object_ptr<Object>>> ret;
+      assert(m_default_arg_idx.size() == m_default_arg_data.size());
+
+      for (size_t i = 0; i < m_default_arg_idx.size(); ++i) {
+        ret.emplace_back(m_default_arg_idx[i], m_default_arg_data[i]);
+      }
+      return ret;
     }
 
     /// Get node declaration
@@ -82,19 +95,20 @@ namespace yave {
       return {name(),
               input_sockets(),
               output_sockets(),
-              type_class(),
-              default_data()};
+              description(),
+              default_arg()};
     }
 
   private:
-    string m_name;                           // 16
-    vector<string> m_iss;                    // 16
-    vector<string> m_oss;                    // 16
-    object_ptr<const Type> m_type_class;     // 8
-    object_ptr<const Object> m_default_data; // 8
+    string m_name;                                 // 16
+    string m_description;                          // 16
+    vector<string> m_iss;                          // 16
+    vector<string> m_oss;                          // 16
+    vector<uint64_t> m_default_arg_idx;            // 16
+    vector<object_ptr<Object>> m_default_arg_data; // 16
   };
 
-  static_assert(sizeof(external_module_node_declaration) == 64);
+  static_assert(sizeof(external_module_node_declaration) == 96);
 
   /// ModuleNodeDeclaration
   using ExternalModuleNodeDeclaration = Box<external_module_node_declaration>;

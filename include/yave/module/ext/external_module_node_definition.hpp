@@ -21,8 +21,8 @@ namespace yave {
     external_module_node_definition(const node_definition& def)
     {
       m_name          = def.name();
-      m_output        = def.output_socket();
       m_instanec_func = def.instance_getter();
+      m_output        = def.output_socket();
       m_description   = def.description();
     }
 
@@ -32,8 +32,8 @@ namespace yave {
       return m_name;
     }
 
-    /// Get output sockets
-    [[nodiscard]] auto output_socket() const -> std::string
+    /// Get output socket index
+    [[nodiscard]] auto output_socket() const -> uint64_t
     {
       return m_output;
     }
@@ -59,12 +59,12 @@ namespace yave {
 
   private:
     string m_name;                            // 16
-    string m_output;                          // 16
     string m_description;                     // 16
+    uint64_t m_output;                        // 8
     object_ptr<const Object> m_instanec_func; // 8
   };
 
-  static_assert(sizeof(external_module_node_definition) == 56);
+  static_assert(sizeof(external_module_node_definition) == 48);
 
   /// ModuleNodeDefinition
   using ExternalModuleNodeDefinition = Box<external_module_node_definition>;

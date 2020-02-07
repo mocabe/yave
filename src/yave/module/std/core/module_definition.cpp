@@ -71,12 +71,11 @@ namespace yave::modules::_std::core {
 
   auto module::get_node_declarations() const -> std::vector<node_declaration>
   {
-    return {get_node_declaration<node::FrameTime>(),
+    return {get_node_declaration<node::Time>(),
             get_node_declaration<node::TimeTransform>(),
             get_node_declaration<node::ListNil>(),
             get_node_declaration<node::ListCons>(),
-            get_node_declaration<node::ListHead>(),
-            get_node_declaration<node::ListTail>(),
+            get_node_declaration<node::ListDecompose>(),
             get_node_declaration<node::Int>(),
             get_node_declaration<node::Float>(),
             get_node_declaration<node::Bool>(),
@@ -94,12 +93,11 @@ namespace yave::modules::_std::core {
         ret.push_back(def);
     };
 
-    add(yave::get_node_definitions<node::FrameTime, _std::core::tag>());
+    add(yave::get_node_definitions<node::Time, _std::core::tag>());
     add(yave::get_node_definitions<node::TimeTransform, _std::core::tag>());
     add(yave::get_node_definitions<node::ListNil, _std::core::tag>());
     add(yave::get_node_definitions<node::ListCons, _std::core::tag>());
-    add(yave::get_node_definitions<node::ListHead, _std::core::tag>());
-    add(yave::get_node_definitions<node::ListTail, _std::core::tag>());
+    add(yave::get_node_definitions<node::ListDecompose, _std::core::tag>());
     add(yave::get_node_definitions<node::Int, _std::core::tag>());
     add(yave::get_node_definitions<node::Float, _std::core::tag>());
     add(yave::get_node_definitions<node::Bool, _std::core::tag>());
