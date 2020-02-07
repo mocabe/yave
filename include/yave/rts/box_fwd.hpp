@@ -104,11 +104,11 @@ namespace yave {
       class U,
       class... Args,
       class = std::enable_if_t<
-        !std::is_same_v<std::decay_t<U>, Box> &&
+        !std::is_same_v<std::decay_t<U>, Box> && 
         !std::is_same_v<std::decay_t<U>, static_construct_t>>>
     constexpr Box(U &&u, Args &&... args) //
       noexcept(std::is_nothrow_constructible_v<T, U, Args...>)
-      : Object {info_table_initializer::get_info_table()}
+      : Object {1, 0, info_table_initializer::get_info_table(), nullptr}
       , m_value {std::forward<U>(u), std::forward<Args>(args)...}
     {
     }
@@ -119,14 +119,14 @@ namespace yave {
       noexcept(std::is_nothrow_constructible_v<Box, Args...>)
       : Box(std::forward<Args>(args)...)
     {
-      // set refcount ZERO to avoid deletion
+      // static object has refcount of zero
       refcount = 0u;
     }
 
     /// Ctor
     constexpr Box() //
       noexcept(std::is_nothrow_constructible_v<T>)
-      : Object {info_table_initializer::get_info_table()}
+      : Object {1, 0, info_table_initializer::get_info_table(), nullptr}
       , m_value {}
     {
     }
@@ -134,17 +134,19 @@ namespace yave {
     /// Copy ctor
     constexpr Box(const Box &obj) //
       noexcept(std::is_nothrow_copy_constructible_v<T>)
-      : Object {info_table_initializer::get_info_table()}
+      : Object {obj}
       , m_value {obj.m_value}
     {
+      refcount = 1;
     }
 
     /// Move ctor
     constexpr Box(Box &&obj) //
       noexcept(std::is_nothrow_move_constructible_v<T>)
-      : Object {info_table_initializer::get_info_table()}
+      : Object {obj}
       , m_value {std::move(obj.m_value)}
     {
+      refcount = 1;
     }
 
     /// operator=

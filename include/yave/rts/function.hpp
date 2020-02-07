@@ -171,34 +171,36 @@ namespace yave {
 
     /// Ctor
     Function() noexcept
-      : ClosureN<sizeof...(Ts) - 1> {
-          {{static_cast<const object_info_table*>(
-             &info_table_initializer::info_table)},
-           sizeof...(Ts) - 1},
-        }
+      : ClosureN<sizeof...(Ts) - 1> //
+      {
+        {Object {1, 0, info_table_initializer::get_info_table(), nullptr},
+         sizeof...(Ts) - 1},
+      }
     {
     }
 
     /// Copy ctor
     Function(const Function& other) noexcept
-      : ClosureN<sizeof...(Ts) - 1> {{
-                                       {static_cast<const object_info_table*>(
-                                         &info_table_initializer::info_table)},
-                                       other.arity,
-                                     },
-                                     other.spine}
+      : ClosureN<sizeof...(Ts) - 1> //
+      {{
+         Object {other},
+         other.arity,
+       },
+       other.spine}
     {
+      this->refcount = 1;
     }
 
     /// Move ctor
     Function(Function&& other) noexcept
-      : ClosureN<sizeof...(Ts) - 1> {{
-                                       {static_cast<const object_info_table*>(
-                                         &info_table_initializer::info_table)},
-                                       std::move(other.arity),
-                                     },
-                                     std::move(other.spine)}
+      : ClosureN<sizeof...(Ts) - 1> //
+      {{
+         Object {other},
+         std::move(other.arity),
+       },
+       std::move(other.spine)}
     {
+      this->refcount = 1;
     }
 
     /// operator=
@@ -282,6 +284,11 @@ namespace yave {
     /// Closure info table initializer
     struct info_table_initializer
     {
+      static constexpr auto get_info_table() -> const object_info_table*
+      {
+        return &info_table;
+      }
+
       /// static closure info
       alignas(64) inline static const closure_info_table info_table {
         {object_type<T>(),                              //

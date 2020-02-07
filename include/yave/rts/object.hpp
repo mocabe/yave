@@ -13,6 +13,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <new>
+#include <memory_resource>
 
 namespace yave {
 
@@ -36,34 +37,48 @@ namespace yave {
   // ------------------------------------------
   // Object
 
-  /// Base class of heap-allocated objects
+  /// Base class of heap-allocated objects.
+  /// You should ALWAYS initialized members from derived classes, and handle
+  /// copying.
   struct Object
   {
     /// term
     static constexpr auto term = type_c<tm_value<Object>>;
 
     /// Ctor
-    constexpr Object(const object_info_table* info)
-      : info_table {info}
+    constexpr Object(
+      uint32_t rc,
+      uint32_t off,
+      const object_info_table* it,
+      std::pmr::memory_resource* mr)
+      : refcount {rc}
+      , offset {off}
+      , info_table {it}
+      , memory_resource {mr}
     {
-      /* Default initialize refcount and offset */
     }
 
     /// Copy ctor
     constexpr Object(const Object& other)
-      : info_table {other.info_table}
+      : refcount {other.refcount.load()} // non atomic
+      , offset {other.offset}
+      , info_table {other.info_table}
+      , memory_resource {other.memory_resource}
     {
-      /* Default initialize refcount and offset */
     }
 
     /// 4byte: reference count
-    mutable atomic_refcount<uint32_t> refcount = {1u};
+    mutable atomic_refcount<uint32_t> refcount;
 
     /// 4byte: offset of this object
-    const uint32_t offset = 0;
+    const uint32_t offset;
 
     /// 8byte: pointer to info table
     const object_info_table* info_table;
+
+    /// 8byte: pointer for allocator object.
+    /// This pointer should only be used from vtable functions for ABI reasons.
+    std::pmr::memory_resource* memory_resource;
   };
 
   static_assert(std::is_standard_layout_v<Object>);
