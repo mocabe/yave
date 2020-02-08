@@ -96,8 +96,8 @@ TEST_CASE("subst_type_all")
     auto X               = genvar();
     auto Y               = genvar();
     auto type            = make_object<Type>(
-      arrow_type {new Type(arrow_type {Y, X}),
-                  new Type(arrow_type {object_type<Float>(), Y})});
+      arrow_type {make_object<Type>(arrow_type {Y, X}),
+                  make_object<Type>(arrow_type {object_type<Float>(), Y})});
 
     type_arrow_map tyarrows;
     tyarrows.insert(type_arrow {X, object_type<Int>()});
@@ -106,8 +106,8 @@ TEST_CASE("subst_type_all")
     REQUIRE(same_type(
       subst_type_all(tyarrows, type),
       make_object<Type>(arrow_type {
-        new Type(arrow_type {object_type<Float>(), object_type<Int>()}),
-        new Type(arrow_type {object_type<Float>(), object_type<Float>()})})));
+        make_object<Type>(arrow_type {object_type<Float>(), object_type<Int>()}),
+        make_object<Type>(arrow_type {object_type<Float>(), object_type<Float>()})})));
   }
 }
 
@@ -173,7 +173,7 @@ TEST_CASE("unify")
   SECTION("[X=Int, Y=X->X]")
   {
     std::vector cs = {type_constr {X, object_type<Int>()},
-                      type_constr {Y, new Type(arrow_type {X, X})}};
+                      type_constr {Y, make_object<Type>(arrow_type {X, X})}};
     auto result    = unify(cs, nullptr);
 
     SECTION("reunify")
@@ -189,7 +189,7 @@ TEST_CASE("unify")
       type_arrow_map ans;
       ans.insert(type_arrow {X, object_type<Int>()});
       ans.insert(type_arrow {
-        Y, new Type(arrow_type {object_type<Int>(), object_type<Int>()})});
+        Y, make_object<Type>(arrow_type {object_type<Int>(), object_type<Int>()})});
 
       print_tyarrows(result);
       print_tyarrows(ans);
@@ -200,8 +200,8 @@ TEST_CASE("unify")
   SECTION("[Int-Int=X->Y]")
   {
     std::vector cs = {type_constr {
-      new Type(arrow_type {object_type<Int>(), object_type<Int>()}),
-      new Type(arrow_type {X, Y})}};
+      make_object<Type>(arrow_type {object_type<Int>(), object_type<Int>()}),
+      make_object<Type>(arrow_type {X, Y})}};
     auto result    = unify(cs, nullptr);
 
     SECTION("reunify")
@@ -227,8 +227,8 @@ TEST_CASE("unify")
   SECTION("[X->Y=Y->Z, Z=U->W]")
   {
     std::vector cs = {
-      type_constr {new Type(arrow_type {X, Y}), new Type(arrow_type {Y, Z})},
-      type_constr {Z, new Type(arrow_type {U, W})}};
+      type_constr {make_object<Type>(arrow_type {X, Y}), make_object<Type>(arrow_type {Y, Z})},
+      type_constr {Z, make_object<Type>(arrow_type {U, W})}};
     auto result = unify(cs, nullptr);
 
     SECTION("reunify")
@@ -242,9 +242,9 @@ TEST_CASE("unify")
     SECTION("eq")
     {
       type_arrow_map ans;
-      ans.insert(type_arrow {X, new Type(arrow_type {U, W})});
-      ans.insert(type_arrow {Y, new Type(arrow_type {U, W})});
-      ans.insert(type_arrow {Z, new Type(arrow_type {U, W})});
+      ans.insert(type_arrow {X, make_object<Type>(arrow_type {U, W})});
+      ans.insert(type_arrow {Y, make_object<Type>(arrow_type {U, W})});
+      ans.insert(type_arrow {Z, make_object<Type>(arrow_type {U, W})});
 
       print_tyarrows(result);
       print_tyarrows(ans);
@@ -255,9 +255,9 @@ TEST_CASE("unify")
   SECTION("List<Int> -> List<List<Double>> = List<X> -> List<Y>")
   {
     std::vector cs = {type_constr {
-      new Type(arrow_type {new Type(list_type {object_type<Int>()}),
-                           new Type(list_type {object_type<List<Double>>()})}),
-      new Type(arrow_type {new Type(list_type {X}), new Type(list_type {Y})})}};
+      make_object<Type>(arrow_type {make_object<Type>(list_type {object_type<Int>()}),
+                                    make_object<Type>(list_type {object_type<List<Double>>()})}),
+      make_object<Type>(arrow_type {make_object<Type>(list_type {X}), make_object<Type>(list_type {Y})})}};
     auto result    = unify(cs, nullptr);
 
     SECTION("reunify")
@@ -354,7 +354,7 @@ TEST_CASE("type_of")
 
       SECTION("Apply")
       {
-        object_ptr app = new Apply {a, i};
+        object_ptr app = make_object<Apply>(a, i);
         auto type      = type_of(app);
         REQUIRE(same_type(type, object_type<Double>()));
       }
@@ -399,7 +399,7 @@ TEST_CASE("type_of")
 
     SECTION("Apply")
     {
-      object_ptr app = new Apply {new Apply {a, b}, d};
+      object_ptr app = make_object<Apply>(make_object<Apply>(a, b), d);
       auto type      = type_of(app);
       REQUIRE(same_type(type, object_type<Int>()));
     }

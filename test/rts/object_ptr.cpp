@@ -22,6 +22,8 @@ YAVE_DECL_TYPE(Double, "9cc69b38-8766-44f1-93e9-337cfb3d3bc5");
 
 TEST_CASE("pointer construct", "[rts][object_ptr]")
 {
+  auto mr = std::pmr::get_default_resource();
+
   SECTION("pointer")
   {
     object_ptr<Int> i = nullptr;
@@ -30,24 +32,34 @@ TEST_CASE("pointer construct", "[rts][object_ptr]")
     REQUIRE(j == nullptr);
     REQUIRE(nullptr == i);
   }
+
   SECTION("pointer")
   {
-    object_ptr<Int> i = new Int(42);
+    auto p             = new (mr) Int(42);
+    p->memory_resource = mr;
+    object_ptr<Int> i  = p;
     REQUIRE(i);
     REQUIRE(*i == 42);
   }
+
   SECTION("deduction")
   {
-    object_ptr i = new Int(42);
+    auto p             = new (mr) Int(42);
+    p->memory_resource = mr;
+    object_ptr i       = p;
     REQUIRE(i);
     REQUIRE(*i == 42);
   }
+
   SECTION("deduction")
   {
-    auto i = object_ptr(new Int(42));
+    auto p             = new (mr) Int(42);
+    p->memory_resource = mr;
+    auto i             = object_ptr(p);
     REQUIRE(i);
     REQUIRE(*i == 42);
   }
+
   SECTION("guided")
   {
     {
@@ -78,7 +90,7 @@ TEST_CASE("pointer construct", "[rts][object_ptr]")
     REQUIRE(*i == 42);
   }
   SECTION("copy")
-  { 
+  {
     auto i = make_object<Int>(42);
     auto j = i;
     REQUIRE(j);
@@ -100,9 +112,9 @@ TEST_CASE("pointer construct", "[rts][object_ptr]")
   }
   SECTION("conversion")
   {
-    auto i = make_object<Int>(42);
+    auto i         = make_object<Int>(42);
     object_ptr<> j = i;
-    auto k = object_ptr<>(i);
+    auto k         = object_ptr<>(i);
     REQUIRE(i == j);
     REQUIRE(!(i != j));
   }
@@ -124,9 +136,11 @@ TEST_CASE("operator bool", "[rts][object_ptr]")
 {
   SECTION("pointer")
   {
+    auto mr = std::pmr::get_default_resource();
     object_ptr<Int> i {};
     REQUIRE(!i);
-    i = new Int(42);
+    i                        = new (mr) Int(42);
+    i.get()->memory_resource = mr;
     REQUIRE(i);
     i = nullptr;
     REQUIRE(!i);
@@ -191,4 +205,20 @@ TEST_CASE("operators", "[rts][object_ptr]")
   } else {
     REQUIRE(lhs <= rhs);
   }
+}
+
+TEST_CASE("custom allocator", "[rts][object_ptr]")
+{
+  std::pmr::synchronized_pool_resource res;
+
+  auto i = make_object<Int>((std::pmr::memory_resource*)&res, 42);
+
+  REQUIRE(i);
+  REQUIRE(*i == 42);
+
+  auto i2 = i.clone();
+  *i2     = 24;
+  REQUIRE(i2);
+  REQUIRE(*i2 == 24);
+  REQUIRE(*i == 42);
 }

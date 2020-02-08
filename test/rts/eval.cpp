@@ -50,7 +50,7 @@ TEST_CASE("eval")
 
     SECTION("1")
     {
-      auto term = f << new Int(42);
+      auto term = f << make_object<Int>(42);
       REQUIRE(type_of(term));
       (void)eval(term);
       REQUIRE(type_of(term));
@@ -58,7 +58,7 @@ TEST_CASE("eval")
 
     SECTION("2")
     {
-      auto term = f << new Int(42) << new Int(24);
+      auto term = f << make_object<Int>(42) << make_object<Int>(24);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 66);
       REQUIRE(*value_cast<Int>(eval(term)) == 66);
@@ -66,7 +66,8 @@ TEST_CASE("eval")
 
     SECTION("3")
     {
-      auto term = f << new Int(42) << (f << new Int(24) << new Int(24));
+      auto term = f << make_object<Int>(42)
+                    << (f << make_object<Int>(24) << make_object<Int>(24));
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 90);
       REQUIRE(*value_cast<Int>(eval(term)) == 90);
@@ -74,8 +75,8 @@ TEST_CASE("eval")
 
     SECTION("4")
     {
-      auto term = f << (f << new Int(42) << new Int(24))
-                    << (f << new Int(42) << new Int(24));
+      auto term = f << (f << make_object<Int>(42) << make_object<Int>(24))
+                    << (f << make_object<Int>(42) << make_object<Int>(24));
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 132);
       REQUIRE(*value_cast<Int>(eval(term)) == 132);
@@ -83,8 +84,8 @@ TEST_CASE("eval")
 
     SECTION("5")
     {
-      auto part = eval(f << new Int(42));
-      auto term = part << new Int(24);
+      auto part = eval(f << make_object<Int>(42));
+      auto term = part << make_object<Int>(24);
       REQUIRE(part);
       REQUIRE(term);
       REQUIRE(type_of(part));
@@ -95,7 +96,7 @@ TEST_CASE("eval")
 
     SECTION("6")
     {
-      auto app = f << new Int(42) << new Int(24);
+      auto app = f << make_object<Int>(42) << make_object<Int>(24);
       (void)eval(app); // result will be cached
       auto term = f << app << app;
       REQUIRE(type_of(app));
@@ -119,7 +120,7 @@ TEST_CASE("eval")
     {
       return_type code() const
       {
-        return new Int(*eval_arg<0>() * 2);
+        return make_object<Int>(*eval_arg<0>() * 2);
       }
     };
 
@@ -128,14 +129,14 @@ TEST_CASE("eval")
 
     SECTION("0")
     {
-      auto term = f << g << new Int(42);
+      auto term = f << g << make_object<Int>(42);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 84);
     }
 
     SECTION("1")
     {
-      auto term = f << (f << g) << new Int(42);
+      auto term = f << (f << g) << make_object<Int>(42);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 84);
     }
@@ -164,11 +165,11 @@ TEST_CASE("eval")
 
     SECTION("0")
     {
-      auto part = f << g << new Int(2019);
+      auto part = f << g << make_object<Int>(2019);
       (void)eval(part);
 
-      auto t1 = part << new Int(42);
-      auto t2 = part << new Int(24);
+      auto t1 = part << make_object<Int>(42);
+      auto t2 = part << make_object<Int>(24);
 
       REQUIRE(type_of(t1));
       REQUIRE(type_of(t2));
@@ -189,7 +190,7 @@ TEST_CASE("eval")
       };
 
       auto h    = make_object<H>();
-      auto term = h << g << new Int(0) << new Int(42);
+      auto term = h << g << make_object<Int>(0) << make_object<Int>(42);
 
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 42);
@@ -226,7 +227,7 @@ TEST_CASE("eval")
 
     SECTION("0")
     {
-      auto term = fib << new Int(10);
+      auto term = fib << make_object<Int>(10);
       REQUIRE(type_of(term));
       REQUIRE(*value_cast<Int>(eval(term)) == 55);
       REQUIRE(type_of(term));
@@ -239,12 +240,12 @@ TEST_CASE("eval")
       {
         return_type code() const
         {
-          return new Int(*eval_arg<0>() + *eval_arg<1>());
+          return make_object<Int>(*eval_arg<0>() + *eval_arg<1>());
         }
       };
 
       auto add    = make_object<Add>();
-      auto shared = fib << new Int(10);
+      auto shared = fib << make_object<Int>(10);
       auto term   = add << shared << shared;
 
       REQUIRE(type_of(term));
@@ -354,7 +355,7 @@ TEST_CASE("copy_apply_graph", "[rts][eval]")
       (void)eval_arg<0>();
       (void)eval_arg<1>();
       ++count;
-      return new Int(42);
+      return make_object<Int>(42);
     }
   };
 

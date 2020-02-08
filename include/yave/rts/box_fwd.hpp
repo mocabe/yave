@@ -46,8 +46,13 @@ namespace yave {
       static_assert(
         std::is_nothrow_destructible_v<T>,
         "Boxed object should have nothrow destructor");
-      auto *p = static_cast<const T *>(obj);
-      delete p;
+
+      assert(
+        obj->memory_resource
+        && "Dont forget setting memory_resource after calling new()");
+
+      auto p = static_cast<const T *>(obj);
+      object_delete(p);
     }
 
     /// \brief vtable function to clone object.
@@ -60,8 +65,13 @@ namespace yave {
     auto vtbl_clone_func(const Object *obj) noexcept -> Object *
     {
       try {
-        auto p = static_cast<const T *>(obj);
-        return new (std::nothrow) T {*p};
+
+        assert(
+          obj->memory_resource
+          && "Dont forget setting memory_resource after calling new()");
+
+        return object_new<T>(
+          obj->memory_resource, *static_cast<const T *>(obj));
       } catch (...) {
         // TODO: return Exception object
         return nullptr;
@@ -137,7 +147,6 @@ namespace yave {
       : Object {obj}
       , m_value {obj.m_value}
     {
-      refcount = 1;
     }
 
     /// Move ctor
@@ -146,7 +155,6 @@ namespace yave {
       : Object {obj}
       , m_value {std::move(obj.m_value)}
     {
-      refcount = 1;
     }
 
     /// operator=

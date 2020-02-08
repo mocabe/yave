@@ -162,9 +162,8 @@ namespace yave {
       std::enable_if_t<is_object_pointer_v<T1> && is_object_pointer_v<T2>>>
   [[nodiscard]] auto operator<<(T1&& lhs, T2&& rhs)
   {
-    // use {} to workaround gcc bug (81486?)
-    return object_ptr(
-      new TApply {std::forward<T1>(lhs), std::forward<T2>(rhs)});
+    using newT = decltype(TApply(std::forward<T1>(lhs), std::forward<T2>(rhs)));
+    return make_object<newT>(std::forward<T1>(lhs), std::forward<T2>(rhs));
   }
 
 } // namespace yave

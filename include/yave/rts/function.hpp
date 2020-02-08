@@ -179,6 +179,13 @@ namespace yave {
     {
     }
 
+    /// Ctor (static)
+    Function(static_construct_t) noexcept
+      : Function()
+    {
+      this->refcount = 0;
+    }
+
     /// Copy ctor
     Function(const Function& other) noexcept
       : ClosureN<sizeof...(Ts) - 1> //
@@ -188,7 +195,6 @@ namespace yave {
        },
        other.spine}
     {
-      this->refcount = 1;
     }
 
     /// Move ctor
@@ -200,7 +206,6 @@ namespace yave {
        },
        std::move(other.spine)}
     {
-      this->refcount = 1;
     }
 
     /// operator=

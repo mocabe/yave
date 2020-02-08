@@ -60,11 +60,26 @@ namespace yave {
 
     /// Copy ctor
     constexpr Object(const Object& other)
-      : refcount {other.refcount.load()} // non atomic
+      : refcount {1} // always init as 1
       , offset {other.offset}
       , info_table {other.info_table}
       , memory_resource {other.memory_resource}
     {
+    }
+
+    void* operator new(size_t)  = delete;
+    void operator delete(void*) = delete;
+
+    void* operator new(size_t size, std::pmr::memory_resource* mr)
+    {
+      std::pmr::polymorphic_allocator<std::byte> alloc(mr);
+      return alloc.allocate(size);
+    }
+
+    void operator delete(void* p, size_t size, std::pmr::memory_resource* mr)
+    {
+      std::pmr::polymorphic_allocator<std::byte> alloc(mr);
+      alloc.deallocate((std::byte*)p, size);
     }
 
     /// 4byte: reference count
@@ -82,6 +97,29 @@ namespace yave {
   };
 
   static_assert(std::is_standard_layout_v<Object>);
+
+  // ------------------------------------------
+  // object_new/object_delete
+
+  /// Construct new object from arguments, with its memory allocated from
+  /// memory_resource.
+  template <class T, class... Args>
+  T* object_new(std::pmr::memory_resource* mr, Args&&... args)
+  {
+    using newT         = std::remove_const_t<T>;
+    auto p             = new (mr) newT(std::forward<Args>(args)...);
+    p->memory_resource = mr;
+    return p;
+  }
+
+  /// Destruct and delete object with its own memory_resource.
+  template <class T>
+  void object_delete(const T* p)
+  {
+    auto mr = p->memory_resource;
+    p->~T();
+    T::operator delete((void*)p, sizeof(T), mr);
+  }
 
   // ------------------------------------------
   // is_object_pointer

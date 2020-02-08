@@ -19,7 +19,7 @@ TEST_CASE("NodeFunction")
       return_type code() const
       {
         return make_object<Double>(*eval_arg<0>() + *eval(arg<1>()));
-        return new Double();
+        return new (std::pmr::new_delete_resource()) Double();
       }
     };
 

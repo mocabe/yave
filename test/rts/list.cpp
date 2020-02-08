@@ -74,7 +74,10 @@ TEST_CASE("List<Int>")
 
   SECTION("make_object")
   {
-    auto l = make_object<List<Int>>(new Int(42));
+    auto mr            = std::pmr::get_default_resource();
+    auto i             = new (mr) Int(42);
+    i->memory_resource = mr;
+    auto l             = make_object<List<Int>>(i);
     REQUIRE(l);
     REQUIRE(!l->is_nil());
     REQUIRE(l->head());
@@ -115,8 +118,11 @@ TEST_CASE("List<Int>")
 
   SECTION("make_list")
   {
-    auto l = make_list<Int>(
-      make_object<Int>(42), new Int(42), make_object<const Int>(42));
+    auto mr            = std::pmr::get_default_resource();
+    auto i             = new (mr) Int(42);
+    i->memory_resource = mr;
+    auto l =
+      make_list<Int>(make_object<Int>(42), i, make_object<const Int>(42));
     REQUIRE(l);
 
     while (!l->is_nil()) {

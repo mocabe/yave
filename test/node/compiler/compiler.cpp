@@ -30,7 +30,7 @@ struct AddI : NodeFunction<AddI, Int, Int, Int>
 {
   return_type code() const
   {
-    return new Int(*eval_arg<0>() + *eval_arg<1>());
+    return make_object<Int>(*eval_arg<0>() + *eval_arg<1>());
   }
 };
 
@@ -38,7 +38,7 @@ struct AddD : NodeFunction<AddD, Double, Double, Double>
 {
   return_type code() const
   {
-    return new Double(*eval_arg<0>() + *eval_arg<1>());
+    return make_object<Double>(*eval_arg<0>() + *eval_arg<1>());
   }
 };
 

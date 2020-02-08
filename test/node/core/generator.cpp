@@ -65,7 +65,7 @@ TEST_CASE("generators")
         }
       };
       using Func = QuaternaryFunction<Int, Float, Double, Int, Float, func>;
-      [[maybe_unused]] auto v = make_object<Func>;
+      [[maybe_unused]] auto v = make_object<Func>();
     }
   }
 }

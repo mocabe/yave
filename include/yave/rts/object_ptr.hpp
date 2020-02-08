@@ -429,11 +429,19 @@ namespace yave {
   // ------------------------------------------
   // make_object
 
-  /// make object
+  /// make object with custom allocator
+  template <class T, class... Args>
+  [[nodiscard]] auto make_object(std::pmr::memory_resource* mr, Args&&... args)
+  {
+    return object_ptr(object_new<T>(mr, std::forward<Args>(args)...));
+  }
+
+  /// make object with default allocator
   template <class T, class... Args>
   [[nodiscard]] auto make_object(Args&&... args)
   {
-    return object_ptr<T>(new T(std::forward<Args>(args)...));
+    return make_object<T>(
+      std::pmr::get_default_resource(), std::forward<Args>(args)...);
   }
 
 } // namespace yave
