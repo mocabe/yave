@@ -35,27 +35,21 @@ TEST_CASE("pointer construct", "[rts][object_ptr]")
 
   SECTION("pointer")
   {
-    auto p             = new (mr) Int(42);
-    p->memory_resource = mr;
-    object_ptr<Int> i  = p;
+    object_ptr<Int> i = object_new<Int>(mr, 42);
     REQUIRE(i);
     REQUIRE(*i == 42);
   }
 
   SECTION("deduction")
   {
-    auto p             = new (mr) Int(42);
-    p->memory_resource = mr;
-    object_ptr i       = p;
+    object_ptr i = object_new<Int>(mr, 42);
     REQUIRE(i);
     REQUIRE(*i == 42);
   }
 
   SECTION("deduction")
   {
-    auto p             = new (mr) Int(42);
-    p->memory_resource = mr;
-    auto i             = object_ptr(p);
+    auto i = object_ptr(object_new<Int>(mr, 42));
     REQUIRE(i);
     REQUIRE(*i == 42);
   }
@@ -139,8 +133,7 @@ TEST_CASE("operator bool", "[rts][object_ptr]")
     auto mr = std::pmr::get_default_resource();
     object_ptr<Int> i {};
     REQUIRE(!i);
-    i                        = new (mr) Int(42);
-    i.get()->memory_resource = mr;
+    i = object_new<Int>(mr, 42);
     REQUIRE(i);
     i = nullptr;
     REQUIRE(!i);

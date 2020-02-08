@@ -67,15 +67,19 @@ namespace yave {
     {
     }
 
-    void* operator new(size_t)  = delete;
-    void operator delete(void*) = delete;
+    void* operator new(size_t)    = delete;
+    void operator delete(void*)   = delete;
+    void* operator new[](size_t)  = delete;
+    void operator delete[](void*) = delete;
 
+    /// operator new using memory_resource
     void* operator new(size_t size, std::pmr::memory_resource* mr)
     {
       std::pmr::polymorphic_allocator<std::byte> alloc(mr);
       return alloc.allocate(size);
     }
 
+    /// operator delete using memory_resource
     void operator delete(void* p, size_t size, std::pmr::memory_resource* mr)
     {
       std::pmr::polymorphic_allocator<std::byte> alloc(mr);
@@ -91,8 +95,8 @@ namespace yave {
     /// 8byte: pointer to info table
     const object_info_table* info_table;
 
-    /// 8byte: pointer for allocator object.
-    /// This pointer should only be used from vtable functions for ABI reasons.
+    /// 8byte: pointer for polymorphic memory resource
+    /// This pointer should only be used from vtable functions
     std::pmr::memory_resource* memory_resource;
   };
 
@@ -104,7 +108,7 @@ namespace yave {
   /// Construct new object from arguments, with its memory allocated from
   /// memory_resource.
   template <class T, class... Args>
-  T* object_new(std::pmr::memory_resource* mr, Args&&... args)
+  [[nodiscard]] T* object_new(std::pmr::memory_resource* mr, Args&&... args)
   {
     using newT         = std::remove_const_t<T>;
     auto p             = new (mr) newT(std::forward<Args>(args)...);
