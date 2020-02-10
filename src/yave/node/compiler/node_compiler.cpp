@@ -165,17 +165,60 @@ namespace yave {
           return inst->instance;
         }
 
-        // group: skip IO handler
+        auto iss = graph.input_sockets(node);
+
+        // group: make lambda
         if (graph.is_group(node)) {
+
+          // lambda form?
+          bool isLambda = false;
+          for (auto&& s : iss) {
+            if (
+              graph.connections(s).empty()
+              && value_cast_if<Variable>(graph.get_data(s))) {
+              isLambda = true;
+              break;
+            }
+          }
+
           auto inside = graph.get_group_socket_inside(socket);
-          assert(graph.connections(inside).size() == 1);
-          return rec(
+
+          auto body = rec(
             env,
             sim,
             hmap,
             nds,
             graph,
             graph.get_info(graph.connections(inside)[0])->src_socket());
+
+          // apply lambda
+          if (isLambda) {
+            for (auto iter = iss.rbegin(); iter != iss.rend(); ++iter) {
+              auto& s = *iter;
+              body    = make_object<Lambda>(
+                value_cast<Variable>(graph.get_data(s)), body);
+            }
+          }
+
+          return body;
+        }
+
+        // group input
+        if (graph.is_group_input(node)) {
+
+          auto outside = graph.get_group_socket_outside(socket);
+
+          // not connected: return variable
+          if (graph.connections(outside).empty())
+            return value_cast<Variable>(graph.get_data(outside));
+
+          return rec(
+            env,
+            sim,
+            hmap,
+            nds,
+            graph,
+            graph.get_info(graph.connections(outside)[0])->src_socket());
         }
 
         // acquire node object
@@ -196,20 +239,18 @@ namespace yave {
         hmap.emplace(overloaded, std::pair {node, socket});
 
         // apply inputs
-
-        for (auto&& s : graph.input_sockets(node)) {
-
+        for (auto&& s : iss) {
           if (graph.connections(s).empty()) {
 
-            auto data = graph.get_data(s);
-            assert(data);
+            // lambda form
+            if (!graph.get_data(s))
+              return overloaded;
 
-            // default argument
-            if (auto holder = value_cast_if<DataTypeHolder>(data)) {
+            // apply default argument
+            if (auto holder = value_cast_if<DataTypeHolder>(graph.get_data(s)))
               overloaded = overloaded << holder->get_data_constructor();
-            } else {
+            else
               overloaded = overloaded << graph.get_data(s);
-            }
 
           } else {
             // normal argument
@@ -223,7 +264,6 @@ namespace yave {
                 graph,
                 graph.get_info(graph.connections(s)[0])->src_socket());
           }
-
           hmap.emplace(overloaded, std::pair {node, socket});
         }
 

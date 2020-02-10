@@ -164,18 +164,34 @@ namespace yave {
 
       // group
       if (graph.is_group(n)) {
-        // check missing inputs for interface
+
+        // first pass
+        size_t nConnected = 0;
         for (auto&& s : graph.input_sockets(n)) {
-          if (graph.connections(s).empty()) {
-            m_errors.push_back(
-              make_error<parse_error::missing_input>(n.id(), s.id()));
+          if (!graph.connections(s).empty())
+            ++nConnected;
+        }
+
+        // second pass
+        for (auto&& s : graph.input_sockets(n)) {
+          // add vairbale if it's lambda form
+          if (nConnected == 0) {
+            graph.set_data(s, make_object<Variable>());
+          }
+          // report missing input
+          if (nConnected != 0) {
+            if (graph.connections(s).empty()) {
+              m_errors.push_back(
+                make_error<parse_error::missing_input>(n.id(), s.id()));
+            }
           }
         }
+
         // check missing connection to active output
         for (auto&& s : graph.output_sockets(n)) {
           if (
-            !graph.connections(s).empty() &&
-            graph.connections(graph.get_group_socket_inside(s)).empty()) {
+            !graph.connections(s).empty()
+            && graph.connections(graph.get_group_socket_inside(s)).empty()) {
             m_errors.push_back(make_error<parse_error::missing_output>(
               graph.get_group_output(n).id(),
               graph.get_group_socket_inside(s).id()));
@@ -186,11 +202,22 @@ namespace yave {
 
       // normal
       if (graph.is_group_member(n)) {
-        // check missing input
+
+        // first pass
+        size_t nConnected = 0;
         for (auto&& s : graph.input_sockets(n)) {
-          if (graph.connections(s).empty() && !graph.get_data(s)) {
-            m_errors.push_back(
-              make_error<parse_error::missing_input>(n.id(), s.id()));
+          if (!graph.connections(s).empty() || graph.get_data(s))
+            ++nConnected;
+        }
+
+        // report missing input
+        if (nConnected != 0) {
+          for (auto&& s : graph.input_sockets(n)) {
+            // allow if it has user defined data
+            if (graph.connections(s).empty() && !graph.get_data(s)) {
+              m_errors.push_back(
+                make_error<parse_error::missing_input>(n.id(), s.id()));
+            }
           }
         }
         continue;
