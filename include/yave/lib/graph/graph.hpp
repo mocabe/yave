@@ -23,8 +23,6 @@ namespace yave::graph {
 
   // TODO: Possibly replace internal representation using Boost.Graph library.
   // TODO: Use memory pool for allocation to improve data locality.
-  // TODO: Implement outline property types (property types its instances are
-  // allocated separately, instead of embedded into Node/Socket/Edge instances).
 
   template <typename Traits>
   class node;
@@ -57,23 +55,16 @@ namespace yave::graph {
     template <class>
     class ValueType,
     class GraphTraits,
-    class Property,
     class Tag = default_graph_trait_tag>
   struct graph_container_traits;
 
-  template <template <class> class ValueType, class GraphTraits, class Property>
-  struct graph_container_traits<
-    ValueType,
-    GraphTraits,
-    Property,
-    default_graph_trait_tag>
+  template <template <class> class ValueType, class GraphTraits>
+  struct graph_container_traits<ValueType, GraphTraits, default_graph_trait_tag>
   {
     // value type
     using value_type = ValueType<GraphTraits>;
     // descriptor type
-    using descriptor_type = value_type *;
-    // property type
-    using property_type = Property;
+    using descriptor_type = const value_type *;
     // id type
     using id_type = typename GraphTraits::id_type;
 
@@ -83,7 +74,7 @@ namespace yave::graph {
       // descriptor map.
       std::map<descriptor_type, id_type> dsc_map;
       // id map.
-      std::map<id_type, descriptor_type> id_map;
+      std::map<id_type, value_type> id_map;
     };
 
     /// Check if a descriptor exists in a container.
@@ -133,7 +124,7 @@ namespace yave::graph {
       auto iter = map.find(id);
 
       if (iter != map.end())
-        return iter->second;
+        return &iter->second;
 
       return nullptr;
     }
@@ -168,8 +159,6 @@ namespace yave::graph {
         if (iter != map.end())
           map.erase(iter);
       }
-
-      delete descriptor;
     }
 
     /// Instance in a container and return descriptor.
@@ -182,17 +171,20 @@ namespace yave::graph {
       const id_type &id,
       Args &&... args)
     {
-      descriptor_type dsc = new value_type(id, std::forward<Args>(args)...);
+      descriptor_type dsc;
 
+      // insert id
+      {
+        auto &map = c.id_map;
+        auto [iter, succ] =
+          map.emplace(id, value_type(id, std::forward<Args>(args)...));
+        assert(succ);
+        dsc = &iter->second;
+      }
       // insert dsc
       {
         auto &map = c.dsc_map;
         map.emplace(dsc, id);
-      }
-      // insert id
-      {
-        auto &map = c.id_map;
-        map.emplace(id, dsc);
       }
 
       return dsc;
@@ -243,7 +235,7 @@ namespace yave::graph {
     {
       (void)c;
       assert(descriptor);
-      return *descriptor;
+      return *const_cast<value_type *>(descriptor);
     }
 
     /// Access function.
@@ -355,14 +347,9 @@ namespace yave::graph {
 
     /* container traits */
 
-    using node_container_traits =
-      graph_container_traits<node, type, NodeProperty>;
-
-    using edge_container_traits =
-      graph_container_traits<edge, type, EdgeProperty>;
-
-    using socket_container_traits =
-      graph_container_traits<socket, type, SocketProperty>;
+    using node_container_traits   = graph_container_traits<node, type>;
+    using edge_container_traits   = graph_container_traits<edge, type>;
+    using socket_container_traits = graph_container_traits<socket, type>;
 
     /* container types */
 
@@ -811,26 +798,13 @@ namespace yave::graph {
     graph(const graph &) = delete;
 
     /// Move constructor
-    graph(graph &&other)
-    {
-      m_nodes   = std::move(other.m_nodes);
-      m_edges   = std::move(other.m_edges);
-      m_sockets = std::move(other.m_sockets);
-    }
+    graph(graph &&other) = default;
 
     /// Copy assignment is deleted. use clone().
     graph &operator=(const graph &) = delete;
 
     /// Move assignment.
-    graph &operator=(graph &&other)
-    {
-      clear();
-      m_nodes   = std::move(other.m_nodes);
-      m_edges   = std::move(other.m_edges);
-      m_sockets = std::move(other.m_sockets);
-
-      return *this;
-    }
+    graph &operator=(graph &&other) = default;
 
     /// A destructor
     ~graph()
