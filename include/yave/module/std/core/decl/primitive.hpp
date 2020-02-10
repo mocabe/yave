@@ -11,14 +11,14 @@
 #include <yave/node/core/function.hpp>
 #include <yave/rts/object_ptr.hpp>
 
-#define YAVE_DECL_PRIM_NODE_DECL(TYPE, NAME)    \
-  namespace node {                              \
-    using TYPE = DataTypeConstructor<yave::TYPE>;   \
-  }                                             \
-  template <>                                   \
-  struct data_type_traits<yave::TYPE>           \
-  {                                             \
-    static constexpr const char name[] = #NAME; \
+#define YAVE_DECL_PRIM_NODE_DECL(TYPE, NAME)      \
+  namespace node {                                \
+    using NAME = DataTypeConstructor<yave::TYPE>; \
+  }                                               \
+  template <>                                     \
+  struct data_type_traits<yave::TYPE>             \
+  {                                               \
+    static constexpr const char name[] = #NAME;   \
   }
 
 namespace yave {
@@ -91,11 +91,12 @@ namespace yave {
 
   using DataTypeHolder = Box<detail::data_type_holder_object_value>;
 
-  template <class T>
-  [[nodiscard]] auto make_data_type_holder()
+  template <class T, class... Args>
+  [[nodiscard]] auto make_data_type_holder(Args&&... args)
   {
     return make_object<DataTypeHolder>(
-      make_object<T>(), make_object<detail::DataTypeCtor<T>>());
+      make_object<T>(std::forward<Args>(args)...),
+      make_object<detail::DataTypeCtor<T>>());
   }
 
   template <class T>

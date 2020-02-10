@@ -24,7 +24,8 @@ TEST_CASE("Constructor")
   {
     auto v                      = make_data_type_holder<Int>();
     *value_cast<Int>(v->data()) = 42;
-    auto r                      = eval(v << make_object<FrameDemand>());
-    REQUIRE(*value_cast<Int>(r) == 42);
+    auto app = (v->ctor() << v->data()) << make_object<FrameDemand>();
+    check_type_dynamic<Int>(app);
+    REQUIRE(*value_cast<Int>(eval(app)) == 42);
   }
 }
