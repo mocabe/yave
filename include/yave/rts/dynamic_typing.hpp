@@ -744,7 +744,7 @@ namespace yave {
         continue;
 
       auto a = type_arrow {v, genvar()};
-      t      = subst_type(a, tp);
+      t      = subst_type(a, t);
     }
     return t;
   }
