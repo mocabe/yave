@@ -12,13 +12,13 @@
 #include <selene/img/typed/ImageView.hpp>
 #include <selene/img/interop/DynImageToImage.hpp>
 
-namespace yave::sln {
-
-  using namespace ::sln; // silly, but works.
+namespace yave {
 
   /// Convert pixel_format to sln::PixelFormat
-  [[nodiscard]] inline PixelFormat to_PixelFormat(pixel_format fmt)
+  [[nodiscard]] inline sln::PixelFormat to_sln(pixel_format fmt)
   {
+    using namespace sln;
+
     switch (fmt) {
       case pixel_format::Y:
         return PixelFormat::Y;
@@ -45,8 +45,10 @@ namespace yave::sln {
   }
 
   /// Convert sln::PixelFormat to pixel_format
-  [[nodiscard]] inline pixel_format to_pixel_format(PixelFormat fmt)
+  [[nodiscard]] inline pixel_format from_sln(sln::PixelFormat fmt)
   {
+    using namespace sln;
+
     switch (fmt) {
       case PixelFormat::Y:
         return pixel_format::Y;
@@ -83,8 +85,10 @@ namespace yave::sln {
   }
 
   /// Convert sample_format to sln::SampleFormat
-  [[nodiscard]] inline SampleFormat to_SampleFormat(const sample_format& fmt)
+  [[nodiscard]] inline sln::SampleFormat to_sln(const sample_format& fmt)
   {
+    using namespace sln;
+
     switch (fmt) {
       case sample_format::UnsignedInteger:
       case sample_format::UnsignedNormalized:
@@ -104,8 +108,10 @@ namespace yave::sln {
   }
 
   /// Convert sln::SampleFormat to sample_format
-  [[nodiscard]] inline sample_format to_sample_format(SampleFormat fmt)
+  [[nodiscard]] inline sample_format from_sln(sln::SampleFormat fmt)
   {
+    using namespace sln;
+
     switch (fmt) {
       case SampleFormat::UnsignedInteger:
         return sample_format::UnsignedInteger;
@@ -120,8 +126,10 @@ namespace yave::sln {
   }
 
   /// Convert image to sln::DynImage
-  [[nodiscard]] inline DynImage<> to_DynImage(image&& image)
+  [[nodiscard]] inline sln::DynImage<> to_sln(const image& image)
   {
+    using namespace sln;
+
     auto layout = UntypedLayout(
       PixelLength(image.width()),
       PixelLength(image.height()),
@@ -129,45 +137,50 @@ namespace yave::sln {
       static_cast<int16_t>(image.byte_per_channel()));
 
     auto semantics = UntypedImageSemantics(
-      to_PixelFormat(image.image_format().pixel_format),
-      to_SampleFormat(image.image_format().sample_format));
+      to_sln(image.image_format().pixel_format),
+      to_sln(image.image_format().sample_format));
 
-    return sln::DynImage<>(image.release(), layout, semantics);
+    sln::DynImage<> ret(layout, semantics);
+
+    assert(ret.total_bytes() == image.byte_size());
+
+    std::memcpy(ret.byte_ptr(), image.data(), ret.total_bytes());
+
+    return ret;
   }
 
-  /// Convert image to sln::DynImage
-  [[nodiscard]] inline DynImage<> to_DynImage(const image& image)
+  /// Convert sln::DynImage to image
+  [[nodiscard]] inline image from_sln(
+    const sln::DynImage<>& image,
+    const std::pmr::polymorphic_allocator<std::byte>& alloc)
   {
-    auto tmp = image;
-    return to_DynImage(std::move(tmp));
-  }
-
-  [[nodiscard]] inline image to_image(DynImage<>&& image)
-  {
-    auto pfmt   = to_pixel_format(image.pixel_format());
-    auto sfmt   = to_sample_format(image.sample_format());
+    auto pfmt   = from_sln(image.pixel_format());
+    auto sfmt   = from_sln(image.sample_format());
     auto bpc    = image.nr_bytes_per_channel();
     auto width  = image.width().value();
     auto height = image.height().value();
-    auto data   = image.relinquish_data_ownership().transfer_data();
+    auto data   = image.byte_ptr();
 
-    return yave::image(
-      data,
+    auto ret = yave::image(
+      (std::byte*)data,
       width,
       height,
-      image_format {pfmt, sfmt, static_cast<uint16_t>(bpc)});
-  }
+      image_format {pfmt, sfmt, static_cast<uint16_t>(bpc)},
+      alloc);
 
-  [[nodiscard]] inline image to_image(const DynImage<>& image)
-  {
-    auto tmp = image;
-    return to_image(std::move(tmp));
+    assert(ret.byte_size() == image.total_bytes());
+
+    std::memcpy(ret.data(), data, ret.byte_size());
+
+    return ret;
   }
 
   /// Convert const_image_view to sln::ConstantDynImageView
-  [[nodiscard]] inline ConstantDynImageView
-    to_DynImageView(const const_image_view& image)
+  [[nodiscard]] inline sln::ConstantDynImageView to_sln(
+    const const_image_view& image)
   {
+    using namespace sln;
+
     auto layout = UntypedLayout(
       PixelLength(image.width()),
       PixelLength(image.height()),
@@ -175,16 +188,19 @@ namespace yave::sln {
       static_cast<int16_t>(image.byte_per_channel()));
 
     auto semantics = UntypedImageSemantics(
-      to_PixelFormat(image.image_format().pixel_format),
-      to_SampleFormat(image.image_format().sample_format));
+      to_sln(image.image_format().pixel_format),
+      to_sln(image.image_format().sample_format));
 
-    return ConstantDynImageView(image.data(), layout, semantics);
+    return ConstantDynImageView(
+      (const uint8_t*)image.data(), layout, semantics);
   }
 
   /// Convert mutable_image_view to sln::MutableDynImageView
-  [[nodiscard]] inline MutableDynImageView
-    to_DynImageView(const mutable_image_view& image)
+  [[nodiscard]] inline sln::MutableDynImageView to_sln(
+    const mutable_image_view& image)
   {
+    using namespace sln;
+
     auto layout = UntypedLayout(
       PixelLength(image.width()),
       PixelLength(image.height()),
@@ -192,63 +208,42 @@ namespace yave::sln {
       static_cast<int16_t>(image.byte_per_channel()));
 
     auto semantics = UntypedImageSemantics(
-      to_PixelFormat(image.image_format().pixel_format),
-      to_SampleFormat(image.image_format().sample_format));
+      to_sln(image.image_format().pixel_format),
+      to_sln(image.image_format().sample_format));
 
-    return MutableDynImageView(image.data(), layout, semantics);
+    return MutableDynImageView((uint8_t*)image.data(), layout, semantics);
   }
 
   /// Convert sln::ConstantDynImageView to const_image_view
-  [[nodiscard]] inline const_image_view
-    to_image_view(const ConstantDynImageView& image)
+  [[nodiscard]] inline const_image_view to_image_view(
+    const sln::ConstantDynImageView& image)
   {
     auto fmt =
-      image_format {to_pixel_format(image.pixel_format()),
-                    to_sample_format(image.sample_format()),
+      image_format {from_sln(image.pixel_format()),
+                    from_sln(image.sample_format()),
                     static_cast<uint16_t>(image.nr_bytes_per_channel())};
 
     return const_image_view(
-      image.byte_ptr(), image.width().value(), image.height().value(), fmt);
+      (const std::byte*)image.byte_ptr(),
+      image.width().value(),
+      image.height().value(),
+      fmt);
   }
 
   /// Convert sln::MutableDynImageView to mutable_image_view
-  [[nodiscard]] inline mutable_image_view
-    to_image_view(const MutableDynImageView& image)
+  [[nodiscard]] inline mutable_image_view to_image_view(
+    const sln::MutableDynImageView& image)
   {
     auto fmt =
-      image_format {to_pixel_format(image.pixel_format()),
-                    to_sample_format(image.sample_format()),
+      image_format {from_sln(image.pixel_format()),
+                    from_sln(image.sample_format()),
                     static_cast<uint16_t>(image.nr_bytes_per_channel())};
 
     return mutable_image_view(
-      image.byte_ptr(), image.width().value(), image.height().value(), fmt);
-  }
-
-  /* Wrappers for support lookup */
-
-  template <typename PixelType, typename Allocator>
-  Image<PixelType, Allocator> to_image(DynImage<Allocator>&& dyn_img)
-  {
-    return ::sln::to_image(std::move(dyn_img));
-  }
-
-  template <typename PixelType, typename Allocator>
-  MutableImageView<PixelType> to_image_view(DynImage<Allocator>& dyn_img)
-  {
-    return ::sln::to_image_view<PixelType, Allocator>(dyn_img);
-  }
-
-  template <typename PixelType, typename Allocator>
-  ConstantImageView<PixelType> to_image_view(const DynImage<Allocator>& dyn_img)
-  {
-    return ::sln::to_image_view<PixelType, Allocator>(dyn_img);
-  }
-
-  template <typename PixelType, ImageModifiability modifiability>
-  ImageView<PixelType, modifiability> to_image_view(
-    const DynImageView<modifiability>& view)
-  {
-    return ::sln::to_image_view<PixelType, modifiability>(view);
+      (std::byte*)image.byte_ptr(),
+      image.width().value(),
+      image.height().value(),
+      fmt);
   }
 
 } // namespace yave

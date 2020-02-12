@@ -45,13 +45,13 @@ namespace yave {
     }
 
     /// Get data pointer
-    [[nodiscard]] auto data() -> uint8_t*
+    [[nodiscard]] auto data() -> std::byte*
     {
       return m_pool->get_data(m_id);
     }
 
     /// Get data pointer
-    [[nodiscard]] auto data() const -> const uint8_t*
+    [[nodiscard]] auto data() const -> const std::byte*
     {
       return m_pool->get_data(m_id);
     }

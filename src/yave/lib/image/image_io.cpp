@@ -4,8 +4,7 @@
 //
 
 #include <yave/lib/image/image_io.hpp>
-#include <yave/lib/selene/conversion.hpp>
-#include <yave/support/log.hpp>
+#include <yave/lib/image/sln.hpp>
 
 #define SELENE_WITH_LIBTIFF
 #include <selene/img_io/png/Read.hpp>
@@ -14,6 +13,7 @@
 
 #include <boost/dll/runtime_symbol_info.hpp>
 
+#include <yave/support/log.hpp>
 YAVE_DECL_G_LOGGER(image_io)
 
 namespace yave {
@@ -46,7 +46,9 @@ namespace yave {
       }
     }
 
-    image load_image_png_impl(const std::filesystem::path& file_path)
+    image load_image_png_impl(
+      const std::filesystem::path& file_path,
+      const std::pmr::polymorphic_allocator<std::byte>& alloc)
     {
       assert(file_path.is_absolute());
       assert(std::filesystem::exists(file_path));
@@ -67,7 +69,7 @@ namespace yave {
         throw std::runtime_error("Failed to read PNG image");
       }
 
-      auto ret = sln::to_image(std::move(image));
+      auto ret = from_sln(image, alloc);
 
       Info(
         g_logger,
@@ -79,7 +81,9 @@ namespace yave {
       return ret;
     }
 
-    image load_image_jpeg_impl(const std::filesystem::path& file_path)
+    image load_image_jpeg_impl(
+      const std::filesystem::path& file_path,
+      const std::pmr::polymorphic_allocator<std::byte>& alloc)
     {
       assert(file_path.is_absolute());
       assert(std::filesystem::exists(file_path));
@@ -103,7 +107,7 @@ namespace yave {
         throw std::runtime_error("Failed to read jpeg image");
       }
 
-      auto ret = sln::to_image(std::move(image));
+      auto ret = from_sln(image, alloc);
 
       Info(
         g_logger,
@@ -115,7 +119,9 @@ namespace yave {
       return ret;
     }
 
-    image load_image_tiff_impl(const std::filesystem::path& file_path)
+    image load_image_tiff_impl(
+      const std::filesystem::path& file_path,
+      const std::pmr::polymorphic_allocator<std::byte>& alloc)
     {
       assert(file_path.is_absolute());
       assert(std::filesystem::exists(file_path));
@@ -138,7 +144,7 @@ namespace yave {
         throw std::runtime_error("Failed to read tiff image");
       }
 
-      auto ret = sln::to_image(std::move(image));
+      auto ret = from_sln(image, alloc);
 
       Info(
         g_logger,
@@ -152,7 +158,9 @@ namespace yave {
 
   } // namespace
 
-  image load_image_auto(const filesystem::path& file)
+  image load_image_auto(
+    const filesystem::path& file,
+    const std::pmr::polymorphic_allocator<std::byte>& alloc)
   {
     init_logger();
 
@@ -171,23 +179,25 @@ namespace yave {
 
     // png
     if (ext == u8".png") {
-      return load_image_png_impl(file_path);
+      return load_image_png_impl(file_path, alloc);
     }
 
     // jpeg
     if (ext == u8".jpeg" || ext == u8".jpg") {
-      return load_image_jpeg_impl(file_path);
+      return load_image_jpeg_impl(file_path, alloc);
     }
 
     // tiff
     if (ext == u8".tiff") {
-      return load_image_tiff_impl(file_path);
+      return load_image_tiff_impl(file_path, alloc);
     }
 
     throw std::runtime_error("Failed to read image file: Unsupported format");
   }
 
-  image load_image_png(const filesystem::path& file)
+  image load_image_png(
+    const filesystem::path& file,
+    const std::pmr::polymorphic_allocator<std::byte>& alloc)
   {
     init_logger();
 
@@ -200,10 +210,12 @@ namespace yave {
         "Failed to loag image file: File doesn't exist");
     }
 
-    return load_image_png_impl(file_path);
+    return load_image_png_impl(file_path, alloc);
   }
 
-  image load_image_jpeg(const filesystem::path& file)
+  image load_image_jpeg(
+    const filesystem::path& file,
+    const std::pmr::polymorphic_allocator<std::byte>& alloc)
   {
     init_logger();
 
@@ -216,10 +228,12 @@ namespace yave {
         "Failed to loag image file: File doesn't exist");
     }
 
-    return load_image_jpeg_impl(file_path);
+    return load_image_jpeg_impl(file_path, alloc);
   }
 
-  image load_image_tiff(const filesystem::path& file)
+  image load_image_tiff(
+    const filesystem::path& file,
+    const std::pmr::polymorphic_allocator<std::byte>& alloc)
   {
     init_logger();
 
@@ -232,6 +246,6 @@ namespace yave {
         "Failed to loag image file: File doesn't exist");
     }
 
-    return load_image_tiff_impl(file_path);
+    return load_image_tiff_impl(file_path, alloc);
   }
 } // namespace yave

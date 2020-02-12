@@ -53,7 +53,7 @@ namespace yave {
     /// Get use count
     [[nodiscard]] auto use_count(uid id) const noexcept -> uint64_t;
     /// Get data pointer
-    [[nodiscard]] auto data(uid id) const noexcept -> uint8_t*;
+    [[nodiscard]] auto data(uid id) const noexcept -> std::byte*;
     /// Get byte sautouffer
     [[nodiscard]] auto size() const noexcept -> uint64_t;
 

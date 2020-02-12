@@ -32,7 +32,7 @@ namespace yave {
       [](void* handle, uint64_t id) noexcept -> void         { return ((frame_buffer_manager*)handle)->ref({id}); },
       [](void* handle, uint64_t id) noexcept -> void         { return ((frame_buffer_manager*)handle)->unref({id}); },
       [](void* handle, uint64_t id) noexcept -> uint64_t     { return ((frame_buffer_manager*)handle)->use_count({id}); },
-      [](void* handle, uint64_t id) noexcept -> uint8_t*     { return ((frame_buffer_manager*)handle)->data({id}); },
+      [](void* handle, uint64_t id) noexcept -> std::byte*   { return ((frame_buffer_manager*)handle)->data({id}); },
       [](void* handle)              noexcept -> uint64_t     { return ((frame_buffer_manager*)handle)->size(); },
       [](void* handle)              noexcept -> image_format { return ((frame_buffer_manager*)handle)->format(); },
       [](void* handle)              noexcept -> uint32_t     { return ((frame_buffer_manager*)handle)->width(); },
@@ -93,7 +93,7 @@ namespace yave {
     return m_mngr.use_count(id);
   }
 
-  auto frame_buffer_manager::data(uid id) const noexcept -> uint8_t*
+  auto frame_buffer_manager::data(uid id) const noexcept -> std::byte*
   {
     return m_mngr.data(id);
   }

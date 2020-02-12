@@ -25,7 +25,7 @@ namespace yave {
 
     /// Construct image_view with data pointer and meta info.
     mutable_image_view(
-      uint8_t* data,
+      std::byte* data,
       uint32_t width,
       uint32_t height,
       yave::image_format image_format) noexcept;
@@ -46,7 +46,7 @@ namespace yave {
     [[nodiscard]] bool empty() const noexcept;
 
     /// Get data pointer.
-    [[nodiscard]] uint8_t* data() const noexcept;
+    [[nodiscard]] std::byte* data() const noexcept;
 
     /// Get image format.
     [[nodiscard]] yave::image_format image_format() const noexcept;
@@ -77,7 +77,7 @@ namespace yave {
 
   private:
     /// data pointer
-    uint8_t* m_data = nullptr;
+    std::byte* m_data = nullptr;
     /// width
     uint32_t m_width = 0;
     /// height
@@ -100,7 +100,7 @@ namespace yave {
 
     /// Construct image_view with data pointer and meta info.
     const_image_view(
-      const uint8_t* data,
+      const std::byte* data,
       uint32_t width,
       uint32_t height,
       yave::image_format image_format) noexcept;
@@ -118,7 +118,7 @@ namespace yave {
     [[nodiscard]] bool empty() const noexcept;
 
     /// Get data pointer.
-    [[nodiscard]] const uint8_t* data() const noexcept;
+    [[nodiscard]] const std::byte* data() const noexcept;
 
     /// Get image format.
     [[nodiscard]] yave::image_format image_format() const noexcept;
@@ -149,7 +149,7 @@ namespace yave {
 
   private:
     /// data pointer
-    const uint8_t* m_data = nullptr;
+    const std::byte* m_data = nullptr;
     /// width
     uint32_t m_width = 0;
     /// height

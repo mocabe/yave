@@ -9,7 +9,7 @@
 namespace yave {
 
   mutable_image_view::mutable_image_view(
-    uint8_t* data,
+    std::byte* data,
     uint32_t width,
     uint32_t height,
     yave::image_format image_format) noexcept
@@ -57,7 +57,7 @@ namespace yave {
     return m_data == nullptr;
   }
 
-  uint8_t* mutable_image_view::data() const noexcept
+  std::byte* mutable_image_view::data() const noexcept
   {
     return m_data;
   }
@@ -110,7 +110,7 @@ namespace yave {
   /* const_image_view */
 
   const_image_view::const_image_view(
-    const uint8_t* data,
+    const std::byte* data,
     uint32_t width,
     uint32_t height,
     yave::image_format image_format) noexcept
@@ -150,7 +150,7 @@ namespace yave {
     return m_data == nullptr;
   }
 
-  const uint8_t* const_image_view::data() const noexcept
+  const std::byte* const_image_view::data() const noexcept
   {
     return m_data;
   }

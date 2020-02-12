@@ -23,7 +23,7 @@ namespace yave {
       void (*ref)(void* handle, uint64_t id) noexcept,
       void (*unref)(void* handle, uint64_t id) noexcept,
       auto (*get_use_count)(void* handle, uint64_t id) noexcept->uint64_t,
-      auto (*get_data)(void* handle, uint64_t) noexcept->uint8_t*,
+      auto (*get_data)(void* handle, uint64_t) noexcept->std::byte*,
       auto (*get_size)(void* handle, uint64_t) noexcept->uint64_t)
       : m_handle {handle}
       , m_backend_id {backend_id}
@@ -133,7 +133,7 @@ namespace yave {
     /// \note Should return nullptr on zero sized buffers.
     /// \note Should return readable and writable pointer.
     /// \note Should be thread safe.
-    auto (*m_get_data)(void* handle, uint64_t) noexcept -> uint8_t*;
+    auto (*m_get_data)(void* handle, uint64_t) noexcept -> std::byte*;
 
     /// Get size of buffer.
     /// \note Should return 0 on invlid IDs.

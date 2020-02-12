@@ -4,14 +4,14 @@
 //
 
 #include <yave/lib/image/image_blend.hpp>
-#include <yave/lib/selene/conversion.hpp>
+#include <yave/lib/image/sln.hpp>
 #include <catch2/catch.hpp>
 
 #include <selene/img/pixel/PixelTypeAliases.hpp>
 #include <selene/img/typed/ImageTypeAliases.hpp>
 #include <selene/img/interop/ImageToDynImage.hpp>
 
-using namespace yave::sln;
+using namespace sln;
 using namespace yave;
 
 TEST_CASE("RGBA_8U")

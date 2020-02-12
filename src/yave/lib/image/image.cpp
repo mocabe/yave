@@ -8,60 +8,72 @@
 namespace yave {
 
   image::image(
-    uint8_t* data,
-    uint32_t width,
-    uint32_t height,
-    yave::image_format image_format) noexcept
+    std::byte* data,
+    const uint32_t& width,
+    const uint32_t& height,
+    const yave::image_format& image_format,
+    const std::pmr::polymorphic_allocator<std::byte>& alloc) noexcept
     : m_data {data}
     , m_width {width}
     , m_height {height}
     , m_format {image_format}
+    , m_alloc {alloc}
   {
     assert(_is_valid());
   }
 
-  image::image(uint32_t width, uint32_t height, yave::image_format image_format)
+  image::image(
+    const uint32_t& width,
+    const uint32_t& height,
+    const yave::image_format& image_format,
+    const std::pmr::polymorphic_allocator<std::byte>& alloc)
     : m_data {nullptr}
     , m_width {width}
     , m_height {height}
     , m_format {image_format}
+    , m_alloc {alloc}
   {
-    m_data = _alloc(byte_size());
+    m_data = _alloc(byte_size(), m_alloc);
     std::memset(m_data, 0, byte_size());
+
     assert(_is_valid());
   }
 
-  image::image(const image& other)
-    : image()
+  image::image(
+    const image& other,
+    const std::pmr::polymorphic_allocator<std::byte>& alloc)
+    : m_data {nullptr}
+    , m_width {other.m_width}
+    , m_height {other.m_height}
+    , m_format {other.m_format}
+    , m_alloc {alloc}
   {
-    if (other.m_data != nullptr) {
+    m_data = _alloc(other.byte_size(), m_alloc);
+    _copy_bytes(m_data, other.m_data, other.byte_size());
 
-      _dealloc(m_data, byte_size());
-
-      m_data = _alloc(other.byte_size());
-      _copy_bytes(m_data, other.m_data, other.byte_size());
-
-      m_width  = other.m_width;
-      m_height = other.m_height;
-      m_format = other.m_format;
-    }
     assert(_is_valid());
   }
 
   image::image(image&& other) noexcept
-    : image(other.m_data, other.m_width, other.m_height, other.m_format)
+    : image(
+      other.m_data,
+      other.m_width,
+      other.m_height,
+      other.m_format,
+      other.m_alloc)
   {
     other.m_data = nullptr;
+    other.clear();
   }
 
   image::~image() noexcept
   {
-    _dealloc(m_data, byte_size());
+    _dealloc(m_data, byte_size(), m_alloc);
   }
 
   void image::clear() noexcept
   {
-    _dealloc(m_data, byte_size());
+    _dealloc(m_data, byte_size(), m_alloc);
     m_data   = nullptr;
     m_width  = 0;
     m_height = 0;
@@ -69,9 +81,9 @@ namespace yave {
     assert(_is_valid());
   }
 
-  uint8_t* image::release() noexcept
+  std::byte* image::release() noexcept
   {
-    uint8_t* tmp = nullptr;
+    std::byte* tmp = nullptr;
     std::swap(tmp, m_data);
     clear();
     return tmp;
@@ -83,14 +95,20 @@ namespace yave {
     return m_data == nullptr;
   }
 
-  uint8_t* image::data() noexcept
+  std::byte* image::data() noexcept
   {
     return m_data;
   }
 
-  const uint8_t* image::data() const noexcept
+  const std::byte* image::data() const noexcept
   {
     return m_data;
+  }
+
+  auto image::allocator() const noexcept
+    -> const std::pmr::polymorphic_allocator<std::byte>&
+  {
+    return m_alloc;
   }
 
   uint32_t image::width() const noexcept
@@ -138,18 +156,29 @@ namespace yave {
     return m_width * m_height * byte_per_channel();
   }
 
-  uint8_t* image::_alloc(size_t size)
+  std::byte* image::_alloc(
+    size_t size,
+    std::pmr::polymorphic_allocator<std::byte>& alloc)
   {
-    return std::allocator<uint8_t>().allocate(size);
+    if (size == 0)
+      return nullptr;
+    else
+      return alloc.allocate(size);
   }
 
-  void image::_dealloc(uint8_t* ptr, size_t size) noexcept
+  void image::_dealloc(
+    std::byte* ptr,
+    size_t size,
+    std::pmr::polymorphic_allocator<std::byte>& alloc) noexcept
   {
     if (ptr)
-      std::allocator<uint8_t>().deallocate(ptr, size);
+      alloc.deallocate(ptr, size);
   }
 
-  void image::_copy_bytes(uint8_t* dst, uint8_t* src, uint64_t size) noexcept
+  void image::_copy_bytes(
+    std::byte* dst,
+    std::byte* src,
+    uint64_t size) noexcept
   {
     std::memcpy(dst, src, size);
   }

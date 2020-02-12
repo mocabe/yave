@@ -4,7 +4,7 @@
 //
 
 #include <yave/lib/image/image_blend.hpp>
-#include <yave/lib/selene/conversion.hpp>
+#include <yave/lib/image/sln.hpp>
 
 #include <selene/img/pixel/PixelTypeAliases.hpp>
 #include <selene/img/interop/DynImageToImage.hpp>
@@ -163,10 +163,8 @@ namespace yave {
       throw std::runtime_error(
         "Alpha Composition: src/dst should have same image size");
 
-    auto src_view =
-      ::sln::to_image_view<sln::PixelRGBA_8u>(sln::to_DynImageView(src));
-    auto dst_view =
-      ::sln::to_image_view<sln::PixelRGBA_8u>(sln::to_DynImageView(dst));
+    auto src_view = sln::to_image_view<sln::PixelRGBA_8u>(to_sln(src));
+    auto dst_view = sln::to_image_view<sln::PixelRGBA_8u>(to_sln(dst));
 
     for (sln::PixelIndex j = {}; j < dst_view.height(); ++j) {
       for (sln::PixelIndex i = {}; i < dst_view.width(); ++i) {
@@ -186,10 +184,8 @@ namespace yave {
       throw std::runtime_error(
         "Alpha Composition: src/dst should have same image size");
 
-    auto src_view =
-      sln::to_image_view<sln::PixelRGBA_16u>(sln::to_DynImageView(src));
-    auto dst_view =
-      sln::to_image_view<sln::PixelRGBA_16u>(sln::to_DynImageView(dst));
+    auto src_view = sln::to_image_view<sln::PixelRGBA_16u>(to_sln(src));
+    auto dst_view = sln::to_image_view<sln::PixelRGBA_16u>(to_sln(dst));
 
     for (sln::PixelIndex j = {}; j < dst_view.height(); ++j) {
       for (sln::PixelIndex i = {}; i < dst_view.width(); ++i) {
@@ -209,10 +205,8 @@ namespace yave {
       throw std::runtime_error(
         "Alpha Composition: src/dst should have same image size");
 
-    auto src_view =
-      sln::to_image_view<sln::PixelRGBA_32f>(sln::to_DynImageView(src));
-    auto dst_view =
-      sln::to_image_view<sln::PixelRGBA_32f>(sln::to_DynImageView(dst));
+    auto src_view = sln::to_image_view<sln::PixelRGBA_32f>(to_sln(src));
+    auto dst_view = sln::to_image_view<sln::PixelRGBA_32f>(to_sln(dst));
 
     for (sln::PixelIndex j = {}; j < dst_view.height(); ++j) {
       for (sln::PixelIndex i = {}; i < dst_view.width(); ++i) {

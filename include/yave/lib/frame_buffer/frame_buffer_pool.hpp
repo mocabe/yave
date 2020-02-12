@@ -23,7 +23,7 @@ namespace yave {
       void (*ref)(void*, uint64_t) noexcept,
       void (*unref)(void*, uint64_t) noexcept,
       auto (*get_use_count)(void* handle, uint64_t id) noexcept->uint64_t,
-      auto (*get_data)(void*, uint64_t) noexcept->uint8_t*,
+      auto (*get_data)(void*, uint64_t) noexcept->std::byte*,
       auto (*get_size)(void*) noexcept->uint64_t,
       auto (*get_format)(void*) noexcept->image_format,
       auto (*get_width)(void*) noexcept->uint32_t,
@@ -144,7 +144,7 @@ namespace yave {
     auto (*m_get_use_count)(void* handle, uint64_t id) noexcept -> uint64_t;
 
     /// Get data pointer.
-    auto (*m_get_data)(void* handle, uint64_t) noexcept -> uint8_t*;
+    auto (*m_get_data)(void* handle, uint64_t) noexcept -> std::byte*;
 
     /// Get byte size of frame buffer.
     /// \note Should return same value to cuurent frame buffer size.

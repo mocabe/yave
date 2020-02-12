@@ -20,9 +20,9 @@ namespace yave {
       uint64_t refcount;
       /// Pointer to allocated memory area on which this object is constructed
       /// by placement new.
-      uint8_t* mem;
+      std::byte* mem;
       /// Pointer to head of variable length buffer constructed after header.
-      uint8_t* buff;
+      std::byte* buff;
       /// Allocated buffer size (not include header).
       /// Header size can be calculated by buff-mem.
       uint64_t size;
@@ -42,7 +42,7 @@ namespace yave {
 
       auto alloc_size = aligned_header_size + size;
 
-      uint8_t* mem = new (std::nothrow) uint8_t[alloc_size];
+      auto mem = new (std::nothrow) std::byte[alloc_size];
 
       if (!mem)
         return nullptr;
@@ -130,13 +130,13 @@ namespace yave {
     m_pool = make_object<BufferPool>(
       (void*)this,
       m_backend_id,
-      [](void* handle, uint64_t size) noexcept -> uint64_t { return ((buffer_manager*)handle)->create(size).data; },
-      [](void* handle, uint64_t id)   noexcept -> uint64_t { return ((buffer_manager*)handle)->create_from({id}).data; },
-      [](void* handle, uint64_t id)   noexcept -> void     { return ((buffer_manager*)handle)->ref({id}); },
-      [](void* handle, uint64_t id)   noexcept -> void     { return ((buffer_manager*)handle)->unref({id}); },
-      [](void* handle, uint64_t id)   noexcept -> uint64_t { return ((buffer_manager*)handle)->use_count({id}); },
-      [](void* handle, uint64_t id)   noexcept -> uint8_t* { return ((buffer_manager*)handle)->data({id}); },
-      [](void* handle, uint64_t id)   noexcept -> uint64_t { return ((buffer_manager*)handle)->size({id}); });
+      [](void* handle, uint64_t size) noexcept -> uint64_t   { return ((buffer_manager*)handle)->create(size).data; },
+      [](void* handle, uint64_t id)   noexcept -> uint64_t   { return ((buffer_manager*)handle)->create_from({id}).data; },
+      [](void* handle, uint64_t id)   noexcept -> void       { return ((buffer_manager*)handle)->ref({id}); },
+      [](void* handle, uint64_t id)   noexcept -> void       { return ((buffer_manager*)handle)->unref({id}); },
+      [](void* handle, uint64_t id)   noexcept -> uint64_t   { return ((buffer_manager*)handle)->use_count({id}); },
+      [](void* handle, uint64_t id)   noexcept -> std::byte* { return ((buffer_manager*)handle)->data({id}); },
+      [](void* handle, uint64_t id)   noexcept -> uint64_t   { return ((buffer_manager*)handle)->size({id}); });
 
     // clang-format on
   }
@@ -256,7 +256,7 @@ namespace yave {
     return ((buff_header*)data)->refcount;
   }
 
-  auto buffer_manager::data(uid id) const noexcept -> uint8_t*
+  auto buffer_manager::data(uid id) const noexcept -> std::byte*
   {
     auto lck = _lock();
 

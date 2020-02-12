@@ -55,7 +55,7 @@ TEST_CASE("3", "[lib][frame_buffer]")
   auto f2 = f1.clone();
   REQUIRE(f2->id() != f1->id());
 
-  f2->get_image_view().data()[0] = 255;
-  REQUIRE(f2->get_image_view().data()[0] == 255);
-  REQUIRE(f1->get_image_view().data()[0] != 255);
+  f2->get_image_view().data()[0] = std::byte(255);
+  REQUIRE(f2->get_image_view().data()[0] == std::byte(255));
+  REQUIRE(f1->get_image_view().data()[0] != std::byte(255));
 }
