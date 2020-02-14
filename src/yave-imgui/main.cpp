@@ -12,6 +12,7 @@
 #include <yave/obj/primitive/primitive.hpp>
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/compiler/node_compiler.hpp>
+#include <yave/app/node_compiler_thread.hpp>
 #include <yave/support/log.hpp>
 
 int main()
@@ -31,12 +32,11 @@ int main()
   graph->add_group_output_socket(graph->root_group(), "out");
 
   app::node_data_thread data_thread(graph);
+  app::node_compiler_thread compiler_thread;
   app::editor_context editor_ctx(data_thread);
 
-  node_parser parser;
-  node_compiler compiler;
-
   data_thread.start();
+  compiler_thread.start();
 
   while (!imgui_ctx.window_context().should_close()) {
 
@@ -55,66 +55,63 @@ int main()
 
       ImGui::Begin("parser");
       {
-        static auto snapshot                 = data_thread.snapshot();
-        static std::optional<executable> exe = std::nullopt;
-        static std::string msg               = "";
-        static auto ftime                    = 0.f;
-        static auto result                   = object_ptr<const Object>();
+        static auto snapshot = data_thread.snapshot();
+        static auto ftime    = 0.f;
+        static bool compile  = true;
 
-        if (snapshot != data_thread.snapshot()) {
-
-          snapshot = data_thread.snapshot();
-
-          auto parsed = parser.parse(*graph);
-
-          if (!parsed) {
-            msg = "Could to parse graph!";
-            exe = std::nullopt;
-          } else {
-            auto e = compiler.compile(std::move(*parsed), defs);
-
-            if (!e) {
-              msg = "Could not compile!";
-              exe = std::nullopt;
-            } else {
-              msg = "Compiled!";
-              exe = e;
-            }
-          }
-        }
-
-        ImGui::Text("%s", msg.c_str());
-        if (exe) {
-          ImGui::Text("Result Type: %s", to_string(exe->type()).c_str());
-        }
+        ImGui::Checkbox("compile", &compile);
         ImGui::SliderFloat("time", &ftime, 0, 10);
 
-        if (exe) {
-
-          auto t = time::seconds(ftime);
-          result = exe->execute(frame_time {t});
-
-          ImGui::Text("Result Type: %s", to_string(get_type(result)).c_str());
-
-          if (auto i = value_cast_if<Int>(result)) {
-            ImGui::Text("Result: %d", *i);
+        if (compile) {
+          // compile
+          if (snapshot != data_thread.snapshot()) {
+            snapshot = data_thread.snapshot();
+            compiler_thread.compile(snapshot, defs);
           }
+          // show result
+          auto result = compiler_thread.get_last_result();
 
-          if (auto f = value_cast_if<Float>(result)) {
-            ImGui::Text("Result: %f", *f);
-          }
+          if (result->success) {
 
-          if (auto t = value_cast_if<FrameTime>(result)) {
-            ImGui::Text("Result: %lf", t->time_point.seconds());
+            ImGui::Text(
+              "Compile time: %ld ms",
+              std::chrono::duration_cast<std::chrono::milliseconds>(
+                result->end_time - result->bgn_time)
+                .count());
+
+            auto t   = time::seconds(ftime);
+            auto obj = result->exe.execute(frame_time {t});
+
+            ImGui::Text("Result Type: %s", to_string(type_of(obj)).c_str());
+
+            if (auto i = value_cast_if<Int>(obj)) {
+              ImGui::Text("Result: %d", *i);
+            }
+
+            if (auto f = value_cast_if<Float>(obj)) {
+              ImGui::Text("Result: %f", *f);
+            }
+
+            if (auto t = value_cast_if<FrameTime>(obj)) {
+              ImGui::Text("Result: %lf", t->time_point.seconds().count());
+            }
+          } else {
+            ImGui::Text("Failed to compile!");
+            for (auto&& e : result->parse_errors) {
+              ImGui::Text("%s", e.message().c_str());
+            }
+            for (auto&& e : result->compile_errors) {
+              ImGui::Text("%s", e.message().c_str());
+            }
           }
         }
       }
       ImGui::End();
     }
     imgui_ctx.end_frame();
-
     imgui_ctx.render();
   }
 
+  compiler_thread.stop();
   data_thread.stop();
 }

@@ -15,6 +15,8 @@ namespace yave {
   {
   public:
     /// Ctor
+    executable() = default;
+    /// Ctor
     executable(object_ptr<const Object> obj, object_ptr<const Type> type);
     /// Ctor
     executable(const executable& other);
