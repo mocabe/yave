@@ -18,7 +18,6 @@ namespace yave::app {
 
   node_compiler_thread::node_compiler_thread()
     : m_terminate_flag {0}
-    , m_compile_flag {0}
     , m_result {std::make_shared<compile_result>()}
   {
     init_logger();
@@ -46,16 +45,15 @@ namespace yave::app {
         while (true) {
 
           std::unique_lock lck {m_mtx};
-          m_cond.wait(lck, [&] { return m_terminate_flag || m_compile_flag; });
+          m_cond.wait(
+            lck, [&] { return m_terminate_flag || !m_queue.empty(); });
 
           // terminate
           if (m_terminate_flag)
             break;
 
           // compile
-          if (m_compile_flag) {
-
-            m_compile_flag = 0;
+          if (!m_queue.empty()) {
 
             auto start = std::chrono::steady_clock::now();
 
@@ -129,10 +127,7 @@ namespace yave::app {
       throw std::runtime_error("Compiler thread not running");
 
     std::unique_lock lck {m_mtx};
-
     m_queue.push({snapshot, decl});
-
-    m_compile_flag = 1;
     m_cond.notify_one();
   }
 

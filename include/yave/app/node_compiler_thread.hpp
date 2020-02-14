@@ -50,7 +50,6 @@ namespace yave::app {
   private:
     std::thread m_thread;
     std::atomic<int> m_terminate_flag;
-    std::atomic<int> m_compile_flag;
     std::mutex m_mtx;
     std::condition_variable m_cond;
     struct _queue_data;
