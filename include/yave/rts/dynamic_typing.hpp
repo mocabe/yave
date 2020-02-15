@@ -575,36 +575,16 @@ namespace yave {
 
   namespace detail {
 
-    inline void specializable_impl_constr(
-      const object_ptr<const Type>& t1,
-      const object_ptr<const Type>& t2,
-      std::vector<type_constr>& constrs)
-    {
-      // arrow
-      if (is_arrow_type(t1) && is_arrow_type(t2)) {
-        auto* a1 = get_if<arrow_type>(t1.value());
-        auto* a2 = get_if<arrow_type>(t2.value());
-        specializable_impl_constr(a1->captured, a2->captured, constrs);
-        specializable_impl_constr(a1->returns, a2->returns, constrs);
-      }
-
-      // list
-      if (is_list_type(t1) && is_list_type(t2)) {
-        auto* l1 = get_if<list_type>(t1.value());
-        auto* l2 = get_if<list_type>(t2.value());
-        specializable_impl_constr(l1->t, l2->t, constrs);
-      }
-
-      constrs.push_back({t1, t2});
-    }
-
-    inline bool specializable_impl_unify(
+    inline bool specializable_impl(
       std::vector<type_constr>& cs,
       type_arrow_map& ta)
     {
       while (!cs.empty()) {
         auto c = cs.back();
         cs.pop_back();
+
+        if (same_type(c.t1, c.t2))
+          continue;
 
         if (is_var_type(c.t1)) {
           if (likely(!occurs(c.t1, c.t2))) {
@@ -657,11 +637,10 @@ namespace yave {
   {
     assert(t1 && t2);
 
-    std::vector<type_constr> constrs;
-    detail::specializable_impl_constr(t1, t2, constrs);
-
+    std::vector<type_constr> constrs = {{t1, t2}};
     type_arrow_map arr;
-    if (detail::specializable_impl_unify(constrs, arr))
+
+    if (detail::specializable_impl(constrs, arr))
       return arr;
     else
       return std::nullopt;
@@ -990,6 +969,11 @@ namespace yave {
       std::vector<object_ptr<const Type>> closed;
 
       env.envB.for_each([&](auto& from, auto& to) {
+        // ignore assumptions which contains variable.
+        // this is probably not ideal way, but should work fairly well.
+        if (!vars(to).empty())
+          return;
+
         // find overloading candidates
         assert(env.references.find(from));
         assert(env.sources.find(from) != env.sources.end());
@@ -1004,7 +988,7 @@ namespace yave {
 
         for (auto&& inst : class_val.instances) {
           auto insty = genpoly(get_type(inst), env.envA);
-          if (specializable(to, insty)) {
+          if (specializable(insty, to)) {
             // ambiguous
             if (result_type)
               return;
