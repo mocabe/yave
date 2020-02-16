@@ -7,11 +7,14 @@
 #include <yave/module/std/core/module_definition.hpp>
 
 // module defs
-#include <yave/module/std/core/def/frame_time.hpp>
-#include <yave/module/std/core/def/time_transform.hpp>
+#include <yave/module/std/core/def/time.hpp>
+#include <yave/module/std/core/def/position.hpp>
+#include <yave/module/std/core/def/transform.hpp>
 #include <yave/module/std/core/def/list.hpp>
 #include <yave/module/std/core/def/primitive.hpp>
 #include <yave/module/std/core/def/if.hpp>
+#include <yave/module/std/core/def/vec.hpp>
+#include <yave/module/std/core/def/bind.hpp>
 
 #include <yave/support/log.hpp>
 #include <yave/support/id.hpp>
@@ -72,7 +75,8 @@ namespace yave::modules::_std::core {
   auto module::get_node_declarations() const -> std::vector<node_declaration>
   {
     return {get_node_declaration<node::Time>(),
-            get_node_declaration<node::TimeTransform>(),
+            get_node_declaration<node::Position>(),
+            get_node_declaration<node::Transform>(),
             get_node_declaration<node::ListNil>(),
             get_node_declaration<node::ListCons>(),
             get_node_declaration<node::ListDecompose>(),
@@ -80,7 +84,11 @@ namespace yave::modules::_std::core {
             get_node_declaration<node::Float>(),
             get_node_declaration<node::Bool>(),
             get_node_declaration<node::String>(),
-            get_node_declaration<node::If>()};
+            get_node_declaration<node::If>(),
+            get_node_declaration<node::Vec2>(),
+            get_node_declaration<node::Vec3>(),
+            get_node_declaration<node::Vec4>(),
+            get_node_declaration<node::Bind>()};
   }
 
   auto module::get_node_definitions() const -> std::vector<node_definition>
@@ -94,7 +102,8 @@ namespace yave::modules::_std::core {
     };
 
     add(yave::get_node_definitions<node::Time, _std::core::tag>());
-    add(yave::get_node_definitions<node::TimeTransform, _std::core::tag>());
+    add(yave::get_node_definitions<node::Position, _std::core::tag>());
+    add(yave::get_node_definitions<node::Transform, _std::core::tag>());
     add(yave::get_node_definitions<node::ListNil, _std::core::tag>());
     add(yave::get_node_definitions<node::ListCons, _std::core::tag>());
     add(yave::get_node_definitions<node::ListDecompose, _std::core::tag>());
@@ -103,6 +112,10 @@ namespace yave::modules::_std::core {
     add(yave::get_node_definitions<node::Bool, _std::core::tag>());
     add(yave::get_node_definitions<node::String, _std::core::tag>());
     add(yave::get_node_definitions<node::If, _std::core::tag>());
+    add(yave::get_node_definitions<node::Vec2, _std::core::tag>());
+    add(yave::get_node_definitions<node::Vec3, _std::core::tag>());
+    add(yave::get_node_definitions<node::Vec4, _std::core::tag>());
+    add(yave::get_node_definitions<node::Bind, _std::core::tag>());
 
     return ret;
   }

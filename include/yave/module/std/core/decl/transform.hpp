@@ -6,27 +6,22 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
-#include <yave/node/core/function.hpp>
-#include <yave/obj/frame_time/frame_time.hpp>
 
 namespace yave {
 
   namespace node {
-    /// Time transform
-    struct TimeTransform;
+    /// Demand transformation
+    struct Transform;
   } // namespace node
 
   template <>
-  struct node_declaration_traits<node::TimeTransform>
+  struct node_declaration_traits<node::Transform>
   {
     static auto get_node_declaration() -> node_declaration
     {
       class X;
       return node_declaration(
-        "TimeTransform",
-        {"target", "time"},
-        {"out"},
-        "Transform time of subtree");
+        "Transform", {"target", "arg"}, {"out"}, "Transform subtree");
     }
   };
 } // namespace yave

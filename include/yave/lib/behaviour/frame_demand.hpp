@@ -6,13 +6,16 @@
 #pragma once
 
 #include <yave/lib/frame_time/frame_time.hpp>
+#include <yave/lib/vec/vec.hpp>
 
 namespace yave {
 
   /// frame demand
   struct frame_demand
   {
-    /// frame time
+    /// time
     frame_time time;
+    /// position
+    fvec3 position;
   };
 }

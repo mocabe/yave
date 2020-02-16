@@ -6,28 +6,27 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
-#include <yave/node/core/function.hpp>
-#include <yave/obj/frame_time/frame_time.hpp>
+#include <yave/rts/identity.hpp>
 
 namespace yave {
 
   namespace node {
-    /// Pesudo primitive node for frame time.
-    struct Time;
+    /// position
+    struct Position;
   } // namespace node
 
   template <>
-  struct node_declaration_traits<node::Time>
+  struct node_declaration_traits<node::Position>
   {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "Time",
+        "Position",
         {"value"},
         {"value"},
-        "Constructor of time value. This node construct new FrameTime object "
-        "from argument, or creates FrameTime object which represents current "
-        "time applied to the tree.",
+        "Constructor of pos value. This node construct new Vec3 object from "
+        "argument, or creates object which represents current position applied "
+        "to the tree.",
         {{0, make_object<Identity>()}});
     }
   };
