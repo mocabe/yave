@@ -377,8 +377,6 @@ namespace yave::graph {
   class node
   {
   public:
-    friend typename Traits::graph_type;
-
     /// Type of this class
     using type = node<Traits>;
     /// Property type
@@ -407,62 +405,58 @@ namespace yave::graph {
     }
 
     /// Get id.
-    [[nodiscard]] id_type id() const noexcept
+    [[nodiscard]] auto id() const noexcept
     {
       return m_id;
     }
 
     /// Get sockets.
-    [[nodiscard]] std::vector<socket_descriptor_type> sockets() const
+    [[nodiscard]] auto &sockets() const
     {
-      return {m_sockets.begin(), m_sockets.end()};
+      return m_sockets;
     }
 
     /// Get socket count.
-    [[nodiscard]] size_t n_sockets() const
+    [[nodiscard]] auto n_sockets() const
     {
       return m_sockets.size();
     }
 
     /// Property accessor.
-    [[nodiscard]] const property_type &property() const
+    [[nodiscard]] auto &property() const
     {
       return m_property;
     }
 
     /// Property accessor
-    [[nodiscard]] property_type &property()
+    [[nodiscard]] auto &property()
     {
       return m_property;
     }
 
-  private:
     /// Set socket descriptor.
-    /// \param descriptor descriptor of target socket
-    /// \returns return true if success or already set. false if invalid
-    /// descriptor.
-    [[nodiscard]] bool set_socket(const socket_descriptor_type &descriptor)
+    /// \param id id of target socket
+    void set_socket(const id_type &id)
     {
-      if (!descriptor)
-        return false;
+      assert(id);
 
       for (auto &&d : m_sockets) {
-        if (d == descriptor)
-          return true;
+        if (d == id)
+          return;
       }
 
-      m_sockets.push_back(descriptor); // set socket
-      return true;
+      m_sockets.push_back(id); // set socket
     }
 
     /// Remove socket.
     /// \param descriptor descriptor of socket
-    /// \returns true when succsess false if invalid descriptor
-    void unset_socket(const socket_descriptor_type &descriptor)
+    void unset_socket(const id_type &id)
     {
+      assert(id);
+
       auto tmp {m_sockets};
       for (auto iter = tmp.begin(); iter != tmp.end(); ++iter) {
-        if (*iter == descriptor) {
+        if (*iter == id) {
           iter = tmp.erase(iter); // not noexcept
           if (iter == tmp.end())
             break;
@@ -474,9 +468,9 @@ namespace yave::graph {
   private:
     /// Id of this node.
     id_type m_id;
-    /// Socket descriptors.
-    /// Shouldn't contain 2 or more same descriptors.
-    std::basic_string<socket_descriptor_type> m_sockets;
+    /// Socket ids.
+    /// Shouldn't contain 2 or more same ids.
+    std::basic_string<id_type> m_sockets;
     /// Property class instance
     property_type m_property;
   };
@@ -490,7 +484,6 @@ namespace yave::graph {
   class edge
   {
   public:
-    friend typename Traits::graph_type;
     /// Type
     using type = edge<Traits>;
     /// Property type
@@ -510,8 +503,8 @@ namespace yave::graph {
     template <class... Args>
     edge(
       const id_type &id,
-      const socket_descriptor_type &src,
-      const socket_descriptor_type &dst,
+      const id_type &src,
+      const id_type &dst,
       Args &&... args)
       : m_id {id}
       , m_src {src}
@@ -526,31 +519,31 @@ namespace yave::graph {
     }
 
     /// Get id.
-    [[nodiscard]] id_type id() const noexcept
+    [[nodiscard]] auto id() const noexcept
     {
       return m_id;
     }
 
     /// Get source socket.
-    [[nodiscard]] socket_descriptor_type src() const
+    [[nodiscard]] auto src() const
     {
       return m_src;
     }
 
     /// Get destination socket.
-    [[nodiscard]] socket_descriptor_type dst() const
+    [[nodiscard]] auto dst() const
     {
       return m_dst;
     }
 
     /// Property accessor.
-    [[nodiscard]] const property_type &property() const
+    [[nodiscard]] auto &property() const
     {
       return m_property;
     }
 
     /// Pproperty accessor.
-    [[nodiscard]] property_type &property()
+    [[nodiscard]] auto &property()
     {
       return m_property;
     }
@@ -559,7 +552,7 @@ namespace yave::graph {
     /// Id of this socket.
     id_type m_id;
     /// socket descriptors
-    socket_descriptor_type m_src, m_dst;
+    id_type m_src, m_dst;
     /// Property class instance
     property_type m_property;
   };
@@ -571,7 +564,6 @@ namespace yave::graph {
   class socket
   {
   public:
-    friend typename Traits::graph_type;
     /// Type
     using type = socket<Traits>;
     /// Property type
@@ -604,118 +596,107 @@ namespace yave::graph {
     }
 
     /// Get id.
-    [[nodiscard]] id_type id() const noexcept
+    [[nodiscard]] auto id() const noexcept
     {
       return m_id;
     }
 
     /// Get nodes.
-    [[nodiscard]] std::vector<node_descriptor_type> nodes() const
+    [[nodiscard]] auto &nodes() const
     {
-      return {m_nodes.begin(), m_nodes.end()};
+      return m_nodes;
     }
 
     /// Get source edges.
-    [[nodiscard]] std::vector<edge_descriptor_type> src_edges() const
+    [[nodiscard]] auto &src_edges() const
     {
-      return {m_src_edges.begin(), m_src_edges.end()};
+      return m_src_edges;
     }
     /// Get destination edges.
-    [[nodiscard]] std::vector<edge_descriptor_type> dst_edges() const
+    [[nodiscard]] auto &dst_edges() const
     {
-      return {m_dst_edges.begin(), m_dst_edges.end()};
+      return m_dst_edges;
     }
 
     /// Get node count.
-    [[nodiscard]] size_t n_nodes() const
+    [[nodiscard]] auto n_nodes() const
     {
       return m_nodes.size();
     }
 
     /// Get srouce edge count.
-    [[nodiscard]] size_t n_src_edges() const
+    [[nodiscard]] auto n_src_edges() const
     {
       return m_src_edges.size();
     }
 
     /// Get destination edge count.
-    [[nodiscard]] size_t n_dst_edges() const
+    [[nodiscard]] auto n_dst_edges() const
     {
       return m_dst_edges.size();
     }
 
     /// Property accessor.
-    [[nodiscard]] const property_type &property() const
+    [[nodiscard]] auto &property() const
     {
       return m_property;
     }
 
     /// Property accessor.
-    [[nodiscard]] property_type &property()
+    [[nodiscard]] auto &property()
     {
       return m_property;
     }
 
-  private:
     /// Set src edge.
     /// \param descriptor descriptor of edge
-    /// \returns true when success
-    [[nodiscard]] bool set_src_edge(const edge_descriptor_type &descriptor)
+    void set_src_edge(const id_type &id)
     {
-      if (!descriptor)
-        return false;
+      assert(id);
 
       for (auto &&d : m_src_edges) {
-        if (d == descriptor)
-          return true;
+        if (d == id)
+          return;
       }
 
-      m_src_edges.push_back(descriptor); // add edge
-      return true;
+      m_src_edges.push_back(id); // add edge
     }
 
     /// Set dst edge.
     /// \param descriptor descriptor of edge
-    /// \returns true when success
-    [[nodiscard]] bool set_dst_edge(const edge_descriptor_type &descriptor)
+    void set_dst_edge(const id_type &id)
     {
-      if (!descriptor)
-        return false;
+      assert(id);
 
       for (auto &&d : m_dst_edges) {
-        if (d == descriptor)
-          return true;
+        if (d == id)
+          return;
       }
 
-      m_dst_edges.push_back(descriptor); // add edge
-      return true;
+      m_dst_edges.push_back(id); // add edge
     }
 
     /// Set node.
     /// \param descriptor descriptor of node
-    /// \returns true when success
-    [[nodiscard]] bool set_node(const node_descriptor_type &descriptor)
+    void set_node(const id_type &id)
     {
-      if (!descriptor)
-        return false;
+      assert(id);
 
       for (auto &&d : m_nodes) {
-        if (d == descriptor)
-          return true;
+        if (d == id)
+          return;
       }
 
-      m_nodes.push_back(descriptor); // add node
-      return true;
+      m_nodes.push_back(id); // add node
     }
 
     /// Unset node.
     /// \param descriptor Descriptor of node
-    /// \returns true if success
-    void unset_node(const node_descriptor_type &descriptor)
+    void unset_node(const id_type &id)
     {
       auto tmp {m_nodes};
       for (auto iter = tmp.begin(); iter != tmp.end(); ++iter) {
-        if (*iter == descriptor)
+        if (*iter == id)
           iter = tmp.erase(iter);
         if (iter == tmp.end())
           break;
@@ -725,13 +706,12 @@ namespace yave::graph {
 
     /// Unset edge.
     /// \param descriptor Descriptor of edge
-    /// \returns true if success
-    void unset_src_edge(const edge_descriptor_type &descriptor)
+    void unset_src_edge(const id_type &id)
     {
       // erase descriptor
       auto tmp {m_src_edges};
       for (auto iter = tmp.begin(); iter != tmp.end(); ++iter) {
-        if (*iter == descriptor)
+        if (*iter == id)
           iter = tmp.erase(iter);
         if (iter == tmp.end())
           break;
@@ -741,13 +721,12 @@ namespace yave::graph {
 
     /// Unset edge
     /// \param descriptor descriptor of edge
-    /// \returns true if success.
-    void unset_dst_edge(const edge_descriptor_type &descriptor)
+    void unset_dst_edge(const id_type &id)
     {
       // erase descriptor
       auto tmp {m_dst_edges};
       for (auto iter = tmp.begin(); iter != tmp.end(); ++iter) {
-        if (*iter == descriptor)
+        if (*iter == id)
           iter = tmp.erase(iter);
         if (iter == tmp.end())
           break;
@@ -759,11 +738,11 @@ namespace yave::graph {
     /// Id of this edge.
     id_type m_id;
     /// node descriptors
-    std::basic_string<node_descriptor_type> m_nodes;
+    std::basic_string<id_type> m_nodes;
     /// edge descriptors
-    std::basic_string<edge_descriptor_type> m_src_edges;
+    std::basic_string<id_type> m_src_edges;
     /// edge descriptors
-    std::basic_string<edge_descriptor_type> m_dst_edges;
+    std::basic_string<id_type> m_dst_edges;
     /// property class instance
     property_type m_property;
   };
@@ -872,23 +851,26 @@ namespace yave::graph {
       if (!exists(dst))
         throw std::invalid_argument("dst descriptor doesn't exist");
 
-      for (auto &&e : _access(src).m_src_edges) {
-        if ((*this).dst(e) == dst)
+      auto src_id = _access(src).id();
+      auto dst_id = _access(dst).id();
+
+      for (auto &&e : _access(src).src_edges()) {
+        if (_access(edge(e)).dst() == dst_id)
           throw std::runtime_error("edge already exists");
       }
 
-      for (auto &&e : _access(dst).m_dst_edges) {
-        if ((*this).src(e) == src)
+      for (auto &&e : _access(dst).dst_edges()) {
+        if (_access(edge(e)).src() == src_id)
           throw std::runtime_error("edge already exists");
       }
 
-      auto e = _create_e(id, src, dst, std::forward<Args>(args)...);
+      auto e = _create_e(id, src_id, dst_id, std::forward<Args>(args)...);
+
       assert(e);
 
       // set edge to sockets
-      [[maybe_unused]] bool b1 = _access(src).set_src_edge(e);
-      [[maybe_unused]] bool b2 = _access(dst).set_dst_edge(e);
-      assert(b1 && b2);
+      _access(src).set_src_edge(_access(e).id());
+      _access(dst).set_dst_edge(_access(e).id());
 
       return e;
     }
@@ -915,8 +897,8 @@ namespace yave::graph {
         return; // invalid descriptor
 
       // delete links from sockets
-      for (auto &&s : _access(descriptor).m_sockets)
-        _access(s).unset_node(descriptor);
+      for (auto &&s : _access(descriptor).sockets())
+        _access(socket(s)).unset_node(_access(descriptor).id());
 
       _destroy(descriptor);
       return;
@@ -929,12 +911,12 @@ namespace yave::graph {
       if (!exists(descriptor))
         return; // invalid descriptor
 
-      auto &srcSocket = _access(descriptor).m_src;
-      auto &dstSocket = _access(descriptor).m_dst;
+      auto src_id = _access(descriptor).src();
+      auto dst_id = _access(descriptor).dst();
 
       // should remove more than one edges.
-      _access(srcSocket).unset_src_edge(descriptor);
-      _access(dstSocket).unset_dst_edge(descriptor);
+      _access(socket(src_id)).unset_src_edge(_access(descriptor).id());
+      _access(socket(dst_id)).unset_dst_edge(_access(descriptor).id());
 
       _destroy(descriptor);
       return;
@@ -956,7 +938,8 @@ namespace yave::graph {
       auto nds = nodes(descriptor);
 
       for (auto &&n : nds)
-        _access(n).unset_socket(descriptor); // remove all links from node
+        _access(n).unset_socket(
+          _access(descriptor).id()); // remove all links from node
 
       _destroy(descriptor);
 
@@ -1100,9 +1083,8 @@ namespace yave::graph {
       if (!exists(node) || !exists(socket))
         return false;
 
-      [[maybe_unused]] bool b1 = _access(socket).set_node(node);
-      [[maybe_unused]] bool b2 = _access(node).set_socket(socket);
-      assert(b1 && b2);
+      _access(socket).set_node(_access(node).id());
+      _access(node).set_socket(_access(socket).id());
 
       return true;
     }
@@ -1117,19 +1099,19 @@ namespace yave::graph {
       if (!exists(node) || !exists(socket))
         return;
 
-      for (auto n : _access(socket).nodes()) {
-        if (n == node) {
+      for (auto &&n : _access(socket).nodes()) {
+        if (n == _access(node).id()) {
 
           assert([&] {
             for (auto &&s : _access(node).sockets())
-              if (s == socket)
+              if (s == _access(socket).id())
                 return true;
             return false;
           }());
 
           // delete link
-          _access(socket).unset_node(node);
-          _access(node).unset_socket(socket);
+          _access(socket).unset_node(_access(node).id());
+          _access(node).unset_socket(_access(socket).id());
           return;
         }
       }
@@ -1151,8 +1133,15 @@ namespace yave::graph {
     [[nodiscard]] std::vector<node_descriptor_type> nodes(
       const socket_descriptor_type &descriptor) const
     {
-      auto &s = _at(descriptor);
-      return s.nodes();
+      std::vector<node_descriptor_type> ret;
+      const auto &s = _at(descriptor);
+      ret.reserve(s.n_nodes());
+      for (auto &&id : s.nodes()) {
+        auto dsc = node(id);
+        assert(dsc);
+        ret.push_back(dsc);
+      }
+      return ret;
     }
 
     /// Get number of connected nodes to the socket.
@@ -1178,8 +1167,15 @@ namespace yave::graph {
     [[nodiscard]] std::vector<socket_descriptor_type> sockets(
       const node_descriptor_type &descriptor) const
     {
+      std::vector<socket_descriptor_type> ret;
       const auto &n = _at(descriptor);
-      return n.sockets();
+      ret.reserve(n.n_sockets());
+      for (auto &&id : n.sockets()) {
+        auto dsc = socket(id);
+        assert(dsc);
+        ret.push_back(dsc);
+      }
+      return ret;
     }
 
     /// Get number of connected sockets to the node.
@@ -1205,8 +1201,15 @@ namespace yave::graph {
     [[nodiscard]] std::vector<edge_descriptor_type> src_edges(
       const socket_descriptor_type &descriptor) const
     {
-      auto &s = _at(descriptor);
-      return s.src_edges();
+      std::vector<edge_descriptor_type> ret;
+      const auto &s = _at(descriptor);
+      ret.reserve(s.n_src_edges());
+      for (auto &&id : s.src_edges()) {
+        auto dsc = edge(id);
+        assert(dsc);
+        ret.push_back(dsc);
+      }
+      return ret;
     }
 
     /// Get number of src edges.
@@ -1221,8 +1224,15 @@ namespace yave::graph {
     [[nodiscard]] std::vector<edge_descriptor_type> dst_edges(
       const socket_descriptor_type &descriptor) const
     {
+      std::vector<edge_descriptor_type> ret;
       auto &s = _at(descriptor);
-      return s.dst_edges();
+      ret.reserve(s.n_dst_edges());
+      for (auto &&id : s.dst_edges()) {
+        auto dsc = edge(id);
+        assert(dsc);
+        ret.push_back(dsc);
+      }
+      return ret;
     }
 
     /// Get number of dst edges.
@@ -1237,36 +1247,36 @@ namespace yave::graph {
     [[nodiscard]] socket_descriptor_type src(
       const edge_descriptor_type &descriptor) const
     {
-      auto &e = _at(descriptor);
-      return e.src();
+      const auto &e = _at(descriptor);
+      return socket(e.src());
     }
 
     /// Get dst socket.
     [[nodiscard]] socket_descriptor_type dst(
       const edge_descriptor_type &descriptor) const
     {
-      auto &e = _at(descriptor);
-      return e.dst();
+      const auto &e = _at(descriptor);
+      return socket(e.dst());
     }
 
     /// Get id of node.
     [[nodiscard]] id_type id(const node_descriptor_type &descriptor) const
     {
-      auto &n = _at(descriptor);
+      const auto &n = _at(descriptor);
       return n.id();
     }
 
     /// Get id of socket.
     [[nodiscard]] id_type id(const socket_descriptor_type &descriptor) const
     {
-      auto &s = _at(descriptor);
+      const auto &s = _at(descriptor);
       return s.id();
     }
 
     /// Get id of edge.
     [[nodiscard]] id_type id(const edge_descriptor_type &descriptor) const
     {
-      auto &e = _at(descriptor);
+      const auto &e = _at(descriptor);
       return e.id();
     }
 
@@ -1293,39 +1303,33 @@ namespace yave::graph {
     {
       graph g;
 
+      for (auto &&e : edges()) {
+        // copy edges
+        auto s = _access(e).src();
+        auto d = _access(e).dst();
+        g._create_e(id(e), s, d, _access(e).property());
+      }
+
       for (auto &&n : nodes()) {
         // copy nodes
-        [[maybe_unused]] auto dsc = g._create_n(id(n), _access(n).property());
-        assert(dsc);
+        auto dsc = g._create_n(id(n), _access(n).property());
+        // set sockets
+        for (auto &&id : _access(n).sockets())
+          g._access(dsc).set_socket(id);
       }
 
       for (auto &&s : sockets()) {
         // copy socket
-        [[maybe_unused]] auto dsc = g._create_s(id(s), _access(s).property());
-        assert(dsc);
-
-        // attach socket
-        for (auto &&n : _access(s).nodes()) {
-          [[maybe_unused]] auto r = g.attach_socket(g.node(id(n)), dsc);
-          assert(r);
+        auto dsc = g._create_s(id(s), _access(s).property());
+        // set nodes
+        for (auto &&id : _access(s).nodes())
+          g._access(dsc).set_node(id);
+        // set edges
+        for (auto &&id : _access(s).src_edges()) {
+          g._access(dsc).set_src_edge(id);
         }
-      }
-
-      for (auto &&e : edges()) {
-        // copy edges
-        auto s   = g.socket(id(_access(e).src()));
-        auto d   = g.socket(id(_access(e).dst()));
-        auto dsc = g._create_e(id(e), s, d, _access(e).property());
-        assert(dsc);
-
-        // set back pointers
-        {
-          [[maybe_unused]] auto r = g._access(s).set_src_edge(dsc);
-          assert(r);
-        }
-        {
-          [[maybe_unused]] auto r = g._access(d).set_dst_edge(dsc);
-          assert(r);
+        for (auto &&id : _access(s).dst_edges()) {
+          g._access(dsc).set_dst_edge(id);
         }
       }
 
