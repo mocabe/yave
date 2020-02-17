@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/rts/object_ptr.hpp>
-#include <yave/lib/frame_time/frame_time.hpp>
+#include <yave/lib/behaviour/frame_demand.hpp>
 
 namespace yave {
 
@@ -34,7 +34,8 @@ namespace yave {
     [[nodiscard]] auto type() const -> const object_ptr<const Type>&;
 
     /// Execute.
-    [[nodiscard]] auto execute(frame_time frame) -> object_ptr<const Object>;
+    [[nodiscard]] auto execute(const frame_demand& frame)
+      -> object_ptr<const Object>;
 
   private:
     object_ptr<const Object> m_obj;

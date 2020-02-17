@@ -54,9 +54,9 @@ namespace yave {
     return m_type;
   }
 
-  auto executable::execute(frame_time frame) -> object_ptr<const Object>
+  auto executable::execute(const frame_demand& demand)
+    -> object_ptr<const Object>
   {
-    auto app = m_obj << make_object<FrameDemand>(frame);
-    return eval(app);
+    return eval(m_obj << make_object<FrameDemand>(demand));
   }
 }
