@@ -1,1 +1,1 @@
-YAVE_Test(constructor node)
+YAVE_Test(constructor node yave::node::core)

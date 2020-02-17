@@ -46,7 +46,7 @@ namespace yave::imgui {
 
   inline ImVec2 to_ImVec2(const tvec2<float>& v)
   {
-    return {v.x(), v.y()};
+    return {v[0], v[1]};
   }
 
   inline tvec2<float> to_tvec2(const ImVec2& v)
