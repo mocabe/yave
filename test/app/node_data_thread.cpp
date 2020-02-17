@@ -48,10 +48,10 @@ TEST_CASE("node_data_thread")
   {
     SECTION("")
     {
-      th.send(node_data_thread_op_nop {});
+      th.send([](managed_node_graph&) {});
       th.start();
       th.stop();
-      th.send(node_data_thread_op_nop {});
+      th.send([](managed_node_graph&) {});
       th.start();
       th.stop();
     }
@@ -61,7 +61,7 @@ TEST_CASE("node_data_thread")
   {
     th.start();
     auto t = std::chrono::steady_clock::now();
-    th.send(node_data_thread_op_create {});
+    th.send([](managed_node_graph& g) { (void)g.create(g.root_group(), ""); });
     th.wait_update(t);
     th.stop();
   }
