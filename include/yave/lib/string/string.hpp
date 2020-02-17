@@ -197,6 +197,18 @@ namespace yave {
       return end();
     }
 
+    /// data
+    [[nodiscard]] const_pointer data() const noexcept
+    {
+      return m_ptr;
+    }
+
+    /// data
+    [[nodiscard]] pointer data() noexcept
+    {
+      return m_ptr;
+    }
+
     /// swap with other string
     void swap(string& other) noexcept
     {
