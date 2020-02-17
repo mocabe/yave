@@ -51,6 +51,12 @@ namespace yave::app {
     /// Disconnect
     void disconnect(const connection_handle& c);
 
+    /// Group
+    void group(const std::vector<node_handle>& nodes);
+
+    /// Ungroup
+    void ungroup(const node_handle& group);
+
     /// Set data
     void set_data(const socket_handle& socket, const object_ptr<Object>& data);
 

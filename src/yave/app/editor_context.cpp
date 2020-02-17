@@ -6,12 +6,43 @@
 #include <yave/app/editor_context.hpp>
 
 #include <yave/support/log.hpp>
+#include <yave/lib/vec/vec.hpp>
 
 #include <algorithm>
+#include <range/v3/view.hpp>
+#include <boost/geometry.hpp>
+#include <boost/geometry/strategies/centroid.hpp>
+#include <boost/geometry/strategies/envelope.hpp>
+#include <boost/geometry/geometries/register/point.hpp>
+
+// clang-format off
+namespace boost::geometry::traits {
+
+  BOOST_GEOMETRY_DETAIL_SPECIALIZE_POINT_TRAITS(
+    yave::fvec2,
+    2,
+    float,
+    cs::cartesian)
+
+  template<> 
+  struct access<yave::fvec2, 0> {
+    static inline float get(const yave::fvec2& p) { return p[0]; }
+    static inline void  set(yave::fvec2& p, float v) { p[0] = v; }
+  };
+  template<> 
+  struct access<yave::fvec2, 1> {
+    static inline float get(const yave::fvec2& p) { return p[1]; }
+    static inline void  set(yave::fvec2& p, float v) { p[1] = v; }
+  };
+}
+// clang-format on
 
 YAVE_DECL_G_LOGGER(editor_context)
 
 namespace yave::app {
+
+  namespace rng = ranges;
+  namespace bg  = boost::geometry;
 
   editor_context::editor_context(node_data_thread& data_thread)
     : m_data_thread {data_thread}
@@ -106,13 +137,10 @@ namespace yave::app {
     const tvec2<float>& pos)
   {
     assert(m_in_frame);
-
-    auto func = [name, group, pos](managed_node_graph& g) {
+    m_data_thread.send([=](managed_node_graph& g) {
       auto h = g.create(g.node(group.id()), name);
       g.set_pos(h, pos);
-    };
-
-    m_data_thread.send(node_data_thread_op_func {func});
+    });
   }
 
   void editor_context::connect(
@@ -120,27 +148,75 @@ namespace yave::app {
     const socket_handle& dst_socket)
   {
     assert(m_in_frame);
-    m_data_thread.send(node_data_thread_op_connect {src_socket, dst_socket});
+    m_data_thread.send([=](managed_node_graph& g) {
+      g.connect(g.socket(src_socket.id()), g.socket(dst_socket.id()));
+    });
   }
 
   void editor_context::disconnect(const connection_handle& c)
   {
     assert(m_in_frame);
-    m_data_thread.send(node_data_thread_op_disconnect {c});
+    m_data_thread.send(
+      [=](managed_node_graph& g) { g.disconnect(g.connection(c.id())); });
+  }
+
+  void editor_context::group(const std::vector<node_handle>& nodes)
+  {
+    assert(m_in_frame);
+    m_data_thread.send([=](managed_node_graph& g) {
+      // get new handle
+      auto p = g.node(m_current_group.id());
+      auto ns =
+        nodes //
+        | rng::views::transform([&](auto&& n) { return g.node(n.id()); })
+        | rng::to_vector;
+
+      // get polygon
+      bg::model::polygon<fvec2> poly;
+      for (auto&& n : ns) {
+        if (auto pos = g.get_pos(n))
+          bg::append(poly.outer(), *pos);
+      }
+
+      // make group
+      auto group = g.group(p, ns);
+
+      // set new position
+      if (group) {
+        g.set_pos(group, bg::return_centroid<fvec2>(poly) / (float)ns.size());
+      }
+    });
+  }
+
+  void editor_context::ungroup(const node_handle& group)
+  {
+    assert(m_in_frame);
+
+    m_data_thread.send(
+      [=](managed_node_graph& g) { g.ungroup(g.node(group.id())); });
+
+    if (group == m_current_group) {
+      auto parent = m_snapshot->graph.get_parent_group(m_current_group);
+      set_group(parent);
+    }
   }
 
   void editor_context::set_data(
     const socket_handle& socket,
     const object_ptr<Object>& data)
   {
-    m_data_thread.send(node_data_thread_op_set_socket_data {socket, data});
+    assert(m_in_frame);
+    m_data_thread.send(
+      [=](managed_node_graph& g) { g.set_data(g.socket(socket.id()), data); });
   }
 
   void editor_context::set_data(
     const node_handle& node,
     const object_ptr<Object>& data)
   {
-    m_data_thread.send(node_data_thread_op_set_node_data {node, data});
+    assert(m_in_frame);
+    m_data_thread.send(
+      [=](managed_node_graph& g) { g.set_data(g.node(node.id()), data); });
   }
 
   auto editor_context::get_editor_info(const node_handle& handle) const
@@ -218,7 +294,8 @@ namespace yave::app {
     const tvec2<float>& new_pos)
   {
     assert(m_in_frame);
-    m_data_thread.send(node_data_thread_op_set_pos {node, new_pos});
+    m_data_thread.send(
+      [=](managed_node_graph& g) { g.set_pos(g.node(node.id()), new_pos); });
   }
 
   auto editor_context::get_scroll() const -> tvec2<float>
@@ -342,7 +419,8 @@ namespace yave::app {
   {
     assert(m_in_frame);
 
-    m_data_thread.send(node_data_thread_op_bring_front {node});
+    m_data_thread.send(
+      [=](managed_node_graph& g) { g.bring_front(g.node(node.id())); });
 
     m_command_queue.emplace_back([&, node] {
       auto& g = m_snapshot->graph;

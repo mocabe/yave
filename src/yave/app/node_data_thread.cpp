@@ -14,133 +14,10 @@ YAVE_DECL_G_LOGGER(node_data_thread)
 
 namespace yave::app {
 
-  void node_data_thread_op_nop::exec(managed_node_graph&) const noexcept
-  {
-  }
-
-  void node_data_thread_op_list::exec(managed_node_graph& g) const
-  {
-    for (auto&& op : ops)
-      std::visit(overloaded {[&](auto&& x) { x.exec(g); }}, op);
-  }
-
-  void node_data_thread_op_func::exec(managed_node_graph& g) const
-  {
-    function(g);
-  }
-
-  void node_data_thread_op_create::exec(managed_node_graph& g) const
-  {
-    auto p = g.node(parent_group.id());
-    (void)g.create(p, name);
-  }
-
-  void node_data_thread_op_destroy::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(node.id());
-    g.destroy(n);
-  }
-
-  void node_data_thread_op_connect::exec(managed_node_graph& g) const
-  {
-    auto src = g.socket(src_socket.id());
-    auto dst = g.socket(dst_socket.id());
-    (void)g.connect(src, dst);
-  }
-
-  void node_data_thread_op_disconnect::exec(managed_node_graph& g) const
-  {
-    auto c = g.connection(connection.id());
-    g.disconnect(c);
-  }
-
-  void node_data_thread_op_group::exec(managed_node_graph& g) const
-  {
-    auto p  = g.node(parent_group.id());
-    auto ns = nodes //
-              | views::transform([&](auto&& n) { return g.node(n.id()); })
-              | to_vector;
-
-    g.group(p, ns);
-  }
-
-  void node_data_thread_op_ungroup::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(group.id());
-    g.ungroup(n);
-  }
-
-  void node_data_thread_op_add_group_input::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(group.id());
-    g.add_group_input_socket(n, socket, index);
-  }
-
-  void node_data_thread_op_add_group_output::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(group.id());
-    g.add_group_output_socket(n, socket, index);
-  }
-
-  void node_data_thread_op_set_group_input::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(group.id());
-    g.set_group_input_socket(n, socket, index);
-  }
-
-  void node_data_thread_op_set_group_output::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(group.id());
-    g.set_group_output_socket(n, socket, index);
-  }
-
-  void node_data_thread_op_remove_group_input::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(group.id());
-    g.remove_group_input_socket(n, index);
-  }
-
-  void node_data_thread_op_remove_group_output::exec(
-    managed_node_graph& g) const
-  {
-    auto n = g.node(group.id());
-    g.remove_group_output_socket(n, index);
-  }
-
-  void node_data_thread_op_set_pos::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(node.id());
-    g.set_pos(n, new_pos);
-  }
-
-  void node_data_thread_op_set_node_data::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(node.id());
-    g.set_data(n, data);
-  }
-
-  void node_data_thread_op_set_socket_data::exec(managed_node_graph& g) const
-  {
-    auto s = g.socket(socket.id());
-    g.set_data(s, data);
-  }
-
-  void node_data_thread_op_bring_back::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(node.id());
-    g.bring_back(n);
-  }
-
-  void node_data_thread_op_bring_front::exec(managed_node_graph& g) const
-  {
-    auto n = g.node(node.id());
-    g.bring_front(n);
-  }
-
   struct node_data_thread::_queue_data
   {
     /// node data operation
-    node_data_thread_op op;
+    std::function<void(managed_node_graph&)> op;
     /// request timestamp
     std::chrono::time_point<std::chrono::steady_clock> request_time;
   };
@@ -169,7 +46,7 @@ namespace yave::app {
     return m_thread.joinable();
   }
 
-  void node_data_thread::send(node_data_thread_op op)
+  void node_data_thread::send(std::function<void(managed_node_graph&)> op)
   {
     {
       std::unique_lock lck {m_mtx};
@@ -185,7 +62,7 @@ namespace yave::app {
       throw std::runtime_error("Data thread not running");
 
     m_terminate_flag = 1;
-    send(node_data_thread_op_nop {});
+    send([](managed_node_graph&) {});
     m_thread.join();
   }
 
@@ -214,11 +91,11 @@ namespace yave::app {
             // pop
             auto top = std::move(m_queue.front());
             m_queue.pop();
-            // dispatch commands
-            std::visit(
-              overloaded {[&](auto&& x) { x.exec(*m_graph); }}, top.op);
 
-            //std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            // execute commands
+            top.op(*m_graph);
+
+            // std::this_thread::sleep_for(std::chrono::milliseconds(5));
             // update time stamp
             request_time = top.request_time;
 
