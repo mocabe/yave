@@ -62,10 +62,4 @@ namespace yave {
   template <class T, class U>
   using propagate_const_t = typename detail::propagate_const_impl<T, U>::type;
 
-  // ------------------------------------------
-  // concept_checker
-
-  template <auto FP>
-  struct concept_checker;
-
 }

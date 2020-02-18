@@ -274,17 +274,6 @@ namespace yave {
     using base::spine;
     using base::nth_arg;
 
-    /// check signature of code()
-    void check_code()
-    {
-      static_assert(
-        std::is_same_v<return_type, decltype(std::declval<const T>().code())>,
-        " `return_type code() const` was not found.");
-    }
-
-    // check_code
-    using concept_check_code = concept_checker<&Function::check_code>;
-
   private:
     /// Closure info table initializer
     struct info_table_initializer
