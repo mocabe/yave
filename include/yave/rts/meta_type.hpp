@@ -37,7 +37,7 @@ namespace yave {
   template <class T1, class T2>
   [[nodiscard]] constexpr auto operator!=(meta_type<T1> lhs, meta_type<T2> rhs)
   {
-    return !(lhs == rhs);
+    return std::bool_constant<!(lhs == rhs)> {};
   }
 
   // ------------------------------------------

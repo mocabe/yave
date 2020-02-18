@@ -306,9 +306,6 @@ namespace yave {
       const type_arrow& ta,
       const object_ptr<const Type>& in) -> object_ptr<const Type>
     {
-      auto& from = ta.from;
-      auto& to   = ta.to;
-
       if (auto arrow = get_if<arrow_type>(in.value())) {
         auto cap = subst_impl_rec(ta, arrow->captured);
         auto ret = subst_impl_rec(ta, arrow->returns);
@@ -323,8 +320,8 @@ namespace yave {
         return !t ? nullptr : make_object<Type>(list_type {t});
       }
 
-      if (same_type(in, from))
-        return to;
+      if (same_type(in, ta.from))
+        return ta.to;
 
       return nullptr;
     }
@@ -1171,8 +1168,6 @@ namespace yave {
       const object_ptr<const Object>& obj,
       const overloading_env& env) -> object_ptr<const Object>
     {
-      auto& map = env.results;
-
       if (!env.envB.empty())
         throw type_error::no_valid_overloading(obj);
 
@@ -1195,9 +1190,9 @@ namespace yave {
 
       if (auto overloaded = value_cast_if<Overloaded>(obj)) {
 
-        auto it = map.find(overloaded);
+        auto it = env.results.find(overloaded);
 
-        if (it != map.end())
+        if (it != env.results.end())
           return it->second;
 
         return overloaded;
