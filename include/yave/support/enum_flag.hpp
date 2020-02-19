@@ -8,6 +8,14 @@
 #include <yave/config/config.hpp>
 #include <type_traits>
 
+#define YAVE_DECL_ENUM_FLAG(TYPE)              \
+  namespace yave {                             \
+    template <>                                \
+    struct is_enum_flag<TYPE> : std::true_type \
+    {                                          \
+    };                                         \
+  }
+
 namespace yave {
 
   /// create enum class from value
