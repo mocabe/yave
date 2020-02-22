@@ -19,6 +19,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <optional>
 
 namespace yave {
 
@@ -233,11 +234,9 @@ namespace yave {
   class type_arrow_map
   {
   public:
-    type_arrow_map()                          = default;
-    type_arrow_map(const type_arrow_map&)     = delete;
-    type_arrow_map(type_arrow_map&&) noexcept = default;
-    type_arrow_map& operator=(const type_arrow_map&) noexcept = delete;
-    type_arrow_map& operator=(type_arrow_map&&) noexcept = default;
+    type_arrow_map()                 = default;
+    type_arrow_map(type_arrow_map&&) = default;
+    type_arrow_map& operator=(type_arrow_map&&) = default;
 
     void insert(const type_arrow& ta)
     {
