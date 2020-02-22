@@ -73,8 +73,18 @@ namespace yave {
     void operator delete[](void*) = delete;
 
     /// operator new using memory_resource
-    void* operator new(size_t size, std::pmr::memory_resource* mr)
+    void* operator new(
+      size_t /* see below */,
+      size_t size,
+      std::pmr::memory_resource* mr)
     {
+      // The first parameter of this function is not used.
+      // Since overloading resolution rule on placement operator delete when
+      // constructor failed by throwing exception only accepts overloading which
+      // has the same number of arguments to the placement operator new, we need
+      // to match the number of arguments by adding another argument, and
+      // manually pass size into second parameter.
+
       std::pmr::polymorphic_allocator<std::byte> alloc(mr);
       return alloc.allocate(size);
     }
@@ -110,13 +120,16 @@ namespace yave {
   template <class T, class... Args>
   [[nodiscard]] T* object_new(std::pmr::memory_resource* mr, Args&&... args)
   {
-    using newT         = std::remove_const_t<T>;
-    auto p             = new (mr) newT(std::forward<Args>(args)...);
+      using newT = std::remove_const_t<T>;
+      auto p     = new (sizeof(T), mr) newT(std::forward<Args>(args)...);
     p->memory_resource = mr;
     return p;
   }
 
   /// Destruct and delete object with its own memory_resource.
+    /// Template parameter T should be the type of actual object allocated.
+    /// This function is used in vtbl_destroy() to destroy object via vtable,
+    /// which knows T at compile time.
   template <class T>
   void object_delete(const T* p)
   {
