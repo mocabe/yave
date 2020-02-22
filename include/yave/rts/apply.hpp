@@ -137,33 +137,14 @@ namespace yave {
       : base(std::move(ap), std::move(ar))
     {
     }
-
-    TApply(App* ap, Arg* ar) noexcept
-      : base(object_ptr<const Object>(ap), object_ptr<const Object>(ar))
-    {
-    }
-
-    TApply(App* ap, object_ptr<Arg> ar) noexcept
-      : base(ap, std::move(ar))
-    {
-    }
-
-    TApply(object_ptr<App> ap, Arg* ar) noexcept
-      : base(std::move(ap), ar)
-    {
-    }
   };
 
   /// apply operator
-  template <
-    class T1,
-    class T2,
-    class =
-      std::enable_if_t<is_object_pointer_v<T1> && is_object_pointer_v<T2>>>
-  [[nodiscard]] auto operator<<(T1&& lhs, T2&& rhs)
+  template <class T1, class T2>
+  [[nodiscard]] auto operator<<(object_ptr<T1> lhs, object_ptr<T2> rhs)
   {
-    using newT = decltype(TApply(std::forward<T1>(lhs), std::forward<T2>(rhs)));
-    return make_object<newT>(std::forward<T1>(lhs), std::forward<T2>(rhs));
+    using newT = decltype(TApply(lhs, rhs));
+    return make_object<newT>(std::move(lhs), std::move(rhs));
   }
 
 } // namespace yave

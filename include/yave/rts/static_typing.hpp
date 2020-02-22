@@ -588,11 +588,11 @@ namespace yave {
   }
 
   /// check type at compile time
-  template <class T, class U, class = std::enable_if_t<is_object_pointer_v<U>>>
-  void check_type_static(U&&)
+  template <class T, class U>
+  void check_type_static(const object_ptr<U>&)
   {
     auto t1 = type_of(get_term<T>(), true_c);
-    auto t2 = type_of(get_term<object_pointer_element_t<U>>(), true_c);
+    auto t2 = type_of(get_term<U>(), true_c);
 
     if constexpr (t1 != t2) {
       static_assert(false_v<T>, "Compile time type check failed!");

@@ -42,7 +42,6 @@ TEST_CASE("simple function test")
         return eval(eval_arg<0>());
         return make_object<Int>();
         return make_object<const Int>();
-        return object_new<Int>(std::pmr::new_delete_resource());
       }
     };
     auto f = make_object<F>();

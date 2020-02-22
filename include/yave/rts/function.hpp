@@ -128,17 +128,6 @@ namespace yave {
         }
       }
 
-      /// U*
-      template <class U>
-      return_type_checker(U* ptr) noexcept
-        : m_value(ptr)
-      {
-        // check return type
-        if constexpr (!std::is_same_v<std::decay_t<U>, Exception>) {
-          check_return_type(return_type, type_of(get_term<U>()));
-        }
-      }
-
       // deleted
       return_type_checker()          = delete;
       return_type_checker(nullptr_t) = delete;

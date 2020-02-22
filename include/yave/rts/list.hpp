@@ -77,33 +77,24 @@ namespace yave {
 
     /// Create new list with single element.
     /// \requires `car != nullptr`
-    template <
-      class Car,
-      class = std::enable_if_t<
-        !std::is_same_v<std::decay_t<Car>, list_object_value> &&
-        is_object_pointer_v<Car>>>
-    list_object_value(Car&& car)
-      : m_storage {std::forward<Car>(car), list_storage::get_nil()}
+    template <class Car>
+    list_object_value(object_ptr<Car> car)
+      : m_storage {std::move(car), list_storage::get_nil()}
     {
       if (m_storage.car == nullptr)
         throw std::invalid_argument("car == nullptr");
 
       constexpr auto elem_tp = type_of(get_term<T>());
 
-      if constexpr (
-        type_of(get_term<object_pointer_element_t<Car>>()) != elem_tp)
+      if constexpr (type_of(get_term<Car>()) != elem_tp)
         static_assert(false_v<Car>, "Invalid Car type. Should result T");
     }
 
     /// Create new list with two element (i.e. Cons operation).
     /// \requires `car != nullptr && cdr != nullptr`
-    template <
-      class Car,
-      class Cdr,
-      class =
-        std::enable_if_t<is_object_pointer_v<Car> && is_object_pointer_v<Cdr>>>
-    list_object_value(Car&& car, Cdr&& cdr)
-      : m_storage {std::forward<Car>(car), std::forward<Cdr>(cdr)}
+    template <class Car, class Cdr>
+    list_object_value(object_ptr<Car> car, object_ptr<Cdr> cdr)
+      : m_storage {std::move(car), std::move(cdr)}
     {
       if (m_storage.car == nullptr)
         throw std::invalid_argument("car == nullptr");
@@ -114,10 +105,8 @@ namespace yave {
       constexpr auto elem_tp = type_of(get_term<T>());
       constexpr auto list_tp = type_of(get_term<list<T>>());
 
-      constexpr auto car_type =
-        type_of(get_term<object_pointer_element_t<Car>>());
-      constexpr auto cdr_type =
-        type_of(get_term<object_pointer_element_t<Cdr>>());
+      constexpr auto car_type = type_of(get_term<Car>());
+      constexpr auto cdr_type = type_of(get_term<Cdr>());
 
       if constexpr (car_type != elem_tp) {
         static_assert(false_v<T>, "Invalid Car type. Should result T");
@@ -232,20 +221,16 @@ namespace yave {
   }
 
   /// Create new list from arguments
-  template <
-    class T,
-    class... Ts,
-    class = std::enable_if_t<(is_object_pointer_v<Ts> && ...)>>
-  [[nodiscard]] auto make_list(Ts&&... args)
+  template <class T, class... Ts>
+  [[nodiscard]] auto make_list(object_ptr<Ts>... args)
   {
     constexpr auto tp = type_of(get_term<T>());
 
     static_assert(!is_tyerror(tp));
 
     // check all arguments have same type to T
-    if constexpr (((type_of(get_term<object_pointer_element_t<Ts>>()) == tp) &&
-                   ...))
-      return detail::make_list_impl<T>(std::forward<Ts>(args)...);
+    if constexpr (((type_of(get_term<Ts>()) == tp) && ...))
+      return detail::make_list_impl<T>(std::move(args)...);
     else
       static_assert(false_v<T>, "Inalid argument type. Should reuslt T");
   }

@@ -1289,12 +1289,11 @@ namespace yave {
   // check_type_dynamic
 
   /// check type at runtime
-  template <class T, class U, class = std::enable_if_t<is_object_pointer_v<U>>>
-  void check_type_dynamic(U&& obj)
+  template <class T, class U>
+  void check_type_dynamic(const object_ptr<U>& obj)
   {
-    auto tmp = object_ptr(std::forward<U>(obj));
-    auto t1  = object_type<T>();
-    auto t2  = type_of(tmp);
+    auto t1 = object_type<T>();
+    auto t2 = type_of(obj);
     if (unlikely(!same_type(t1, t2)))
       throw type_error::bad_type_check(obj, t1, t2);
   }

@@ -433,7 +433,7 @@ namespace yave {
   template <class T, class... Args>
   [[nodiscard]] auto make_object(std::pmr::memory_resource* mr, Args&&... args)
   {
-    return object_ptr(object_new<T>(mr, std::forward<Args>(args)...));
+    return object_ptr(detail::object_new<T>(mr, std::forward<Args>(args)...));
   }
 
   /// make object with default allocator

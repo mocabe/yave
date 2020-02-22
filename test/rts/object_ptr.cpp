@@ -22,8 +22,6 @@ YAVE_DECL_TYPE(Double, "9cc69b38-8766-44f1-93e9-337cfb3d3bc5");
 
 TEST_CASE("pointer construct", "[rts][object_ptr]")
 {
-  auto mr = std::pmr::get_default_resource();
-
   SECTION("pointer")
   {
     object_ptr<Int> i = nullptr;
@@ -31,27 +29,6 @@ TEST_CASE("pointer construct", "[rts][object_ptr]")
     REQUIRE(i == nullptr);
     REQUIRE(j == nullptr);
     REQUIRE(nullptr == i);
-  }
-
-  SECTION("pointer")
-  {
-    object_ptr<Int> i = object_new<Int>(mr, 42);
-    REQUIRE(i);
-    REQUIRE(*i == 42);
-  }
-
-  SECTION("deduction")
-  {
-    object_ptr i = object_new<Int>(mr, 42);
-    REQUIRE(i);
-    REQUIRE(*i == 42);
-  }
-
-  SECTION("deduction")
-  {
-    auto i = object_ptr(object_new<Int>(mr, 42));
-    REQUIRE(i);
-    REQUIRE(*i == 42);
   }
 
   SECTION("guided")
@@ -128,16 +105,12 @@ TEST_CASE("pointer construct", "[rts][object_ptr]")
 
 TEST_CASE("operator bool", "[rts][object_ptr]")
 {
-  SECTION("pointer")
-  {
-    auto mr = std::pmr::get_default_resource();
-    object_ptr<Int> i {};
-    REQUIRE(!i);
-    i = object_new<Int>(mr, 42);
-    REQUIRE(i);
-    i = nullptr;
-    REQUIRE(!i);
-  }
+  object_ptr<Int> i {};
+  REQUIRE(!i);
+  i = make_object<Int>(42);
+  REQUIRE(i);
+  i = nullptr;
+  REQUIRE(!i);
 }
 
 TEST_CASE("value_cast", "[rts][object_ptr]")

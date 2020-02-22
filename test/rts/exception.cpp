@@ -96,8 +96,6 @@ TEST_CASE("unknown exception", "[rts][exception]")
 
       return make_object<Exception>(msg, err);
       return make_object<const Exception>(msg, err);
-      return object_new<Exception>(std::pmr::new_delete_resource(), msg, err);
-      return object_new<const Exception>(std::pmr::new_delete_resource(), msg, err);
     }
   };
 
