@@ -18,8 +18,10 @@ int main(int argc, char** argv)
 
   po::options_description description("UUID tool options");
 
-  description.add_options()("help,h", "show help")(
-    "generate,g", "generate random UUID");
+  description.add_options()
+    ("help,h", "show help")
+    ("generate,g", "generate random UUID")
+    ("number,n", po::value<int>()->default_value(1), "Number of UUIDs to generate");
 
   po::variables_map variables;
   po::store(po::parse_command_line(argc, argv, description), variables);
@@ -32,8 +34,10 @@ int main(int argc, char** argv)
     fmt::print("{}\n", description);
 
   if (variables.count("generate")) {
-    auto gen  = uuid::random_generator_mt19937();
-    auto uuid = gen();
-    fmt::print("{}\n", uuid);
+    auto gen = uuid::random_generator_mt19937();
+    for (int i = 0; i < variables["number"].as<int>(); ++i) {
+      auto uuid = gen();
+      fmt::print("{}\n", uuid);
+    }
   }
 }
