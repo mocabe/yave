@@ -7,7 +7,7 @@
 
 #include <yave/module/std/core/config.hpp>
 #include <yave/module/std/core/decl/position.hpp>
-#include <yave/obj/behaviour/frame_demand.hpp>
+#include <yave/obj/frame_demand/frame_demand.hpp>
 #include <yave/obj/vec/vec.hpp>
 #include <yave/node/core/instance_getter.hpp>
 

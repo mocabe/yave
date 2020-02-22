@@ -8,7 +8,7 @@
 #include <yave/rts/rts.hpp>
 #include <yave/node/core/get_info.hpp>
 #include <yave/node/core/instance_getter.hpp>
-#include <yave/obj/behaviour/frame_demand.hpp>
+#include <yave/obj/frame_demand/frame_demand.hpp>
 
 namespace yave {
 

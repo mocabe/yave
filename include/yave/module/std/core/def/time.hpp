@@ -8,7 +8,7 @@
 #include <yave/module/std/core/config.hpp>
 #include <yave/module/std/core/decl/time.hpp>
 #include <yave/node/core/function.hpp>
-#include <yave/obj/behaviour/frame_demand.hpp>
+#include <yave/obj/frame_demand/frame_demand.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/node/core/instance_getter.hpp>
 

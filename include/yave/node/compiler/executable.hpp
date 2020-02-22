@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/rts/object_ptr.hpp>
-#include <yave/lib/behaviour/frame_demand.hpp>
+#include <yave/lib/frame_demand/frame_demand.hpp>
 
 namespace yave {
 
