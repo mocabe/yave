@@ -7,49 +7,32 @@
 
 #include <yave/module/std/core/config.hpp>
 #include <yave/module/std/core/decl/transform.hpp>
-#include <yave/node/core/instance_getter.hpp>
+
 #include <yave/node/core/function.hpp>
-#include <yave/obj/frame_time/frame_time.hpp>
-#include <yave/obj/vec/vec.hpp>
+#include <yave/obj/frame_demand/frame_demand.hpp>
+#include <yave/obj/mat/mat.hpp>
 
 namespace yave {
 
   namespace modules::_std::core {
 
-    class X;
-    /// X -> FrameTime -> X
-    struct TimeTransform : Function<
-                             TimeTransform,
-                             node_closure<forall<X>>,
-                             node_closure<FrameTime>,
-                             FrameDemand,
-                             forall<X>>
+    struct TransformConstructor
+      : NodeFunction<TransformConstructor, FrameDemand, FMat4>
     {
       return_type code() const
       {
-        auto demand = eval_arg<2>();
-        auto time   = eval(arg<1>() << demand);
-        return arg<0>() << make_object<FrameDemand>(*time, demand->position);
+        return make_object<FMat4>(eval_arg<0>()->matrix);
       }
     };
 
-    class Y;
-    /// Y -> Vec3 -> Y
-    struct PositionTransform : Function<
-                                 PositionTransform,
-                                 node_closure<forall<Y>>,
-                                 node_closure<FVec3>,
-                                 FrameDemand,
-                                 forall<Y>>
+    struct TransformConstructor2
+      : NodeFunction<TransformConstructor2, FMat4, FMat4>
     {
       return_type code() const
       {
-        auto demand = eval_arg<2>();
-        auto pos    = eval(arg<1>() << demand);
-        return arg<0>() << make_object<FrameDemand>(demand->time, *pos);
+        return arg<0>();
       }
     };
-
   } // namespace modules::_std::core
 
   template <>
@@ -63,15 +46,15 @@ namespace yave {
         info.name(),
         0,
         make_object<
-          InstanceGetterFunction<modules::_std::core::TimeTransform>>(),
-        info.name());
+          InstanceGetterFunction<modules::_std::core::TransformConstructor>>(),
+        info.description());
 
       auto d2 = node_definition(
         info.name(),
         0,
         make_object<
-          InstanceGetterFunction<modules::_std::core::PositionTransform>>(),
-        info.name());
+          InstanceGetterFunction<modules::_std::core::TransformConstructor2>>(),
+        info.description());
 
       return {std::move(d1), std::move(d2)};
     }

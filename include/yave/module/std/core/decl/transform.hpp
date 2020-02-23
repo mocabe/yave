@@ -6,11 +6,12 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
+#include <yave/rts/identity.hpp>
 
 namespace yave {
 
   namespace node {
-    /// Demand transformation
+    /// Transform
     struct Transform;
   } // namespace node
 
@@ -19,9 +20,12 @@ namespace yave {
   {
     static auto get_node_declaration() -> node_declaration
     {
-      class X;
       return node_declaration(
-        "Transform", {"target", "arg"}, {"out"}, "Transform subtree");
+        "Transform",
+        {"value"},
+        {"value"},
+        "Make or get current transform matrix",
+        {{0, make_object<Identity>()}});
     }
   };
 } // namespace yave

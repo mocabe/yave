@@ -8,8 +8,10 @@
 
 // module defs
 #include <yave/module/std/core/def/time.hpp>
-#include <yave/module/std/core/def/position.hpp>
 #include <yave/module/std/core/def/transform.hpp>
+#include <yave/module/std/core/def/set.hpp>
+#include <yave/module/std/core/def/translate.hpp>
+#include <yave/module/std/core/def/rotate.hpp>
 #include <yave/module/std/core/def/list.hpp>
 #include <yave/module/std/core/def/primitive.hpp>
 #include <yave/module/std/core/def/if.hpp>
@@ -75,8 +77,14 @@ namespace yave::modules::_std::core {
   auto module::get_node_declarations() const -> std::vector<node_declaration>
   {
     return {get_node_declaration<node::Time>(),
-            get_node_declaration<node::Position>(),
             get_node_declaration<node::Transform>(),
+            get_node_declaration<node::SetTime>(),
+            get_node_declaration<node::SetTransform>(),
+            get_node_declaration<node::Translate>(),
+            get_node_declaration<node::Rotate>(),
+            get_node_declaration<node::RotateX>(),
+            get_node_declaration<node::RotateY>(),
+            get_node_declaration<node::RotateZ>(),
             get_node_declaration<node::ListNil>(),
             get_node_declaration<node::ListCons>(),
             get_node_declaration<node::ListDecompose>(),
@@ -102,8 +110,14 @@ namespace yave::modules::_std::core {
     };
 
     add(yave::get_node_definitions<node::Time, _std::core::tag>());
-    add(yave::get_node_definitions<node::Position, _std::core::tag>());
     add(yave::get_node_definitions<node::Transform, _std::core::tag>());
+    add(yave::get_node_definitions<node::SetTime, _std::core::tag>());
+    add(yave::get_node_definitions<node::SetTransform, _std::core::tag>());
+    add(yave::get_node_definitions<node::Translate, _std::core::tag>());
+    add(yave::get_node_definitions<node::Rotate, _std::core::tag>());
+    add(yave::get_node_definitions<node::RotateX, _std::core::tag>());
+    add(yave::get_node_definitions<node::RotateY, _std::core::tag>());
+    add(yave::get_node_definitions<node::RotateZ, _std::core::tag>());
     add(yave::get_node_definitions<node::ListNil, _std::core::tag>());
     add(yave::get_node_definitions<node::ListCons, _std::core::tag>());
     add(yave::get_node_definitions<node::ListDecompose, _std::core::tag>());

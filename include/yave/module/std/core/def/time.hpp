@@ -32,7 +32,7 @@ namespace yave {
     {
       return_type code() const
       {
-        return eval_arg<0>();
+        return arg<0>();
       }
     };
 
