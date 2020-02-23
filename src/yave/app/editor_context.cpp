@@ -47,6 +47,7 @@ namespace yave::app {
   editor_context::editor_context(node_data_thread& data_thread)
     : m_data_thread {data_thread}
     , m_in_frame {false}
+    , m_scroll_pos {0, 0}
   {
     init_logger();
 
@@ -141,6 +142,13 @@ namespace yave::app {
       auto h = g.create(g.node(group.id()), name);
       g.set_pos(h, pos);
     });
+  }
+
+  void editor_context::destroy(const node_handle& node)
+  {
+    assert(m_in_frame);
+    m_data_thread.send(
+      [=](managed_node_graph& g) { g.destroy(g.node(node.id())); });
   }
 
   void editor_context::connect(
