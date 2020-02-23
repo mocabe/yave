@@ -22,6 +22,7 @@ namespace yave {
     {
       m_name        = decl.name();
       m_description = decl.description();
+      m_namespace   = decl.name_space();
 
       std::vector<uint64_t> idx;
       std::vector<object_ptr<Object>> dat;
@@ -76,6 +77,11 @@ namespace yave {
       return m_description;
     }
 
+    auto name_space() const -> std::string
+    {
+      return m_namespace;
+    }
+
     /// Get default arguments
     auto default_arg() const
       -> std::vector<std::pair<size_t, object_ptr<Object>>>
@@ -93,22 +99,24 @@ namespace yave {
     auto node_declaration() const -> node_declaration
     {
       return {name(),
+              description(),
+              name_space(),
               input_sockets(),
               output_sockets(),
-              description(),
               default_arg()};
     }
 
   private:
     string m_name;                                 // 16
     string m_description;                          // 16
+    string m_namespace;                            // 16
     vector<string> m_iss;                          // 16
     vector<string> m_oss;                          // 16
     vector<uint64_t> m_default_arg_idx;            // 16
     vector<object_ptr<Object>> m_default_arg_data; // 16
   };
 
-  static_assert(sizeof(external_module_node_declaration) == 96);
+  static_assert(sizeof(external_module_node_declaration) == 112);
 
   /// ModuleNodeDeclaration
   using ExternalModuleNodeDeclaration = Box<external_module_node_declaration>;

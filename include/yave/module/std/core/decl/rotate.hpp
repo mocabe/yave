@@ -28,9 +28,10 @@ namespace yave {
     {
       return node_declaration(
         "Rotate",
+        "Rotate object around axis",
+        "std::core::geometry",
         {"target", "deg", "axis"},
         {"out"},
-        "Rotate object around axis",
         {{1, make_data_type_holder<Float>()}});
     }
   };
@@ -42,9 +43,10 @@ namespace yave {
     {
       return node_declaration(
         "RotateX",
+        "Rotate object around X axis",
+        "std::core::geometry",
         {"target", "deg"},
         {"out"},
-        "Rotate object around X axis",
         {{1, make_data_type_holder<Float>()}});
     }
   };
@@ -56,9 +58,10 @@ namespace yave {
     {
       return node_declaration(
         "RotateY",
+        "Rotate object around Y axis",
+        "std::core::geometry",
         {"target", "deg"},
         {"out"},
-        "Rotate object around Y axis",
         {{1, make_data_type_holder<Float>()}});
     }
   };
@@ -70,9 +73,10 @@ namespace yave {
     {
       return node_declaration(
         "RotateZ",
+        "Rotate object around Z axis",
+        "std::core::geometry",
         {"target", "deg"},
         {"out"},
-        "Rotate object around Z axis",
         {{1, make_data_type_holder<Float>()}});
     }
   };

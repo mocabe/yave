@@ -20,7 +20,11 @@ namespace yave {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration(
-        "Bind", {"fn", "arg"}, {"fn"}, "Apply argument to function");
+        "Bind",
+        "Apply argument to function",
+        "std::core::func",
+        {"fn", "arg"},
+        {"fn"});
     }
   };
 } // namespace yave

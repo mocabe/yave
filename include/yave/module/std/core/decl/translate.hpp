@@ -22,9 +22,10 @@ namespace yave {
     {
       return node_declaration(
         "Translate",
-        {"target", "x", "y", "z"},
-        {"out"},
         "Move object",
+        "std::core::geometry",
+        {"out"},
+        {"target", "x", "y", "z"},
         {{1, make_data_type_holder<Float>()},
          {2, make_data_type_holder<Float>()},
          {3, make_data_type_holder<Float>()}});

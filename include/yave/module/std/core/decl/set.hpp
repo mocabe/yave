@@ -22,7 +22,11 @@ namespace yave {
     static auto get_node_declaration()
     {
       return node_declaration(
-        "SetTime", {"target", "time"}, {"out"}, "Apply new time to subtree");
+        "SetTime",
+        "Apply new time to subtree",
+        "std::core::reactive",
+        {"target", "time"},
+        {"out"});
     }
   };
 
@@ -33,9 +37,10 @@ namespace yave {
     {
       return node_declaration(
         "SetTransform",
+        "Apply new transformation to subtree",
+        "std::core::reactive",
         {"target", "transform"},
-        {"out"},
-        "Apply new transformation to subtree");
+        {"out"});
     }
   };
 }

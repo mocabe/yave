@@ -22,11 +22,12 @@ namespace yave {
     {
       return node_declaration(
         "Time",
-        {"value"},
-        {"value"},
         "Constructor of time value. This node construct new FrameTime object "
         "from argument, or creates FrameTime object which represents current "
         "time applied to the tree.",
+        "std::core::prim",
+        {"value"},
+        {"value"},
         {{0, make_object<Identity>()}});
     }
   };

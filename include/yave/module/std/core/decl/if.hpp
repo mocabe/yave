@@ -22,11 +22,12 @@ namespace yave {
       class X;
       return node_declaration(
         "If",
-        {"cond", "then", "else"},
-        {"out"},
         "Basic control primitive. Takes single (Bool) value to switch call to "
         "subgraph. Because of lazy evaluation, subgraph not taken will not be "
-        "evaluated");
+        "evaluated",
+        "std::core::logic",
+        {"cond", "then", "else"},
+        {"out"});
     }
   };
 

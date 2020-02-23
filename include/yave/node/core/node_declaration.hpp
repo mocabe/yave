@@ -7,7 +7,6 @@
 
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/node/core/node_handle.hpp>
-#include <functional>
 
 #include <functional>
 
@@ -21,20 +20,23 @@ namespace yave {
   public:
     /// normal node
     /// \param name Name of this node
+    /// \param _namespace namespace of this node
+    /// \param description description of this node declaration
     /// \param iss input socket names
     /// \param oss output socket names
-    /// \param description description of this node declaration
     /// \param default_arg socket default values
     node_declaration(
       std::string name,
+      std::string _namespace,
+      std::string description,
       std::vector<std::string> iss,
       std::vector<std::string> oss,
-      std::string description,
       std::vector<std::pair<size_t, object_ptr<Object>>> default_arg = {})
       : m_name {std::move(name)}
+      , m_description {std::move(description)}
+      , m_namespace {std::move(_namespace)}
       , m_iss {std::move(iss)}
       , m_oss {std::move(oss)}
-      , m_description {std::move(description)}
       , m_default_values {std::move(default_arg)}
     {
       std::sort(
@@ -58,36 +60,42 @@ namespace yave {
       }
     }
 
-    [[nodiscard]] auto name() const -> const auto&
+    [[nodiscard]] auto& name() const
     {
       return m_name;
     }
 
-    [[nodiscard]] auto input_sockets() const -> const auto&
-    {
-      return m_iss;
-    }
-
-    [[nodiscard]] auto output_sockets() const -> const auto&
-    {
-      return m_oss;
-    }
-
-    [[nodiscard]] auto description() const -> const auto&
+    [[nodiscard]] auto& description() const
     {
       return m_description;
     }
 
-    [[nodiscard]] auto default_arg() const -> const auto&
+    [[nodiscard]] auto& name_space() const
+    {
+      return m_namespace;
+    }
+
+    [[nodiscard]] auto& input_sockets() const
+    {
+      return m_iss;
+    }
+
+    [[nodiscard]] auto& output_sockets() const
+    {
+      return m_oss;
+    }
+
+    [[nodiscard]] auto& default_arg() const
     {
       return m_default_values;
     }
 
   private:
     std::string m_name;
+    std::string m_description;
+    std::string m_namespace;
     std::vector<std::string> m_iss;
     std::vector<std::string> m_oss;
-    std::string m_description;
     std::vector<std::pair<size_t, object_ptr<Object>>> m_default_values;
   };
 }

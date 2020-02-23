@@ -22,9 +22,10 @@ namespace yave {
     {
       return node_declaration(
         "Transform",
-        {"value"},
-        {"value"},
         "Make or get current transform matrix",
+        "std::core::geometry",
+        {"value"},
+        {"value"},
         {{0, make_object<Identity>()}});
     }
   };
