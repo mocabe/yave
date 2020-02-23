@@ -118,21 +118,26 @@ namespace yave {
     struct arrow_type_initializer
     {
       /// arrow type object
-      alignas(64) inline static const Type type {
-        static_construct,
-        arrow_type {object_type_impl(type_c<T>),
-                    &arrow_type_initializer<Ts...>::type}};
+      alignas(64) static const Type type;
     };
 
     template <class T1, class T2>
     struct arrow_type_initializer<T1, T2>
     {
       /// arrow type object
-      alignas(64) inline static const Type type {
-        static_construct,
-        arrow_type {object_type_impl(type_c<T1>),
-                    object_type_impl(type_c<T2>)}};
+      alignas(64) static const Type type;
     };
+
+    template <class T, class... Ts>
+    alignas(64) const Type arrow_type_initializer<T, Ts...>::type {
+      static_construct,
+      arrow_type {object_type_impl(type_c<T>),
+                  &arrow_type_initializer<Ts...>::type}};
+
+    template <class T1, class T2>
+    alignas(64) const Type arrow_type_initializer<T1, T2>::type {
+      static_construct,
+      arrow_type {object_type_impl(type_c<T1>), object_type_impl(type_c<T2>)}};
 
     template <class... Ts>
     constexpr auto arrow_type_address(meta_type<tm_closure<Ts...>>)
@@ -148,9 +153,13 @@ namespace yave {
     struct var_type_initializer
     {
       /// var type object.
-      alignas(64) inline static const Type type {static_construct,
-                                                 var_type::random_generate()};
+      alignas(64) static const Type type;
     };
+
+    template <class T>
+    alignas(64) const Type var_type_initializer<T>::type {
+      static_construct,
+      var_type::random_generate()};
 
     template <class T>
     constexpr auto var_type_address(meta_type<T>)
@@ -165,10 +174,13 @@ namespace yave {
     struct list_type_initializer
     {
       /// list type object
-      alignas(64) inline static const Type type {
-        static_construct,
-        list_type {object_type_impl(type_c<T>)}};
+      alignas(64) static const Type type;
     };
+
+    template <class T>
+    alignas(64) const Type list_type_initializer<T>::type {
+      static_construct,
+      list_type {object_type_impl(type_c<T>)}};
 
     template <class T>
     constexpr auto list_type_address(meta_type<tm_list<T>>)
