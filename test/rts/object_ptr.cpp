@@ -188,3 +188,25 @@ TEST_CASE("custom allocator", "[rts][object_ptr]")
   REQUIRE(*i2 == 24);
   REQUIRE(*i == 42);
 }
+
+struct foo
+{
+  foo()
+  {
+    throw 42;
+  }
+  foo(const foo&) = default;
+};
+
+using Foo = Box<foo>;
+
+YAVE_DECL_TYPE(Foo, "53190d38-71e8-4eae-9d29-5aea0da1d225");
+
+TEST_CASE("constructor throw", "[rts][object]")
+{
+  try {
+    auto f = make_object<Foo>();
+  } catch (int i) {
+    REQUIRE(i == 42);
+  }
+}
