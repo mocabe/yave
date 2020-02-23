@@ -65,13 +65,9 @@ namespace yave {
   class apply_object_value
   {
   public:
-    template <
-      class App,
-      class Arg,
-      class = std::enable_if_t<
-        !std::is_same_v<std::decay_t<App>, apply_object_value>>>
-    apply_object_value(App&& app, Arg&& arg) noexcept
-      : m_storage {std::forward<App>(app), std::forward<Arg>(arg)}
+    template <class App, class Arg>
+    apply_object_value(object_ptr<App> app, object_ptr<Arg> arg) noexcept
+      : m_storage {std::move(app), std::move(arg)}
     {
     }
 
@@ -123,18 +119,16 @@ namespace yave {
       detail::vtbl_clone_func<Apply>};  //
   };
 
-  /// compile time apply object
+  /// apply object with compile time AST info
   template <class App, class Arg>
   struct TApply : Apply
   {
-    /// base
-    using base = Apply;
     /// term
     static constexpr auto term =
       make_tm_apply(get_term<App>(), get_term<Arg>());
 
     TApply(object_ptr<App> ap, object_ptr<Arg> ar) noexcept
-      : base(std::move(ap), std::move(ar))
+      : Apply(std::move(ap), std::move(ar))
     {
     }
   };
