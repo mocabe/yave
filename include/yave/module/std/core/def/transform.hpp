@@ -21,7 +21,7 @@ namespace yave {
     {
       return_type code() const
       {
-        return make_object<FMat4>(eval_arg<0>()->matrix);
+        return make_object<FMat4>(eval_arg<0>()->transform);
       }
     };
 

@@ -47,7 +47,8 @@ namespace yave {
         auto m = glm::rotate(
           glm::mat4(1), glm::radians(*angle), glm::normalize(glm::vec3(*axis)));
 
-        return arg<0>() << make_object<FrameDemand>(fd->time, fd->matrix * m);
+        return arg<0>() << make_object<FrameDemand>(
+                 fd->time, fd->transform * m);
       }
     };
 
@@ -64,7 +65,8 @@ namespace yave {
         auto angle = eval(arg<1>() << fd);
         auto m =
           glm::rotate(glm::mat4(1), glm::radians(*angle), glm::vec3(1, 0, 0));
-        return arg<0>() << make_object<FrameDemand>(fd->time, fd->matrix * m);
+        return arg<0>() << make_object<FrameDemand>(
+                 fd->time, fd->transform * m);
       }
     };
 
@@ -81,7 +83,7 @@ namespace yave {
         auto angle = eval(arg<1>() << fd);
         auto m =
           glm::rotate(glm::mat4(1), glm::radians(*angle), glm::vec3(0, 1, 0));
-        return arg<0>() << make_object<FrameDemand>(fd->time, fd->matrix * m);
+        return arg<0>() << make_object<FrameDemand>(fd->time, fd->transform * m);
       }
     };
 
@@ -98,7 +100,8 @@ namespace yave {
         auto angle = eval(arg<1>() << fd);
         auto m =
           glm::rotate(glm::mat4(1), glm::radians(*angle), glm::vec3(0, 0, 1));
-        return arg<0>() << make_object<FrameDemand>(fd->time, fd->matrix * m);
+        return arg<0>() << make_object<FrameDemand>(
+                 fd->time, fd->transform * m);
       }
     };
   } // namespace modules::_std::core

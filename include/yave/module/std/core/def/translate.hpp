@@ -38,7 +38,8 @@ namespace yave {
         auto y  = eval(arg<2>() << fd);
         auto z  = eval(arg<3>() << fd);
         auto m  = glm::translate(glm::mat4(1), glm::vec3(*x, *y, *z));
-        return arg<0>() << make_object<FrameDemand>(fd->time, fd->matrix * m);
+        return arg<0>() << make_object<FrameDemand>(
+                 fd->time, fd->transform * m);
       }
     };
   } // namespace modules::_std::core
