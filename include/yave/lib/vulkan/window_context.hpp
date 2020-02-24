@@ -9,33 +9,6 @@
 
 namespace yave::vulkan {
 
-  class window_context;
-
-  /// RAII command recorder
-  class command_recorder
-  {
-    friend class window_context;
-
-  public:
-    /// move
-    command_recorder(command_recorder&& other) noexcept;
-    /// calls end_record() and end_frame()
-    ~command_recorder();
-
-  public:
-    /// get command buffer
-    [[nodiscard]] vk::CommandBuffer command_buffer() const;
-
-  private:
-    command_recorder(const command_recorder&) = delete;
-    /// calls begin_frame() and begin_record()
-    command_recorder(window_context* window_ctx);
-
-  private:
-    window_context* m_window_ctx;
-    vk::CommandBuffer m_buffer;
-  };
-
   /// glfw/vulkan window context
   class window_context
   {
@@ -93,19 +66,17 @@ namespace yave::vulkan {
 
   public: /* render operations */
     /// Update frame/semaphore indicies and acquire new image.
-    /// \note: command_recorder will call this automatically.
     void begin_frame();
 
     /// Submit current frame buffer.
-    /// \note: command_recorder will call this automatically.
     void end_frame() const;
 
     /// Begin recording command.
-    /// \note: command_recorder will call this automatically.
+    /// \note should be called between begin_frame() and end_frame()
     [[nodiscard]] auto begin_record() const -> vk::CommandBuffer;
 
     /// End recording command.
-    /// \note: command_recorder will call this automatically.
+    /// \note should be called between begin_frame() and end_frame()
     void end_record(const vk::CommandBuffer& buffer) const;
 
     /// Get current swapchain index.
@@ -127,10 +98,6 @@ namespace yave::vulkan {
     /// Get number of frame index. This value also represents maximum number
     /// of in-flight render operations.
     [[nodiscard]] auto frame_index_count() const -> uint32_t;
-
-  public:
-    /// create RAII frame recorder
-    [[nodiscard]] auto new_recorder() -> command_recorder;
 
   public:
     /// Create single time command

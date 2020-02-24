@@ -1084,9 +1084,9 @@ namespace yave::imgui {
 
     /* Render with Vulkan */
     {
-      // begin new frame (use RAII recorder)
-      auto recorder      = m_pimpl->windowCtx.new_recorder();
-      auto commandBuffer = recorder.command_buffer();
+      // begin new frame
+      m_pimpl->windowCtx.begin_frame();
+      auto commandBuffer = m_pimpl->windowCtx.begin_record();
 
       // device
       auto physicalDevice = m_pimpl->vulkanCtx.physical_device();
@@ -1159,6 +1159,9 @@ namespace yave::imgui {
         indexBuffer.buffer(),
         m_pimpl->windowCtx.swapchain_extent(),
         commandBuffer);
+
+      m_pimpl->windowCtx.end_record(commandBuffer);
+      m_pimpl->windowCtx.end_frame();
     }
 
     /* frame rate limiter */

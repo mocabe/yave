@@ -987,11 +987,6 @@ namespace yave::vulkan {
             m_pimpl->command_pool.get()};
   }
 
-  auto window_context::new_recorder() -> command_recorder
-  {
-    return command_recorder(this);
-  }
-
   uint32_t window_context::swapchain_index() const
   {
     return m_pimpl->image_index;
@@ -1010,36 +1005,6 @@ namespace yave::vulkan {
   uint32_t window_context::frame_index_count() const
   {
     return m_pimpl->swapchain_image_count;
-  }
-
-  // -----------------------------------------
-  // command_recorder
-
-  command_recorder::command_recorder(window_context* window_ctx)
-    : m_window_ctx {window_ctx}
-  {
-    m_window_ctx->begin_frame();
-    m_buffer = m_window_ctx->begin_record();
-  }
-
-  command_recorder::~command_recorder()
-  {
-    if (!m_window_ctx)
-      return;
-
-    m_window_ctx->end_record(m_buffer);
-    m_window_ctx->end_frame();
-  }
-
-  command_recorder::command_recorder(command_recorder&& other) noexcept
-    : m_window_ctx {std::move(other.m_window_ctx)}
-    , m_buffer {std::move(other.m_buffer)}
-  {
-  }
-
-  auto command_recorder::command_buffer() const -> vk::CommandBuffer
-  {
-    return m_buffer;
   }
 
 } // namespace yave::vulkan
