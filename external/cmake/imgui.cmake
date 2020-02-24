@@ -7,11 +7,13 @@ add_library(imgui
   ${YAVE_EXTERNAL_DIR}/imgui/imgui_draw.cpp
   ${YAVE_EXTERNAL_DIR}/imgui/imgui_demo.cpp
   ${YAVE_EXTERNAL_DIR}/imgui/misc/freetype/imgui_freetype.cpp
+  ${YAVE_EXTERNAL_DIR}/imgui/misc/cpp/imgui_stdlib.cpp
 )
 
 target_include_directories(imgui PUBLIC 
   ${YAVE_EXTERNAL_DIR}/imgui
   ${YAVE_EXTERNAL_DIR}/imgui/misc/freetype
+  ${YAVE_EXTERNAL_DIR}/imgui/misc/cpp
 )
 
 target_link_libraries(imgui PRIVATE Freetype::Freetype)
