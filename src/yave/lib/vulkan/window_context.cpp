@@ -791,7 +791,7 @@ namespace yave::vulkan {
     }
   }
 
-  void window_context::end_frame() const
+  void window_context::end_frame()
   {
     auto graphicsQueue = m_pimpl->context->graphics_queue();
     auto presentQueue  = m_pimpl->context->present_queue();
@@ -845,7 +845,7 @@ namespace yave::vulkan {
     }
   }
 
-  auto window_context::begin_record() const -> vk::CommandBuffer
+  auto window_context::begin_record() -> vk::CommandBuffer
   {
     auto buffer = m_pimpl->command_buffers[m_pimpl->frame_index].get();
 
@@ -875,7 +875,7 @@ namespace yave::vulkan {
     return buffer;
   }
 
-  void window_context::end_record(const vk::CommandBuffer& buffer) const
+  void window_context::end_record(const vk::CommandBuffer& buffer)
   {
     // end render pass
     buffer.endRenderPass();

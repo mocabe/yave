@@ -69,15 +69,15 @@ namespace yave::vulkan {
     void begin_frame();
 
     /// Submit current frame buffer.
-    void end_frame() const;
+    void end_frame();
 
     /// Begin recording command.
     /// \note should be called between begin_frame() and end_frame()
-    [[nodiscard]] auto begin_record() const -> vk::CommandBuffer;
+    [[nodiscard]] auto begin_record() -> vk::CommandBuffer;
 
     /// End recording command.
     /// \note should be called between begin_frame() and end_frame()
-    void end_record(const vk::CommandBuffer& buffer) const;
+    void end_record(const vk::CommandBuffer& buffer);
 
     /// Get current swapchain index.
     /// \note: Swapchain index is given by driver every frame, and there's no
