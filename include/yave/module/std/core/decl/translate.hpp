@@ -6,7 +6,8 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
-#include <yave/module/std/core/decl/primitive.hpp> 
+#include <yave/module/std/core/decl/primitive.hpp>
+#include <yave/module/std/core/decl/translate.hpp>
 
 namespace yave {
 
@@ -24,11 +25,12 @@ namespace yave {
         "Translate",
         "Move object",
         "std::core::geometry",
-        {"target", "x", "y", "z"},
+        {"target", "x", "y", "z", "transform"},
         {"out"},
         {{1, make_data_type_holder<Float>()},
          {2, make_data_type_holder<Float>()},
-         {3, make_data_type_holder<Float>()}});
+         {3, make_data_type_holder<Float>()},
+         {4, make_object<modules::_std::core::GetCurrentTransform>()}});
     }
   };
 } // namespace yave

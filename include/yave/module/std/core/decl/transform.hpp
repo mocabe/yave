@@ -6,7 +6,10 @@
 #pragma once
 
 #include <yave/node/core/get_info.hpp>
-#include <yave/rts/identity.hpp>
+
+#include <yave/rts/function.hpp>
+#include <yave/obj/frame_demand/frame_demand.hpp>
+#include <yave/obj/mat/mat.hpp>
 
 namespace yave {
 
@@ -14,6 +17,18 @@ namespace yave {
     /// Transform
     struct Transform;
   } // namespace node
+
+  namespace modules::_std::core {
+    /// get transform from demand
+    struct GetCurrentTransform
+      : Function<GetCurrentTransform, FrameDemand, FMat4>
+    {
+      return_type code() const
+      {
+        return make_object<FMat4>(eval_arg<0>()->transform);
+      }
+    };
+  } // namespace modules::_std::core
 
   template <>
   struct node_declaration_traits<node::Transform>
@@ -26,7 +41,7 @@ namespace yave {
         "std::core::geometry",
         {"value"},
         {"value"},
-        {{0, make_object<Identity>()}});
+        {{0, make_object<modules::_std::core::GetCurrentTransform>()}});
     }
   };
 } // namespace yave

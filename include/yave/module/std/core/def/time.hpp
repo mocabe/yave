@@ -15,27 +15,14 @@
 namespace yave {
 
   namespace modules::_std::core {
-
-    /// FrameDemand -> FrameTime
-    struct TimeConstructor
-      : NodeFunction<TimeConstructor, FrameDemand, FrameTime>
-    {
-      return_type code() const
-      {
-        return make_object<FrameTime>(eval_arg<0>()->time);
-      }
-    };
-
     /// FrameTime -> FrameTime
-    struct TimeConstructor2
-      : NodeFunction<TimeConstructor2, FrameTime, FrameTime>
+    struct TimeConstructor : NodeFunction<TimeConstructor, FrameTime, FrameTime>
     {
       return_type code() const
       {
         return arg<0>();
       }
     };
-
   } // namespace modules::_std::core
 
   template <>
@@ -45,21 +32,12 @@ namespace yave {
     {
       auto info = get_node_declaration<node::Time>();
 
-      auto def1 = node_definition(
+      return {node_definition(
         info.name(),
         0,
         make_object<
           InstanceGetterFunction<modules::_std::core::TimeConstructor>>(),
-        "Internal: Construct Time from FrameDemand object");
-
-      auto def2 = node_definition(
-        info.name(),
-        0,
-        make_object<
-          InstanceGetterFunction<modules::_std::core::TimeConstructor2>>(),
-        "Construct Time fromt Time");
-
-      return {std::move(def1), std::move(def2)};
+        "Construct Time fromt Time")};
     }
   };
 

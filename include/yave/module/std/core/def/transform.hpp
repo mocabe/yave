@@ -15,18 +15,9 @@
 namespace yave {
 
   namespace modules::_std::core {
-
+    /// FMat4 -> FMat4
     struct TransformConstructor
-      : NodeFunction<TransformConstructor, FrameDemand, FMat4>
-    {
-      return_type code() const
-      {
-        return make_object<FMat4>(eval_arg<0>()->transform);
-      }
-    };
-
-    struct TransformConstructor2
-      : NodeFunction<TransformConstructor2, FMat4, FMat4>
+      : NodeFunction<TransformConstructor, FMat4, FMat4>
     {
       return_type code() const
       {
@@ -42,21 +33,12 @@ namespace yave {
     {
       auto info = get_node_declaration<node::Transform>();
 
-      auto d1 = node_definition(
+      return {node_definition(
         info.name(),
         0,
         make_object<
           InstanceGetterFunction<modules::_std::core::TransformConstructor>>(),
-        info.description());
-
-      auto d2 = node_definition(
-        info.name(),
-        0,
-        make_object<
-          InstanceGetterFunction<modules::_std::core::TransformConstructor2>>(),
-        info.description());
-
-      return {std::move(d1), std::move(d2)};
+        info.description())};
     }
   };
 } // namespace yave

@@ -7,6 +7,7 @@
 
 #include <yave/node/core/get_info.hpp>
 #include <yave/module/std/core/decl/primitive.hpp>
+#include <yave/module/std/core/decl/transform.hpp>
 
 namespace yave {
 
@@ -30,9 +31,10 @@ namespace yave {
         "Rotate",
         "Rotate object around axis",
         "std::core::geometry",
-        {"target", "deg", "axis"},
+        {"target", "deg", "axis", "transform"},
         {"out"},
-        {{1, make_data_type_holder<Float>()}});
+        {{1, make_data_type_holder<Float>()},
+         {3, make_object<modules::_std::core::GetCurrentTransform>()}});
     }
   };
 
@@ -45,9 +47,10 @@ namespace yave {
         "RotateX",
         "Rotate object around X axis",
         "std::core::geometry",
-        {"target", "deg"},
+        {"target", "deg", "transform"},
         {"out"},
-        {{1, make_data_type_holder<Float>()}});
+        {{1, make_data_type_holder<Float>()},
+         {2, make_object<modules::_std::core::GetCurrentTransform>()}});
     }
   };
 
@@ -60,9 +63,10 @@ namespace yave {
         "RotateY",
         "Rotate object around Y axis",
         "std::core::geometry",
-        {"target", "deg"},
+        {"target", "deg", "transform"},
         {"out"},
-        {{1, make_data_type_holder<Float>()}});
+        {{1, make_data_type_holder<Float>()},
+         {2, make_object<modules::_std::core::GetCurrentTransform>()}});
     }
   };
 
@@ -75,9 +79,10 @@ namespace yave {
         "RotateZ",
         "Rotate object around Z axis",
         "std::core::geometry",
-        {"target", "deg"},
+        {"target", "deg", "transform"},
         {"out"},
-        {{1, make_data_type_holder<Float>()}});
+        {{1, make_data_type_holder<Float>()},
+         {2, make_object<modules::_std::core::GetCurrentTransform>()}});
     }
   };
 } // namespace yave

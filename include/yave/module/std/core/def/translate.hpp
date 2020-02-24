@@ -28,18 +28,19 @@ namespace yave {
                          node_closure<Float>,
                          node_closure<Float>,
                          node_closure<Float>,
+                         node_closure<FMat4>,
                          FrameDemand,
                          forall<Translate_X>>
     {
       auto code() const -> return_type
       {
-        auto fd = eval_arg<4>();
+        auto fd = eval_arg<5>();
         auto x  = eval(arg<1>() << fd);
         auto y  = eval(arg<2>() << fd);
         auto z  = eval(arg<3>() << fd);
+        auto t  = eval(arg<4>() << fd);
         auto m  = glm::translate(glm::mat4(1), glm::vec3(*x, *y, *z));
-        return arg<0>() << make_object<FrameDemand>(
-                 fd->time, fd->transform * m);
+        return arg<0>() << make_object<FrameDemand>(fd->time, *t * m);
       }
     };
   } // namespace modules::_std::core
