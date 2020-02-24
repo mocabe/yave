@@ -5,6 +5,7 @@
 
 #include <catch2/catch.hpp>
 #include <yave/lib/vulkan/vulkan_context.hpp>
+#include <yave/lib/vulkan/window_context.hpp>
 
 using namespace yave;
 
@@ -28,7 +29,7 @@ TEST_CASE("unique context")
   vulkan::vulkan_context vulkan_ctx(glfw_ctx);
 
   auto window     = glfw_ctx.create_window(1280, 720, "test window");
-  auto window_ctx = vulkan_ctx.create_window_context(window);
+  auto window_ctx = vulkan::window_context(vulkan_ctx, window);
 
   for (size_t i = 0; i < 5; ++i) {
     glfw_ctx.poll_events();

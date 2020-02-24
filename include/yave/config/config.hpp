@@ -23,6 +23,8 @@
 #  define NOMINMAX 1
 #endif
 
+#define _ENABLE_ATOMIC_ALIGNMENT_FIX
+
 namespace yave {
 
   using uint8_t  = std::uint8_t;

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/lib/vulkan/vulkan_context.hpp>
+#include <yave/lib/vulkan/window_context.hpp>
 #include <yave/support/enum_flag.hpp>
 
 #include <imgui.h>

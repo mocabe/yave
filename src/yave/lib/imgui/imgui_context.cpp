@@ -875,7 +875,7 @@ namespace yave::imgui {
     : glfwCtx {glfw_flags}
     , vulkanCtx {glfwCtx, vulkan_flags}
     , glfwWindow {glfwCtx.create_window(widt, height, windowName)}
-    , windowCtx {vulkanCtx.create_window_context(glfwWindow)}
+    , windowCtx {vulkanCtx, glfwWindow}
     , imCtx {ImGui::CreateContext()}
   {
   }
