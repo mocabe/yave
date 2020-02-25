@@ -153,7 +153,7 @@ namespace yave {
 
   uint32_t image::byte_size() const noexcept
   {
-    return m_width * m_height * byte_per_channel();
+    return m_width * m_height * byte_per_pixel();
   }
 
   std::byte* image::_alloc(
