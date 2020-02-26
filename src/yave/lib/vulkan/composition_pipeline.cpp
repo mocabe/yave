@@ -118,10 +118,8 @@ namespace {
     info.usage = vk::ImageUsageFlagBits::eColorAttachment // as frame buffer
                  | vk::ImageUsageFlagBits::eTransferDst   // as copy dst
                  | vk::ImageUsageFlagBits::eTransferSrc;  // as copy src
-    info.sharingMode = vk::SharingMode::eExclusive;
-    // jsut being lazy, setting proper layout transitions may perform better
-    // (but requires lot more codes and maybe bugs).
-    info.initialLayout = vk::ImageLayout::eGeneral;
+    info.sharingMode   = vk::SharingMode::eExclusive;
+    info.initialLayout = vk::ImageLayout::eUndefined;
 
     return device.createImageUnique(info);
   }
@@ -185,6 +183,22 @@ namespace {
     using namespace yave::vulkan;
     auto stc = single_time_command(device, commandQueue, commandPool);
     auto cmd = stc.command_buffer();
+
+    // eUndefined -> eGeneral
+    {
+      vk::ImageMemoryBarrier barrier;
+      barrier.oldLayout        = vk::ImageLayout::eUndefined;
+      barrier.newLayout        = layout;
+      barrier.image            = image;
+      barrier.subresourceRange = range;
+      barrier.dstAccessMask    = vk::AccessFlagBits::eColorAttachmentRead
+                              | vk::AccessFlagBits::eColorAttachmentWrite;
+
+      auto srcStage = vk::PipelineStageFlagBits::eTopOfPipe;
+      auto dstStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+
+      cmd.pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
+    }
 
     // clear image
     {
@@ -408,10 +422,6 @@ namespace yave::vulkan {
     vk::UniqueCommandBuffer command_buffer;
 
   public:
-    // semaphore which rendering operations wait for before start
-    vk::UniqueSemaphore wait_semaphore;
-    // semaphore which will be signaled after rendering operation
-    vk::UniqueSemaphore signal_semaphore;
     // fence to wait submitted queue operations finish
     vk::UniqueFence submit_fence;
 
@@ -459,10 +469,6 @@ namespace yave::vulkan {
         command_pool.get(),
         context.device())[0]);
 
-      // create semaphores
-      wait_semaphore   = createSemaphore(context.device());
-      signal_semaphore = createSemaphore(context.device());
-
       // create fence
       submit_fence =
         createFence(vk::FenceCreateFlagBits::eSignaled, ctx.device());
@@ -494,6 +500,8 @@ namespace yave::vulkan {
 
       assert(view.is_1d_traversable());
 
+      wait_draw();
+
       uploadImage(
         reinterpret_cast<const std::byte*>(view.row_begin(0)),
         static_cast<uint32_t>(view.size() * sizeof(pixel_type)),
@@ -517,6 +525,8 @@ namespace yave::vulkan {
 
       assert(view.is_1d_traversable());
 
+      wait_draw();
+
       storeImage(
         reinterpret_cast<std::byte*>(view.row_begin(0)),
         static_cast<uint32_t>(view.size() * sizeof(pixel_type)),
@@ -532,9 +542,7 @@ namespace yave::vulkan {
 
     auto begin_draw() -> vk::CommandBuffer
     {
-      // wait previous render commands
-      context.device().waitForFences(
-        submit_fence.get(), true, std::numeric_limits<uint64_t>::max());
+      wait_draw();
 
       auto buffer = command_buffer.get();
 
@@ -560,6 +568,8 @@ namespace yave::vulkan {
 
     void end_draw()
     {
+      wait_draw();
+
       auto buffer = command_buffer.get();
 
       // end recording
@@ -570,18 +580,12 @@ namespace yave::vulkan {
 
       // submit
       {
-        // end of previous pipeline
-        vk::PipelineStageFlags dstStageMask =
-          vk::PipelineStageFlagBits::eBottomOfPipe;
-
         vk::SubmitInfo info;
-        info.waitSemaphoreCount   = 1;
-        info.pWaitSemaphores      = &wait_semaphore.get();
-        info.pWaitDstStageMask    = &dstStageMask;
-        info.signalSemaphoreCount = 1;
-        info.pSignalSemaphores    = &signal_semaphore.get();
-        info.commandBufferCount   = 1;
-        info.pCommandBuffers      = &command_buffer.get();
+        info.commandBufferCount = 1;
+        info.pCommandBuffers    = &command_buffer.get();
+
+        // clear before submit
+        context.device().resetFences(submit_fence.get());
 
         auto err =
           context.graphics_queue().submit(1, &info, submit_fence.get());
@@ -590,6 +594,12 @@ namespace yave::vulkan {
           throw std::runtime_error(
             "Failed to submit command buffer: " + vk::to_string(err));
       }
+    }
+
+    void wait_draw()
+    {
+      context.device().waitForFences(
+        submit_fence.get(), true, std::numeric_limits<uint64_t>::max());
     }
   };
 
@@ -633,4 +643,8 @@ namespace yave::vulkan {
     m_pimpl->end_draw();
   }
 
+  void rgba32f_composition_pipeline::wait_draw()
+  {
+    m_pimpl->wait_draw();
+  }
 } // namespace yave::vulkan
