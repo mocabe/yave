@@ -22,10 +22,10 @@ TEST_CASE("rgba32f_compisotor_pipeline")
   boost::gil::rgba32f_image_t img {160, 90};
 
   for (auto&& pix : boost::gil::view(img)) {
-    pix[0] = 3.14;
-    pix[1] = 3.14;
-    pix[2] = 3.14;
-    pix[3] = 3.14;
+    pix[0] = 3.14f;
+    pix[1] = 3.14f;
+    pix[2] = 3.14f;
+    pix[3] = 3.14f;
   }
 
   // store image
@@ -42,11 +42,10 @@ TEST_CASE("rgba32f_compisotor_pipeline")
     REQUIRE(std::abs(pix[3] - 3.14) < 1e-5);
   }
 
-  std::cin.get();
-  std::cout << "begin_draw()\n";
-  auto cmd = compos.begin_draw();
-
-  std::cin.get();
-  std::cout << "end_draw()\n";
+  compos.begin_draw();
+  compos.end_draw();
+  compos.load_frame(view(img));
+  compos.store_frame(const_view(img2));
+  compos.begin_draw();
   compos.end_draw();
 }
