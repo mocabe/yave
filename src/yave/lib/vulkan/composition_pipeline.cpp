@@ -173,7 +173,6 @@ namespace {
 
   auto clearImage(
     const vk::Image& image,
-    const vk::ImageLayout& layout,
     const vk::ClearColorValue& color,
     const vk::ImageSubresourceRange& range,
     const vk::Device& device,
@@ -188,14 +187,13 @@ namespace {
     {
       vk::ImageMemoryBarrier barrier;
       barrier.oldLayout        = vk::ImageLayout::eUndefined;
-      barrier.newLayout        = layout;
+      barrier.newLayout        = vk::ImageLayout::eGeneral;
       barrier.image            = image;
       barrier.subresourceRange = range;
-      barrier.dstAccessMask    = vk::AccessFlagBits::eColorAttachmentRead
-                              | vk::AccessFlagBits::eColorAttachmentWrite;
+      barrier.dstAccessMask    = vk::AccessFlagBits::eTransferWrite;
 
       auto srcStage = vk::PipelineStageFlagBits::eTopOfPipe;
-      auto dstStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+      auto dstStage = vk::PipelineStageFlagBits::eTransfer;
 
       cmd.pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
     }
@@ -203,7 +201,7 @@ namespace {
     // clear image
     {
       std::array ranges {range};
-      cmd.clearColorImage(image, layout, color, ranges);
+      cmd.clearColorImage(image, vk::ImageLayout::eGeneral, color, ranges);
     }
   }
 
@@ -262,13 +260,11 @@ namespace {
     return device.createFenceUnique(info);
   }
 
-  void uploadImage(
+  void storeFrame(
     const std::byte* srcData,
     const uint32_t& srcSize,
     const vk::Image& dstImage,
-    const vk::DeviceMemory& dstImageMemory,
     const vk::Extent2D& dstImageExtent,
-    const vk::ImageSubresourceRange& dstImageRange,
     const vk::CommandPool& commandPool,
     const vk::Queue& commandQueue,
     const vk::Device& device,
@@ -325,13 +321,11 @@ namespace {
     }
   }
 
-  void storeImage(
+  void loadFrame(
     std::byte* dstData,
     uint32_t dstSize,
     const vk::Image& srcImage,
-    const vk::DeviceMemory& srcImageMemory,
     const vk::Extent2D& srcImageExtent,
-    const vk::ImageSubresourceRange& srcImageRange,
     const vk::CommandPool& commandPool,
     const vk::Queue& commandQueue,
     const vk::Device& device,
@@ -476,7 +470,6 @@ namespace yave::vulkan {
       // clear image
       clearImage(
         image.get(),
-        vk::ImageLayout::eGeneral,
         vk::ClearColorValue(),
         image_range,
         ctx.device(),
@@ -502,13 +495,11 @@ namespace yave::vulkan {
 
       wait_draw();
 
-      uploadImage(
+      storeFrame(
         reinterpret_cast<const std::byte*>(view.row_begin(0)),
         static_cast<uint32_t>(view.size() * sizeof(pixel_type)),
         image.get(),
-        image_memory.get(),
         image_extent,
-        image_range,
         command_pool.get(),
         context.graphics_queue(),
         context.device(),
@@ -527,13 +518,11 @@ namespace yave::vulkan {
 
       wait_draw();
 
-      storeImage(
+      loadFrame(
         reinterpret_cast<std::byte*>(view.row_begin(0)),
         static_cast<uint32_t>(view.size() * sizeof(pixel_type)),
         image.get(),
-        image_memory.get(),
         image_extent,
-        image_range,
         command_pool.get(),
         context.graphics_queue(),
         context.device(),
