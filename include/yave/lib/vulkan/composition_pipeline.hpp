@@ -38,6 +38,8 @@ namespace yave::vulkan {
     auto begin_draw() -> vk::CommandBuffer;
     /// End command buffer and send to GPU
     void end_draw();
+    /// Wait render
+    void wait_draw();
 
   private:
     class impl;
