@@ -57,6 +57,8 @@ namespace yave::vulkan {
     auto command_pool() const -> vk::CommandPool;
     /// command buffer which will be used for begin_draw() and begin_end()
     auto command_buffer() const -> vk::CommandBuffer;
+    /// render pass
+    auto render_pass() const -> vk::RenderPass;
 
   public:
     /// Start command buffer to record draw call

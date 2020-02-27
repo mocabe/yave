@@ -5,7 +5,6 @@
 
 #include <yave/lib/vulkan/composition_pass.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
-#include <yave/lib/image/blend_operation.hpp>
 #include <yave/support/log.hpp>
 
 YAVE_DECL_G_LOGGER(frame_compositor)
@@ -657,6 +656,11 @@ namespace yave::vulkan {
   auto rgba32f_composition_pass::command_buffer() const -> vk::CommandBuffer
   {
     return m_pimpl->command_buffer.get();
+  }
+
+  auto rgba32f_composition_pass::render_pass() const -> vk::RenderPass
+  {
+    return m_pimpl->render_pass.get();
   }
 
   auto rgba32f_composition_pass::begin_draw() -> vk::CommandBuffer
