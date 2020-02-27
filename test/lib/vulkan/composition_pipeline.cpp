@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/vulkan/composition_pipeline.hpp>
+#include <yave/lib/vulkan/composition_pass.hpp>
 #include <yave/lib/glfw/glfw_context.hpp>
 #include <yave/lib/image/image.hpp>
 
@@ -13,11 +13,11 @@
 
 using namespace yave;
 
-TEST_CASE("rgba32f_compisotor_pipeline")
+TEST_CASE("rgba32f compos pass")
 {
   glfw::glfw_context glfw;
   vulkan::vulkan_context ctx {glfw};
-  vulkan::rgba32f_composition_pipeline compos {160, 90, ctx};
+  vulkan::rgba32f_composition_pass compos {160, 90, ctx};
 
   boost::gil::rgba32f_image_t img {160, 90};
 

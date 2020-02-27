@@ -3,9 +3,9 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/vulkan/composition_pipeline.hpp>
+#include <yave/lib/vulkan/composition_pass.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
-
+#include <yave/lib/image/blend_operation.hpp>
 #include <yave/support/log.hpp>
 
 YAVE_DECL_G_LOGGER(frame_compositor)
@@ -390,7 +390,7 @@ namespace yave::vulkan {
   }
 
   template <class PixelLocType>
-  struct composition_pipeline_impl
+  struct composition_pass_impl
   {
   public:
     using pixel_loc_type = PixelLocType;
@@ -420,10 +420,7 @@ namespace yave::vulkan {
     vk::UniqueFence submit_fence;
 
   public:
-    composition_pipeline_impl(
-      uint32_t width,
-      uint32_t height,
-      vulkan_context& ctx)
+    composition_pass_impl(uint32_t width, uint32_t height, vulkan_context& ctx)
       : context {ctx}
     {
       init_logger();
@@ -477,7 +474,7 @@ namespace yave::vulkan {
         command_pool.get());
     }
 
-    ~composition_pipeline_impl() noexcept
+    ~composition_pass_impl() noexcept
     {
       context.device().waitIdle();
     }
@@ -592,13 +589,13 @@ namespace yave::vulkan {
     }
   };
 
-  class rgba32f_composition_pipeline::impl
-    : public composition_pipeline_impl<pixel_loc_type>
+  class rgba32f_composition_pass::impl
+    : public composition_pass_impl<pixel_loc_type>
   {
-    using composition_pipeline_impl::composition_pipeline_impl;
+    using composition_pass_impl::composition_pass_impl;
   };
 
-  rgba32f_composition_pipeline::rgba32f_composition_pipeline(
+  rgba32f_composition_pass::rgba32f_composition_pass(
     uint32_t width,
     uint32_t height,
     vulkan_context& ctx)
@@ -606,33 +603,73 @@ namespace yave::vulkan {
   {
   }
 
-  rgba32f_composition_pipeline::~rgba32f_composition_pipeline() noexcept
+  rgba32f_composition_pass::~rgba32f_composition_pass() noexcept
   {
   }
 
-  void rgba32f_composition_pipeline::store_frame(
+  void rgba32f_composition_pass::store_frame(
     const boost::gil::rgba32fc_view_t& view)
   {
     m_pimpl->store_frame(view);
   }
 
-  void rgba32f_composition_pipeline::load_frame(
+  void rgba32f_composition_pass::load_frame(
     const boost::gil::rgba32f_view_t& view) const
   {
     m_pimpl->load_frame(view);
   }
 
-  auto rgba32f_composition_pipeline::begin_draw() -> vk::CommandBuffer
+  auto rgba32f_composition_pass::frame_extent() const -> vk::Extent2D
+  {
+    return m_pimpl->image_extent;
+  }
+
+  auto rgba32f_composition_pass::frame_image() const -> vk::Image
+  {
+    return m_pimpl->image.get();
+  }
+
+  auto rgba32f_composition_pass::frame_image_view() const -> vk::ImageView
+  {
+    return m_pimpl->image_view.get();
+  }
+
+  auto rgba32f_composition_pass::frame_format() const -> vk::Format
+  {
+    return m_pimpl->image_format;
+  }
+
+  auto rgba32f_composition_pass::frame_memory() const -> vk::DeviceMemory
+  {
+    return m_pimpl->image_memory.get();
+  }
+
+  auto rgba32f_composition_pass::frame_buffer() const -> vk::Framebuffer
+  {
+    return m_pimpl->frame_buffer.get();
+  }
+
+  auto rgba32f_composition_pass::command_pool() const -> vk::CommandPool
+  {
+    return m_pimpl->command_pool.get();
+  }
+
+  auto rgba32f_composition_pass::command_buffer() const -> vk::CommandBuffer
+  {
+    return m_pimpl->command_buffer.get();
+  }
+
+  auto rgba32f_composition_pass::begin_draw() -> vk::CommandBuffer
   {
     return m_pimpl->begin_draw();
   }
 
-  void rgba32f_composition_pipeline::end_draw()
+  void rgba32f_composition_pass::end_draw()
   {
     m_pimpl->end_draw();
   }
 
-  void rgba32f_composition_pipeline::wait_draw()
+  void rgba32f_composition_pass::wait_draw()
   {
     m_pimpl->wait_draw();
   }
