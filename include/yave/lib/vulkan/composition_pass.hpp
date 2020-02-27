@@ -12,19 +12,21 @@
 
 namespace yave::vulkan {
 
-  class rgba32f_composition_pipeline
+  /// Vulkan rendering pass for composition pipelines using 32bit float color
+  /// frame.
+  class rgba32f_composition_pass
   {
   public:
     using pixel_loc_type = boost::gil::rgba32f_loc_t;
     using pixel_type     = typename pixel_loc_type::value_type;
 
   public:
-    rgba32f_composition_pipeline(
+    rgba32f_composition_pass(
       uint32_t width,
       uint32_t height,
       vulkan_context& ctx);
 
-    ~rgba32f_composition_pipeline() noexcept;
+    ~rgba32f_composition_pass() noexcept;
 
   public:
     /// Store frame onto existing image.
@@ -32,6 +34,29 @@ namespace yave::vulkan {
     void store_frame(const boost::gil::rgba32fc_view_t& view);
     /// Load image back to image.
     void load_frame(const boost::gil::rgba32f_view_t& view) const;
+
+  public:
+    /// frame buffer extent
+    auto frame_extent() const -> vk::Extent2D;
+    /// frame buffer image.
+    /// should be general layout, single layered image.
+    /// specified usage:
+    /// * color attachment
+    /// * transfer src
+    /// * transfer dst
+    auto frame_image() const -> vk::Image;
+    /// frame buffer image view
+    auto frame_image_view() const -> vk::ImageView;
+    /// frame buffer image format
+    auto frame_format() const -> vk::Format;
+    /// frame buffer device local memory.
+    auto frame_memory() const -> vk::DeviceMemory;
+    /// frame buffer
+    auto frame_buffer() const -> vk::Framebuffer;
+    /// command pool
+    auto command_pool() const -> vk::CommandPool;
+    /// command buffer which will be used for begin_draw() and begin_end()
+    auto command_buffer() const -> vk::CommandBuffer;
 
   public:
     /// Start command buffer to record draw call
