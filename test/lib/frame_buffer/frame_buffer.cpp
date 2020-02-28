@@ -12,12 +12,22 @@ using namespace yave;
 
 TEST_CASE("", "[lib][frame_buffer]")
 {
-  frame_buffer_manager mng((uint32_t)-1, (uint32_t)-1, image_format::rgba8);
+  frame_buffer_manager mng(100, 100, image_format::rgba8, uuid());
+
+  auto pool = mng.get_pool_object();
+  REQUIRE(pool);
+
+  auto buff = make_object<FrameBuffer>(pool);
+  REQUIRE(buff);
+  REQUIRE(buff->view().width() == 100);
+  REQUIRE(buff->view().height() == 100);
+  REQUIRE(buff->view().data());
+  REQUIRE(buff->use_count() == 1);
 }
 
 TEST_CASE("1", "[lib][frame_buffer]")
 {
-  frame_buffer_manager fb_mngr {1920, 1080, image_format::rgba8};
+  frame_buffer_manager fb_mngr {1920, 1080, image_format::rgba8, uuid()};
   REQUIRE(fb_mngr.format() == image_format::rgba8);
   REQUIRE(fb_mngr.width() == 1920);
   REQUIRE(fb_mngr.height() == 1080);
@@ -33,10 +43,10 @@ TEST_CASE("1", "[lib][frame_buffer]")
 
 TEST_CASE("2", "[lib][frame_buffer]")
 {
-  frame_buffer_manager mngr {1920, 1080, image_format::rgba32f};
+  frame_buffer_manager mngr {1920, 1080, image_format::rgba32f, uuid()};
   const auto f1 = frame_buffer(mngr.get_pool_object());
-  auto view     = f1.get_image_view();
-  auto data     = f1.get_image_view().data();
+  auto view     = f1.view();
+  auto data     = f1.view().data();
   REQUIRE(view.image_format() == mngr.format());
   REQUIRE(view.width() == 1920);
   REQUIRE(view.height() == 1080);
@@ -45,9 +55,9 @@ TEST_CASE("2", "[lib][frame_buffer]")
 
 TEST_CASE("3", "[lib][frame_buffer]")
 {
-  frame_buffer_manager mngr(1920, 1080, image_format::rgba32f);
+  frame_buffer_manager mngr(1920, 1080, image_format::rgba8, uuid());
   const auto f1 = make_object<FrameBuffer>(mngr.get_pool_object());
-  auto view     = f1->get_image_view();
+  auto view     = f1->view();
   REQUIRE(view.image_format() == mngr.format());
   REQUIRE(view.width() == 1920);
   REQUIRE(view.height() == 1080);
@@ -55,7 +65,7 @@ TEST_CASE("3", "[lib][frame_buffer]")
   auto f2 = f1.clone();
   REQUIRE(f2->id() != f1->id());
 
-  f2->get_image_view().data()[0] = std::byte(255);
-  REQUIRE(f2->get_image_view().data()[0] == std::byte(255));
-  REQUIRE(f1->get_image_view().data()[0] != std::byte(255));
+  f2->view().data()[0] = std::byte(255);
+  REQUIRE(f2->view().data()[0] == std::byte(255));
+  REQUIRE(f1->view().data()[0] != std::byte(255));
 }

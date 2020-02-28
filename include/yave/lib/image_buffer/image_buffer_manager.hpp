@@ -17,10 +17,14 @@ namespace yave {
   class image_buffer_manager
   {
   public:
-    /// ctor
     image_buffer_manager(const uuid& backend_id);
-    /// dtor
     ~image_buffer_manager() noexcept;
+
+    image_buffer_manager(const image_buffer_manager&) = delete;
+    image_buffer_manager& operator=(const image_buffer_manager&) = delete;
+
+    image_buffer_manager(image_buffer_manager&&) noexcept;
+    image_buffer_manager& operator=(image_buffer_manager&&) noexcept;
 
   public:
     /// create

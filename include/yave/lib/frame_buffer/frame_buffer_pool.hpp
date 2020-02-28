@@ -24,10 +24,9 @@ namespace yave {
       void (*unref)(void*, uint64_t) noexcept,
       auto (*get_use_count)(void* handle, uint64_t id) noexcept->uint64_t,
       auto (*get_data)(void*, uint64_t) noexcept->std::byte*,
-      auto (*get_size)(void*) noexcept->uint64_t,
-      auto (*get_format)(void*) noexcept->image_format,
       auto (*get_width)(void*) noexcept->uint32_t,
-      auto (*get_height)(void*) noexcept->uint32_t)
+      auto (*get_height)(void*) noexcept->uint32_t,
+      auto (*get_format)(void*) noexcept->image_format)
       : m_handle {handle}
       , m_backend_id {backend_id}
       , m_create {create}
@@ -36,7 +35,6 @@ namespace yave {
       , m_unref {unref}
       , m_get_use_count {get_use_count}
       , m_get_data {get_data}
-      , m_get_size {get_size}
       , m_get_format {get_format}
       , m_get_width {get_width}
       , m_get_height {get_height}
@@ -56,63 +54,57 @@ namespace yave {
     }
 
     /// Create new buffer
-    [[nodiscard]] auto create() const noexcept -> uint64_t
+    [[nodiscard]] auto create() const noexcept
     {
       return m_create(m_handle);
     }
 
     /// Create new buffer from old buffer
-    [[nodiscard]] auto create_from(const uint64_t& id) const noexcept
+    [[nodiscard]] auto create_from(uint64_t id) const noexcept
     {
       return m_create_from(m_handle, id);
     }
 
     /// Increment reference count of buffer
-    [[nodiscard]] auto ref(const uint64_t& id) const noexcept
+    [[nodiscard]] auto ref(uint64_t id) const noexcept
     {
       return m_ref(m_handle, id);
     }
 
     /// Decrement reference count of buffer
-    [[nodiscard]] auto unref(const uint64_t& id) const noexcept
+    [[nodiscard]] auto unref(uint64_t id) const noexcept
     {
       return m_unref(m_handle, id);
     }
 
     /// Get use count
-    [[nodiscard]] auto get_use_count(const uint64_t& id) const noexcept
+    [[nodiscard]] auto get_use_count(uint64_t id) const noexcept
     {
       return m_get_use_count(m_handle, id);
     }
 
     /// Access to data of buffer
-    [[nodiscard]] auto get_data(const uint64_t& id) const noexcept
+    [[nodiscard]] auto get_data(uint64_t id) const noexcept
     {
       return m_get_data(m_handle, id);
     }
 
-    /// Get size of buffer
-    [[nodiscard]] auto get_size() const noexcept
-    {
-      return m_get_size(m_handle);
-    }
-
-    /// Get image format
-    [[nodiscard]] auto format() const noexcept -> image_format
-    {
-      return m_get_format(m_handle);
-    }
-
     /// Get width
-    [[nodiscard]] auto width() const noexcept -> uint32_t
+    [[nodiscard]] auto width() const noexcept 
     {
       return m_get_width(m_handle);
     }
 
     /// Get height
-    [[nodiscard]] auto height() const noexcept -> uint32_t
+    [[nodiscard]] auto height() const noexcept 
     {
       return m_get_height(m_handle);
+    }
+
+    /// Get image format
+    [[nodiscard]] auto format() const noexcept 
+    {
+      return m_get_format(m_handle);
     }
 
   protected: /* buffer pool info */
@@ -122,44 +114,42 @@ namespace yave {
     uuid m_backend_id;
 
   private:
-    // See buffer_pool's members for more detailed specifications for similar
-    // function pointers.
-
     /// Create new frame buffer
-    /// \note Should always create buffer of same size, format, etc.
+    /// \note Always creates buffer of same size and format.
+    /// \note Should return 0 when allocation failed.
     auto (*m_create)(void* handle) noexcept -> uint64_t;
 
     /// Create new frame buffer cpyied from exising buffer.
-    /// \note Should return 0 when `id` is invalid.
     /// \note Should return 0 when allocation failed.
+    /// \note id should be valid.
     auto (*m_create_from)(void* handle, uint64_t id) noexcept -> uint64_t;
 
     /// Increment refcount
+    /// \note id should be valid.
     void (*m_ref)(void* handle, uint64_t id) noexcept;
 
     /// Decrement reference count.
+    /// \note id should be valid.
     void (*m_unref)(void* handle, uint64_t id) noexcept;
 
     /// Get current use count.
+    /// \note id should be valid.
     auto (*m_get_use_count)(void* handle, uint64_t id) noexcept -> uint64_t;
 
     /// Get data pointer.
+    /// \note id should be valid.
     auto (*m_get_data)(void* handle, uint64_t) noexcept -> std::byte*;
-
-    /// Get byte size of frame buffer.
-    /// \note Should return same value to cuurent frame buffer size.
-    auto (*m_get_size)(void* handle) noexcept -> uint64_t;
 
     /// Get format of frame buffer.
     /// \note Should always return same format.
     auto (*m_get_format)(void* handle) noexcept -> image_format;
 
     /// Get width of frame buffer.
-    /// \note Should return same value to current frame buffer size.
+    /// \note Should always return same size.
     auto (*m_get_width)(void* handle) noexcept -> uint32_t;
 
     /// Get height of frame buffer.
-    /// \note Should return same value to current frame buffer size.
+    /// \note Should always return same size.
     auto (*m_get_height)(void* handle) noexcept -> uint32_t;
   };
 } // namespace yave

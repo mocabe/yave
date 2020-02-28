@@ -16,12 +16,12 @@ namespace yave {
   struct frame_buffer
   {
     /// Initialize new buffer
-    frame_buffer(const object_ptr<FrameBufferPool>& pool)
-      : m_pool {pool}
-      , m_id {pool->create()}
+    frame_buffer(object_ptr<const FrameBufferPool> pool)
+      : m_pool {std::move(pool)}
+      , m_id {m_pool->create()}
     {
       if (m_id == 0)
-        throw std::bad_alloc();
+        throw std::runtime_error("Failed to create frame buffer");
     }
 
     /// deleted
@@ -35,7 +35,7 @@ namespace yave {
       , m_id {other.m_pool->create_from(other.m_id)}
     {
       if (m_id == 0)
-        throw std::bad_alloc();
+        throw std::runtime_error("Fialed to create frame buffer");
     }
 
     /// Dtor.
@@ -43,24 +43,6 @@ namespace yave {
     ~frame_buffer() noexcept
     {
       m_pool->unref(m_id);
-    }
-
-    /// Get data pointer
-    [[nodiscard]] auto data() -> std::byte*
-    {
-      return m_pool->get_data(m_id);
-    }
-
-    /// Get data pointer
-    [[nodiscard]] auto data() const -> const std::byte*
-    {
-      return m_pool->get_data(m_id);
-    }
-
-    /// Get buffer size
-    [[nodiscard]] auto size() const -> uint64_t
-    {
-      return m_pool->get_size();
     }
 
     /// Get current use count
@@ -76,33 +58,53 @@ namespace yave {
     }
 
     /// Get buffer pool object
-    [[nodiscard]] auto pool() const -> object_ptr<FrameBufferPool>
+    [[nodiscard]] auto pool() const -> object_ptr<const FrameBufferPool>
     {
       return m_pool;
     }
 
     /// Get image view.
-    [[nodiscard]] auto get_image_view() -> mutable_image_view
+    [[nodiscard]] auto mutable_view() -> mutable_image_view
     {
-      return mutable_image_view(
-        m_pool->get_data(m_id),
-        m_pool->width(),
-        m_pool->height(),
-        m_pool->format());
+      auto d = m_pool->get_data(m_id);
+      auto w = m_pool->width();
+      auto h = m_pool->height();
+      auto f = m_pool->format();
+
+      if (!d || f == image_format::unknown)
+        throw std::runtime_error("Failed to create frame buffer view");
+
+      return mutable_image_view(d, w, h, f);
     }
 
     /// Get image view.
-    [[nodiscard]] auto get_image_view() const -> const_image_view
+    [[nodiscard]] auto const_view() const -> const_image_view
     {
-      return const_image_view(
-        m_pool->get_data(m_id),
-        m_pool->width(),
-        m_pool->height(),
-        m_pool->format());
+      auto d = m_pool->get_data(m_id);
+      auto w = m_pool->width();
+      auto h = m_pool->height();
+      auto f = m_pool->format();
+
+      if (!d || f == image_format::unknown)
+        throw std::runtime_error("Failed to create frame buffer view");
+
+      return const_image_view(d, w, h, f);
+    }
+
+    /// Get image view.
+    [[nodiscard]] auto view() -> mutable_image_view
+    {
+      return mutable_view();
+    }
+
+    /// Get image view.
+    [[nodiscard]] auto view() const -> const_image_view
+    {
+      return const_view();
     }
 
   private:
-    object_ptr<FrameBufferPool> m_pool;
-    uint64_t m_id;
+    const object_ptr<const FrameBufferPool> m_pool;
+    const uint64_t m_id;
   };
 } // namespace yave

@@ -4,14 +4,11 @@
 //
 
 #include <yave/lib/image_buffer/image_buffer_manager.hpp>
-#include <yave/support/log.hpp>
-#include <yave/support/overloaded.hpp>
 
+#include <yave/support/overloaded.hpp>
 #include <boost/gil.hpp>
 #include <boost/gil/extension/dynamic_image/any_image.hpp>
 #include <map>
-
-YAVE_DECL_G_LOGGER(image_buffer_manager)
 
 namespace yave {
 
@@ -93,8 +90,6 @@ namespace yave {
       : memory_resource {}
       , map {&memory_resource}
     {
-      init_logger();
-
       // create pool object
       // clang-format off
       m_pool_object = make_object<ImageBufferPool>(
@@ -280,6 +275,12 @@ namespace yave {
   image_buffer_manager::~image_buffer_manager() noexcept
   {
   }
+
+  image_buffer_manager::image_buffer_manager(
+    image_buffer_manager&& other) noexcept = default;
+
+  image_buffer_manager& image_buffer_manager::operator=(
+    image_buffer_manager&& other) noexcept = default;
 
   uid image_buffer_manager::create(
     uint32_t width,
