@@ -153,7 +153,7 @@ namespace yave {
     /// height
     uint32_t m_height = 0;
     /// image format
-    yave::image_format m_format = yave::image_format::Unknown;
+    yave::image_format m_format = yave::image_format::unknown;
     /// allocator
     std::pmr::polymorphic_allocator<std::byte> m_alloc;
   };

@@ -11,5 +11,5 @@ using namespace yave;
 TEST_CASE("init", "[obj][scene][scene_config]")
 {
   REQUIRE(
-    make_object<SceneConfig>(1920U, 1080U, 60U, 44100U, image_format::RGBA8UI));
+    make_object<SceneConfig>(1920U, 1080U, 60U, 44100U, image_format::rgba8));
 }

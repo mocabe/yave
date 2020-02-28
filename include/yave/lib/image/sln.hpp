@@ -20,25 +20,25 @@ namespace yave {
     using namespace sln;
 
     switch (fmt) {
-      case pixel_format::Y:
+      case pixel_format::y:
         return PixelFormat::Y;
-      case pixel_format::YA:
+      case pixel_format::ya:
         return PixelFormat::YA;
-      case pixel_format::RGB:
+      case pixel_format::rgb:
         return PixelFormat::RGB;
-      case pixel_format::YCbCr:
+      case pixel_format::ycbcr:
         return PixelFormat::YCbCr;
-      case pixel_format::CIELab:
+      case pixel_format::cielab:
         return PixelFormat::CIELab;
-      case pixel_format::ICCLab:
+      case pixel_format::icclab:
         return PixelFormat::ICCLab;
-      case pixel_format::RGBA:
+      case pixel_format::rgba:
         return PixelFormat::RGBA;
-      case pixel_format::CMYK:
+      case pixel_format::cmyk:
         return PixelFormat::CMYK;
-      case pixel_format::YCCK:
+      case pixel_format::ycck:
         return PixelFormat::YCCK;
-      case pixel_format::Unknown:
+      case pixel_format::unknown:
         return PixelFormat::Unknown;
     }
     return PixelFormat::Unknown;
@@ -51,23 +51,23 @@ namespace yave {
 
     switch (fmt) {
       case PixelFormat::Y:
-        return pixel_format::Y;
+        return pixel_format::y;
       case PixelFormat::YA:
-        return pixel_format::YA;
+        return pixel_format::ya;
       case PixelFormat::RGB:
-        return pixel_format::RGB;
+        return pixel_format::rgb;
       case PixelFormat::YCbCr:
-        return pixel_format::YCbCr;
+        return pixel_format::ycbcr;
       case PixelFormat::CIELab:
-        return pixel_format::CIELab;
+        return pixel_format::cielab;
       case PixelFormat::ICCLab:
-        return pixel_format::ICCLab;
+        return pixel_format::icclab;
       case PixelFormat::RGBA:
-        return pixel_format::RGBA;
+        return pixel_format::rgba;
       case PixelFormat::CMYK:
-        return pixel_format::CMYK;
+        return pixel_format::cmyk;
       case PixelFormat::YCCK:
-        return pixel_format::YCCK;
+        return pixel_format::ycck;
       // not supported
       case PixelFormat::X:
       case PixelFormat::XX:
@@ -79,9 +79,9 @@ namespace yave {
       case PixelFormat::ABGR:
       case PixelFormat::Unknown:
       case PixelFormat::Invalid:
-        return pixel_format::Unknown;
+        return pixel_format::unknown;
     }
-    return pixel_format::Unknown;
+    return pixel_format::unknown;
   }
 
   /// Convert sample_format to sln::SampleFormat
@@ -90,18 +90,13 @@ namespace yave {
     using namespace sln;
 
     switch (fmt) {
-      case sample_format::UnsignedInteger:
-      case sample_format::UnsignedNormalized:
-      case sample_format::UnsignedScaled:
-      case sample_format::SRGB:
+      case sample_format::unsigned_integer:
         return SampleFormat::UnsignedInteger;
-      case sample_format::SignedInteger:
-      case sample_format::SignedNormalized:
-      case sample_format::SignedScaled:
+      case sample_format::signed_integer:
         return SampleFormat::SignedInteger;
-      case sample_format::FloatingPoint:
+      case sample_format::floating_point:
         return SampleFormat::FloatingPoint;
-      case sample_format::Unknown:
+      case sample_format::unknown:
         return SampleFormat::Unknown;
     }
     return SampleFormat::Unknown;
@@ -114,15 +109,15 @@ namespace yave {
 
     switch (fmt) {
       case SampleFormat::UnsignedInteger:
-        return sample_format::UnsignedInteger;
+        return sample_format::unsigned_integer;
       case SampleFormat::SignedInteger:
-        return sample_format::SignedInteger;
+        return sample_format::signed_integer;
       case SampleFormat::FloatingPoint:
-        return sample_format::FloatingPoint;
+        return sample_format::floating_point;
       case SampleFormat::Unknown:
-        return sample_format::Unknown;
+        return sample_format::unknown;
     }
-    return sample_format::Unknown;
+    return sample_format::unknown;
   }
 
   /// Convert image to sln::DynImage

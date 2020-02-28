@@ -21,19 +21,23 @@ namespace yave {
     uint16_t byte_per_channel;
 
   public: /* constants */
-    static const image_format Unknown;
-    static const image_format RGBA8UI;
-    static const image_format RGBA16UI;
-    static const image_format RGBA32F;
+    static const image_format unknown;
+    static const image_format rgba8;
+    static const image_format rgba16;
+    static const image_format rgba32f;
+    static const image_format rgb8;
+    static const image_format rgb16;
   };
 
   static_assert(sizeof(image_format) == sizeof(uint32_t));
 
   // clang-format off
-  inline constexpr image_format image_format::Unknown  = {pixel_format::Unknown, sample_format::Unknown,         0};
-  inline constexpr image_format image_format::RGBA8UI  = {pixel_format::RGBA,    sample_format::UnsignedInteger, 1};
-  inline constexpr image_format image_format::RGBA16UI = {pixel_format::RGBA,    sample_format::UnsignedInteger, 2};
-  inline constexpr image_format image_format::RGBA32F  = {pixel_format::RGBA,    sample_format::FloatingPoint,   4};
+  inline constexpr image_format image_format::unknown = {pixel_format::unknown, sample_format::unknown,         0};
+  inline constexpr image_format image_format::rgba8   = {pixel_format::rgba,    sample_format::unsigned_integer, 1};
+  inline constexpr image_format image_format::rgba16  = {pixel_format::rgba,    sample_format::unsigned_integer, 2};
+  inline constexpr image_format image_format::rgba32f = {pixel_format::rgba,    sample_format::floating_point,   4};
+  inline constexpr image_format image_format::rgb8    = {pixel_format::rgb,     sample_format::unsigned_integer, 1};
+  inline constexpr image_format image_format::rgb16   = {pixel_format::rgb,     sample_format::unsigned_integer, 2};
   // clang-format on
 
   /// operator==

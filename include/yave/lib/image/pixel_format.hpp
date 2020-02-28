@@ -12,16 +12,16 @@ namespace yave {
   /// image pixel format
   enum class pixel_format : uint8_t
   {
-    Unknown = 0U, ///< unknown pixel format.
-    Y       = 1U, ///< 1-channel format: Y
-    YA      = 2U, ///< 2-channel format: YA
-    RGB     = 3U, ///< 3-channel format: RGB
-    YCbCr   = 4U, ///< 3-channel format: YCbCr
-    CIELab  = 5U, ///< 3-channel format: CIELab
-    ICCLab  = 6U, ///< 3-channel format: ICCLab
-    RGBA    = 7U, ///< 4-channel format: RGBA
-    CMYK    = 8U, ///< 4-channel format: CMYK
-    YCCK    = 9U, ///< 4-channel format: YCCK
+    unknown = 0U, ///< unknown pixel format.
+    y       = 1U, ///< 1-channel format: Y
+    ya      = 2U, ///< 2-channel format: YA
+    rgb     = 3U, ///< 3-channel format: RGB
+    ycbcr   = 4U, ///< 3-channel format: YCbCr
+    cielab  = 5U, ///< 3-channel format: CIELab
+    icclab  = 6U, ///< 3-channel format: ICCLab
+    rgba    = 7U, ///< 4-channel format: RGBA
+    cmyk    = 8U, ///< 4-channel format: CMYK
+    ycck    = 9U, ///< 4-channel format: YCCK
   };
 
   /// Get number of channels
@@ -30,16 +30,16 @@ namespace yave {
   {
     // clang-format off
     switch (fmt) {
-      case pixel_format::Unknown: return 0;
-      case pixel_format::Y:       return 1;
-      case pixel_format::YA:      return 2;
-      case pixel_format::RGB:     return 3;
-      case pixel_format::YCbCr:   return 3;
-      case pixel_format::CIELab:  return 3;
-      case pixel_format::ICCLab:  return 3;
-      case pixel_format::RGBA:    return 4;
-      case pixel_format::CMYK:    return 4;
-      case pixel_format::YCCK:    return 4;
+      case pixel_format::unknown: return 0;
+      case pixel_format::y:       return 1;
+      case pixel_format::ya:      return 2;
+      case pixel_format::rgb:     return 3;
+      case pixel_format::ycbcr:   return 3;
+      case pixel_format::cielab:  return 3;
+      case pixel_format::icclab:  return 3;
+      case pixel_format::rgba:    return 4;
+      case pixel_format::cmyk:    return 4;
+      case pixel_format::ycck:    return 4;
       default:                    unreachable();
     }
     // clang-format on
@@ -51,16 +51,16 @@ namespace yave {
   {
     // clang-format off
     switch (fmt) {
-      case pixel_format::Unknown: return false;
-      case pixel_format::Y:       return false;
-      case pixel_format::YA:      return false;
-      case pixel_format::RGB:     return false;
-      case pixel_format::YCbCr:   return false;
-      case pixel_format::CIELab:  return false;
-      case pixel_format::ICCLab:  return false;
-      case pixel_format::RGBA:    return true;
-      case pixel_format::CMYK:    return false;
-      case pixel_format::YCCK:    return false;
+      case pixel_format::unknown: return false;
+      case pixel_format::y:       return false;
+      case pixel_format::ya:      return true;
+      case pixel_format::rgb:     return false;
+      case pixel_format::ycbcr:   return false;
+      case pixel_format::cielab:  return false;
+      case pixel_format::icclab:  return false;
+      case pixel_format::rgba:    return true;
+      case pixel_format::cmyk:    return false;
+      case pixel_format::ycck:    return false;
       default:                    unreachable();
     }
     // clang-format on
@@ -72,16 +72,16 @@ namespace yave {
   {
     // clang-format off
     switch (fmt) {
-      case pixel_format::Unknown: return "(unknown pixel format)";
-      case pixel_format::Y:       return "R";
-      case pixel_format::YA:      return "RG";
-      case pixel_format::RGB:     return "RGB";
-      case pixel_format::YCbCr:   return "YCbCr";
-      case pixel_format::CIELab:  return "CIELab";
-      case pixel_format::ICCLab:  return "ICCLab";
-      case pixel_format::RGBA:    return "RGBA";
-      case pixel_format::CMYK:    return "CMYK";
-      case pixel_format::YCCK:    return "YCCK";
+      case pixel_format::unknown: return "(unknown pixel format)";
+      case pixel_format::y:       return "Y";
+      case pixel_format::ya:      return "YA";
+      case pixel_format::rgb:     return "RGB";
+      case pixel_format::ycbcr:   return "YCbCr";
+      case pixel_format::cielab:  return "CIELab";
+      case pixel_format::icclab:  return "ICCLab";
+      case pixel_format::rgba:    return "RGBA";
+      case pixel_format::cmyk:    return "CMYK";
+      case pixel_format::ycck:    return "YCCK";
       default:                    unreachable();
     }
     // clang-format on

@@ -12,13 +12,13 @@ using namespace yave;
 
 TEST_CASE("", "[lib][frame_buffer]")
 {
-  frame_buffer_manager mng((uint32_t)-1, (uint32_t)-1, image_format::RGBA8UI);
+  frame_buffer_manager mng((uint32_t)-1, (uint32_t)-1, image_format::rgba8);
 }
 
 TEST_CASE("1", "[lib][frame_buffer]")
 {
-  frame_buffer_manager fb_mngr {1920, 1080, image_format::RGBA8UI};
-  REQUIRE(fb_mngr.format() == image_format::RGBA8UI);
+  frame_buffer_manager fb_mngr {1920, 1080, image_format::rgba8};
+  REQUIRE(fb_mngr.format() == image_format::rgba8);
   REQUIRE(fb_mngr.width() == 1920);
   REQUIRE(fb_mngr.height() == 1080);
   auto fb1 = fb_mngr.create();
@@ -33,7 +33,7 @@ TEST_CASE("1", "[lib][frame_buffer]")
 
 TEST_CASE("2", "[lib][frame_buffer]")
 {
-  frame_buffer_manager mngr {1920, 1080, image_format::RGBA32F};
+  frame_buffer_manager mngr {1920, 1080, image_format::rgba32f};
   const auto f1 = frame_buffer(mngr.get_pool_object());
   auto view     = f1.get_image_view();
   auto data     = f1.get_image_view().data();
@@ -45,7 +45,7 @@ TEST_CASE("2", "[lib][frame_buffer]")
 
 TEST_CASE("3", "[lib][frame_buffer]")
 {
-  frame_buffer_manager mngr(1920, 1080, image_format::RGBA32F);
+  frame_buffer_manager mngr(1920, 1080, image_format::rgba32f);
   const auto f1 = make_object<FrameBuffer>(mngr.get_pool_object());
   auto view     = f1->get_image_view();
   REQUIRE(view.image_format() == mngr.format());

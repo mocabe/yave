@@ -61,7 +61,7 @@ namespace yave {
     m_time_per_sample = time::per_second() / sample_rate;
 
     // TODO: support multiple frame buffer formats
-    if (format != image_format::RGBA32F) {
+    if (format != image_format::rgba32f) {
       Error("This frame buffer format is not supported: {}", to_string(format));
       throw std::invalid_argument("Invalid frame buffer format");
     }

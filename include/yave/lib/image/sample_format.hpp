@@ -12,15 +12,10 @@ namespace yave {
   /// image sample format
   enum class sample_format : uint8_t
   {
-    Unknown            = 0U, ///< Unknown sample format
-    UnsignedInteger    = 1U, ///< UInt
-    SignedInteger      = 2U, ///< SInt
-    FloatingPoint      = 3U, ///< Float
-    UnsignedNormalized = 4U, ///< UNorm
-    SignedNormalized   = 5U, ///< SNorm
-    UnsignedScaled     = 6U, ///< UScaled
-    SignedScaled       = 7U, ///< SScaled
-    SRGB               = 8U, ///< UNorm (SRGB nonlinear encoding)
+    unknown          = 0U, ///< Unknown sample format
+    unsigned_integer = 1U, ///< UInt
+    signed_integer   = 2U, ///< SInt
+    floating_point   = 3U, ///< Float
   };
 
   /// Get string representation of sample format
@@ -29,15 +24,10 @@ namespace yave {
   {
     // clang-format off
     switch (fmt) {
-      case sample_format::Unknown:            return "(unknown pixel format)";
-      case sample_format::UnsignedInteger:    return "UnsignedInteger";
-      case sample_format::SignedInteger:      return "SignedInteger";
-      case sample_format::FloatingPoint:      return "FloatingPoint";
-      case sample_format::UnsignedNormalized: return "UnsignedNormalized";
-      case sample_format::SignedNormalized:   return "SignedNormalized";
-      case sample_format::UnsignedScaled:     return "UnsignedScaled";
-      case sample_format::SignedScaled:       return "SignedScaled";
-      case sample_format::SRGB:               return "SRGB";
+      case sample_format::unknown:            return "(unknown pixel format)";
+      case sample_format::unsigned_integer:    return "UnsignedInteger";
+      case sample_format::signed_integer:      return "SignedInteger";
+      case sample_format::floating_point:      return "FloatingPoint";
       default:                                unreachable();
     }
     // clang-format on

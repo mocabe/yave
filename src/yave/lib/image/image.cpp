@@ -77,7 +77,7 @@ namespace yave {
     m_data   = nullptr;
     m_width  = 0;
     m_height = 0;
-    m_format = image_format::Unknown;
+    m_format = image_format::unknown;
     assert(_is_valid());
   }
 
@@ -200,7 +200,7 @@ namespace yave {
       return                               //
         m_width == 0 &&                    //
         m_height == 0 &&                   //
-        m_format == image_format::Unknown; //
+        m_format == image_format::unknown; //
     }
     return true;
   }

@@ -44,7 +44,7 @@ namespace yave {
     m_data   = nullptr;
     m_width  = 0;
     m_height = 0;
-    m_format = image_format::Unknown;
+    m_format = image_format::unknown;
   }
 
   bool mutable_image_view::empty() const noexcept
@@ -52,7 +52,7 @@ namespace yave {
     if (m_data == nullptr) {
       assert(m_width == 0);
       assert(m_height == 0);
-      assert(m_format == image_format::Unknown);
+      assert(m_format == image_format::unknown);
     }
     return m_data == nullptr;
   }
@@ -145,7 +145,7 @@ namespace yave {
     if (m_data == nullptr) {
       assert(m_width == 0);
       assert(m_height == 0);
-      assert(m_format == image_format::Unknown);
+      assert(m_format == image_format::unknown);
     }
     return m_data == nullptr;
   }
