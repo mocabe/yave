@@ -4,12 +4,59 @@
 //
 
 #include <yave/lib/vulkan/composition_pipeline_2D.hpp>
-#include <yave/lib/image/blend_operation.hpp> 
+#include <yave/lib/vulkan/shader.hpp>
+#include <yave/lib/image/blend_operation.hpp>
 #include <yave/support/log.hpp>
 
 YAVE_DECL_G_LOGGER(composition_pipeline_2D)
 
 namespace {
+
+  constexpr auto vert_shader = R"(
+    #version 450 core
+
+    layout(location = 0) in vec2 vertPos;
+    layout(location = 1) in vec2 vertUV;
+    layout(location = 2) in vec4 vertColor;
+    
+    layout(push_constant) uniform PushConstant {
+      mat3 transform;
+    } pc;
+    
+    out gl_PerVertex {
+      vec4 gl_Position;
+    };
+    
+    layout(location = 0) out struct {
+      vec4 color;
+      vec2 uv;
+    } fragIn;
+    
+    void main()
+    {
+      fragIn.color = vertColor;
+      fragIn.uv    = vertUV;
+      gl_Position  = vec4((pc.transform * vec3(vertPos, 1)).xy, 0, 1);
+    }
+  )";
+
+  constexpr auto frag_shader = R"(
+    #version 450 core
+    
+    layout(set=0, binding=0) uniform sampler2D image;
+    
+    layout(location = 0) in struct {
+      vec4 color;
+      vec2 uv;
+    } vertOut;
+    
+    layout(location = 0) out vec4 outColor;
+    
+    void main()
+    {
+      outColor = vertOut.color * texture(image, vertOut.uv.st);
+    }
+  )";
 
   // types
   using vert = yave::vulkan::rgba32f_composition_pipeline_2D::vert;
@@ -18,8 +65,8 @@ namespace {
   auto createTextureSampler(const vk::Device& device)
   {
     vk::SamplerCreateInfo info;
-    info.magFilter    = vk::Filter::eCubicEXT;
-    info.minFilter    = vk::Filter::eCubicEXT;
+    info.magFilter    = vk::Filter::eLinear;
+    info.minFilter    = vk::Filter::eLinear;
     info.mipmapMode   = vk::SamplerMipmapMode::eLinear;
     info.addressModeU = vk::SamplerAddressMode::eRepeat;
     info.addressModeV = vk::SamplerAddressMode::eRepeat;
@@ -71,7 +118,7 @@ namespace {
     const vk::Device& device)
   {
     vk::ShaderModuleCreateInfo info;
-    info.codeSize = code.size();
+    info.codeSize = code.size() * sizeof(uint32_t);
     info.pCode    = code.data();
 
     return device.createShaderModuleUnique(info);
@@ -157,11 +204,11 @@ namespace {
     const vk::PipelineLayout& pipelineLayout,
     const vk::Device& device)
   {
-    /* shader stage */
+    using namespace yave::vulkan;
 
     // vertex shader
     vk::UniqueShaderModule vertShaderModule =
-      createShaderModule({/*TODO*/}, device);
+      createShaderModule(compileVertShader(vert_shader), device);
 
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
     vertShaderStageInfo.stage  = vk::ShaderStageFlagBits::eVertex;
@@ -170,7 +217,7 @@ namespace {
 
     // fragment shader
     vk::UniqueShaderModule fragShaderModule =
-      createShaderModule({/*TODO*/}, device);
+      createShaderModule(compileFragShader(frag_shader), device);
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
     fragShaderStageInfo.stage  = vk::ShaderStageFlagBits::eFragment;
