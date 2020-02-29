@@ -54,3 +54,6 @@
 	path = external/range-v3
 	url = https://github.com/ericniebler/range-v3.git
   ignore = dirty
+[submodule "external/glslang"]
+	path = external/glslang
+	url = https://github.com/KhronosGroup/glslang.git
