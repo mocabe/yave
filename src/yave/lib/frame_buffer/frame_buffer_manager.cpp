@@ -11,6 +11,7 @@
 
 #include <boost/gil.hpp>
 #include <map>
+#include <shared_mutex>
 
 namespace yave {
 

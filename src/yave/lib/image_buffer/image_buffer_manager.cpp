@@ -9,6 +9,7 @@
 #include <boost/gil.hpp>
 #include <boost/gil/extension/dynamic_image/any_image.hpp>
 #include <map>
+#include <shared_mutex>
 
 namespace yave {
 

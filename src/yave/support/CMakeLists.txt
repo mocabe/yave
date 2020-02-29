@@ -20,6 +20,12 @@ add_library(yave-support-uuid uuid.cpp)
 add_library(yave::support::uuid ALIAS yave-support-uuid)
 
 target_link_libraries(yave-support-uuid PRIVATE yave::config)
+target_link_libraries(yave-support-uuid PRIVATE Boost::random)
+
+if(WIN32)
+  # BCryptGenRandom, etc.
+  target_link_libraries(yave-support-uuid PRIVATE Bcrypt)
+endif()
 
 # yave::support::error
 
