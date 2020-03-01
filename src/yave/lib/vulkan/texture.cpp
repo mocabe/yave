@@ -25,11 +25,14 @@ namespace yave::vulkan {
       const vk::CommandBuffer& cmd,
       const vk::Image& image)
     {
+      auto range = textureImageSubresourceRange();
+
       vk::ImageMemoryBarrier barrier;
-      barrier.image         = image;
-      barrier.oldLayout     = vk::ImageLayout::eShaderReadOnlyOptimal;
-      barrier.newLayout     = vk::ImageLayout::eTransferDstOptimal;
-      barrier.srcAccessMask = vk::AccessFlagBits::eShaderRead;
+      barrier.image            = image;
+      barrier.subresourceRange = range;
+      barrier.oldLayout        = vk::ImageLayout::eShaderReadOnlyOptimal;
+      barrier.newLayout        = vk::ImageLayout::eTransferDstOptimal;
+      barrier.srcAccessMask    = vk::AccessFlagBits::eShaderRead;
       barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
 
       vk::PipelineStageFlags srcStage =
@@ -47,9 +50,9 @@ namespace yave::vulkan {
 
       vk::ImageMemoryBarrier barrier;
       barrier.image            = image;
+      barrier.subresourceRange = range;
       barrier.oldLayout        = vk::ImageLayout::eTransferDstOptimal;
       barrier.newLayout        = vk::ImageLayout::eShaderReadOnlyOptimal;
-      barrier.subresourceRange = range;
       barrier.srcAccessMask    = vk::AccessFlagBits::eTransferWrite;
       barrier.dstAccessMask    = vk::AccessFlagBits::eShaderRead;
 
@@ -188,13 +191,11 @@ namespace yave::vulkan {
 
     textureLayoutShaderReadOnlyToTransferDst(cmd, dst.image.get());
 
-    {
-      cmd.clearColorImage(
-        dst.image.get(),
-        vk::ImageLayout::eTransferDstOptimal,
-        clearColor,
-        textureImageSubresourceRange());
-    }
+    cmd.clearColorImage(
+      dst.image.get(),
+      vk::ImageLayout::eTransferDstOptimal,
+      clearColor,
+      textureImageSubresourceRange());
 
     textureLayoutTransferDstToShaderReadOnly(cmd, dst.image.get());
   }
