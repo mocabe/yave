@@ -4,6 +4,7 @@
 //
 
 #include <yave/lib/vulkan/composition_pass.hpp>
+#include <yave/lib/vulkan/composition_pipeline_2D.hpp>
 #include <yave/lib/glfw/glfw_context.hpp>
 #include <yave/lib/image/image.hpp>
 
@@ -48,4 +49,15 @@ TEST_CASE("rgba32f compos pass")
   compos.store_frame(const_view(img2));
   compos.begin_draw();
   compos.end_draw();
+}
+
+TEST_CASE("rgba32f compos 2D")
+{
+  glfw::glfw_context glfw {};
+  vulkan::vulkan_context ctx {glfw};
+  vulkan::rgba32f_composition_pipeline_2D pipeline(1920, 1080, ctx);
+
+  boost::gil::rgba32f_image_t img {160, 90};
+  auto tex = pipeline.add_texture(const_view(img));
+  pipeline.remove_texture(tex);
 }
