@@ -5,6 +5,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/lib/imgui/imgui_context.hpp>
+#include <yave/lib/vulkan/texture.hpp>
 #include <yave/lib/filesystem/filesystem.hpp>
 #include <yave/support/log.hpp>
 
@@ -1292,32 +1293,39 @@ namespace yave::imgui {
       return ImTextureID();
     }
 
-    auto device         = m_pimpl->vulkanCtx.device();
-    auto physicalDevice = m_pimpl->vulkanCtx.physical_device();
-    auto commandPool    = m_pimpl->windowCtx.command_pool();
-    auto queue          = m_pimpl->vulkanCtx.graphics_queue();
+    auto device           = m_pimpl->vulkanCtx.device();
+    auto physicalDevice   = m_pimpl->vulkanCtx.physical_device();
+    auto commandPool      = m_pimpl->windowCtx.command_pool();
+    auto queue            = m_pimpl->vulkanCtx.graphics_queue();
+    auto descriptorPool   = m_pimpl->descriptorPool.get();
+    auto descriptorLayout = m_pimpl->descriptorSetLayout.get();
 
-    auto [image, view, memory] = vulkan::upload_image(
-      extent,
-      byte_size,
+    auto texture = vulkan::create_texture_data(
+      extent.width,
+      extent.height,
       format,
-      data,
-      commandPool,
       queue,
-      physicalDevice,
-      device);
+      commandPool,
+      descriptorPool,
+      descriptorLayout,
+      vk::DescriptorType::eCombinedImageSampler,
+      device,
+      physicalDevice);
 
-    auto descriptor = vulkan::create_image_descriptor(
-      view.get(),
-      m_pimpl->descriptorSetLayout.get(),
-      m_pimpl->descriptorPool.get(),
-      device);
+    vulkan::store_texture_data(
+      texture,
+      (const std::byte*)data,
+      byte_size,
+      queue,
+      commandPool,
+      device,
+      physicalDevice);
 
     auto texData = std::make_unique<ImGuiTextureDataHolder>(
-      std::move(image),
-      std::move(view),
-      std::move(memory),
-      std::move(descriptor));
+      std::move(texture.image),
+      std::move(texture.view),
+      std::move(texture.memory),
+      std::move(texture.dsc_set));
 
     auto [iter, succ] = m_pimpl->textures.emplace(name, std::move(texData));
 

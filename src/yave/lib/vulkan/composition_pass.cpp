@@ -11,6 +11,8 @@ YAVE_DECL_G_LOGGER(frame_compositor)
 
 namespace {
 
+  using namespace yave::vulkan;
+
   auto getRenderPassColorAttachment(const vk::Format& format)
   {
     vk::AttachmentDescription colorAttachment;
@@ -85,22 +87,6 @@ namespace {
     return device.createRenderPassUnique(info);
   }
 
-  auto findMemoryTypeIndex(
-    const vk::MemoryRequirements& requirements,
-    const vk::MemoryPropertyFlags& properties,
-    const vk::PhysicalDevice& physicalDevice)
-  {
-    auto props = physicalDevice.getMemoryProperties();
-
-    for (uint32_t i = 0; i < props.memoryTypeCount; ++i) {
-      auto memType = props.memoryTypes[i];
-      if (requirements.memoryTypeBits & (1 << i))
-        if ((memType.propertyFlags & properties) == properties)
-          return i;
-    }
-    throw std::runtime_error("Failed to find suitable memory type");
-  }
-
   auto createImage(
     const vk::Extent2D& extent,
     const vk::Format& format,
@@ -136,7 +122,7 @@ namespace {
     // device local memory
     vk::MemoryAllocateInfo info;
     info.allocationSize  = req.size;
-    info.memoryTypeIndex = findMemoryTypeIndex(
+    info.memoryTypeIndex = find_memory_type_index(
       req, vk::MemoryPropertyFlagBits::eDeviceLocal, physicalDevice);
 
     auto mem = device.allocateMemoryUnique(info);
@@ -178,7 +164,6 @@ namespace {
     const vk::Queue& commandQueue,
     const vk::CommandPool& commandPool)
   {
-    using namespace yave::vulkan;
     auto stc = single_time_command(device, commandQueue, commandPool);
     auto cmd = stc.command_buffer();
 
@@ -287,7 +272,7 @@ namespace {
       vk::MemoryAllocateInfo info;
       info.allocationSize = memReq.size;
       // should be host visible, coherent
-      info.memoryTypeIndex = findMemoryTypeIndex(
+      info.memoryTypeIndex = find_memory_type_index(
         memReq,
         vk::MemoryPropertyFlagBits::eHostVisible
           | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -304,7 +289,6 @@ namespace {
       device.unmapMemory(bufferMemory.get());
     }
 
-    using namespace yave::vulkan;
     auto stc = single_time_command(device, commandQueue, commandPool);
     auto cmd = stc.command_buffer();
 
@@ -347,7 +331,7 @@ namespace {
 
       vk::MemoryAllocateInfo info;
       info.allocationSize  = memReq.size;
-      info.memoryTypeIndex = findMemoryTypeIndex(
+      info.memoryTypeIndex = find_memory_type_index(
         memReq,
         vk::MemoryPropertyFlagBits::eHostVisible
           | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -359,7 +343,6 @@ namespace {
 
     // image -> buffer
     {
-      using namespace yave::vulkan;
       auto stc = single_time_command(device, commandQueue, commandPool);
       auto cmd = stc.command_buffer();
 

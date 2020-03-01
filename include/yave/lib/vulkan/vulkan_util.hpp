@@ -46,23 +46,10 @@ namespace yave::vulkan {
     vk::UniqueFence m_fence;
   };
 
-  /// Upload image to GPU
-  [[nodiscard]] auto upload_image(
-    const vk::Extent2D& image_extent,
-    const vk::DeviceSize& byte_size,
-    const vk::Format& format,
-    const uint8_t* data,
-    const vk::CommandPool& commandPool,
-    const vk::Queue queue,
-    const vk::PhysicalDevice& physicalDevice,
-    const vk::Device& device)
-    -> std::tuple<vk::UniqueImage, vk::UniqueImageView, vk::UniqueDeviceMemory>;
-
-  /// Create descriptor set from image view
-  [[nodiscard]] auto create_image_descriptor(
-    const vk::ImageView& image,
-    const vk::DescriptorSetLayout& layout,
-    const vk::DescriptorPool& pool,
-    const vk::Device& device) -> vk::UniqueDescriptorSet;
+  /// Find memory type index
+  [[nodiscard]] auto find_memory_type_index(
+    const vk::MemoryRequirements& requirements,
+    const vk::MemoryPropertyFlags& properties,
+    const vk::PhysicalDevice& physicalDevice) -> uint32_t;
 
 } // namespace yave

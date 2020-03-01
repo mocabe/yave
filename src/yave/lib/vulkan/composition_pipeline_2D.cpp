@@ -4,7 +4,9 @@
 //
 
 #include <yave/lib/vulkan/composition_pipeline_2D.hpp>
+#include <yave/lib/vulkan/vulkan_util.hpp>
 #include <yave/lib/vulkan/shader.hpp>
+#include <yave/lib/vulkan/texture.hpp>
 #include <yave/lib/image/blend_operation.hpp>
 #include <yave/support/log.hpp>
 
@@ -358,6 +360,9 @@ namespace yave::vulkan {
     vk::UniquePipeline pipeline;
 
   public:
+    texture_data default_texture;
+
+  public:
     impl(uint32_t width, uint32_t height, vulkan_context& ctx)
       : context {ctx}
       , pass {width, height, ctx}
@@ -372,6 +377,26 @@ namespace yave::vulkan {
       pipeline_layout       = createPipelineLayout(descriptor_set_layout.get(), ctx.device());
       pipeline              = createPipeline(pass.frame_extent(), pass.render_pass(), pipeline_cache.get(), pipeline_layout.get(), ctx.device());
       // clang-format on
+
+      default_texture = create_texture_data(
+        1,
+        1,
+        vk::Format::eR32G32B32Sfloat,
+        ctx.graphics_queue(),
+        pass.command_pool(),
+        descriptor_pool.get(),
+        descriptor_set_layout.get(),
+        vk::DescriptorType::eCombinedImageSampler,
+        ctx.device(),
+        ctx.physical_device());
+
+      clear_texture_data(
+        default_texture,
+        vk::ClearColorValue(std::array {1.f, 1.f, 1.f, 1.f}),
+        ctx.graphics_queue(),
+        pass.command_pool(),
+        ctx.device(),
+        ctx.physical_device());
     }
   };
 
