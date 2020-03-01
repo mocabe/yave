@@ -3,6 +3,8 @@
 add_library(yave-lib-vulkan 
   vulkan_context.cpp 
   shader.cpp
+  texture.cpp
+  offscreen.cpp
   window_context.cpp
   vulkan_util.cpp
   composition_pass.cpp
