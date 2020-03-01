@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/lib/vulkan/composition_pass.hpp>
+#include <yave/lib/vulkan/draw2d.hpp>
 
 #include <glm/glm.hpp>
 
@@ -15,21 +16,6 @@ namespace yave::vulkan {
   class rgba32f_composition_pipeline_2D
   {
   public:
-    /// vertex
-    struct vert
-    {
-      glm::vec2 pos;
-      glm::vec2 uv;
-      glm::vec4 col;
-    };
-    /// push constants
-    struct pc
-    {
-      // transformation to NDC
-      glm::mat3 transform;
-    };
-
-  public:
     /// Ctor
     rgba32f_composition_pipeline_2D(
       uint32_t width,
@@ -37,6 +23,13 @@ namespace yave::vulkan {
       vulkan_context& ctx);
     /// Dtor
     ~rgba32f_composition_pipeline_2D() noexcept;
+
+  public:
+    /// Add new texture
+    [[nodiscard]] auto add_texture(const boost::gil::rgba32fc_view_t& view)
+      -> draw2d_tex;
+    /// Remove texture
+    void remove_texture(const draw2d_tex& tex);
 
   private:
     class impl;

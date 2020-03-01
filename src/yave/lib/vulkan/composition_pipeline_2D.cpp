@@ -60,9 +60,8 @@ namespace {
     }
   )";
 
-  // types
-  using vert = yave::vulkan::rgba32f_composition_pipeline_2D::vert;
-  using pc   = yave::vulkan::rgba32f_composition_pipeline_2D::pc;
+  using namespace yave;
+  using namespace yave::vulkan;
 
   auto createTextureSampler(const vk::Device& device)
   {
@@ -126,10 +125,8 @@ namespace {
     return device.createShaderModuleUnique(info);
   }
 
-  auto createColorBlendState(yave::blend_operation op)
+  auto createColorBlendState(blend_operation op)
   {
-    using namespace yave;
-
     // blending: expect premultiplied alpha
     vk::PipelineColorBlendAttachmentState state;
 
@@ -188,7 +185,7 @@ namespace {
     // Push constants:
     vk::PushConstantRange pcr;
     pcr.stageFlags = vk::ShaderStageFlagBits::eVertex;
-    pcr.size       = sizeof(pc);
+    pcr.size       = sizeof(draw2d_pc);
 
     vk::PipelineLayoutCreateInfo info;
     info.setLayoutCount         = 1;
@@ -206,8 +203,6 @@ namespace {
     const vk::PipelineLayout& pipelineLayout,
     const vk::Device& device)
   {
-    using namespace yave::vulkan;
-
     // vertex shader
     vk::UniqueShaderModule vertShaderModule =
       createShaderModule(compileVertShader(vert_shader), device);
@@ -232,7 +227,7 @@ namespace {
     /* vertex input stage */
 
     std::array<vk::VertexInputBindingDescription, 1> vertBindingDesc;
-    vertBindingDesc[0].stride    = sizeof(vert);
+    vertBindingDesc[0].stride    = sizeof(draw2d_vtx);
     vertBindingDesc[0].inputRate = vk::VertexInputRate::eVertex;
 
     std::array<vk::VertexInputAttributeDescription, 3> vertAttrDesc;
@@ -240,17 +235,17 @@ namespace {
     vertAttrDesc[0].location = 0;
     vertAttrDesc[0].binding  = vertBindingDesc[0].binding;
     vertAttrDesc[0].format   = vk::Format::eR32G32Sfloat;
-    vertAttrDesc[0].offset   = offsetof(vert, pos);
+    vertAttrDesc[0].offset   = offsetof(draw2d_vtx, pos);
     // uv
     vertAttrDesc[1].location = 1;
     vertAttrDesc[1].binding  = vertBindingDesc[0].binding;
     vertAttrDesc[1].format   = vk::Format::eR32G32Sfloat;
-    vertAttrDesc[1].offset   = offsetof(vert, uv);
+    vertAttrDesc[1].offset   = offsetof(draw2d_vtx, uv);
     // col
     vertAttrDesc[2].location = 2;
     vertAttrDesc[2].binding  = vertBindingDesc[0].binding;
     vertAttrDesc[2].format   = vk::Format::eR32G32B32A32Sfloat;
-    vertAttrDesc[2].offset   = offsetof(vert, col);
+    vertAttrDesc[2].offset   = offsetof(draw2d_vtx, col);
 
     vk::PipelineVertexInputStateCreateInfo vertInputStateInfo;
     vertInputStateInfo.vertexBindingDescriptionCount   = vertBindingDesc.size();
@@ -300,7 +295,7 @@ namespace {
 
     std::array<vk::PipelineColorBlendAttachmentState, 1> colAttachments;
     // defualt: alpha blending
-    colAttachments[0] = createColorBlendState(yave::blend_operation::over);
+    colAttachments[0] = createColorBlendState(blend_operation::over);
 
     vk::PipelineColorBlendStateCreateInfo colorBlendStateInfo;
     colorBlendStateInfo.attachmentCount = colAttachments.size();
@@ -363,6 +358,9 @@ namespace yave::vulkan {
     texture_data default_texture;
 
   public:
+    std::vector<texture_data> textures;
+
+  public:
     impl(uint32_t width, uint32_t height, vulkan_context& ctx)
       : context {ctx}
       , pass {width, height, ctx}
@@ -398,6 +396,45 @@ namespace yave::vulkan {
         ctx.device(),
         ctx.physical_device());
     }
+
+    auto add_texture(const boost::gil::rgba32fc_view_t& view) -> draw2d_tex
+    {
+      auto tex = create_texture_data(
+        view.width(),
+        view.height(),
+        vk::Format::eR32G32B32A32Sfloat,
+        context.graphics_queue(),
+        pass.command_pool(),
+        descriptor_pool.get(),
+        descriptor_set_layout.get(),
+        vk::DescriptorType::eCombinedImageSampler,
+        context.device(),
+        context.physical_device());
+
+      store_texture_data(
+        tex,
+        (const std::byte*)view.row_begin(0),
+        view.size() * sizeof(boost::gil::rgb32f_pixel_t),
+        context.graphics_queue(),
+        pass.command_pool(),
+        context.device(),
+        context.physical_device());
+
+      Info(g_logger, "Added texture: {},{}", view.width(), view.height());
+
+      draw2d_tex ret {tex.dsc_set.get()};
+      textures.push_back(std::move(tex));
+      return ret;
+    }
+
+    void remove_texture(const draw2d_tex& tex)
+    {
+      auto end =
+        std::remove_if(textures.begin(), textures.end(), [&](auto& td) {
+          return td.dsc_set.get() == tex.descriptor_set;
+        });
+      textures.erase(end, textures.end());
+    }
   };
 
   rgba32f_composition_pipeline_2D::rgba32f_composition_pipeline_2D(
@@ -410,5 +447,16 @@ namespace yave::vulkan {
 
   rgba32f_composition_pipeline_2D::~rgba32f_composition_pipeline_2D() noexcept
   {
+  }
+
+  auto rgba32f_composition_pipeline_2D::add_texture(
+    const boost::gil::rgba32fc_view_t& view) -> draw2d_tex
+  {
+    return m_pimpl->add_texture(view);
+  }
+
+  void rgba32f_composition_pipeline_2D::remove_texture(const draw2d_tex& tex)
+  {
+    m_pimpl->remove_texture(tex);
   }
 } // namespace yave::vulkan
