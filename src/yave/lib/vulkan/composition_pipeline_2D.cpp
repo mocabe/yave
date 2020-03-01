@@ -414,7 +414,7 @@ namespace yave::vulkan {
       store_texture_data(
         tex,
         (const std::byte*)view.row_begin(0),
-        view.size() * sizeof(boost::gil::rgb32f_pixel_t),
+        view.size() * sizeof(boost::gil::rgba32f_pixel_t),
         context.graphics_queue(),
         pass.command_pool(),
         context.device(),

@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <vulkan/vulkan.hpp>
+#include <yave/lib/vulkan/vulkan_util.hpp>
 
 namespace yave::vulkan {
 
