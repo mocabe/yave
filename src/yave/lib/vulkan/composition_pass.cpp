@@ -8,7 +8,7 @@
 #include <yave/lib/vulkan/vulkan_util.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(frame_compositor)
+YAVE_DECL_G_LOGGER(composition_pass)
 
 namespace {
 
@@ -27,8 +27,8 @@ namespace {
     // store result to buffer
     colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
     // layout
-    colorAttachment.initialLayout = vk::ImageLayout::eGeneral;
-    colorAttachment.finalLayout   = vk::ImageLayout::eGeneral;
+    colorAttachment.initialLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    colorAttachment.finalLayout   = vk::ImageLayout::eColorAttachmentOptimal;
 
     return std::array {colorAttachment};
   }
