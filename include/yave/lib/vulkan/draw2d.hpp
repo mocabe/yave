@@ -45,21 +45,26 @@ namespace yave::vulkan {
     glm::mat3 transform;
   };
 
+  /// clip rect
+  struct draw2d_clip
+  {
+    glm::vec2 p1;
+    glm::vec2 p2;
+  };
+
   /// Single draw call on vulkan
   struct draw2d_cmd
   {
-    /// clip rect
-    glm::vec4 clip;
     /// index count
     uint32_t idx_count;
-    /// vertex count
-    uint32_t vtx_count;
     /// index offset
     uint32_t idx_offset;
     /// vertex offset
     uint32_t vtx_offset;
     /// texture
     draw2d_tex tex;
+    /// clip rect
+    draw2d_clip clip;
   };
 
   /// Set of draw commands
@@ -80,6 +85,23 @@ namespace yave::vulkan {
     std::vector<draw2d_list> draw_lists;
     /// viewport to render
     vk::Viewport viewport;
+
+    auto total_vtx_count() const
+    {
+      return std::accumulate(
+        draw_lists.begin(),
+        draw_lists.end(),
+        size_t(),
+        [](auto& acc, auto& dl) { return acc + dl.vtx_buffer.size(); });
+    }
+    auto total_idx_count() const
+    {
+      return std::accumulate(
+        draw_lists.begin(),
+        draw_lists.end(),
+        size_t(),
+        [](auto& acc, auto& dl) { return acc + dl.idx_buffer.size(); });
+    }
   };
 
 } // namespace yave::vulkan

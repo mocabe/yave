@@ -25,6 +25,10 @@ namespace yave::vulkan {
     ~rgba32f_composition_pipeline_2D() noexcept;
 
   public:
+    /// render commands
+    void render(const draw2d_data& draw_data);
+
+  public:
     /// Add new texture
     [[nodiscard]] auto add_texture(const boost::gil::rgba32fc_view_t& view)
       -> draw2d_tex;

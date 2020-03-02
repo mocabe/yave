@@ -7,8 +7,10 @@
 #include <yave/lib/vulkan/vulkan_util.hpp>
 #include <yave/lib/vulkan/shader.hpp>
 #include <yave/lib/vulkan/texture.hpp>
+#include <yave/lib/vulkan/render_buffer.hpp>
 #include <yave/lib/image/blend_operation.hpp>
 #include <yave/support/log.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
 
 YAVE_DECL_G_LOGGER(composition_pipeline_2D)
 
@@ -334,6 +336,155 @@ namespace {
     return device.createGraphicsPipelineUnique(pipelineCache, info);
   }
 
+  void storeRenderDataToBuffer(
+    render_buffer& vtx_buff,
+    render_buffer& idx_buff,
+    const draw2d_data& draw_data,
+    const vk::Device& device,
+    const vk::PhysicalDevice& physicalDevice)
+  {
+    // vertex buffer
+    std::accumulate(
+      draw_data.draw_lists.begin(),
+      draw_data.draw_lists.end(),
+      0,
+      [&](auto offset, auto& dl) {
+        auto vtx_size = dl.vtx_buffer.size() * sizeof(draw2d_vtx);
+        // upload
+        store_render_buffer(
+          vtx_buff,
+          (const std::byte*)dl.vtx_buffer.data(),
+          offset,
+          vtx_size,
+          device,
+          physicalDevice);
+        // advance offset
+        return offset + vtx_size;
+      });
+    // index buffer
+    std::accumulate(
+      draw_data.draw_lists.begin(),
+      draw_data.draw_lists.end(),
+      0,
+      [&](auto offset, auto& dl) {
+        auto idx_size = dl.idx_buffer.size() * sizeof(draw2d_idx);
+        // upload
+        store_render_buffer(
+          idx_buff,
+          (const std::byte*)dl.idx_buffer.data(),
+          offset,
+          idx_size,
+          device,
+          physicalDevice);
+        // advance offset
+        return offset + idx_size;
+      });
+  }
+
+  void prepareRenderData(
+    render_buffer& vtx_buff,
+    render_buffer& idx_buff,
+    const draw2d_data& draw_data,
+    const vk::Device& device,
+    const vk::PhysicalDevice& physicalDevice)
+  {
+    auto vtx_buff_size = draw_data.total_vtx_count() * sizeof(draw2d_vtx);
+    auto idx_buff_size = draw_data.total_idx_count() * sizeof(draw2d_idx);
+
+    // reserve render buffer
+    resize_render_buffer(idx_buff, idx_buff_size, device, physicalDevice);
+    resize_render_buffer(vtx_buff, vtx_buff_size, device, physicalDevice);
+
+    // write to render buffer
+    storeRenderDataToBuffer(
+      vtx_buff, idx_buff, draw_data, device, physicalDevice);
+  }
+
+  void initRenderPipeline(
+    vk::CommandBuffer& cmd,
+    const render_buffer& vtx_buff,
+    const render_buffer& idx_buff,
+    const draw2d_data& draw_data,
+    const vk::PipelineLayout& pipelineLayout,
+    const vk::Pipeline& pipeline)
+  {
+    // init pipeline
+    static_assert(sizeof(draw2d_idx) == sizeof(uint16_t));
+    cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+    cmd.bindVertexBuffers(0, vtx_buff.buffer.get(), {0});
+    cmd.bindIndexBuffer(idx_buff.buffer.get(), 0, vk::IndexType::eUint16);
+    cmd.setViewport(0, draw_data.viewport);
+  }
+
+  void renderDrawData(
+    vk::CommandBuffer& cmd,
+    const draw2d_data& draw_data,
+    const vk::DescriptorSet& defaultDsc,
+    const vk::PipelineLayout& pipelineLayout)
+  {
+    // set push constant
+    draw2d_pc pc;
+    {
+      // transform (0,0):(w, h) -> (-1,-1):(1,1)
+      pc.transform = glm::translate(
+        glm::scale(
+          glm::mat3(1),
+          glm::vec2(
+            2.f / draw_data.viewport.width, 2.f / draw_data.viewport.height)),
+        glm::vec2(-1, -1));
+
+      cmd.pushConstants<draw2d_pc>(
+        pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, {pc});
+    }
+
+    // indexed render
+    for (auto&& dl : draw_data.draw_lists) {
+
+      uint32_t vtxOffset = 0;
+      uint32_t idxOffset = 0;
+
+      for (auto&& dc : dl.cmd_buffer) {
+
+        // texture
+        {
+          auto dsc = dc.tex.descriptor_set;
+          // default when empty
+          if (!dsc)
+            dsc = defaultDsc;
+          // bind
+          cmd.bindDescriptorSets(
+            vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, dsc, {});
+        }
+
+        // scissor
+        {
+          // float clip rect
+          auto p1  = glm::round(pc.transform * glm::vec3(dc.clip.p1, 1));
+          auto p2  = glm::round(pc.transform * glm::vec3(dc.clip.p2, 1));
+          auto off = p1;
+          auto ext = p2 - p1;
+          assert(ext.x >= 0 && ext.y >= 0 && off.x >= 0 && off.y >= 0);
+          // scissor
+          vk::Rect2D scissor;
+          scissor.offset.x      = off.x;
+          scissor.offset.y      = off.y;
+          scissor.extent.width  = ext.x;
+          scissor.extent.height = ext.y;
+          cmd.setScissor(0, scissor);
+        }
+
+        // draw
+        cmd.drawIndexed(
+          dc.idx_count,
+          1,
+          idxOffset + dc.idx_offset,
+          vtxOffset + dc.vtx_offset,
+          0);
+      }
+      idxOffset += dl.idx_buffer.size();
+      vtxOffset += dl.vtx_buffer.size();
+    }
+  }
 } // namespace
 
 namespace yave::vulkan {
@@ -356,9 +507,11 @@ namespace yave::vulkan {
 
   public:
     texture_data default_texture;
+    std::vector<texture_data> textures;
 
   public:
-    std::vector<texture_data> textures;
+    render_buffer vtx_buff;
+    render_buffer idx_buff;
 
   public:
     impl(uint32_t width, uint32_t height, vulkan_context& ctx)
@@ -395,6 +548,43 @@ namespace yave::vulkan {
         pass.command_pool(),
         ctx.device(),
         ctx.physical_device());
+
+      vtx_buff = create_render_buffer(
+        vk::BufferUsageFlagBits::eVertexBuffer,
+        1,
+        context.device(),
+        context.physical_device());
+
+      idx_buff = create_render_buffer(
+        vk::BufferUsageFlagBits::eIndexBuffer,
+        1,
+        context.device(),
+        context.physical_device());
+    }
+
+    void render(const draw2d_data& draw_data)
+    {
+      auto cmd = pass.begin_draw();
+      {
+        prepareRenderData(
+          vtx_buff,
+          idx_buff,
+          draw_data,
+          context.device(),
+          context.physical_device());
+
+        initRenderPipeline(
+          cmd,
+          vtx_buff,
+          idx_buff,
+          draw_data,
+          pipeline_layout.get(),
+          pipeline.get());
+
+        renderDrawData(
+          cmd, draw_data, default_texture.dsc_set.get(), pipeline_layout.get());
+      }
+      pass.end_draw();
     }
 
     auto add_texture(const boost::gil::rgba32fc_view_t& view) -> draw2d_tex
@@ -447,6 +637,11 @@ namespace yave::vulkan {
 
   rgba32f_composition_pipeline_2D::~rgba32f_composition_pipeline_2D() noexcept
   {
+  }
+
+  void rgba32f_composition_pipeline_2D::render(const draw2d_data& draw_data)
+  {
+    m_pimpl->render(draw_data);
   }
 
   auto rgba32f_composition_pipeline_2D::add_texture(
