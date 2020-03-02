@@ -82,6 +82,7 @@ namespace yave::vulkan {
         req, vk::MemoryPropertyFlagBits::eHostVisible, physicalDevice);
 
       memory = device.allocateMemoryUnique(info);
+      device.bindBufferMemory(buffer.get(), memory.get(), 0);
     }
 
     buff.size     = newSize;
@@ -98,7 +99,7 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice&)
   {
-    assert(dst.size > srcOffset + srcSize);
+    assert(dst.size >= srcOffset + srcSize);
     void* ptr = device.mapMemory(dst.memory.get(), srcOffset, srcSize);
     std::memcpy(ptr, srcData, srcSize);
 

@@ -42,8 +42,8 @@ namespace yave::vulkan {
   /// push constants
   struct draw2d_pc
   {
-    // transformation to NDC
-    glm::mat3 transform;
+    glm::vec2 translate;
+    glm::vec2 scale;
   };
 
   /// clip rect
