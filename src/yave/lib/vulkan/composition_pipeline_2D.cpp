@@ -24,7 +24,8 @@ namespace {
     layout(location = 2) in vec4 vertColor;
     
     layout(push_constant) uniform PushConstant {
-      mat3 transform;
+      vec2 translate;
+      vec2 scale;
     } pc;
     
     out gl_PerVertex {
@@ -35,12 +36,12 @@ namespace {
       vec4 color;
       vec2 uv;
     } fragIn;
-    
+
     void main()
     {
       fragIn.color = vertColor;
       fragIn.uv    = vertUV;
-      gl_Position  = vec4((pc.transform * vec3(vertPos, 1)).xy, 0, 1);
+      gl_Position  = vec4(vertPos * pc.scale + pc.translate, 0, 1);
     }
   )";
 
@@ -143,27 +144,27 @@ namespace {
     switch (op) {
       case blend_operation::src:
         srcFactor = vk::BlendFactor::eOne;
-        srcFactor = vk::BlendFactor::eZero;
+        dstFactor = vk::BlendFactor::eZero;
         break;
       case blend_operation::dst:
         srcFactor = vk::BlendFactor::eZero;
-        srcFactor = vk::BlendFactor::eOne;
+        dstFactor = vk::BlendFactor::eOne;
         break;
       case blend_operation::over:
         srcFactor = vk::BlendFactor::eSrcAlpha;
-        srcFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+        dstFactor = vk::BlendFactor::eOneMinusSrcAlpha;
         break;
       case blend_operation::in:
         srcFactor = vk::BlendFactor::eDstAlpha;
-        srcFactor = vk::BlendFactor::eZero;
+        dstFactor = vk::BlendFactor::eZero;
         break;
       case blend_operation::out:
         srcFactor = vk::BlendFactor::eOneMinusDstAlpha;
-        srcFactor = vk::BlendFactor::eZero;
+        dstFactor = vk::BlendFactor::eZero;
         break;
       case blend_operation::add:
         srcFactor = vk::BlendFactor::eOne;
-        srcFactor = vk::BlendFactor::eOne;
+        dstFactor = vk::BlendFactor::eOne;
         break;
     }
 
@@ -184,7 +185,6 @@ namespace {
     const vk::DescriptorSetLayout& setLayout,
     const vk::Device& device)
   {
-    // Push constants:
     vk::PushConstantRange pcr;
     pcr.stageFlags = vk::ShaderStageFlagBits::eVertex;
     pcr.size       = sizeof(draw2d_pc);
@@ -425,16 +425,18 @@ namespace {
     const vk::PipelineLayout& pipelineLayout)
   {
     // set push constant
-    draw2d_pc pc;
     {
       // transform (0,0):(w, h) -> (-1,-1):(1,1)
-      pc.transform = glm::translate(
-        glm::scale(
-          glm::mat3(1), glm::vec2(2.f / viewport.width, 2.f / viewport.height)),
-        glm::vec2(-1, -1));
+      draw2d_pc pc;
+      pc.scale     = glm::vec2(2.f / viewport.width, 2.f / viewport.height);
+      pc.translate = glm::vec2(-1, -1);
 
-      cmd.pushConstants<draw2d_pc>(
-        pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, {pc});
+      cmd.pushConstants(
+        pipelineLayout,
+        vk::ShaderStageFlagBits::eVertex,
+        0,
+        sizeof(draw2d_pc),
+        &pc);
     }
 
     // indexed render
@@ -456,20 +458,13 @@ namespace {
             vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, dsc, {});
         }
 
-        // scissor
         {
-          // float clip rect
-          auto p1  = glm::round(pc.transform * glm::vec3(dc.clip.p1, 1));
-          auto p2  = glm::round(pc.transform * glm::vec3(dc.clip.p2, 1));
-          auto off = p1;
-          auto ext = p2 - p1;
-          assert(ext.x >= 0 && ext.y >= 0 && off.x >= 0 && off.y >= 0);
-          // scissor
+          // scissor rect (frame buffer coord)
           vk::Rect2D scissor;
-          scissor.offset.x      = off.x;
-          scissor.offset.y      = off.y;
-          scissor.extent.width  = ext.x;
-          scissor.extent.height = ext.y;
+          scissor.offset.x      = dc.clip.p1.x;
+          scissor.offset.y      = dc.clip.p1.y;
+          scissor.extent.width  = dc.clip.p2.x;
+          scissor.extent.height = dc.clip.p2.y;
           cmd.setScissor(0, scissor);
         }
 
