@@ -327,6 +327,16 @@ namespace yave::vulkan {
   {
   }
 
+  auto rgba32f_composition_pass::width() const noexcept -> uint32_t
+  {
+    return m_pimpl->frame_data.extent.width;
+  }
+
+  auto rgba32f_composition_pass::height() const noexcept -> uint32_t
+  {
+    return m_pimpl->frame_data.extent.height;
+  }
+
   void rgba32f_composition_pass::store_frame(
     const boost::gil::rgba32fc_view_t& view)
   {

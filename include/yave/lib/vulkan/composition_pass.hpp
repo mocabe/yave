@@ -29,6 +29,12 @@ namespace yave::vulkan {
     ~rgba32f_composition_pass() noexcept;
 
   public:
+    /// width
+    auto width() const noexcept -> uint32_t;
+    /// height
+    auto height() const noexcept -> uint32_t;
+
+  public:
     /// Store frame onto existing image.
     /// Existing image will be overwritten by this operation.
     void store_frame(const boost::gil::rgba32fc_view_t& view);
