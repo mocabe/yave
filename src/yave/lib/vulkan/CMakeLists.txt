@@ -5,6 +5,7 @@ add_library(yave-lib-vulkan
   shader.cpp
   texture.cpp
   offscreen.cpp
+  render_buffer.cpp
   window_context.cpp
   vulkan_util.cpp
   composition_pass.cpp
