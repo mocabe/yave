@@ -347,7 +347,7 @@ namespace {
     std::accumulate(
       draw_data.draw_lists.begin(),
       draw_data.draw_lists.end(),
-      0,
+      size_t(),
       [&](auto offset, auto& dl) {
         auto vtx_size = dl.vtx_buffer.size() * sizeof(draw2d_vtx);
         // upload
@@ -365,7 +365,7 @@ namespace {
     std::accumulate(
       draw_data.draw_lists.begin(),
       draw_data.draw_lists.end(),
-      0,
+      size_t(),
       [&](auto offset, auto& dl) {
         auto idx_size = dl.idx_buffer.size() * sizeof(draw2d_idx);
         // upload
@@ -405,6 +405,7 @@ namespace {
     const render_buffer& vtx_buff,
     const render_buffer& idx_buff,
     const draw2d_data& draw_data,
+    const vk::Viewport& viewport,
     const vk::PipelineLayout& pipelineLayout,
     const vk::Pipeline& pipeline)
   {
@@ -413,12 +414,13 @@ namespace {
     cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
     cmd.bindVertexBuffers(0, vtx_buff.buffer.get(), {0});
     cmd.bindIndexBuffer(idx_buff.buffer.get(), 0, vk::IndexType::eUint16);
-    cmd.setViewport(0, draw_data.viewport);
+    cmd.setViewport(0, viewport);
   }
 
   void renderDrawData(
     vk::CommandBuffer& cmd,
     const draw2d_data& draw_data,
+    const vk::Viewport& viewport,
     const vk::DescriptorSet& defaultDsc,
     const vk::PipelineLayout& pipelineLayout)
   {
@@ -428,9 +430,7 @@ namespace {
       // transform (0,0):(w, h) -> (-1,-1):(1,1)
       pc.transform = glm::translate(
         glm::scale(
-          glm::mat3(1),
-          glm::vec2(
-            2.f / draw_data.viewport.width, 2.f / draw_data.viewport.height)),
+          glm::mat3(1), glm::vec2(2.f / viewport.width, 2.f / viewport.height)),
         glm::vec2(-1, -1));
 
       cmd.pushConstants<draw2d_pc>(
@@ -532,7 +532,7 @@ namespace yave::vulkan {
       default_texture = create_texture_data(
         1,
         1,
-        vk::Format::eR32G32B32Sfloat,
+        vk::Format::eR32G32B32A32Sfloat,
         ctx.graphics_queue(),
         pass.command_pool(),
         descriptor_pool.get(),
@@ -551,15 +551,20 @@ namespace yave::vulkan {
 
       vtx_buff = create_render_buffer(
         vk::BufferUsageFlagBits::eVertexBuffer,
-        1,
+        0,
         context.device(),
         context.physical_device());
 
       idx_buff = create_render_buffer(
         vk::BufferUsageFlagBits::eIndexBuffer,
-        1,
+        0,
         context.device(),
         context.physical_device());
+    }
+
+    ~impl() noexcept
+    {
+      context.device().waitIdle();
     }
 
     void render(const draw2d_data& draw_data)
@@ -573,16 +578,24 @@ namespace yave::vulkan {
           context.device(),
           context.physical_device());
 
+        // always render full size of frame
+        auto viewport = vk::Viewport(0, 0, pass.width(), pass.height(), 0, 1);
+
         initRenderPipeline(
           cmd,
           vtx_buff,
           idx_buff,
           draw_data,
+          viewport,
           pipeline_layout.get(),
           pipeline.get());
 
         renderDrawData(
-          cmd, draw_data, default_texture.dsc_set.get(), pipeline_layout.get());
+          cmd,
+          draw_data,
+          viewport,
+          default_texture.dsc_set.get(),
+          pipeline_layout.get());
       }
       pass.end_draw();
     }

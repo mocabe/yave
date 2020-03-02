@@ -20,6 +20,8 @@ namespace yave::vulkan {
     {
       init_logger();
 
+      Info(g_logger, "compiling shader...");
+
       EShMessages msg = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
 
       std::vector<uint32_t> ret;

@@ -13,13 +13,13 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice) -> render_buffer
   {
-    // Vulkan cannot create zero sized buffer!
-    assert(size != 0);
+    // aoivd zero-sized buffer, which is invalid
+    auto trueSize = size ? size : 1;
 
     vk::UniqueBuffer buffer;
     {
       vk::BufferCreateInfo info;
-      info.size        = size;
+      info.size        = trueSize;
       info.usage       = usg;
       info.sharingMode = vk::SharingMode::eExclusive;
 
@@ -39,7 +39,7 @@ namespace yave::vulkan {
       device.bindBufferMemory(buffer.get(), memory.get(), 0);
     }
 
-    return {usg, size, size, std::move(buffer), std::move(memory)};
+    return {usg, size, trueSize, std::move(buffer), std::move(memory)};
   }
 
   void resize_render_buffer(
@@ -48,16 +48,16 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
-    assert(newSize != 0);
-
     if (buff.usage == vk::BufferUsageFlags())
       throw std::runtime_error("Render buffer is not initialized");
+
+    auto trueSize = newSize ? newSize : 1;
 
     // new buffer
     vk::UniqueBuffer buffer;
     {
       vk::BufferCreateInfo info;
-      info.size        = newSize;
+      info.size        = trueSize;
       info.usage       = buff.usage;
       info.sharingMode = vk::SharingMode::eExclusive;
 
@@ -96,7 +96,7 @@ namespace yave::vulkan {
     const vk::DeviceSize& srcOffset,
     const vk::DeviceSize& srcSize,
     const vk::Device& device,
-    const vk::PhysicalDevice& physicalDevice)
+    const vk::PhysicalDevice&)
   {
     assert(dst.size > srcOffset + srcSize);
     void* ptr = device.mapMemory(dst.memory.get(), srcOffset, srcSize);
