@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/vulkan/composition_pass.hpp>
+#include <yave/lib/vulkan/offscreen_render_pass.hpp>
 #include <yave/lib/vulkan/offscreen.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
 #include <yave/support/log.hpp>
@@ -246,7 +246,7 @@ namespace yave::vulkan {
         context.physical_device());
     }
 
-    auto begin_draw() -> vk::CommandBuffer
+    auto begin_pass() -> vk::CommandBuffer
     {
       wait_draw();
 
@@ -272,7 +272,7 @@ namespace yave::vulkan {
       return buffer;
     }
 
-    void end_draw()
+    void end_pass()
     {
       wait_draw();
 
@@ -309,13 +309,13 @@ namespace yave::vulkan {
     }
   };
 
-  class rgba32f_composition_pass::impl
+  class rgba32f_offscreen_render_pass::impl
     : public composition_pass_impl<pixel_loc_type>
   {
     using composition_pass_impl::composition_pass_impl;
   };
 
-  rgba32f_composition_pass::rgba32f_composition_pass(
+  rgba32f_offscreen_render_pass::rgba32f_offscreen_render_pass(
     uint32_t width,
     uint32_t height,
     vulkan_context& ctx)
@@ -323,88 +323,93 @@ namespace yave::vulkan {
   {
   }
 
-  rgba32f_composition_pass::~rgba32f_composition_pass() noexcept
+  rgba32f_offscreen_render_pass::~rgba32f_offscreen_render_pass() noexcept
   {
   }
 
-  auto rgba32f_composition_pass::width() const noexcept -> uint32_t
+  auto rgba32f_offscreen_render_pass::width() const noexcept -> uint32_t
   {
     return m_pimpl->frame_data.extent.width;
   }
 
-  auto rgba32f_composition_pass::height() const noexcept -> uint32_t
+  auto rgba32f_offscreen_render_pass::height() const noexcept -> uint32_t
   {
     return m_pimpl->frame_data.extent.height;
   }
 
-  void rgba32f_composition_pass::store_frame(
+  auto rgba32f_offscreen_render_pass::format() const noexcept -> image_format
+  {
+    return image_format::rgba32f;
+  }
+
+  void rgba32f_offscreen_render_pass::store_frame(
     const boost::gil::rgba32fc_view_t& view)
   {
     m_pimpl->store_frame(view);
   }
 
-  void rgba32f_composition_pass::load_frame(
+  void rgba32f_offscreen_render_pass::load_frame(
     const boost::gil::rgba32f_view_t& view) const
   {
     m_pimpl->load_frame(view);
   }
 
-  auto rgba32f_composition_pass::frame_extent() const -> vk::Extent2D
+  auto rgba32f_offscreen_render_pass::frame_extent() const noexcept -> vk::Extent2D
   {
     return m_pimpl->frame_data.extent;
   }
 
-  auto rgba32f_composition_pass::frame_image() const -> vk::Image
+  auto rgba32f_offscreen_render_pass::frame_image() const noexcept -> vk::Image
   {
     return m_pimpl->frame_data.image.get();
   }
 
-  auto rgba32f_composition_pass::frame_image_view() const -> vk::ImageView
+  auto rgba32f_offscreen_render_pass::frame_image_view() const noexcept -> vk::ImageView
   {
     return m_pimpl->frame_data.view.get();
   }
 
-  auto rgba32f_composition_pass::frame_format() const -> vk::Format
+  auto rgba32f_offscreen_render_pass::frame_format() const noexcept -> vk::Format
   {
     return m_pimpl->frame_data.format;
   }
 
-  auto rgba32f_composition_pass::frame_memory() const -> vk::DeviceMemory
+  auto rgba32f_offscreen_render_pass::frame_memory() const noexcept -> vk::DeviceMemory
   {
     return m_pimpl->frame_data.memory.get();
   }
 
-  auto rgba32f_composition_pass::frame_buffer() const -> vk::Framebuffer
+  auto rgba32f_offscreen_render_pass::frame_buffer() const noexcept -> vk::Framebuffer
   {
     return m_pimpl->frame_data.buffer.get();
   }
 
-  auto rgba32f_composition_pass::command_pool() const -> vk::CommandPool
+  auto rgba32f_offscreen_render_pass::command_pool() const noexcept -> vk::CommandPool
   {
     return m_pimpl->command_pool.get();
   }
 
-  auto rgba32f_composition_pass::command_buffer() const -> vk::CommandBuffer
+  auto rgba32f_offscreen_render_pass::command_buffer() const noexcept -> vk::CommandBuffer
   {
     return m_pimpl->command_buffer.get();
   }
 
-  auto rgba32f_composition_pass::render_pass() const -> vk::RenderPass
+  auto rgba32f_offscreen_render_pass::render_pass() const noexcept -> vk::RenderPass
   {
     return m_pimpl->render_pass.get();
   }
 
-  auto rgba32f_composition_pass::begin_draw() -> vk::CommandBuffer
+  auto rgba32f_offscreen_render_pass::begin_pass() -> vk::CommandBuffer
   {
-    return m_pimpl->begin_draw();
+    return m_pimpl->begin_pass();
   }
 
-  void rgba32f_composition_pass::end_draw()
+  void rgba32f_offscreen_render_pass::end_pass()
   {
-    m_pimpl->end_draw();
+    m_pimpl->end_pass();
   }
 
-  void rgba32f_composition_pass::wait_draw()
+  void rgba32f_offscreen_render_pass::wait_draw()
   {
     m_pimpl->wait_draw();
   }
