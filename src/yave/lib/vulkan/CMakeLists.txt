@@ -8,8 +8,8 @@ add_library(yave-lib-vulkan
   render_buffer.cpp
   window_context.cpp
   vulkan_util.cpp
-  composition_pass.cpp
-  composition_pipeline_2D.cpp
+  offscreen_render_pass.cpp
+  offscreen_renderer_2D.cpp
 )
 
 add_library(yave::lib::vulkan ALIAS yave-lib-vulkan)

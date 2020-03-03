@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/vulkan/composition_pipeline_2D.hpp>
+#include <yave/lib/vulkan/offscreen_renderer_2D.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
 #include <yave/lib/vulkan/shader.hpp>
 #include <yave/lib/vulkan/texture.hpp>
@@ -343,42 +343,32 @@ namespace {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
-    // vertex buffer
-    std::accumulate(
-      draw_data.draw_lists.begin(),
-      draw_data.draw_lists.end(),
-      size_t(),
-      [&](auto offset, auto& dl) {
-        auto vtx_size = dl.vtx_buffer.size() * sizeof(draw2d_vtx);
-        // upload
-        store_render_buffer(
-          vtx_buff,
-          (const std::byte*)dl.vtx_buffer.data(),
-          offset,
-          vtx_size,
-          device,
-          physicalDevice);
-        // advance offset
-        return offset + vtx_size;
-      });
-    // index buffer
-    std::accumulate(
-      draw_data.draw_lists.begin(),
-      draw_data.draw_lists.end(),
-      size_t(),
-      [&](auto offset, auto& dl) {
-        auto idx_size = dl.idx_buffer.size() * sizeof(draw2d_idx);
-        // upload
-        store_render_buffer(
-          idx_buff,
-          (const std::byte*)dl.idx_buffer.data(),
-          offset,
-          idx_size,
-          device,
-          physicalDevice);
-        // advance offset
-        return offset + idx_size;
-      });
+    size_t vtx_offset = 0;
+    size_t idx_offset = 0;
+    for (auto&& dl : draw_data.draw_lists) {
+
+      auto vtx_size = dl.vtx_buffer.size() * sizeof(draw2d_vtx);
+      auto idx_size = dl.idx_buffer.size() * sizeof(draw2d_idx);
+
+      store_render_buffer(
+        vtx_buff,
+        (const std::byte*)dl.vtx_buffer.data(),
+        vtx_offset,
+        vtx_size,
+        device,
+        physicalDevice);
+
+      store_render_buffer(
+        idx_buff,
+        (const std::byte*)dl.idx_buffer.data(),
+        idx_offset,
+        idx_size,
+        device,
+        physicalDevice);
+
+      vtx_offset += vtx_size;
+      idx_offset += idx_size;
+    }
   }
 
   void prepareRenderData(
@@ -404,9 +394,7 @@ namespace {
     vk::CommandBuffer& cmd,
     const render_buffer& vtx_buff,
     const render_buffer& idx_buff,
-    const draw2d_data& draw_data,
     const vk::Viewport& viewport,
-    const vk::PipelineLayout& pipelineLayout,
     const vk::Pipeline& pipeline)
   {
     // init pipeline
@@ -484,11 +472,11 @@ namespace {
 
 namespace yave::vulkan {
 
-  class rgba32f_composition_pipeline_2D::impl
+  class rgba32f_offscreen_renderer_2D::impl
   {
   public:
     vulkan_context& context;
-    rgba32f_composition_pass pass;
+    rgba32f_offscreen_render_pass render_pass;
 
   public:
     vk::UniqueSampler texture_sampler;
@@ -511,7 +499,7 @@ namespace yave::vulkan {
   public:
     impl(uint32_t width, uint32_t height, vulkan_context& ctx)
       : context {ctx}
-      , pass {width, height, ctx}
+      , render_pass {width, height, ctx}
     {
       init_logger();
 
@@ -521,7 +509,7 @@ namespace yave::vulkan {
       descriptor_pool       = createDescriptorPool(ctx.device());
       pipeline_cache        = createPipelineCache(ctx.device());
       pipeline_layout       = createPipelineLayout(descriptor_set_layout.get(), ctx.device());
-      pipeline              = createPipeline(pass.frame_extent(), pass.render_pass(), pipeline_cache.get(), pipeline_layout.get(), ctx.device());
+      pipeline              = createPipeline(render_pass.frame_extent(), render_pass.render_pass(), pipeline_cache.get(), pipeline_layout.get(), ctx.device());
       // clang-format on
 
       default_texture = create_texture_data(
@@ -529,7 +517,7 @@ namespace yave::vulkan {
         1,
         vk::Format::eR32G32B32A32Sfloat,
         ctx.graphics_queue(),
-        pass.command_pool(),
+        render_pass.command_pool(),
         descriptor_pool.get(),
         descriptor_set_layout.get(),
         vk::DescriptorType::eCombinedImageSampler,
@@ -540,7 +528,7 @@ namespace yave::vulkan {
         default_texture,
         vk::ClearColorValue(std::array {1.f, 1.f, 1.f, 1.f}),
         ctx.graphics_queue(),
-        pass.command_pool(),
+        render_pass.command_pool(),
         ctx.device(),
         ctx.physical_device());
 
@@ -564,7 +552,7 @@ namespace yave::vulkan {
 
     void render(const draw2d_data& draw_data)
     {
-      auto cmd = pass.begin_draw();
+      auto cmd = render_pass.begin_pass();
       {
         prepareRenderData(
           vtx_buff,
@@ -574,16 +562,10 @@ namespace yave::vulkan {
           context.physical_device());
 
         // always render full size of frame
-        auto viewport = vk::Viewport(0, 0, pass.width(), pass.height(), 0, 1);
+        auto viewport =
+          vk::Viewport(0, 0, render_pass.width(), render_pass.height(), 0, 1);
 
-        initRenderPipeline(
-          cmd,
-          vtx_buff,
-          idx_buff,
-          draw_data,
-          viewport,
-          pipeline_layout.get(),
-          pipeline.get());
+        initRenderPipeline(cmd, vtx_buff, idx_buff, viewport, pipeline.get());
 
         renderDrawData(
           cmd,
@@ -592,7 +574,7 @@ namespace yave::vulkan {
           default_texture.dsc_set.get(),
           pipeline_layout.get());
       }
-      pass.end_draw();
+      render_pass.end_pass();
     }
 
     auto add_texture(const boost::gil::rgba32fc_view_t& view) -> draw2d_tex
@@ -602,7 +584,7 @@ namespace yave::vulkan {
         view.height(),
         vk::Format::eR32G32B32A32Sfloat,
         context.graphics_queue(),
-        pass.command_pool(),
+        render_pass.command_pool(),
         descriptor_pool.get(),
         descriptor_set_layout.get(),
         vk::DescriptorType::eCombinedImageSampler,
@@ -614,7 +596,7 @@ namespace yave::vulkan {
         (const std::byte*)view.row_begin(0),
         view.size() * sizeof(boost::gil::rgba32f_pixel_t),
         context.graphics_queue(),
-        pass.command_pool(),
+        render_pass.command_pool(),
         context.device(),
         context.physical_device());
 
@@ -635,7 +617,7 @@ namespace yave::vulkan {
     }
   };
 
-  rgba32f_composition_pipeline_2D::rgba32f_composition_pipeline_2D(
+  rgba32f_offscreen_renderer_2D::rgba32f_offscreen_renderer_2D(
     uint32_t width,
     uint32_t height,
     vulkan_context& ctx)
@@ -643,22 +625,49 @@ namespace yave::vulkan {
   {
   }
 
-  rgba32f_composition_pipeline_2D::~rgba32f_composition_pipeline_2D() noexcept
+  rgba32f_offscreen_renderer_2D::~rgba32f_offscreen_renderer_2D() noexcept
   {
   }
 
-  void rgba32f_composition_pipeline_2D::render(const draw2d_data& draw_data)
+  auto rgba32f_offscreen_renderer_2D::width() const noexcept -> uint32_t
+  {
+    return m_pimpl->render_pass.width();
+  }
+
+  auto rgba32f_offscreen_renderer_2D::height() const noexcept -> uint32_t
+  {
+    return m_pimpl->render_pass.height();
+  }
+
+  auto rgba32f_offscreen_renderer_2D::format() const noexcept -> image_format
+  {
+    return m_pimpl->render_pass.format();
+  }
+
+  void rgba32f_offscreen_renderer_2D::store_frame(
+    const boost::gil::rgba32fc_view_t& view)
+  {
+    return m_pimpl->render_pass.store_frame(view);
+  }
+
+  void rgba32f_offscreen_renderer_2D::load_frame(
+    const boost::gil::rgba32f_view_t& view) const
+  {
+    return m_pimpl->render_pass.load_frame(view);
+  }
+
+  void rgba32f_offscreen_renderer_2D::render(const draw2d_data& draw_data)
   {
     m_pimpl->render(draw_data);
   }
 
-  auto rgba32f_composition_pipeline_2D::add_texture(
+  auto rgba32f_offscreen_renderer_2D::add_texture(
     const boost::gil::rgba32fc_view_t& view) -> draw2d_tex
   {
     return m_pimpl->add_texture(view);
   }
 
-  void rgba32f_composition_pipeline_2D::remove_texture(const draw2d_tex& tex)
+  void rgba32f_offscreen_renderer_2D::remove_texture(const draw2d_tex& tex)
   {
     m_pimpl->remove_texture(tex);
   }
