@@ -120,7 +120,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<InstanceGetterFunction<modules::_std::core::Rotate>>(),
+        make_object<modules::_std::core::Rotate>(),
         info.description())};
     }
   };
@@ -135,7 +135,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<InstanceGetterFunction<modules::_std::core::RotateX>>(),
+        make_object<modules::_std::core::RotateX>(),
         info.description())};
     }
   };
@@ -150,7 +150,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<InstanceGetterFunction<modules::_std::core::RotateY>>(),
+        make_object<modules::_std::core::RotateY>(),
         info.description())};
     }
   };
@@ -165,7 +165,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<InstanceGetterFunction<modules::_std::core::RotateZ>>(),
+        make_object<modules::_std::core::RotateZ>(),
         info.description())};
     }
   };

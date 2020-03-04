@@ -24,53 +24,34 @@ namespace yave {
     node_definition(
       std::string name,
       size_t output_socket,
-      object_ptr<const Object> inst_getter,
+      object_ptr<const Object> instance,
       std::string description)
       : m_name {std::move(name)}
       , m_os {std::move(output_socket)}
-      , m_inst_getter {std::move(inst_getter)}
+      , m_instance {std::move(instance)}
       , m_description {std::move(description)}
     {
       // null
-      if (!m_inst_getter) {
-        throw std::invalid_argument("get_instance_func is null");
-      }
-
-      // check type of getter func
-      try {
-        auto prim = make_object<Int>();
-        auto app  = m_inst_getter << prim;
-        auto tp   = type_of(app);
-      } catch (type_error::type_error& e) {
-        throw std::invalid_argument(
-          std::string("get_instance_func has invalid type: ") + e.what());
-      }
+      if (!m_instance)
+        throw std::invalid_argument("instance is null");
     }
 
-    /// Get instance by calling instance function.
-    [[nodiscard]] auto get_instance(object_ptr<const Object> prim) const
-      -> object_ptr<const Object>
-    {
-      auto app = m_inst_getter << std::move(prim);
-      return eval(app);
-    }
-
-    [[nodiscard]] auto name() const -> const auto&
+    [[nodiscard]] auto& name() const
     {
       return m_name;
     }
 
-    [[nodiscard]] auto description() const -> const auto&
+    [[nodiscard]] auto& description() const
     {
       return m_description;
     }
 
-    [[nodiscard]] auto instance_getter() const -> const auto&
+    [[nodiscard]] auto& instance() const
     {
-      return m_inst_getter;
+      return m_instance;
     }
 
-    [[nodiscard]] auto output_socket() const -> const auto&
+    [[nodiscard]] auto& output_socket() const
     {
       return m_os;
     }
@@ -81,7 +62,7 @@ namespace yave {
     /// output socket index
     size_t m_os;
     /// instance getter
-    object_ptr<const Object> m_inst_getter;
+    object_ptr<const Object> m_instance;
     /// instance description
     std::string m_description;
   };

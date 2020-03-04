@@ -40,7 +40,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<InstanceGetterFunction<modules::_std::core::Bind>>(),
+        make_object<modules::_std::core::Bind>(),
         info.description())};
     }
   };

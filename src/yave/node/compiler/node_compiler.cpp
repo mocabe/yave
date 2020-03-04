@@ -229,8 +229,9 @@ namespace yave {
           throw compile_error::no_valid_overloading(node, socket);
 
         std::vector<object_ptr<const Object>> insts;
+        insts.reserve(defs.size());
         for (auto&& def : defs) {
-          insts.push_back(def->get_instance(make_object<Unit>()));
+          insts.push_back(def->instance());
         }
 
         auto overloaded =

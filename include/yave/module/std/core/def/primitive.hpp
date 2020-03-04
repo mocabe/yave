@@ -35,8 +35,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<InstanceGetterFunction<
-          modules::_std::core::DataTypeConstructor<T>>>(),
+        make_object<modules::_std::core::DataTypeConstructor<T>>(),
         info.name())};
     }
   };

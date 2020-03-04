@@ -57,7 +57,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<InstanceGetterFunction<modules::_std::core::SetTime>>(),
+        make_object<modules::_std::core::SetTime>(),
         info.description())};
     }
   };
@@ -72,8 +72,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<
-          InstanceGetterFunction<modules::_std::core::SetTransform>>(),
+        make_object<modules::_std::core::SetTransform>(),
         info.description())};
     }
   };

@@ -36,8 +36,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<
-          InstanceGetterFunction<modules::_std::core::TransformConstructor>>(),
+        make_object<modules::_std::core::TransformConstructor>(),
         info.description())};
     }
   };

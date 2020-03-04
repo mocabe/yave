@@ -51,8 +51,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<
-          InstanceGetterFunction<modules::_std::core::Vec2Constructor>>(),
+        make_object<modules::_std::core::Vec2Constructor>(),
         info.description())};
     }
   };
@@ -67,8 +66,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<
-          InstanceGetterFunction<modules::_std::core::Vec3Constructor>>(),
+        make_object<modules::_std::core::Vec3Constructor>(),
         info.description())};
     }
   };
@@ -83,8 +81,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<
-          InstanceGetterFunction<modules::_std::core::Vec4Constructor>>(),
+        make_object<modules::_std::core::Vec4Constructor>(),
         info.description())};
     }
   };

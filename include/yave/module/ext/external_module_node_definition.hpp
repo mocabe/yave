@@ -20,10 +20,10 @@ namespace yave {
   {
     external_module_node_definition(const node_definition& def)
     {
-      m_name          = def.name();
-      m_instanec_func = def.instance_getter();
-      m_output        = def.output_socket();
-      m_description   = def.description();
+      m_name        = def.name();
+      m_instance    = def.instance();
+      m_output      = def.output_socket();
+      m_description = def.description();
     }
 
     /// Get name
@@ -45,23 +45,22 @@ namespace yave {
     }
 
     /// Get instance generator function
-    [[nodiscard]] auto instance_getter() const
-      -> const object_ptr<const Object>&
+    [[nodiscard]] auto& instance() const
     {
-      return m_instanec_func;
+      return m_instance;
     }
 
     /// Convert to yave::bind info
     [[nodiscard]] auto node_definition() const -> node_definition
     {
-      return {name(), output_socket(), instance_getter(), description()};
+      return {name(), output_socket(), instance(), description()};
     }
 
   private:
-    string m_name;                            // 16
-    string m_description;                     // 16
-    uint64_t m_output;                        // 8
-    object_ptr<const Object> m_instanec_func; // 8
+    string m_name;                       // 16
+    string m_description;                // 16
+    uint64_t m_output;                   // 8
+    object_ptr<const Object> m_instance; // 8
   };
 
   static_assert(sizeof(external_module_node_definition) == 48);

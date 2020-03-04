@@ -61,14 +61,14 @@ struct yave::node_definition_traits<n::Add, test_backend>
     auto defi = node_definition(
       get_node_declaration<n::Add>().name(),
       0,
-      make_object<InstanceGetterFunction<AddI>>(),
+      make_object<AddI>(),
       "AddI");
 
     // Double version
     auto defd = node_definition(
       get_node_declaration<n::Add>().name(),
       0,
-      make_object<InstanceGetterFunction<AddD>>(),
+      make_object<AddD>(),
       "AddD");
 
     return {defi, defd};

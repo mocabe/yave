@@ -10,7 +10,6 @@
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_demand/frame_demand.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
-#include <yave/node/core/instance_getter.hpp>
 
 namespace yave {
 
@@ -35,8 +34,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<
-          InstanceGetterFunction<modules::_std::core::TimeConstructor>>(),
+        make_object<modules::_std::core::TimeConstructor>(),
         "Construct Time fromt Time")};
     }
   };

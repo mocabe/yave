@@ -7,6 +7,7 @@
 
 #include <yave/module/std/core/config.hpp>
 #include <yave/module/std/core/decl/list.hpp>
+#include <yave/node/core/function.hpp>
 
 namespace yave {
 
@@ -69,8 +70,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<
-          InstanceGetterFunction<yave::modules::_std::core::ListNil>>(),
+        make_object<yave::modules::_std::core::ListNil>(),
         info.name())};
     }
   };
@@ -84,8 +84,7 @@ namespace yave {
       return {node_definition(
         info.name(),
         0,
-        make_object<
-          InstanceGetterFunction<yave::modules::_std::core::ListCons>>(),
+        make_object<yave::modules::_std::core::ListCons>(),
         info.name())};
     }
   };
@@ -100,15 +99,13 @@ namespace yave {
       auto d1 = node_definition(
         info.name(),
         0,
-        make_object<
-          InstanceGetterFunction<yave::modules::_std::core::ListHead>>(),
+        make_object<yave::modules::_std::core::ListHead>(),
         info.description());
 
       auto d2 = node_definition(
         info.name(),
         1,
-        make_object<
-          InstanceGetterFunction<yave::modules::_std::core::ListTail>>(),
+        make_object<yave::modules::_std::core::ListTail>(),
         info.description());
 
       return {std::move(d1), std::move(d2)};

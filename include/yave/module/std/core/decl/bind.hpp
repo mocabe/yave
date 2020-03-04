@@ -22,7 +22,7 @@ namespace yave {
       return node_declaration(
         "Bind",
         "Apply argument to function",
-        "std::core::func",
+        "std::core::functional",
         {"fn", "arg"},
         {"fn"});
     }
