@@ -8,7 +8,7 @@
 #include <yave-imgui/editor/layout.hpp>
 
 #include <yave/lib/imgui/extension.hpp>
-#include <yave/module/std/core/decl/primitive.hpp>
+#include <yave/module/std/decl/prim/primitive.hpp>
 
 #include <yave/support/log.hpp>
 

@@ -6,7 +6,7 @@
 #include <yave/lib/imgui/imgui_context.hpp>
 
 #include <yave-imgui/editor/canvas.hpp>
-#include <yave/module/std/core/module_definition.hpp>
+#include <yave/module/std/module.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/obj/primitive/primitive.hpp>
@@ -23,11 +23,15 @@ int main()
 
   auto graph = std::make_shared<managed_node_graph>();
 
-  auto core = modules::_std::core::module();
+  scene_config config(1600, 900, 60, 44100, image_format::rgba32f);
+
+  auto _std = modules::_std::module();
+  _std.init(config);
+
   node_definition_store defs;
 
-  graph->register_node_decl(core.get_node_declarations());
-  defs.add(core.get_node_definitions());
+  graph->register_node_decl(_std.get_node_declarations());
+  defs.add(_std.get_node_definitions());
 
   graph->add_group_output_socket(graph->root_group(), "out");
 

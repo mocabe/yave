@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/parser/node_parser.hpp>
-#include <yave/module/std/core/decl/time.hpp>
+#include <yave/module/std/decl/time/time.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;

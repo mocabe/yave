@@ -5,9 +5,9 @@
 
 #include <yave/node/compiler/node_compiler.hpp>
 #include <yave/node/core/function.hpp>
-#include <yave/module/std/core/def/primitive.hpp>
-#include <yave/module/std/core/def/list.hpp>
-#include <yave/module/std/core/def/if.hpp>
+#include <yave/module/std/def/prim/primitive.hpp>
+#include <yave/module/std/def/list/list.hpp>
+#include <yave/module/std/def/logic/if.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
@@ -93,12 +93,12 @@ TEST_CASE("add", "[node_compiler]")
   auto add_decl    = get_node_declaration<n::Add>();
 
   auto add_defs    = get_node_definitions<n::Add, test_backend>();
-  auto int_defs    = get_node_definitions<node::Int, modules::_std::core::tag>();
-  auto bool_defs   = get_node_definitions<node::Bool, modules::_std::core::tag>();
-  auto float_defs  = get_node_definitions<node::String, modules::_std::core::tag>();
-  auto if_defs     = get_node_definitions<node::If, modules::_std::core::tag>();
-  auto nil_defs    = get_node_definitions<node::ListNil, modules::_std::core::tag>();
-  auto cons_defs   = get_node_definitions<node::ListCons, modules::_std::core::tag>();
+  auto int_defs    = get_node_definitions<node::Int, modules::_std::tag>();
+  auto bool_defs   = get_node_definitions<node::Bool, modules::_std::tag>();
+  auto float_defs  = get_node_definitions<node::String, modules::_std::tag>();
+  auto if_defs     = get_node_definitions<node::If, modules::_std::tag>();
+  auto nil_defs    = get_node_definitions<node::ListNil, modules::_std::tag>();
+  auto cons_defs   = get_node_definitions<node::ListCons, modules::_std::tag>();
 
   // clang-format on
 
