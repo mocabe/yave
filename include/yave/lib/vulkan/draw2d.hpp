@@ -10,7 +10,6 @@
 #include <yave/support/enum_flag.hpp>
 #include <glm/glm.hpp>
 #include <vector>
-#include <numeric>
 
 namespace yave::vulkan {
 
@@ -87,17 +86,18 @@ namespace yave::vulkan {
 
     auto total_vtx_count() const
     {
-      return std::accumulate(
-        draw_lists.begin(), draw_lists.end(), size_t(), [](auto acc, auto& dl) {
-          return acc + dl.vtx_buffer.size();
-        });
+      size_t sum = 0;
+      for (auto dl : draw_lists)
+        sum += dl.vtx_buffer.size();
+      return sum;
     }
+
     auto total_idx_count() const
     {
-      return std::accumulate(
-        draw_lists.begin(), draw_lists.end(), size_t(), [](auto acc, auto& dl) {
-          return acc + dl.idx_buffer.size();
-        });
+      size_t sum = 0;
+      for (auto dl : draw_lists)
+        sum += dl.idx_buffer.size();
+      return sum;
     }
   };
 
