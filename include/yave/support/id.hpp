@@ -14,7 +14,7 @@ namespace yave {
   /// Unique ID for object/nodes (64bit)
   struct uid
   {
-    uint64_t data;
+    uint64_t data = 0;
 
     /// Generate random id.
     [[nodiscard]] static uid random_generate();

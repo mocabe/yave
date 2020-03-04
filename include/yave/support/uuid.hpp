@@ -13,7 +13,7 @@ namespace yave {
   /// 128bit UUID
   struct uuid
   {
-    unsigned char data[16];
+    unsigned char data[16] = {0};
 
     /// Generate random UUID.
     [[nodiscard]] static uuid random_generate();
