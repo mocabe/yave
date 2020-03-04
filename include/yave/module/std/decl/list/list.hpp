@@ -55,7 +55,7 @@ namespace yave {
       return node_declaration(
         "ListDecompose",
         "Decompose list into head and tail",
-        "std::core::list",
+        "std::list",
         {"list"},
         {"head", "tail"});
     }

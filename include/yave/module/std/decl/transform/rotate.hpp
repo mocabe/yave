@@ -30,7 +30,7 @@ namespace yave {
       return node_declaration(
         "Rotate",
         "Rotate object around axis",
-        "std::core::geometry",
+        "std::transform",
         {"target", "deg", "axis", "transform"},
         {"out"},
         {{1, make_data_type_holder<Float>()},

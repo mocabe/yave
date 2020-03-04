@@ -107,7 +107,7 @@ namespace yave {
       return node_declaration(
         data_type_traits<T>::name,
         "Data type constructor",
-        "std::core::prim",
+        "std::prim",
         {"value"},
         {"value"},
         {{0, make_data_type_holder<T>()}});

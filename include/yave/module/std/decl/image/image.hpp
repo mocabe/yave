@@ -21,7 +21,7 @@ namespace yave {
     {
       return node_declaration(
         "Image",
-        "std::media::image",
+        "std::image",
         "Load image form file",
         {"file"},
         {"image"});
