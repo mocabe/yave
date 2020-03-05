@@ -31,10 +31,14 @@ namespace yave {
       // image representation
       frame_image_t image;
 
-      frame_table(uint32_t id, frame_image_t&& img)
+      frame_table(
+        uint32_t id,
+        uint32_t width,
+        uint32_t height,
+        std::pmr::memory_resource* mr)
         : refcount {1}
         , id {id}
-        , image {std::move(img)}
+        , image {width, height, 0, mr}
       {
       }
 
@@ -79,6 +83,8 @@ namespace yave {
     std::shared_mutex mtx;
     // pool
     object_ptr<const FrameBufferPool> pool_object;
+    // cached frame buffer
+    uid cached_empty_frame;
 
   public:
     impl(uint32_t width, uint32_t height, image_format format, uuid backend_id)
@@ -88,6 +94,9 @@ namespace yave {
       , fb_height {height}
       , fb_format {format}
     {
+      if (format != image_format::rgba32f)
+        throw std::runtime_error("Unsupported image format for frame buffer");
+
       // clang-format off
       // create pool object
       pool_object = make_object<FrameBufferPool>(
@@ -107,19 +116,28 @@ namespace yave {
 
     uid create() noexcept
     try {
+
+      // return cached object
+      if (cached_empty_frame != uid()) {
+        ref(cached_empty_frame);
+        return cached_empty_frame;
+      }
+
       std::unique_lock lck {mtx};
 
       auto id         = gen_id();
       auto [it, succ] = map.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(id),
-        std::forward_as_tuple(
-          id, frame_image_t(fb_width, fb_height, 0, &memory_resource)));
+        std::forward_as_tuple(id, fb_width, fb_height, &memory_resource));
 
       if (!succ)
         return uid();
 
-      return table_ptr_to_id(&it->second);
+      cached_empty_frame = table_ptr_to_id(&it->second);
+      ref(cached_empty_frame);
+      return cached_empty_frame;
+
     } catch (...) {
       return uid();
     }
