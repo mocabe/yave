@@ -7,12 +7,15 @@
 #include <yave/module/std/module.hpp>
 
 // module defs
+#include <yave/module/std/def/filesystem/path.hpp>
 #include <yave/module/std/def/geometry/vec.hpp>
+#include <yave/module/std/def/geometry/rect.hpp>
 #include <yave/module/std/def/image/image.hpp>
 #include <yave/module/std/def/list/list.hpp>
 #include <yave/module/std/def/logic/apply.hpp>
 #include <yave/module/std/def/logic/if.hpp>
 #include <yave/module/std/def/prim/primitive.hpp>
+#include <yave/module/std/def/render/frame.hpp>
 #include <yave/module/std/def/time/set_time.hpp>
 #include <yave/module/std/def/time/time.hpp>
 #include <yave/module/std/def/transform/transform.hpp>
@@ -32,11 +35,16 @@ namespace yave::modules::_std {
   namespace {
     struct module_resource
     {
-      module_resource(const scene_config&)
+      module_resource(const scene_config& config)
         : image_buff {module_id}
+        , frame_buff {config.width(),
+                      config.height(),
+                      config.frame_buffer_format(),
+                      module_id}
       {
       }
       image_buffer_manager image_buff;
+      frame_buffer_manager frame_buff;
     };
   } // namespace
 
@@ -91,9 +99,14 @@ namespace yave::modules::_std {
 
   auto module::get_node_declarations() const -> std::vector<node_declaration>
   {
-    return {get_node_declaration<node::Vec2>(),
+    auto& fmngr = m_pimpl->resource->frame_buff;
+
+    return {get_node_declaration<node::FilePath>(),
+            get_node_declaration<node::Vec2>(),
             get_node_declaration<node::Vec3>(),
             get_node_declaration<node::Vec4>(),
+            get_node_declaration<node::Rect2>(),
+            get_node_declaration<node::Rect3>(),
             get_node_declaration<node::Image>(),
             get_node_declaration<node::ListNil>(),
             get_node_declaration<node::ListCons>(),
@@ -104,6 +117,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::Float>(),
             get_node_declaration<node::Bool>(),
             get_node_declaration<node::String>(),
+            get_node_declaration<node::Frame>(),
             get_node_declaration<node::SetTime>(),
             get_node_declaration<node::Time>(),
             get_node_declaration<node::Transform>(),
@@ -125,12 +139,18 @@ namespace yave::modules::_std {
         ret.push_back(def);
     };
 
-    add(yave::get_node_definitions<node::Image, _std::tag>(
-      m_pimpl->resource->image_buff));
+    auto& imngr = m_pimpl->resource->image_buff;
+    auto& fmngr = m_pimpl->resource->frame_buff;
 
+    add(yave::get_node_definitions<node::Image, _std::tag>(imngr));
+    add(yave::get_node_definitions<node::Frame, _std::tag>(fmngr));
+
+    add(yave::get_node_definitions<node::FilePath, _std::tag>());
     add(yave::get_node_definitions<node::Vec2, _std::tag>());
     add(yave::get_node_definitions<node::Vec3, _std::tag>());
     add(yave::get_node_definitions<node::Vec4, _std::tag>());
+    add(yave::get_node_definitions<node::Rect2, _std::tag>());
+    add(yave::get_node_definitions<node::Rect3, _std::tag>());
     add(yave::get_node_definitions<node::ListNil, _std::tag>());
     add(yave::get_node_definitions<node::ListCons, _std::tag>());
     add(yave::get_node_definitions<node::ListDecompose, _std::tag>());
