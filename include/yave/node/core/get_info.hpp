@@ -25,10 +25,11 @@ namespace yave {
   };
 
   /// Get node declaration
-  template <class Tag>
-  [[nodiscard]] auto get_node_declaration() -> node_declaration
+  template <class Tag, class... Args>
+  [[nodiscard]] auto get_node_declaration(Args&&... args) -> node_declaration
   {
-    return node_declaration_traits<Tag>::get_node_declaration();
+    return node_declaration_traits<Tag>::get_node_declaration(
+      std::forward<Args>(args)...);
   }
 
   /// Get node definitions
