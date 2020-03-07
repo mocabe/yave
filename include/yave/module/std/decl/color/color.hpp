@@ -7,6 +7,7 @@
 
 #include <yave/node/core/get_info.hpp>
 #include <yave/obj/color/color.hpp>
+#include <yave/module/std/decl/prim/primitive.hpp>
 
 namespace yave {
 
@@ -21,7 +22,15 @@ namespace yave {
     static auto get_node_declaration()
     {
       return node_declaration(
-        "Color", "std::color", "Color", {"R", "G", "B", "A"}, {"color"});
+        "Color",
+        "std::color",
+        "Color",
+        {"R", "G", "B", "A"},
+        {"color"},
+        {{0, make_data_type_holder<Float>()},
+         {1, make_data_type_holder<Float>()},
+         {2, make_data_type_holder<Float>()},
+         {3, make_data_type_holder<Float>()}});
     }
   };
 } // namespace yave
