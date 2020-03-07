@@ -76,6 +76,25 @@ namespace yave::vulkan {
     std::vector<draw2d_vtx> vtx_buffer;
     /// Commands
     std::vector<draw2d_cmd> cmd_buffer;
+
+    /// Add polyline
+    void add_polyline(
+      const glm::vec2* ptr,
+      const size_t& size,
+      const glm::vec4& col,
+      const float& thickness,
+      const polyline_flags& flags,
+      const draw2d_clip& clip,
+      const draw2d_tex& tex);
+
+    // Add convex polygon
+    void add_polygon(
+      const glm::vec2* ptr,
+      const size_t& size,
+      const glm::vec4& col,
+      const polygon_flags&,
+      const draw2d_clip& clip,
+      const draw2d_tex& tex);
   };
 
   /// Draw data

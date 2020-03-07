@@ -10,6 +10,7 @@ add_library(yave-lib-vulkan
   vulkan_util.cpp
   offscreen_render_pass.cpp
   offscreen_renderer_2D.cpp
+  draw2d.cpp
 )
 
 add_library(yave::lib::vulkan ALIAS yave-lib-vulkan)
