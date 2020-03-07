@@ -577,6 +577,11 @@ namespace yave::vulkan {
       render_pass.end_pass();
     }
 
+    auto get_default_texture()
+    {
+      return draw2d_tex {default_texture.dsc_set.get()};
+    }
+
     auto add_texture(const boost::gil::rgba32fc_view_t& view) -> draw2d_tex
     {
       auto tex = create_texture_data(
@@ -659,6 +664,11 @@ namespace yave::vulkan {
   void rgba32f_offscreen_renderer_2D::render(const draw2d_data& draw_data)
   {
     m_pimpl->render(draw_data);
+  }
+
+  auto rgba32f_offscreen_renderer_2D::default_texture() const -> draw2d_tex
+  {
+    return m_pimpl->get_default_texture();
   }
 
   auto rgba32f_offscreen_renderer_2D::add_texture(

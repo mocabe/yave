@@ -45,6 +45,8 @@ namespace yave::vulkan {
     void render(const draw2d_data& draw_data);
 
   public:
+    /// Get default texture
+    [[nodiscard]] auto default_texture() const -> draw2d_tex;
     /// Add new texture
     [[nodiscard]] auto add_texture(const boost::gil::rgba32fc_view_t& view)
       -> draw2d_tex;
