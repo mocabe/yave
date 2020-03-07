@@ -72,6 +72,9 @@ namespace yave {
     /// Get bytes per pixel.
     [[nodiscard]] uint32_t byte_per_pixel() const noexcept;
 
+    /// Get bytes per row.
+    [[nodiscard]] uint32_t byte_per_row() const noexcept;
+
     /// Get total size in byte.
     [[nodiscard]] uint32_t byte_size() const noexcept;
 
@@ -143,6 +146,9 @@ namespace yave {
 
     /// Get bytes per pixel.
     [[nodiscard]] uint32_t byte_per_pixel() const noexcept;
+
+    /// Get bytes per row.
+    [[nodiscard]] uint32_t byte_per_row() const noexcept;
 
     /// Get total size in byte.
     [[nodiscard]] uint32_t byte_size() const noexcept;

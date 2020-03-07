@@ -102,6 +102,11 @@ namespace yave {
     return yave::byte_per_pixel(m_format);
   }
 
+  uint32_t mutable_image_view::byte_per_row() const noexcept
+  {
+    return yave::byte_per_pixel(m_format) * m_width;
+  }
+
   uint32_t mutable_image_view::byte_size() const noexcept
   {
     return stride() * m_height;
@@ -193,6 +198,11 @@ namespace yave {
   uint32_t const_image_view::byte_per_pixel() const noexcept
   {
     return yave::byte_per_pixel(m_format);
+  }
+
+  uint32_t const_image_view::byte_per_row() const noexcept
+  {
+    return yave::byte_per_pixel(m_format) * m_width;
   }
 
   uint32_t const_image_view::byte_size() const noexcept
