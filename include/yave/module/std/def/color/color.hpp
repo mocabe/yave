@@ -19,7 +19,7 @@ namespace yave {
       return_type code() const
       {
         return make_object<Color>(
-          eval_arg<0>(), eval_arg<1>(), eval_arg<2>(), eval_arg<3>());
+          *eval_arg<0>(), *eval_arg<1>(), *eval_arg<2>(), *eval_arg<3>());
       }
     };
   } // namespace modules::_std::color

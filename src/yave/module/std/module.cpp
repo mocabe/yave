@@ -7,6 +7,7 @@
 #include <yave/module/std/module.hpp>
 
 // module defs
+#include <yave/module/std/def/color/color.hpp>
 #include <yave/module/std/def/filesystem/path.hpp>
 #include <yave/module/std/def/geometry/vec.hpp>
 #include <yave/module/std/def/geometry/rect.hpp>
@@ -101,7 +102,8 @@ namespace yave::modules::_std {
   {
     auto& fmngr = m_pimpl->resource->frame_buff;
 
-    return {get_node_declaration<node::FilePath>(),
+    return {get_node_declaration<node::Color>(),
+            get_node_declaration<node::FilePath>(),
             get_node_declaration<node::Vec2>(),
             get_node_declaration<node::Vec3>(),
             get_node_declaration<node::Vec4>(),
@@ -145,6 +147,7 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Image, _std::tag>(imngr));
     add(yave::get_node_definitions<node::Frame, _std::tag>(fmngr));
 
+    add(yave::get_node_definitions<node::Color, _std::tag>());
     add(yave::get_node_definitions<node::FilePath, _std::tag>());
     add(yave::get_node_definitions<node::Vec2, _std::tag>());
     add(yave::get_node_definitions<node::Vec3, _std::tag>());
