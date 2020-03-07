@@ -6,7 +6,6 @@
 #include <yave/lib/vulkan/offscreen_render_pass.hpp>
 #include <yave/lib/vulkan/offscreen_renderer_2D.hpp>
 #include <yave/lib/glfw/glfw_context.hpp>
-#include <yave/lib/vulkan/image.hpp>
 #include <yave/lib/image/image.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/gil/extension/io/bmp.hpp>

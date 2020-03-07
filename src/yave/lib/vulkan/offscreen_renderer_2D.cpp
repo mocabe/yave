@@ -343,6 +343,9 @@ namespace {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
+    auto* mapped_vtx_buff = map_render_buffer(vtx_buff, device);
+    auto* mapped_idx_buff = map_render_buffer(idx_buff, device);
+
     size_t vtx_offset = 0;
     size_t idx_offset = 0;
     for (auto&& dl : draw_data.draw_lists) {
@@ -350,25 +353,15 @@ namespace {
       auto vtx_size = dl.vtx_buffer.size() * sizeof(draw2d_vtx);
       auto idx_size = dl.idx_buffer.size() * sizeof(draw2d_idx);
 
-      store_render_buffer(
-        vtx_buff,
-        (const std::byte*)dl.vtx_buffer.data(),
-        vtx_offset,
-        vtx_size,
-        device,
-        physicalDevice);
-
-      store_render_buffer(
-        idx_buff,
-        (const std::byte*)dl.idx_buffer.data(),
-        idx_offset,
-        idx_size,
-        device,
-        physicalDevice);
+      std::memcpy(mapped_vtx_buff + vtx_offset, dl.vtx_buffer.data(), vtx_size);
+      std::memcpy(mapped_idx_buff + idx_offset, dl.idx_buffer.data(), idx_size);
 
       vtx_offset += vtx_size;
       idx_offset += idx_size;
     }
+
+    unmap_render_buffer(vtx_buff, device);
+    unmap_render_buffer(idx_buff, device);
   }
 
   void prepareRenderData(

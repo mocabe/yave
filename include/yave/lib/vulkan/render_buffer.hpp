@@ -39,12 +39,12 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice);
 
-  /// Upload data to GPU
-  void store_render_buffer(
-    render_buffer& dst,
-    const std::byte* srcData,
-    const vk::DeviceSize& srcOffset,
-    const vk::DeviceSize& srcSize,
-    const vk::Device& device,
-    const vk::PhysicalDevice& physicalDevice);
-}
+  /// Map buffer
+  [[nodiscard]] auto map_render_buffer(
+    render_buffer& buff,
+    const vk::Device& device) -> std::byte*;
+
+  /// Unmap buffer
+  void unmap_render_buffer(render_buffer& buff, const vk::Device& device);
+
+} // namespace yave::vulkan

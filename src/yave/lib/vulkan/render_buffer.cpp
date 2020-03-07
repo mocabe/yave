@@ -91,23 +91,19 @@ namespace yave::vulkan {
     buff.buffer   = std::move(buffer);
   }
 
-  void store_render_buffer(
-    render_buffer& dst,
-    const std::byte* srcData,
-    const vk::DeviceSize& srcOffset,
-    const vk::DeviceSize& srcSize,
-    const vk::Device& device,
-    const vk::PhysicalDevice&)
+  auto map_render_buffer(render_buffer& buff, const vk::Device& device)
+    -> std::byte*
   {
-    assert(dst.size >= srcOffset + srcSize);
-    void* ptr = device.mapMemory(dst.memory.get(), srcOffset, srcSize);
-    std::memcpy(ptr, srcData, srcSize);
+    return (std::byte*)device.mapMemory(buff.memory.get(), 0, VK_WHOLE_SIZE);
+  }
 
-    // flush since buffers are non-coherent
+  void unmap_render_buffer(render_buffer& buff, const vk::Device& device)
+  {
     vk::MappedMemoryRange range;
-    range.memory = dst.memory.get();
+    range.offset = 0;
+    range.size   = VK_WHOLE_SIZE;
+    range.memory = buff.memory.get();
     device.flushMappedMemoryRanges(range);
-
-    device.unmapMemory(dst.memory.get());
+    device.unmapMemory(buff.memory.get());
   }
 }
