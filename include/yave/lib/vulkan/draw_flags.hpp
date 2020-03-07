@@ -17,6 +17,12 @@ namespace yave::vulkan {
     closed = 1 << 0,
   };
 
+  /// polygon options
+  enum class polygon_flags
+  {
+    // reserved
+  };
 }
 
 YAVE_DECL_ENUM_FLAG(yave::vulkan::polyline_flags);
+YAVE_DECL_ENUM_FLAG(yave::vulkan::polygon_flags);
