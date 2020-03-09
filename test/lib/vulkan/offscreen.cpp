@@ -18,9 +18,9 @@ using namespace vulkan;
 
 TEST_CASE("rgba32f compos pass")
 {
-  glfw::glfw_context glfw;
-  vulkan::vulkan_context ctx {glfw};
-  vulkan::rgba32f_offscreen_render_pass compos {160, 90, ctx};
+  vulkan::vulkan_context ctx;
+  vulkan::offscreen_context offscreen(ctx);
+  vulkan::rgba32f_offscreen_render_pass compos {160, 90, offscreen};
 
   boost::gil::rgba32f_image_t img {160, 90};
 
@@ -55,8 +55,7 @@ TEST_CASE("rgba32f compos pass")
 
 TEST_CASE("rgba32f compos 2D")
 {
-  glfw::glfw_context glfw {};
-  vulkan_context ctx {glfw};
+  vulkan_context ctx;
   uint32_t width  = 1280;
   uint32_t height = 720;
   rgba32f_offscreen_renderer_2D renderer(width, height, ctx);

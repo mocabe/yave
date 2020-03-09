@@ -77,22 +77,40 @@ namespace {
     return VK_FALSE;
   }
 
-  // platform surface extensions
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
-  //  VK_USE_PLATFORM_WIN32_KHR  - Microsoft Windows
+  // instance surface extension
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+  constexpr const char* PlatformSurfaceExtensionName =
+    VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
+#elif defined(VK_USE_PLATFORM_IOS_MVK)
+  constexpr const char* PlatformSurfaceExtensionName =
+    VK_MVK_IOS_SURFACE_EXTENSION_NAME;
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+  constexpr const char* PlatformSurfaceExtensionName =
+    VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
+#elif defined(VK_USE_PLATFORM_MIR_KHR)
+  constexpr const char* PlatformSurfaceExtensionName =
+    VK_KHR_MIR_SURFACE_EXTENSION_NAME;
+#elif defined(VK_USE_PLATFORM_VI_NN)
+  constexpr const char* PlatformSurfaceExtensionName =
+    VK_NN_VI_SURFACE_EXTENSION_NAME;
+#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
+  constexpr const char* PlatformSurfaceExtensionName =
+    VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
+#elif defined(VK_USE_PLATFORM_WIN32_KHR)
   constexpr const char* PlatformSurfaceExtensionName =
     VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
-  constexpr uint32_t PlatformSurfaceSpecVersion =
-    VK_KHR_WIN32_SURFACE_SPEC_VERSION;
+#elif defined(VK_USE_PLATFORM_XCB_KHR)
+  constexpr const char* PlatformSurfaceExtensionName =
+    VK_KHR_XCB_SURFACE_EXTENSION_NAME;
+#elif defined(VK_USE_PLATFORM_XLIB_KHR)
+  constexpr const char* PlatformSurfaceExtensionName =
+    VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+#elif defined(VK_USE_PLATFORM_XLIB_XRANDR_EXT)
+  constexpr const char* PlatformSurfaceExtensionName =
+    VK_EXT_ACQUIRE_XLIB_DISPLAY_EXTENSION_NAME;
 #else
-  // VK_USE_PLATFORM_ANDROID_KHR - Android
-  // VK_USE_PLATFORM_MIR_KHR     - Mir
-  // VK_USE_PLATFORM_WAYLAND_KHR - Wayland
-  // VK_USE_PLATFORM_XCB_KHR     - X Window System, using the XCB library
-  // VK_USE_PLATFORM_XLIB_KHR    - X Window System, using the Xlib libra
   constexpr const char* PlatformSurfaceExtensionName =
     VK_KHR_SURFACE_EXTENSION_NAME;
-  constexpr uint32_t PlatformSurfaceSpecVersion = VK_KHR_SURFACE_SPEC_VERSION;
 #endif
 
   // validation layer name
@@ -193,20 +211,11 @@ namespace {
   {
     using namespace yave;
 
-    // extensions required for glfw
-    uint32_t n_glfwExtensions = 0;
-    const char** glfwExtensions =
-      glfwGetRequiredInstanceExtensions(&n_glfwExtensions);
-
-    assert(glfwExtensions);
-
     // default extensions
     constexpr std::array extensions = {
       VK_KHR_SURFACE_EXTENSION_NAME, // for surface
       PlatformSurfaceExtensionName,  // for surface
     };
-
-    Info(g_logger, "Surface spec version: {}", PlatformSurfaceSpecVersion);
 
     // for validation layer
     constexpr const char* debugReportExtension = DebugReportExtensionName;
@@ -217,7 +226,6 @@ namespace {
 
     std::vector<std::string> ret;
 
-    ret.insert(ret.end(), glfwExtensions, glfwExtensions + n_glfwExtensions);
     ret.insert(ret.end(), extensions.begin(), extensions.end());
 
     if (enableValidationLayer) {
@@ -476,166 +484,6 @@ namespace {
     return physicalDevices[index];
   }
 
-  auto getGraphicsQueueIndex(const vk::PhysicalDevice& physicalDevice)
-    -> uint32_t
-  {
-    auto properties = physicalDevice.getQueueFamilyProperties();
-
-    for (uint32_t i = 0; i < properties.size(); ++i) {
-      if (properties[i].queueFlags & vk::QueueFlagBits::eGraphics)
-        return i;
-    }
-
-    throw std::runtime_error("Device does not support graphics queue");
-  }
-
-  auto getPresentQueueIndex(
-    uint32_t graphicsQueueIndex,
-    const vk::Instance& instance,
-    const vk::PhysicalDevice& physicalDevice) -> uint32_t
-  {
-    using namespace yave;
-
-    // when graphics queue supports presentation, use graphics queue.
-    if (glfwGetPhysicalDevicePresentationSupport(
-          instance, physicalDevice, graphicsQueueIndex)) {
-      return graphicsQueueIndex;
-    }
-
-    Warning(g_logger, "Graphics queue does not support presentation.");
-
-    auto queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
-    for (uint32_t index = 0; index < queueFamilyProperties.size(); ++index) {
-      auto support = glfwGetPhysicalDevicePresentationSupport(
-        instance, physicalDevice, index);
-
-      if (support)
-        return index;
-    }
-
-    throw std::runtime_error("Presentation is not supported on this device");
-  }
-
-  auto getDeviceExtensions() -> std::vector<std::string>
-  {
-    // default extensions
-    constexpr std::array extensions = {
-      VK_KHR_SWAPCHAIN_EXTENSION_NAME, // for swapchain
-    };
-
-    std::vector<std::string> ret;
-
-    ret.insert(ret.end(), extensions.begin(), extensions.end());
-
-    return ret;
-  }
-
-  auto getDeviceLayers() -> std::vector<std::string>
-  {
-    return {};
-  }
-
-  void checkDeviceExtensionSupport(
-    const std::vector<std::string>& extensions,
-    const vk::PhysicalDevice& physicalDevice)
-  {
-    auto supportedExtensions =
-      physicalDevice.enumerateDeviceExtensionProperties();
-
-    for (auto&& e : extensions) {
-      [&] {
-        for (auto&& supported : supportedExtensions) {
-          if (supported.extensionName == e)
-            return;
-        }
-        throw std::runtime_error("Device extension not supported");
-      }();
-    }
-  }
-
-  void checkDeviceLayerSupport(
-    const std::vector<std::string>& layers,
-    const vk::PhysicalDevice& physicalDevice)
-  {
-    auto supportedLayers = physicalDevice.enumerateDeviceLayerProperties();
-
-    for (auto&& l : layers) {
-      [&] {
-        for (auto&& supported : supportedLayers) {
-          if (supported.layerName == l)
-            return;
-        }
-        throw std::runtime_error("Device layer not supported");
-      }();
-    }
-  }
-
-  auto createDevice(
-    uint32_t graphicsQueueIndex,
-    uint32_t presentQueueIndex,
-    const vk::PhysicalDevice& physicalDevice) -> vk::UniqueDevice
-  {
-    std::vector queueFamilyIndicies = {graphicsQueueIndex, presentQueueIndex};
-
-    // Vulkan API requires queue family indicies to be unqiue.
-    {
-      std::sort(queueFamilyIndicies.begin(), queueFamilyIndicies.end());
-      auto end =
-        std::unique(queueFamilyIndicies.begin(), queueFamilyIndicies.end());
-      queueFamilyIndicies.erase(end, queueFamilyIndicies.end());
-    }
-
-    float queuePriority = 0.f;
-
-    std::vector<vk::DeviceQueueCreateInfo> createInfoList;
-    for (auto index : queueFamilyIndicies) {
-      vk::DeviceQueueCreateInfo info;
-      info.flags            = vk::DeviceQueueCreateFlags();
-      info.queueFamilyIndex = index;
-      info.queueCount       = 1;
-      info.pQueuePriorities = &queuePriority;
-      createInfoList.push_back(std::move(info));
-    }
-
-    auto extensions = getDeviceExtensions();
-    checkDeviceExtensionSupport(extensions, physicalDevice);
-
-    auto layers = getDeviceLayers();
-    checkDeviceLayerSupport(layers, physicalDevice);
-
-    std::vector<const char*> eNames;
-    std::vector<const char*> lNames;
-
-    lNames.reserve(layers.size());
-    for (auto&& l : layers) {
-      lNames.push_back(l.c_str());
-    }
-
-    eNames.reserve(extensions.size());
-    for (auto&& e : extensions) {
-      eNames.push_back(e.c_str());
-    }
-
-    vk::DeviceCreateInfo info;
-    info.flags                   = vk::DeviceCreateFlags();
-    info.pQueueCreateInfos       = createInfoList.data();
-    info.queueCreateInfoCount    = (uint32_t)createInfoList.size();
-    info.ppEnabledLayerNames     = lNames.data();
-    info.enabledLayerCount       = (uint32_t)lNames.size();
-    info.ppEnabledExtensionNames = eNames.data();
-    info.enabledExtensionCount   = (uint32_t)eNames.size();
-    info.pEnabledFeatures = nullptr; // TODO: enable only reauired features.
-
-    return physicalDevice.createDeviceUnique(info);
-  }
-
-  auto getDeviceQueue(uint32_t queueFamilyIndex, const vk::Device& device)
-    -> vk::Queue
-  {
-    // Assume only single queue is initialized.
-    return device.getQueue(queueFamilyIndex, 0);
-  }
-
 } // namespace
 
 namespace yave::vulkan {
@@ -646,20 +494,10 @@ namespace yave::vulkan {
   class vulkan_context::impl
   {
   public:
-    impl() = default;
-
-    // glfw
-    glfw::glfw_context* glfw;
-
-    /* instance */
-
     /// instance
     vk::UniqueInstance instance;
     /// validation callback
     vk::UniqueDebugReportCallbackEXT debugCallback;
-
-    /* physical device */
-
     /// physical device
     vk::PhysicalDevice physicalDevice;
     /// property of physical device
@@ -667,21 +505,119 @@ namespace yave::vulkan {
     /// queue family property of physical device
     std::vector<vk::QueueFamilyProperties> physicalDeviceQueueFamilyProperties;
 
-    /* device queue */
+  public:
+    impl(init_flags flags)
+    {
+      init_logger();
 
-    /// index of graphics queue
-    uint32_t graphicsQueueIndex;
-    /// graphics queue
-    vk::Queue graphicsQueue;
-    /// index of present queue
-    uint32_t presentQueueIndex;
-    /// present queue
-    vk::Queue presentQueue;
+      if (!(flags & init_flags::enable_logging))
+        g_logger->set_level(spdlog::level::off);
 
-    /* logical device */
+      /* instance */
 
-    /// device
-    vk::UniqueDevice device;
+      bool enableValidationLayer = !!(flags & init_flags::enable_validation);
+
+      instance = createInstance(enableValidationLayer);
+      debugCallback =
+        createDebugReportCallback(enableValidationLayer, instance.get());
+
+      /* physical device */
+
+      physicalDevice           = acquirePhysicalDevice(instance.get());
+      physicalDeviceProperties = physicalDevice.getProperties();
+      physicalDeviceQueueFamilyProperties =
+        physicalDevice.getQueueFamilyProperties();
+
+      Info(g_logger, "Initialized Vulkan context");
+    }
+
+    bool check_physical_device_extension_support(
+      const std::vector<std::string>& extensions)
+    {
+      auto supportedExtensions =
+        physicalDevice.enumerateDeviceExtensionProperties();
+
+      for (auto&& e : extensions) {
+        auto it = std::find_if(
+          supportedExtensions.begin(), supportedExtensions.end(), [&](auto& x) {
+            return x.extensionName == e;
+          });
+        if (it == supportedExtensions.end())
+          return false;
+      }
+      return true;
+    }
+
+    bool check_physical_device_layer_support(
+      const std::vector<std::string>& layers)
+    {
+      auto supportedLayers = physicalDevice.enumerateDeviceLayerProperties();
+
+      for (auto&& l : layers) {
+        auto it = std::find_if(
+          supportedLayers.begin(), supportedLayers.end(), [&](auto& x) {
+            return x.layerName == l;
+          });
+        if (it == supportedLayers.end())
+          return false;
+      }
+      return true;
+    }
+
+    auto create_device(
+      std::vector<uint32_t> queueIndicies,
+      const std::vector<std::string>& extensions,
+      const std::vector<std::string>& layers)
+    {
+      // Vulkan API requires queue family indicies to be unqiue.
+      {
+        std::sort(queueIndicies.begin(), queueIndicies.end());
+        auto end = std::unique(queueIndicies.begin(), queueIndicies.end());
+        queueIndicies.erase(end, queueIndicies.end());
+      }
+
+      float queuePriority = 0.f;
+
+      std::vector<vk::DeviceQueueCreateInfo> createInfoList;
+      for (auto index : queueIndicies) {
+        vk::DeviceQueueCreateInfo info;
+        info.flags            = vk::DeviceQueueCreateFlags();
+        info.queueFamilyIndex = index;
+        info.queueCount       = 1;
+        info.pQueuePriorities = &queuePriority;
+        createInfoList.push_back(std::move(info));
+      }
+
+      if (!check_physical_device_extension_support(extensions))
+        throw std::runtime_error("Device extension not supported");
+      if (!check_physical_device_layer_support(layers))
+        throw std::runtime_error("Device layer not supported");
+
+      std::vector<const char*> eNames;
+      std::vector<const char*> lNames;
+
+      lNames.reserve(layers.size());
+      for (auto&& l : layers) {
+        lNames.push_back(l.c_str());
+      }
+
+      eNames.reserve(extensions.size());
+      for (auto&& e : extensions) {
+        eNames.push_back(e.c_str());
+      }
+
+      vk::DeviceCreateInfo info;
+      info.flags                   = vk::DeviceCreateFlags();
+      info.pQueueCreateInfos       = createInfoList.data();
+      info.queueCreateInfoCount    = (uint32_t)createInfoList.size();
+      info.ppEnabledLayerNames     = lNames.data();
+      info.enabledLayerCount       = (uint32_t)lNames.size();
+      info.ppEnabledExtensionNames = eNames.data();
+      info.enabledExtensionCount   = (uint32_t)eNames.size();
+      info.pEnabledFeatures = nullptr; // TODO: enable only reauired features.
+
+      return physicalDevice.createDeviceUnique(info);
+    }
   };
 
   auto vulkan_context::_init_flags() noexcept -> init_flags
@@ -689,72 +625,9 @@ namespace yave::vulkan {
     return init_flags::enable_validation | init_flags::enable_logging;
   }
 
-  vulkan_context::vulkan_context(
-    [[maybe_unused]] glfw::glfw_context& glfw_ctx,
-    init_flags flags)
+  vulkan_context::vulkan_context(init_flags flags)
   {
-    init_logger();
-
-    if (!glfwVulkanSupported())
-      throw std::runtime_error("GLFW could not find Vulkan");
-
-    if (!(flags & init_flags::enable_logging))
-      g_logger->set_level(spdlog::level::off);
-
-    Info(g_logger, "Initializing vulkan_context");
-
-    /// pimpl
-    auto impl = std::make_unique<vulkan_context::impl>();
-
-    // glfw
-    impl->glfw = &glfw_ctx;
-
-    /* instance */
-
-    bool enableValidationLayer = !!(flags & init_flags::enable_validation);
-
-    impl->instance = createInstance(enableValidationLayer);
-    impl->debugCallback =
-      createDebugReportCallback(enableValidationLayer, impl->instance.get());
-
-    /* physical device */
-
-    impl->physicalDevice = acquirePhysicalDevice(impl->instance.get());
-    impl->physicalDeviceProperties = impl->physicalDevice.getProperties();
-    impl->physicalDeviceQueueFamilyProperties =
-      impl->physicalDevice.getQueueFamilyProperties();
-
-    /* device queue settings */
-
-    impl->graphicsQueueIndex = getGraphicsQueueIndex(impl->physicalDevice);
-
-    Info(g_logger, "Graphs queue idex: {}", impl->graphicsQueueIndex);
-
-    impl->presentQueueIndex = getPresentQueueIndex(
-      impl->graphicsQueueIndex, impl->instance.get(), impl->physicalDevice);
-
-    Info(g_logger, "Presentation queue index: {}", impl->presentQueueIndex);
-
-    /* logical device */
-
-    impl->device = createDevice(
-      impl->graphicsQueueIndex, impl->presentQueueIndex, impl->physicalDevice);
-
-    Info(g_logger, "Created new logical device");
-
-    /* get queue */
-
-    impl->graphicsQueue =
-      getDeviceQueue(impl->graphicsQueueIndex, impl->device.get());
-    impl->presentQueue =
-      getDeviceQueue(impl->presentQueueIndex, impl->device.get());
-
-    if (impl->graphicsQueueIndex == impl->presentQueueIndex) {
-      assert(impl->graphicsQueue == impl->presentQueue);
-    }
-
-    m_pimpl = std::move(impl);
-    Info(g_logger, "Initialized Vulkan context");
+    m_pimpl = std::make_unique<impl>(flags);
   }
 
   vulkan_context::~vulkan_context() noexcept
@@ -772,29 +645,35 @@ namespace yave::vulkan {
     return m_pimpl->physicalDevice;
   }
 
-  auto vulkan_context::device() const -> vk::Device
+  auto vulkan_context::physical_device_properties() const
+    -> const vk::PhysicalDeviceProperties&
   {
-    return m_pimpl->device.get();
+    return m_pimpl->physicalDeviceProperties;
   }
 
-  auto vulkan_context::graphics_queue_family_index() const -> uint32_t
+  auto vulkan_context::physical_device_queue_properties() const
+    -> const std::vector<vk::QueueFamilyProperties>&
   {
-    return m_pimpl->graphicsQueueIndex;
+    return m_pimpl->physicalDeviceQueueFamilyProperties;
   }
 
-  auto vulkan_context::graphics_queue() const -> vk::Queue
+  bool vulkan_context::check_physical_device_extension_support(
+    const std::vector<std::string>& extensions) const
   {
-    return m_pimpl->graphicsQueue;
+    return m_pimpl->check_physical_device_extension_support(extensions);
   }
 
-  auto vulkan_context::present_queue_family_index() const -> uint32_t
+  bool vulkan_context::check_physical_device_layer_support(
+    const std::vector<std::string>& layers) const
   {
-    return m_pimpl->presentQueueIndex;
+    return m_pimpl->check_physical_device_layer_support(layers);
   }
 
-  auto vulkan_context::present_queue() const -> vk::Queue
+  auto vulkan_context::create_device(
+    const std::vector<uint32_t> queue_indicies,
+    const std::vector<std::string>& extensions,
+    const std::vector<std::string>& layers) -> vk::UniqueDevice
   {
-    return m_pimpl->presentQueue;
+    return m_pimpl->create_device(queue_indicies, extensions, layers);
   }
-
 } // namespace yave::vulkan

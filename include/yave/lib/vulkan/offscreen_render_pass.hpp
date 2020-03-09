@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/lib/vulkan/vulkan_context.hpp>
+#include <yave/lib/vulkan/offscreen_context.hpp>
 #include <yave/lib/frame_buffer/frame_buffer.hpp>
 
 #include <boost/gil.hpp>
@@ -24,17 +25,21 @@ namespace yave::vulkan {
     rgba32f_offscreen_render_pass(
       uint32_t width,
       uint32_t height,
-      vulkan_context& ctx);
+      offscreen_context& ctx);
 
     ~rgba32f_offscreen_render_pass() noexcept;
 
   public:
+    /// get parent
+    [[nodiscard]] auto offscreen_ctx() -> offscreen_context&;
+
+  public:
     /// width
-    auto width() const noexcept -> uint32_t;
+    [[nodiscard]] auto width() const noexcept -> uint32_t;
     /// height
-    auto height() const noexcept -> uint32_t;
+    [[nodiscard]] auto height() const noexcept -> uint32_t;
     /// format
-    auto format() const noexcept -> image_format;
+    [[nodiscard]] auto format() const noexcept -> image_format;
 
   public:
     /// Store frame onto existing image.
@@ -45,32 +50,32 @@ namespace yave::vulkan {
 
   public:
     /// frame buffer extent
-    auto frame_extent() const noexcept -> vk::Extent2D;
+    [[nodiscard]] auto frame_extent() const noexcept -> vk::Extent2D;
     /// frame buffer image.
     /// should be general layout, single layered image.
     /// specified usage:
     /// * color attachment
     /// * transfer src
     /// * transfer dst
-    auto frame_image() const noexcept -> vk::Image;
+    [[nodiscard]] auto frame_image() const noexcept -> vk::Image;
     /// frame buffer image view
-    auto frame_image_view() const noexcept -> vk::ImageView;
+    [[nodiscard]] auto frame_image_view() const noexcept -> vk::ImageView;
     /// frame buffer image format
-    auto frame_format() const noexcept -> vk::Format;
+    [[nodiscard]] auto frame_format() const noexcept -> vk::Format;
     /// frame buffer device local memory.
-    auto frame_memory() const noexcept -> vk::DeviceMemory;
+    [[nodiscard]] auto frame_memory() const noexcept -> vk::DeviceMemory;
     /// frame buffer
-    auto frame_buffer() const noexcept -> vk::Framebuffer;
+    [[nodiscard]] auto frame_buffer() const noexcept -> vk::Framebuffer;
     /// command pool
-    auto command_pool() const noexcept -> vk::CommandPool;
+    [[nodiscard]] auto command_pool() const noexcept -> vk::CommandPool;
     /// command buffer which will be used for begin_draw() and begin_end()
-    auto command_buffer() const noexcept -> vk::CommandBuffer;
+    [[nodiscard]] auto command_buffer() const noexcept -> vk::CommandBuffer;
     /// render pass
-    auto render_pass() const noexcept -> vk::RenderPass;
+    [[nodiscard]] auto render_pass() const noexcept -> vk::RenderPass;
 
   public:
     /// Start command buffer to record draw call
-    auto begin_pass() -> vk::CommandBuffer;
+    [[nodiscard]] auto begin_pass() -> vk::CommandBuffer;
     /// End command buffer and send to GPU
     void end_pass();
     /// Wait render

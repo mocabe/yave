@@ -874,7 +874,7 @@ namespace yave::imgui {
     uint32_t height,
     const char* windowName)
     : glfwCtx {glfw_flags}
-    , vulkanCtx {glfwCtx, vulkan_flags}
+    , vulkanCtx {vulkan_flags}
     , glfwWindow {glfwCtx.create_window(widt, height, windowName)}
     , windowCtx {vulkanCtx, glfwWindow}
     , imCtx {ImGui::CreateContext()}
@@ -958,28 +958,28 @@ namespace yave::imgui {
     /* prepare uploading font texture */
     {
       m_pimpl->fontSampler =
-        createImGuiFontSampler(m_pimpl->vulkanCtx.device());
+        createImGuiFontSampler(m_pimpl->windowCtx.device());
       Info(g_logger, "Created ImGui font sampler");
     }
 
     {
       m_pimpl->descriptorPool =
-        createImGuiDescriptorPool(m_pimpl->vulkanCtx.device());
+        createImGuiDescriptorPool(m_pimpl->windowCtx.device());
       m_pimpl->descriptorSetLayout = createImGuiDescriptorSetLayout(
-        m_pimpl->fontSampler.get(), m_pimpl->vulkanCtx.device());
+        m_pimpl->fontSampler.get(), m_pimpl->windowCtx.device());
       Info(g_logger, "Created ImGui descriptor set");
     }
 
     {
-      m_pimpl->pipelineCache = createPipelineCache(m_pimpl->vulkanCtx.device());
+      m_pimpl->pipelineCache = createPipelineCache(m_pimpl->windowCtx.device());
       m_pimpl->pipelineLayout = createImGuiPipelineLayout(
-        m_pimpl->descriptorSetLayout.get(), m_pimpl->vulkanCtx.device());
+        m_pimpl->descriptorSetLayout.get(), m_pimpl->windowCtx.device());
       m_pimpl->pipeline = createImGuiPipeline(
         m_pimpl->windowCtx.swapchain_extent(),
         m_pimpl->windowCtx.render_pass(),
         m_pimpl->pipelineCache.get(),
         m_pimpl->pipelineLayout.get(),
-        m_pimpl->vulkanCtx.device());
+        m_pimpl->windowCtx.device());
 
       Info(g_logger, "Created ImGui pipeline");
     }
@@ -990,7 +990,7 @@ namespace yave::imgui {
       auto [imageMemory, image, imageView] = createImGuiFontTexture(
         m_pimpl->windowCtx,
         m_pimpl->vulkanCtx.physical_device(),
-        m_pimpl->vulkanCtx.device());
+        m_pimpl->windowCtx.device());
       m_pimpl->fontImageMemory = std::move(imageMemory);
       m_pimpl->fontImage       = std::move(image);
       m_pimpl->fontImageView   = std::move(imageView);
@@ -1003,7 +1003,7 @@ namespace yave::imgui {
       m_pimpl->descriptorSet = createImGuiDescriptorSet(
         m_pimpl->descriptorPool.get(),
         m_pimpl->descriptorSetLayout.get(),
-        m_pimpl->vulkanCtx.device());
+        m_pimpl->windowCtx.device());
 
       vk::DescriptorImageInfo info;
       info.sampler     = m_pimpl->fontSampler.get();
@@ -1016,7 +1016,7 @@ namespace yave::imgui {
       write.descriptorType  = vk::DescriptorType::eCombinedImageSampler;
       write.pImageInfo      = &info;
 
-      m_pimpl->vulkanCtx.device().updateDescriptorSets(write, {});
+      m_pimpl->windowCtx.device().updateDescriptorSets(write, {});
 
       // set font texture ID
       ImGui::GetIO().Fonts->TexID =
@@ -1039,7 +1039,7 @@ namespace yave::imgui {
   {
     Info(g_logger, "Destroying ImGui context");
     // wait idle
-    m_pimpl->vulkanCtx.device().waitIdle();
+    m_pimpl->windowCtx.device().waitIdle();
     // unbind GLFW
     ImGui_ImplGlfw_Shutdown();
   }
@@ -1091,7 +1091,7 @@ namespace yave::imgui {
 
       // device
       auto physicalDevice = m_pimpl->vulkanCtx.physical_device();
-      auto device         = m_pimpl->vulkanCtx.device();
+      auto device         = m_pimpl->windowCtx.device();
 
       /* Resize buffers vector to match current in-flight frames */
       {
@@ -1293,10 +1293,10 @@ namespace yave::imgui {
       return ImTextureID();
     }
 
-    auto device           = m_pimpl->vulkanCtx.device();
+    auto device           = m_pimpl->windowCtx.device();
     auto physicalDevice   = m_pimpl->vulkanCtx.physical_device();
     auto commandPool      = m_pimpl->windowCtx.command_pool();
-    auto queue            = m_pimpl->vulkanCtx.graphics_queue();
+    auto queue            = m_pimpl->windowCtx.graphics_queue();
     auto descriptorPool   = m_pimpl->descriptorPool.get();
     auto descriptorLayout = m_pimpl->descriptorSetLayout.get();
 

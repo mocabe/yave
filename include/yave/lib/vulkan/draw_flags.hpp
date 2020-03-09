@@ -24,5 +24,5 @@ namespace yave::vulkan {
   };
 }
 
-YAVE_DECL_ENUM_FLAG(yave::vulkan::polyline_flags);
-YAVE_DECL_ENUM_FLAG(yave::vulkan::polygon_flags);
+YAVE_DECL_ENUM_FLAG(yave::vulkan::polyline_flags)
+YAVE_DECL_ENUM_FLAG(yave::vulkan::polygon_flags)

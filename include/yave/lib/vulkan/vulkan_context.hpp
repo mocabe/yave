@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <yave/lib/glfw/glfw_context.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
 #include <yave/support/enum_flag.hpp>
 
@@ -26,9 +25,7 @@ namespace yave::vulkan {
 
   public:
     /// Ctor.
-    vulkan_context(
-      glfw::glfw_context& glfw_ctx,
-      init_flags flags = _init_flags());
+    vulkan_context(init_flags flags = _init_flags());
     /// Dtor.
     ~vulkan_context() noexcept;
 
@@ -37,16 +34,25 @@ namespace yave::vulkan {
     [[nodiscard]] auto instance() const -> vk::Instance;
     /// Get physical device.
     [[nodiscard]] auto physical_device() const -> vk::PhysicalDevice;
-    /// Get device.
-    [[nodiscard]] auto device() const -> vk::Device;
-    /// Get graphics queue index
-    [[nodiscard]] auto graphics_queue_family_index() const -> uint32_t;
-    /// Get graphics queue
-    [[nodiscard]] auto graphics_queue() const -> vk::Queue;
-    /// Get present queue index
-    [[nodiscard]] auto present_queue_family_index() const -> uint32_t;
-    /// Get present queue
-    [[nodiscard]] auto present_queue() const -> vk::Queue;
+
+  public:
+    [[nodiscard]] auto physical_device_properties() const
+      -> const vk::PhysicalDeviceProperties&;
+    [[nodiscard]] auto physical_device_queue_properties() const
+      -> const std::vector<vk::QueueFamilyProperties>&;
+
+  public: /* utility */
+    /// validate extensions
+    [[nodiscard]] bool check_physical_device_extension_support(
+      const std::vector<std::string>& extensions) const;
+    /// validate extensions
+    [[nodiscard]] bool check_physical_device_layer_support(
+      const std::vector<std::string>& layers) const;
+    /// create logical deviec
+    [[nodiscard]] auto create_device(
+      const std::vector<uint32_t> queue_indicies,
+      const std::vector<std::string>& extensions,
+      const std::vector<std::string>& layers) -> vk::UniqueDevice;
 
   private:
     class impl;
@@ -55,4 +61,4 @@ namespace yave::vulkan {
 
 } // namespace yave::vulkan
 
-YAVE_DECL_ENUM_FLAG(yave::vulkan::vulkan_context::init_flags);
+YAVE_DECL_ENUM_FLAG(yave::vulkan::vulkan_context::init_flags)

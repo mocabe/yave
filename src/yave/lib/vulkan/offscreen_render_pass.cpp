@@ -137,7 +137,7 @@ namespace yave::vulkan {
     using pixel_type     = typename pixel_loc_type::value_type;
 
   public:
-    vulkan_context& context;
+    offscreen_context& offscreen_ctx;
 
   public:
     vk::UniqueCommandPool command_pool;
@@ -152,8 +152,11 @@ namespace yave::vulkan {
     vk::UniqueFence submit_fence;
 
   public:
-    composition_pass_impl(uint32_t width, uint32_t height, vulkan_context& ctx)
-      : context {ctx}
+    composition_pass_impl(
+      uint32_t width,
+      uint32_t height,
+      offscreen_context& ctx)
+      : offscreen_ctx {ctx}
     {
       init_logger();
 
@@ -165,14 +168,14 @@ namespace yave::vulkan {
 
       // create command pool for graphics
       command_pool =
-        createCommandPool(ctx.graphics_queue_family_index(), ctx.device());
+        createCommandPool(ctx.graphics_queue_index(), ctx.device());
 
       // command buffer for rendering
       command_buffer = std::move(createCommandBuffers(
         1,
         vk::CommandBufferLevel::ePrimary,
         command_pool.get(),
-        context.device())[0]);
+        ctx.device())[0]);
 
       // create fence
       submit_fence =
@@ -185,7 +188,7 @@ namespace yave::vulkan {
         command_pool.get(),
         render_pass.get(),
         ctx.device(),
-        ctx.physical_device());
+        ctx.vulkan_ctx().physical_device());
 
       clear_offscreen_frame_data(
         frame_data,
@@ -193,12 +196,12 @@ namespace yave::vulkan {
         ctx.graphics_queue(),
         command_pool.get(),
         ctx.device(),
-        ctx.physical_device());
+        ctx.vulkan_ctx().physical_device());
     }
 
     ~composition_pass_impl() noexcept
     {
-      context.device().waitIdle();
+      offscreen_ctx.device().waitIdle();
     }
 
     void store_frame(
@@ -218,10 +221,10 @@ namespace yave::vulkan {
         frame_data,
         reinterpret_cast<const std::byte*>(view.row_begin(0)),
         view.size() * sizeof(pixel_type),
-        context.graphics_queue(),
+        offscreen_ctx.graphics_queue(),
         command_pool.get(),
-        context.device(),
-        context.physical_device());
+        offscreen_ctx.device(),
+        offscreen_ctx.vulkan_ctx().physical_device());
     }
 
     void load_frame(const boost::gil::image_view<pixel_loc_type>& view)
@@ -240,10 +243,10 @@ namespace yave::vulkan {
         frame_data,
         reinterpret_cast<std::byte*>(view.row_begin(0)),
         view.size() * sizeof(pixel_type),
-        context.graphics_queue(),
+        offscreen_ctx.graphics_queue(),
         command_pool.get(),
-        context.device(),
-        context.physical_device());
+        offscreen_ctx.device(),
+        offscreen_ctx.vulkan_ctx().physical_device());
     }
 
     auto begin_pass() -> vk::CommandBuffer
@@ -291,10 +294,10 @@ namespace yave::vulkan {
         info.pCommandBuffers    = &command_buffer.get();
 
         // clear before submit
-        context.device().resetFences(submit_fence.get());
+        offscreen_ctx.device().resetFences(submit_fence.get());
 
         auto err =
-          context.graphics_queue().submit(1, &info, submit_fence.get());
+          offscreen_ctx.graphics_queue().submit(1, &info, submit_fence.get());
 
         if (err != vk::Result::eSuccess)
           throw std::runtime_error(
@@ -304,7 +307,7 @@ namespace yave::vulkan {
 
     void wait_draw()
     {
-      context.device().waitForFences(
+      offscreen_ctx.device().waitForFences(
         submit_fence.get(), true, std::numeric_limits<uint64_t>::max());
     }
   };
@@ -318,13 +321,18 @@ namespace yave::vulkan {
   rgba32f_offscreen_render_pass::rgba32f_offscreen_render_pass(
     uint32_t width,
     uint32_t height,
-    vulkan_context& ctx)
+    offscreen_context& ctx)
     : m_pimpl {std::make_unique<impl>(width, height, ctx)}
   {
   }
 
   rgba32f_offscreen_render_pass::~rgba32f_offscreen_render_pass() noexcept
   {
+  }
+
+  auto rgba32f_offscreen_render_pass::offscreen_ctx() -> offscreen_context&
+  {
+    return m_pimpl->offscreen_ctx;
   }
 
   auto rgba32f_offscreen_render_pass::width() const noexcept -> uint32_t

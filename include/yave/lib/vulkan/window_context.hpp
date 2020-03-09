@@ -6,21 +6,39 @@
 #pragma once
 
 #include <yave/lib/vulkan/vulkan_context.hpp>
+#include <yave/lib/glfw/glfw_context.hpp>
 
 namespace yave::vulkan {
 
-  /// glfw/vulkan window context
+  /// glfw/vulkan window context.
   class window_context
   {
   public:
     /// Ctor
     window_context(vulkan_context& ctx, glfw::glfw_window& win);
-    /// Move window context.
-    window_context(window_context&& other) noexcept;
     /// Dtor
     ~window_context() noexcept;
 
+    window_context(window_context&&) noexcept = default;
+    window_context& operator=(window_context&&) noexcept = default;
+
+  public: /* parent */
+    /// Get parent ref
+    [[nodiscard]] auto vulkan_ctx() -> vulkan_context&;
+    /// Get parent ref
+    [[nodiscard]] auto glfw_win() -> glfw::glfw_window&;
+
   public: /* data access */
+    /// Get logical device
+    [[nodiscard]] auto device() const -> vk::Device;
+    /// Get queue index
+    [[nodiscard]] auto graphics_queue_index() const -> uint32_t;
+    /// Get queue index
+    [[nodiscard]] auto present_queue_index() const -> uint32_t;
+    /// Get queue
+    [[nodiscard]] auto graphics_queue() const -> vk::Queue;
+    /// Get queue
+    [[nodiscard]] auto present_queue() const -> vk::Queue;
     /// Get surface
     [[nodiscard]] auto surface() const -> vk::SurfaceKHR;
     /// Get swapchain
@@ -45,8 +63,6 @@ namespace yave::vulkan {
       -> std::vector<vk::CommandBuffer>;
 
   public: /* window state */
-    /// Get window
-    [[nodiscard]] auto window() const -> GLFWwindow*;
     /// Check if frame buffer is resized.
     [[nodiscard]] bool resized() const;
     /// Check if widnow should close.

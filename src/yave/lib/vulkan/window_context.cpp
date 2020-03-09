@@ -12,6 +12,72 @@ YAVE_DECL_G_LOGGER(vulkan)
 
 namespace {
 
+  auto getGraphicsQueueIndex(const vk::PhysicalDevice& physicalDevice)
+    -> uint32_t
+  {
+    auto properties = physicalDevice.getQueueFamilyProperties();
+
+    for (uint32_t i = 0; i < properties.size(); ++i) {
+      if (properties[i].queueFlags & vk::QueueFlagBits::eGraphics)
+        return i;
+    }
+
+    throw std::runtime_error("Device does not support graphics queue");
+  }
+
+  auto getPresentQueueIndex(
+    uint32_t graphicsQueueIndex,
+    const vk::Instance& instance,
+    const vk::PhysicalDevice& physicalDevice) -> uint32_t
+  {
+    using namespace yave;
+
+    // when graphics queue supports presentation, use graphics queue.
+    if (glfwGetPhysicalDevicePresentationSupport(
+          instance, physicalDevice, graphicsQueueIndex)) {
+      return graphicsQueueIndex;
+    }
+
+    Warning(g_logger, "Graphics queue does not support presentation.");
+
+    auto queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
+    for (uint32_t index = 0; index < queueFamilyProperties.size(); ++index) {
+      auto support = glfwGetPhysicalDevicePresentationSupport(
+        instance, physicalDevice, index);
+
+      if (support)
+        return index;
+    }
+
+    throw std::runtime_error("Presentation is not supported on this device");
+  }
+
+  auto getDeviceExtensions() -> std::vector<std::string>
+  {
+    // default extensions
+    constexpr std::array extensions = {
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME, // for swapchain
+    };
+
+    std::vector<std::string> ret;
+
+    ret.insert(ret.end(), extensions.begin(), extensions.end());
+
+    return ret;
+  }
+
+  auto getDeviceLayers() -> std::vector<std::string>
+  {
+    return {};
+  }
+
+  auto getDeviceQueue(uint32_t queueFamilyIndex, const vk::Device& device)
+    -> vk::Queue
+  {
+    // Assume only single queue is initialized.
+    return device.getQueue(queueFamilyIndex, 0);
+  }
+
   auto createWindowSurface(GLFWwindow* window, const vk::Instance& instance)
     -> vk::UniqueSurfaceKHR
   {
@@ -460,9 +526,23 @@ namespace yave::vulkan {
   {
   public:
     impl(vulkan_context& vk_ctx, glfw::glfw_window& glfw_win);
+    ~impl() noexcept;
 
   public:
+    vulkan_context& vulkan_ctx;  // non-owning
+    glfw::glfw_window& glfw_win; // non-owning
+
+  public:
+    vk::UniqueDevice device;
     vk::UniqueSurfaceKHR surface;
+
+  public:
+    uint32_t graphics_queue_index;
+    uint32_t present_queue_index;
+    vk::Queue graphics_queue;
+    vk::Queue present_queue;
+
+  public:
     vk::UniqueRenderPass render_pass;
     vk::UniqueCommandPool command_pool;
     vk::UniquePipelineCache pipeline_cache;
@@ -480,8 +560,6 @@ namespace yave::vulkan {
     vk::ClearColorValue clearColor;
 
   public:
-    const vulkan_context* context; // non-owning
-    GLFWwindow* window;            // non-owning
     vk::SurfaceFormatKHR swapchain_format;
     vk::PresentModeKHR swapchain_present_mode;
     vk::Extent2D swapchain_extent;
@@ -497,15 +575,15 @@ namespace yave::vulkan {
   };
 
   window_context::impl::impl(vulkan_context& ctx, glfw::glfw_window& win)
+    : vulkan_ctx {ctx}
+    , glfw_win {win}
   {
     init_logger();
 
     Info(g_logger, "Initializing window context");
 
-    // back pointer
-    context = &ctx;
-    // window
-    window = win.get();
+    if (!glfwVulkanSupported())
+      throw std::runtime_error("GLFW could not find Vulkan");
 
     // get window size
     window_extent = getWindowExtent(win.get());
@@ -534,81 +612,87 @@ namespace yave::vulkan {
     // create surface
     surface = createWindowSurface(win.get(), ctx.instance());
 
-    Info(g_logger, "Created new surface");
+    // get queue index
+
+    graphics_queue_index = getGraphicsQueueIndex(ctx.physical_device());
+    Info(g_logger, "Graphs queue index: {}", graphics_queue_index);
+
+    present_queue_index = getPresentQueueIndex(
+      graphics_queue_index, ctx.instance(), ctx.physical_device());
+    Info(g_logger, "Presentation queue index: {}", present_queue_index);
+
+    // create logical device
+    device = ctx.create_device(
+      {graphics_queue_index, present_queue_index},
+      getDeviceExtensions(),
+      getDeviceLayers());
+
+    // queue
+    graphics_queue = getDeviceQueue(graphics_queue_index, device.get());
+    present_queue  = getDeviceQueue(present_queue_index, device.get());
 
     // create swapchain
     swapchain = createSwapchain(
       surface.get(),
       {window_extent},
-      ctx.graphics_queue_family_index(),
-      ctx.present_queue_family_index(),
+      graphics_queue_index,
+      present_queue_index,
       ctx.physical_device(),
-      ctx.device(),
+      device.get(),
       &swapchain_format,       // out
       &swapchain_present_mode, // out
       &swapchain_extent,       // out
       &swapchain_image_count); // out
 
-    Info(g_logger, "Created new swapchain");
-
     // get swapchain images
-    swapchain_images = ctx.device().getSwapchainImagesKHR(swapchain.get());
+    swapchain_images = device->getSwapchainImagesKHR(swapchain.get());
 
     // create image views
     swapchain_image_views = createSwapchainImageViews(
-      swapchain.get(), swapchain_format, ctx.device());
+      swapchain.get(), swapchain_format, device.get());
 
     assert(swapchain_images.size() == swapchain_image_views.size());
     assert(swapchain_images.size() == swapchain_image_count);
 
-    Info(g_logger, "Created swapchain image views");
-
     // create render pass
-    render_pass = createRenderPass(swapchain_format, ctx.device());
-
-    Info(g_logger, "Created render pass");
+    render_pass = createRenderPass(swapchain_format, device.get());
 
     // create frame buffers
     frame_buffers = createFrameBuffers(
-      swapchain_image_views, render_pass.get(), swapchain_extent, ctx.device());
-
-    Info(g_logger, "Created frame buffers");
+      swapchain_image_views,
+      render_pass.get(),
+      swapchain_extent,
+      device.get());
 
     // create command pool
-    command_pool =
-      createCommandPool(ctx.graphics_queue_family_index(), ctx.device());
-
-    Info(g_logger, "Created command pool");
+    command_pool = createCommandPool(graphics_queue_index, device.get());
 
     // create command buffers
     command_buffers = createCommandBuffers(
       swapchain_image_count,
       vk::CommandBufferLevel::ePrimary,
       command_pool.get(),
-      ctx.device());
+      device.get());
 
     assert(command_buffers.size() == frame_buffers.size());
 
-    Info(g_logger, "Created command buffers");
-
-    /* semaphores */
-
-    acquire_semaphores  = createSemaphores(swapchain_image_count, ctx.device());
-    complete_semaphores = createSemaphores(swapchain_image_count, ctx.device());
-
-    Info(g_logger, "Created semaphores");
-
-    /* fences */
+    // semaphores
+    acquire_semaphores  = createSemaphores(swapchain_image_count, device.get());
+    complete_semaphores = createSemaphores(swapchain_image_count, device.get());
 
     // create with signaled state
     in_flight_fences = createFences(
-      swapchain_image_count, ctx.device(), vk::FenceCreateFlagBits::eSignaled);
+      swapchain_image_count, device.get(), vk::FenceCreateFlagBits::eSignaled);
 
-    acquire_fence = createFence(ctx.device(), vk::FenceCreateFlags());
+    acquire_fence = createFence(device.get(), vk::FenceCreateFlags());
 
-    Info(g_logger, "Created fences");
+    Info(g_logger, "Initialized window context");
+  }
 
-    Info(g_logger, "Initialized new window context");
+  window_context::impl::~impl() noexcept
+  {
+    device->waitIdle();
+    Info(g_logger, "Destroying window context");
   }
 
   window_context::window_context(vulkan_context& ctx, glfw::glfw_window& win)
@@ -616,20 +700,8 @@ namespace yave::vulkan {
   {
   }
 
-  window_context::window_context(window_context&& other) noexcept
-    : m_pimpl {std::move(other.m_pimpl)}
-  {
-  }
-
   window_context::~window_context() noexcept
   {
-    using namespace yave;
-
-    if (!m_pimpl)
-      return;
-
-    m_pimpl->context->device().waitIdle();
-    Info(g_logger, "Destroying window context");
   }
 
   void window_context::rebuild_frame_buffers()
@@ -644,7 +716,7 @@ namespace yave::vulkan {
     }
 
     // wait idle
-    m_pimpl->context->device().waitIdle();
+    m_pimpl->device->waitIdle();
 
     /* destroy swapchain resources */
     m_pimpl->in_flight_fences.clear();
@@ -669,54 +741,53 @@ namespace yave::vulkan {
     m_pimpl->swapchain = createSwapchain(
       m_pimpl->surface.get(),
       newWindowExtent,
-      m_pimpl->context->graphics_queue_family_index(),
-      m_pimpl->context->present_queue_family_index(),
-      m_pimpl->context->physical_device(),
-      m_pimpl->context->device(),
+      m_pimpl->graphics_queue_index,
+      m_pimpl->present_queue_index,
+      m_pimpl->vulkan_ctx.physical_device(),
+      m_pimpl->device.get(),
       &m_pimpl->swapchain_format,
       &m_pimpl->swapchain_present_mode,
       &m_pimpl->swapchain_extent,
       &m_pimpl->swapchain_image_count);
 
     m_pimpl->swapchain_images =
-      m_pimpl->context->device().getSwapchainImagesKHR(
-        m_pimpl->swapchain.get());
+      m_pimpl->device->getSwapchainImagesKHR(m_pimpl->swapchain.get());
 
     m_pimpl->swapchain_image_views = createSwapchainImageViews(
       m_pimpl->swapchain.get(),
       m_pimpl->swapchain_format,
-      m_pimpl->context->device());
+      m_pimpl->device.get());
 
     m_pimpl->render_pass =
-      createRenderPass(m_pimpl->swapchain_format, m_pimpl->context->device());
+      createRenderPass(m_pimpl->swapchain_format, m_pimpl->device.get());
 
     m_pimpl->frame_buffers = createFrameBuffers(
       m_pimpl->swapchain_image_views,
       m_pimpl->render_pass.get(),
       m_pimpl->swapchain_extent,
-      m_pimpl->context->device());
+      m_pimpl->device.get());
 
     m_pimpl->command_buffers = createCommandBuffers(
       m_pimpl->swapchain_image_count,
       vk::CommandBufferLevel::ePrimary,
       m_pimpl->command_pool.get(),
-      m_pimpl->context->device());
+      m_pimpl->device.get());
 
-    m_pimpl->acquire_semaphores = createSemaphores(
-      m_pimpl->swapchain_image_count, m_pimpl->context->device());
+    m_pimpl->acquire_semaphores =
+      createSemaphores(m_pimpl->swapchain_image_count, m_pimpl->device.get());
 
-    m_pimpl->complete_semaphores = createSemaphores(
-      m_pimpl->swapchain_image_count, m_pimpl->context->device());
+    m_pimpl->complete_semaphores =
+      createSemaphores(m_pimpl->swapchain_image_count, m_pimpl->device.get());
 
     m_pimpl->in_flight_fences = createFences(
       m_pimpl->swapchain_image_count,
-      m_pimpl->context->device(),
+      m_pimpl->device.get(),
       vk::FenceCreateFlagBits::eSignaled);
   }
 
   void window_context::begin_frame()
   {
-    auto device = m_pimpl->context->device();
+    auto device = m_pimpl->device.get();
 
     // set next frame index
     m_pimpl->frame_index =
@@ -793,8 +864,8 @@ namespace yave::vulkan {
 
   void window_context::end_frame()
   {
-    auto graphicsQueue = m_pimpl->context->graphics_queue();
-    auto presentQueue  = m_pimpl->context->present_queue();
+    auto graphicsQueue = m_pimpl->graphics_queue;
+    auto presentQueue  = m_pimpl->present_queue;
 
     std::array<vk::Semaphore, 1> waitSemaphores = {
       m_pimpl->acquire_semaphores[m_pimpl->frame_index].get()};
@@ -883,10 +954,40 @@ namespace yave::vulkan {
     buffer.end();
   }
 
-  auto window_context::window() const -> GLFWwindow*
+  auto window_context::vulkan_ctx() -> vulkan_context&
   {
-    assert(m_pimpl->window);
-    return m_pimpl->window;
+    return m_pimpl->vulkan_ctx;
+  }
+
+  auto window_context::glfw_win() -> glfw::glfw_window&
+  {
+    return m_pimpl->glfw_win;
+  }
+
+  auto window_context::device() const -> vk::Device
+  {
+    assert(m_pimpl->device);
+    return m_pimpl->device.get();
+  }
+
+  auto window_context::graphics_queue_index() const -> uint32_t
+  {
+    return m_pimpl->graphics_queue_index;
+  }
+
+  auto window_context::present_queue_index() const -> uint32_t
+  {
+    return m_pimpl->present_queue_index;
+  }
+
+  auto window_context::graphics_queue() const -> vk::Queue
+  {
+    return m_pimpl->graphics_queue;
+  }
+
+  auto window_context::present_queue() const -> vk::Queue
+  {
+    return m_pimpl->present_queue;
   }
 
   auto window_context::surface() const -> vk::SurfaceKHR
@@ -971,7 +1072,7 @@ namespace yave::vulkan {
 
   bool window_context::should_close() const
   {
-    return glfwWindowShouldClose(m_pimpl->window);
+    return glfwWindowShouldClose(m_pimpl->glfw_win.get());
   }
 
   void window_context::set_clear_color(float r, float g, float b, float a)
@@ -982,8 +1083,8 @@ namespace yave::vulkan {
   auto window_context::single_time_command() const
     -> vulkan::single_time_command
   {
-    return {m_pimpl->context->device(),
-            m_pimpl->context->graphics_queue(),
+    return {m_pimpl->device.get(),
+            m_pimpl->graphics_queue,
             m_pimpl->command_pool.get()};
   }
 

@@ -94,7 +94,7 @@ namespace {
     info.pBindings    = &bind;
 
     return device.createDescriptorSetLayoutUnique(info);
-  };
+  }
 
   auto createDescriptorPool(const vk::Device& device)
   {
@@ -340,8 +340,7 @@ namespace {
     render_buffer& vtx_buff,
     render_buffer& idx_buff,
     const draw2d_data& draw_data,
-    const vk::Device& device,
-    const vk::PhysicalDevice& physicalDevice)
+    const vk::Device& device)
   {
     auto* mapped_vtx_buff = map_render_buffer(vtx_buff, device);
     auto* mapped_idx_buff = map_render_buffer(idx_buff, device);
@@ -379,8 +378,7 @@ namespace {
     resize_render_buffer(vtx_buff, vtx_buff_size, device, physicalDevice);
 
     // write to render buffer
-    storeRenderDataToBuffer(
-      vtx_buff, idx_buff, draw_data, device, physicalDevice);
+    storeRenderDataToBuffer(vtx_buff, idx_buff, draw_data, device);
   }
 
   void initRenderPipeline(
@@ -468,7 +466,11 @@ namespace yave::vulkan {
   class rgba32f_offscreen_renderer_2D::impl
   {
   public:
-    vulkan_context& context;
+    //  ref
+    vulkan_context& vulkan_ctx;
+    // owning
+    offscreen_context offscreen_ctx;
+    // owning
     rgba32f_offscreen_render_pass render_pass;
 
   public:
@@ -491,56 +493,58 @@ namespace yave::vulkan {
 
   public:
     impl(uint32_t width, uint32_t height, vulkan_context& ctx)
-      : context {ctx}
-      , render_pass {width, height, ctx}
+      : vulkan_ctx {ctx}
+      , offscreen_ctx {ctx}
+      , render_pass {width, height, offscreen_ctx}
     {
       init_logger();
 
+      auto physicalDevice = vulkan_ctx.physical_device();
+      auto device         = offscreen_ctx.device();
+      auto graphicsQueue  = offscreen_ctx.graphics_queue();
+      auto commandPool    = render_pass.command_pool();
+
       // clang-format off
-      texture_sampler       = createTextureSampler(ctx.device());
-      descriptor_set_layout = createDescriptorSetLayout(texture_sampler.get(), ctx.device());
-      descriptor_pool       = createDescriptorPool(ctx.device());
-      pipeline_cache        = createPipelineCache(ctx.device());
-      pipeline_layout       = createPipelineLayout(descriptor_set_layout.get(), ctx.device());
-      pipeline              = createPipeline(render_pass.frame_extent(), render_pass.render_pass(), pipeline_cache.get(), pipeline_layout.get(), ctx.device());
+      texture_sampler       = createTextureSampler(device);
+      descriptor_set_layout = createDescriptorSetLayout(texture_sampler.get(), device);
+      descriptor_pool       = createDescriptorPool(device);
+      pipeline_cache        = createPipelineCache(device);
+      pipeline_layout       = createPipelineLayout(descriptor_set_layout.get(), device);
+      pipeline              = createPipeline(render_pass.frame_extent(), render_pass.render_pass(), pipeline_cache.get(), pipeline_layout.get(), device);
       // clang-format on
 
       default_texture = create_texture_data(
         1,
         1,
         vk::Format::eR32G32B32A32Sfloat,
-        ctx.graphics_queue(),
-        render_pass.command_pool(),
+        graphicsQueue,
+        commandPool,
         descriptor_pool.get(),
         descriptor_set_layout.get(),
         vk::DescriptorType::eCombinedImageSampler,
-        ctx.device(),
-        ctx.physical_device());
+        device,
+        physicalDevice);
 
       clear_texture_data(
         default_texture,
         vk::ClearColorValue(std::array {1.f, 1.f, 1.f, 1.f}),
-        ctx.graphics_queue(),
-        render_pass.command_pool(),
-        ctx.device(),
-        ctx.physical_device());
+        graphicsQueue,
+        commandPool,
+        device,
+        physicalDevice);
 
       vtx_buff = create_render_buffer(
-        vk::BufferUsageFlagBits::eVertexBuffer,
-        0,
-        context.device(),
-        context.physical_device());
+        vk::BufferUsageFlagBits::eVertexBuffer, 0, device, physicalDevice);
 
       idx_buff = create_render_buffer(
         vk::BufferUsageFlagBits::eIndexBuffer,
         0,
-        context.device(),
-        context.physical_device());
+        device,
+        physicalDevice);
     }
 
     ~impl() noexcept
     {
-      context.device().waitIdle();
     }
 
     void render(const draw2d_data& draw_data)
@@ -551,8 +555,8 @@ namespace yave::vulkan {
           vtx_buff,
           idx_buff,
           draw_data,
-          context.device(),
-          context.physical_device());
+          offscreen_ctx.device(),
+          vulkan_ctx.physical_device());
 
         // always render full size of frame
         auto viewport =
@@ -577,26 +581,31 @@ namespace yave::vulkan {
 
     auto add_texture(const boost::gil::rgba32fc_view_t& view) -> draw2d_tex
     {
+      auto physicalDevice = vulkan_ctx.physical_device();
+      auto commandPool    = render_pass.command_pool();
+      auto device         = offscreen_ctx.device();
+      auto graphicsQueue  = offscreen_ctx.graphics_queue();
+
       auto tex = create_texture_data(
         view.width(),
         view.height(),
         vk::Format::eR32G32B32A32Sfloat,
-        context.graphics_queue(),
-        render_pass.command_pool(),
+        graphicsQueue,
+        commandPool,
         descriptor_pool.get(),
         descriptor_set_layout.get(),
         vk::DescriptorType::eCombinedImageSampler,
-        context.device(),
-        context.physical_device());
+        device,
+        physicalDevice);
 
       store_texture_data(
         tex,
         (const std::byte*)view.row_begin(0),
         view.size() * sizeof(boost::gil::rgba32f_pixel_t),
-        context.graphics_queue(),
-        render_pass.command_pool(),
-        context.device(),
-        context.physical_device());
+        graphicsQueue,
+        commandPool,
+        device,
+        physicalDevice);
 
       Info(g_logger, "Added texture: {},{}", view.width(), view.height());
 

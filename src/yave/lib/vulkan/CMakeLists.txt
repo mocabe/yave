@@ -8,6 +8,7 @@ add_library(yave-lib-vulkan
   render_buffer.cpp
   window_context.cpp
   vulkan_util.cpp
+  offscreen_context.cpp
   offscreen_render_pass.cpp
   offscreen_renderer_2D.cpp
   draw2d.cpp
@@ -25,3 +26,9 @@ target_link_libraries(yave-lib-vulkan PUBLIC glm)
 target_link_libraries(yave-lib-vulkan PUBLIC glslang)
 target_link_libraries(yave-lib-vulkan PUBLIC SPIRV)
 target_link_libraries(yave-lib-vulkan PUBLIC glslang-default-resource-limits)
+
+if(MSVC OR MINGW)
+  target_compile_definitions(yave-lib-vulkan PUBLIC VK_USE_PLATFORM_WIN32_KHR)
+else()
+  target_compile_definitions(yave-lib-vulkan PUBLIC VK_USE_PLATFORM_XCB_KHR)
+endif()

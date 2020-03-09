@@ -48,7 +48,7 @@ int main()
     imgui.render();
   }
 
-  imgui.vulkan_context().device().waitIdle();
+  imgui.window_context().device().waitIdle();
 
   imgui.remove_texture("tex");
 }

@@ -57,12 +57,13 @@ namespace yave::vulkan {
     vtx_buffer.reserve(vtx_buffer.size() + vtx_size);
     idx_buffer.reserve(idx_buffer.size() + idx_size);
 
+    // offset distance
     auto d = thickness / 2;
 
     // calcualte intersection between offset lines
-    auto _offset_intersec = [](auto& p1, auto& p2, auto& p3, float d) {
-      auto [q1, q2] = line_offset(p1, p2, d);
-      auto [r1, r2] = line_offset(p2, p3, d);
+    auto _offset_intersec = [](auto& p1, auto& p2, auto& p3, float off) {
+      auto [q1, q2] = line_offset(p1, p2, off);
+      auto [r1, r2] = line_offset(p2, p3, off);
       return line_intersection(q1, q2, r1, r2);
     };
 
