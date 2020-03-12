@@ -104,7 +104,8 @@ namespace yave {
         [](void* h, uint64_t id)                              noexcept -> std::byte*   { return ((impl*)h)->data({id}); },
         [](void* h, uint64_t id)                              noexcept -> uint32_t     { return ((impl*)h)->width({id}); },
         [](void* h, uint64_t id)                              noexcept -> uint32_t     { return ((impl*)h)->height({id}); },
-        [](void* h, uint64_t id)                              noexcept -> image_format { return ((impl*)h)->format({id}); });
+        [](void* h, uint64_t id)                              noexcept -> image_format { return ((impl*)h)->format({id}); },
+        [](void* h, uint64_t id)                              noexcept -> uint64_t     { return 0; (void)h; (void)id; });
       // clang-format on
     }
 

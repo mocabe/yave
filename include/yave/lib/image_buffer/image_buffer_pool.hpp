@@ -26,7 +26,8 @@ namespace yave {
       auto (*get_data)(void*, uint64_t) noexcept->std::byte*,
       auto (*get_width)(void*, uint64_t) noexcept->uint32_t,
       auto (*get_height)(void*, uint64_t) noexcept->uint32_t,
-      auto (*get_format)(void*, uint64_t) noexcept->image_format)
+      auto (*get_format)(void*, uint64_t) noexcept->image_format,
+      auto (*get_native_handle)(void*, uint64_t) noexcept -> uint64_t)
       : m_handle {handle}
       , m_backend_id {backend_id}
       , m_create {create}
@@ -38,6 +39,7 @@ namespace yave {
       , m_get_width {get_width}
       , m_get_height {get_height}
       , m_get_format {get_format}
+      , m_get_native_handle {get_native_handle}
     {
     }
 
@@ -110,6 +112,12 @@ namespace yave {
       return m_get_height(m_handle, id);
     }
 
+    /// Get native handle
+    [[nodiscard]] auto native_handle(uint64_t id) const noexcept -> uint64_t
+    {
+      return m_get_native_handle(m_handle, id);
+    }
+
   protected: /* buffer pool info */
     /// Handle to memory manager
     void* m_handle;
@@ -159,5 +167,14 @@ namespace yave {
     /// Get format of frame buffer.
     /// \note id should valid ID for an image allocated with the handle.
     auto (*m_get_format)(void* handle, uint64_t) noexcept -> image_format;
+
+    /// Get backend specific native handle for the image.
+    /// That can be, for example, GPU image handler which can be used to
+    /// optimize memory transfer between CPU and GPU.
+    /// \note this function can return 0 when there's no native handle avalable,
+    /// then the image is already avalable from CPU visible memory area so use
+    /// get_data() to access it.
+    /// \note behaviour of this function is highly backend specific.
+    auto (*m_get_native_handle)(void* handle, uint64_t) noexcept -> uint64_t;
   };
 } // namespace yave

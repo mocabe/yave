@@ -72,6 +72,12 @@ namespace yave {
       return m_pool;
     }
 
+    /// Get alter(native) handle of the image
+    [[nodiscard]] auto native_handle() const -> uint64_t
+    {
+      return m_pool->native_handle(m_id);
+    }
+
     [[nodiscard]] auto mutable_view() -> mutable_image_view
     {
       auto d = m_pool->data(m_id);
