@@ -20,8 +20,7 @@ namespace yave::imgui {
   public:
     enum class init_flags : uint32_t
     {
-      enable_validation = 1 << 0,
-      enable_logging    = 1 << 1,
+      enable_logging = 1 << 0,
     };
 
   private:
@@ -29,7 +28,9 @@ namespace yave::imgui {
 
   public:
     /// Ctor
-    imgui_context(init_flags flags = _init_flags());
+    imgui_context(
+      vulkan::vulkan_context& vulkan_ctx,
+      init_flags flags = _init_flags());
     /// Dtor
     ~imgui_context();
 
@@ -82,6 +83,12 @@ namespace yave::imgui {
     /// Find texture data from name
     [[nodiscard]] auto find_texture(const std::string& name) const
       -> ImTextureID;
+
+    /// Update texture data
+    void update_texture(
+      const std::string&,
+      const uint8_t* srcData,
+      const vk::DeviceSize& srcSize);
 
     /// Remove texture data
     void remove_texture(const std::string& name);

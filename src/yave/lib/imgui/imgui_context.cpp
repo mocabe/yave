@@ -827,16 +827,18 @@ namespace yave::imgui {
   {
   public:
     impl(
+      vulkan::vulkan_context& vulkan_ctx,
       glfw::glfw_context::init_flags glfw_flags,
-      vulkan::vulkan_context::init_flags vulkan_flags,
       uint32_t width,
       uint32_t height,
       const char* windowName);
     ~impl() noexcept;
 
+  public: /* ref */
+    vulkan::vulkan_context& vulkanCtx;
+
   public: /* managed by impl */
     glfw::glfw_context glfwCtx;
-    vulkan::vulkan_context vulkanCtx;
     glfw::glfw_window glfwWindow;
     vulkan::window_context windowCtx;
     ImGuiContext* imCtx;
@@ -868,16 +870,16 @@ namespace yave::imgui {
   };
 
   imgui_context::impl::impl(
+    vulkan::vulkan_context& vulkan_ctx,
     glfw::glfw_context::init_flags glfw_flags,
-    vulkan::vulkan_context::init_flags vulkan_flags,
     uint32_t widt,
     uint32_t height,
     const char* windowName)
-    : glfwCtx {glfw_flags}
-    , vulkanCtx {vulkan_flags}
-    , glfwWindow {glfwCtx.create_window(widt, height, windowName)}
-    , windowCtx {vulkanCtx, glfwWindow}
-    , imCtx {ImGui::CreateContext()}
+    : vulkanCtx {vulkan_ctx},
+      glfwCtx {glfw_flags},
+      glfwWindow {glfwCtx.create_window(widt, height, windowName)},
+      windowCtx {vulkanCtx, glfwWindow},
+      imCtx {ImGui::CreateContext()}
   {
   }
 
@@ -888,16 +890,17 @@ namespace yave::imgui {
 
   auto imgui_context::_init_flags() noexcept -> init_flags
   {
-    return init_flags::enable_logging | init_flags::enable_validation;
+    return init_flags::enable_logging;
   }
 
-  imgui_context::imgui_context(init_flags flags)
+  imgui_context::imgui_context(
+    vulkan::vulkan_context& vulkan_ctx,
+    init_flags flags)
   {
     using namespace yave;
     init_logger();
 
     glfw::glfw_context::init_flags glfw_flags {0};
-    vulkan::vulkan_context::init_flags vulkan_flags {0};
 
     if (!(flags & init_flags::enable_logging)) {
       g_logger->set_level(spdlog::level::off);
@@ -905,16 +908,11 @@ namespace yave::imgui {
 
     if (!!(flags & init_flags::enable_logging)) {
       glfw_flags |= glfw::glfw_context::init_flags::enable_logging;
-      vulkan_flags |= vulkan::vulkan_context::init_flags::enable_logging;
-    }
-
-    if (!!(flags & init_flags::enable_validation)) {
-      vulkan_flags |= vulkan::vulkan_context::init_flags::enable_validation;
     }
 
     // create context
     m_pimpl = std::make_unique<impl>(
-      glfw_flags, vulkan_flags, 1280, 720, "imgui_context");
+      vulkan_ctx, glfw_flags, 1280, 720, "imgui_context");
 
     /* init ImGui */
     {
@@ -1254,28 +1252,14 @@ namespace yave::imgui {
   class ImGuiTextureDataHolder
   {
   public:
-    ImGuiTextureDataHolder(
-      vk::UniqueImage img,
-      vk::UniqueImageView viw,
-      vk::UniqueDeviceMemory mem,
-      vk::UniqueDescriptorSet dsc)
-      : image {std::move(img)}
-      , view {std::move(viw)}
-      , memory {std::move(mem)}
-      , descriptor {std::move(dsc)}
-    {
-      rawDsc = descriptor.get();
-    }
+    ImGuiTextureDataHolder(vulkan::texture_data&& tex)
+      : tex_data {std::move(tex)} {};
 
-    vk::UniqueImage image;
-    vk::UniqueImageView view;
-    vk::UniqueDeviceMemory memory;
-    vk::UniqueDescriptorSet descriptor;
-    vk::DescriptorSet rawDsc; // for texture_type
+    vulkan::texture_data tex_data;
 
     ImTextureID get_texture()
     {
-      return toImTextureId(&rawDsc);
+      return toImTextureId(&tex_data.dsc_set.get());
     }
   };
 
@@ -1321,11 +1305,7 @@ namespace yave::imgui {
       device,
       physicalDevice);
 
-    auto texData = std::make_unique<ImGuiTextureDataHolder>(
-      std::move(texture.image),
-      std::move(texture.view),
-      std::move(texture.memory),
-      std::move(texture.dsc_set));
+    auto texData = std::make_unique<ImGuiTextureDataHolder>(std::move(texture));
 
     auto [iter, succ] = m_pimpl->textures.emplace(name, std::move(texData));
 
@@ -1349,6 +1329,33 @@ namespace yave::imgui {
       return ImTextureID();
 
     return iter->second->get_texture();
+  }
+
+  void imgui_context::update_texture(
+    const std::string& name,
+    const uint8_t* srcData,
+    const vk::DeviceSize& srcSize)
+  {
+    auto iter = m_pimpl->textures.find(name);
+
+    if (iter == m_pimpl->textures.end()) {
+      Error(g_logger, "Failed to update texture: no such texture");
+      return;
+    }
+
+    auto device         = m_pimpl->windowCtx.device();
+    auto physicalDevice = m_pimpl->vulkanCtx.physical_device();
+    auto commandPool    = m_pimpl->windowCtx.command_pool();
+    auto queue          = m_pimpl->windowCtx.graphics_queue();
+
+    vulkan::store_texture_data(
+      iter->second->tex_data,
+      (const std::byte*)srcData,
+      srcSize,
+      queue,
+      commandPool,
+      device,
+      physicalDevice);
   }
 
   void imgui_context::remove_texture(const std::string& name)

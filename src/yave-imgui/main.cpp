@@ -19,9 +19,11 @@ int main()
 {
   using namespace yave;
 
-  imgui::imgui_context imgui_ctx {};
+  using flags = vulkan::vulkan_context::init_flags;
+  vulkan::vulkan_context vulkan_ctx(
+    flags::enable_logging | flags::enable_validation);
 
-  auto graph = std::make_shared<managed_node_graph>();
+  imgui::imgui_context imgui_ctx {vulkan_ctx};
 
   scene_config config(1600, 900, 60, 44100, image_format::rgba32f);
 

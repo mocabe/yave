@@ -10,7 +10,8 @@ using namespace yave::imgui;
 
 int main()
 {
-  imgui_context imgui {};
+  vulkan::vulkan_context vkctx;
+  imgui_context imgui {vkctx};
 
   while (!imgui.window_context().should_close()) {
     imgui.begin_frame();

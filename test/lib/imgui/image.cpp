@@ -15,7 +15,8 @@ using namespace yave::imgui;
 
 int main()
 {
-  imgui_context imgui {};
+  vulkan::vulkan_context vkctx;
+  imgui_context imgui {vkctx};
 
   auto layout = sln::TypedLayout(sln::PixelLength(800), sln::PixelLength(450));
   sln::ImageRGBA_8u image {layout};
