@@ -7,13 +7,14 @@
 
 #include <yave/module/module.hpp>
 #include <yave/module/std/config.hpp>
+#include <yave/lib/vulkan/vulkan_context.hpp>
 
 namespace yave::modules::_std {
 
   class module : public yave::module
   {
   public:
-    module();
+    module(vulkan::vulkan_context& vulakn_ctx);
     ~module() noexcept override;
     void init(const scene_config& config) override;
     void deinit() override;

@@ -36,33 +36,57 @@ namespace yave::modules::_std {
   namespace {
     struct module_resource
     {
-      module_resource(const scene_config& config)
+      module_resource(const scene_config& config, vulkan::vulkan_context& ctx)
         : image_buff {module_id}
         , frame_buff {config.width(),
                       config.height(),
                       config.frame_buffer_format(),
                       module_id}
+        , renderer {config.width(), config.height(), ctx}
       {
       }
       image_buffer_manager image_buff;
       frame_buffer_manager frame_buff;
+      vulkan::rgba32f_offscreen_renderer_2D renderer;
     };
   } // namespace
 
   struct module::impl
   {
+    impl(vulkan::vulkan_context& vulkan_ctx)
+      : id {uid::random_generate()}
+      , initialized {false}
+      , config {std::nullopt}
+      , vulkan_ctx {vulkan_ctx}
+      , resource {nullptr}
+    {
+    }
+
+    void init(const scene_config& cfg)
+    {
+      config      = cfg;
+      resource    = std::make_unique<module_resource>(cfg, vulkan_ctx);
+      initialized = true;
+    }
+
+    void deinit()
+    {
+      config      = std::nullopt;
+      resource    = nullptr;
+      initialized = false;
+    }
+
     uid id;
     bool initialized;
     std::optional<scene_config> config;
+    vulkan::vulkan_context& vulkan_ctx;
     std::unique_ptr<module_resource> resource;
   };
 
-  module::module()
+  module::module(vulkan::vulkan_context& vulkan_ctx)
   {
     init_logger();
-
-    m_pimpl     = std::make_unique<impl>();
-    m_pimpl->id = uid::random_generate();
+    m_pimpl = std::make_unique<impl>(vulkan_ctx);
   }
 
   module::~module() noexcept
@@ -74,23 +98,19 @@ namespace yave::modules::_std {
   void module::init(const scene_config& config)
   {
     assert(!initialized());
-
-    m_pimpl->config      = config;
-    m_pimpl->resource    = std::make_unique<module_resource>(config);
-    m_pimpl->initialized = true;
+    m_pimpl->init(config);
   }
 
   void module::deinit()
   {
     assert(initialized());
-    m_pimpl->config      = std::nullopt;
-    m_pimpl->resource    = nullptr;
-    m_pimpl->initialized = false;
+    m_pimpl->deinit();
   }
 
-  void module::update(const scene_config& config)
+  void module::update(const scene_config&)
   {
-    m_pimpl->config = config;
+    // TODO
+    assert(false);
   }
 
   bool module::initialized() const
