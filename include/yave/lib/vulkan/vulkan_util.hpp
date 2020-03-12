@@ -52,4 +52,8 @@ namespace yave::vulkan {
     const vk::MemoryPropertyFlags& properties,
     const vk::PhysicalDevice& physicalDevice) -> uint32_t;
 
+  /// Get texel size of format
+  [[nodiscard]] auto format_texel_size(const vk::Format& format)
+    -> vk::DeviceSize;
+
 } // namespace yave

@@ -146,6 +146,7 @@ namespace yave::vulkan {
   public: /* pipeline */
     vk::UniqueRenderPass render_pass;
     offscreen_frame_data frame_data;
+    staging_buffer frame_staging;
 
   public:
     // fence to wait submitted queue operations finish
@@ -197,6 +198,9 @@ namespace yave::vulkan {
         command_pool.get(),
         ctx.device(),
         ctx.vulkan_ctx().physical_device());
+
+      frame_staging = create_staging_buffer(
+        frame_data.size, ctx.device(), ctx.vulkan_ctx().physical_device());
     }
 
     ~composition_pass_impl() noexcept
@@ -218,6 +222,7 @@ namespace yave::vulkan {
       wait_draw();
 
       store_offscreen_frame_data(
+        frame_staging,
         frame_data,
         reinterpret_cast<const std::byte*>(view.row_begin(0)),
         view.size() * sizeof(pixel_type),
@@ -240,6 +245,7 @@ namespace yave::vulkan {
       wait_draw();
 
       load_offscreen_frame_data(
+        frame_staging,
         frame_data,
         reinterpret_cast<std::byte*>(view.row_begin(0)),
         view.size() * sizeof(pixel_type),

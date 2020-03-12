@@ -7,6 +7,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
+#include <yave/lib/vulkan/staging.hpp>
 
 namespace yave::vulkan {
 
@@ -17,6 +18,8 @@ namespace yave::vulkan {
     vk::Extent2D extent;
     /// format
     vk::Format format;
+    /// memory size
+    vk::DeviceSize size;
     /// image
     vk::UniqueImage image;
     /// image memory
@@ -48,6 +51,7 @@ namespace yave::vulkan {
 
   /// Upload image data from host
   void store_offscreen_frame_data(
+    staging_buffer& staging,
     offscreen_frame_data& dst,
     const std::byte* srcData,
     const vk::DeviceSize& srcSize,
@@ -58,6 +62,7 @@ namespace yave::vulkan {
 
   /// Load image data to host
   void load_offscreen_frame_data(
+    staging_buffer& staging,
     const offscreen_frame_data& src,
     std::byte* dstData,
     const vk::DeviceSize& dstSize,

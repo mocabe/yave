@@ -54,7 +54,8 @@ namespace yave::vulkan {
       barrier.newLayout        = vk::ImageLayout::eTransferSrcOptimal;
       barrier.srcAccessMask    = vk::AccessFlagBits::eColorAttachmentRead
                               | vk::AccessFlagBits::eColorAttachmentWrite;
-      barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+      barrier.dstAccessMask =
+        vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
 
       vk::PipelineStageFlags srcStage =
         vk::PipelineStageFlagBits::eColorAttachmentOutput;
@@ -74,8 +75,9 @@ namespace yave::vulkan {
       barrier.subresourceRange = range;
       barrier.oldLayout        = vk::ImageLayout::eTransferDstOptimal;
       barrier.newLayout        = vk::ImageLayout::eColorAttachmentOptimal;
-      barrier.srcAccessMask    = vk::AccessFlagBits::eTransferWrite;
-      barrier.dstAccessMask    = vk::AccessFlagBits::eColorAttachmentRead
+      barrier.srcAccessMask =
+        vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eTransferRead;
+      barrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead
                               | vk::AccessFlagBits::eColorAttachmentWrite;
 
       vk::PipelineStageFlags srcStage = vk::PipelineStageFlagBits::eTransfer;
@@ -138,13 +140,13 @@ namespace yave::vulkan {
 
     vk::UniqueDeviceMemory memory;
     {
-      auto req = device.getImageMemoryRequirements(image.get());
+      auto memReq = device.getImageMemoryRequirements(image.get());
 
       // device local memory
       vk::MemoryAllocateInfo info;
-      info.allocationSize  = req.size;
+      info.allocationSize  = memReq.size;
       info.memoryTypeIndex = find_memory_type_index(
-        req, vk::MemoryPropertyFlagBits::eDeviceLocal, physicalDevice);
+        memReq, vk::MemoryPropertyFlagBits::eDeviceLocal, physicalDevice);
 
       memory = device.allocateMemoryUnique(info);
       device.bindImageMemory(image.get(), memory.get(), 0);
@@ -207,6 +209,7 @@ namespace yave::vulkan {
 
     return {extent,
             format,
+            format_texel_size(format) * extent.width * extent.height,
             std::move(image),
             std::move(memory),
             std::move(view),
@@ -236,6 +239,7 @@ namespace yave::vulkan {
   }
 
   void store_offscreen_frame_data(
+    staging_buffer& staging,
     offscreen_frame_data& dst,
     const std::byte* srcData,
     const vk::DeviceSize& srcSize,
@@ -244,39 +248,19 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
-    // create staging buffer
-    vk::UniqueBuffer buffer;
-    {
-      vk::BufferCreateInfo info;
-      info.size        = srcSize;
-      info.usage       = vk::BufferUsageFlagBits::eTransferSrc;
-      info.sharingMode = vk::SharingMode::eExclusive;
+    assert(srcSize <= dst.size);
 
-      buffer = device.createBufferUnique(info);
-    }
+    // ensure staging buffer is large enoguh
+    resize_staging_buffer(staging, srcSize, device, physicalDevice);
 
-    // create memory for stating buffer
-    vk::UniqueDeviceMemory bufferMemory;
-    {
-      auto memReq = device.getBufferMemoryRequirements(buffer.get());
-      vk::MemoryAllocateInfo info;
-      info.allocationSize = memReq.size;
-      // should be host visible, coherent
-      info.memoryTypeIndex = find_memory_type_index(
-        memReq,
-        vk::MemoryPropertyFlagBits::eHostVisible
-          | vk::MemoryPropertyFlagBits::eHostCoherent,
-        physicalDevice);
-
-      bufferMemory = device.allocateMemoryUnique(info);
-      device.bindBufferMemory(buffer.get(), bufferMemory.get(), 0);
-    }
+    auto buffer       = staging.buffer.get();
+    auto bufferMemory = staging.memory.get();
 
     /* upload data */
     {
-      void* ptr = device.mapMemory(bufferMemory.get(), 0, srcSize);
+      void* ptr = device.mapMemory(bufferMemory, 0, srcSize);
       std::memcpy(ptr, srcData, srcSize);
-      device.unmapMemory(bufferMemory.get());
+      device.unmapMemory(bufferMemory);
     }
 
     // submit commands
@@ -293,7 +277,7 @@ namespace yave::vulkan {
         region.imageExtent                 = vk::Extent3D {dst.extent, 1};
 
         cmd.copyBufferToImage(
-          buffer.get(),
+          buffer,
           dst.image.get(),
           vk::ImageLayout::eTransferDstOptimal,
           region);
@@ -304,6 +288,7 @@ namespace yave::vulkan {
   }
 
   void load_offscreen_frame_data(
+    staging_buffer& staging,
     const offscreen_frame_data& src,
     std::byte* dstData,
     const vk::DeviceSize& dstSize,
@@ -312,32 +297,13 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
-    // staging buffer
-    vk::UniqueBuffer buffer;
-    {
-      vk::BufferCreateInfo info;
-      info.size        = dstSize;
-      info.usage       = vk::BufferUsageFlagBits::eTransferDst;
-      info.sharingMode = vk::SharingMode::eExclusive;
+    assert(src.size <= dstSize);
 
-      buffer = device.createBufferUnique(info);
-    }
+    // ensure size of buffer
+    resize_staging_buffer(staging, src.size, device, physicalDevice);
 
-    vk::UniqueDeviceMemory bufferMemory;
-    {
-      auto memReq = device.getBufferMemoryRequirements(buffer.get());
-
-      vk::MemoryAllocateInfo info;
-      info.allocationSize  = memReq.size;
-      info.memoryTypeIndex = find_memory_type_index(
-        memReq,
-        vk::MemoryPropertyFlagBits::eHostVisible
-          | vk::MemoryPropertyFlagBits::eHostCoherent,
-        physicalDevice);
-
-      bufferMemory = device.allocateMemoryUnique(info);
-      device.bindBufferMemory(buffer.get(), bufferMemory.get(), 0);
-    }
+    auto buffer       = staging.buffer.get();
+    auto bufferMemory = staging.memory.get();
 
     // image -> buffer
     {
@@ -355,7 +321,7 @@ namespace yave::vulkan {
         cmd.copyImageToBuffer(
           src.image.get(),
           vk::ImageLayout::eTransferSrcOptimal,
-          buffer.get(),
+          buffer,
           region);
       }
 
@@ -364,9 +330,9 @@ namespace yave::vulkan {
 
     // buffer -> host memory
     {
-      const void* ptr = device.mapMemory(bufferMemory.get(), 0, dstSize);
+      const void* ptr = device.mapMemory(bufferMemory, 0, dstSize);
       std::memcpy(dstData, ptr, dstSize);
-      device.unmapMemory(bufferMemory.get());
+      device.unmapMemory(bufferMemory);
     }
   }
 } // namespace yave::vulkan

@@ -90,4 +90,22 @@ namespace yave::vulkan {
     throw std::runtime_error("Failed to find suitable memory type");
   }
 
+  auto format_texel_size(const vk::Format& format) -> vk::DeviceSize
+  {
+    // only supports format defined in image_format
+    switch (format) {
+      case vk::Format::eR8G8B8Unorm:
+        return 3;
+      case vk::Format::eR16G16B16Unorm:
+        return 6;
+      case vk::Format::eR8G8B8A8Unorm:
+        return 4;
+      case vk::Format::eR16G16B16A16Unorm:
+        return 8;
+      case vk::Format::eR32G32B32A32Sfloat:
+        return 16;
+      default:
+        unreachable();
+    }
+  }
 } // namespace yave
