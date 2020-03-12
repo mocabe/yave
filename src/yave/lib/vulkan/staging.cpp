@@ -48,7 +48,10 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
-    if (staging.size <= size)
+    assert(size != 0);
+    assert(staging.buffer);
+
+    if (staging.size >= size)
       return;
 
     auto tmp = create_staging_buffer(size, device, physicalDevice);
