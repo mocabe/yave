@@ -7,6 +7,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
+#include <yave/lib/vulkan/staging.hpp>
 
 namespace yave::vulkan {
 
@@ -19,6 +20,8 @@ namespace yave::vulkan {
     uint32_t height = 0;
     /// format
     vk::Format format = vk::Format::eUndefined;
+    /// size
+    vk::DeviceSize size;
     /// texture image.
     /// this image has following specs:
     /// layout:  eShaderReadOnlyOptimal
@@ -59,6 +62,7 @@ namespace yave::vulkan {
 
   /// Upload image data to texture from host memory
   void store_texture_data(
+    staging_buffer& staging,
     texture_data& dst,        // texture to upload
     const std::byte* srcData, // src data pointer
     const uint32_t& srcSize,  // src data size

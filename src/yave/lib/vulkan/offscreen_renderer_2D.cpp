@@ -484,6 +484,7 @@ namespace yave::vulkan {
     vk::UniquePipeline pipeline;
 
   public:
+    staging_buffer texture_staging;
     texture_data default_texture;
     std::vector<texture_data> textures;
 
@@ -533,14 +534,13 @@ namespace yave::vulkan {
         device,
         physicalDevice);
 
+      texture_staging = create_staging_buffer(1, device, physicalDevice);
+
       vtx_buff = create_render_buffer(
         vk::BufferUsageFlagBits::eVertexBuffer, 0, device, physicalDevice);
 
       idx_buff = create_render_buffer(
-        vk::BufferUsageFlagBits::eIndexBuffer,
-        0,
-        device,
-        physicalDevice);
+        vk::BufferUsageFlagBits::eIndexBuffer, 0, device, physicalDevice);
     }
 
     ~impl() noexcept
@@ -599,6 +599,7 @@ namespace yave::vulkan {
         physicalDevice);
 
       store_texture_data(
+        texture_staging,
         tex,
         (const std::byte*)view.row_begin(0),
         view.size() * sizeof(boost::gil::rgba32f_pixel_t),

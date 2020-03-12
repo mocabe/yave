@@ -172,6 +172,7 @@ namespace yave::vulkan {
     return {width,
             height,
             format,
+            format_texel_size(format) * width * height,
             std::move(image),
             std::move(view),
             std::move(memory),
@@ -201,6 +202,7 @@ namespace yave::vulkan {
   }
 
   void store_texture_data(
+    staging_buffer& staging,
     texture_data& dst,
     const std::byte* srcData,
     const uint32_t& srcSize,
@@ -209,38 +211,18 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
-    // staging buffer
-    vk::UniqueBuffer buffer;
-    {
-      vk::BufferCreateInfo info;
-      info.size        = srcSize;
-      info.usage       = vk::BufferUsageFlagBits::eTransferSrc;
-      info.sharingMode = vk::SharingMode::eExclusive;
+    assert(srcSize <= dst.size);
 
-      buffer = device.createBufferUnique(info);
-    }
+    resize_staging_buffer(staging, srcSize, device, physicalDevice);
 
-    vk::UniqueDeviceMemory bufferMemory;
-    {
-      auto memReq = device.getBufferMemoryRequirements(buffer.get());
-      vk::MemoryAllocateInfo info;
-      info.allocationSize = memReq.size;
-      // should be host visible, coherent
-      info.memoryTypeIndex = find_memory_type_index(
-        memReq,
-        vk::MemoryPropertyFlagBits::eHostVisible
-          | vk::MemoryPropertyFlagBits::eHostCoherent,
-        physicalDevice);
-
-      bufferMemory = device.allocateMemoryUnique(info);
-      device.bindBufferMemory(buffer.get(), bufferMemory.get(), 0);
-    }
+    auto buffer       = staging.buffer.get();
+    auto bufferMemory = staging.memory.get();
 
     /* upload data */
     {
-      void* ptr = device.mapMemory(bufferMemory.get(), 0, srcSize);
+      void* ptr = device.mapMemory(bufferMemory, 0, srcSize);
       std::memcpy(ptr, srcData, srcSize);
-      device.unmapMemory(bufferMemory.get());
+      device.unmapMemory(bufferMemory);
     }
 
     // submit commands
@@ -256,10 +238,7 @@ namespace yave::vulkan {
       region.imageExtent = vk::Extent3D {dst.width, dst.height, 1};
 
       cmd.copyBufferToImage(
-        buffer.get(),
-        dst.image.get(),
-        vk::ImageLayout::eTransferDstOptimal,
-        region);
+        buffer, dst.image.get(), vk::ImageLayout::eTransferDstOptimal, region);
 
       textureLayoutTransferDstToShaderReadOnly(cmd, dst.image.get());
     }

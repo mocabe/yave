@@ -862,6 +862,7 @@ namespace yave::imgui {
     std::chrono::high_resolution_clock::time_point lastTime;
 
   public:
+    vulkan::staging_buffer texture_staging;
     std::map<std::string, std::unique_ptr<ImGuiTextureDataHolder>> textures;
 
   public:
@@ -1022,6 +1023,10 @@ namespace yave::imgui {
 
       Info(g_logger, "Updated ImGui descriptor set");
     }
+
+    // texture staging buffer
+    m_pimpl->texture_staging = vulkan::create_staging_buffer(
+      1, m_pimpl->windowCtx.device(), m_pimpl->vulkanCtx.physical_device());
 
     // for rendering loop
     m_pimpl->lastTime = std::chrono::high_resolution_clock::now();
@@ -1284,6 +1289,8 @@ namespace yave::imgui {
     auto descriptorPool   = m_pimpl->descriptorPool.get();
     auto descriptorLayout = m_pimpl->descriptorSetLayout.get();
 
+    auto& staging         = m_pimpl->texture_staging;
+
     auto texture = vulkan::create_texture_data(
       extent.width,
       extent.height,
@@ -1297,6 +1304,7 @@ namespace yave::imgui {
       physicalDevice);
 
     vulkan::store_texture_data(
+      staging,
       texture,
       (const std::byte*)data,
       byte_size,
@@ -1348,7 +1356,10 @@ namespace yave::imgui {
     auto commandPool    = m_pimpl->windowCtx.command_pool();
     auto queue          = m_pimpl->windowCtx.graphics_queue();
 
+    auto& staging = m_pimpl->texture_staging;
+
     vulkan::store_texture_data(
+      staging,
       iter->second->tex_data,
       (const std::byte*)srcData,
       srcSize,
