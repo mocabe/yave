@@ -48,14 +48,7 @@ namespace yave::app {
     auto get_last_result() const -> std::shared_ptr<compile_result>;
 
   private:
-    std::thread m_thread;
-    std::atomic<int> m_terminate_flag;
-    std::mutex m_mtx;
-    std::condition_variable m_cond;
-    struct _queue_data;
-    std::queue<_queue_data> m_queue;
-    std::shared_ptr<compile_result> m_result;
-    node_parser m_parser;
-    node_compiler m_compiler;
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
   };
 } // namespace yave::app

@@ -6,135 +6,192 @@
 #include <yave/app/node_compiler_thread.hpp>
 #include <yave/support/log.hpp>
 
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+#include <variant>
+
 YAVE_DECL_G_LOGGER(node_compiler_thread)
 
 namespace yave::app {
 
-  struct node_compiler_thread::_queue_data
+  class node_compiler_thread::impl
   {
-    std::shared_ptr<const node_data_snapshot> snapshot;
-    node_definition_store defs;
+  public:
+    struct queue_data
+    {
+      std::shared_ptr<const node_data_snapshot> snapshot;
+      node_definition_store defs;
+    };
+
+  public:
+    std::thread thread;
+    std::atomic<int> terminate_flag;
+    std::mutex mtx;
+    std::condition_variable cond;
+    std::queue<queue_data> queue;
+    std::shared_ptr<compile_result> result;
+    node_parser parser;
+    node_compiler compiler;
+
+  public:
+    impl()
+      : terminate_flag {0}
+      , result {std::make_shared<compile_result>()}
+    {
+      init_logger();
+
+      result->success  = false;
+      result->bgn_time = std::chrono::steady_clock::now();
+      result->end_time = std::chrono::steady_clock::now();
+    }
+
+    ~impl() noexcept
+    {
+      if (is_running())
+        stop();
+    }
+
+    void start()
+    {
+      if (is_running())
+        throw std::runtime_error("Compiler thread already running");
+
+      Info(g_logger, "Starting compiler thread");
+
+      thread = std::thread([&]() {
+        try {
+          while (true) {
+
+            std::unique_lock lck {mtx};
+            cond.wait(
+              lck, [&] { return terminate_flag || !queue.empty(); });
+
+            // terminate
+            if (terminate_flag)
+              break;
+
+            // compile
+            if (!queue.empty()) {
+
+              auto start = std::chrono::steady_clock::now();
+
+              assert(!queue.empty());
+
+              auto top = std::move(queue.front());
+              queue.pop();
+
+              auto result = std::make_shared<compile_result>();
+
+              // parse
+              auto parsed = parser.parse(top.snapshot->graph);
+
+              if (!parsed) {
+                result->success      = false;
+                result->parse_errors = parser.get_errors();
+                result->bgn_time     = start;
+                result->end_time     = std::chrono::steady_clock::now();
+                std::atomic_store(&result, std::move(result));
+                continue;
+              } else {
+                // compile
+                auto exe = compiler.compile(std::move(*parsed), top.defs);
+                if (!exe) {
+                  result->success        = false;
+                  result->compile_errors = compiler.get_errors();
+                  result->bgn_time       = start;
+                  result->end_time       = std::chrono::steady_clock::now();
+                  std::atomic_store(&result, std::move(result));
+                  continue;
+                } else {
+                  result->success  = true;
+                  result->bgn_time = start;
+                  result->end_time = std::chrono::steady_clock::now();
+                  result->exe      = std::move(*exe);
+                  std::atomic_store(&result, std::move(result));
+                  continue;
+                }
+              }
+            }
+          }
+        } catch (const std::exception& e) {
+          Info(g_logger, "Unexpected error in compiler thread: {}", e.what());
+        } catch (...) {
+          Info(g_logger, "Unexpected error in compiler thread");
+        }
+        Info(g_logger, "Compile thread terminated");
+      });
+    }
+
+    void stop()
+    {
+      if (!is_running())
+        throw std::runtime_error("Compiler thread not running");
+
+      terminate_flag = 1;
+      cond.notify_one();
+      thread.join();
+    }
+
+    bool is_running() const noexcept
+    {
+      return thread.joinable();
+    }
+
+    void compile(
+      const std::shared_ptr<const node_data_snapshot>& snapshot,
+      const node_definition_store& decl)
+    {
+      if (!is_running())
+        throw std::runtime_error("Compiler thread not running");
+
+      std::unique_lock lck {mtx};
+      queue.push({snapshot, decl});
+      cond.notify_one();
+    }
+
+    auto get_last_result() const -> std::shared_ptr<compile_result>
+    {
+      return std::atomic_load(&result);
+    }
   };
 
   node_compiler_thread::node_compiler_thread()
-    : m_terminate_flag {0}
-    , m_result {std::make_shared<compile_result>()}
+    : m_pimpl {std::make_unique<impl>()}
   {
-    init_logger();
-
-    m_result->success  = false;
-    m_result->bgn_time = std::chrono::steady_clock::now();
-    m_result->end_time = std::chrono::steady_clock::now();
   }
 
   node_compiler_thread::~node_compiler_thread() noexcept
   {
-    if (is_running())
-      stop();
   }
 
   void node_compiler_thread::start()
   {
-    if (is_running())
-      throw std::runtime_error("Compiler thread already running");
-
-    Info(g_logger, "Starting compiler thread");
-
-    m_thread = std::thread([&]() {
-      try {
-        while (true) {
-
-          std::unique_lock lck {m_mtx};
-          m_cond.wait(
-            lck, [&] { return m_terminate_flag || !m_queue.empty(); });
-
-          // terminate
-          if (m_terminate_flag)
-            break;
-
-          // compile
-          if (!m_queue.empty()) {
-
-            auto start = std::chrono::steady_clock::now();
-
-            assert(!m_queue.empty());
-
-            auto top = std::move(m_queue.front());
-            m_queue.pop();
-
-            auto result = std::make_shared<compile_result>();
-
-            // parse
-            auto parsed = m_parser.parse(top.snapshot->graph);
-
-            if (!parsed) {
-              result->success      = false;
-              result->parse_errors = m_parser.get_errors();
-              result->bgn_time     = start;
-              result->end_time     = std::chrono::steady_clock::now();
-              std::atomic_store(&m_result, std::move(result));
-              continue;
-            } else {
-              // compile
-              auto exe = m_compiler.compile(std::move(*parsed), top.defs);
-              if (!exe) {
-                result->success        = false;
-                result->compile_errors = m_compiler.get_errors();
-                result->bgn_time       = start;
-                result->end_time       = std::chrono::steady_clock::now();
-                std::atomic_store(&m_result, std::move(result));
-                continue;
-              } else {
-                result->success  = true;
-                result->bgn_time = start;
-                result->end_time = std::chrono::steady_clock::now();
-                result->exe      = std::move(*exe);
-                std::atomic_store(&m_result, std::move(result));
-                continue;
-              }
-            }
-          }
-        }
-      } catch (const std::exception& e) {
-        Info(g_logger, "Unexpected error in compiler thread: {}", e.what());
-      } catch (...) {
-        Info(g_logger, "Unexpected error in compiler thread");
-      }
-      Info(g_logger, "Compile thread terminated");
-    });
+     m_pimpl->start();
   }
 
   void node_compiler_thread::stop()
   {
-    if (!is_running())
-      throw std::runtime_error("Compiler thread not running");
-
-    m_terminate_flag = 1;
-    m_cond.notify_one();
-    m_thread.join();
+    m_pimpl->stop();
   }
 
   bool node_compiler_thread::is_running() const noexcept
   {
-    return m_thread.joinable();
+    return m_pimpl->is_running();
   }
 
   void node_compiler_thread::compile(
     const std::shared_ptr<const node_data_snapshot>& snapshot,
     const node_definition_store& decl)
   {
-    if (!is_running())
-      throw std::runtime_error("Compiler thread not running");
-
-    std::unique_lock lck {m_mtx};
-    m_queue.push({snapshot, decl});
-    m_cond.notify_one();
+    m_pimpl->compile(snapshot, decl);
   }
 
   auto node_compiler_thread::get_last_result() const
     -> std::shared_ptr<compile_result>
   {
-    return std::atomic_load(&m_result);
+    return m_pimpl->get_last_result();
   }
 
 } // namespace yave::app

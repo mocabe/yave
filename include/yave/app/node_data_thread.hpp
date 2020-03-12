@@ -7,11 +7,6 @@
 
 #include <yave/node/core/managed_node_graph.hpp>
 
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <queue>
-#include <variant>
 #include <chrono>
 #include <functional>
 
@@ -71,21 +66,7 @@ namespace yave::app {
       -> std::shared_ptr<const node_data_snapshot>;
 
   private:
-    std::shared_ptr<managed_node_graph> m_graph;
-    std::shared_ptr<const node_data_snapshot> m_snapshot;
-
-  private:
-    std::thread m_thread;
-
-  private:
-    struct _queue_data;
-    std::queue<_queue_data> m_queue;
-    std::mutex m_mtx;
-    std::condition_variable m_cond;
-    std::atomic<int> m_terminate_flag;
-
-  private:
-    std::mutex m_notify_mtx;
-    std::condition_variable m_notify_cond;
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
   };
 } // namespace yave
