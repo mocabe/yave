@@ -10,11 +10,11 @@
 #include <yave/lib/imgui/extension.hpp>
 #include <yave/module/std/decl/prim/primitive.hpp>
 
-#include <yave/support/log.hpp>
-
 #include <boost/geometry/algorithms/intersects.hpp>
 #include <boost/geometry/geometries/register/point.hpp>
 #include <utility>
+
+#include <imgui_stdlib.h>
 
 BOOST_GEOMETRY_REGISTER_POINT_2D(ImVec2, float, boost::geometry::cs::cartesian, x, y)
 
@@ -201,7 +201,8 @@ namespace yave::editor::imgui {
       auto type  = sinfo->type();
       auto name  = sinfo->name();
 
-      if (auto data = g.get_data(s)) {
+      if (auto data = g.get_data(s);
+          data && value_cast_if<DataTypeHolder>(data)) {
 
         // see handle_socket_content()
 
@@ -454,7 +455,7 @@ namespace yave::editor::imgui {
 
       ImGui::PushID(s.id().data);
       {
-        if (auto data = g.get_data(s)) {
+        if (auto data = g.get_data(s); data && g.connections(s).empty()) {
           ImGui::SetCursorScreenPos(slayout.area_pos);
           ImGui::PushItemWidth(slayout.area_size.x);
           ImGui::PushStyleColor(ImGuiCol_Text, ImU32(slider_text_col));
@@ -463,13 +464,25 @@ namespace yave::editor::imgui {
           ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
           ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
           {
-            if (auto holder = value_cast_if<PrimitiveDataHolder>(data)) {
+            if (auto holder = value_cast_if<DataTypeHolder>(data)) {
               // Float slider
-              if (auto f = value_cast_if<Float>(holder->data)) {
-                ImGui::DragFloat("", &*f);
+              if (auto f = value_cast_if<Float>(holder->data())) {
+                float val = *f;
+                ImGui::DragFloat("", &val);
+                *f = val;
               }
-              if (auto i = value_cast_if<Int>(holder->data)) {
-                ImGui::DragInt("", &*i);
+              if (auto i = value_cast_if<Int>(holder->data())) {
+                int val = *i;
+                ImGui::DragInt("", &val);
+                *i = val;
+              }
+              if (auto b = value_cast_if<Bool>(holder->data())) {
+                ImGui::Checkbox("", &*b);
+              }
+              if (auto s = value_cast_if<String>(holder->data())) {
+                std::string val = *s;
+                ImGui::InputText("", &val);
+                *s = val;
               }
             }
           }
@@ -513,27 +526,37 @@ namespace yave::editor::imgui {
         // switch by current state
 
         if (editor_ctx.get_state() == editor_state::neutral) {
+
           if (hovered) {
             // set hover
             editor_ctx.set_hovered(n);
+
+            // double click: inspect
+            if (ImGui::IsMouseDoubleClicked(0)) {
+              if (g.is_group(n)) {
+                editor_ctx.set_group(n);
+              }
+            }
+
             // right click: select
-            if (ImGui::IsMouseClicked(0)) {
+            if (ImGui::IsMouseClicked(0) && !ImGui::IsMouseDoubleClicked(0)) {
               if (!editor_ctx.is_selected(n))
                 editor_ctx.clear_selected();
               editor_ctx.add_selected(n);
               editor_ctx.begin_node_drag(to_tvec2(ImGui::GetMousePos()));
             }
+
             // left click: open info popup
             if (ImGui::IsMouseClicked(1)) {
               ImGui::OpenPopup("node_info_popup");
             }
           }
-        }
 
-        if (ImGui::BeginPopup(popup_name)) {
-          ImGui::Text("Node: %s", g.get_name(n)->c_str());
-          ImGui::Text("id: %s", to_string(n.id()).c_str());
-          ImGui::EndPopup();
+          if (ImGui::BeginPopup(popup_name)) {
+            ImGui::Text("Node: %s", g.get_name(n)->c_str());
+            ImGui::Text("id: %s", to_string(n.id()).c_str());
+            ImGui::EndPopup();
+          }
         }
 
         if (editor_ctx.get_state() == editor_state::node) {
@@ -566,6 +589,25 @@ namespace yave::editor::imgui {
 
       auto& g     = editor_ctx.node_graph();
       auto& nodes = layout.nodes;
+
+      if (editor_ctx.get_state() == editor_state::neutral) {
+        if (!editor_ctx.get_selected_nodes().empty()) {
+          // handle grouping
+          if (
+            ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL)
+            && ImGui::IsKeyPressed(GLFW_KEY_G)) {
+            editor_ctx.group(editor_ctx.get_selected_nodes());
+            return;
+          }
+          // handle delete
+          if (ImGui::IsKeyPressed(GLFW_KEY_DELETE)) {
+            for (auto&& n : editor_ctx.get_selected_nodes()) {
+              editor_ctx.destroy(n);
+            }
+            return;
+          }
+        }
+      }
 
       // traverse in reverse order
       for (auto it = nodes.rbegin(); it != nodes.rend(); ++it) {

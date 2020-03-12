@@ -2,6 +2,7 @@
 
 add_library(yave-editor-imgui 
   canvas.cpp
+  render.cpp
   layout.cpp
 )
 
