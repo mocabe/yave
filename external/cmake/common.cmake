@@ -48,7 +48,7 @@ function(build_submodule NAME)
     COMMAND 
     ${CMAKE_COMMAND} 
       --build ${SUBMODULE_BUILD_DIR} 
-      --config ${CMAKE_BUILD_TYPE}
+      --config Release
   )
 
   execute_process(
@@ -56,7 +56,7 @@ function(build_submodule NAME)
     ${CMAKE_COMMAND} 
       --build ${SUBMODULE_BUILD_DIR} 
       --target install 
-      --config ${CMAKE_BUILD_TYPE}
+      --config Release
   )
 
   set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBMODULE_INSTALL_DIR} PARENT_SCOPE)
