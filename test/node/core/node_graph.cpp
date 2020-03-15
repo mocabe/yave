@@ -478,38 +478,6 @@ TEST_CASE("node_graph control")
     REQUIRE(c5);
     REQUIRE(vector_eq(ng.roots(), std::vector {n4}));
   }
-
-  SECTION("dfs")
-  {
-    auto add_n1 = [&](auto p) {
-      auto n = ng.add("n1", {"0", "1", "2"}, {"0"}, node_type::normal);
-      ng.set_data(n, make_object<Box<decltype(p)>>(p));
-      return n;
-    };
-
-    auto add_n2 = [&](auto p) {
-      auto n = ng.add("n2", {}, {"0"}, node_type::normal);
-      ng.set_data(n, make_object<Box<decltype(p)>>(p));
-      return n;
-    };
-
-    auto n1 = add_n1(1);
-    auto n2 = add_n2(2);
-    auto n3 = add_n2(3.14);
-
-    auto c1 = ng.connect(ng.output_sockets(n2)[0], ng.input_sockets(n1)[0]);
-    auto c2 = ng.connect(ng.output_sockets(n2)[0], ng.input_sockets(n1)[2]);
-    auto c3 = ng.connect(ng.output_sockets(n3)[0], ng.input_sockets(n1)[1]);
-
-    REQUIRE(c1);
-    REQUIRE(c2);
-    REQUIRE(c3);
-
-    int count = 0;
-    ng.depth_first_search(n1, [&](auto&&, auto&&) { ++count; });
-
-    REQUIRE(count == 3);
-  }
 }
 
 TEST_CASE("node_graph interface")
