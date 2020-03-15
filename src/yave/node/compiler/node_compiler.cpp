@@ -173,9 +173,7 @@ namespace yave {
           // lambda form?
           bool isLambda = false;
           for (auto&& s : iss) {
-            if (
-              graph.connections(s).empty()
-              && value_cast_if<Variable>(graph.get_data(s))) {
+            if (graph.connections(s).empty()) {
               isLambda = true;
               break;
             }
