@@ -14,7 +14,7 @@
 #include <yave/node/core/connection_info.hpp>
 
 #include <optional>
-#include <mutex>
+#include <memory>
 
 namespace yave {
 
@@ -88,9 +88,11 @@ namespace yave {
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets,
-      node_type type) -> node_handle;
+      const node_type& type) -> node_handle;
 
     /// Add copy of node.
+    /// \returns Non-null handle of new node.
+    /// \throws std::bad_alloc, std::runtime_error on fail.
     /// \note `node` should not be interface node.
     /// \note All ID of node and sockets will also be copied.
     [[nodiscard]] auto add_copy(
@@ -241,21 +243,6 @@ namespace yave {
     [[nodiscard]] auto root_of(const node_handle& node) const
       -> std::vector<node_handle>;
 
-    /// DFS until return true.
-    /// \param node starting node
-    /// \param on_visit function object which takes current node as `const
-    /// node_handle&`, current path as `const std::vector<node_handle>&`, and
-    /// returns bool to stop/continue traversing. will be called once on each
-    /// node found in tree.
-    /// \param on_visited
-    template <class Lambda1>
-    void depth_first_search_until(const node_handle& node, Lambda1&& on_visit)
-      const;
-
-    /// DFS
-    template <class Lambda>
-    void depth_first_search(const node_handle& node, Lambda&& on_visit) const;
-
     /// clear graph
     void clear();
 
@@ -267,149 +254,10 @@ namespace yave {
     /// descriptor handles since it changes address of elements.
     [[nodiscard]] auto clone() const -> node_graph;
 
-  private: /* non locking, non checking helpers */
-    [[nodiscard]] auto _get_info(const node_handle&) const -> node_info;
-    [[nodiscard]] auto _get_info(const socket_handle&) const -> socket_info;
-    [[nodiscard]] auto _get_info(const connection_handle&) const
-      -> connection_info;
-    [[nodiscard]] auto _get_name(const node_handle&) const -> std::string;
-    [[nodiscard]] auto _get_name(const socket_handle&) const -> std::string;
-    [[nodiscard]] auto _input_sockets(const node_handle&) const
-      -> std::vector<socket_handle>;
-    [[nodiscard]] auto _output_sockets(const node_handle&) const
-      -> std::vector<socket_handle>;
-    [[nodiscard]] auto _connect(
-      const node_handle&,
-      const socket_handle&,
-      const node_handle&,
-      const socket_handle&) -> connection_handle;
-    [[nodiscard]] auto _root_of(const node_handle&) const
-      -> std::vector<node_handle>;
-    [[nodiscard]] auto _find_loop(const node_handle&) const
-      -> std::vector<node_handle>;
-
-    template <class Lambda1, class Lambda2>
-    void _depth_first_search_until(
-      const node_handle& node,
-      Lambda1&& on_visit,
-      Lambda2&& on_visited) const;
-
   private:
-    /// graph type
-    graph_t m_g;
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+    node_graph(std::unique_ptr<impl>&&) noexcept;
   };
-
-  /* impl */
-
-  template <class Lambda1, class Lambda2>
-  void node_graph::_depth_first_search_until(
-    const yave::node_handle& node,
-    Lambda1&& on_visit,
-    Lambda2&& on_visited) const
-  {
-    if (!exists(node))
-      return;
-
-    for ([[maybe_unused]] auto&& n : m_g.nodes()) {
-      assert(m_g[n].is_unvisited());
-    }
-
-    // * stack variables *
-    // n_stack: path from start to current node.
-    // i_stack: extra info to store next index to visit.
-    auto n_stack = std::vector<node_handle> {};
-    auto i_stack = std::vector<size_t> {};
-
-    auto visit = [&](const node_handle& n) {
-      m_g[n.descriptor()].set_visited();
-      i_stack.back() += 1;
-      n_stack.push_back(n);
-      i_stack.push_back(0);
-    };
-
-    auto visited = [&](const node_handle& n) {
-      return m_g[n.descriptor()].is_visited();
-    };
-
-    auto call_lambda = [](
-                         auto&& lambda,
-                         const node_handle& n,
-                         const std::vector<node_handle>& p) {
-      return lambda(n, p);
-    };
-
-    // visit first node, init stacks.
-    {
-      m_g[node.descriptor()].set_visited();
-      n_stack.push_back(node);
-      i_stack.push_back(0);
-      if (call_lambda(on_visit, node, n_stack)) {
-        m_g[node.descriptor()].set_unvisited();
-        return;
-      }
-    }
-
-    // main loop
-    while (!n_stack.empty()) {
-
-      auto current_node  = n_stack.back();
-      auto current_index = i_stack.back();
-
-      bool stop = [&] {
-        auto sockets = m_g.sockets(current_node.descriptor());
-        for (size_t i = current_index; i < sockets.size(); ++i) {
-          auto& s = sockets[i];
-          for (auto&& e : m_g.dst_edges(s)) {
-            auto n    = m_g.nodes(m_g.src(e))[0]; // ignore interfaces
-            auto next = node_handle(n, uid {m_g.id(n)});
-            // not visited yet
-            if (!visited(next)) {
-              visit(next);
-              return call_lambda(on_visit, next, n_stack);
-            }
-            // already visited
-            if (call_lambda(on_visited, next, n_stack))
-              return true;
-          }
-        }
-        n_stack.pop_back();
-        i_stack.pop_back();
-        return false;
-      }();
-
-      if (stop)
-        break;
-    }
-
-    // clear mark
-    for (auto&& n : m_g.nodes()) {
-      m_g[n].set_unvisited();
-    }
-  }
-
-  template <class Lambda1>
-  void node_graph::depth_first_search_until(
-    const node_handle& node,
-    Lambda1&& on_visit) const
-  {
-    return _depth_first_search_until(
-      node, std::forward<Lambda1>(on_visit), [](auto&&, auto&&) {
-        return false;
-      });
-  }
-
-  template <class Lambda>
-  void node_graph::depth_first_search(
-    const yave::node_handle& node,
-    Lambda&& lambda) const
-  {
-    return _depth_first_search_until(
-      node,
-      [&](const node_handle& n, const std::vector<node_handle>& path) {
-        std::forward<Lambda>(lambda)(n, path);
-        return false;
-      },
-      [](auto&&, auto&&) { return false; });
-  }
 
 } // namespace yave

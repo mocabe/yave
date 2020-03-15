@@ -11,7 +11,7 @@ namespace yave {
     : m_name {name}
     , m_type {type}
     , m_data {std::nullopt}
-    , m_visited {false}
+    , m_flags {0}
   {
   }
 
@@ -19,7 +19,7 @@ namespace yave {
     : m_name {other.m_name}
     , m_type {other.m_type}
     , m_data {other.m_data}
-    , m_visited {false}
+    , m_flags {0}
   {
   }
 
@@ -48,16 +48,6 @@ namespace yave {
     m_name = new_name;
   }
 
-  bool node_property::is_visited() const
-  {
-    return m_visited;
-  }
-
-  bool node_property::is_unvisited() const
-  {
-    return !m_visited;
-  }
-
   bool node_property::has_data() const
   {
     return m_data.has_value();
@@ -73,13 +63,14 @@ namespace yave {
     m_data = std::move(data);
   }
 
-  void node_property::set_visited() const
+  auto node_property::get_flags() const -> uint8_t
   {
-    m_visited = true;
+    return m_flags;
   }
 
-  void node_property::set_unvisited() const
+  void node_property::set_flags(uint8_t bits) const
   {
-    m_visited = false;
+    m_flags = bits;
   }
+
 } // namespace yave

@@ -37,11 +37,6 @@ namespace yave {
     [[nodiscard]] auto name() const -> const std::string&;
     /// Get node type
     [[nodiscard]] auto type() const -> node_type;
-    /// visited?
-    [[nodiscard]] bool is_visited() const;
-    /// !visited?
-    [[nodiscard]] bool is_unvisited() const;
-
     /// Has data?
     [[nodiscard]] bool has_data() const;
     /// Get data
@@ -53,12 +48,6 @@ namespace yave {
     /// Set name
     void set_name(const std::string& new_name);
 
-    /// Set as visited.
-    void set_visited() const;
-
-    /// Set as unvisited.
-    void set_unvisited() const;
-
   private:
     /// Name of node.
     std::string m_name;
@@ -67,9 +56,11 @@ namespace yave {
     /// Custom data
     std::optional<object_ptr<Object>> m_data;
 
-  private:
-    /// marking variable for dfs
-    mutable bool m_visited;
+  private: /* for node_graph */
+    friend class node_graph;
+    auto get_flags() const -> uint8_t;
+    void set_flags(uint8_t bits) const;
+    mutable uint8_t m_flags;
   };
 
 } // namespace yave
