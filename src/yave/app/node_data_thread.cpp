@@ -45,8 +45,8 @@ namespace yave::app {
     std::condition_variable notify_cond;
 
   public:
-    impl(std::shared_ptr<managed_node_graph> graph)
-      : graph {std::move(graph)}
+    impl(std::shared_ptr<managed_node_graph> g)
+      : graph {std::move(g)}
       , terminate_flag {0}
     {
       init_logger();
