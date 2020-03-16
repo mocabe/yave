@@ -184,11 +184,6 @@ namespace yave {
       const node_handle& parent_group,
       const std::string& name) -> node_handle;
 
-    /// create new node
-    [[nodiscard]] auto create_shared(
-      const node_handle& parent_group,
-      const std::string& name) -> shared_node_handle;
-
     /// destroy node
     /// \note if `node` is group interface, remove all nodes in the node too.
     /// \note I/O handler nodes cannot be destroyed.
@@ -251,16 +246,9 @@ namespace yave {
 
     /// get data.
     /// \returns nullptr when no data set
-    [[nodiscard]] auto get_data(const node_handle& node) const
-      -> object_ptr<Object>;
-
-    /// get data.
-    /// \returns nullptr when no data set
     [[nodiscard]] auto get_data(const socket_handle& socket) const
       -> object_ptr<Object>;
 
-    /// set data
-    void set_data(const node_handle& node, object_ptr<Object> data);
     /// set data
     void set_data(const socket_handle& socket, object_ptr<Object> data);
 
@@ -274,41 +262,9 @@ namespace yave {
     [[nodiscard]] auto clone() const -> managed_node_graph;
 
   private:
-    struct node_group;
-    struct extra_info;
-
-  private:
-    managed_node_graph(std::nullptr_t);
-    void _init();
-    [[nodiscard]] auto _find_parent_group(const node_handle& node)
-      -> node_group*;
-    [[nodiscard]] auto _find_parent_group(const node_handle& node) const
-      -> const node_group*;
-    [[nodiscard]] auto _add_group_socket(
-      node_group* group,
-      socket_type type,
-      const std::string& socket,
-      size_t index) -> socket_handle;
-    [[nodiscard]] bool _set_group_socket(
-      node_group* group,
-      socket_type type,
-      const std::string& socket,
-      size_t index);
-    void _remove_group_socket(
-      node_group* group,
-      socket_type type,
-      size_t index);
-
-  private:
-    yave::node_graph m_ng;
-    node_declaration_store m_nim;
-
-  private:
-    std::map<node_handle, node_group> m_groups;
-    node_handle m_root_group;
-
-  private:
-    std::map<node_handle, extra_info> m_extra_info;
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+    managed_node_graph(std::unique_ptr<impl>&&) noexcept;
   };
 
 } // namespace yave

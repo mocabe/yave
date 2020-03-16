@@ -36,15 +36,19 @@ TEST_CASE("node_parser _extract")
   {
     // prim
     auto n = graph.create(g, prim_decl.name());
+    auto s = graph.output_sockets(n)[0];
     REQUIRE(n);
+    REQUIRE(s);
 
-    REQUIRE(has_type<Int>(graph.get_data(n)));
+    graph.set_data(s, make_object<Int>());
 
-    auto prim = value_cast<Int>(graph.get_data(n));
+    REQUIRE(has_type<Int>(graph.get_data(s)));
+
+    auto prim = value_cast<Int>(graph.get_data(s));
     *prim     = 42;
 
-    REQUIRE(graph.get_data(n));
-    REQUIRE(*value_cast<Int>(graph.get_data(n)) == 42);
+    REQUIRE(graph.get_data(s));
+    REQUIRE(*value_cast<Int>(graph.get_data(s)) == 42);
 
     // connect to global_out
     auto c = graph.connect(graph.output_sockets(n)[0], gos);
@@ -54,17 +58,19 @@ TEST_CASE("node_parser _extract")
     auto parsed = parser.parse(graph);
     REQUIRE(parsed);
     auto parsed_n = parsed->get_group_members(parsed->root_group())[0];
+    auto parsed_s = parsed->output_sockets(parsed_n)[0];
 
     REQUIRE(parsed);
     REQUIRE(parsed->get_group_members(parsed->root_group()).size() == 1);
     REQUIRE(parsed_n.id() == n.id());
+    REQUIRE(parsed_s.id() == s.id());
 
     // primitive values are shared
     *prim = 24;
 
-    REQUIRE(parsed->get_data(parsed_n));
-    REQUIRE(*value_cast<Int>(graph.get_data(n)) == 24);
-    REQUIRE(*value_cast<Int>(parsed->get_data(parsed_n)) == 24);
+    REQUIRE(parsed->get_data(parsed_s));
+    REQUIRE(*value_cast<Int>(graph.get_data(s)) == 24);
+    REQUIRE(*value_cast<Int>(parsed->get_data(parsed_s)) == 24);
   }
 
   SECTION("norm")

@@ -136,8 +136,13 @@ TEST_CASE("group with content")
 
     auto g = ng.group(ng.root_group(), {n});
     REQUIRE(g);
+    REQUIRE(ng.exists(g));
     REQUIRE(ng.get_parent_group(g) == ng.root_group());
     REQUIRE(ng.get_group_members(g).front() == n);
+    REQUIRE(ng.exists(ng.root_group()));
+    REQUIRE(ng.is_group(ng.root_group()));
+    REQUIRE(ng.is_group(g));
+    REQUIRE(!ng.get_group_members(ng.root_group()).empty());
     REQUIRE(ng.get_group_members(ng.root_group()).front() == g);
 
     auto nn = ng.create(g, "node");
