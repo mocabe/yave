@@ -82,34 +82,34 @@ namespace yave::app {
               auto top = std::move(queue.front());
               queue.pop();
 
-              auto result = std::make_shared<compile_result>();
+              auto new_result = std::make_shared<compile_result>();
 
               // parse
               auto parsed = parser.parse(top.snapshot->graph);
 
               if (!parsed) {
-                result->success      = false;
-                result->parse_errors = parser.get_errors();
-                result->bgn_time     = start;
-                result->end_time     = std::chrono::steady_clock::now();
-                std::atomic_store(&result, std::move(result));
+                new_result->success      = false;
+                new_result->parse_errors = parser.get_errors();
+                new_result->bgn_time     = start;
+                new_result->end_time     = std::chrono::steady_clock::now();
+                std::atomic_store(&result, std::move(new_result));
                 continue;
               } else {
                 // compile
                 auto exe = compiler.compile(std::move(*parsed), top.defs);
                 if (!exe) {
-                  result->success        = false;
-                  result->compile_errors = compiler.get_errors();
-                  result->bgn_time       = start;
-                  result->end_time       = std::chrono::steady_clock::now();
-                  std::atomic_store(&result, std::move(result));
+                  new_result->success        = false;
+                  new_result->compile_errors = compiler.get_errors();
+                  new_result->bgn_time       = start;
+                  new_result->end_time       = std::chrono::steady_clock::now();
+                  std::atomic_store(&result, std::move(new_result));
                   continue;
                 } else {
-                  result->success  = true;
-                  result->bgn_time = start;
-                  result->end_time = std::chrono::steady_clock::now();
-                  result->exe      = std::move(*exe);
-                  std::atomic_store(&result, std::move(result));
+                  new_result->success  = true;
+                  new_result->bgn_time = start;
+                  new_result->end_time = std::chrono::steady_clock::now();
+                  new_result->exe      = std::move(*exe);
+                  std::atomic_store(&result, std::move(new_result));
                   continue;
                 }
               }
