@@ -8,6 +8,20 @@
 #include <yave/node/core/node_declaration.hpp>
 #include <yave/node/core/node_definition.hpp>
 
+#define YAVE_DECL_DEFAULT_NODE_DECLARATION(TAG)             \
+  template <>                                               \
+  struct node_declaration_traits<TAG>                       \
+  {                                                         \
+    static auto get_node_declaration() -> node_declaration; \
+  }
+
+#define YAVE_DECL_DEFAULT_NODE_DEFINITION(NODE_TAG, MODULE_TAG)         \
+  template <>                                                           \
+  struct node_definition_traits<NODE_TAG, MODULE_TAG>                   \
+  {                                                                     \
+    static auto get_node_definitions() -> std::vector<node_definition>; \
+  }
+
 namespace yave {
 
   template <class Tag>

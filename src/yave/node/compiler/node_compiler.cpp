@@ -12,7 +12,7 @@
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/value_cast.hpp>
 #include <yave/rts/unit.hpp>
-#include <yave/module/std/decl/prim/primitive.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
 
 #include <range/v3/algorithm.hpp>
 #include <boost/uuid/uuid_hash.hpp>

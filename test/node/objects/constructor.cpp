@@ -5,7 +5,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/module/std/def/prim/primitive.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/rts/rts.hpp>
 

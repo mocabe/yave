@@ -8,7 +8,7 @@
 #include <yave-imgui/editor/layout.hpp>
 
 #include <yave/lib/imgui/extension.hpp>
-#include <yave/module/std/decl/prim/primitive.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
 
 #include <boost/geometry/algorithms/intersects.hpp>
 #include <boost/geometry/geometries/register/point.hpp>

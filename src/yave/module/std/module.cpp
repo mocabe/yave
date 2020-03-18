@@ -7,22 +7,22 @@
 #include <yave/module/std/module.hpp>
 
 // module defs
-#include <yave/module/std/def/color/color.hpp>
-#include <yave/module/std/def/filesystem/path.hpp>
-#include <yave/module/std/def/geometry/vec.hpp>
-#include <yave/module/std/def/geometry/rect.hpp>
-#include <yave/module/std/def/image/image.hpp>
-#include <yave/module/std/def/list/list.hpp>
-#include <yave/module/std/def/logic/apply.hpp>
-#include <yave/module/std/def/logic/if.hpp>
-#include <yave/module/std/def/prim/primitive.hpp>
-#include <yave/module/std/def/render/frame.hpp>
-#include <yave/module/std/def/time/set_time.hpp>
-#include <yave/module/std/def/time/time.hpp>
-#include <yave/module/std/def/transform/transform.hpp>
-#include <yave/module/std/def/transform/set_transform.hpp>
-#include <yave/module/std/def/transform/rotate.hpp>
-#include <yave/module/std/def/transform/translate.hpp>
+#include <yave/module/std/color/color.hpp>
+#include <yave/module/std/filesystem/path.hpp>
+#include <yave/module/std/geometry/vec.hpp>
+#include <yave/module/std/geometry/rect.hpp>
+#include <yave/module/std/image/image.hpp>
+#include <yave/module/std/list/list.hpp>
+#include <yave/module/std/logic/apply.hpp>
+#include <yave/module/std/logic/if.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
+#include <yave/module/std/render/frame.hpp>
+#include <yave/module/std/time/set_time.hpp>
+#include <yave/module/std/time/time.hpp>
+#include <yave/module/std/transform/transform.hpp>
+#include <yave/module/std/transform/set_transform.hpp>
+#include <yave/module/std/transform/rotate.hpp>
+#include <yave/module/std/transform/translate.hpp>
 
 #include <yave/lib/vulkan/offscreen_renderer_2D.hpp>
 #include <yave/support/log.hpp>
@@ -121,7 +121,7 @@ namespace yave::modules::_std {
 
   auto module::get_node_declarations() const -> std::vector<node_declaration>
   {
-    auto& fmngr = m_pimpl->resource->frame_buff;
+    auto& fmngr    = m_pimpl->resource->frame_buff;
 
     return {get_node_declaration<node::Color>(),
             get_node_declaration<node::FilePath>(),
@@ -162,8 +162,9 @@ namespace yave::modules::_std {
         ret.push_back(def);
     };
 
-    auto& imngr = m_pimpl->resource->image_buff;
-    auto& fmngr = m_pimpl->resource->frame_buff;
+    auto& imngr    = m_pimpl->resource->image_buff;
+    auto& fmngr    = m_pimpl->resource->frame_buff;
+    auto& renderer = m_pimpl->resource->renderer;
 
     add(yave::get_node_definitions<node::Image, _std::tag>(imngr));
     add(yave::get_node_definitions<node::Frame, _std::tag>(fmngr));
