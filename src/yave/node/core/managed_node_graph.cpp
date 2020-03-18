@@ -156,7 +156,7 @@ namespace yave {
     {
     }
 
-    impl(impl&& other) noexcept = default;
+    impl(impl&& other) = default;
 
   public:
     bool register_node_decl(const node_declaration& decl)
