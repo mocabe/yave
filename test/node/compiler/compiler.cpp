@@ -5,9 +5,9 @@
 
 #include <yave/node/compiler/node_compiler.hpp>
 #include <yave/node/core/function.hpp>
-#include <yave/module/std/def/prim/primitive.hpp>
-#include <yave/module/std/def/list/list.hpp>
-#include <yave/module/std/def/logic/if.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
+#include <yave/module/std/list/list.hpp>
+#include <yave/module/std/logic/if.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;

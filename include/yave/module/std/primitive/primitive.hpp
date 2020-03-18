@@ -9,20 +9,18 @@
 #include <yave/module/std/config.hpp>
 #include <yave/module/std/primitive/data_holder.hpp>
 
-#define YAVE_DECL_PRIM_NODE_DECL(TYPE)            \
-  namespace node {                                \
-    using TYPE = DataTypeConstructor<yave::TYPE>; \
-  }                                               \
-  template <>                                     \
-  struct data_type_traits<yave::TYPE>             \
-  {                                               \
-    static constexpr const char name[] = #TYPE;   \
-  };                                              \
-  template struct node_declaration_traits<        \
-    node::DataTypeConstructor<yave::TYPE>>;       \
-  template struct node_definition_traits<         \
-    node::DataTypeConstructor<yave::TYPE>,        \
-    modules::_std::tag>
+#define YAVE_DECL_PRIM_NODE(TYPE)                                          \
+  namespace node {                                                         \
+    using TYPE = DataTypeConstructor<yave::TYPE>;                          \
+  }                                                                        \
+  template <>                                                              \
+  constexpr char node_declaration_traits<node::TYPE>::node_name[] = #TYPE; \
+  extern template struct node_declaration_traits<node::TYPE>;              \
+  extern template struct node_definition_traits<node::TYPE, modules::_std::tag>
+
+#define YAVE_DEF_PRIM_NODE(TYPE)                       \
+  template struct node_declaration_traits<node::TYPE>; \
+  template struct node_definition_traits<node::TYPE, modules::_std::tag>
 
 namespace yave {
 
@@ -34,16 +32,11 @@ namespace yave {
 
   } // namespace node
 
-  /// Primitive traits
-  template <class T>
-  struct data_type_traits
-  {
-  };
-
   template <class T>
   struct node_declaration_traits<node::DataTypeConstructor<T>>
   {
     static auto get_node_declaration() -> node_declaration;
+    static const char node_name[];
   };
 
   template <class T>
@@ -54,8 +47,10 @@ namespace yave {
     static auto get_node_definitions() -> std::vector<node_definition>;
   };
 
-  YAVE_DECL_PRIM_NODE_DECL(Int);
-  YAVE_DECL_PRIM_NODE_DECL(Float);
-  YAVE_DECL_PRIM_NODE_DECL(Bool);
-  YAVE_DECL_PRIM_NODE_DECL(String);
+  // Also need to add definitions in .cpp to property link with clang.
+  YAVE_DECL_PRIM_NODE(Int);
+  YAVE_DECL_PRIM_NODE(Float);
+  YAVE_DECL_PRIM_NODE(Bool);
+  YAVE_DECL_PRIM_NODE(String);
+
 } // namespace yave

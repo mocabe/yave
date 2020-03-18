@@ -15,7 +15,7 @@ namespace yave {
     node::DataTypeConstructor<T>>::get_node_declaration() -> node_declaration
   {
     return node_declaration(
-      data_type_traits<T>::name,
+      node_name,
       "Data type constructor",
       "std::prim",
       {"value"},
@@ -49,5 +49,10 @@ namespace yave {
       make_object<modules::_std::prim::DataTypeConstructor<T>>(),
       info.name())};
   }
+
+  YAVE_DEF_PRIM_NODE(Int);
+  YAVE_DEF_PRIM_NODE(Float);
+  YAVE_DEF_PRIM_NODE(Bool);
+  YAVE_DEF_PRIM_NODE(String);
 
 } // namespace yave
