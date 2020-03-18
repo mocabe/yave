@@ -60,9 +60,6 @@ namespace yave::app {
     /// Set data
     void set_data(const socket_handle& socket, const object_ptr<Object>& data);
 
-    /// Set data 
-    void set_data(const node_handle& node, const object_ptr<Object>& data);
-
   public: /* model data accessors */
     /// Get editor node info
     auto get_editor_info(const node_handle& handle) const

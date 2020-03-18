@@ -218,15 +218,6 @@ namespace yave::app {
       [=](managed_node_graph& g) { g.set_data(g.socket(socket.id()), data); });
   }
 
-  void editor_context::set_data(
-    const node_handle& node,
-    const object_ptr<Object>& data)
-  {
-    assert(m_in_frame);
-    m_data_thread.send(
-      [=](managed_node_graph& g) { g.set_data(g.node(node.id()), data); });
-  }
-
   auto editor_context::get_editor_info(const node_handle& handle) const
     -> std::optional<editor_node_info>
   {
