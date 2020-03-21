@@ -37,7 +37,8 @@ int main()
 
   imgui::imgui_context imgui_ctx {vulkan_ctx};
 
-  scene_config config(1600, 900, 60, 44100, image_format::rgba32f);
+  scene_config config(
+    1600, 900, 60, image_format::rgba32f, audio_format::pcm_44100_stereo);
 
   std::array<float, 4> bg_tex = {0, 0, 0, 1};
 
@@ -152,7 +153,7 @@ int main()
             if (auto f = value_cast_if<FrameBuffer>(obj)) {
 
               const_image_view view(
-                config.width(), config.height(), config.frame_buffer_format());
+                config.width(), config.height(), config.frame_format());
 
               if (!imgui_ctx.find_texture(render_result_tex_name))
                 (void)imgui_ctx.add_texture(

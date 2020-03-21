@@ -8,6 +8,7 @@
 #include <yave/config/config.hpp>
 #include <yave/lib/time/time.hpp>
 #include <yave/lib/image/image_format.hpp>
+#include <yave/lib/audio/audio_format.hpp>
 
 namespace yave {
 
@@ -18,18 +19,14 @@ namespace yave {
     /// \param width non-zero frame buffer width
     /// \param height non-zero frame buffer height
     /// \param frame_rate non-zero frame rate (fps)
-    /// \param sample_rate non-zero sample rate (Hz)
-    /// \param format frame buffer format
-    ///
-    /// Currently, following image formats are supported for frame
-    /// buffer format:
-    ///   image_format::RGBA32F
+    /// \param frame_format frame buffer format
+    /// \param audio_format audio buffer format
     scene_config(
       uint32_t width,
       uint32_t height,
       uint32_t frame_rate,
-      uint32_t sample_rate,
-      image_format format);
+      image_format frame_format,
+      audio_format audio_format);
 
     ~scene_config() noexcept                    = default;
     scene_config(const scene_config& other)     = default;
@@ -40,10 +37,8 @@ namespace yave {
     [[nodiscard]] auto width() const noexcept -> uint32_t;
     [[nodiscard]] auto height() const noexcept -> uint32_t;
     [[nodiscard]] auto frame_rate() const noexcept -> uint32_t;
-    [[nodiscard]] auto sample_rate() const noexcept -> uint32_t;
-    [[nodiscard]] auto time_per_frame() const noexcept -> time;
-    [[nodiscard]] auto time_per_sample() const noexcept -> time;
-    [[nodiscard]] auto frame_buffer_format() const noexcept -> image_format;
+    [[nodiscard]] auto frame_format() const noexcept -> image_format;
+    [[nodiscard]] auto audio_format() const noexcept -> audio_format;
 
   private:
     uint32_t m_width;
@@ -51,13 +46,9 @@ namespace yave {
 
   private:
     uint32_t m_frame_rate;
-    uint32_t m_sample_rate;
 
   private:
-    time m_time_per_frame;
-    time m_time_per_sample;
-
-  private:
-    image_format m_frame_buffer_format;
+    yave::image_format m_frame_format;
+    yave::audio_format m_audio_format;
   };
 } // namespace yave

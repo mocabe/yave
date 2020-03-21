@@ -16,7 +16,7 @@ namespace yave::editor::imgui {
     const char* render_background_tex_name)
   {
     const_image_view view(
-      config.width(), config.height(), config.frame_buffer_format());
+      config.width(), config.height(), config.frame_format());
     auto tex = imgui_ctx.find_texture(render_result_tex_name);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));

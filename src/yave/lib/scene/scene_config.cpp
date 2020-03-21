@@ -14,8 +14,8 @@ namespace yave {
     uint32_t width,
     uint32_t height,
     uint32_t frame_rate,
-    uint32_t sample_rate,
-    image_format format)
+    yave::image_format frame_format,
+    yave::audio_format audio_format)
   {
     init_logger();
 
@@ -39,34 +39,22 @@ namespace yave {
 
     if (!time::is_compatible_rate(frame_rate)) {
       Warning(
+        g_logger,
         "Specified frame rate is not compatible with internal time resolution. "
         "This may cause innaccurate time mapping.");
     }
 
     m_frame_rate     = frame_rate;
-    m_time_per_frame = time::per_second() / frame_rate;
 
-    if (sample_rate == 0) {
-      Error(g_logger, "Invalid sample rate: {}", sample_rate);
-      throw std::invalid_argument("Invalid sample rate");
-    }
-
-    if (!time::is_compatible_rate(sample_rate)) {
-      Warning(
-        "Specified sample rate is not compatible with internal time "
-        "resolution. This may cause innaccurate time mapping.");
-    }
-
-    m_sample_rate     = sample_rate;
-    m_time_per_sample = time::per_second() / sample_rate;
-
-    // TODO: support multiple frame buffer formats
-    if (format != image_format::rgba32f) {
-      Error("This frame buffer format is not supported: {}", to_string(format));
+    if (frame_format == image_format::unknown) {
       throw std::invalid_argument("Invalid frame buffer format");
     }
+    m_frame_format = frame_format;
 
-    m_frame_buffer_format = format;
+    if (audio_format == audio_format::unknown) {
+      throw std::invalid_argument("Invalid audio format");
+    }
+    m_audio_format = audio_format;
   }
 
   uint32_t scene_config::width() const noexcept
@@ -84,24 +72,14 @@ namespace yave {
     return m_frame_rate;
   }
 
-  uint32_t scene_config::sample_rate() const noexcept
+  image_format scene_config::frame_format() const noexcept
   {
-    return m_sample_rate;
+    return m_frame_format;
   }
 
-  time scene_config::time_per_frame() const noexcept
+  audio_format scene_config::audio_format() const noexcept
   {
-    return m_time_per_frame;
-  }
-
-  time scene_config::time_per_sample() const noexcept
-  {
-    return m_time_per_sample;
-  }
-
-  image_format scene_config::frame_buffer_format() const noexcept
-  {
-    return m_frame_buffer_format;
+    return m_audio_format;
   }
 
 } // namespace yave

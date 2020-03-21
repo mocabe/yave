@@ -41,7 +41,7 @@ namespace yave::modules::_std {
         : image_buff {module_id}
         , frame_buff {config.width(),
                       config.height(),
-                      config.frame_buffer_format(),
+                      config.frame_format(),
                       module_id}
         , renderer {config.width(), config.height(), ctx}
       {
