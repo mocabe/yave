@@ -15,59 +15,59 @@
 namespace yave {
 
   /// Convert pixel_format to sln::PixelFormat
-  [[nodiscard]] inline sln::PixelFormat to_sln(pixel_format fmt)
+  [[nodiscard]] inline sln::PixelFormat to_sln(image_color_type fmt)
   {
     using namespace sln;
 
     switch (fmt) {
-      case pixel_format::y:
+      case image_color_type::y:
         return PixelFormat::Y;
-      case pixel_format::ya:
+      case image_color_type::ya:
         return PixelFormat::YA;
-      case pixel_format::rgb:
+      case image_color_type::rgb:
         return PixelFormat::RGB;
-      case pixel_format::ycbcr:
+      case image_color_type::ycbcr:
         return PixelFormat::YCbCr;
-      case pixel_format::cielab:
+      case image_color_type::cielab:
         return PixelFormat::CIELab;
-      case pixel_format::icclab:
+      case image_color_type::icclab:
         return PixelFormat::ICCLab;
-      case pixel_format::rgba:
+      case image_color_type::rgba:
         return PixelFormat::RGBA;
-      case pixel_format::cmyk:
+      case image_color_type::cmyk:
         return PixelFormat::CMYK;
-      case pixel_format::ycck:
+      case image_color_type::ycck:
         return PixelFormat::YCCK;
-      case pixel_format::unknown:
+      case image_color_type::unknown:
         return PixelFormat::Unknown;
     }
     return PixelFormat::Unknown;
   }
 
-  /// Convert sln::PixelFormat to pixel_format
-  [[nodiscard]] inline pixel_format from_sln(sln::PixelFormat fmt)
+  /// Convert sln::PixelFormat to image_color_type
+  [[nodiscard]] inline image_color_type from_sln(sln::PixelFormat fmt)
   {
     using namespace sln;
 
     switch (fmt) {
       case PixelFormat::Y:
-        return pixel_format::y;
+        return image_color_type::y;
       case PixelFormat::YA:
-        return pixel_format::ya;
+        return image_color_type::ya;
       case PixelFormat::RGB:
-        return pixel_format::rgb;
+        return image_color_type::rgb;
       case PixelFormat::YCbCr:
-        return pixel_format::ycbcr;
+        return image_color_type::ycbcr;
       case PixelFormat::CIELab:
-        return pixel_format::cielab;
+        return image_color_type::cielab;
       case PixelFormat::ICCLab:
-        return pixel_format::icclab;
+        return image_color_type::icclab;
       case PixelFormat::RGBA:
-        return pixel_format::rgba;
+        return image_color_type::rgba;
       case PixelFormat::CMYK:
-        return pixel_format::cmyk;
+        return image_color_type::cmyk;
       case PixelFormat::YCCK:
-        return pixel_format::ycck;
+        return image_color_type::ycck;
       // not supported
       case PixelFormat::X:
       case PixelFormat::XX:
@@ -79,45 +79,45 @@ namespace yave {
       case PixelFormat::ABGR:
       case PixelFormat::Unknown:
       case PixelFormat::Invalid:
-        return pixel_format::unknown;
+        return image_color_type::unknown;
     }
-    return pixel_format::unknown;
+    return image_color_type::unknown;
   }
 
   /// Convert sample_format to sln::SampleFormat
-  [[nodiscard]] inline sln::SampleFormat to_sln(const sample_format& fmt)
+  [[nodiscard]] inline sln::SampleFormat to_sln(const image_data_type& fmt)
   {
     using namespace sln;
 
     switch (fmt) {
-      case sample_format::unsigned_integer:
+      case image_data_type::unsigned_integer:
         return SampleFormat::UnsignedInteger;
-      case sample_format::signed_integer:
+      case image_data_type::signed_integer:
         return SampleFormat::SignedInteger;
-      case sample_format::floating_point:
+      case image_data_type::floating_point:
         return SampleFormat::FloatingPoint;
-      case sample_format::unknown:
+      case image_data_type::unknown:
         return SampleFormat::Unknown;
     }
     return SampleFormat::Unknown;
   }
 
-  /// Convert sln::SampleFormat to sample_format
-  [[nodiscard]] inline sample_format from_sln(sln::SampleFormat fmt)
+  /// Convert sln::SampleFormat to image_data_type
+  [[nodiscard]] inline image_data_type from_sln(sln::SampleFormat fmt)
   {
     using namespace sln;
 
     switch (fmt) {
       case SampleFormat::UnsignedInteger:
-        return sample_format::unsigned_integer;
+        return image_data_type::unsigned_integer;
       case SampleFormat::SignedInteger:
-        return sample_format::signed_integer;
+        return image_data_type::signed_integer;
       case SampleFormat::FloatingPoint:
-        return sample_format::floating_point;
+        return image_data_type::floating_point;
       case SampleFormat::Unknown:
-        return sample_format::unknown;
+        return image_data_type::unknown;
     }
-    return sample_format::unknown;
+    return image_data_type::unknown;
   }
 
   /// Convert image to sln::DynImage
@@ -132,8 +132,8 @@ namespace yave {
       static_cast<int16_t>(image.byte_per_channel()));
 
     auto semantics = UntypedImageSemantics(
-      to_sln(image.image_format().pixel_format),
-      to_sln(image.image_format().sample_format));
+      to_sln(image.image_format().color_type),
+      to_sln(image.image_format().data_type));
 
     sln::DynImage<> ret(layout, semantics);
 
@@ -183,8 +183,8 @@ namespace yave {
       static_cast<int16_t>(image.byte_per_channel()));
 
     auto semantics = UntypedImageSemantics(
-      to_sln(image.image_format().pixel_format),
-      to_sln(image.image_format().sample_format));
+      to_sln(image.image_format().color_type),
+      to_sln(image.image_format().data_type));
 
     return ConstantDynImageView(
       (const uint8_t*)image.data(), layout, semantics);
@@ -203,8 +203,8 @@ namespace yave {
       static_cast<int16_t>(image.byte_per_channel()));
 
     auto semantics = UntypedImageSemantics(
-      to_sln(image.image_format().pixel_format),
-      to_sln(image.image_format().sample_format));
+      to_sln(image.image_format().color_type),
+      to_sln(image.image_format().data_type));
 
     return MutableDynImageView((uint8_t*)image.data(), layout, semantics);
   }

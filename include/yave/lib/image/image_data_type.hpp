@@ -10,7 +10,7 @@
 namespace yave {
 
   /// image sample format
-  enum class sample_format : uint8_t
+  enum class image_data_type : uint8_t
   {
     unknown          = 0U, ///< Unknown sample format
     unsigned_integer = 1U, ///< UInt
@@ -19,24 +19,23 @@ namespace yave {
   };
 
   /// Get string representation of sample format
-  [[nodiscard]] constexpr const char* get_sample_format_cstr(
-    const sample_format& fmt)
+  [[nodiscard]] constexpr const char* to_cstr(const image_data_type& fmt)
   {
     // clang-format off
     switch (fmt) {
-      case sample_format::unknown:            return "(unknown pixel format)";
-      case sample_format::unsigned_integer:    return "UnsignedInteger";
-      case sample_format::signed_integer:      return "SignedInteger";
-      case sample_format::floating_point:      return "FloatingPoint";
+      case image_data_type::unknown:          return "(unknown pixel data format)";
+      case image_data_type::unsigned_integer: return "UnsignedInteger";
+      case image_data_type::signed_integer:   return "SignedInteger";
+      case image_data_type::floating_point:   return "FloatingPoint";
       default:                                unreachable();
     }
     // clang-format on
   }
 
-  /// Convert sample_format to string
-  [[nodiscard]] inline std::string to_string(const sample_format& format)
+  /// Convert image_data_type to string
+  [[nodiscard]] inline std::string to_string(const image_data_type& format)
   {
-    return {get_sample_format_cstr(format)};
+    return {to_cstr(format)};
   }
 
 } // namespace yave
