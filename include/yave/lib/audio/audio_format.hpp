@@ -40,7 +40,7 @@ namespace yave {
   inline constexpr audio_format audio_format::pcm_44100_stereo = {audio_data_type::signed_integer, audio_data_size::e16, audio_sample_rate::e44100, audio_channel_layout::stereo};
   inline constexpr audio_format audio_format::pcm_48000_stereo = {audio_data_type::signed_integer, audio_data_size::e16, audio_sample_rate::e48000, audio_channel_layout::stereo};
   inline constexpr audio_format audio_format::pcm_96000_stereo = {audio_data_type::signed_integer, audio_data_size::e16, audio_sample_rate::e96000, audio_channel_layout::stereo};
-  inline constexpr audio_format audio_format::pcm_96000_stereo = {audio_data_type::signed_integer, audio_data_size::e16, audio_sample_rate::e192000, audio_channel_layout::stereo};
+  inline constexpr audio_format audio_format::pcm_192000_stereo = {audio_data_type::signed_integer, audio_data_size::e16, audio_sample_rate::e192000, audio_channel_layout::stereo};
   // clang-format on
 
   [[nodiscard]] constexpr bool operator==(
