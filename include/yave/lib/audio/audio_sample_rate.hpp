@@ -39,6 +39,38 @@ namespace yave {
     e22579200 = 23U, ///< 22579200 Hz
   };
 
+  [[nodiscard]] constexpr auto get_sample_rate(const audio_sample_rate& rate)
+  {
+    // clang-format off
+    switch (rate) {
+      case audio_sample_rate::e8000:     return 8000;
+      case audio_sample_rate::e11025:    return 11025;
+      case audio_sample_rate::e12000:    return 12000;
+      case audio_sample_rate::e16000:    return 16000;
+      case audio_sample_rate::e22050:    return 22050;
+      case audio_sample_rate::e32000:    return 32000;
+      case audio_sample_rate::e37800:    return 37800;
+      case audio_sample_rate::e44056:    return 44056;
+      case audio_sample_rate::e44100:    return 44100;
+      case audio_sample_rate::e47250:    return 47250;
+      case audio_sample_rate::e48000:    return 48000;
+      case audio_sample_rate::e50000:    return 50000;
+      case audio_sample_rate::e50400:    return 50400;
+      case audio_sample_rate::e64000:    return 64000;
+      case audio_sample_rate::e88200:    return 88200;
+      case audio_sample_rate::e96000:    return 96000;
+      case audio_sample_rate::e176400:   return 176400;
+      case audio_sample_rate::e192000:   return 192000;
+      case audio_sample_rate::e352800:   return 352800;
+      case audio_sample_rate::e2822400:  return 2822400;
+      case audio_sample_rate::e5644800:  return 5644800;
+      case audio_sample_rate::e11289600: return 11289600;
+      case audio_sample_rate::e22579200: return 22579200;
+      default:                           unreachable();
+    }
+    // clang-format on
+  }
+
   [[nodiscard]] constexpr auto to_cstr(const audio_sample_rate& rate)
   {
     // clang-format off

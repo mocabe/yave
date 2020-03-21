@@ -20,6 +20,20 @@ namespace yave {
     e32     = 4U, ///< 32bit
   };
 
+  /// Get channel data size in bytes
+  [[nodiscard]] constexpr auto get_data_size(const audio_data_size& size)
+  {
+    // clang-format off
+    switch (size) {
+      case audio_data_size::e8:      return 1;
+      case audio_data_size::e16:     return 2;
+      case audio_data_size::e24:     return 3;
+      case audio_data_size::e32:     return 4;
+      default:                       unreachable();
+    }
+    // clang-format on
+  }
+
   [[nodiscard]] constexpr auto to_cstr(const audio_data_size& size)
   {
     // clang-format off
@@ -34,7 +48,7 @@ namespace yave {
     // clang-format on
   }
 
-  [[nodiscard]] auto to_string(const audio_data_size& size)
+  [[nodiscard]] inline auto to_string(const audio_data_size& size)
   {
     return std::string(to_cstr(size));
   }

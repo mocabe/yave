@@ -19,6 +19,18 @@ namespace yave {
     // TODO: Add surround configurations
   };
 
+  [[nodiscard]] constexpr auto get_channel_size(
+    const audio_channel_layout& layout)
+  {
+    // clang-format off
+    switch (layout) {
+      case audio_channel_layout::mono:    return 1;
+      case audio_channel_layout::stereo:  return 2;
+      default:                            unreachable();
+    }
+    // clang-format on
+  }
+
   [[nodiscard]] constexpr auto to_cstr(const audio_channel_layout& layout)
   {
     // clang-format off
