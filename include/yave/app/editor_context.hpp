@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <yave/app/project.hpp>
 #include <yave/node/core/managed_node_graph.hpp>
-#include <yave/app/node_data_thread.hpp>
 #include <yave/app/editor_node_info.hpp>
 #include <yave/app/editor_socket_info.hpp>
 #include <yave/app/editor_connection_info.hpp>
@@ -18,8 +18,7 @@ namespace yave::app {
   class editor_context
   {
   public:
-    editor_context(node_data_thread& data_thread);
-
+    editor_context(project& project);
     editor_context(const editor_context&) = delete;
     editor_context& operator=(const editor_context&) = delete;
 
@@ -188,36 +187,8 @@ namespace yave::app {
     auto get_drag_source_pos() const -> tvec2<float>;
 
   private:
-    /// data thread ref
-    node_data_thread& m_data_thread;
-    /// current snapshot of graph
-    std::shared_ptr<const node_data_snapshot> m_snapshot;
-
-  private:
-    node_handle m_current_group;
-
-  private:
-    std::vector<std::function<void(void)>> m_command_queue;
-
-  private: /* hovered handles */
-    node_handle m_n_hovered;
-    socket_handle m_s_hovered;
-    connection_handle m_c_hovered;
-
-  private: /* selected handles */
-    std::vector<node_handle> m_n_selected;
-    std::vector<socket_handle> m_s_selected;
-    std::vector<connection_handle> m_c_selected;
-
-  private:
-    tvec2<float> m_scroll_pos;
-
-  private:
-    bool m_in_frame;
-
-  private:
-    editor_state m_state;
-    tvec2<float> m_drag_source_pos;
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
   };
 
 } // namespace yave::app
