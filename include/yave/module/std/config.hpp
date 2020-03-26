@@ -20,6 +20,8 @@ namespace yave {
     constexpr uuid module_id =
       uuid::from_string("baf89c49-49eb-4381-9b8d-d85b44553090");
 
+    constexpr auto module_name = "std";
+
   } // namespace modules::_std
 
 } // namespace yave

@@ -210,7 +210,7 @@ namespace yave::modules::_std {
 
   auto module::name() const -> std::string
   {
-    return "std";
+    return _std::module_name;
   }
 
   auto module::module_id() const -> uuid
