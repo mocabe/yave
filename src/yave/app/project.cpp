@@ -86,20 +86,24 @@ namespace yave::app {
       }
 
       data.modules = loader.get();
-      for (auto&& m : data.modules) {
-        Info(
-          g_logger,
-          "Adding module: {}(inst {} of module {})",
-          m->name(),
-          to_string(m->module_id()),
-          to_string(m->instance_id()));
-        assert(!m->initialized());
-        data.decls.add(m->get_node_declarations());
-        data.defs.add(m->get_node_definitions());
-      }
 
       // init
       init_modules();
+
+      // register
+      for (auto&& m : data.modules) {
+        Info(
+          g_logger,
+          "Added module: {} (inst {} of module {})",
+          m->name(),
+          to_string(m->instance_id()),
+          to_string(m->module_id()));
+        assert(m->initialized());
+        if (!data.decls.add(m->get_node_declarations())) {
+          Error(g_logger, "Failed to register node declaration");
+        }
+        data.defs.add(m->get_node_definitions());
+      }
     }
 
     ~impl() noexcept
