@@ -19,6 +19,7 @@ namespace yave::app {
   {
   public:
     editor_context(project& project);
+    ~editor_context() noexcept;
     editor_context(const editor_context&) = delete;
     editor_context& operator=(const editor_context&) = delete;
 

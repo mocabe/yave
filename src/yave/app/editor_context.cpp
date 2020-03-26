@@ -401,6 +401,15 @@ namespace yave::app {
       , context_front {project.graph()}
     {
       init_logger();
+
+      data_thread.start();
+      compiler_thread.start();
+    }
+
+    ~impl() noexcept
+    {
+      compiler_thread.stop();
+      data_thread.stop();
     }
 
     void begin_frame()
@@ -785,6 +794,8 @@ namespace yave::app {
     : m_pimpl {std::make_unique<impl>(project)}
   {
   }
+
+  editor_context::~editor_context() noexcept = default;
 
   void editor_context::begin_frame()
   {
