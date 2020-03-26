@@ -18,6 +18,7 @@ add_library(yave-module-std
   transform/transform.cpp
   transform/translate.cpp
   module.cpp
+  module_loader.cpp
 )
 
 add_library(yave::module::std ALIAS yave-module-std)

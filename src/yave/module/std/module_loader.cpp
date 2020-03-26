@@ -41,7 +41,7 @@ namespace yave::modules::_std {
         mdl = nullptr;
     }
 
-    auto get() -> std::vector<std::shared_ptr<module>>
+    auto get() -> std::vector<std::shared_ptr<yave::module>>
     {
       if (mdl)
         return {mdl};
@@ -72,7 +72,7 @@ namespace yave::modules::_std {
     return m_pimpl->unload(modules);
   }
 
-  auto module_loader::get() const -> std::vector<std::shared_ptr<module>>
+  auto module_loader::get() const -> std::vector<std::shared_ptr<yave::module>>
   {
     return m_pimpl->get();
   }
