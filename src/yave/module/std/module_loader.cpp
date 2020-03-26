@@ -60,6 +60,8 @@ namespace yave::modules::_std {
   {
   }
 
+  module_loader::~module_loader() noexcept = default;
+
   bool module_loader::load(const std::vector<std::string>& modules)
   {
     return m_pimpl->load(modules);
