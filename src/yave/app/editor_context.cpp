@@ -439,10 +439,19 @@ namespace yave::app {
       in_frame = false;
     }
 
-    auto& graph() const
+    auto& node_graph() const
     {
-      assert(in_frame);
       return snapshot->graph;
+    }
+
+    auto& node_declarations() const
+    {
+      return project.node_declarations();
+    }
+
+    auto& node_definitions() const
+    {
+      return project.node_definitions();
     }
 
     // get refreshed handle
@@ -809,7 +818,18 @@ namespace yave::app {
 
   auto editor_context::node_graph() const -> const managed_node_graph&
   {
-    return m_pimpl->graph();
+    return m_pimpl->node_graph();
+  }
+
+  auto editor_context::node_declarations() const
+    -> const node_declaration_store&
+  {
+    return m_pimpl->node_declarations();
+  }
+
+  auto editor_context::node_definitions() const -> const node_definition_store&
+  {
+    return m_pimpl->node_definitions();
   }
 
   void editor_context::create(

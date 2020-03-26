@@ -26,6 +26,10 @@ namespace yave::app {
   public: /* const interface */
     /// Accessing node graph snapshot
     auto node_graph() const -> const managed_node_graph&;
+    /// Accessing node declarations
+    auto node_declarations() const -> const node_declaration_store&;
+    /// Accessing node declarations
+    auto node_definitions() const -> const node_definition_store&;
 
   public: /* state control */
     /// Begin frame
