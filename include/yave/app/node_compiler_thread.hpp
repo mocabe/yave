@@ -13,12 +13,21 @@ namespace yave::app {
 
   struct compile_result
   {
-    bool success;
-    std::chrono::steady_clock::time_point bgn_time;
-    std::chrono::steady_clock::time_point end_time;
-    executable exe;
-    error_list compile_errors;
-    error_list parse_errors;
+    // success flags
+    bool success = false;
+
+    // timestamps
+    std::chrono::steady_clock::time_point bgn_time =
+      std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point end_time =
+      std::chrono::steady_clock::now();
+
+    // result executable
+    executable exe = {};
+
+    // erros
+    error_list compile_errors = {};
+    error_list parse_errors   = {};
   };
 
   /// Node compiler thread
@@ -38,6 +47,9 @@ namespace yave::app {
 
     /// Thread running?
     bool is_running() const noexcept;
+
+    /// Thread busy?
+    bool is_compiling() const noexcept;
 
     /// Queue compilation
     void compile(
