@@ -104,8 +104,6 @@ namespace yave {
   public:
     /// node graph
     yave::node_graph ng;
-    /// decl store
-    node_declaration_store decls;
 
   public:
     /// map of groups
@@ -117,7 +115,6 @@ namespace yave {
     void init()
     {
       assert(ng.empty());
-      assert(decls.empty());
       assert(groups.empty());
       assert(!root_group);
 
@@ -157,53 +154,6 @@ namespace yave {
     }
 
     impl(impl&& other) = default;
-
-  public:
-    bool register_node_decl(const node_declaration& decl)
-    {
-      if (
-        decl.name() == get_node_declaration<node::NodeGroupInterface>().name())
-        return false;
-      if (decl.name() == get_node_declaration<node::NodeGroupInput>().name())
-        return false;
-      if (decl.name() == get_node_declaration<node::NodeGroupOutput>().name())
-        return false;
-      if (decl.name() == get_node_declaration<node::NodeGroupIOBit>().name())
-        return false;
-
-      return decls.add(decl);
-    }
-
-    bool register_node_decl(const std::vector<node_declaration>& decl)
-    {
-      for (auto&& dcl : decl) {
-        if (
-          dcl.name() == get_node_declaration<node::NodeGroupInterface>().name())
-          return false;
-        if (dcl.name() == get_node_declaration<node::NodeGroupInput>().name())
-          return false;
-        if (dcl.name() == get_node_declaration<node::NodeGroupOutput>().name())
-          return false;
-        if (dcl.name() == get_node_declaration<node::NodeGroupIOBit>().name())
-          return false;
-      }
-      return decls.add(decl);
-    }
-
-    void unregister_node_decl(const std::string& name)
-    {
-      decls.remove(name);
-    }
-
-    void unregister_node_decl(const std::vector<std::string>& names)
-    {
-      decls.remove(names);
-    }
-
-    auto get_node_decls() const
-    {
-      return decls.enumerate();
-    }
 
   public:
     bool exists(const node_handle& node) const
@@ -567,17 +517,9 @@ namespace yave {
     }
 
   public:
-    auto create(const node_handle& parent_group, const std::string& name)
+    auto create(const node_handle& parent_group, const node_declaration& decl)
       -> node_handle
     {
-      // find declaration
-      auto decl = decls.find(name);
-
-      if (!decl) {
-        Error(g_logger, "Failed to create node: No such declaration: {}", name);
-        return {nullptr};
-      }
-
       // find group
       node_group* group;
       {
@@ -595,9 +537,9 @@ namespace yave {
 
       // create node
       auto node = ng.add(
-        decl->name(),
-        decl->input_sockets(),
-        decl->output_sockets(),
+        decl.name(),
+        decl.input_sockets(),
+        decl.output_sockets(),
         node_type::normal);
 
       // all valid node_declarations are valid to create new node.
@@ -616,7 +558,7 @@ namespace yave {
 
       // set default arguments
       auto is = ng.input_sockets(node);
-      for (auto&& [idx, defval] : decl->default_arg()) {
+      for (auto&& [idx, defval] : decl.default_arg()) {
         set_data(is[idx], defval.clone());
       }
 
@@ -1376,7 +1318,6 @@ namespace yave {
     void clear()
     {
       ng.clear();
-      decls.clear();
       groups.clear();
       root_group = nullptr;
       init();
@@ -1393,7 +1334,6 @@ namespace yave {
 
       impl ret(nullptr);
 
-      ret.decls = decls;
       ret.ng    = ng.clone();
 
       ret.root_group = ret.ng.node(root_group.id());
@@ -1469,34 +1409,6 @@ namespace yave {
     managed_node_graph&& other) noexcept = default;
 
   /* reg/unreg */
-
-  bool managed_node_graph::register_node_decl(const node_declaration& decl)
-  {
-    return m_pimpl->register_node_decl(decl);
-  }
-
-  bool managed_node_graph::register_node_decl(
-    const std::vector<node_declaration>& decls)
-  {
-    return m_pimpl->register_node_decl(decls);
-  }
-
-  void managed_node_graph::unregister_node_decl(const std::string& name)
-  {
-    m_pimpl->unregister_node_decl(name);
-  }
-
-  void managed_node_graph::unregister_node_decl(
-    const std::vector<std::string>& names)
-  {
-    m_pimpl->unregister_node_decl(names);
-  }
-
-  auto managed_node_graph::get_node_decls() const
-    -> std::vector<std::shared_ptr<node_declaration>>
-  {
-    return m_pimpl->get_node_decls();
-  }
 
   auto managed_node_graph::group(
     const node_handle& parent_group,
@@ -1775,12 +1687,12 @@ namespace yave {
 
   auto managed_node_graph::create(
     const node_handle& parent_group,
-    const std::string& name) -> node_handle
+    const node_declaration& decl) -> node_handle
   {
     if (!exists(parent_group))
       return {};
 
-    return m_pimpl->create(parent_group, name);
+    return m_pimpl->create(parent_group, decl);
   }
 
   void managed_node_graph::destroy(const node_handle& node)
