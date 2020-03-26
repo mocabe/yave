@@ -4,6 +4,7 @@ add_library(yave-app
   node_data_thread.cpp
   node_compiler_thread.cpp
   editor_context.cpp
+  project.cpp
 )
 
 add_library(yave::app ALIAS yave-app)
