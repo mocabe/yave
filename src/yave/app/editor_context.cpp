@@ -371,6 +371,10 @@ namespace yave::app {
     app::project& project;
 
   public:
+    // for debug
+    [[maybe_unused]] bool in_frame = false;
+
+  public:
     // data thread
     node_data_thread data_thread;
     // compiler thread
@@ -379,6 +383,8 @@ namespace yave::app {
   public:
     // current snapshot
     std::shared_ptr<const node_data_snapshot> snapshot;
+    // current compile result
+    std::shared_ptr<app::compile_result> compile_result;
 
   public:
     // frontend context
@@ -389,15 +395,12 @@ namespace yave::app {
     std::vector<std::function<void(void)>> command_queue;
 
   public:
-    // for debug
-    [[maybe_unused]] bool in_frame = false;
-
-  public:
     impl(app::project& prj)
       : project {prj}
       , data_thread {project.graph()}
       , compiler_thread {}
       , snapshot {data_thread.snapshot()}
+      , compile_result {std::make_shared<app::compile_result>()}
       , context_front {project.graph()}
     {
       init_logger();
@@ -416,7 +419,8 @@ namespace yave::app {
     {
       assert(!in_frame);
       // update snapshot
-      snapshot = data_thread.snapshot();
+      snapshot       = data_thread.snapshot();
+      compile_result = compiler_thread.get_last_result();
 
       auto& g = snapshot->graph;
 
@@ -797,6 +801,22 @@ namespace yave::app {
       assert(in_frame);
       command_queue.push_back([&]() { context_front.end_socket_drag(); });
     }
+
+  public:
+    void compile()
+    {
+      compiler_thread.compile(snapshot, project.node_definitions());
+    }
+
+    bool is_compiling() const
+    {
+      return compiler_thread.is_compiling();
+    }
+
+    auto get_compile_result()
+    {
+      return compile_result;
+    }
   };
 
   editor_context::editor_context(app::project& project)
@@ -1144,5 +1164,21 @@ namespace yave::app {
   void editor_context::end_socket_drag()
   {
     return m_pimpl->end_socket_drag();
+  }
+
+  void editor_context::compile()
+  {
+    m_pimpl->compile();
+  }
+
+  bool editor_context::is_compiling() const
+  {
+    return m_pimpl->is_compiling();
+  }
+
+  auto editor_context::get_compile_result() const
+    -> std::shared_ptr<compile_result>
+  {
+    return m_pimpl->get_compile_result();
   }
 } // namespace yave::app

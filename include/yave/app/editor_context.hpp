@@ -12,6 +12,9 @@
 #include <yave/app/editor_connection_info.hpp>
 #include <yave/app/editor_state.hpp>
 
+#include <yave/app/node_compiler_thread.hpp>
+#include <yave/support/error.hpp>
+
 namespace yave::app {
 
   /// Editor context.
@@ -190,6 +193,14 @@ namespace yave::app {
 
     /// Get drag source pos
     auto get_drag_source_pos() const -> tvec2<float>;
+
+  public:
+    /// Start compiling (async)
+    void compile();
+    /// Compiling?
+    bool is_compiling() const;
+    /// Get last compile result
+    auto get_compile_result() const -> std::shared_ptr<compile_result>;
 
   private:
     class impl;
