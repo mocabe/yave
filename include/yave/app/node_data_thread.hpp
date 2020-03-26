@@ -37,7 +37,7 @@ namespace yave::app {
   {
   public:
     /// Init data thread
-    node_data_thread(std::shared_ptr<managed_node_graph> graph);
+    node_data_thread(managed_node_graph& graph);
 
     /// Dtor
     ~node_data_thread() noexcept;

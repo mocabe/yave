@@ -8,7 +8,6 @@
 #include <yave/support/overloaded.hpp>
 
 #include <range/v3/view.hpp>
-using namespace ranges;
 
 #include <thread>
 #include <mutex>
@@ -19,6 +18,8 @@ using namespace ranges;
 YAVE_DECL_G_LOGGER(node_data_thread)
 
 namespace yave::app {
+
+  using namespace ranges;
 
   class node_data_thread::impl
   {
@@ -32,7 +33,7 @@ namespace yave::app {
     };
 
   public:
-    std::shared_ptr<managed_node_graph> graph;
+    managed_node_graph& graph;
     std::shared_ptr<const node_data_snapshot> snapshot;
 
   public:
@@ -45,15 +46,15 @@ namespace yave::app {
     std::condition_variable notify_cond;
 
   public:
-    impl(std::shared_ptr<managed_node_graph> g)
-      : graph {std::move(g)}
+    impl(managed_node_graph& g)
+      : graph {g}
       , terminate_flag {0}
     {
       init_logger();
 
       // initial snapshot
       snapshot = std::make_shared<node_data_snapshot>(
-        graph->clone(),
+        graph.clone(),
         std::chrono::steady_clock::now(),
         std::chrono::steady_clock::now());
     }
@@ -116,7 +117,7 @@ namespace yave::app {
               queue.pop();
 
               // execute commands
-              top.op(*graph);
+              top.op(graph);
 
               // std::this_thread::sleep_for(std::chrono::milliseconds(5));
               // update time stamp
@@ -133,9 +134,7 @@ namespace yave::app {
             std::atomic_store(
               &snapshot,
               std::make_shared<const node_data_snapshot>(
-                graph->clone(),
-                request_time,
-                std::chrono::steady_clock::now()));
+                graph.clone(), request_time, std::chrono::steady_clock::now()));
 
             // notify update for waiting threads
             notify_cond.notify_all();
@@ -144,19 +143,20 @@ namespace yave::app {
               g_logger,
               "Detected exception ({}) in data thread, recover from snapshot.",
               e.what());
-            *graph = snapshot->graph.clone();
+            graph = snapshot->graph.clone();
           } catch (...) {
             Info(
               g_logger,
               "Detected exception in data thread, recover from snapshot.");
-            *graph = snapshot->graph.clone();
+            graph = snapshot->graph.clone();
           }
         }
         Info(g_logger, "Data thread terminated");
       });
     }
 
-    auto get_snapshot() const noexcept -> std::shared_ptr<const node_data_snapshot>
+    auto get_snapshot() const noexcept
+      -> std::shared_ptr<const node_data_snapshot>
     {
       return std::atomic_load(&snapshot);
     }
@@ -174,7 +174,7 @@ namespace yave::app {
     }
   };
 
-  node_data_thread::node_data_thread(std::shared_ptr<managed_node_graph> graph)
+  node_data_thread::node_data_thread(managed_node_graph& graph)
     : m_pimpl {std::make_unique<impl>(graph)}
   {
   }
@@ -215,4 +215,4 @@ namespace yave::app {
   {
     return m_pimpl->wait_update(min_request_time);
   }
-} // namespace yave
+} // namespace yave::app
