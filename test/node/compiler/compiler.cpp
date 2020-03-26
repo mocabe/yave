@@ -110,14 +110,6 @@ TEST_CASE("add", "[node_compiler]")
   REQUIRE(decls.add(nil_decl));
   REQUIRE(decls.add(cons_decl));
 
-  REQUIRE(graph.register_node_decl(int_decl));
-  REQUIRE(graph.register_node_decl(add_decl));
-  REQUIRE(graph.register_node_decl(float_decl));
-  REQUIRE(graph.register_node_decl(bool_decl));
-  REQUIRE(graph.register_node_decl(if_decl));
-  REQUIRE(graph.register_node_decl(nil_decl));
-  REQUIRE(graph.register_node_decl(cons_decl));
-
   defs.add(add_defs);
   defs.add(int_defs);
   defs.add(float_defs);
@@ -133,9 +125,9 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("add x y")
   {
-    auto add = graph.create(g, add_decl.name());
-    auto i1  = graph.create(g, int_decl.name());
-    auto i2  = graph.create(g, int_decl.name());
+    auto add = graph.create(g, add_decl);
+    auto i1  = graph.create(g, int_decl);
+    auto i2  = graph.create(g, int_decl);
 
     REQUIRE(add);
     REQUIRE(i1);
@@ -153,8 +145,8 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("add x x")
   {
-    auto add = graph.create(g, add_decl.name());
-    auto i   = graph.create(g, int_decl.name());
+    auto add = graph.create(g, add_decl);
+    auto i   = graph.create(g, int_decl);
 
     REQUIRE(add);
     REQUIRE(i);
@@ -171,9 +163,9 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("add (add x x) x")
   {
-    auto add1 = graph.create(g, add_decl.name());
-    auto add2 = graph.create(g, add_decl.name());
-    auto i    = graph.create(g, int_decl.name());
+    auto add1 = graph.create(g, add_decl);
+    auto add2 = graph.create(g, add_decl);
+    auto i    = graph.create(g, int_decl);
 
     REQUIRE(add1);
     REQUIRE(add2);
@@ -199,9 +191,9 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("add x d")
   {
-    auto add = graph.create(g, add_decl.name());
-    auto i   = graph.create(g, int_decl.name());
-    auto d   = graph.create(g, float_decl.name());
+    auto add = graph.create(g, add_decl);
+    auto i   = graph.create(g, int_decl);
+    auto d   = graph.create(g, float_decl);
 
     REQUIRE(add);
     REQUIRE(i);
@@ -222,10 +214,10 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("add (add x d) x")
   {
-    auto add1 = graph.create(g, add_decl.name());
-    auto add2 = graph.create(g, add_decl.name());
-    auto i    = graph.create(g, int_decl.name());
-    auto d    = graph.create(g, float_decl.name());
+    auto add1 = graph.create(g, add_decl);
+    auto add2 = graph.create(g, add_decl);
+    auto i    = graph.create(g, int_decl);
+    auto d    = graph.create(g, float_decl);
 
     REQUIRE(add1);
     REQUIRE(add2);
@@ -252,9 +244,9 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("if b x y")
   {
-    auto _if = graph.create(g, if_decl.name());
-    auto i   = graph.create(g, int_decl.name());
-    auto b   = graph.create(g, bool_decl.name());
+    auto _if = graph.create(g, if_decl);
+    auto i   = graph.create(g, int_decl);
+    auto b   = graph.create(g, bool_decl);
 
     REQUIRE(_if);
     REQUIRE(i);
@@ -277,10 +269,10 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("if b (if b x y) z")
   {
-    auto if1 = graph.create(g, if_decl.name());
-    auto if2 = graph.create(g, if_decl.name());
-    auto i   = graph.create(g, int_decl.name());
-    auto b   = graph.create(g, bool_decl.name());
+    auto if1 = graph.create(g, if_decl);
+    auto if2 = graph.create(g, if_decl);
+    auto i   = graph.create(g, int_decl);
+    auto b   = graph.create(g, bool_decl);
 
     REQUIRE(if1);
     REQUIRE(if2);
@@ -313,10 +305,10 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("if b x d")
   {
-    auto _if = graph.create(g, if_decl.name());
-    auto i   = graph.create(g, int_decl.name());
-    auto d   = graph.create(g, float_decl.name());
-    auto b   = graph.create(g, bool_decl.name());
+    auto _if = graph.create(g, if_decl);
+    auto i   = graph.create(g, int_decl);
+    auto d   = graph.create(g, float_decl);
+    auto b   = graph.create(g, bool_decl);
 
     REQUIRE(_if);
     REQUIRE(i);
@@ -341,8 +333,8 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("add<int> x y")
   {
-    auto add = graph.create(g, add_decl.name());
-    auto i   = graph.create(g, int_decl.name());
+    auto add = graph.create(g, add_decl);
+    auto i   = graph.create(g, int_decl);
 
     REQUIRE(add);
     REQUIRE(i);
@@ -361,8 +353,8 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("add<double> x y")
   {
-    auto add = graph.create(g, add_decl.name());
-    auto d   = graph.create(g, float_decl.name());
+    auto add = graph.create(g, add_decl);
+    auto d   = graph.create(g, float_decl);
 
     REQUIRE(add);
     REQUIRE(d);
@@ -381,9 +373,9 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("add<?> x y")
   {
-    auto add = graph.create(g, add_decl.name());
-    auto i   = graph.create(g, int_decl.name());
-    auto d   = graph.create(g, float_decl.name());
+    auto add = graph.create(g, add_decl);
+    auto i   = graph.create(g, int_decl);
+    auto d   = graph.create(g, float_decl);
 
     REQUIRE(add);
     REQUIRE(i);
@@ -404,9 +396,9 @@ TEST_CASE("add", "[node_compiler]")
 
   SECTION("42 : []")
   {
-    auto i    = graph.create(g, int_decl.name());
-    auto nil  = graph.create(g, nil_decl.name());
-    auto cons = graph.create(g, cons_decl.name());
+    auto i    = graph.create(g, int_decl);
+    auto nil  = graph.create(g, nil_decl);
+    auto cons = graph.create(g, cons_decl);
 
     REQUIRE(i);
     REQUIRE(nil);
