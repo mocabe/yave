@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <yave/lib/project/project_config.hpp>
 #include <yave/module/module.hpp>
 #include <yave/module/module_loader.hpp>
 #include <yave/node/core/node_declaration_store.hpp>
