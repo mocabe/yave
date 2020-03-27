@@ -145,7 +145,7 @@ namespace yave::editor::imgui {
 
             // list nodes avalable
             if (ImGui::BeginMenu("Add Node")) {
-              for (auto&& decl : editor_ctx.node_graph().get_node_decls()) {
+              for (auto&& decl : editor_ctx.node_declarations().enumerate()) {
                 if (ImGui::Selectable(decl->name().c_str())) {
                   editor_ctx.create(
                     decl->name(), editor_ctx.get_group(), {npos.x, npos.y});

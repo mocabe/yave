@@ -12,6 +12,7 @@ using namespace yave;
 TEST_CASE("node_parser _extract")
 {
   managed_node_graph graph;
+  node_declaration_store decls;
   node_parser parser;
 
   class X;
@@ -21,8 +22,8 @@ TEST_CASE("node_parser _extract")
   auto norm_decl =
     node_declaration("node", "", "", {"norm_i0", "norm_i1"}, {"norm_o0"});
 
-  REQUIRE(graph.register_node_decl(prim_decl));
-  REQUIRE(graph.register_node_decl(norm_decl));
+  REQUIRE(decls.add(prim_decl));
+  REQUIRE(decls.add(norm_decl));
 
   auto g = graph.root_group();
   graph.add_group_output_socket(g, "global_out");
@@ -35,7 +36,7 @@ TEST_CASE("node_parser _extract")
   SECTION("prim")
   {
     // prim
-    auto n = graph.create(g, prim_decl.name());
+    auto n = graph.create(g, prim_decl);
     auto s = graph.output_sockets(n)[0];
     REQUIRE(n);
     REQUIRE(s);
@@ -75,8 +76,8 @@ TEST_CASE("node_parser _extract")
 
   SECTION("norm")
   {
-    auto prim = graph.create(g, prim_decl.name());
-    auto norm = graph.create(g, norm_decl.name());
+    auto prim = graph.create(g, prim_decl);
+    auto norm = graph.create(g, norm_decl);
 
     auto prim_value = graph.output_sockets(prim)[0];
     auto norm_i0    = graph.input_sockets(norm)[0];

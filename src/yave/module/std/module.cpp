@@ -108,10 +108,10 @@ namespace yave::modules::_std {
     m_pimpl->deinit();
   }
 
-  void module::update(const scene_config&)
+  void module::update(const scene_config& new_cfg)
   {
-    // TODO
-    assert(false);
+    deinit();
+    init(new_cfg);
   }
 
   bool module::initialized() const

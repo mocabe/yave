@@ -31,23 +31,6 @@ namespace yave {
     /// Move assignment.
     managed_node_graph& operator=(managed_node_graph&&) noexcept;
 
-  public: /* node decl registration */
-    /// register new node info
-    [[nodiscard]] bool register_node_decl(const node_declaration&);
-
-    /// register new node info
-    [[nodiscard]] bool register_node_decl(const std::vector<node_declaration>&);
-
-    /// unregister node info
-    void unregister_node_decl(const std::string&);
-
-    /// unregister node info
-    void unregister_node_decl(const std::vector<std::string>&);
-
-    /// get decls
-    [[nodiscard]] auto get_node_decls() const
-      -> std::vector<std::shared_ptr<node_declaration>>;
-
   public: /* node grouping features */
     /// Create new group
     /// \note All nodes should be under same group.
@@ -182,7 +165,7 @@ namespace yave {
     /// create new node
     [[nodiscard]] auto create(
       const node_handle& parent_group,
-      const std::string& name) -> node_handle;
+      const node_declaration& decl) -> node_handle;
 
     /// destroy node
     /// \note if `node` is group interface, remove all nodes in the node too.

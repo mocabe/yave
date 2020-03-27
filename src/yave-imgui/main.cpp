@@ -8,6 +8,7 @@
 #include <yave-imgui/editor/canvas.hpp>
 #include <yave-imgui/editor/render.hpp>
 #include <yave/module/std/module.hpp>
+#include <yave/module/std/module_loader.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/obj/primitive/primitive.hpp>
@@ -18,6 +19,8 @@
 #include <yave/app/node_compiler_thread.hpp>
 #include <yave/support/log.hpp>
 #include <yave/lib/image/image_view.hpp>
+
+#include <yave/app/project.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -49,23 +52,14 @@ int main()
     vk::Format::eR32G32B32A32Sfloat,
     (const uint8_t*)bg_tex.data());
 
-  auto _std = modules::_std::module(vulkan_ctx);
-  _std.init(config);
+  modules::_std::module_loader std_loader {vulkan_ctx};
+  app::project project {
+    {"my project", {modules::_std::module_name}, {}, config}, std_loader};
 
-  node_definition_store defs;
+  auto& graph = project.graph();
+  graph.add_group_output_socket(graph.root_group(), "out");
 
-  auto graph = std::make_shared<managed_node_graph>();
-  (void)graph->register_node_decl(_std.get_node_declarations());
-  defs.add(_std.get_node_definitions());
-
-  graph->add_group_output_socket(graph->root_group(), "out");
-
-  app::node_data_thread data_thread(graph);
-  app::node_compiler_thread compiler_thread;
-  app::editor_context editor_ctx(data_thread);
-
-  data_thread.start();
-  compiler_thread.start();
+  app::editor_context editor_ctx(project);
 
   while (!imgui_ctx.window_context().should_close()) {
 
@@ -84,21 +78,25 @@ int main()
 
       ImGui::Begin("parser");
       {
-        static auto snapshot = data_thread.snapshot();
-        static auto ftime    = 0.f;
-        static bool compile  = true;
+        static auto* graph  = &editor_ctx.node_graph();
+        static auto ftime   = 0.f;
+        static bool compile = true;
 
         ImGui::Checkbox("compile", &compile);
         ImGui::SliderFloat("time", &ftime, 0, 10);
 
-        if (compile) {
+        if (editor_ctx.is_compiling()) {
+          ImGui::Text("Compiling...");
+        }
+
+        if (!editor_ctx.is_compiling() && compile) {
           // compile
-          if (snapshot != data_thread.snapshot()) {
-            snapshot = data_thread.snapshot();
-            compiler_thread.compile(snapshot, defs);
+          if (graph != &editor_ctx.node_graph()) {
+            graph = &editor_ctx.node_graph();
+            editor_ctx.compile();
           }
           // show result
-          auto result = compiler_thread.get_last_result();
+          auto result = editor_ctx.get_compile_result();
 
           if (result->success) {
 
@@ -195,7 +193,4 @@ int main()
     imgui_ctx.end_frame();
     imgui_ctx.render();
   }
-
-  compiler_thread.stop();
-  data_thread.stop();
 }

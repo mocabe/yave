@@ -12,7 +12,7 @@ using namespace yave::app;
 
 TEST_CASE("node_data_thread")
 {
-  auto ng = std::make_shared<managed_node_graph>();
+  auto ng = managed_node_graph();
   node_data_thread th {ng};
 
   SECTION("start/stop")
@@ -61,7 +61,9 @@ TEST_CASE("node_data_thread")
   {
     th.start();
     auto t = std::chrono::steady_clock::now();
-    th.send([](managed_node_graph& g) { (void)g.create(g.root_group(), ""); });
+    th.send([](managed_node_graph& g) {
+      (void)g.create(g.root_group(), node_declaration("", {}, {}, {}, {}));
+    });
     th.wait_update(t);
     th.stop();
   }

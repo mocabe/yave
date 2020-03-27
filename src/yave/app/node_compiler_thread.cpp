@@ -28,6 +28,7 @@ namespace yave::app {
   public:
     std::thread thread;
     std::atomic<int> terminate_flag;
+    std::atomic<bool> compiling;
     std::mutex mtx;
     std::condition_variable cond;
     std::queue<queue_data> queue;
@@ -38,6 +39,7 @@ namespace yave::app {
   public:
     impl()
       : terminate_flag {0}
+      , compiling {false}
       , result {std::make_shared<compile_result>()}
     {
       init_logger();
@@ -64,9 +66,10 @@ namespace yave::app {
         try {
           while (true) {
 
+            compiling = false;
+
             std::unique_lock lck {mtx};
-            cond.wait(
-              lck, [&] { return terminate_flag || !queue.empty(); });
+            cond.wait(lck, [&] { return terminate_flag || !queue.empty(); });
 
             // terminate
             if (terminate_flag)
@@ -76,6 +79,7 @@ namespace yave::app {
             if (!queue.empty()) {
 
               auto start = std::chrono::steady_clock::now();
+              compiling  = true;
 
               assert(!queue.empty());
 
@@ -139,6 +143,11 @@ namespace yave::app {
       return thread.joinable();
     }
 
+    bool is_compiling() const noexcept
+    {
+      return compiling;
+    }
+
     void compile(
       const std::shared_ptr<const node_data_snapshot>& snapshot,
       const node_definition_store& decl)
@@ -179,6 +188,11 @@ namespace yave::app {
   bool node_compiler_thread::is_running() const noexcept
   {
     return m_pimpl->is_running();
+  }
+
+  bool node_compiler_thread::is_compiling() const noexcept
+  {
+    return m_pimpl->is_compiling();
   }
 
   void node_compiler_thread::compile(

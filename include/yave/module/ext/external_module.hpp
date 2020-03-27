@@ -47,19 +47,4 @@ namespace yave {
     bool m_initialized;
     uid m_instance_id;
   };
-
-  namespace module_tags {
-    class external_module
-    {
-    };
-  }; // namespace module_tags
-
-  template <>
-  struct module_traits<module_tags::external_module>
-  {
-    auto get_module(const object_ptr<ExternalModuleInfo>& info)
-    {
-      return std::make_unique<external_module>(info);
-    }
-  };
 }

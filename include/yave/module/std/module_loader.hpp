@@ -16,9 +16,10 @@ namespace yave::modules::_std {
     module_loader(vulkan::vulkan_context& vulkan_ctx);
 
   public:
+    virtual ~module_loader() noexcept;
     bool load(const std::vector<std::string>& modules) override;
     void unload(const std::vector<std::string>& modules) override;
-    auto get() const -> std::vector<std::shared_ptr<module>> override;
+    auto get() const -> std::vector<std::shared_ptr<yave::module>> override;
     auto last_errors() const -> error_list override;
 
   private:

@@ -24,9 +24,9 @@ namespace yave {
     // clang-format off
     switch (fmt) {
       case image_data_type::unknown:          return "(unknown pixel data format)";
-      case image_data_type::unsigned_integer: return "UnsignedInteger";
-      case image_data_type::signed_integer:   return "SignedInteger";
-      case image_data_type::floating_point:   return "FloatingPoint";
+      case image_data_type::unsigned_integer: return "Unsigned Integer";
+      case image_data_type::signed_integer:   return "Signed Integer";
+      case image_data_type::floating_point:   return "Floating Point";
       default:                                unreachable();
     }
     // clang-format on
