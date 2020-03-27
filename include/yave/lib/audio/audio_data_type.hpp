@@ -24,9 +24,9 @@ namespace yave {
     // clang-format off
     switch (type) {
       case audio_data_type::unknown:          return "(unknown audio format)";
-      case audio_data_type::unsigned_integer: return "unsigned int LE";
-      case audio_data_type::signed_integer:   return "signed int LE";
-      case audio_data_type::floating_point:   return "floating point LE";
+      case audio_data_type::unsigned_integer: return "Unsigned Int LE";
+      case audio_data_type::signed_integer:   return "Signed Int LE";
+      case audio_data_type::floating_point:   return "Floating Point LE";
       default:                                unreachable();
     }
     // clang-format on
