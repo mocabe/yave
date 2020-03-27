@@ -11,5 +11,7 @@ add_library(yave::app ALIAS yave-app)
 
 target_link_libraries(yave-app PUBLIC yave::config)
 target_link_libraries(yave-app PUBLIC yave::node::core)
+target_link_libraries(yave-app PUBLIC yave::node::parser)
+target_link_libraries(yave-app PUBLIC yave::node::compiler)
 target_link_libraries(yave-app PRIVATE yave::support::log)
 target_link_libraries(yave-app PRIVATE yave::support::id)

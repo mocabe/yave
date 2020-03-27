@@ -139,12 +139,14 @@ namespace yave::app {
   public:
     bool has_path() const
     {
-      return cfg.path == std::filesystem::path();
+      return cfg.path != std::filesystem::path();
     }
 
-    auto& get_path() const
+    auto get_path() const -> std::optional<std::filesystem::path>
     {
-      return cfg.path;
+      if (has_path())
+        return cfg.path;
+      return std::nullopt;
     }
 
     void set_path(const std::filesystem::path& new_path)
