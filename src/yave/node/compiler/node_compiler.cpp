@@ -116,25 +116,6 @@ namespace yave {
     Most of errors thrown from type checker does not relate to node handle, so
     we need to keep track relation between backend object and nodes.
    */
-
-  /// map from Object pointer to source node and socket
-  using handle_map_t =
-    std::map<object_ptr<const Object>, std::pair<node_handle, socket_handle>>;
-
-  /// map object to (node,socket), otherwise fall back to root.
-  auto map_obj_to_node(
-    const object_ptr<const Object>& obj,
-    const handle_map_t& hmap,
-    const managed_node_graph& graph) -> std::pair<node_handle, socket_handle>
-  {
-    auto it = hmap.find(obj);
-    if (it == hmap.end()) {
-      auto root = graph.root_group();
-      return {root, graph.output_sockets(root)[0]};
-    }
-    return it->second;
-  }
-
   auto node_compiler::_type(
     const managed_node_graph& parsed_graph,
     const node_definition_store& defs) -> std::optional<executable>
@@ -145,7 +126,6 @@ namespace yave {
       inline auto rec(
         class_env& env,
         socket_instance_manager& sim,
-        handle_map_t hmap,
         const node_definition_store& nds,
         const managed_node_graph& graph,
         const socket_handle& socket) -> object_ptr<const Object>
@@ -153,6 +133,12 @@ namespace yave {
         assert(graph.get_info(socket)->type() == socket_type::output);
 
         auto node = graph.node(socket);
+
+        Info(
+          g_logger,
+          "Entering: {}({})",
+          *graph.get_name(node),
+          *graph.get_name(socket));
 
         size_t socket_index = 0;
         for (auto&& s : graph.output_sockets(node)) {
@@ -167,24 +153,23 @@ namespace yave {
 
         auto iss = graph.input_sockets(node);
 
-        // group: make lambda
+        // group: make lambda if it's lambda form
         if (graph.is_group(node)) {
 
-          // lambda form?
-          bool isLambda = false;
-          for (auto&& s : iss) {
-            if (graph.connections(s).empty()) {
-              isLambda = true;
-              break;
+          // lambda form
+          auto isLambda = [&] {
+            for (auto&& s : iss) {
+              if (graph.connections(s).empty())
+                return true;
             }
-          }
+            return false;
+          }();
 
           auto inside = graph.get_group_socket_inside(socket);
 
           auto body = rec(
             env,
             sim,
-            hmap,
             nds,
             graph,
             graph.get_info(graph.connections(inside)[0])->src_socket());
@@ -213,7 +198,6 @@ namespace yave {
           return rec(
             env,
             sim,
-            hmap,
             nds,
             graph,
             graph.get_info(graph.connections(outside)[0])->src_socket());
@@ -235,8 +219,6 @@ namespace yave {
         auto overloaded =
           insts.size() == 1 ? insts[0] : env.add_overloading(insts);
 
-        hmap.emplace(overloaded, std::pair {node, socket});
-
         // apply inputs
         for (auto&& s : iss) {
           if (graph.connections(s).empty()) {
@@ -254,16 +236,15 @@ namespace yave {
           } else {
             // normal argument
             assert(graph.connections(s).size() == 1);
+
             overloaded =
               overloaded << rec(
                 env,
                 sim,
-                hmap,
                 nds,
                 graph,
                 graph.get_info(graph.connections(s)[0])->src_socket());
           }
-          hmap.emplace(overloaded, std::pair {node, socket});
         }
 
         return overloaded;
@@ -280,12 +261,15 @@ namespace yave {
 
     class_env env;
     socket_instance_manager sim;
-    handle_map_t hmap;
+
+    // FIXME
+    auto srcn = root_group;
+    auto srcs = parsed_graph.output_sockets(srcn).at(0);
 
     try {
 
       // build apply tree
-      auto app = impl.rec(env, sim, hmap, defs, parsed_graph, root_socket);
+      auto app = impl.rec(env, sim, defs, parsed_graph, root_socket);
 
       // now we can check type and resolve overloadings
       auto [ty, app2] = type_of_overloaded(app, env);
@@ -300,26 +284,22 @@ namespace yave {
 
       // common type errors
     } catch (const type_error::no_valid_overloading& e) {
-      auto [n, s] = map_obj_to_node(e.source(), hmap, parsed_graph);
-      m_errors.push_back(make_error<compile_error::no_valid_overloading>(n, s));
+      m_errors.push_back(
+        make_error<compile_error::no_valid_overloading>(srcn, srcs));
     } catch (const type_error::type_missmatch& e) {
-      auto [n, s] = map_obj_to_node(e.source(), hmap, parsed_graph);
       m_errors.push_back(make_error<compile_error::type_missmatch>(
-        n, s, e.expected(), e.provided()));
+        srcn, srcs, e.expected(), e.provided()));
 
       // internal type errors
     } catch (const type_error::unbounded_variable& e) {
-      auto [n, s] = map_obj_to_node(e.source(), hmap, parsed_graph);
       m_errors.push_back(make_error<compile_error::unexpected_error>(
-        n, s, "Internal type error: unbounded variable detected"));
+        srcn, srcs, "Internal type error: unbounded variable detected"));
     } catch (const type_error::circular_constraint& e) {
-      auto [n, s] = map_obj_to_node(e.source(), hmap, parsed_graph);
       m_errors.push_back(make_error<compile_error::unexpected_error>(
-        n, s, "Internal type error: circular constraint detected"));
+        srcn, srcs, "Internal type error: circular constraint detected"));
     } catch (const type_error::type_error& e) {
-      auto [n, s] = map_obj_to_node(e.source(), hmap, parsed_graph);
       m_errors.push_back(make_error<compile_error::unexpected_error>(
-        n, s, "Internal type error: "s + e.what()));
+        srcn, srcs, "Internal type error: "s + e.what()));
 
       // forward
     } catch (const error_info_base& e) {
@@ -327,13 +307,13 @@ namespace yave {
 
       // others
     } catch (const std::exception& e) {
-      auto [n, s] = map_obj_to_node(nullptr, hmap, parsed_graph);
       m_errors.push_back(make_error<compile_error::unexpected_error>(
-        n, s, "Internal error: Unknown std::exception detected: "s + e.what()));
+        srcn,
+        srcs,
+        "Internal error: Unknown std::exception detected: "s + e.what()));
     } catch (...) {
-      auto [n, s] = map_obj_to_node(nullptr, hmap, parsed_graph);
       m_errors.push_back(make_error<compile_error::unexpected_error>(
-        n, s, "Internal error: Unknown exception detected"));
+        srcn, srcs, "Internal error: Unknown exception detected"));
     }
     return std::nullopt;
   }
@@ -342,27 +322,28 @@ namespace yave {
     const executable& exe,
     const managed_node_graph& graph) -> bool
   {
+    // FIXME
+    auto srcn = graph.root_group();
+    auto srcs = graph.output_sockets(srcn).at(0);
+
     try {
 
       auto tp = type_of(exe.object());
 
       if (!same_type(tp, exe.type())) {
-        auto [n, s] = map_obj_to_node(nullptr, {}, graph);
         m_errors.push_back(make_error<compile_error::unexpected_error>(
-          n, s, "Verbose type check failed: result type does not match"));
+          srcn, srcs, "Verbose type check failed: result type does not match"));
         return false;
       }
 
       return true;
 
     } catch (const std::exception& e) {
-      auto [n, s] = map_obj_to_node(nullptr, {}, graph);
       m_errors.push_back(make_error<compile_error::unexpected_error>(
-        n, s, "Exception thrown while checking result: "s + e.what()));
+        srcn, srcs, "Exception thrown while checking result: "s + e.what()));
     } catch (...) {
-      auto [n, s] = map_obj_to_node(nullptr, {}, graph);
       m_errors.push_back(make_error<compile_error::unexpected_error>(
-        n, s, "Exception thrown while checking result: "));
+        srcn, srcs, "Exception thrown while checking result: "));
     }
     return false;
   }
