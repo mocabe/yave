@@ -597,8 +597,8 @@ TEST_CASE("lambda")
     _get_storage(*lam).var  = var;
     _get_storage(*lam).body = var;
 
-    REQUIRE(_get_storage(lam).is_lambda());
-    REQUIRE(_get_storage(var).is_variable());
+    REQUIRE(_get_storage(lam).template match_info_table_tag<Lambda>());
+    REQUIRE(_get_storage(var).template match_info_table_tag<Variable>());
     REQUIRE(value_cast_if<Lambda>(lam));
     REQUIRE(value_cast_if<Variable>(var));
 

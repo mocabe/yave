@@ -12,6 +12,8 @@ namespace yave {
 
   // fwd
   struct object_info_table;
+  template <class T>
+  struct object_type_traits;
 
   namespace detail {
 
@@ -23,14 +25,45 @@ namespace yave {
       //                        |<>|
       //                        tag (3bit)
       //                        ^^^^^^^^^^
-      vanilla      = 0,
-      exception    = 1,                  // Exception
-      apply        = 2,                  // Apply
-      lambda       = 3,                  // Lambda
-      variable     = 4,                  // Variable
+      vanilla      = 0,                  //
+      _1           = 1,                  // Exception
+      _2           = 2,                  // Apply
+      _3           = 3,                  // Variable
+      _4           = 4,                  // Lambda
+      _5           = 5,                  //
+      _6           = 6,                  //
+      _7           = 7,                  //
       extract_mask = 0x0000000000000007, // 0...0111
       clear_mask   = 0xFFFFFFFFFFFFFFF8, // 1...1000
     };
+
+    template <class T, class = void>
+    struct has_info_table_tag_impl : std::false_type
+    {
+    };
+
+    template <class T>
+    struct has_info_table_tag_impl<
+      T,
+      std::void_t<decltype(object_type_traits<T>::info_table_tag)>>
+      : std::true_type
+    {
+    };
+
+    /// check custom info table tag
+    template <class T>
+    [[nodiscard]] constexpr auto has_info_table_tag()
+    {
+      return has_info_table_tag_impl<T>::value;
+    }
+
+    /// Get info table tag of give type
+    template <class T>
+    [[nodiscard]] constexpr auto get_info_table_tag()
+    {
+      static_assert(has_info_table_tag<T>());
+      return object_type_traits<T>::info_table_tag;
+    }
 
     /// Add info table tag of type T to given pointer.
     [[nodiscard]] inline auto add_info_table_tag(
@@ -71,57 +104,6 @@ namespace yave {
       tmp &= static_cast<uintptr_t>(info_table_tags::extract_mask);
       return tmp == static_cast<uintptr_t>(tag);
     }
-
-    // Exception
-
-    [[nodiscard]] inline auto add_exception_tag(const object_info_table* info)
-      -> const object_info_table*
-    {
-      return add_info_table_tag(info, info_table_tags::exception);
-    }
-
-    [[nodiscard]] inline bool has_exception_tag(const object_info_table* tagged)
-    {
-      return check_info_table_tag(tagged, info_table_tags::exception);
-    }
-
-    // Apply
-
-    [[nodiscard]] inline auto add_apply_tag(const object_info_table* info)
-      -> const object_info_table*
-    {
-      return add_info_table_tag(info, info_table_tags::apply);
-    }
-
-    [[nodiscard]] inline bool has_apply_tag(const object_info_table* tagged)
-    {
-      return check_info_table_tag(tagged, info_table_tags::apply);
-    }
-
-    // Lambda
-
-    [[nodiscard]] inline auto add_lambda_tag(const object_info_table* info)
-      -> const object_info_table*
-    {
-      return add_info_table_tag(info, info_table_tags::lambda);
-    }
-
-    [[nodiscard]] inline bool has_lambda_tag(const object_info_table* tagged)
-    {
-      return check_info_table_tag(tagged, info_table_tags::lambda);
-    }
-
-    // Variable
-
-    [[nodiscard]] inline auto add_variable_tag(const object_info_table* info)
-      -> const object_info_table*
-    {
-      return add_info_table_tag(info, info_table_tags::variable);
-    }
-
-    [[nodiscard]] inline bool has_variable_tag(const object_info_table* tagged)
-    {
-      return check_info_table_tag(tagged, info_table_tags::variable);
-    }
   } // namespace detail
+
 } // namespace yave

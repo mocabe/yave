@@ -847,21 +847,15 @@ namespace yave {
     template <class T, class U>
     bool has_type_impl(const object_ptr<U>& obj)
     {
-      // Apply
-      if constexpr (std::is_same_v<std::decay_t<T>, Apply>) {
-        return likely(obj) && _get_storage(obj).is_apply();
-      }
-      // Exception
-      else if constexpr (std::is_same_v<std::decay_t<T>, Exception>) {
-        return likely(obj) && _get_storage(obj).is_exception();
-      }
-      // Lambda
-      else if constexpr (std::is_same_v<std::decay_t<T>, Lambda>) {
-        return likely(obj) && _get_storage(obj).is_lambda();
-      }
-      // Variable
-      else if constexpr (std::is_same_v<std::decay_t<T>, Variable>) {
-        return likely(obj) && _get_storage(obj).is_variable();
+      // general
+      if constexpr (is_tm_value(get_term<T>())) {
+        // optimize type check on certain types
+        if constexpr (detail::has_info_table_tag<T>())
+          return likely(obj)
+                 && _get_storage(obj).template match_info_table_tag<T>();
+
+        // normal type check
+        return same_type(get_type(obj), object_type<T>());
       }
       // List
       else if constexpr (has_tm_list<T>()) {
@@ -879,10 +873,7 @@ namespace yave {
         using elem_tp = typename decltype(get_term<T>().t().tag())::type;
 
         return has_type_impl<elem_tp>(storage.car);
-      }
-      // general
-      else if constexpr (is_tm_value(get_term<T>())) {
-        return same_type(get_type(obj), object_type<T>());
+
       } else
         static_assert(false_v<T>, "T is not value type");
     }

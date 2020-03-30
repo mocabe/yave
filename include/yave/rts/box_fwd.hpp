@@ -199,7 +199,11 @@ namespace yave {
       /// get info table pointer
       static constexpr auto get_info_table() -> const object_info_table *
       {
-        return &info_table;
+        if constexpr (detail::has_info_table_tag<Box>())
+          return detail::add_info_table_tag(
+            &info_table, detail::get_info_table_tag<Box>());
+        else
+          return &info_table;
       }
 
     private:
