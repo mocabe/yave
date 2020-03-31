@@ -3,7 +3,8 @@
 add_library(yave-node-compiler
   node_compiler.cpp
   executable.cpp
-  errors.cpp)
+  errors.cpp
+  type.cpp)
 
 add_library(yave::node::compiler ALIAS yave-node-compiler)
 

@@ -40,25 +40,9 @@ namespace yave {
   template <>
   struct object_type_traits<yave::Variable>
   {
-    static constexpr char name[] = "yave::Variable";
+    static constexpr auto info_table_tag = detail::info_table_tags::_3;
+    static constexpr char name[]         = "yave::Variable";
     static constexpr char uuid[] = "a2697d3d-3e17-452e-ab95-051797b4cf76";
-  };
-
-  template <>
-  struct Variable::info_table_initializer
-  {
-    static auto get_info_table() -> const object_info_table*
-    {
-      return detail::add_variable_tag(&info_table);
-    }
-
-  private:
-    alignas(32) inline static const object_info_table info_table {
-      object_type<Variable>(),             //
-      sizeof(Variable),                    //
-      object_type_traits<Variable>::name,  //
-      detail::vtbl_destroy_func<Variable>, //
-      detail::vtbl_clone_func<Variable>};  //
   };
 
   // ------------------------------------------
@@ -111,25 +95,9 @@ namespace yave {
   template <>
   struct object_type_traits<yave::Lambda>
   {
-    static constexpr char name[] = "yave::Lambda";
+    static constexpr auto info_table_tag = detail::info_table_tags::_4;
+    static constexpr char name[]         = "yave::Lambda";
     static constexpr char uuid[] = "8295af91-2224-486f-9f62-c5c519595cf6";
-  };
-
-  template <>
-  struct Lambda::info_table_initializer
-  {
-    static auto get_info_table() -> const object_info_table*
-    {
-      return detail::add_lambda_tag(&info_table);
-    }
-
-  private:
-    alignas(32) inline static const object_info_table info_table {
-      object_type<Lambda>(),             //
-      sizeof(Lambda),                    //
-      object_type_traits<Lambda>::name,  //
-      detail::vtbl_destroy_func<Lambda>, //
-      detail::vtbl_clone_func<Lambda>};  //
   };
 
 } // namespace yave

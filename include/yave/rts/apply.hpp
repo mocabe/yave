@@ -90,33 +90,12 @@ namespace yave {
   /// runtime apply object
   using Apply = Box<apply_object_value>;
 
-  // type info of Apply
   template <>
   struct object_type_traits<yave::Apply>
   {
-    static constexpr char name[] = "yave::Apply";
+    static constexpr auto info_table_tag = detail::info_table_tags::_2;
+    static constexpr char name[]         = "yave::Apply";
     static constexpr char uuid[] = "2db5ddcd-0d6d-4f2f-8fd5-7b30abfc68eb";
-  };
-
-  // tagged info table
-  template <>
-  struct Apply::info_table_initializer
-  {
-    /// get info table pointer
-    static auto get_info_table() -> const object_info_table*
-    {
-      // add apply tag
-      return detail::add_apply_tag(&info_table);
-    }
-
-  private:
-    /// static object info table
-    alignas(32) inline static const object_info_table info_table {
-      object_type<Apply>(),             //
-      sizeof(Apply),                    //
-      object_type_traits<Apply>::name,  //
-      detail::vtbl_destroy_func<Apply>, //
-      detail::vtbl_clone_func<Apply>};  //
   };
 
   /// apply object with compile time AST info

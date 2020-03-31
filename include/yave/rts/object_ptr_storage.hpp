@@ -48,6 +48,7 @@ namespace yave {
       return detail::clear_info_table_tag(this_head()->info_table);
     }
 
+    /// get info table of root object
     [[nodiscard]] auto root_info_table() const noexcept
       -> const object_info_table*
     {
@@ -55,28 +56,12 @@ namespace yave {
       return detail::clear_info_table_tag(root_head()->info_table);
     }
 
-    /// exception?
-    [[nodiscard]] bool is_exception() const noexcept
+    /// check if current info table tag matches type T's tag
+    template <class T>
+    [[nodiscard]] bool match_info_table_tag() const noexcept
     {
-      return detail::has_exception_tag(this_head()->info_table);
-    }
-
-    /// apply?
-    [[nodiscard]] bool is_apply() const noexcept
-    {
-      return detail::has_apply_tag(this_head()->info_table);
-    }
-
-    /// lambda?
-    [[nodiscard]] bool is_lambda() const noexcept
-    {
-      return detail::has_lambda_tag(this_head()->info_table);
-    }
-
-    /// variable?
-    [[nodiscard]] bool is_variable() const noexcept
-    {
-      return detail::has_variable_tag(this_head()->info_table);
+      return detail::check_info_table_tag(
+        this_head()->info_table, detail::get_info_table_tag<T>());
     }
 
     /// static?
