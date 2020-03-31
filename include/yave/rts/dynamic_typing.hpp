@@ -19,8 +19,6 @@
 #include <algorithm>
 #include <map>
 #include <optional>
-#include <iostream>
-#include <yave/rts/to_string.hpp>
 
 namespace yave {
 
@@ -583,16 +581,11 @@ namespace yave {
 
         if (is_var_type(c.t1)) {
           if (likely(!occurs(c.t1, c.t2))) {
-            std::cout << "  c.t1: " << to_string(c.t1) << std::endl;
-            std::cout << "  c.t2: " << to_string(c.t2) << std::endl;
             auto arr = type_arrow {c.t1, c.t2};
             cs       = subst_constr_all(arr, cs);
             compose_subst(ta, arr);
             continue;
           }
-          std::cout << " wtf!\n";
-          std::cout << "  c.t1: " << to_string(c.t1) << std::endl;
-          std::cout << "  c.t2: " << to_string(c.t2) << std::endl;
           return false;
         }
 

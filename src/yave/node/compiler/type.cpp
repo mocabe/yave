@@ -21,12 +21,9 @@ namespace yave {
     // calculate generalized type
     std::vector<object_ptr<const Type>> types;
     for (auto&& inst : instances) {
-      std::cout << "cand: " << to_string(get_type(inst)) << std::endl;
       types.push_back(get_type(inst));
     }
     auto gentp = generalize(types);
-
-    std::cout << "gentp: " << to_string(gentp) << std::endl;
 
     // check overlap
     types.clear();
@@ -116,9 +113,6 @@ namespace yave {
         auto var = genvar();
         auto tp  = genpoly(overload->type, envA);
 
-        std::cout << "instance: " << to_string(var) << " = " << to_string(tp)
-                  << std::endl;
-
         envB.insert({var, tp});
         references.insert({var, src->id_var});
         sources.insert({var, src});
@@ -160,12 +154,7 @@ namespace yave {
         for (auto&& inst : class_val.instances) {
           auto insty = genpoly(get_type(inst), env.envA);
 
-          std::cout << "specializable: \n";
-          std::cout << "  to   : " << to_string(to) << std::endl;
-          std::cout << "  insty: " << to_string(insty) << std::endl;
-
           if (specializable(insty, to)) {
-            std::cout << "  OK!\n";
             // ambiguous
             if (result_type)
               return;
@@ -184,12 +173,6 @@ namespace yave {
         type_arrow_map subst;
         if (auto tmp = specializable(to, result_type))
           subst = std::move(*tmp);
-
-        std::cout << "specializable :  {\n";
-        subst.for_each([](auto& l, auto& r) {
-          std::cout << "  " << to_string(l) << " => " << to_string(r) << "\n";
-        });
-        std::cout << "}\n";
 
         // update A and B
         subst.for_each([&](auto& from, auto& to) {
@@ -230,38 +213,12 @@ namespace yave {
         auto t1 = type_of_overloaded_impl(storage.app(), env);
         auto t2 = type_of_overloaded_impl(storage.arg(), env);
 
-        std::cout << "t1 : " << to_string(t1) << std::endl;
-        std::cout << "t2 : " << to_string(t2) << std::endl;
-
-        std::cout << "A {\n";
-        env.envA.for_each([](auto l, auto r) {
-          std::cout << "  " << to_string(l) << " => " << to_string(r)
-                    << std::endl;
-        });
-        std::cout << "}\n";
-
-        std::cout << "B {\n";
-        env.envB.for_each([](auto l, auto r) {
-          std::cout << "  " << to_string(l) << " => " << to_string(r)
-                    << std::endl;
-        });
-        std::cout << "}\n";
-
         auto var = genvar();
         auto cs =
           std::vector {type_constr {subst_type_all(env.envA, t1),
                                     make_object<Type>(arrow_type {t2, var})}};
         auto as = unify(std::move(cs), obj);
         auto ty = subst_type_all(as, var);
-
-        std::cout << "as {\n";
-        as.for_each([](auto l, auto r) {
-          std::cout << "  " << to_string(l) << " => " << to_string(r)
-                    << std::endl;
-        });
-        std::cout << "}\n";
-
-        std::cout << "ty : " << to_string(ty) << std::endl;
 
         as.erase(var);
         as.for_each([&](auto& from, auto& to) {
@@ -272,20 +229,6 @@ namespace yave {
         // only close when envA has no free variable
         if (vars(env.envA).empty())
           ty = close_assumption(env, ty, obj);
-
-        std::cout << "A' {\n";
-        env.envA.for_each([](auto l, auto r) {
-          std::cout << "  " << to_string(l) << " => " << to_string(r)
-                    << std::endl;
-        });
-        std::cout << "}\n";
-
-        std::cout << "B' {\n";
-        env.envB.for_each([](auto l, auto r) {
-          std::cout << "  " << to_string(l) << " => " << to_string(r)
-                    << std::endl;
-        });
-        std::cout << "}\n";
 
         return ty;
       }

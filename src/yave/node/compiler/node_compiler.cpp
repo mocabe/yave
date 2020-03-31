@@ -134,12 +134,6 @@ namespace yave {
 
         auto node = graph.node(socket);
 
-        Info(
-          g_logger,
-          "Entering: {}({})",
-          *graph.get_name(node),
-          *graph.get_name(socket));
-
         size_t socket_index = 0;
         for (auto&& s : graph.output_sockets(node)) {
           if (s == socket)
