@@ -262,7 +262,7 @@ namespace yave {
     class_env env;
     socket_instance_manager sim;
 
-    // FIXME
+    // FIXME: Implement proper error info
     auto srcn = root_group;
     auto srcs = parsed_graph.output_sockets(srcn).at(0);
 
