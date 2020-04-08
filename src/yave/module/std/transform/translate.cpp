@@ -20,8 +20,8 @@ namespace yave {
   {
     return node_declaration(
       "Translate",
-      "Move object",
       "std::transform",
+      "Move object",
       {"target", "x", "y", "z", "transform"},
       {"out"},
       {{1, make_data_type_holder<Float>()},

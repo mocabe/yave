@@ -15,8 +15,8 @@ namespace yave {
   {
     return node_declaration(
       "Vec2",
-      "Vec2 constructor",
       "std::geometry",
+      "Vec2 constructor",
       {"x", "y"},
       {"value"},
       {{0, make_data_type_holder<Float>()},
@@ -28,8 +28,8 @@ namespace yave {
   {
     return node_declaration(
       "Vec3",
-      "Vec3 constructor",
       "std::geometry",
+      "Vec3 constructor",
       {"x", "y", "z"},
       {"value"},
       {{0, make_data_type_holder<Float>()},
@@ -42,8 +42,8 @@ namespace yave {
   {
     return node_declaration(
       "Vec4",
-      "Vec3 constructor",
       "std::geometry",
+      "Vec3 constructor",
       {"x", "y", "z", "w"},
       {"value"},
       {{0, make_data_type_holder<Float>()},

@@ -15,8 +15,8 @@ namespace yave {
   {
     return node_declaration(
       "Transform",
-      "Make or get current transform matrix",
       "std::transform",
+      "Make or get current transform matrix",
       {"value"},
       {"value"},
       {{0, make_object<modules::_std::core::GetCurrentTransform>()}});

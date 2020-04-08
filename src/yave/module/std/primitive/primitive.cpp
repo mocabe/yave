@@ -16,8 +16,8 @@ namespace yave {
   {
     return node_declaration(
       node_name,
-      "Data type constructor",
       "std::prim",
+      "Data type constructor",
       {"value"},
       {"value"},
       {{0, make_data_type_holder<T>()}});
