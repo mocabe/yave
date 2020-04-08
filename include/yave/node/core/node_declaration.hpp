@@ -75,6 +75,11 @@ namespace yave {
       return m_namespace;
     }
 
+    [[nodiscard]] auto qualified_name() const
+    {
+      return m_namespace + "::" + m_name;
+    }
+
     [[nodiscard]] auto& input_sockets() const
     {
       return m_iss;
