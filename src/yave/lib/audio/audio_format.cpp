@@ -12,10 +12,10 @@ namespace yave {
   auto to_string(const audio_format& fmt) -> std::string
   {
     return fmt::format(
-      "{}-{}({})-{} ",
-      to_string(fmt.channel_layout),
+      "{} {} {} {} ",
       to_cstr(fmt.data_type),
       to_cstr(fmt.data_size),
-      to_cstr(fmt.sample_rate));
+      to_cstr(fmt.sample_rate),
+      to_string(fmt.channel_layout));
   }
 } // namespace yave
