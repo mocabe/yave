@@ -13,6 +13,8 @@ namespace yave {
   namespace node {
     /// Interface node which represents node group
     class NodeGroupInterface;
+    /// Node dependency
+    class NodeDependency;
     /// Interface node which represents node input
     class NodeGroupInput;
     /// Interface node which represents node output
@@ -28,6 +30,16 @@ namespace yave {
     static auto get_node_declaration() -> node_declaration
     {
       return node_declaration("NodeGroupInterface", "", "", {}, {});
+    }
+  };
+
+  // dummy declaration
+  template <>
+  struct node_declaration_traits<node::NodeDependency>
+  {
+    static auto get_node_declaration() -> node_declaration
+    {
+      return node_declaration("NodeDependency", "", "", {""}, {""});
     }
   };
 
