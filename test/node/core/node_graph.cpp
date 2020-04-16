@@ -186,14 +186,6 @@ TEST_CASE("node_graph control")
     REQUIRE(!ng.has_connection(ng.output_sockets(n2)[0]));
     REQUIRE(ng.has_connection(ng.input_sockets(n2)[0]));
 
-    // multiple input
-    auto n3 = add_n();
-    REQUIRE(n3);
-    auto n3_i = ng.input_sockets(n3)[0];
-    auto n3_o = ng.output_sockets(n3)[0];
-
-    REQUIRE(!ng.connect(n3_o, n2_i));
-
     // self connect
     REQUIRE(!ng.connect(n1_o, n1_i));
   }
