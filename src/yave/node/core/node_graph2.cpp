@@ -265,15 +265,26 @@ namespace yave {
       ng.set_data(node, data);
     }
 
-    // non null when the socket has default argument
+  public:
+    // get socket data
     auto get_data(const socket_handle& socket) const
     {
       return ng.get_data(socket);
     }
-    // set new data to the socket
-    void set_data(const socket_handle& socket, object_ptr<Object> obj)
+
+    // set socket data
+    void set_data(const socket_handle& socket, object_ptr<Object> data)
     {
-      ng.set_data(socket, std::move(obj));
+      if (auto d = ng.get_data(socket))
+        if (!same_type(get_type(d), get_type(data)))
+          Warning(
+            g_logger,
+            "Assigning different type of data to socket: id={}, t1={}, t2={}",
+            to_string(socket.id()),
+            to_string(get_type(d)),
+            to_string(get_type(data)));
+
+      ng.set_data(socket, std::move(data));
     }
 
   private:
@@ -1609,6 +1620,25 @@ namespace yave {
     -> std::optional<std::string>
   {
     return m_pimpl->ng.get_name(socket);
+  }
+
+  auto node_graph2::get_data(const socket_handle& socket) const
+    -> object_ptr<Object>
+  {
+    if (!exists(socket))
+      return {};
+
+    return m_pimpl->get_data(socket);
+  }
+
+  void node_graph2::set_data(
+    const socket_handle& socket,
+    object_ptr<Object> data)
+  {
+    if (!exists(socket))
+      return;
+
+    m_pimpl->set_data(socket, std::move(data));
   }
 
   auto node_graph2::node(const socket_handle& socket) const -> node_handle

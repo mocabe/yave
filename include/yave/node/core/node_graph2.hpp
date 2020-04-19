@@ -52,6 +52,13 @@ namespace yave {
     [[nodiscard]] auto get_name(const socket_handle& socket) const
       -> std::optional<std::string>;
 
+    /// get socket data
+    [[nodiscard]] auto get_data(const socket_handle& socke) const
+      -> object_ptr<Object>;
+
+    /// set socket data
+    void set_data(const socket_handle& socket, object_ptr<Object> data);
+
   public:
     /// Get input sockets
     [[nodiscard]] auto input_sockets(const node_handle& node) const
