@@ -592,6 +592,32 @@ namespace yave {
         callee);
     }
 
+    auto copy_node_call(node_group* parent, node_call* call) -> node_call*
+    {
+      // create new call
+      auto newc = add_new_call(parent, call->callee);
+
+      if (!newc)
+        return nullptr;
+
+      assert(call->input_bits.size() == newc->input_bits.size());
+      assert(call->output_bits.size() == newc->output_bits.size());
+
+      // clone socket data
+
+      auto iss = ng.input_sockets(call->node);
+      for (auto&& [idx, s] : iss | rng::views::enumerate)
+        if (auto data = get_data(s))
+          set_data(ng.input_sockets(newc->node)[idx], data.clone());
+
+      auto oss = ng.output_sockets(call->node);
+      for (auto&& [idx, s] : oss | rng::views::enumerate)
+        if (auto data = get_data(s))
+          set_data(ng.output_sockets(newc->node)[idx], data.clone());
+
+      return newc;
+    }
+
     auto clone_node_group(node_group* parent, node_group* src) -> node_call*
     {
       assert(parent);
@@ -1462,8 +1488,9 @@ namespace yave {
       assert(is_valid(parent_group) && is_valid(src));
 
       if (auto g = get_callee_group(parent_group))
-        if (auto call = add_new_call(g, get_call(src)->callee))
-          return call->node;
+        if (auto c = get_call(src))
+          if (auto newc = copy_node_call(g, c))
+            return newc->node;
 
       Error(g_logger, "This node cannot be copied");
       return {};
