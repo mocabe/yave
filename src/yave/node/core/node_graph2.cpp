@@ -118,21 +118,7 @@ namespace yave {
       callers.erase(it, callers.end());
     }
 
-    void refresh(const node_graph& ng)
-    {
-      auto map = [&](auto n) { return ng.node(n.id()); };
-
-      node           = map(node);
-      input_handler  = map(input_handler);
-      output_handler = map(input_handler);
-
-      for (auto&& n : contents)
-        n = map(n);
-      for (auto&& n : input_bits)
-        n = map(n);
-      for (auto&& n : output_bits)
-        n = map(n);
-    }
+    void refresh(const node_graph& ng);
   };
 
   /// node function
@@ -176,10 +162,7 @@ namespace yave {
       callers.erase(it, callers.end());
     }
 
-    void refresh(const node_graph& ng)
-    {
-      node = ng.node(node.id());
-    }
+    void refresh(const node_graph& ng);
   };
 
   /// node call
@@ -206,15 +189,7 @@ namespace yave {
       return parent == nullptr;
     }
 
-    void refresh(const node_graph& ng)
-    {
-      auto map = [&](auto n) { return ng.node(n.id()); };
-      node     = map(node);
-      for (auto&& n : input_bits)
-        n = map(n);
-      for (auto&& n : output_bits)
-        n = map(n);
-    }
+    void refresh(const node_graph& ng);
   };
 
   // for io handlers
@@ -224,22 +199,110 @@ namespace yave {
     node_group* parent;
     /// pos
     fvec2 pos = {};
+
+    void refresh(const node_graph& ng);
   };
 
   // for internal dependency
   struct node_dep
   {
+    void refresh(const node_graph&);
   };
 
-  // per node data
+  /// node data variant
   using node_data =
     std::variant<node_function, node_group, node_call, node_io, node_dep>;
+
+  /// custom node data
   using NodeData = Box<node_data>;
 
+  /// create new node data
   template <class Arg>
   [[nodiscard]] auto make_node_data(Arg&& arg)
   {
     return make_object<NodeData>(std::forward<Arg>(arg));
+  }
+
+  // refresh functions
+
+  void node_group::refresh(const node_graph& ng)
+  {
+    auto map = [&](auto n) { return ng.node(n.id()); };
+
+    node           = map(node);
+    dependency     = map(dependency);
+    input_handler  = map(input_handler);
+    output_handler = map(output_handler);
+
+    for (auto&& n : contents)
+      n = map(n);
+    for (auto&& n : input_bits)
+      n = map(n);
+    for (auto&& n : output_bits)
+      n = map(n);
+
+    for (auto&& caller : callers) {
+      auto c     = map(caller->node);
+      auto cdata = ng.get_data(c);
+      caller = std::get_if<node_call>(value_cast_if<NodeData>(cdata).value());
+      assert(caller);
+    }
+  }
+
+  void node_function::refresh(const node_graph& ng)
+  {
+    auto map = [&](auto n) { return ng.node(n.id()); };
+
+    node       = map(node);
+    dependency = map(dependency);
+
+    for (auto&& caller : callers) {
+      auto c     = map(caller->node);
+      auto cdata = ng.get_data(c);
+      caller = std::get_if<node_call>(value_cast_if<NodeData>(cdata).value());
+      assert(caller);
+    }
+  }
+
+  void node_call::refresh(const node_graph& ng)
+  {
+    auto map = [&](auto n) { return ng.node(n.id()); };
+
+    node       = map(node);
+    dependency = map(dependency);
+
+    for (auto&& n : input_bits)
+      n = map(n);
+    for (auto&& n : output_bits)
+      n = map(n);
+
+    if (parent) {
+      auto pn = map(parent->node);
+      parent  = std::get_if<node_group>(
+        value_cast_if<NodeData>(ng.get_data(pn)).value());
+      assert(parent);
+    }
+
+    std::visit(
+      [&](auto*& p) {
+        using tp = std::remove_pointer_t<std::decay_t<decltype(p)>>;
+        p        = std::get_if<tp>(
+          value_cast_if<NodeData>(ng.get_data(map(p->node))).value());
+        assert(p);
+      },
+      callee);
+  }
+
+  void node_io::refresh(const node_graph& ng)
+  {
+    auto pn = ng.node(parent->node.id());
+    parent =
+      std::get_if<node_group>(value_cast_if<NodeData>(ng.get_data(pn)).value());
+    assert(parent);
+  }
+
+  void node_dep::refresh(const node_graph&)
+  {
   }
 
   /// We use two different DAG in internal representation. Group tree represents
@@ -254,10 +317,13 @@ namespace yave {
 
   private:
     // get node data
-    auto get_data(const node_handle& node) const
+    auto get_data(const node_handle& node) const -> object_ptr<NodeData>
     {
-      assert(has_type<NodeData>(ng.get_data(node)));
-      return static_object_cast<NodeData>(ng.get_data(node));
+      if (auto data = ng.get_data(node)) {
+        assert(has_type<NodeData>(data));
+        return static_object_cast<NodeData>(data);
+      }
+      return nullptr;
     }
     // set node data
     void set_data(const node_handle& node, const object_ptr<NodeData>& data)
@@ -727,6 +793,8 @@ namespace yave {
       init();
     }
 
+    impl(impl&&) = default;
+
     ~impl() noexcept
     {
     }
@@ -819,25 +887,30 @@ namespace yave {
   private:
     auto get_call(const node_handle& node) const -> node_call*
     {
+      assert(get_data(node));
       return std::get_if<node_call>(&*get_data(node));
     }
     auto get_group(const node_handle& node) const -> node_group*
     {
       assert(!get_call(node));
+      assert(get_data(node));
       return std::get_if<node_group>(&*get_data(node));
     }
     auto get_function(const node_handle& node) const -> node_function*
     {
       assert(!get_call(node));
+      assert(get_data(node));
       return std::get_if<node_function>(&*get_data(node));
     }
     auto get_io(const node_handle& node) const -> node_io*
     {
+      assert(get_data(node));
       return std::get_if<node_io>(&*get_data(node));
     }
     auto get_dep(const node_handle& node) const -> node_dep*
     {
       assert(!get_call(node));
+      assert(get_data(node));
       return std::get_if<node_dep>(&*get_data(node));
     }
     auto get_callee_group(const node_handle& node) const -> node_group*
@@ -1569,6 +1642,33 @@ namespace yave {
     {
       ng.disconnect(c);
     }
+
+    auto clone() const -> impl
+    {
+      Info(
+        g_logger,
+        "clone(): n={}, s={}, c={}",
+        ng.nodes().size(),
+        ng.sockets().size(),
+        ng.connections().size());
+
+      impl ret;
+
+      // clone node graph
+      ret.ng = ng.clone();
+
+      // clone node data
+      for (auto&& n : ret.ng.nodes())
+        if (auto data = ret.get_data(n))
+          ret.set_data(n, data.clone());
+
+      // update handles and links
+      for (auto&& n : ret.ng.nodes())
+        if (auto data = ret.get_data(n))
+          std::visit([&](auto& x) { x.refresh(ret.ng); }, *data);
+
+      return ret;
+    }
   };
 
   node_graph2::node_graph2()
@@ -1576,7 +1676,8 @@ namespace yave {
   {
   }
 
-  node_graph2::~node_graph2() noexcept
+  node_graph2::node_graph2(std::unique_ptr<impl>&& pimpl)
+    : m_pimpl {std::move(pimpl)}
   {
   }
 
@@ -1922,6 +2023,10 @@ namespace yave {
     return m_pimpl->disconnect(c);
   }
 
+  auto node_graph2::clone() -> node_graph2
+  {
+    return node_graph2(std::make_unique<impl>(m_pimpl->clone()));
+  }
 } // namespace yave
 
 YAVE_DECL_TYPE(yave::NodeData, "14834d06-dfeb-4a01-81d8-a2fe59a755c2");

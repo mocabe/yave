@@ -494,3 +494,55 @@ TEST_CASE("group")
     REQUIRE(ng.get_group_members(gg).size() == 3);
   }
 }
+
+TEST_CASE("clone")
+{
+  node_graph2 ng;
+  auto root = ng.create_group(nullptr);
+  ng.set_group_name(root, "root");
+  auto decl = get_node_declaration<node::Int>();
+  auto func = ng.create_function(decl);
+
+  auto f1 = ng.create_copy(root, func);
+  auto f2 = ng.create_copy(root, func);
+
+  REQUIRE(ng.add_output_socket(root, ""));
+
+  REQUIRE(ng.connect(ng.output_sockets(f1)[0], ng.input_sockets(f2)[0]));
+  REQUIRE(ng.connect(
+    ng.output_sockets(f2)[0], ng.input_sockets(ng.get_group_output(root))[0]));
+
+  auto ng2   = ng.clone();
+  auto root2 = ng2.node(root.id());
+  REQUIRE(!ng2.exists(root));
+  REQUIRE(ng2.exists(root2));
+
+  REQUIRE(ng2.get_group_members(root2).size() == 2);
+  REQUIRE(ng2.exists(ng2.get_group_input(root2)));
+  REQUIRE(ng2.exists(ng2.get_group_output(root2)));
+  REQUIRE(ng2.get_name(root2) == "root");
+  ng2.set_group_name(root2, "test");
+  REQUIRE(ng.get_name(root) == "root");
+  REQUIRE(*ng2.get_name(root2) == "test");
+
+  REQUIRE(ng2.add_input_socket(root2, "1"));
+  REQUIRE(ng2.input_sockets(root2).size() == 1);
+  REQUIRE(ng2.get_name(ng2.input_sockets(root2)[0]) == "1");
+  REQUIRE(ng.input_sockets(root).size() == 0);
+
+  auto f12 = ng2.node(f1.id());
+  auto f22 = ng2.node(f2.id());
+  REQUIRE(ng2.exists(f12));
+  REQUIRE(ng2.exists(f22));
+
+  REQUIRE(ng2.output_connections(f12).size() == 1);
+  REQUIRE(ng2.output_connections(f22).size() == 1);
+
+  REQUIRE(ng2.get_info(ng2.output_connections(f12)[0])->dst_node() == f22);
+  REQUIRE(ng2.exists(ng2.get_group_output(root2)));
+
+  REQUIRE(ng2.is_group_output(ng2.get_group_output(root2)));
+  REQUIRE(
+    ng2.get_info(ng2.output_connections(f22)[0])->dst_node()
+    == ng2.get_group_output(root2));
+}

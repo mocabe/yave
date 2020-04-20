@@ -199,8 +199,13 @@ namespace yave {
     /// Change name of socket
     void set_socket_name(const socket_handle& socket, const std::string& name);
 
+  public:
+    /// clone
+    [[nodiscard]] auto clone() -> node_graph2;
+
   private:
     class impl;
     std::unique_ptr<impl> m_pimpl;
+    node_graph2(std::unique_ptr<impl>&&);
   };
 } // namespace yave
