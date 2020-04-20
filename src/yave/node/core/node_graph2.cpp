@@ -1582,7 +1582,8 @@ namespace yave {
 
         // src is group call
         if (auto g = get_callee_group(src))
-          return clone_node_group(parent, g)->node;
+          if (auto newc = clone_node_group(parent, g))
+            return newc->node;
 
         Error(g_logger, "This not cannot be cloned");
         return {};
@@ -1680,6 +1681,8 @@ namespace yave {
     : m_pimpl {std::move(pimpl)}
   {
   }
+
+  node_graph2::~node_graph2() noexcept = default;
 
   bool node_graph2::exists(const node_handle& node) const
   {
