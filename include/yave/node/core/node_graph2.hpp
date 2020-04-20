@@ -203,6 +203,9 @@ namespace yave {
     /// clone
     [[nodiscard]] auto clone() -> node_graph2;
 
+    /// clear
+    void clear();
+
   private:
     class impl;
     std::unique_ptr<impl> m_pimpl;

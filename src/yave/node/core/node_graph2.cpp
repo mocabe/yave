@@ -1670,6 +1670,11 @@ namespace yave {
 
       return ret;
     }
+
+    void clear()
+    {
+      ng.clear();
+    }
   };
 
   node_graph2::node_graph2()
@@ -2030,6 +2035,12 @@ namespace yave {
   {
     return node_graph2(std::make_unique<impl>(m_pimpl->clone()));
   }
+
+  void node_graph2::clear()
+  {
+    m_pimpl->clear();
+  }
+
 } // namespace yave
 
 YAVE_DECL_TYPE(yave::NodeData, "14834d06-dfeb-4a01-81d8-a2fe59a755c2");
