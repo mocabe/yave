@@ -305,12 +305,10 @@ namespace yave {
     for (auto&& n : output_bits)
       n = map(n);
 
-    if (parent) {
-      auto pn = map(parent->node);
-      parent  = std::get_if<node_group>(
-        value_cast_if<NodeData>(ng.get_data(pn)).value());
-      assert(parent);
-    }
+    auto pn = map(parent->node);
+    parent =
+      std::get_if<node_group>(value_cast_if<NodeData>(ng.get_data(pn)).value());
+    assert(parent);
 
     std::visit(
       [&](auto*& p) {
@@ -343,6 +341,29 @@ namespace yave {
   public:
     /// graph
     yave::node_graph ng;
+    /// internal root handle.
+    /// this group should not have caller.
+    node_handle root;
+
+  public:
+    void init()
+    {
+      assert(ng.empty());
+      root = add_new_group()->node;
+      assert(get_group(root));
+    }
+
+    impl()
+    {
+      init_logger();
+      init();
+    }
+
+    impl(impl&&) = default;
+
+    ~impl() noexcept
+    {
+    }
 
   private:
     // get node data
@@ -364,12 +385,15 @@ namespace yave {
     // get socket data
     auto get_data(const socket_handle& socket) const
     {
+      assert(ng.exists(socket));
       return ng.get_data(socket);
     }
 
     // set socket data
     void set_data(const socket_handle& socket, object_ptr<Object> data)
     {
+      assert(ng.exists(socket));
+
       if (auto d = ng.get_data(socket))
         if (!same_type(get_type(d), get_type(data)))
           Warning(
@@ -384,7 +408,7 @@ namespace yave {
 
   private:
     /// create new group with empty I/O setting
-    auto add_new_group()
+    auto add_new_group() -> node_group*
     {
       auto g_decl = get_node_declaration<node::NodeGroupInterface>();
       auto i_decl = get_node_declaration<node::NodeGroupInput>();
@@ -534,12 +558,14 @@ namespace yave {
     }
 
     /// create new node call in group.
-    /// \param parent paretn group, should not be null except for root group
+    /// \param parent paretn group
     /// \param callee callee node function or group
     auto add_new_call(
       node_group* parent,
       std::variant<node_function*, node_group*> callee) -> node_call*
     {
+      assert(parent);
+
       auto d_decl = get_node_declaration<node::NodeDependency>();
 
       auto dep = ng.add(
@@ -551,26 +577,24 @@ namespace yave {
       assert(dep);
 
       // check dependency (ignore when it's root call)
-      if (parent) {
-        auto valid = std::visit(
-          [&](auto* p) {
-            // call -> parent group
-            expected(ng.connect(
-              ng.output_sockets(dep)[0],
-              ng.input_sockets(parent->dependency)[0]));
-            // caleee -> call
-            return ng.connect(
-              ng.output_sockets(p->dependency)[0], ng.input_sockets(dep)[0]);
-          },
-          callee);
+      auto valid = std::visit(
+        [&](auto* p) {
+          // call -> parent group
+          expected(ng.connect(
+            ng.output_sockets(dep)[0],
+            ng.input_sockets(parent->dependency)[0]));
+          // caleee -> call
+          return ng.connect(
+            ng.output_sockets(p->dependency)[0], ng.input_sockets(dep)[0]);
+        },
+        callee);
 
-        // closed loop
-        if (!valid) {
-          ng.remove(dep);
-          Error(
-            g_logger, "Failed to add node call: recursive call is not allowed");
-          return nullptr;
-        }
+      // closed loop
+      if (!valid) {
+        ng.remove(dep);
+        Error(
+          g_logger, "Failed to add node call: recursive call is not allowed");
+        return nullptr;
       }
 
       // get info
@@ -612,8 +636,8 @@ namespace yave {
       set_data(n, ndata);
       set_data(dep, ddata);
 
-      if (parent)
-        parent->add_member(n);
+      // add to parent
+      parent->add_member(n);
 
       // set caller pointer
       std::visit(
@@ -631,13 +655,10 @@ namespace yave {
 
       Info(
         g_logger,
-        "Added new call: name={}, id={}, def={}, callee={}, parent={}",
+        "Added new call: name={}, id={}, def={}",
         *ng.get_name(n),
         to_string(n.id()),
-        is_defcall(n),
-        std::visit(
-          [](auto* p) { return to_string(p->defcall()->node.id()); }, callee),
-        parent ? to_string(parent->node.id()) : "0");
+        is_defcall(n));
 
       return std::get_if<node_call>(&*ndata);
     }
@@ -648,6 +669,7 @@ namespace yave {
     void remove(node_call* call)
     {
       assert(call);
+      assert(call->parent);
       assert(ng.exists(call->node));
 
       Info(g_logger, "Removing node call: id={}", to_string(call->node.id()));
@@ -678,8 +700,7 @@ namespace yave {
         ng.remove(bit);
 
       // remove from parent
-      if (call->parent)
-        call->parent->remove_member(call->node);
+      call->parent->remove_member(call->node);
 
       // remove from caller
       std::visit([&](auto* p) { p->remove_caller(call); }, call->callee);
@@ -701,6 +722,8 @@ namespace yave {
 
     auto copy_node_call(node_group* parent, node_call* call) -> node_call*
     {
+      assert(parent);
+
       // create new call
       auto newc = add_new_call(parent, call->callee);
 
@@ -825,24 +848,6 @@ namespace yave {
       }
 
       return newc;
-    }
-
-  public:
-    void init()
-    {
-      assert(ng.empty());
-    }
-
-    impl()
-    {
-      init_logger();
-      init();
-    }
-
-    impl(impl&&) = default;
-
-    ~impl() noexcept
-    {
     }
 
   public:
@@ -1163,7 +1168,7 @@ namespace yave {
       assert(is_valid(node));
 
       if (auto call = get_call(node))
-        if (call->parent)
+        if (call->parent != get_group(root))
           return call->parent->defcall()->node;
 
       if (auto io = get_io(node))
@@ -1497,7 +1502,7 @@ namespace yave {
       }
 
       if (auto func = add_new_function(decl))
-        if (auto call = add_new_call(nullptr, func))
+        if (auto call = add_new_call(get_group(root), func))
           return call->node;
 
       return {};
@@ -1507,31 +1512,24 @@ namespace yave {
       const node_handle& parent,
       const std::vector<node_handle>& nodes) -> node_handle
     {
-      node_group* g = nullptr;
-
-      if (parent) {
-
-        g = get_callee_group(parent);
-
-        if (!g) {
-          Error(g_logger, "Failed to group nodes: Parent is not group");
-          return {};
-        }
+      if (!parent && !nodes.empty()) {
+        Error(g_logger, "Failed to gruop nodes: Cannot group global nodes");
+        return {};
       }
 
-      if (!g && !nodes.empty()) {
-        // TODO?
-        Error(g_logger, "Grouping root nodes is not supported");
+      node_group* g = parent ? get_callee_group(parent) : get_group(root);
+
+      // check parent
+      if (!g) {
+        Error(g_logger, "Failed to group nodes: Parent is not group");
         return {};
       }
 
       // check members
-      if (g) {
-        for (auto&& n : nodes) {
-          if (!g->has_member(n)) {
-            Error(g_logger, "Failed to group nodes: Include invalid node");
-            return {};
-          }
+      for (auto&& n : nodes) {
+        if (!g->has_member(n)) {
+          Error(g_logger, "Failed to group nodes: Includes invalid node");
+          return {};
         }
       }
 
@@ -1603,8 +1601,7 @@ namespace yave {
         auto call = get_call(n);
 
         // move content
-        if (g)
-          g->remove_member(n);
+        g->remove_member(n);
         newg->add_member(n);
         call->parent = newg;
 
@@ -1622,12 +1619,25 @@ namespace yave {
     auto create_copy(const node_handle& parent_group, const node_handle& src)
       -> node_handle
     {
-      assert(is_valid(parent_group) && is_valid(src));
+      assert(is_valid(src));
 
-      if (auto g = get_callee_group(parent_group))
-        if (auto c = get_call(src))
-          if (auto newc = copy_node_call(g, c))
-            return newc->node;
+      if (parent_group)
+        assert(is_valid(parent_group));
+
+      // when parent_group is null, use internal root
+      node_group* g =
+        parent_group ? get_callee_group(parent_group) : get_group(root);
+
+      if (!g) {
+        Error(g_logger, "Failed to copy node: Invalid parent group");
+        return {};
+      }
+
+      if (auto c = get_call(src))
+        if (auto newc = copy_node_call(g, c))
+          return newc->node;
+
+      // io cannot be copied
 
       Error(g_logger, "This node cannot be copied");
       return {};
@@ -1636,24 +1646,32 @@ namespace yave {
     auto create_clone(const node_handle& parent_group, const node_handle& src)
       -> node_handle
     {
-      assert(is_valid(parent_group) && is_valid(src));
+      assert(is_valid(src));
 
-      if (auto parent = get_callee_group(parent_group)) {
+      if (parent_group)
+        assert(is_valid(parent_group));
 
-        // src is function call, fallback to copy
-        if (get_callee_function(src))
-          return create_copy(parent_group, src);
+      // when parent_group is null, use internal root
+      node_group* g =
+        parent_group ? get_callee_group(parent_group) : get_group(root);
 
-        // src is group call
-        if (auto g = get_callee_group(src))
-          if (auto newc = clone_node_group(parent, g))
-            return newc->node;
-
-        Error(g_logger, "This not cannot be cloned");
+      if (!g) {
+        Error(g_logger, "Failed to clone node: Invalid parent group");
         return {};
       }
 
-      Error(g_logger, "Invalid parent group");
+      // src is function call, fallback to copy
+      if (get_callee_function(src))
+        return create_copy(parent_group, src);
+
+      // src is group call
+      if (auto srcg = get_callee_group(src))
+        if (auto newc = clone_node_group(g, srcg))
+          return newc->node;
+
+      // io cannot be cloned
+
+      Error(g_logger, "This not cannot be cloned");
       return {};
     }
 
@@ -1685,9 +1703,8 @@ namespace yave {
         return {};
       }
 
-      if (!srcp) {
-        Error(
-          g_logger, "Failed to connect: Global connections are not allowed");
+      if (srcp == get_group(root)) {
+        Error(g_logger, "Failed to connect: Global nodes cannot be connected");
         return {};
       }
 
@@ -1713,7 +1730,7 @@ namespace yave {
       assert(is_valid(node));
 
       if (auto call = get_call(node))
-        if (call->parent)
+        if (call->parent != get_group(root))
           call->parent->bring_front(node);
 
       if (auto io = get_io(node))
@@ -1725,7 +1742,7 @@ namespace yave {
       assert(is_valid(node));
 
       if (auto call = get_call(node))
-        if (call->parent)
+        if (call->parent != get_group(root))
           call->parent->bring_back(node);
 
       if (auto io = get_io(node))
@@ -1744,7 +1761,8 @@ namespace yave {
       impl ret;
 
       // clone node graph
-      ret.ng = ng.clone();
+      ret.ng   = ng.clone();
+      ret.root = ret.ng.node(ret.root.id());
 
       // clone node data
       for (auto&& n : ret.ng.nodes())
@@ -1762,6 +1780,7 @@ namespace yave {
     void clear()
     {
       ng.clear();
+      init();
     }
   };
 
@@ -2114,7 +2133,10 @@ namespace yave {
     const node_handle& parent_group,
     const node_handle& src) -> node_handle
   {
-    if (!exists(parent_group) || !exists(src))
+    if (parent_group && !exists(parent_group))
+      return {};
+
+    if (!exists(src))
       return {};
 
     return m_pimpl->create_copy(parent_group, src);
@@ -2124,7 +2146,10 @@ namespace yave {
     const node_handle& parent_group,
     const node_handle& src) -> node_handle
   {
-    if (!exists(parent_group) || !exists(src))
+    if (parent_group && !exists(parent_group))
+      return {};
+
+    if (!exists(src))
       return {};
 
     return m_pimpl->create_clone(parent_group, src);

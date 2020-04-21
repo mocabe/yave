@@ -38,6 +38,18 @@ TEST_CASE("init")
   REQUIRE(ng.exists(ng.get_group_output(root)));
   REQUIRE(ng.get_parent_group(ng.get_group_input(root)) == root);
   REQUIRE(ng.get_parent_group(ng.get_group_output(root)) == root);
+
+  auto null = node_handle();
+  REQUIRE(!ng.exists(null));
+  REQUIRE(ng.get_group_members(null).empty());
+  REQUIRE(ng.get_group_nodes(null).empty());
+  REQUIRE(!ng.get_definition(null));
+  REQUIRE(!ng.is_group(null));
+  REQUIRE(!ng.is_function(null));
+  REQUIRE(!ng.is_definition(null));
+  REQUIRE(!ng.is_group_member(null));
+  REQUIRE(ng.get_path(null) == "");
+
   REQUIRE(
     ng.get_definition(ng.get_group_input(root)) == ng.get_group_input(root));
   REQUIRE(
@@ -310,8 +322,19 @@ TEST_CASE("func destroy")
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
 
-  REQUIRE(!ng.create_copy(nullptr, func));
-  REQUIRE(!ng.create_clone(nullptr, func));
+  {
+    auto func1 = ng.create_copy(nullptr, func);
+    auto func2 = ng.create_clone(nullptr, func);
+    REQUIRE(ng.exists(func1));
+    REQUIRE(ng.exists(func2));
+    REQUIRE(
+      !ng.connect(ng.output_sockets(func1)[0], ng.input_sockets(func2)[0]));
+    ng.destroy(func1);
+    ng.destroy(func2);
+    REQUIRE(!ng.exists(func1));
+    REQUIRE(!ng.exists(func2));
+    REQUIRE(!ng.create_group(nullptr, {root}));
+  }
 
   auto f1 = ng.create_copy(root, func);
   auto f2 = ng.create_clone(root, func);
