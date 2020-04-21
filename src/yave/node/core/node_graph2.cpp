@@ -222,6 +222,8 @@ namespace yave {
   {
     /// parent group
     node_group* parent;
+    /// type
+    node_type2 type;
     /// pos
     fvec2 pos = {};
 
@@ -382,7 +384,7 @@ namespace yave {
 
   private:
     /// create new group with empty I/O setting
-    auto add_new_group(const std::string& name = "")
+    auto add_new_group()
     {
       auto g_decl = get_node_declaration<node::NodeGroupInterface>();
       auto i_decl = get_node_declaration<node::NodeGroupInput>();
@@ -406,8 +408,10 @@ namespace yave {
 
       auto gdata =
         make_node_data(node_group {g, d, {}, i, o, {i, o}, {}, {}, {}});
-      auto idata = make_node_data(node_io {std::get_if<node_group>(&*gdata)});
-      auto odata = make_node_data(node_io {std::get_if<node_group>(&*gdata)});
+      auto idata = make_node_data(
+        node_io {std::get_if<node_group>(&*gdata), node_type2::group_input});
+      auto odata = make_node_data(
+        node_io {std::get_if<node_group>(&*gdata), node_type2::group_output});
       auto ddata = make_node_data(node_dep());
 
       set_data(g, gdata);
@@ -415,9 +419,8 @@ namespace yave {
       set_data(o, odata);
       set_data(d, ddata);
 
-      ng.set_name(g, name);
-
-      Info(g_logger, "Added new group: name={} id={}", name, to_string(g.id()));
+      Info(
+        g_logger, "Added new group: id={}", *ng.get_name(g), to_string(g.id()));
 
       return std::get_if<node_group>(&*gdata);
     }
@@ -487,7 +490,7 @@ namespace yave {
       Info(
         g_logger,
         "Added new function: name={}, id={}",
-        decl.name(),
+        *ng.get_name(body),
         to_string(body.id()));
 
       return std::get_if<node_function>(&*bdata);
@@ -628,9 +631,13 @@ namespace yave {
 
       Info(
         g_logger,
-        "Added new call: id={} defcall={}",
+        "Added new call: name={}, id={}, def={}, callee={}, parent={}",
+        *ng.get_name(n),
         to_string(n.id()),
-        is_defcall(n));
+        is_defcall(n),
+        std::visit(
+          [](auto* p) { return to_string(p->defcall()->node.id()); }, callee),
+        parent ? to_string(parent->node.id()) : "0");
 
       return std::get_if<node_call>(&*ndata);
     }
@@ -749,7 +756,12 @@ namespace yave {
       std::map<socket_handle, socket_handle> smap;
 
       // create new group
-      auto newg = add_new_group(*ng.get_name(src->node));
+      auto newg = add_new_group();
+      ng.set_name(newg->node, *ng.get_name(src->node));
+      ng.set_name(newg->input_handler, *ng.get_name(src->input_handler));
+      ng.set_name(newg->output_handler, *ng.get_name(src->output_handler));
+
+      // create new call
       auto newc = add_new_call(parent, newg);
 
       // copy sockets
@@ -850,7 +862,7 @@ namespace yave {
       if (is_group_output(node))
         type = node_type2::group_output;
 
-      node_call_type call_type = node_call_type::normal;
+      node_call_type call_type = node_call_type::call;
 
       if (is_defcall(node))
         call_type = node_call_type::definition;
@@ -1069,9 +1081,8 @@ namespace yave {
     {
       assert(is_valid(node));
 
-      if (get_io(node))
-        return *ng.get_name(node)
-               == get_node_declaration<node::NodeGroupOutput>().name();
+      if (auto io = get_io(node))
+        return io->type == node_type2::group_output;
 
       return false;
     }
@@ -1079,9 +1090,8 @@ namespace yave {
     {
       assert(is_valid(node));
 
-      if (get_io(node))
-        return *ng.get_name(node)
-               == get_node_declaration<node::NodeGroupInput>().name();
+      if (auto io = get_io(node))
+        return io->type == node_type2::group_input;
 
       return false;
     }
@@ -1532,7 +1542,14 @@ namespace yave {
 
       // create new group under parent
       auto newg = add_new_group();
+      ng.set_name(newg->input_handler, "In");
+      ng.set_name(newg->output_handler, "Out");
+
+      // create new call
       auto newc = add_new_call(g, newg);
+      set_group_name(
+        newc->node,
+        fmt::format("Group#{}", to_string(newc->node.id()).substr(0, 4)));
 
       // collect outbound connections
       std::vector<connection_handle> ocs, ics;

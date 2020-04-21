@@ -22,7 +22,7 @@ namespace yave {
   /// node call type
   enum class node_call_type
   {
-    normal,     //< normal call
+    call,       //< normal call
     definition, //< definition point
   };
 
