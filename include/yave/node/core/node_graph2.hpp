@@ -19,8 +19,18 @@ namespace yave {
   class node_graph2
   {
   public:
+    /// construct empty node graph
     node_graph2();
+    /// copy ctor (deleted, use clone())
+    node_graph2(const node_graph2&) = delete;
+    /// move ctor
+    node_graph2(node_graph2&&) noexcept;
+    /// dtor
     ~node_graph2() noexcept;
+    /// copy assign (deleted, use clone())
+    node_graph2& operator=(const node_graph2&) = delete;
+    /// move assign
+    node_graph2& operator=(node_graph2&&) noexcept;
 
   public:
     /// exist?

@@ -1758,7 +1758,11 @@ namespace yave {
   {
   }
 
+  node_graph2::node_graph2(node_graph2&&) noexcept = default;
+
   node_graph2::~node_graph2() noexcept = default;
+
+  node_graph2& node_graph2::operator=(node_graph2&&) noexcept = default;
 
   bool node_graph2::exists(const node_handle& node) const
   {
