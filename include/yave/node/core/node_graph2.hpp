@@ -11,6 +11,8 @@
 #include <yave/node/core/connection_info2.hpp>
 #include <yave/node/core/node_declaration.hpp>
 
+#include <yave/lib/vec/vec.hpp>
+
 namespace yave {
 
   /// NodeGraph v2 PoC implementation
@@ -52,10 +54,15 @@ namespace yave {
     [[nodiscard]] auto get_name(const socket_handle& socket) const
       -> std::optional<std::string>;
 
+    /// get node pos
+    [[nodiscard]] auto get_pos(const node_handle& node) const
+      -> std::optional<fvec2>;
+    /// set node pos
+    void set_pos(const node_handle& node, const fvec2& newpos);
+
     /// get socket data
     [[nodiscard]] auto get_data(const socket_handle& socke) const
       -> object_ptr<Object>;
-
     /// set socket data
     void set_data(const socket_handle& socket, object_ptr<Object> data);
 

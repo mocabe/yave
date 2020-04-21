@@ -1162,6 +1162,7 @@ namespace yave {
       return {};
     }
 
+  public:
     auto get_pos(const node_handle& node) const -> fvec2
     {
       assert(is_valid(node));
@@ -1171,6 +1172,19 @@ namespace yave {
 
       if (auto io = get_io(node))
         return io->pos;
+
+      unreachable();
+    }
+
+    void set_pos(const node_handle& node, const fvec2& newpos)
+    {
+      assert(is_valid(node));
+
+      if (auto call = get_call(node))
+        call->pos = newpos;
+
+      if (auto io = get_io(node))
+        io->pos = newpos;
 
       unreachable();
     }
@@ -1813,6 +1827,23 @@ namespace yave {
     -> std::optional<std::string>
   {
     return m_pimpl->ng.get_name(socket);
+  }
+
+  auto node_graph2::get_pos(const node_handle& node) const
+    -> std::optional<fvec2>
+  {
+    if (!exists(node))
+      return std::nullopt;
+
+    return m_pimpl->get_pos(node);
+  }
+
+  void node_graph2::set_pos(const node_handle& node, const fvec2& newpos)
+  {
+    if (!exists(node))
+      return;
+
+    return m_pimpl->set_pos(node, newpos);
   }
 
   auto node_graph2::get_data(const socket_handle& socket) const
