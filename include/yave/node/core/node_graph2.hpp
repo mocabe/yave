@@ -200,9 +200,16 @@ namespace yave {
     void set_socket_name(const socket_handle& socket, const std::string& name);
 
   public:
+    /// bring node to from in group member
+    void bring_front(const node_handle& node);
+    /// bring node to back in group member
+    void bring_back(const node_handle& node);
+
+  public:
     /// clone
     [[nodiscard]] auto clone() -> node_graph2;
 
+  public:
     /// clear
     void clear();
 

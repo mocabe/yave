@@ -17,6 +17,7 @@ TEST_CASE("init")
   REQUIRE(root);
   REQUIRE(ng.exists(root));
   REQUIRE(ng.get_group_members(root).empty());
+  REQUIRE(ng.get_group_nodes(root).size() == 2);
   REQUIRE(ng.get_parent_group(root) == node_handle());
   REQUIRE(ng.get_definition(root) == root);
   REQUIRE(ng.input_sockets(root).empty());
@@ -216,6 +217,8 @@ TEST_CASE("root add func")
   auto call = ng.create_copy(root, func);
   REQUIRE(ng.exists(call));
   REQUIRE(ng.get_parent_group(call) == root);
+  REQUIRE(ng.get_group_members(root).size() == 1);
+  REQUIRE(ng.get_group_nodes(root).size() == 3);
 
   for (size_t i = 0; i < decl.input_sockets().size(); ++i)
     REQUIRE(
@@ -438,7 +441,7 @@ TEST_CASE("group")
       == decl.input_sockets()[0]);
   }
 
-  SECTION("")
+  SECTION("misc")
   {
     auto f1 = ng.create_copy(root, func);
     auto f2 = ng.create_copy(root, func);
@@ -484,6 +487,22 @@ TEST_CASE("group")
     REQUIRE(ng.output_sockets(g).size() == 2);
     REQUIRE(ng.input_sockets(g).size() == 1);
 
+    REQUIRE(ng.get_parent_group(ng.get_group_members(g)[0]) == g);
+    REQUIRE(ng.get_parent_group(ng.get_group_members(g)[1]) == g);
+    REQUIRE(ng.get_parent_group(ng.get_group_members(g)[2]) == g);
+
+    REQUIRE(ng.get_group_members(g)[0] == f1);
+    REQUIRE(ng.get_group_nodes(g)[2] == f1);
+    ng.bring_front(f1);
+    REQUIRE(ng.get_group_members(g).back() == f1);
+    REQUIRE(ng.get_group_nodes(g).back() == f1);
+    ng.bring_back(f1);
+    REQUIRE(ng.get_group_members(g).front() == f1);
+    REQUIRE(ng.get_group_nodes(g).front() == f1);
+    ng.bring_back(ng.get_group_input(g));
+    REQUIRE(ng.get_group_members(g).front() == f1);
+    REQUIRE(ng.get_group_nodes(g).front() == ng.get_group_input(g));
+
     REQUIRE(ng.output_connections(f1).size() == 2);
     REQUIRE(ng.input_connections(f1).size() == 1);
     REQUIRE(ng.output_connections(in).size() == 1);
@@ -492,6 +511,11 @@ TEST_CASE("group")
     auto gg = ng.create_clone(root, g);
     REQUIRE(ng.exists(gg));
     REQUIRE(ng.get_group_members(gg).size() == 3);
+
+    ng.destroy(g);
+    ng.destroy(gg);
+    REQUIRE(!ng.exists(g));
+    REQUIRE(!ng.exists(gg));
   }
 }
 

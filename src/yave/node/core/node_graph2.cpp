@@ -44,12 +44,14 @@ namespace yave {
     node_handle node;
     /// dependency node handle
     node_handle dependency;
-    /// contents in this group
-    std::vector<node_handle> contents;
+    /// members in this group
+    std::vector<node_handle> members;
     /// input handler node
     node_handle input_handler;
     /// output handler node
     node_handle output_handler;
+    /// members + io handlers (for ordering nodes including io)
+    std::vector<node_handle> nodes;
     /// input bits
     std::vector<node_handle> input_bits;
     /// output bits
@@ -57,36 +59,59 @@ namespace yave {
     /// callers
     std::vector<node_call*> callers;
 
-    bool has_content(const node_handle& n)
+    bool has_member(const node_handle& n)
     {
-      return rng::find(contents, n) != contents.end();
+      return rng::find(members, n) != members.end();
     }
 
-    void add_content(const node_handle& n)
+    void add_member(const node_handle& n)
     {
-      assert(!has_content(n));
-      contents.push_back(n);
+      assert(!has_member(n));
+      assert(members.size() + 2 == nodes.size());
+      members.push_back(n);
+      nodes.push_back(n);
     }
 
-    void remove_content(const node_handle& n)
+    void remove_member(const node_handle& n)
     {
-      contents.erase(rng::find(contents, n));
+      assert(has_member(n));
+      assert(members.size() + 2 == nodes.size());
+      members.erase(rng::find(members, n));
+      nodes.erase(rng::find(nodes, n));
     }
 
     void bring_front(const node_handle& n)
     {
-      assert(has_content(n));
-      auto end = rng::remove(contents, n);
-      contents.erase(end, contents.end());
-      contents.insert(contents.end(), n);
+      assert(has_member(n) || n == input_handler || n == output_handler);
+      assert(members.size() + 2 == nodes.size());
+
+      auto _bring_front = [](auto&& ns, auto&& n) {
+        auto it = rng::remove(ns, n);
+        if (it != ns.end()) {
+          ns.erase(it, ns.end());
+          ns.insert(ns.end(), n);
+        }
+      };
+
+      _bring_front(members, n);
+      _bring_front(nodes, n);
     }
 
     void bring_back(const node_handle& n)
     {
-      assert(has_content(n));
-      auto end = rng::remove(contents, n);
-      contents.erase(end, contents.end());
-      contents.insert(contents.begin(), n);
+      assert(has_member(n) || n == input_handler || n == output_handler);
+      assert(members.size() + 2 == nodes.size());
+
+      auto _bring_back = [](auto&& ns, auto&& n) {
+        auto it = rng::remove(ns, n);
+        if (it != ns.end()) {
+          ns.erase(it, ns.end());
+          ns.insert(ns.begin(), n);
+        }
+      };
+
+      _bring_back(members, n);
+      _bring_back(nodes, n);
     }
 
     bool is_defcall(node_call* caller)
@@ -114,8 +139,8 @@ namespace yave {
       if (callers.size() > 1)
         assert(callers.front() != caller);
 
-      auto it = rng::remove(callers, caller);
-      callers.erase(it, callers.end());
+      assert(rng::find(callers, caller) != callers.end());
+      callers.erase(rng::find(callers, caller));
     }
 
     void refresh(const node_graph& ng);
@@ -158,8 +183,8 @@ namespace yave {
       if (callers.size() > 1)
         assert(callers.front() != caller);
 
-      auto it = rng::remove(callers, caller);
-      callers.erase(it, callers.end());
+      assert(rng::find(callers, caller) != callers.end());
+      callers.erase(rng::find(callers, caller));
     }
 
     void refresh(const node_graph& ng);
@@ -234,11 +259,13 @@ namespace yave {
     input_handler  = map(input_handler);
     output_handler = map(output_handler);
 
-    for (auto&& n : contents)
+    for (auto&& n : members)
       n = map(n);
     for (auto&& n : input_bits)
       n = map(n);
     for (auto&& n : output_bits)
+      n = map(n);
+    for (auto&& n : nodes)
       n = map(n);
 
     for (auto&& caller : callers) {
@@ -377,7 +404,8 @@ namespace yave {
       assert(o);
       assert(d);
 
-      auto gdata = make_node_data(node_group {g, d, {}, i, o, {}, {}, {}});
+      auto gdata =
+        make_node_data(node_group {g, d, {}, i, o, {i, o}, {}, {}, {}});
       auto idata = make_node_data(node_io {std::get_if<node_group>(&*gdata)});
       auto odata = make_node_data(node_io {std::get_if<node_group>(&*gdata)});
       auto ddata = make_node_data(node_dep());
@@ -401,14 +429,18 @@ namespace yave {
 
       Info(g_logger, "Removing node group: id={}", to_string(group->node.id()));
 
+      for (auto&& m : group->members)
+        Info(g_logger, "  {}", to_string(m.id()));
+
       // assume callers are already removed
       assert(group->callers.empty());
 
-      // remove all  members
-      for (auto&& n : group->contents)
+      // remove all members
+      auto members = group->members;
+      for (auto&& n : members)
         remove(get_call(n));
 
-      assert(group->contents.empty());
+      assert(group->members.empty());
 
       // remove group
 
@@ -578,7 +610,7 @@ namespace yave {
       set_data(dep, ddata);
 
       if (parent)
-        parent->add_content(n);
+        parent->add_member(n);
 
       // set caller pointer
       std::visit(
@@ -638,9 +670,11 @@ namespace yave {
       for (auto&& bit : call->output_bits)
         ng.remove(bit);
 
-      // remove caller/callee relation
+      // remove from parent
       if (call->parent)
-        call->parent->remove_content(call->node);
+        call->parent->remove_member(call->node);
+
+      // remove from caller
       std::visit([&](auto* p) { p->remove_caller(call); }, call->callee);
 
       auto callee = call->callee;
@@ -741,7 +775,7 @@ namespace yave {
       }
 
       // copy node calls
-      for (auto&& n : src->contents) {
+      for (auto&& n : src->members) {
 
         auto newn = create_clone(newc->node, n);
 
@@ -769,7 +803,7 @@ namespace yave {
       };
 
       // copy connections
-      for (auto&& n : src->contents) {
+      for (auto&& n : src->members) {
         for (auto&& c : ng.input_connections(n)) {
           auto info = ng.get_info(c);
           auto srcs = maps(info->src_socket());
@@ -1078,7 +1112,7 @@ namespace yave {
       assert(is_valid(node));
 
       if (auto g = get_callee_group(node))
-        return g->contents;
+        return g->members;
 
       return {};
     }
@@ -1108,13 +1142,8 @@ namespace yave {
     {
       assert(is_valid(node));
 
-      if (auto g = get_callee_group(node)) {
-        auto ret = g->contents;
-        ret.reserve(ret.size() + 2);
-        ret.push_back(g->input_handler);
-        ret.push_back(g->output_handler);
-        return ret;
-      }
+      if (auto g = get_callee_group(node))
+        return g->nodes;
 
       return {};
     }
@@ -1475,7 +1504,7 @@ namespace yave {
       // check members
       if (g) {
         for (auto&& n : nodes) {
-          if (!g->has_content(n)) {
+          if (!g->has_member(n)) {
             Error(g_logger, "Failed to group nodes: Include invalid node");
             return {};
           }
@@ -1538,13 +1567,17 @@ namespace yave {
 
       // move nodes to new group
       for (auto&& n : nodes) {
-        // move content
-        if (g)
-          g->remove_content(n);
-        newg->add_content(n);
-        // fix dependency
+
         assert(is_call(n));
         auto call = get_call(n);
+
+        // move content
+        if (g)
+          g->remove_member(n);
+        newg->add_member(n);
+        call->parent = newg;
+
+        // fix dependency
         assert(ng.output_connections(call->dependency).size() == 1);
         ng.disconnect(ng.output_connections(call->dependency)[0]);
         expected(ng.connect(
@@ -1642,6 +1675,30 @@ namespace yave {
     void disconnect(const connection_handle& c)
     {
       ng.disconnect(c);
+    }
+
+    void bring_front(const node_handle& node)
+    {
+      assert(is_valid(node));
+
+      if (auto call = get_call(node))
+        if (call->parent)
+          call->parent->bring_front(node);
+
+      if (auto io = get_io(node))
+        io->parent->bring_front(node);
+    }
+
+    void bring_back(const node_handle& node)
+    {
+      assert(is_valid(node));
+
+      if (auto call = get_call(node))
+        if (call->parent)
+          call->parent->bring_back(node);
+
+      if (auto io = get_io(node))
+        io->parent->bring_back(node);
     }
 
     auto clone() const -> impl
@@ -1964,6 +2021,22 @@ namespace yave {
       return;
 
     m_pimpl->set_socket_name(socket, name);
+  }
+
+  void node_graph2::bring_front(const node_handle& node)
+  {
+    if (!exists(node))
+      return;
+
+    m_pimpl->bring_front(node);
+  }
+
+  void node_graph2::bring_back(const node_handle& node)
+  {
+    if (!exists(node))
+      return;
+    
+    m_pimpl->bring_back(node);
   }
 
   auto node_graph2::create_function(const node_declaration& decl) -> node_handle
