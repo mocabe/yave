@@ -15,6 +15,7 @@
 #include <yave/rts/box.hpp>
 
 #include <variant>
+#include <string_view>
 
 YAVE_DECL_G_LOGGER(node_graph2)
 
@@ -350,6 +351,7 @@ namespace yave {
     {
       assert(ng.empty());
       root = add_new_group()->node;
+      ng.set_name(root, "__root");
       assert(get_group(root));
     }
 
@@ -1484,26 +1486,78 @@ namespace yave {
   public:
     auto create_function(const node_declaration& decl) -> node_handle
     {
-      for (auto&& n : ng.nodes()) {
+      auto qualified_name = decl.qualified_name();
+      std::string_view qname = qualified_name;
 
-        if (is_call(n) || is_io(n))
-          continue;
+      Info(g_logger, "Creating new function: {}", qname);
 
-        if (auto func = get_function(n)) {
-          if (func->decl.qualified_name() == decl.qualified_name()) {
-            Error(
-              g_logger,
-              "Failed to create node function: Node function {} already "
-              "exists.",
-              decl.qualified_name());
-            return {};
+      // current group
+      auto* g = get_group(root);
+
+      while (true) {
+
+        auto pos  = qname.find_first_of('/');
+        auto name = qname.substr(0, pos);
+
+        auto same_name_def = [&](auto n) {
+          return is_definition(n) && *ng.get_name(n) == name;
+        };
+
+        // create function
+        if (pos == qname.npos) {
+          Info(g_logger, "  function: {}", name);
+
+          for (auto&& n : g->nodes) {
+            if (same_name_def(n)) {
+              Error(
+                g_logger,
+                "Failed to create node function: Node {} already "
+                "exists.",
+                decl.qualified_name());
+              return {};
+            }
+          }
+
+          if (auto func = add_new_function(decl))
+            if (auto call = add_new_call(g, func))
+              return call->node;
+
+          return {};
+        }
+
+        // create next group
+        Info(
+          g_logger,
+          "  group: {}({})/{}",
+          *ng.get_name(g->node),
+          to_string(g->node.id()).substr(0, 4),
+          name);
+
+        node_group* nextg = nullptr;
+
+        // if group already exists, use it
+        for (auto&& n : g->nodes) {
+          if (same_name_def(n)) {
+            // group?
+            nextg = get_callee_group(n);
+            // not group. abort
+            if (!nextg) {
+              Error(g_logger, "Failed to create function: Invalid path", name);
+              return {};
+            }
           }
         }
-      }
 
-      if (auto func = add_new_function(decl))
-        if (auto call = add_new_call(get_group(root), func))
-          return call->node;
+        if (!nextg) {
+          auto newg = add_new_group();
+          auto newc = add_new_call(g, newg);
+          set_group_name(newc->node, std::string(name));
+          nextg = newg;
+        }
+
+        qname.remove_prefix(pos + 1);
+        g = nextg;
+      }
 
       return {};
     }
