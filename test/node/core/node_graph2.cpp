@@ -78,6 +78,40 @@ TEST_CASE("root copy")
   REQUIRE(!ng.exists(n));
 }
 
+TEST_CASE("gruop")
+{
+  node_graph2 ng;
+  auto root = ng.create_group({});
+  ng.set_group_name(root, "root");
+
+  REQUIRE(ng.exists(root));
+  REQUIRE(ng.get_definition(root));
+  REQUIRE(ng.get_name(root) == "root");
+  REQUIRE(ng.input_sockets(root).empty());
+  REQUIRE(ng.output_sockets(root).empty());
+  REQUIRE(ng.get_definition(root) == root);
+
+  SECTION("set name")
+  {
+    auto g = ng.create_group(nullptr);
+    REQUIRE(ng.exists(g));
+    auto name = *ng.get_name(g);
+    ng.set_group_name(g, "root");
+    REQUIRE(ng.get_name(g) == name);
+  }
+
+  SECTION("clone")
+  {
+    auto g = ng.create_clone(nullptr, root);
+    REQUIRE(ng.exists(g));
+    REQUIRE(ng.get_name(g) != ng.get_name(root));
+    auto gg = ng.create_clone(nullptr, root);
+    REQUIRE(ng.exists(gg));
+    REQUIRE(ng.get_name(gg) != ng.get_name(g));
+    REQUIRE(ng.get_name(gg) != ng.get_name(root));
+  }
+}
+
 TEST_CASE("root add group out")
 {
   node_graph2 ng;

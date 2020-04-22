@@ -782,9 +782,28 @@ namespace yave {
 
       // create new group
       auto newg = add_new_group();
-      ng.set_name(newg->node, *ng.get_name(src->node));
       ng.set_name(newg->input_handler, *ng.get_name(src->input_handler));
       ng.set_name(newg->output_handler, *ng.get_name(src->output_handler));
+
+      // decide new name of node
+      {
+        auto name_used = [&](auto&& name) {
+          for (auto&& n : parent->nodes)
+            if (is_definition(n) && ng.get_name(n) == name)
+              return true;
+          return false;
+        };
+
+        auto name  = *ng.get_name(src->node);
+        auto tmp   = name;
+        auto count = 1;
+
+        while (name_used(tmp)) {
+          tmp = fmt::format("{}({})", name, count);
+          ++count;
+        }
+        ng.set_name(newg->node, tmp);
+      }
 
       // create new call
       auto newc = add_new_call(parent, newg);
@@ -1212,6 +1231,18 @@ namespace yave {
       assert(is_valid(node));
 
       if (auto g = get_callee_group(node)) {
+        // check uniqueness of group name
+        for (auto&& n : g->defcall()->parent->nodes) {
+          if (n == node || !is_definition(n))
+            continue;
+
+          if (ng.get_name(n) == name) {
+            Error(
+              g_logger,
+              "Cannot have multiple definitions with same name in a group");
+            return;
+          }
+        }
         // set name to group
         ng.set_name(g->node, name);
         // update caller names
