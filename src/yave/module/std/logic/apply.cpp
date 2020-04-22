@@ -13,7 +13,7 @@ namespace yave {
   {
     return node_declaration(
       "Apply",
-      "std/logic",
+      "/std/logic",
       "Apply argument to function",
       {"fn", "arg"},
       {"fn"});

@@ -124,7 +124,8 @@ TEST_CASE("group with content")
 
   class X;
 
-  auto decl = node_declaration("node", "", "", {"0", "1", "2"}, {"0", "1"});
+  auto decl =
+    node_declaration("node", "/test", "", {"0", "1", "2"}, {"0", "1"});
 
   REQUIRE(decls.add(decl));
 
@@ -400,7 +401,8 @@ TEST_CASE("pos")
 
   class X;
 
-  auto decl = node_declaration("node", "", "", {"0", "1", "2"}, {"0", "1"});
+  auto decl =
+    node_declaration("node", "/test", "", {"0", "1", "2"}, {"0", "1"});
 
   REQUIRE(decls.add(decl));
 

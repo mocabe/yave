@@ -14,7 +14,7 @@ namespace yave {
   {
     return node_declaration(
       "ListNil",
-      "std/list",
+      "/std/list",
       "Constructs empty list. Result can be passed to any type of node which "
       "takes list as input.",
       {},
@@ -26,7 +26,7 @@ namespace yave {
   {
     return node_declaration(
       "ListCons",
-      "std/list",
+      "/std/list",
       "Construct new list node",
       {"head", "tail"},
       {"cons"});
@@ -37,7 +37,7 @@ namespace yave {
   {
     return node_declaration(
       "ListDecompose",
-      "std/list",
+      "/std/list",
       "Decompose list into head and tail",
       {"list"},
       {"head", "tail"});

@@ -16,7 +16,7 @@ namespace yave {
   {
     return node_declaration(
       "FilePath",
-      "std/filesystem",
+      "/std/filesystem",
       "File path constructor",
       {"path"},
       {"path"},

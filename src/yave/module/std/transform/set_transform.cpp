@@ -15,7 +15,7 @@ namespace yave {
   {
     return node_declaration(
       "SetTransform",
-      "std/transform",
+      "/std/transform",
       "Apply new transformation to subtree",
       {"target", "transform"},
       {"out"});

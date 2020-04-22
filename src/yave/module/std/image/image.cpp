@@ -18,7 +18,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Image", "std/image", "Load image form file", {"file"}, {"image"});
+      "Image", "/std/image", "Load image form file", {"file"}, {"image"});
   }
 
   namespace modules::_std::image {
