@@ -22,7 +22,7 @@ namespace yave {
   {
     return node_declaration(
       "Rotate",
-      "std::transform",
+      "std/transform",
       "Rotate object around axis",
       {"target", "deg", "axis", "transform"},
       {"out"},
@@ -35,7 +35,7 @@ namespace yave {
   {
     return node_declaration(
       "RotateX",
-      "std::transform",
+      "std/transform",
       "Rotate object around X axis",
       {"target", "deg", "transform"},
       {"out"},
@@ -48,7 +48,7 @@ namespace yave {
   {
     return node_declaration(
       "RotateY",
-      "std::transform",
+      "std/transform",
       "Rotate object around Y axis",
       {"target", "deg", "transform"},
       {"out"},
@@ -61,7 +61,7 @@ namespace yave {
   {
     return node_declaration(
       "RotateZ",
-      "std::transform",
+      "std/transform",
       "Rotate object around Z axis",
       {"target", "deg", "transform"},
       {"out"},

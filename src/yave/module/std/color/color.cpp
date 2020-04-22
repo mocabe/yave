@@ -14,7 +14,7 @@ namespace yave {
   {
     return node_declaration(
       "Color",
-      "std::color",
+      "std/color",
       "Color",
       {"R", "G", "B", "A"},
       {"color"},

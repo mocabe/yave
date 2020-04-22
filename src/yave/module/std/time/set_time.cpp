@@ -15,7 +15,7 @@ namespace yave {
   {
     return node_declaration(
       "SetTime",
-      "std::time",
+      "std/time",
       "Apply new time to subtree",
       {"target", "time"},
       {"out"});

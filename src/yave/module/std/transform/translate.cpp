@@ -20,7 +20,7 @@ namespace yave {
   {
     return node_declaration(
       "Translate",
-      "std::transform",
+      "std/transform",
       "Move object",
       {"target", "x", "y", "z", "transform"},
       {"out"},
