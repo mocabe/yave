@@ -7,9 +7,19 @@
 #include <yave/module/std/primitive/primitive.hpp>
 #include <catch2/catch.hpp>
 
+#include <iostream>
+
 using namespace yave;
 
 TEST_CASE("init")
+{
+  node_graph2 ng;
+  ng.clear();
+  auto ng2 = ng.clone();
+  (void)ng2.clone();
+}
+
+TEST_CASE("root")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
@@ -48,12 +58,20 @@ TEST_CASE("init")
   REQUIRE(!ng.is_function(null));
   REQUIRE(!ng.is_definition(null));
   REQUIRE(!ng.is_group_member(null));
-  REQUIRE(ng.get_path(null) == "");
+  REQUIRE(!ng.get_path(null));
 
+  REQUIRE(!ng.is_definition(ng.get_group_input(root)));
+  REQUIRE(!ng.is_definition(ng.get_group_output(root)));
+  REQUIRE(ng.get_definition(ng.get_group_input(root)) == node_handle());
+  REQUIRE(ng.get_definition(ng.get_group_output(root)) == node_handle());
+
+  REQUIRE(ng.get_path(root) == "/root");
   REQUIRE(
-    ng.get_definition(ng.get_group_input(root)) == ng.get_group_input(root));
+    ng.get_path(ng.get_group_input(root))
+    == ("/root/" + *ng.get_name(ng.get_group_input(root))));
   REQUIRE(
-    ng.get_definition(ng.get_group_output(root)) == ng.get_group_output(root));
+    ng.get_path(ng.get_group_output(root))
+    == ("/root/" + *ng.get_name(ng.get_group_output(root))));
 }
 
 TEST_CASE("root destroy")
@@ -98,6 +116,18 @@ TEST_CASE("gruop")
     auto name = *ng.get_name(g);
     ng.set_group_name(g, "root");
     REQUIRE(ng.get_name(g) == name);
+  }
+
+  SECTION("io")
+  {
+    auto g    = ng.create_group(nullptr);
+    auto name = *ng.get_name(ng.get_group_input(g));
+    ng.set_group_name(ng.get_group_input(g), "test");
+    REQUIRE(ng.get_name(ng.get_group_input(g)) == name);
+
+    auto gg = ng.create_group(g);
+    ng.set_group_name(gg, name);
+    REQUIRE(*ng.get_name(gg) == name);
   }
 
   SECTION("clone")
@@ -245,7 +275,8 @@ TEST_CASE("root add func")
   REQUIRE(!ng.is_group_output(func));
   REQUIRE(ng.is_function(func));
   REQUIRE(ng.is_group_member(func));
-  REQUIRE(ng.get_parent_group(func) == node_handle());
+
+  REQUIRE(*ng.get_path(func) == decl.qualified_name());
 
   for (size_t i = 0; i < decl.input_sockets().size(); ++i)
     REQUIRE(
@@ -265,6 +296,9 @@ TEST_CASE("root add func")
   REQUIRE(ng.get_parent_group(call) == root);
   REQUIRE(ng.get_group_members(root).size() == 1);
   REQUIRE(ng.get_group_nodes(root).size() == 3);
+
+  REQUIRE(*ng.get_path(call) == "/root/" + decl.name());
+  REQUIRE(*ng.get_path(ng.get_definition(call)) == decl.qualified_name());
 
   for (size_t i = 0; i < decl.input_sockets().size(); ++i)
     REQUIRE(
@@ -355,6 +389,13 @@ TEST_CASE("func destroy")
 
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
+
+  {
+    auto decl2 = get_node_declaration<node::String>();
+    auto func2 = ng.create_function(decl2);
+    REQUIRE(ng.exists(func2));
+    ng.destroy(func2);
+  }
 
   {
     auto func1 = ng.create_copy(nullptr, func);
@@ -626,4 +667,36 @@ TEST_CASE("clone")
   REQUIRE(
     ng2.get_info(ng2.output_connections(f22)[0])->dst_node()
     == ng2.get_group_output(root2));
+}
+
+TEST_CASE("path")
+{
+  node_graph2 ng;
+  auto root = ng.create_group(nullptr);
+  ng.set_group_name(root, "root");
+  auto decl = get_node_declaration<node::Int>();
+  auto func = ng.create_function(decl);
+
+  REQUIRE(*ng.get_path(root) == "/root");
+  REQUIRE(*ng.get_path(func) == decl.qualified_name());
+
+  REQUIRE(ng.search_path("").empty());
+  REQUIRE(ng.search_path("/").size() == 2); // root, std
+  REQUIRE(ng.search_path("/").front() == root);
+  REQUIRE(ng.search_path("//").empty());
+  REQUIRE(ng.search_path("/root") == std::vector {root});
+  REQUIRE(ng.search_path("/root/").empty());
+  REQUIRE(ng.search_path("foo").empty());
+  REQUIRE(ng.search_path("/foo").empty());
+  REQUIRE(ng.search_path(decl.qualified_name()) == std::vector {func});
+  REQUIRE(ng.search_path(decl.qualified_name() + "/").empty());
+
+  auto g = ng.create_group(root);
+  ng.set_group_name(g, "g");
+  REQUIRE(*ng.get_path(g) == "/root/g");
+  REQUIRE(ng.search_path("/root/") == std::vector {g});
+  REQUIRE(ng.search_path("/root/g") == std::vector {g});
+  REQUIRE(ng.search_path("/root/foo").empty());
+  REQUIRE(ng.search_path("/root////foo").empty());
+  REQUIRE(ng.search_path("/root/In").empty());
 }

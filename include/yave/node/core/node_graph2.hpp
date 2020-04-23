@@ -77,6 +77,20 @@ namespace yave {
     void set_data(const socket_handle& socket, object_ptr<Object> data);
 
   public:
+    /// get path of the node
+    /// \note this function can return multiple identical paths for different
+    /// node handles.
+    [[nodiscard]] auto get_path(const node_handle& node) const
+      -> std::optional<std::string>;
+
+    /// search definitions from path
+    /// \returns definition node found from argument. if the path ends with '/'
+    /// and the node specified in the path is a group, returns list of
+    /// definitions in the group.
+    [[nodiscard]] auto search_path(const std::string& path) const
+      -> std::vector<node_handle>;
+
+  public:
     /// Get input sockets
     [[nodiscard]] auto input_sockets(const node_handle& node) const
       -> std::vector<socket_handle>;
@@ -126,6 +140,8 @@ namespace yave {
     /// \param source source node call to create
     /// \note when source is builtin function call, effect is same to
     /// `create_copy`.
+    /// \note name of new group will be different when parent group already has
+    /// definition node with same name.
     [[nodiscard]] auto create_clone(
       const node_handle& parent,
       const node_handle& source) -> node_handle;

@@ -407,6 +407,93 @@ namespace yave {
       ng.set_data(socket, std::move(data));
     }
 
+  public:
+    auto get_path(const node_handle& node) const -> std::optional<std::string>
+    {
+      assert(is_valid(node));
+
+      node_handle n = node;
+      std::vector<std::string> queue;
+
+      while (true) {
+
+        assert(is_valid(n));
+
+        queue.push_back(*ng.get_name(n));
+
+        if (auto call = get_call(n)) {
+          if (call->parent != get_group(root))
+            n = call->parent->defcall()->node;
+          else
+            break; // hit root
+        }
+
+        if (auto io = get_io(n))
+          n = io->parent->defcall()->node;
+      }
+
+      std::string path;
+      for (auto&& name : queue | rng::views::reverse)
+        path += "/" + name;
+
+      return path;
+    }
+
+    auto search_path(const std::string& path) const -> std::vector<node_handle>
+    {
+      node_group* g       = get_group(root);
+      std::string_view sv = path;
+
+      while (true) {
+
+        if (sv == "/")
+          return g->members //
+                 | rng::views::filter(
+                   [&](auto&& n) { return is_definition(n); })
+                 | rng::to_vector;
+
+        if (sv.find_first_of('/') != 0)
+          return {};
+
+        auto pos = sv.find_first_of('/', 1);
+
+        if (pos == sv.npos) {
+
+          auto name = sv.substr(1, pos);
+
+          for (auto&& n : g->nodes)
+            if (is_definition(n) && *ng.get_name(n) == name)
+              return {n};
+
+          return {};
+        }
+
+        auto name = sv.substr(1, pos - 1);
+
+        for (auto&& n : g->nodes) {
+          if (is_definition(n) && *ng.get_name(n) == name) {
+
+            // non-group: invalid
+            if (is_function_call(n)) {
+              return {};
+            }
+
+            // group: set next group
+            if (auto group = get_callee_group(n)) {
+              sv.remove_prefix(pos);
+              g = group;
+              goto nextloop;
+            }
+            unreachable();
+          }
+        }
+        return {};
+
+      nextloop:;
+      }
+      return {};
+    }
+
   private:
     /// create new group with empty I/O setting
     auto add_new_group() -> node_group*
@@ -1966,6 +2053,21 @@ namespace yave {
       return;
 
     m_pimpl->set_data(socket, std::move(data));
+  }
+
+  auto node_graph2::get_path(const node_handle& node) const
+    -> std::optional<std::string>
+  {
+    if (!exists(node))
+      return std::nullopt;
+
+    return m_pimpl->get_path(node);
+  }
+
+  auto node_graph2::search_path(const std::string& path) const
+    -> std::vector<node_handle>
+  {
+    return m_pimpl->search_path(path);
   }
 
   auto node_graph2::node(const socket_handle& socket) const -> node_handle
