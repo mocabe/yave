@@ -1136,9 +1136,6 @@ namespace yave {
         return std::visit(
           [](auto* p) { return p->defcall()->node; }, call->callee);
 
-      if (get_io(node))
-        return node;
-
       return {};
     }
 
