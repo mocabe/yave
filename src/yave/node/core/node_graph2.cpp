@@ -1495,29 +1495,28 @@ namespace yave {
   public:
     auto create_function(const node_declaration& decl) -> node_handle
     {
-      auto qualified_name    = decl.qualified_name();
-      std::string_view qname = qualified_name;
+      auto path           = decl.qualified_name();
+      std::string_view sv = path;
 
-      Info(g_logger, "Creating new function: {}", qname);
+      Info(g_logger, "Creating new function: {}", path);
 
       // current group
       auto* g = get_group(root);
 
       while (true) {
 
-        auto pos  = qname.find_first_of('/');
-        auto name = qname.substr(0, pos);
+        assert(sv.find_first_of('/') == 0);
 
-        auto same_name_def = [&](auto n) {
-          return is_definition(n) && *ng.get_name(n) == name;
-        };
+        auto pos = sv.find_first_of('/', 1);
 
         // create function
-        if (pos == qname.npos) {
-          Info(g_logger, "  function: {}", name);
+        if (pos == sv.npos) {
+
+          auto name = sv.substr(1, pos);
+          assert(name == decl.name());
 
           for (auto&& n : g->nodes) {
-            if (same_name_def(n)) {
+            if (is_definition(n) && *ng.get_name(n) == name) {
               Error(
                 g_logger,
                 "Failed to create node function: Node {} already "
@@ -1534,19 +1533,13 @@ namespace yave {
           return {};
         }
 
-        // create next group
-        Info(
-          g_logger,
-          "  group: {}({})/{}",
-          *ng.get_name(g->node),
-          to_string(g->node.id()).substr(0, 4),
-          name);
+        auto name = sv.substr(1, pos - 1);
 
         node_group* nextg = nullptr;
 
         // if group already exists, use it
         for (auto&& n : g->nodes) {
-          if (same_name_def(n)) {
+          if (is_definition(n) && *ng.get_name(n) == name) {
             // group?
             nextg = get_callee_group(n);
             // not group. abort
@@ -1557,14 +1550,17 @@ namespace yave {
           }
         }
 
+        // create new group
         if (!nextg) {
           auto newg = add_new_group();
+          ng.set_name(newg->input_handler, "In");
+          ng.set_name(newg->output_handler, "Out");
           auto newc = add_new_call(g, newg);
           set_group_name(newc->node, std::string(name));
           nextg = newg;
         }
 
-        qname.remove_prefix(pos + 1);
+        sv.remove_prefix(pos);
         g = nextg;
       }
 
