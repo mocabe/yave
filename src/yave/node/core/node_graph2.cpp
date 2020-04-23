@@ -23,13 +23,8 @@ namespace yave {
 
   namespace rng = ranges;
 
-  // hard assertion
-  constexpr auto expected = [](auto&& arg) {
-    if (!(!!arg)) {
-      Error(g_logger, "Operation expected to success failed, throwing");
-      throw std::runtime_error("Unexpected error occured");
-    }
-  };
+  // inline assertion
+  constexpr auto expect = []([[maybe_unused]] auto&& arg) { assert(arg); };
 
   // fwd
   struct node_group;
@@ -427,11 +422,6 @@ namespace yave {
         d_decl.output_sockets(),
         node_type::normal);
 
-      assert(g);
-      assert(i);
-      assert(o);
-      assert(d);
-
       auto gdata =
         make_node_data(node_group {g, d, {}, i, o, {i, o}, {}, {}, {}});
       auto idata = make_node_data(
@@ -502,9 +492,6 @@ namespace yave {
         d_decl.output_sockets(),
         node_type::normal);
 
-      assert(body);
-      assert(dep);
-
       assert(!ng.get_data(body));
 
       auto bdata = make_node_data(node_function {body, dep, decl, {}});
@@ -548,13 +535,11 @@ namespace yave {
       // create bit
       auto bit = ng.add(bit_decl.name(), {name}, {name}, node_type::normal);
 
-      assert(bit);
-
       if (type == socket_type::input)
-        expected(ng.attach_interface(node, ng.input_sockets(bit)[0]));
+        expect(ng.attach_interface(node, ng.input_sockets(bit)[0]));
 
       if (type == socket_type::output)
-        expected(ng.attach_interface(node, ng.output_sockets(bit)[0]));
+        expect(ng.attach_interface(node, ng.output_sockets(bit)[0]));
 
       return bit;
     }
@@ -576,13 +561,11 @@ namespace yave {
         d_decl.output_sockets(),
         node_type::normal);
 
-      assert(dep);
-
       // check dependency (ignore when it's root call)
       auto valid = std::visit(
         [&](auto* p) {
           // call -> parent group
-          expected(ng.connect(
+          expect(ng.connect(
             ng.output_sockets(dep)[0],
             ng.input_sockets(parent->dependency)[0]));
           // caleee -> call
@@ -626,7 +609,7 @@ namespace yave {
       // in-out dependency
       for (auto&& obit : obits)
         for (auto&& ibit : ibits)
-          expected(
+          expect(
             ng.connect(ng.output_sockets(ibit)[0], ng.input_sockets(obit)[0]));
 
       assert(!ng.get_data(n));
@@ -756,16 +739,15 @@ namespace yave {
       assert(src);
 
       auto dep_decl = get_node_declaration<node::NodeDependency>();
-      auto dep      = ng.add(
+
+      auto dep = ng.add(
         dep_decl.name(),
         dep_decl.input_sockets(),
         dep_decl.output_sockets(),
         node_type::normal);
 
-      assert(dep);
-
       // check dependency
-      expected(ng.connect(
+      expect(ng.connect(
         ng.output_sockets(dep)[0], ng.input_sockets(parent->dependency)[0]));
 
       if (!ng.connect(
@@ -810,10 +792,10 @@ namespace yave {
 
       // copy sockets
       for (auto&& s : ng.input_sockets(src->node))
-        expected(add_input_socket(newc->node, *ng.get_name(s), -1));
+        expect(add_input_socket(newc->node, *ng.get_name(s), -1));
 
       for (auto&& s : ng.output_sockets(src->node))
-        expected(add_output_socket(newc->node, *ng.get_name(s), -1));
+        expect(add_output_socket(newc->node, *ng.get_name(s), -1));
 
       { // map sockets of IO handler
         auto oldis = ng.input_sockets(src->output_handler);
@@ -864,7 +846,7 @@ namespace yave {
           auto info = ng.get_info(c);
           auto srcs = maps(info->src_socket());
           auto dsts = maps(info->dst_socket());
-          expected(ng.connect(srcs, dsts));
+          expect(ng.connect(srcs, dsts));
         }
       }
 
@@ -1340,9 +1322,9 @@ namespace yave {
 
           // attach bits
           for (auto&& bit : g->input_bits) {
-            expected(
+            expect(
               ng.attach_interface(g->input_handler, ng.output_sockets(bit)[0]));
-            expected(ng.attach_interface(g->node, ng.input_sockets(bit)[0]));
+            expect(ng.attach_interface(g->node, ng.input_sockets(bit)[0]));
           }
         }
 
@@ -1363,12 +1345,11 @@ namespace yave {
           }
           // attach bits
           for (auto&& bit : caller->input_bits)
-            expected(
-              ng.attach_interface(caller->node, ng.input_sockets(bit)[0]));
+            expect(ng.attach_interface(caller->node, ng.input_sockets(bit)[0]));
 
           // add in-out connection
           for (auto&& obit : caller->output_bits)
-            expected(ng.connect(
+            expect(ng.connect(
               ng.output_sockets(newbit)[0], ng.input_sockets(obit)[0]));
         }
 
@@ -1420,9 +1401,9 @@ namespace yave {
 
           // attach bits
           for (auto&& bit : g->output_bits) {
-            expected(
+            expect(
               ng.attach_interface(g->output_handler, ng.input_sockets(bit)[0]));
-            expected(ng.attach_interface(g->node, ng.output_sockets(bit)[0]));
+            expect(ng.attach_interface(g->node, ng.output_sockets(bit)[0]));
           }
         }
 
@@ -1443,12 +1424,12 @@ namespace yave {
           }
           // attach bits
           for (auto&& bit : caller->output_bits)
-            expected(
+            expect(
               ng.attach_interface(caller->node, ng.output_sockets(bit)[0]));
 
           // add in-out connection
           for (auto&& ibit : caller->input_bits)
-            expected(ng.connect(
+            expect(ng.connect(
               ng.output_sockets(ibit)[0], ng.input_sockets(newbit)[0]));
         }
 
@@ -1514,7 +1495,7 @@ namespace yave {
   public:
     auto create_function(const node_declaration& decl) -> node_handle
     {
-      auto qualified_name = decl.qualified_name();
+      auto qualified_name    = decl.qualified_name();
       std::string_view qname = qualified_name;
 
       Info(g_logger, "Creating new function: {}", qname);
@@ -1661,8 +1642,8 @@ namespace yave {
           add_input_socket(newc->node, *ng.get_name(info->dst_socket()), -1);
         assert(news);
         ng.disconnect(c);
-        expected(ng.connect(info->src_socket(), news));
-        expected(ng.connect(
+        expect(ng.connect(info->src_socket(), news));
+        expect(ng.connect(
           ng.output_sockets(newg->input_handler).back(), info->dst_socket()));
       }
       for (auto&& c : ocs) {
@@ -1671,9 +1652,9 @@ namespace yave {
           add_output_socket(newc->node, *ng.get_name(info->src_socket()), -1);
         assert(news);
         ng.disconnect(c);
-        expected(ng.connect(
+        expect(ng.connect(
           info->src_socket(), ng.input_sockets(newg->output_handler).back()));
-        expected(ng.connect(news, info->dst_socket()));
+        expect(ng.connect(news, info->dst_socket()));
       }
 
       // move nodes to new group
@@ -1690,7 +1671,7 @@ namespace yave {
         // fix dependency
         assert(ng.output_connections(call->dependency).size() == 1);
         ng.disconnect(ng.output_connections(call->dependency)[0]);
-        expected(ng.connect(
+        expect(ng.connect(
           ng.output_sockets(call->dependency)[0],
           ng.input_sockets(newg->dependency)[0]));
       }
@@ -2188,7 +2169,7 @@ namespace yave {
   {
     if (!exists(node))
       return;
-    
+
     m_pimpl->bring_back(node);
   }
 
