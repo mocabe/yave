@@ -345,9 +345,13 @@ namespace yave {
     void init()
     {
       assert(ng.empty());
-      root = add_new_group()->node;
-      ng.set_name(root, "__root");
-      assert(get_group(root));
+      auto g = add_new_group();
+      assert(g);
+      root = g->node;
+      // for readability in logs
+      ng.set_name(g->node, "__root");
+      ng.set_name(g->input_handler, "__in");
+      ng.set_name(g->output_handler, "__out");
     }
 
     impl()
