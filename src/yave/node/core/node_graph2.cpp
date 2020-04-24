@@ -1296,9 +1296,14 @@ namespace yave {
     }
 
   public:
-    void set_group_name(const node_handle& node, const std::string& name)
+    void set_name(const node_handle& node, const std::string& name)
     {
       assert(is_valid(node));
+
+      if (!is_definition(node)) {
+        Info(g_logger, "Cannot rename non-definition node call");
+        return;
+      }
 
       if (auto g = get_callee_group(node)) {
         // check uniqueness of group name
@@ -1318,11 +1323,10 @@ namespace yave {
         // update caller names
         for (auto&& caller : g->callers)
           ng.set_name(caller->node, name);
-      } else
-        Error(g_logger, "Tried to rename non-group");
+      }
     }
 
-    void set_socket_name(const socket_handle& socket, const std::string& name)
+    void set_name(const socket_handle& socket, const std::string& name)
     {
       // call
       auto node = this->node(socket);
@@ -1334,11 +1338,11 @@ namespace yave {
       if (auto io = get_io(node)) {
         if (ng.is_input_socket(socket)) {
           auto group = io->parent->callers[0]->node;
-          return set_socket_name(ng.output_sockets(group)[idx], name);
+          return set_name(ng.output_sockets(group)[idx], name);
         }
         if (ng.is_output_socket(socket)) {
           auto group = io->parent->callers[0]->node;
-          return set_socket_name(ng.input_sockets(group)[idx], name);
+          return set_name(ng.input_sockets(group)[idx], name);
         }
       }
 
@@ -1647,7 +1651,7 @@ namespace yave {
           ng.set_name(newg->input_handler, "In");
           ng.set_name(newg->output_handler, "Out");
           auto newc = add_new_call(g, newg);
-          set_group_name(newc->node, std::string(name));
+          set_name(newc->node, std::string(name));
           nextg = newg;
         }
 
@@ -1695,7 +1699,7 @@ namespace yave {
 
       // create new call
       auto newc = add_new_call(g, newg);
-      set_group_name(
+      set_name(
         newc->node,
         fmt::format("Group#{}", to_string(newc->node.id()).substr(0, 4)));
 
@@ -2019,6 +2023,24 @@ namespace yave {
     return m_pimpl->ng.get_name(socket);
   }
 
+  void node_graph2::set_name(const node_handle& node, const std::string& name)
+  {
+    if (!exists(node))
+      return;
+
+    m_pimpl->set_name(node, name);
+  }
+
+  void node_graph2::set_name(
+    const socket_handle& socket,
+    const std::string& name)
+  {
+    if (!exists(socket))
+      return;
+
+    m_pimpl->set_name(socket, name);
+  }
+
   auto node_graph2::get_pos(const node_handle& node) const
     -> std::optional<fvec2>
   {
@@ -2237,26 +2259,6 @@ namespace yave {
       return;
 
     return m_pimpl->remove_socket(socket);
-  }
-
-  void node_graph2::set_group_name(
-    const node_handle& group,
-    const std::string& name)
-  {
-    if (!exists(group))
-      return;
-
-    m_pimpl->set_group_name(group, name);
-  }
-
-  void node_graph2::set_socket_name(
-    const socket_handle& socket,
-    const std::string& name)
-  {
-    if (!exists(socket))
-      return;
-
-    m_pimpl->set_socket_name(socket, name);
   }
 
   void node_graph2::bring_front(const node_handle& node)

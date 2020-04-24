@@ -23,7 +23,7 @@ TEST_CASE("root")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
   REQUIRE(root);
   REQUIRE(ng.exists(root));
   REQUIRE(ng.get_group_members(root).empty());
@@ -78,7 +78,7 @@ TEST_CASE("root destroy")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
   REQUIRE(root);
   REQUIRE(ng.exists(root));
   ng.destroy(root);
@@ -90,7 +90,7 @@ TEST_CASE("root copy")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
   auto n = ng.create_copy(root, root);
   REQUIRE(!n);
   REQUIRE(!ng.exists(n));
@@ -100,7 +100,7 @@ TEST_CASE("gruop")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
 
   REQUIRE(ng.exists(root));
   REQUIRE(ng.get_definition(root));
@@ -108,26 +108,39 @@ TEST_CASE("gruop")
   REQUIRE(ng.input_sockets(root).empty());
   REQUIRE(ng.output_sockets(root).empty());
   REQUIRE(ng.get_definition(root) == root);
+  REQUIRE(ng.exists(ng.get_group_input(root)));
+  REQUIRE(ng.exists(ng.get_group_output(root)));
 
   SECTION("set name")
   {
-    auto g = ng.create_group(nullptr);
-    REQUIRE(ng.exists(g));
-    auto name = *ng.get_name(g);
-    ng.set_group_name(g, "root");
-    REQUIRE(ng.get_name(g) == name);
-  }
+    SECTION("collision")
+    {
+      auto g = ng.create_group(nullptr);
+      REQUIRE(ng.exists(g));
+      auto name = *ng.get_name(g);
+      ng.set_name(g, "root");
+      REQUIRE(ng.get_name(g) == name);
+    }
 
-  SECTION("io")
-  {
-    auto g    = ng.create_group(nullptr);
-    auto name = *ng.get_name(ng.get_group_input(g));
-    ng.set_group_name(ng.get_group_input(g), "test");
-    REQUIRE(ng.get_name(ng.get_group_input(g)) == name);
+    SECTION("call")
+    {
+      auto g = ng.create_copy(nullptr, root);
+      REQUIRE(ng.exists(g));
+      ng.set_name(g, "test");
+      REQUIRE(ng.get_name(g) == "root");
+    }
 
-    auto gg = ng.create_group(g);
-    ng.set_group_name(gg, name);
-    REQUIRE(*ng.get_name(gg) == name);
+    SECTION("io")
+    {
+      auto g    = ng.create_group(nullptr);
+      auto name = *ng.get_name(ng.get_group_input(g));
+      ng.set_name(ng.get_group_input(g), "test");
+      REQUIRE(ng.get_name(ng.get_group_input(g)) == name);
+
+      auto gg = ng.create_group(g);
+      ng.set_name(gg, name);
+      REQUIRE(*ng.get_name(gg) == name);
+    }
   }
 
   SECTION("clone")
@@ -139,6 +152,8 @@ TEST_CASE("gruop")
     REQUIRE(ng.exists(gg));
     REQUIRE(ng.get_name(gg) != ng.get_name(g));
     REQUIRE(ng.get_name(gg) != ng.get_name(root));
+    auto ggg = ng.create_clone(root, root);
+    REQUIRE(ng.exists(ggg));
   }
 }
 
@@ -146,7 +161,7 @@ TEST_CASE("root add group out")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
   REQUIRE(ng.get_info(root)->input_sockets().empty());
   REQUIRE(ng.get_info(root)->output_sockets().empty());
 
@@ -237,7 +252,7 @@ TEST_CASE("root set socket name")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
 
   auto s = ng.add_output_socket(root, "test");
 
@@ -248,7 +263,7 @@ TEST_CASE("root set socket name")
       ->name()
     == "test");
 
-  ng.set_socket_name(s, "test2");
+  ng.set_name(s, "test2");
   REQUIRE(ng.get_info(s)->name() == "test2");
   REQUIRE(
     ng.get_info(ng.get_info(ng.get_group_output(root))->input_sockets()[0])
@@ -265,7 +280,7 @@ TEST_CASE("root add func")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
 
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
@@ -313,8 +328,8 @@ TEST_CASE("root add func")
   // fail
   REQUIRE(!ng.add_input_socket(call, ""));
   REQUIRE(!ng.add_output_socket(call, ""));
-  ng.set_group_name(call, "");
-  ng.set_socket_name(ng.input_sockets(call)[0], "");
+  ng.set_name(call, "");
+  ng.set_name(ng.input_sockets(call)[0], "");
   REQUIRE(*ng.get_name(call) == decl.name());
   REQUIRE(*ng.get_name(ng.input_sockets(call)[0]) == decl.input_sockets()[0]);
 }
@@ -323,7 +338,7 @@ TEST_CASE("func conn")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
 
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
@@ -385,7 +400,7 @@ TEST_CASE("func destroy")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
 
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
@@ -435,7 +450,7 @@ TEST_CASE("group")
 {
   node_graph2 ng;
   auto root = ng.create_group({});
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
 
@@ -621,7 +636,7 @@ TEST_CASE("clone")
 {
   node_graph2 ng;
   auto root = ng.create_group(nullptr);
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
 
@@ -643,7 +658,7 @@ TEST_CASE("clone")
   REQUIRE(ng2.exists(ng2.get_group_input(root2)));
   REQUIRE(ng2.exists(ng2.get_group_output(root2)));
   REQUIRE(ng2.get_name(root2) == "root");
-  ng2.set_group_name(root2, "test");
+  ng2.set_name(root2, "test");
   REQUIRE(ng.get_name(root) == "root");
   REQUIRE(*ng2.get_name(root2) == "test");
 
@@ -673,7 +688,7 @@ TEST_CASE("path")
 {
   node_graph2 ng;
   auto root = ng.create_group(nullptr);
-  ng.set_group_name(root, "root");
+  ng.set_name(root, "root");
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
 
@@ -692,7 +707,7 @@ TEST_CASE("path")
   REQUIRE(ng.search_path(decl.qualified_name() + "/").empty());
 
   auto g = ng.create_group(root);
-  ng.set_group_name(g, "g");
+  ng.set_name(g, "g");
   REQUIRE(*ng.get_path(g) == "/root/g");
   REQUIRE(ng.search_path("/root/") == std::vector {g});
   REQUIRE(ng.search_path("/root/g") == std::vector {g});
