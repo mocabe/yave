@@ -609,7 +609,16 @@ namespace yave {
       const socket_handle& src_socket,
       const socket_handle& dst_socket) -> connection_handle
     {
-      return ng.connect(src_socket, dst_socket);
+      auto c  = ng.connect(src_socket, dst_socket);
+      auto cs = ng.connections(dst_socket);
+
+      if (cs.size() > 1) {
+        assert(cs[1] == c);
+        ng.disconnect(c);
+        Error(g_logger, "Failed to connect: Multiple inputs are not allowed");
+        return {};
+      }
+      return c;
     }
 
     void disconnect(const connection_handle& handle)

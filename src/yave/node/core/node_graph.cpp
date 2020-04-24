@@ -484,21 +484,6 @@ namespace yave {
         }
       }
 
-      // input edge cannot have multiple inputs
-      if (g.n_dst_edges(d) != 0) {
-        Error(
-          g_logger,
-          "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
-          get_name(src_node),
-          to_string(src_node.id()),
-          get_name(src_socket),
-          get_name(dst_node),
-          to_string(dst_node.id()),
-          get_name(dst_socket));
-        Error(g_logger, "Multiple input is not allowed");
-        return connection_handle();
-      }
-
       // add new edge to graph
       auto new_edge = g.add_edge(s, d);
       assert(new_edge);

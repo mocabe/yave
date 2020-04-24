@@ -16,7 +16,7 @@ namespace yave {
   {
     return node_declaration(
       node_name,
-      "std::prim",
+      "/std/prim",
       "Data type constructor",
       {"value"},
       {"value"},

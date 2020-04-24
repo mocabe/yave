@@ -15,7 +15,7 @@ namespace yave {
   {
     return node_declaration(
       "Time",
-      "std::time",
+      "/std/time",
       "Constructor of time value. This node construct new FrameTime object "
       "from argument, or creates FrameTime object which represents current "
       "time applied to the tree.",

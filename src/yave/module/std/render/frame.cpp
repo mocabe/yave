@@ -14,7 +14,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Frame", "std::render", "Create new frame buffer", {}, {"value"});
+      "Frame", "/std/render", "Create new frame buffer", {}, {"value"});
   }
 
   auto node_definition_traits<node::Frame, modules::_std::tag>::

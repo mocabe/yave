@@ -58,6 +58,10 @@ namespace yave {
         if (!defval)
           throw std::invalid_argument("Null default value");
       }
+
+      if (
+        m_namespace == "" || m_namespace[0] != '/' || m_namespace.back() == '/')
+        throw std::invalid_argument("Invalid namespace");
     }
 
     [[nodiscard]] auto& name() const
@@ -77,7 +81,7 @@ namespace yave {
 
     [[nodiscard]] auto qualified_name() const
     {
-      return m_namespace + "::" + m_name;
+      return m_namespace + "/" + m_name;
     }
 
     [[nodiscard]] auto& input_sockets() const

@@ -14,14 +14,14 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Rect2", "std::geometry", "2D rectangle", {"off", "ext"}, {"value"});
+      "Rect2", "/std/geometry", "2D rectangle", {"off", "ext"}, {"value"});
   }
 
   auto node_declaration_traits<node::Rect3>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Rect3", "std::geometry", "3D rectangle", {"off", "ext"}, {"value"});
+      "Rect3", "/std/geometry", "3D rectangle", {"off", "ext"}, {"value"});
   }
 
   namespace modules::_std::geometry {

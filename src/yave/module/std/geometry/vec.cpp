@@ -15,7 +15,7 @@ namespace yave {
   {
     return node_declaration(
       "Vec2",
-      "std::geometry",
+      "/std/geometry",
       "Vec2 constructor",
       {"x", "y"},
       {"value"},
@@ -28,7 +28,7 @@ namespace yave {
   {
     return node_declaration(
       "Vec3",
-      "std::geometry",
+      "/std/geometry",
       "Vec3 constructor",
       {"x", "y", "z"},
       {"value"},
@@ -42,7 +42,7 @@ namespace yave {
   {
     return node_declaration(
       "Vec4",
-      "std::geometry",
+      "/std/geometry",
       "Vec3 constructor",
       {"x", "y", "z", "w"},
       {"value"},
