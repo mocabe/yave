@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/core/node_graph2.hpp>
+#include <yave/node/core/structured_node_graph.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
 #include <catch2/catch.hpp>
 
@@ -13,7 +13,7 @@ using namespace yave;
 
 TEST_CASE("init")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   ng.clear();
   auto ng2 = ng.clone();
   (void)ng2.clone();
@@ -21,7 +21,7 @@ TEST_CASE("init")
 
 TEST_CASE("root")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
   ng.set_name(root, "root");
   REQUIRE(root);
@@ -76,7 +76,7 @@ TEST_CASE("root")
 
 TEST_CASE("root destroy")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
   ng.set_name(root, "root");
   REQUIRE(root);
@@ -88,7 +88,7 @@ TEST_CASE("root destroy")
 
 TEST_CASE("root copy")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
   ng.set_name(root, "root");
   auto n = ng.create_copy(root, root);
@@ -98,7 +98,7 @@ TEST_CASE("root copy")
 
 TEST_CASE("gruop")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
   ng.set_name(root, "root");
 
@@ -193,7 +193,7 @@ TEST_CASE("gruop")
 
 TEST_CASE("root add group out")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
   ng.set_name(root, "root");
   REQUIRE(ng.get_info(root)->input_sockets().empty());
@@ -253,7 +253,7 @@ TEST_CASE("root add group out")
 
 TEST_CASE("group socket extra")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
 
   auto in  = ng.get_group_input(root);
@@ -284,7 +284,7 @@ TEST_CASE("group socket extra")
 
 TEST_CASE("root set socket name")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
   ng.set_name(root, "root");
 
@@ -312,7 +312,7 @@ TEST_CASE("root set socket name")
 
 TEST_CASE("root add func")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
   ng.set_name(root, "root");
 
@@ -370,7 +370,7 @@ TEST_CASE("root add func")
 
 TEST_CASE("func conn")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
   ng.set_name(root, "root");
 
@@ -432,7 +432,7 @@ TEST_CASE("func conn")
 
 TEST_CASE("func destroy")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
   ng.set_name(root, "root");
 
@@ -482,7 +482,7 @@ TEST_CASE("func destroy")
 
 TEST_CASE("group")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group({});
   ng.set_name(root, "root");
   auto decl = get_node_declaration<node::Int>();
@@ -668,7 +668,7 @@ TEST_CASE("group")
 
 TEST_CASE("clone")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group(nullptr);
   ng.set_name(root, "root");
   auto decl = get_node_declaration<node::Int>();
@@ -720,7 +720,7 @@ TEST_CASE("clone")
 
 TEST_CASE("path")
 {
-  node_graph2 ng;
+  structured_node_graph ng;
   auto root = ng.create_group(nullptr);
   ng.set_name(root, "root");
   auto decl = get_node_declaration<node::Int>();

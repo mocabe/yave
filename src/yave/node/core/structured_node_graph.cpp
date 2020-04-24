@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/core/node_graph2.hpp>
+#include <yave/node/core/structured_node_graph.hpp>
 #include <yave/node/core/node_group.hpp>
 
 #include <range/v3/algorithm.hpp>
@@ -17,7 +17,7 @@
 #include <variant>
 #include <string_view>
 
-YAVE_DECL_G_LOGGER(node_graph2)
+YAVE_DECL_G_LOGGER(structured_node_graph)
 
 namespace yave {
 
@@ -219,7 +219,7 @@ namespace yave {
     /// parent group
     node_group* parent;
     /// type
-    node_type2 type;
+    structured_node_type type;
     /// pos
     fvec2 pos = {};
 
@@ -332,7 +332,7 @@ namespace yave {
   /// connections of node calls in group. Dependency tree represents `Node X
   /// belongs to group G` relations so that we can detect recursive call of
   /// node groups easily, which currently we do not allow to exist.
-  class node_graph2::impl
+  class structured_node_graph::impl
   {
   public:
     /// graph
@@ -515,11 +515,12 @@ namespace yave {
 
       auto gdata =
         make_node_data(node_group {g, d, {}, i, o, {i, o}, {}, {}, {}});
-      auto idata = make_node_data(
-        node_io {std::get_if<node_group>(&*gdata), node_type2::group_input});
-      auto odata = make_node_data(
-        node_io {std::get_if<node_group>(&*gdata), node_type2::group_output});
-      auto ddata = make_node_data(node_dep());
+
+      auto idata = make_node_data(node_io {std::get_if<node_group>(&*gdata),
+                                           structured_node_type::group_input});
+      auto odata = make_node_data(node_io {std::get_if<node_group>(&*gdata),
+                                           structured_node_type::group_output});
+      auto ddata = make_node_data(node_dep {});
 
       set_data(g, gdata);
       set_data(i, idata);
@@ -951,25 +952,25 @@ namespace yave {
       auto info = ng.get_info(node);
       assert(info);
 
-      node_type2 type;
+      structured_node_type type;
 
       if (is_function_call(node))
-        type = node_type2::function;
+        type = structured_node_type::function;
       if (is_group_call(node))
-        type = node_type2::group;
+        type = structured_node_type::group;
       if (is_group_input(node))
-        type = node_type2::group_input;
+        type = structured_node_type::group_input;
       if (is_group_output(node))
-        type = node_type2::group_output;
+        type = structured_node_type::group_output;
 
-      node_call_type call_type = node_call_type::call;
+      auto call_type = structured_call_type::call;
 
       if (is_defcall(node))
-        call_type = node_call_type::definition;
+        call_type = structured_call_type::definition;
 
       auto pos = get_pos(node);
 
-      return node_info2(
+      return structured_node_info(
         info->name(),
         info->input_sockets(),
         info->output_sockets(),
@@ -984,7 +985,8 @@ namespace yave {
       assert(info);
       assert(info->interfaces().size() == 1);
 
-      return socket_info2(info->name(), info->type(), info->interfaces()[0]);
+      return structured_socket_info(
+        info->name(), info->type(), info->interfaces()[0]);
     }
 
     auto get_info(const connection_handle& connection) const
@@ -994,7 +996,7 @@ namespace yave {
       assert(info->src_interfaces().size() == 1);
       assert(info->dst_interfaces().size() == 1);
 
-      return connection_info2(
+      return structured_connection_info(
         info->src_interfaces()[0],
         info->src_socket(),
         info->dst_interfaces()[0],
@@ -1182,7 +1184,7 @@ namespace yave {
       assert(is_valid(node));
 
       if (auto io = get_io(node))
-        return io->type == node_type2::group_output;
+        return io->type == structured_node_type::group_output;
 
       return false;
     }
@@ -1191,7 +1193,7 @@ namespace yave {
       assert(is_valid(node));
 
       if (auto io = get_io(node))
-        return io->type == node_type2::group_input;
+        return io->type == structured_node_type::group_input;
 
       return false;
     }
@@ -1939,54 +1941,57 @@ namespace yave {
     }
   };
 
-  node_graph2::node_graph2()
+  structured_node_graph::structured_node_graph()
     : m_pimpl {std::make_unique<impl>()}
   {
   }
 
-  node_graph2::node_graph2(std::unique_ptr<impl>&& pimpl)
+  structured_node_graph::structured_node_graph(std::unique_ptr<impl>&& pimpl)
     : m_pimpl {std::move(pimpl)}
   {
   }
 
-  node_graph2::node_graph2(node_graph2&&) noexcept = default;
+  structured_node_graph::structured_node_graph(
+    structured_node_graph&&) noexcept = default;
 
-  node_graph2::~node_graph2() noexcept = default;
+  structured_node_graph::~structured_node_graph() noexcept = default;
 
-  node_graph2& node_graph2::operator=(node_graph2&&) noexcept = default;
+  structured_node_graph& structured_node_graph::operator=(
+    structured_node_graph&&) noexcept = default;
 
-  bool node_graph2::exists(const node_handle& node) const
+  bool structured_node_graph::exists(const node_handle& node) const
   {
     return m_pimpl->ng.exists(node);
   }
 
-  bool node_graph2::exists(const connection_handle& connection) const
+  bool structured_node_graph::exists(const connection_handle& connection) const
   {
     return m_pimpl->ng.exists(connection);
   }
 
-  bool node_graph2::exists(const socket_handle& socket) const
+  bool structured_node_graph::exists(const socket_handle& socket) const
   {
     return m_pimpl->ng.exists(socket);
   }
 
-  auto node_graph2::node(const uid& id) const -> node_handle
+  auto structured_node_graph::node(const uid& id) const -> node_handle
   {
     return m_pimpl->ng.node(id);
   }
 
-  auto node_graph2::socket(const uid& id) const -> socket_handle
+  auto structured_node_graph::socket(const uid& id) const -> socket_handle
   {
     return m_pimpl->ng.socket(id);
   }
 
-  auto node_graph2::connection(const uid& id) const -> connection_handle
+  auto structured_node_graph::connection(const uid& id) const
+    -> connection_handle
   {
     return m_pimpl->ng.connection(id);
   }
 
-  auto node_graph2::get_info(const node_handle& node) const
-    -> std::optional<node_info2>
+  auto structured_node_graph::get_info(const node_handle& node) const
+    -> std::optional<structured_node_info>
   {
     if (!exists(node))
       return std::nullopt;
@@ -1994,8 +1999,8 @@ namespace yave {
     return m_pimpl->get_info(node);
   }
 
-  auto node_graph2::get_info(const socket_handle& socket) const
-    -> std::optional<socket_info2>
+  auto structured_node_graph::get_info(const socket_handle& socket) const
+    -> std::optional<structured_socket_info>
   {
     if (!exists(socket))
       return std::nullopt;
@@ -2003,8 +2008,8 @@ namespace yave {
     return m_pimpl->get_info(socket);
   }
 
-  auto node_graph2::get_info(const connection_handle& connection) const
-    -> std::optional<connection_info2>
+  auto structured_node_graph::get_info(const connection_handle& connection)
+    const -> std::optional<structured_connection_info>
   {
     if (!exists(connection))
       return std::nullopt;
@@ -2012,19 +2017,21 @@ namespace yave {
     return m_pimpl->get_info(connection);
   }
 
-  auto node_graph2::get_name(const node_handle& node) const
+  auto structured_node_graph::get_name(const node_handle& node) const
     -> std::optional<std::string>
   {
     return m_pimpl->ng.get_name(node);
   }
 
-  auto node_graph2::get_name(const socket_handle& socket) const
+  auto structured_node_graph::get_name(const socket_handle& socket) const
     -> std::optional<std::string>
   {
     return m_pimpl->ng.get_name(socket);
   }
 
-  void node_graph2::set_name(const node_handle& node, const std::string& name)
+  void structured_node_graph::set_name(
+    const node_handle& node,
+    const std::string& name)
   {
     if (!exists(node))
       return;
@@ -2032,7 +2039,7 @@ namespace yave {
     m_pimpl->set_name(node, name);
   }
 
-  void node_graph2::set_name(
+  void structured_node_graph::set_name(
     const socket_handle& socket,
     const std::string& name)
   {
@@ -2042,7 +2049,7 @@ namespace yave {
     m_pimpl->set_name(socket, name);
   }
 
-  auto node_graph2::get_pos(const node_handle& node) const
+  auto structured_node_graph::get_pos(const node_handle& node) const
     -> std::optional<fvec2>
   {
     if (!exists(node))
@@ -2051,7 +2058,9 @@ namespace yave {
     return m_pimpl->get_pos(node);
   }
 
-  void node_graph2::set_pos(const node_handle& node, const fvec2& newpos)
+  void structured_node_graph::set_pos(
+    const node_handle& node,
+    const fvec2& newpos)
   {
     if (!exists(node))
       return;
@@ -2059,7 +2068,7 @@ namespace yave {
     return m_pimpl->set_pos(node, newpos);
   }
 
-  auto node_graph2::get_data(const socket_handle& socket) const
+  auto structured_node_graph::get_data(const socket_handle& socket) const
     -> object_ptr<Object>
   {
     if (!exists(socket))
@@ -2068,7 +2077,7 @@ namespace yave {
     return m_pimpl->get_data(socket);
   }
 
-  void node_graph2::set_data(
+  void structured_node_graph::set_data(
     const socket_handle& socket,
     object_ptr<Object> data)
   {
@@ -2078,7 +2087,7 @@ namespace yave {
     m_pimpl->set_data(socket, std::move(data));
   }
 
-  auto node_graph2::get_path(const node_handle& node) const
+  auto structured_node_graph::get_path(const node_handle& node) const
     -> std::optional<std::string>
   {
     if (!exists(node))
@@ -2087,13 +2096,14 @@ namespace yave {
     return m_pimpl->get_path(node);
   }
 
-  auto node_graph2::search_path(const std::string& path) const
+  auto structured_node_graph::search_path(const std::string& path) const
     -> std::vector<node_handle>
   {
     return m_pimpl->search_path(path);
   }
 
-  auto node_graph2::node(const socket_handle& socket) const -> node_handle
+  auto structured_node_graph::node(const socket_handle& socket) const
+    -> node_handle
   {
     if (!exists(socket))
       return {};
@@ -2101,37 +2111,37 @@ namespace yave {
     return m_pimpl->node(socket);
   }
 
-  auto node_graph2::input_sockets(const node_handle& node) const
+  auto structured_node_graph::input_sockets(const node_handle& node) const
     -> std::vector<socket_handle>
   {
     return m_pimpl->ng.input_sockets(node);
   }
 
-  auto node_graph2::output_sockets(const node_handle& node) const
+  auto structured_node_graph::output_sockets(const node_handle& node) const
     -> std::vector<socket_handle>
   {
     return m_pimpl->ng.output_sockets(node);
   }
 
-  auto node_graph2::input_connections(const node_handle& node) const
+  auto structured_node_graph::input_connections(const node_handle& node) const
     -> std::vector<connection_handle>
   {
     return m_pimpl->ng.input_connections(node);
   }
 
-  auto node_graph2::output_connections(const node_handle& node) const
+  auto structured_node_graph::output_connections(const node_handle& node) const
     -> std::vector<connection_handle>
   {
     return m_pimpl->ng.output_connections(node);
   }
 
-  auto node_graph2::connections(const socket_handle& socket) const
+  auto structured_node_graph::connections(const socket_handle& socket) const
     -> std::vector<connection_handle>
   {
     return m_pimpl->ng.connections(socket);
   }
 
-  bool node_graph2::is_definition(const node_handle& node) const
+  bool structured_node_graph::is_definition(const node_handle& node) const
   {
     if (!exists(node))
       return false;
@@ -2139,7 +2149,8 @@ namespace yave {
     return m_pimpl->is_definition(node);
   }
 
-  auto node_graph2::get_definition(const node_handle& node) const -> node_handle
+  auto structured_node_graph::get_definition(const node_handle& node) const
+    -> node_handle
   {
     if (!exists(node))
       return {};
@@ -2147,7 +2158,7 @@ namespace yave {
     return m_pimpl->get_definition(node);
   }
 
-  bool node_graph2::is_function(const node_handle& node) const
+  bool structured_node_graph::is_function(const node_handle& node) const
   {
     if (!exists(node))
       return false;
@@ -2155,7 +2166,7 @@ namespace yave {
     return m_pimpl->is_function_node(node);
   }
 
-  bool node_graph2::is_group(const node_handle& node) const
+  bool structured_node_graph::is_group(const node_handle& node) const
   {
     if (!exists(node))
       return false;
@@ -2163,7 +2174,7 @@ namespace yave {
     return m_pimpl->is_group_node(node);
   }
 
-  bool node_graph2::is_group_member(const node_handle& node) const
+  bool structured_node_graph::is_group_member(const node_handle& node) const
   {
     if (!exists(node))
       return false;
@@ -2171,7 +2182,7 @@ namespace yave {
     return m_pimpl->is_group_member(node);
   }
 
-  bool node_graph2::is_group_output(const node_handle& node) const
+  bool structured_node_graph::is_group_output(const node_handle& node) const
   {
     if (!exists(node))
       return false;
@@ -2179,7 +2190,7 @@ namespace yave {
     return m_pimpl->is_group_output(node);
   }
 
-  bool node_graph2::is_group_input(const node_handle& node) const
+  bool structured_node_graph::is_group_input(const node_handle& node) const
   {
     if (!exists(node))
       return false;
@@ -2187,7 +2198,7 @@ namespace yave {
     return m_pimpl->is_group_input(node);
   }
 
-  auto node_graph2::get_group_members(const node_handle& node) const
+  auto structured_node_graph::get_group_members(const node_handle& node) const
     -> std::vector<node_handle>
   {
     if (!exists(node))
@@ -2196,7 +2207,7 @@ namespace yave {
     return m_pimpl->get_group_members(node);
   }
 
-  auto node_graph2::get_group_input(const node_handle& node) const
+  auto structured_node_graph::get_group_input(const node_handle& node) const
     -> node_handle
   {
     if (!exists(node))
@@ -2205,7 +2216,7 @@ namespace yave {
     return m_pimpl->get_group_input(node);
   }
 
-  auto node_graph2::get_group_output(const node_handle& node) const
+  auto structured_node_graph::get_group_output(const node_handle& node) const
     -> node_handle
   {
     if (!exists(node))
@@ -2214,7 +2225,7 @@ namespace yave {
     return m_pimpl->get_group_output(node);
   }
 
-  auto node_graph2::get_group_nodes(const node_handle& node) const
+  auto structured_node_graph::get_group_nodes(const node_handle& node) const
     -> std::vector<node_handle>
   {
     if (!exists(node))
@@ -2223,7 +2234,7 @@ namespace yave {
     return m_pimpl->get_group_nodes(node);
   }
 
-  auto node_graph2::get_parent_group(const node_handle& node) const
+  auto structured_node_graph::get_parent_group(const node_handle& node) const
     -> node_handle
   {
     if (!exists(node))
@@ -2232,7 +2243,7 @@ namespace yave {
     return m_pimpl->get_parent_group(node);
   }
 
-  auto node_graph2::add_input_socket(
+  auto structured_node_graph::add_input_socket(
     const node_handle& group,
     const std::string& socket,
     size_t index) -> socket_handle
@@ -2243,7 +2254,7 @@ namespace yave {
     return m_pimpl->add_input_socket(group, socket, index);
   }
 
-  auto node_graph2::add_output_socket(
+  auto structured_node_graph::add_output_socket(
     const node_handle& group,
     const std::string& socket,
     size_t index) -> socket_handle
@@ -2254,7 +2265,7 @@ namespace yave {
     return m_pimpl->add_output_socket(group, socket, index);
   }
 
-  void node_graph2::remove_socket(const socket_handle& socket)
+  void structured_node_graph::remove_socket(const socket_handle& socket)
   {
     if (!exists(socket))
       return;
@@ -2262,7 +2273,7 @@ namespace yave {
     return m_pimpl->remove_socket(socket);
   }
 
-  void node_graph2::bring_front(const node_handle& node)
+  void structured_node_graph::bring_front(const node_handle& node)
   {
     if (!exists(node))
       return;
@@ -2270,7 +2281,7 @@ namespace yave {
     m_pimpl->bring_front(node);
   }
 
-  void node_graph2::bring_back(const node_handle& node)
+  void structured_node_graph::bring_back(const node_handle& node)
   {
     if (!exists(node))
       return;
@@ -2278,12 +2289,13 @@ namespace yave {
     m_pimpl->bring_back(node);
   }
 
-  auto node_graph2::create_function(const node_declaration& decl) -> node_handle
+  auto structured_node_graph::create_function(const node_declaration& decl)
+    -> node_handle
   {
     return m_pimpl->create_function(decl);
   }
 
-  auto node_graph2::create_group(
+  auto structured_node_graph::create_group(
     const node_handle& parent_group,
     const std::vector<node_handle>& nodes) -> node_handle
   {
@@ -2297,7 +2309,7 @@ namespace yave {
     return m_pimpl->create_group(parent_group, nodes);
   }
 
-  auto node_graph2::create_copy(
+  auto structured_node_graph::create_copy(
     const node_handle& parent_group,
     const node_handle& src) -> node_handle
   {
@@ -2310,7 +2322,7 @@ namespace yave {
     return m_pimpl->create_copy(parent_group, src);
   }
 
-  auto node_graph2::create_clone(
+  auto structured_node_graph::create_clone(
     const node_handle& parent_group,
     const node_handle& src) -> node_handle
   {
@@ -2323,7 +2335,7 @@ namespace yave {
     return m_pimpl->create_clone(parent_group, src);
   }
 
-  void node_graph2::destroy(const node_handle& node)
+  void structured_node_graph::destroy(const node_handle& node)
   {
     if (!exists(node))
       return;
@@ -2331,7 +2343,7 @@ namespace yave {
     m_pimpl->destroy(node);
   }
 
-  auto node_graph2::connect(
+  auto structured_node_graph::connect(
     const socket_handle& src_socket,
     const socket_handle& dst_socket) -> connection_handle
   {
@@ -2341,7 +2353,7 @@ namespace yave {
     return m_pimpl->connect(src_socket, dst_socket);
   }
 
-  void node_graph2::disconnect(const connection_handle& c)
+  void structured_node_graph::disconnect(const connection_handle& c)
   {
     if (!exists(c))
       return;
@@ -2349,12 +2361,12 @@ namespace yave {
     return m_pimpl->disconnect(c);
   }
 
-  auto node_graph2::clone() -> node_graph2
+  auto structured_node_graph::clone() -> structured_node_graph
   {
-    return node_graph2(std::make_unique<impl>(m_pimpl->clone()));
+    return structured_node_graph(std::make_unique<impl>(m_pimpl->clone()));
   }
 
-  void node_graph2::clear()
+  void structured_node_graph::clear()
   {
     m_pimpl->clear();
   }

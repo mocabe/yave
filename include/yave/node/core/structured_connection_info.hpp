@@ -10,14 +10,14 @@
 namespace yave {
 
   /// connection_info for managed node graph
-  class connection_info2
+  class structured_connection_info
   {
   public:
-    connection_info2()                        = delete;
-    connection_info2(const connection_info2&) = default;
-    connection_info2(connection_info2&&)      = default;
+    structured_connection_info()                                  = delete;
+    structured_connection_info(const structured_connection_info&) = default;
+    structured_connection_info(structured_connection_info&&)      = default;
 
-    connection_info2(
+    structured_connection_info(
       const node_handle& src_node,
       const socket_handle& src_socket,
       const node_handle& dst_node,

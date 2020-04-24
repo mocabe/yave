@@ -6,9 +6,9 @@
 #pragma once
 
 #include <yave/node/core/node_graph.hpp>
-#include <yave/node/core/node_info2.hpp>
-#include <yave/node/core/socket_info2.hpp>
-#include <yave/node/core/connection_info2.hpp>
+#include <yave/node/core/structured_node_info.hpp>
+#include <yave/node/core/structured_socket_info.hpp>
+#include <yave/node/core/structured_connection_info.hpp>
 #include <yave/node/core/node_declaration.hpp>
 
 #include <yave/lib/vec/vec.hpp>
@@ -16,21 +16,21 @@
 namespace yave {
 
   /// NodeGraph v2 PoC implementation
-  class node_graph2
+  class structured_node_graph
   {
   public:
     /// construct empty node graph
-    node_graph2();
+    structured_node_graph();
     /// copy ctor (deleted, use clone())
-    node_graph2(const node_graph2&) = delete;
+    structured_node_graph(const structured_node_graph&) = delete;
     /// move ctor
-    node_graph2(node_graph2&&) noexcept;
+    structured_node_graph(structured_node_graph&&) noexcept;
     /// dtor
-    ~node_graph2() noexcept;
+    ~structured_node_graph() noexcept;
     /// copy assign (deleted, use clone())
-    node_graph2& operator=(const node_graph2&) = delete;
+    structured_node_graph& operator=(const structured_node_graph&) = delete;
     /// move assign
-    node_graph2& operator=(node_graph2&&) noexcept;
+    structured_node_graph& operator=(structured_node_graph&&) noexcept;
 
   public:
     /// exist?
@@ -49,13 +49,13 @@ namespace yave {
 
     /// get node info
     [[nodiscard]] auto get_info(const node_handle& node) const
-      -> std::optional<node_info2>;
+      -> std::optional<structured_node_info>;
     /// get socket info
     [[nodiscard]] auto get_info(const socket_handle& socket) const
-      -> std::optional<socket_info2>;
+      -> std::optional<structured_socket_info>;
     /// get connection info
     [[nodiscard]] auto get_info(const connection_handle& connection) const
-      -> std::optional<connection_info2>;
+      -> std::optional<structured_connection_info>;
 
     /// get node name
     [[nodiscard]] auto get_name(const node_handle& node) const
@@ -63,6 +63,10 @@ namespace yave {
     /// get socket name
     [[nodiscard]] auto get_name(const socket_handle& socket) const
       -> std::optional<std::string>;
+    /// set name of node
+    void set_name(const node_handle& node, const std::string& name);
+    /// set name of socket
+    void set_name(const socket_handle& socket, const std::string& name);
 
     /// get node pos
     [[nodiscard]] auto get_pos(const node_handle& node) const
@@ -226,12 +230,6 @@ namespace yave {
     /// \note destroy all connections to the socket
     void remove_socket(const socket_handle& socket);
 
-    /// Change name of group
-    void set_group_name(const node_handle& group, const std::string& name);
-
-    /// Change name of socket
-    void set_socket_name(const socket_handle& socket, const std::string& name);
-
   public:
     /// bring node to from in group member
     void bring_front(const node_handle& node);
@@ -240,7 +238,7 @@ namespace yave {
 
   public:
     /// clone
-    [[nodiscard]] auto clone() -> node_graph2;
+    [[nodiscard]] auto clone() -> structured_node_graph;
 
   public:
     /// clear
@@ -249,6 +247,6 @@ namespace yave {
   private:
     class impl;
     std::unique_ptr<impl> m_pimpl;
-    node_graph2(std::unique_ptr<impl>&&);
+    structured_node_graph(std::unique_ptr<impl>&&);
   };
 } // namespace yave

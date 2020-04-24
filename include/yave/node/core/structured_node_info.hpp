@@ -11,7 +11,7 @@
 namespace yave {
 
   /// node type
-  enum class node_type2
+  enum class structured_node_type
   {
     group,
     group_input,
@@ -20,28 +20,28 @@ namespace yave {
   };
 
   /// node call type
-  enum class node_call_type
+  enum class structured_call_type
   {
     call,       //< normal call
     definition, //< definition point
   };
 
-  /// node_info for node graph
-  class node_info2
+  /// node info
+  class structured_node_info
   {
   public:
-    node_info2()                  = delete;
-    node_info2(const node_info2&) = default;
-    node_info2(node_info2&&)      = default;
-    node_info2& operator=(const node_info2&) = default;
-    node_info2& operator=(node_info2&&) = default;
+    structured_node_info()                            = delete;
+    structured_node_info(const structured_node_info&) = default;
+    structured_node_info(structured_node_info&&)      = default;
+    structured_node_info& operator=(const structured_node_info&) = default;
+    structured_node_info& operator=(structured_node_info&&) = default;
 
-    node_info2(
+    structured_node_info(
       std::string name,
       std::vector<socket_handle> input_sockets,
       std::vector<socket_handle> output_sockets,
-      node_type2 type,
-      node_call_type call_type,
+      structured_node_type type,
+      structured_call_type call_type,
       tvec2<float> pos)
       : m_name {name}
       , m_input_sockets {input_sockets}
@@ -73,25 +73,25 @@ namespace yave {
     /// normal?
     [[nodiscard]] bool is_function() const
     {
-      return m_type == node_type2::function;
+      return m_type == structured_node_type::function;
     }
 
     /// group?
     [[nodiscard]] bool is_group() const
     {
-      return m_type == node_type2::group;
+      return m_type == structured_node_type::group;
     }
 
     /// group input?
     [[nodiscard]] bool is_group_input() const
     {
-      return m_type == node_type2::group_input;
+      return m_type == structured_node_type::group_input;
     }
 
     /// group output?
     [[nodiscard]] bool is_group_output() const
     {
-      return m_type == node_type2::group_output;
+      return m_type == structured_node_type::group_output;
     }
 
     /// type
@@ -103,7 +103,7 @@ namespace yave {
     /// definition?
     [[nodiscard]] bool is_definition() const
     {
-      return m_call_type == node_call_type::definition;
+      return m_call_type == structured_call_type::definition;
     }
 
     /// call type
@@ -126,10 +126,10 @@ namespace yave {
     /// list of output sockets
     std::vector<socket_handle> m_output_sockets;
     /// node type
-    node_type2 m_type;
+    structured_node_type m_type;
     /// definition
-    node_call_type m_call_type;
+    structured_call_type m_call_type;
     /// pos
     tvec2<float> m_pos;
   };
-}
+} // namespace yave

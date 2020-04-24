@@ -9,17 +9,17 @@
 
 namespace yave {
 
-  /// socket_info for node graph
-  class socket_info2
+  /// socket info
+  class structured_socket_info
   {
   public:
-    socket_info2()                    = delete;
-    socket_info2(const socket_info2&) = default;
-    socket_info2(socket_info2&&)      = default;
-    socket_info2& operator=(const socket_info2&) = default;
-    socket_info2& operator=(socket_info2&&) = default;
+    structured_socket_info()                              = delete;
+    structured_socket_info(const structured_socket_info&) = default;
+    structured_socket_info(structured_socket_info&&)      = default;
+    structured_socket_info& operator=(const structured_socket_info&) = default;
+    structured_socket_info& operator=(structured_socket_info&&) = default;
 
-    socket_info2(std::string name, socket_type type, node_handle node)
+    structured_socket_info(std::string name, socket_type type, node_handle node)
       : m_name {name}
       , m_type {type}
       , m_node {node}
