@@ -145,15 +145,49 @@ TEST_CASE("gruop")
 
   SECTION("clone")
   {
-    auto g = ng.create_clone(nullptr, root);
-    REQUIRE(ng.exists(g));
-    REQUIRE(ng.get_name(g) != ng.get_name(root));
-    auto gg = ng.create_clone(nullptr, root);
-    REQUIRE(ng.exists(gg));
-    REQUIRE(ng.get_name(gg) != ng.get_name(g));
-    REQUIRE(ng.get_name(gg) != ng.get_name(root));
-    auto ggg = ng.create_clone(root, root);
-    REQUIRE(ng.exists(ggg));
+    SECTION("para")
+    {
+      auto g = ng.create_clone(nullptr, root);
+      REQUIRE(ng.exists(g));
+      REQUIRE(ng.get_name(g) != ng.get_name(root));
+
+      REQUIRE(ng.create_group(root));
+      auto gg = ng.create_clone(nullptr, root);
+      REQUIRE(ng.exists(gg));
+      REQUIRE(ng.get_name(gg) != ng.get_name(g));
+      REQUIRE(ng.get_name(gg) != ng.get_name(root));
+      REQUIRE(ng.get_group_members(gg).size() == 1);
+      REQUIRE(
+        ng.get_definition(ng.get_group_members(gg)[0])
+        != ng.get_definition(ng.get_group_members(root)[0]));
+    }
+
+    SECTION("good rec")
+    {
+      auto g = ng.create_clone(root, root);
+      REQUIRE(ng.exists(g));
+      REQUIRE(g != root);
+      REQUIRE(ng.get_parent_group(g) == root);
+      REQUIRE(ng.get_group_members(root) == std::vector {g});
+      REQUIRE(ng.get_group_members(g).empty());
+
+      auto gg = ng.create_clone(g, root);
+      REQUIRE(ng.exists(gg));
+      REQUIRE(g != gg);
+      REQUIRE(ng.get_parent_group(gg) == g);
+      REQUIRE(ng.get_group_members(g) == std::vector {gg});
+    }
+
+    SECTION("bad rec")
+    {
+      auto g = ng.create_group(nullptr);
+      REQUIRE(ng.create_copy(g, root));
+      REQUIRE(!ng.create_clone(root, g));
+      REQUIRE(ng.exists(g));
+      REQUIRE(ng.get_group_members(g).size() == 1);
+      REQUIRE(ng.exists(root));
+      REQUIRE(ng.get_group_members(root).empty());
+    }
   }
 }
 

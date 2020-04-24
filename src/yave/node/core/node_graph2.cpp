@@ -829,26 +829,7 @@ namespace yave {
       assert(parent);
       assert(src);
 
-      auto dep_decl = get_node_declaration<node::NodeDependency>();
-
-      auto dep = ng.add(
-        dep_decl.name(),
-        dep_decl.input_sockets(),
-        dep_decl.output_sockets(),
-        node_type::normal);
-
-      // check dependency
-      expect(ng.connect(
-        ng.output_sockets(dep)[0], ng.input_sockets(parent->dependency)[0]));
-
-      if (!ng.connect(
-            ng.output_sockets(src->dependency)[0], ng.input_sockets(dep)[0])) {
-        ng.remove(dep);
-        Error(
-          g_logger,
-          "Failed to clone node group: recursive call is not allowed");
-        return nullptr;
-      }
+      Info(g_logger, "Cloning node group {}", *ng.get_name(src->node));
 
       // map from src socket to new socket
       std::map<socket_handle, socket_handle> smap;
@@ -878,8 +859,49 @@ namespace yave {
         ng.set_name(newg->node, tmp);
       }
 
+      // copy/clone members
+      for (auto&& n : src->members) {
+
+        assert(is_valid(n));
+
+        auto newn = [&]() -> node_handle {
+          // clone group definition
+          if (is_definition(n) && is_group_call(n))
+            return clone_node_group(newg, get_callee_group(n))->node;
+          // copy otherwise
+          return copy_node_call(newg, get_call(n))->node;
+        }();
+
+        assert(newn);
+
+        // not really needed, I guess.
+        if (!newn) {
+          remove(newg);
+          return nullptr;
+        }
+
+        auto oldis = ng.input_sockets(n);
+        auto oldos = ng.output_sockets(n);
+        auto newis = ng.input_sockets(newn);
+        auto newos = ng.output_sockets(newn);
+
+        assert(oldis.size() == newis.size());
+        assert(oldos.size() == newos.size());
+
+        for (size_t i = 0; i < oldis.size(); ++i)
+          smap.emplace(oldis[i], newis[i]);
+        for (size_t i = 0; i < oldos.size(); ++i)
+          smap.emplace(oldos[i], newos[i]);
+      }
+
       // create new call
       auto newc = add_new_call(parent, newg);
+
+      // closed loop
+      if (!newc) {
+        remove(newg);
+        return nullptr;
+      }
 
       // copy sockets
       for (auto&& s : ng.input_sockets(src->node))
@@ -893,27 +915,6 @@ namespace yave {
         auto oldos = ng.output_sockets(src->input_handler);
         auto newis = ng.input_sockets(newg->output_handler);
         auto newos = ng.output_sockets(newg->input_handler);
-
-        assert(oldis.size() == newis.size());
-        assert(oldos.size() == newos.size());
-
-        for (size_t i = 0; i < oldis.size(); ++i)
-          smap.emplace(oldis[i], newis[i]);
-        for (size_t i = 0; i < oldos.size(); ++i)
-          smap.emplace(oldos[i], newos[i]);
-      }
-
-      // copy node calls
-      for (auto&& n : src->members) {
-
-        auto newn = create_clone(newc->node, n);
-
-        assert(ng.exists(newn));
-
-        auto oldis = ng.input_sockets(n);
-        auto oldos = ng.output_sockets(n);
-        auto newis = ng.input_sockets(newn);
-        auto newos = ng.output_sockets(newn);
 
         assert(oldis.size() == newis.size());
         assert(oldos.size() == newos.size());
