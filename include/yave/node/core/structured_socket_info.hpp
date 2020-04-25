@@ -19,10 +19,15 @@ namespace yave {
     structured_socket_info& operator=(const structured_socket_info&) = default;
     structured_socket_info& operator=(structured_socket_info&&) = default;
 
-    structured_socket_info(std::string name, socket_type type, node_handle node)
+    structured_socket_info(
+      std::string name,
+      socket_type type,
+      node_handle node,
+      size_t index)
       : m_name {name}
       , m_type {type}
       , m_node {node}
+      , m_index {index}
     {
     }
 
@@ -50,16 +55,23 @@ namespace yave {
       return m_type;
     }
 
-    /// Get node
+    /// node
     [[nodiscard]] auto& node() const
     {
       return m_node;
+    }
+
+    /// index
+    [[nodiscard]] auto& index() const
+    {
+      return m_index;
     }
 
   private:
     std::string m_name;
     socket_type m_type;
     node_handle m_node;
+    size_t m_index;
   };
 
 } // namespace yave

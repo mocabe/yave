@@ -207,6 +207,8 @@ TEST_CASE("root add group out")
   REQUIRE(ng.get_info(root)->input_sockets().size() == 0);
   REQUIRE(ng.get_info(root)->output_sockets()[0] == s1);
   REQUIRE(ng.get_info(s1)->name() == "test1");
+  REQUIRE(ng.get_info(s1)->index() == 0);
+  REQUIRE(*ng.get_index(s1) == 0);
 
   // test1 -> test1, test2
   auto s2 = ng.add_output_socket(root, "test2");
@@ -217,6 +219,9 @@ TEST_CASE("root add group out")
   REQUIRE(ng.get_info(root)->input_sockets().size() == 0);
   REQUIRE(ng.get_info(root)->output_sockets()[1] == s2);
   REQUIRE(ng.get_info(s2)->name() == "test2");
+
+  REQUIRE(ng.get_info(s1)->index() == 0);
+  REQUIRE(ng.get_info(s2)->index() == 1);
 
   // test1, test2 -> test3, test1, test2
   auto s3 = ng.add_output_socket(root, "test3", 0);
@@ -235,6 +240,10 @@ TEST_CASE("root add group out")
   REQUIRE(ng.get_info(ng.get_group_input(root))->input_sockets().size() == 0);
   REQUIRE(ng.get_info(ng.get_group_input(root))->output_sockets().size() == 0);
 
+  REQUIRE(ng.get_info(s1)->index() == 1);
+  REQUIRE(ng.get_info(s2)->index() == 2);
+  REQUIRE(ng.get_info(s3)->index() == 0);
+
   // s3 s1 s2 -> s3 s2
   ng.remove_socket(ng.output_sockets(root)[1]);
   REQUIRE(ng.get_info(root)->output_sockets().size() == 2);
@@ -249,6 +258,10 @@ TEST_CASE("root add group out")
     ng.get_info(ng.get_info(ng.get_group_output(root))->input_sockets()[1])
       ->name()
     == "test2");
+
+  REQUIRE(!ng.get_index(s1));
+  REQUIRE(*ng.get_index(s2) == 1);
+  REQUIRE(*ng.get_index(s3) == 0);
 }
 
 TEST_CASE("group socket extra")

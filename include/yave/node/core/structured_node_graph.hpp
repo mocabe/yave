@@ -80,6 +80,10 @@ namespace yave {
     /// set socket data
     void set_data(const socket_handle& socket, object_ptr<Object> data);
 
+    /// get socket index
+    [[nodiscard]] auto get_index(const socket_handle& socket) const
+      -> std::optional<size_t>;
+
   public:
     /// get path of the node
     /// \note this function can return multiple identical paths for different

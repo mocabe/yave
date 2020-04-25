@@ -407,6 +407,30 @@ namespace yave {
       ng.set_data(socket, std::move(data));
     }
 
+  private:
+    auto get_index(const node_handle& node, const socket_handle& socket) const
+      -> size_t
+    {
+      if (ng.is_input_socket(socket)) {
+        auto ss = ng.input_sockets(node);
+        return rng::distance(ss.begin(), rng::find(ss, socket));
+      }
+      if (ng.is_output_socket(socket)) {
+        auto ss = ng.output_sockets(node);
+        return rng::distance(ss.begin(), rng::find(ss, socket));
+      }
+      unreachable();
+    }
+
+  public:
+    auto get_index(const socket_handle& socket) const
+    {
+      assert(ng.interfaces(socket).size() == 1);
+      auto n = ng.interfaces(socket)[0];
+      assert(is_valid(n));
+      return get_index(n, socket);
+    }
+
   public:
     auto get_path(const node_handle& node) const -> std::optional<std::string>
     {
@@ -985,8 +1009,11 @@ namespace yave {
       assert(info);
       assert(info->interfaces().size() == 1);
 
+      auto n = info->interfaces()[0];
+      assert(is_valid(n));
+
       return structured_socket_info(
-        info->name(), info->type(), info->interfaces()[0]);
+        info->name(), info->type(), n, get_index(n, socket));
     }
 
     auto get_info(const connection_handle& connection) const
@@ -2085,6 +2112,15 @@ namespace yave {
       return;
 
     m_pimpl->set_data(socket, std::move(data));
+  }
+
+  auto structured_node_graph::get_index(const socket_handle& socket) const
+    -> std::optional<size_t>
+  {
+    if (!exists(socket))
+      return std::nullopt;
+
+    return m_pimpl->get_index(socket);
   }
 
   auto structured_node_graph::get_path(const node_handle& node) const
