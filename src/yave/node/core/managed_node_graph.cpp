@@ -18,86 +18,90 @@ namespace yave {
 
   using namespace ranges;
 
-  /// internal data structure for node groups
-  struct node_group
-  {
-    // back pointer to parent group
-    node_group* parent;
+  namespace {
 
-    /// sorted list of nodes in this node group.
-    std::vector<node_handle> contents;
-
-    /// node represents this group (interface).
-    /// `node::NodeGroupInterface`
-    node_handle interface;
-
-    /// input handler node visible in this group (interface).
-    /// `node::NodeGroupInput`
-    node_handle input_handler;
-
-    /// output handler node visible in this group (interface).
-    /// `node::NodeGroupOutout`
-    node_handle output_handler;
-
-    /// internal per-socket node objects.
-    /// `node::NodeGroupIOBit`s
-    std::vector<node_handle> input_bits;
-
-    /// internal per-socket node objects.
-    /// `node::NodeGroupIOBit`s
-    std::vector<node_handle> output_bits;
-
-  public:
-    void add_content(const node_handle& n)
+    /// internal data structure for node groups
+    struct node_group
     {
-      assert(!has_content(n));
-      contents.push_back(n);
-    }
+      // back pointer to parent group
+      node_group* parent;
 
-    void remove_content(const node_handle& n)
+      /// sorted list of nodes in this node group.
+      std::vector<node_handle> contents;
+
+      /// node represents this group (interface).
+      /// `node::NodeGroupInterface`
+      node_handle interface;
+
+      /// input handler node visible in this group (interface).
+      /// `node::NodeGroupInput`
+      node_handle input_handler;
+
+      /// output handler node visible in this group (interface).
+      /// `node::NodeGroupOutout`
+      node_handle output_handler;
+
+      /// internal per-socket node objects.
+      /// `node::NodeGroupIOBit`s
+      std::vector<node_handle> input_bits;
+
+      /// internal per-socket node objects.
+      /// `node::NodeGroupIOBit`s
+      std::vector<node_handle> output_bits;
+
+    public:
+      void add_content(const node_handle& n)
+      {
+        assert(!has_content(n));
+        contents.push_back(n);
+      }
+
+      void remove_content(const node_handle& n)
+      {
+        contents.erase(find(contents, n));
+        assert(find(contents, n) == contents.end());
+      }
+
+      bool has_content(const node_handle& n)
+      {
+        return find(contents, n) != contents.end();
+      }
+
+      void bring_front(const node_handle& n)
+      {
+        assert(has_content(n));
+        auto end = ranges::remove(contents, n);
+        contents.erase(end, contents.end());
+        contents.insert(contents.end(), n);
+      }
+
+      void bring_back(const node_handle& n)
+      {
+        assert(has_content(n));
+        auto end = ranges::remove(contents, n);
+        contents.erase(end, contents.end());
+        contents.insert(contents.begin(), n);
+      }
+    };
+
+    struct node_data
     {
-      contents.erase(find(contents, n));
-      assert(find(contents, n) == contents.end());
-    }
+      /// position
+      tvec2<float> pos;
+    };
 
-    bool has_content(const node_handle& n)
+    struct socket_data
     {
-      return find(contents, n) != contents.end();
-    }
+      /// custom data
+      object_ptr<Object> data;
+    };
 
-    void bring_front(const node_handle& n)
-    {
-      assert(has_content(n));
-      auto end = ranges::remove(contents, n);
-      contents.erase(end, contents.end());
-      contents.insert(contents.end(), n);
-    }
+    /// internal metadata object
+    using NodeData = Box<node_data>;
+    /// internal metadata object
+    using SocketData = Box<socket_data>;
 
-    void bring_back(const node_handle& n)
-    {
-      assert(has_content(n));
-      auto end = ranges::remove(contents, n);
-      contents.erase(end, contents.end());
-      contents.insert(contents.begin(), n);
-    }
-  };
-
-  struct node_data
-  {
-    /// position
-    tvec2<float> pos;
-  };
-
-  struct socket_data
-  {
-    /// custom data
-    object_ptr<Object> data;
-  };
-
-  /// internal metadata object
-  using NodeData = Box<node_data>;
-  /// internal metadata object
-  using SocketData = Box<socket_data>;
+  } // namespace
 
   class managed_node_graph::impl
   {
@@ -1343,7 +1347,7 @@ namespace yave {
 
       impl ret(nullptr);
 
-      ret.ng    = ng.clone();
+      ret.ng = ng.clone();
 
       ret.root_group = ret.ng.node(root_group.id());
 

@@ -26,307 +26,311 @@ namespace yave {
   // inline assertion
   constexpr auto expect = []([[maybe_unused]] auto&& arg) { assert(arg); };
 
-  // fwd
-  struct node_group;
-  struct node_function;
-  struct node_call;
-  struct node_io;
-  struct node_dep;
+  namespace {
 
-  /// node group
-  struct node_group
-  {
-    /// interface node handle
-    node_handle node;
-    /// dependency node handle
-    node_handle dependency;
-    /// members in this group
-    std::vector<node_handle> members;
-    /// input handler node
-    node_handle input_handler;
-    /// output handler node
-    node_handle output_handler;
-    /// members + io handlers (for ordering nodes including io)
-    std::vector<node_handle> nodes;
-    /// input bits
-    std::vector<node_handle> input_bits;
-    /// output bits
-    std::vector<node_handle> output_bits;
-    /// callers
-    std::vector<node_call*> callers;
+    // fwd
+    struct node_group;
+    struct node_function;
+    struct node_call;
+    struct node_io;
+    struct node_dep;
 
-    bool has_member(const node_handle& n)
+    /// node group
+    struct node_group
     {
-      return rng::find(members, n) != members.end();
-    }
+      /// interface node handle
+      node_handle node;
+      /// dependency node handle
+      node_handle dependency;
+      /// members in this group
+      std::vector<node_handle> members;
+      /// input handler node
+      node_handle input_handler;
+      /// output handler node
+      node_handle output_handler;
+      /// members + io handlers (for ordering nodes including io)
+      std::vector<node_handle> nodes;
+      /// input bits
+      std::vector<node_handle> input_bits;
+      /// output bits
+      std::vector<node_handle> output_bits;
+      /// callers
+      std::vector<node_call*> callers;
 
-    void add_member(const node_handle& n)
+      bool has_member(const node_handle& n)
+      {
+        return rng::find(members, n) != members.end();
+      }
+
+      void add_member(const node_handle& n)
+      {
+        assert(!has_member(n));
+        assert(members.size() + 2 == nodes.size());
+        members.push_back(n);
+        nodes.push_back(n);
+      }
+
+      void remove_member(const node_handle& n)
+      {
+        assert(has_member(n));
+        assert(members.size() + 2 == nodes.size());
+        members.erase(rng::find(members, n));
+        nodes.erase(rng::find(nodes, n));
+      }
+
+      void bring_front(const node_handle& n)
+      {
+        assert(has_member(n) || n == input_handler || n == output_handler);
+        assert(members.size() + 2 == nodes.size());
+
+        auto _bring_front = [](auto&& ns, auto&& n) {
+          auto it = rng::remove(ns, n);
+          if (it != ns.end()) {
+            ns.erase(it, ns.end());
+            ns.insert(ns.end(), n);
+          }
+        };
+
+        _bring_front(members, n);
+        _bring_front(nodes, n);
+      }
+
+      void bring_back(const node_handle& n)
+      {
+        assert(has_member(n) || n == input_handler || n == output_handler);
+        assert(members.size() + 2 == nodes.size());
+
+        auto _bring_back = [](auto&& ns, auto&& n) {
+          auto it = rng::remove(ns, n);
+          if (it != ns.end()) {
+            ns.erase(it, ns.end());
+            ns.insert(ns.begin(), n);
+          }
+        };
+
+        _bring_back(members, n);
+        _bring_back(nodes, n);
+      }
+
+      bool is_defcall(node_call* caller)
+      {
+        assert(!callers.empty());
+        return callers.front() == caller;
+      }
+
+      auto defcall() const
+      {
+        assert(!callers.empty());
+        return callers.front();
+      }
+
+      void add_caller(node_call* caller)
+      {
+        assert(rng::find(callers, caller) == callers.end());
+        // first caller becomes defcall
+        callers.push_back(caller);
+      }
+
+      void remove_caller(node_call* caller)
+      {
+        assert(!callers.empty());
+        if (callers.size() > 1)
+          assert(callers.front() != caller);
+
+        assert(rng::find(callers, caller) != callers.end());
+        callers.erase(rng::find(callers, caller));
+      }
+
+      void refresh(const node_graph& ng);
+    };
+
+    /// node function
+    struct node_function
     {
-      assert(!has_member(n));
-      assert(members.size() + 2 == nodes.size());
-      members.push_back(n);
-      nodes.push_back(n);
-    }
+      /// function body
+      node_handle node;
+      /// dependency node
+      node_handle dependency;
+      /// declaration
+      node_declaration decl;
+      /// callers
+      std::vector<node_call*> callers;
 
-    void remove_member(const node_handle& n)
+      bool is_defcall(node_call* caller)
+      {
+        assert(!callers.empty());
+        return callers.front() == caller;
+      }
+
+      auto defcall() const
+      {
+        assert(!callers.empty());
+        return callers.front();
+      }
+
+      void add_caller(node_call* caller)
+      {
+        assert(rng::find(callers, caller) == callers.end());
+        // first caller becomes defcall
+        callers.push_back(caller);
+      }
+
+      void remove_caller(node_call* caller)
+      {
+        assert(!callers.empty());
+        if (callers.size() > 1)
+          assert(callers.front() != caller);
+
+        assert(rng::find(callers, caller) != callers.end());
+        callers.erase(rng::find(callers, caller));
+      }
+
+      void refresh(const node_graph& ng);
+    };
+
+    /// node call
+    struct node_call
     {
-      assert(has_member(n));
-      assert(members.size() + 2 == nodes.size());
-      members.erase(rng::find(members, n));
-      nodes.erase(rng::find(nodes, n));
-    }
+      /// interface node
+      node_handle node;
+      /// depentency node
+      node_handle dependency;
+      /// parent group
+      node_group* parent;
+      /// handle of callee.
+      /// either group or function.
+      std::variant<node_function*, node_group*> callee;
+      /// input bits
+      std::vector<node_handle> input_bits;
+      /// output bits
+      std::vector<node_handle> output_bits;
+      /// pos
+      fvec2 pos = {};
 
-    void bring_front(const node_handle& n)
+      bool is_global() const
+      {
+        return parent == nullptr;
+      }
+
+      void refresh(const node_graph& ng);
+    };
+
+    // for io handlers
+    struct node_io
     {
-      assert(has_member(n) || n == input_handler || n == output_handler);
-      assert(members.size() + 2 == nodes.size());
+      /// parent group
+      node_group* parent;
+      /// type
+      structured_node_type type;
+      /// pos
+      fvec2 pos = {};
 
-      auto _bring_front = [](auto&& ns, auto&& n) {
-        auto it = rng::remove(ns, n);
-        if (it != ns.end()) {
-          ns.erase(it, ns.end());
-          ns.insert(ns.end(), n);
-        }
-      };
+      void refresh(const node_graph& ng);
+    };
 
-      _bring_front(members, n);
-      _bring_front(nodes, n);
-    }
-
-    void bring_back(const node_handle& n)
+    // for internal dependency
+    struct node_dep
     {
-      assert(has_member(n) || n == input_handler || n == output_handler);
-      assert(members.size() + 2 == nodes.size());
+      void refresh(const node_graph&);
+    };
 
-      auto _bring_back = [](auto&& ns, auto&& n) {
-        auto it = rng::remove(ns, n);
-        if (it != ns.end()) {
-          ns.erase(it, ns.end());
-          ns.insert(ns.begin(), n);
-        }
-      };
+    /// node data variant
+    using node_data =
+      std::variant<node_function, node_group, node_call, node_io, node_dep>;
 
-      _bring_back(members, n);
-      _bring_back(nodes, n);
-    }
+    /// custom node data
+    using NodeData = Box<node_data>;
 
-    bool is_defcall(node_call* caller)
+    /// create new node data
+    template <class Arg>
+    [[nodiscard]] auto make_node_data(Arg&& arg)
     {
-      assert(!callers.empty());
-      return callers.front() == caller;
+      return make_object<NodeData>(std::forward<Arg>(arg));
     }
 
-    auto defcall() const
+    // refresh functions
+
+    void node_group::refresh(const node_graph& ng)
     {
-      assert(!callers.empty());
-      return callers.front();
+      auto map = [&](auto n) { return ng.node(n.id()); };
+
+      node           = map(node);
+      dependency     = map(dependency);
+      input_handler  = map(input_handler);
+      output_handler = map(output_handler);
+
+      for (auto&& n : members)
+        n = map(n);
+      for (auto&& n : input_bits)
+        n = map(n);
+      for (auto&& n : output_bits)
+        n = map(n);
+      for (auto&& n : nodes)
+        n = map(n);
+
+      for (auto&& caller : callers) {
+        auto c     = map(caller->node);
+        auto cdata = ng.get_data(c);
+        caller = std::get_if<node_call>(value_cast_if<NodeData>(cdata).value());
+        assert(caller);
+      }
     }
 
-    void add_caller(node_call* caller)
+    void node_function::refresh(const node_graph& ng)
     {
-      assert(rng::find(callers, caller) == callers.end());
-      // first caller becomes defcall
-      callers.push_back(caller);
+      auto map = [&](auto n) { return ng.node(n.id()); };
+
+      node       = map(node);
+      dependency = map(dependency);
+
+      for (auto&& caller : callers) {
+        auto c     = map(caller->node);
+        auto cdata = ng.get_data(c);
+        caller = std::get_if<node_call>(value_cast_if<NodeData>(cdata).value());
+        assert(caller);
+      }
     }
 
-    void remove_caller(node_call* caller)
+    void node_call::refresh(const node_graph& ng)
     {
-      assert(!callers.empty());
-      if (callers.size() > 1)
-        assert(callers.front() != caller);
+      auto map = [&](auto n) { return ng.node(n.id()); };
 
-      assert(rng::find(callers, caller) != callers.end());
-      callers.erase(rng::find(callers, caller));
+      node       = map(node);
+      dependency = map(dependency);
+
+      for (auto&& n : input_bits)
+        n = map(n);
+      for (auto&& n : output_bits)
+        n = map(n);
+
+      auto pn = map(parent->node);
+      parent  = std::get_if<node_group>(
+        value_cast_if<NodeData>(ng.get_data(pn)).value());
+      assert(parent);
+
+      std::visit(
+        [&](auto*& p) {
+          using tp = std::remove_pointer_t<std::decay_t<decltype(p)>>;
+          p        = std::get_if<tp>(
+            value_cast_if<NodeData>(ng.get_data(map(p->node))).value());
+          assert(p);
+        },
+        callee);
     }
 
-    void refresh(const node_graph& ng);
-  };
-
-  /// node function
-  struct node_function
-  {
-    /// function body
-    node_handle node;
-    /// dependency node
-    node_handle dependency;
-    /// declaration
-    node_declaration decl;
-    /// callers
-    std::vector<node_call*> callers;
-
-    bool is_defcall(node_call* caller)
+    void node_io::refresh(const node_graph& ng)
     {
-      assert(!callers.empty());
-      return callers.front() == caller;
+      auto pn = ng.node(parent->node.id());
+      parent  = std::get_if<node_group>(
+        value_cast_if<NodeData>(ng.get_data(pn)).value());
+      assert(parent);
     }
 
-    auto defcall() const
+    void node_dep::refresh(const node_graph&)
     {
-      assert(!callers.empty());
-      return callers.front();
     }
 
-    void add_caller(node_call* caller)
-    {
-      assert(rng::find(callers, caller) == callers.end());
-      // first caller becomes defcall
-      callers.push_back(caller);
-    }
-
-    void remove_caller(node_call* caller)
-    {
-      assert(!callers.empty());
-      if (callers.size() > 1)
-        assert(callers.front() != caller);
-
-      assert(rng::find(callers, caller) != callers.end());
-      callers.erase(rng::find(callers, caller));
-    }
-
-    void refresh(const node_graph& ng);
-  };
-
-  /// node call
-  struct node_call
-  {
-    /// interface node
-    node_handle node;
-    /// depentency node
-    node_handle dependency;
-    /// parent group
-    node_group* parent;
-    /// handle of callee.
-    /// either group or function.
-    std::variant<node_function*, node_group*> callee;
-    /// input bits
-    std::vector<node_handle> input_bits;
-    /// output bits
-    std::vector<node_handle> output_bits;
-    /// pos
-    fvec2 pos = {};
-
-    bool is_global() const
-    {
-      return parent == nullptr;
-    }
-
-    void refresh(const node_graph& ng);
-  };
-
-  // for io handlers
-  struct node_io
-  {
-    /// parent group
-    node_group* parent;
-    /// type
-    structured_node_type type;
-    /// pos
-    fvec2 pos = {};
-
-    void refresh(const node_graph& ng);
-  };
-
-  // for internal dependency
-  struct node_dep
-  {
-    void refresh(const node_graph&);
-  };
-
-  /// node data variant
-  using node_data =
-    std::variant<node_function, node_group, node_call, node_io, node_dep>;
-
-  /// custom node data
-  using NodeData = Box<node_data>;
-
-  /// create new node data
-  template <class Arg>
-  [[nodiscard]] auto make_node_data(Arg&& arg)
-  {
-    return make_object<NodeData>(std::forward<Arg>(arg));
-  }
-
-  // refresh functions
-
-  void node_group::refresh(const node_graph& ng)
-  {
-    auto map = [&](auto n) { return ng.node(n.id()); };
-
-    node           = map(node);
-    dependency     = map(dependency);
-    input_handler  = map(input_handler);
-    output_handler = map(output_handler);
-
-    for (auto&& n : members)
-      n = map(n);
-    for (auto&& n : input_bits)
-      n = map(n);
-    for (auto&& n : output_bits)
-      n = map(n);
-    for (auto&& n : nodes)
-      n = map(n);
-
-    for (auto&& caller : callers) {
-      auto c     = map(caller->node);
-      auto cdata = ng.get_data(c);
-      caller = std::get_if<node_call>(value_cast_if<NodeData>(cdata).value());
-      assert(caller);
-    }
-  }
-
-  void node_function::refresh(const node_graph& ng)
-  {
-    auto map = [&](auto n) { return ng.node(n.id()); };
-
-    node       = map(node);
-    dependency = map(dependency);
-
-    for (auto&& caller : callers) {
-      auto c     = map(caller->node);
-      auto cdata = ng.get_data(c);
-      caller = std::get_if<node_call>(value_cast_if<NodeData>(cdata).value());
-      assert(caller);
-    }
-  }
-
-  void node_call::refresh(const node_graph& ng)
-  {
-    auto map = [&](auto n) { return ng.node(n.id()); };
-
-    node       = map(node);
-    dependency = map(dependency);
-
-    for (auto&& n : input_bits)
-      n = map(n);
-    for (auto&& n : output_bits)
-      n = map(n);
-
-    auto pn = map(parent->node);
-    parent =
-      std::get_if<node_group>(value_cast_if<NodeData>(ng.get_data(pn)).value());
-    assert(parent);
-
-    std::visit(
-      [&](auto*& p) {
-        using tp = std::remove_pointer_t<std::decay_t<decltype(p)>>;
-        p        = std::get_if<tp>(
-          value_cast_if<NodeData>(ng.get_data(map(p->node))).value());
-        assert(p);
-      },
-      callee);
-  }
-
-  void node_io::refresh(const node_graph& ng)
-  {
-    auto pn = ng.node(parent->node.id());
-    parent =
-      std::get_if<node_group>(value_cast_if<NodeData>(ng.get_data(pn)).value());
-    assert(parent);
-  }
-
-  void node_dep::refresh(const node_graph&)
-  {
-  }
+  } // namespace
 
   /// We use two different DAG in internal representation. Group tree represents
   /// connections of node calls in group. Dependency tree represents `Node X
