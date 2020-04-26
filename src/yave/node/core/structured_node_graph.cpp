@@ -364,7 +364,11 @@ namespace yave {
       init();
     }
 
-    impl(impl&&) = default;
+    impl(std::nullptr_t) noexcept
+    {
+    }
+
+    impl(impl&&) noexcept = default;
 
     ~impl() noexcept
     {
@@ -1973,11 +1977,11 @@ namespace yave {
         ng.sockets().size(),
         ng.connections().size());
 
-      impl ret;
+      impl ret(nullptr);
 
       // clone node graph
       ret.ng   = ng.clone();
-      ret.root = ret.ng.node(ret.root.id());
+      ret.root = ret.ng.node(root.id());
 
       // clone node data
       for (auto&& n : ret.ng.nodes())
