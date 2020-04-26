@@ -302,7 +302,7 @@ namespace yave {
           error_list& es,
           memo& m)
         {
-          if (ng.is_group_member(n))
+          if (ng.is_group(n))
             return rec_g(n, os, ng, es, m);
 
           if (ng.is_function(n))
