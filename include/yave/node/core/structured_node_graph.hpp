@@ -176,6 +176,13 @@ namespace yave {
     [[nodiscard]] auto get_definition(const node_handle& node) const
       -> node_handle;
 
+    /// Call of function or group?
+    [[nodiscard]] bool is_call(const node_handle& node) const;
+
+    /// Get (non-definition) calls
+    [[nodiscard]] auto get_calls(const node_handle& node) const
+      -> std::vector<node_handle>;
+
   public:
     /// Function?
     [[nodiscard]] bool is_function(const node_handle& node) const;

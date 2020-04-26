@@ -30,6 +30,7 @@ TEST_CASE("root")
   REQUIRE(ng.get_group_nodes(root).size() == 2);
   REQUIRE(ng.get_parent_group(root) == node_handle());
   REQUIRE(ng.get_definition(root) == root);
+  REQUIRE(ng.get_calls(root).empty());
   REQUIRE(ng.input_sockets(root).empty());
   REQUIRE(ng.output_sockets(root).empty());
   REQUIRE(ng.input_connections(root).empty());
@@ -54,6 +55,7 @@ TEST_CASE("root")
   REQUIRE(ng.get_group_members(null).empty());
   REQUIRE(ng.get_group_nodes(null).empty());
   REQUIRE(!ng.get_definition(null));
+  REQUIRE(ng.get_calls(null).empty());
   REQUIRE(!ng.is_group(null));
   REQUIRE(!ng.is_function(null));
   REQUIRE(!ng.is_definition(null));
@@ -62,8 +64,12 @@ TEST_CASE("root")
 
   REQUIRE(!ng.is_definition(ng.get_group_input(root)));
   REQUIRE(!ng.is_definition(ng.get_group_output(root)));
+  REQUIRE(!ng.is_call(ng.get_group_input(root)));
+  REQUIRE(!ng.is_call(ng.get_group_output(root)));
   REQUIRE(ng.get_definition(ng.get_group_input(root)) == node_handle());
   REQUIRE(ng.get_definition(ng.get_group_output(root)) == node_handle());
+  REQUIRE(ng.get_calls(ng.get_group_input(root)).empty());
+  REQUIRE(ng.get_calls(ng.get_group_output(root)).empty());
 
   REQUIRE(ng.get_path(root) == "/root");
   REQUIRE(

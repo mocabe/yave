@@ -106,6 +106,12 @@ namespace yave {
       return m_call_type == structured_call_type::definition;
     }
 
+    /// call?
+    [[nodiscard]] bool is_call() const
+    {
+      return m_call_type == structured_call_type::call;
+    }
+
     /// call type
     [[nodiscard]] auto& call_type() const
     {

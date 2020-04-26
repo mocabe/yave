@@ -476,8 +476,7 @@ namespace yave {
 
         if (sv == "/")
           return g->members //
-                 | rng::views::filter(
-                   [&](auto&& n) { return is_definition(n); })
+                 | rng::views::filter([&](auto&& n) { return is_defcall(n); })
                  | rng::to_vector;
 
         if (sv.find_first_of('/') != 0)
@@ -490,7 +489,7 @@ namespace yave {
           auto name = sv.substr(1, pos);
 
           for (auto&& n : g->nodes)
-            if (is_definition(n) && *ng.get_name(n) == name)
+            if (is_defcall(n) && *ng.get_name(n) == name)
               return {n};
 
           return {};
@@ -499,7 +498,7 @@ namespace yave {
         auto name = sv.substr(1, pos - 1);
 
         for (auto&& n : g->nodes) {
-          if (is_definition(n) && *ng.get_name(n) == name) {
+          if (is_defcall(n) && *ng.get_name(n) == name) {
 
             // non-group: invalid
             if (is_function_call(n)) {
@@ -872,7 +871,7 @@ namespace yave {
       {
         auto name_used = [&](auto&& name) {
           for (auto&& n : parent->nodes)
-            if (is_definition(n) && ng.get_name(n) == name)
+            if (is_defcall(n) && ng.get_name(n) == name)
               return true;
           return false;
         };
@@ -895,7 +894,7 @@ namespace yave {
 
         auto newn = [&]() -> node_handle {
           // clone group definition
-          if (is_definition(n) && is_group_call(n))
+          if (is_defcall(n) && is_group_call(n))
             return clone_node_group(newg, get_callee_group(n))->node;
           // copy otherwise
           return copy_node_call(newg, get_call(n))->node;
@@ -1157,6 +1156,18 @@ namespace yave {
     {
       return get_callee_function(node);
     }
+    bool is_group_output(const node_handle& node) const
+    {
+      if (auto io = get_io(node))
+        return io->type == structured_node_type::group_output;
+      return false;
+    }
+    bool is_group_input(const node_handle& node) const
+    {
+      if (auto io = get_io(node))
+        return io->type == structured_node_type::group_input;
+      return false;
+    }
 
   private:
     // for assertion
@@ -1194,7 +1205,7 @@ namespace yave {
       return {};
     }
 
-  public:
+  public: /* for member function */
     bool is_function_node(const node_handle& node) const
     {
       assert(is_valid(node));
@@ -1205,30 +1216,27 @@ namespace yave {
       assert(is_valid(node));
       return is_group_call(node);
     }
-    bool is_definition(const node_handle& node) const
+    bool is_definition_node(const node_handle& node) const
     {
       assert(is_valid(node));
       return is_defcall(node);
     }
-    bool is_group_output(const node_handle& node) const
+    bool is_call_node(const node_handle& node) const
     {
       assert(is_valid(node));
-
-      if (auto io = get_io(node))
-        return io->type == structured_node_type::group_output;
-
-      return false;
+      return is_call(node);
     }
-    bool is_group_input(const node_handle& node) const
+    bool is_group_output_node(const node_handle& node) const
     {
       assert(is_valid(node));
-
-      if (auto io = get_io(node))
-        return io->type == structured_node_type::group_input;
-
-      return false;
+      return is_group_output(node);
     }
-    bool is_group_member(const node_handle& node) const
+    bool is_group_input_node(const node_handle& node) const
+    {
+      assert(is_valid(node));
+      return is_group_input(node);
+    }
+    bool is_group_member_node(const node_handle& node) const
     {
       assert(is_valid(node));
       return is_call(node);
@@ -1242,6 +1250,25 @@ namespace yave {
       if (auto call = get_call(node))
         return std::visit(
           [](auto* p) { return p->defcall()->node; }, call->callee);
+
+      return {};
+    }
+
+    auto get_calls(const node_handle& node) const -> std::vector<node_handle>
+    {
+      assert(is_valid(node));
+
+      if (auto call = get_call(node))
+        return std::visit(
+          [](auto* p) {
+            auto&& cs = p->callers;
+            assert(!cs.empty());
+            return rng::subrange(cs.begin() + 1, cs.end())
+                   | rng::views::transform(
+                     [](auto* call) { return call->node; })
+                   | rng::to_vector;
+          },
+          call->callee);
 
       return {};
     }
@@ -1334,7 +1361,7 @@ namespace yave {
     {
       assert(is_valid(node));
 
-      if (!is_definition(node)) {
+      if (!is_defcall(node)) {
         Info(g_logger, "Cannot rename non-definition node call");
         return;
       }
@@ -1342,7 +1369,7 @@ namespace yave {
       if (auto g = get_callee_group(node)) {
         // check uniqueness of group name
         for (auto&& n : g->defcall()->parent->nodes) {
-          if (n == node || !is_definition(n))
+          if (n == node || !is_defcall(n))
             continue;
 
           if (ng.get_name(n) == name) {
@@ -1645,7 +1672,7 @@ namespace yave {
           assert(name == decl.name());
 
           for (auto&& n : g->nodes) {
-            if (is_definition(n) && *ng.get_name(n) == name) {
+            if (is_defcall(n) && *ng.get_name(n) == name) {
               Error(
                 g_logger,
                 "Failed to create node function: Node {} already "
@@ -1668,7 +1695,7 @@ namespace yave {
 
         // if group already exists, use it
         for (auto&& n : g->nodes) {
-          if (is_definition(n) && *ng.get_name(n) == name) {
+          if (is_defcall(n) && *ng.get_name(n) == name) {
             // group?
             nextg = get_callee_group(n);
             // not group. abort
@@ -2186,7 +2213,7 @@ namespace yave {
     if (!exists(node))
       return false;
 
-    return m_pimpl->is_definition(node);
+    return m_pimpl->is_definition_node(node);
   }
 
   auto structured_node_graph::get_definition(const node_handle& node) const
@@ -2196,6 +2223,23 @@ namespace yave {
       return {};
 
     return m_pimpl->get_definition(node);
+  }
+
+  bool structured_node_graph::is_call(const node_handle& node) const
+  {
+    if (!exists(node))
+      return false;
+
+    return m_pimpl->is_call_node(node);
+  }
+
+  auto structured_node_graph::get_calls(const node_handle& node) const
+    -> std::vector<node_handle>
+  {
+    if (!exists(node))
+      return {};
+
+    return m_pimpl->get_calls(node);
   }
 
   bool structured_node_graph::is_function(const node_handle& node) const
@@ -2219,7 +2263,7 @@ namespace yave {
     if (!exists(node))
       return false;
 
-    return m_pimpl->is_group_member(node);
+    return m_pimpl->is_group_member_node(node);
   }
 
   bool structured_node_graph::is_group_output(const node_handle& node) const
@@ -2227,7 +2271,7 @@ namespace yave {
     if (!exists(node))
       return false;
 
-    return m_pimpl->is_group_output(node);
+    return m_pimpl->is_group_output_node(node);
   }
 
   bool structured_node_graph::is_group_input(const node_handle& node) const
@@ -2235,7 +2279,7 @@ namespace yave {
     if (!exists(node))
       return false;
 
-    return m_pimpl->is_group_input(node);
+    return m_pimpl->is_group_input_node(node);
   }
 
   auto structured_node_graph::get_group_members(const node_handle& node) const
