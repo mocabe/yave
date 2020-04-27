@@ -28,6 +28,11 @@ namespace yave {
       managed_node_graph&& graph,
       const node_definition_store& defs) -> std::optional<executable>;
 
+    /// Compile parsed V2 node graph
+    [[nodiscard]] auto compile(
+      structured_node_graph&& graph,
+      const node_definition_store& defs) -> std::optional<executable>;
+
     /// Get last errors
     [[nodiscard]] auto get_errors() const -> error_list;
 

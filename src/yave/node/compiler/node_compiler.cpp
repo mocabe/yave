@@ -22,6 +22,10 @@ YAVE_DECL_G_LOGGER(node_compiler)
 
 using namespace std::string_literals;
 
+// MACROS ARE (NOT) YOUR FRIEND.
+#define mem_fn(FN) \
+  [this](auto&&... args) { return FN(std::forward<decltype(args)>(args)...); }
+
 namespace yave {
 
   // tl::optional -> std::optional
@@ -44,6 +48,17 @@ namespace yave {
 
     auto verbose_check(executable&& exe) -> tl::optional<executable>;
 
+    auto desugar(structured_node_graph&& ng)
+      -> tl::optional<structured_node_graph>;
+
+    auto gen(structured_node_graph&& ng)
+      -> tl::optional<std::pair<object_ptr<Object>, class_env>>;
+
+    auto type(std::pair<object_ptr<Object>, class_env>&& p)
+      -> tl::optional<executable>;
+
+    auto optimize(executable&& exe) -> tl::optional<executable>;
+
   public:
     auto get_errors() const
     {
@@ -62,9 +77,30 @@ namespace yave {
 
       return tl::make_optional(std::move(parsed_graph)) //
         .and_then([&](auto&& g) { return type(g, defs); })
-        .and_then([&](auto&& g) { return verbose_check(std::move(g)); })
+        .and_then(mem_fn(verbose_check))
         .or_else([&] {
           Error(g_logger, "Failed to compiler node graph");
+          for (auto&& e : errors)
+            Error(g_logger, "  {}", e.message());
+        });
+    }
+
+    auto compile(structured_node_graph&& ng, const node_definition_store& defs)
+      -> tl::optional<executable>
+    {
+      errors.clear();
+
+      Info(g_logger, "Start compiling node tree:");
+      Info(g_logger, "  Total {} node definitions", defs.size());
+
+      tl::make_optional(std::move(ng)) //
+        .and_then(mem_fn(desugar))
+        .and_then(mem_fn(gen))
+        .and_then(mem_fn(type))
+        .and_then(mem_fn(optimize))
+        .and_then(mem_fn(verbose_check))
+        .or_else([&] {
+          Error(g_logger, "Failed to compile node graph");
           for (auto&& e : errors)
             Error(g_logger, "  {}", e.message());
         });
@@ -89,6 +125,13 @@ namespace yave {
     const node_definition_store& defs) -> std::optional<executable>
   {
     return to_std(m_pimpl->compile(std::move(parsed_graph), defs));
+  }
+
+  auto node_compiler::compile(
+    structured_node_graph&& graph,
+    const node_definition_store& defs) -> std::optional<executable>
+  {
+    return to_std(m_pimpl->compile(std::move(graph), defs));
   }
 
   /*
@@ -332,4 +375,109 @@ namespace yave {
     return tl::nullopt;
   }
 
+  auto node_compiler::impl::desugar(structured_node_graph&& ng)
+    -> tl::optional<structured_node_graph>
+  {
+    auto roots = ng.search_path("/");
+
+    auto root = [&] {
+      for (auto&& r : roots)
+        if (ng.get_name(r) == "root")
+          return r;
+      assert(false);
+    }();
+
+    assert(ng.output_sockets(root).size() == 1);
+    auto rootos = ng.output_sockets(root)[0];
+
+    struct
+    {
+      // Add Variables on empty input socket of lambda calls
+      void set_variables(const node_handle& n, structured_node_graph& ng)
+      {
+        if (ng.input_connections(n).size() < ng.input_sockets(n).size())
+          for (auto&& s : ng.input_sockets(n))
+            if (!ng.get_data(s))
+              ng.set_data(s, make_object<Variable>());
+      }
+
+      void rec_g(
+        const node_handle& g,
+        const socket_handle& os,
+        structured_node_graph& ng)
+      {
+        set_variables(g, ng);
+
+        // inputs
+        for (auto&& c : ng.input_connections(g)) {
+          auto ci = ng.get_info(c);
+          rec_n(ci->src_node(), ci->src_socket(), ng);
+        }
+
+        // inside
+        {
+          auto go  = ng.get_group_output(g);
+          auto idx = *ng.get_index(os);
+          auto s   = ng.input_sockets(go)[idx];
+
+          for (auto&& c : ng.connections(s)) {
+            auto ci = ng.get_info(c);
+            rec_n(ci->src_node(), ci->src_socket(), ng);
+          }
+        }
+      }
+
+      void rec_f(
+        const node_handle& f,
+        const socket_handle& os,
+        structured_node_graph& ng)
+      {
+        (void)os;
+
+        set_variables(f, ng);
+
+        // inputs
+        for (auto&& c : ng.input_connections(f)) {
+          auto ci = ng.get_info(c);
+          rec_n(ci->src_node(), ci->src_socket(), ng);
+        }
+      }
+
+      void rec_n(
+        const node_handle& n,
+        const socket_handle& os,
+        structured_node_graph& ng)
+      {
+        if (ng.is_group(n))
+          return rec_g(n, os, ng);
+
+        if (ng.is_function(n))
+          return rec_f(n, os, ng);
+
+        if (ng.is_group_input(n))
+          return;
+
+        assert(false);
+      }
+    } impl;
+
+    impl.rec_n(root, rootos, ng);
+
+    return std::move(ng);
+  }
+
+  auto node_compiler::impl::gen(structured_node_graph&& ng)
+    -> tl::optional<std::pair<object_ptr<Object>, class_env>>
+  {
+  }
+
+  auto node_compiler::impl::type(std::pair<object_ptr<Object>, class_env>&& p)
+    -> tl::optional<executable>
+  {
+  }
+
+  auto node_compiler::impl::optimize(executable&& exe)
+    -> tl::optional<executable>
+  {
+  }
 } // namespace yave
