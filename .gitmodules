@@ -57,3 +57,6 @@
 [submodule "external/glslang"]
 	path = external/glslang
 	url = https://github.com/KhronosGroup/glslang.git
+[submodule "external/optional"]
+	path = external/optional
+	url = https://github.com/TartanLlama/optional.git
