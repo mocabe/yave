@@ -26,6 +26,7 @@ YAVE_DECL_G_LOGGER(node_compiler)
 using namespace std::string_literals;
 
 // MACROS ARE (NOT) YOUR FRIEND.
+#pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 #define VA_mem_fn(...) , ##__VA_ARGS__
 #define mem_fn(FN, ...)                                                 \
   [&](auto&& arg) {                                                     \
