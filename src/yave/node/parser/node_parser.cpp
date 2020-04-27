@@ -11,14 +11,29 @@
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view.hpp>
 #include <range/v3/action.hpp>
+#include <tl/optional.hpp>
 
 YAVE_DECL_G_LOGGER(node_parser)
+
+// cursed, but very useful
+#define member_lambda(FUNC) \
+  [this](auto&&... args) { return FUNC(std::forward<decltype(args)>(args)...); }
 
 namespace yave {
 
   namespace rn = ranges;
   namespace rv = ranges::views;
   namespace ra = ranges::actions;
+
+  // tl::optional -> std::optional
+  template <class T>
+  constexpr auto to_std(tl::optional<T>&& opt) -> std::optional<T>
+  {
+    if (opt)
+      return std::move(*opt);
+    else
+      return std::nullopt;
+  }
 
   class node_parser::impl
   {
@@ -40,7 +55,7 @@ namespace yave {
     /// First clone entire graph, then omit detached subtrees.
     /// Input graph should have signle output socket, without input sockets.
     auto extract(const managed_node_graph& graph)
-      -> std::optional<managed_node_graph>
+      -> tl::optional<managed_node_graph>
     {
       auto root      = graph.root_group();
       auto root_info = graph.get_info(root);
@@ -48,13 +63,13 @@ namespace yave {
       if (!graph.input_sockets(root).empty()) {
         errors.push_back(make_error<parse_error::unexpected_error>(
           "Root group should not have input"));
-        return std::nullopt;
+        return tl::nullopt;
       }
 
       if (graph.output_sockets(root).size() != 1) {
         errors.push_back(make_error<parse_error::unexpected_error>(
           "Root group should have single output"));
-        return std::nullopt;
+        return tl::nullopt;
       }
 
       auto clone = graph.clone();
@@ -121,7 +136,7 @@ namespace yave {
     }
 
     auto validate(managed_node_graph&& graph)
-      -> std::optional<managed_node_graph>
+      -> tl::optional<managed_node_graph>
     {
       for (auto&& n : graph.nodes()) {
 
@@ -207,13 +222,13 @@ namespace yave {
       }
 
       if (!errors.empty())
-        return std::nullopt;
+        return tl::nullopt;
 
       return {std::move(graph)};
     }
 
     auto validate(structured_node_graph&& ng)
-      -> std::optional<structured_node_graph>
+      -> tl::optional<structured_node_graph>
     {
       auto roots = ng.search_path("/");
 
@@ -227,19 +242,19 @@ namespace yave {
       if (!root) {
         errors.push_back(
           make_error<parse_error::unexpected_error>("Root node not found"));
-        return std::nullopt;
+        return tl::nullopt;
       }
 
       if (ng.output_sockets(root).size() != 1) {
         errors.push_back(make_error<parse_error::unexpected_error>(
           "Root should have single output"));
-        return std::nullopt;
+        return tl::nullopt;
       }
 
       if (ng.input_sockets(root).size() != 0) {
         errors.push_back(make_error<parse_error::unexpected_error>(
           "Root should not have input"));
-        return std::nullopt;
+        return tl::nullopt;
       }
 
       // node -> [socket]
@@ -375,54 +390,41 @@ namespace yave {
       if (errors.empty())
         return std::move(ng);
 
-      return std::nullopt;
+      return tl::nullopt;
     }
 
   public:
     auto parse(const managed_node_graph& graph)
-      -> std::optional<managed_node_graph>
+      -> tl::optional<managed_node_graph>
     {
       auto lck = lock();
-
-      std::optional<managed_node_graph> tmp = std::nullopt;
-
       errors.clear();
 
-      try {
-
-        return validate(extract(graph).value()).value();
-
-      } catch (std::bad_optional_access&) {
-
-        Error(g_logger, "Failed to parse node graph");
-
-        for (auto&& e : errors) {
-          Error(g_logger, "error: {}", e.message());
-        }
-      }
-      return std::nullopt;
+      return tl::make_optional(std::cref(graph))
+        .and_then(member_lambda(extract))
+        .and_then(member_lambda(validate))
+        .or_else([&] {
+          Error(g_logger, "Failed to parse node graph");
+          for (auto&& e : errors) {
+            Error(g_logger, "error: {}", e.message());
+          }
+        });
     }
 
     auto parse(structured_node_graph&& ng)
-      -> std::optional<structured_node_graph>
+      -> tl::optional<structured_node_graph>
     {
       auto lck = lock();
-
       errors.clear();
 
-      try {
-
-        return validate(std::move(ng)).value();
-
-      } catch (std::bad_optional_access&) {
-
-        Error(g_logger, "Failed to parse node graph");
-
-        for (auto&& e : errors) {
-          Error(g_logger, "error: {}", e.message());
-        }
-      }
-      return std::nullopt;
+      return tl::make_optional(std::move(ng))
+        .and_then(member_lambda(validate))
+        .or_else([&] {
+          Error(g_logger, "Failed to parse node graph");
+          for (auto&& e : errors) {
+            Error(g_logger, "error: {}", e.message());
+          }
+        });
     }
 
     auto get_errors()
@@ -448,13 +450,13 @@ namespace yave {
   auto node_parser::parse(const managed_node_graph& graph)
     -> std::optional<managed_node_graph>
   {
-    return m_pimpl->parse(graph);
+    return to_std(m_pimpl->parse(graph));
   }
 
   auto node_parser::parse(structured_node_graph&& ng)
     -> std::optional<structured_node_graph>
   {
-    return m_pimpl->parse(std::move(ng));
+    return to_std(m_pimpl->parse(std::move(ng)));
   }
 
 } // namespace yave
