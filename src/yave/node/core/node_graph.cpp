@@ -630,6 +630,10 @@ namespace yave {
         Info(
           g_logger, "Enable custom data on socket: id={}", to_string(h.id()));
 
+      if (!data)
+        Info(
+          g_logger, "Clearing custom data on socket: id={}", to_string(h.id()));
+
       g[h.descriptor()].set_data(std::move(data));
     }
 
@@ -637,6 +641,10 @@ namespace yave {
     {
       if (!g[h.descriptor()].has_data())
         Info(g_logger, "Enable custom data on node: id={}", to_string(h.id()));
+
+      if (!data)
+        Info(
+          g_logger, "Clearing custom data on socket: id={}", to_string(h.id()));
 
       g[h.descriptor()].set_data(std::move(data));
     }
@@ -1147,18 +1155,12 @@ namespace yave {
     if (!exists(h))
       return;
 
-    if (!data)
-      return;
-
     return m_pimpl->set_data(h, data);
   }
 
   void node_graph::set_data(const node_handle& h, object_ptr<Object> data)
   {
     if (!exists(h))
-      return;
-
-    if (!data)
       return;
 
     return m_pimpl->set_data(h, data);
