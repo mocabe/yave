@@ -16,8 +16,8 @@
 YAVE_DECL_G_LOGGER(node_parser)
 
 // cursed, but very useful
-#define member_lambda(FUNC) \
-  [this](auto&&... args) { return FUNC(std::forward<decltype(args)>(args)...); }
+#define mem_fn(FN) \
+  [this](auto&&... args) { return FN(std::forward<decltype(args)>(args)...); }
 
 namespace yave {
 
@@ -401,8 +401,8 @@ namespace yave {
       errors.clear();
 
       return tl::make_optional(std::cref(graph))
-        .and_then(member_lambda(extract))
-        .and_then(member_lambda(validate))
+        .and_then(mem_fn(extract))
+        .and_then(mem_fn(validate))
         .or_else([&] {
           Error(g_logger, "Failed to parse node graph");
           for (auto&& e : errors) {
@@ -418,7 +418,7 @@ namespace yave {
       errors.clear();
 
       return tl::make_optional(std::move(ng))
-        .and_then(member_lambda(validate))
+        .and_then(mem_fn(validate))
         .or_else([&] {
           Error(g_logger, "Failed to parse node graph");
           for (auto&& e : errors) {
