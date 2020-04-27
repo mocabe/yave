@@ -102,7 +102,7 @@ namespace yave {
       Info(g_logger, "Start compiling node tree:");
       Info(g_logger, "  Total {} node definitions", defs.size());
 
-      tl::make_optional(std::move(ng)) //
+      return tl::make_optional(std::move(ng)) //
         .and_then(mem_fn(desugar))
         .and_then(mem_fn(gen, defs))
         .and_then(mem_fn(type))
@@ -571,9 +571,7 @@ namespace yave {
         const node_handle& i,
         const socket_handle& os,
         const std::vector<object_ptr<const Object>>& in,
-        const node_definition_store& defs,
-        structured_node_graph& ng,
-        class_env& env)
+        structured_node_graph& ng)
       {
         assert(ng.is_group_input(i));
 
@@ -621,7 +619,7 @@ namespace yave {
           return rec_f(n, os, in, defs, ng, env);
 
         if (ng.is_group_input(n))
-          return rec_i(n, os, in, defs, ng, env);
+          return rec_i(n, os, in, ng);
 
         assert(false);
       }
@@ -639,20 +637,87 @@ namespace yave {
     assert(ng.output_sockets(root).size() == 1);
     auto rootos = ng.output_sockets(root)[0];
 
-    class_env env;
-    auto app = impl.rec_n(root, rootos, {}, defs, ng, env);
+    // FIXME:
+    node_handle srcn;
+    socket_handle srcs;
 
-    return std::make_pair(std::move(app), std::move(env));
+    try {
+
+      class_env env;
+      auto app = impl.rec_n(root, rootos, {}, defs, ng, env);
+
+      return std::make_pair(std::move(app), std::move(env));
+
+      // forward
+    } catch (const error_info_base& e) {
+      errors.push_back(error(e.clone()));
+      // other
+    } catch (const std::exception& e) {
+      errors.push_back(make_error<compile_error::unexpected_error>(
+        srcn,
+        srcs,
+        "Internal error: Unknown std::exception detected: "s + e.what()));
+    } catch (...) {
+      errors.push_back(make_error<compile_error::unexpected_error>(
+        srcn, srcs, "Internal error: Unknown exception detected"));
+    }
+    return tl::nullopt;
   }
 
   auto node_compiler::impl::type(
     std::pair<object_ptr<const Object>, class_env>&& p)
     -> tl::optional<executable>
   {
+    // FIXME
+    node_handle srcn;
+    socket_handle srcs;
+
+    try {
+
+      auto [app, env] = p;
+      auto [ty, app2] = type_of_overloaded(app, env);
+
+      return executable(app2, ty);
+
+      // common type errors
+    } catch (const type_error::no_valid_overloading& e) {
+      errors.push_back(
+        make_error<compile_error::no_valid_overloading>(srcn, srcs));
+    } catch (const type_error::type_missmatch& e) {
+      errors.push_back(make_error<compile_error::type_missmatch>(
+        srcn, srcs, e.expected(), e.provided()));
+
+      // internal type errors
+    } catch (const type_error::unbounded_variable& e) {
+      errors.push_back(make_error<compile_error::unexpected_error>(
+        srcn, srcs, "Internal type error: unbounded variable detected"));
+    } catch (const type_error::circular_constraint& e) {
+      errors.push_back(make_error<compile_error::unexpected_error>(
+        srcn, srcs, "Internal type error: circular constraint detected"));
+    } catch (const type_error::type_error& e) {
+      errors.push_back(make_error<compile_error::unexpected_error>(
+        srcn, srcs, "Internal type error: "s + e.what()));
+
+      // forward
+    } catch (const error_info_base& e) {
+      errors.push_back(error(e.clone()));
+
+      // others
+    } catch (const std::exception& e) {
+      errors.push_back(make_error<compile_error::unexpected_error>(
+        srcn,
+        srcs,
+        "Internal error: Unknown std::exception detected: "s + e.what()));
+    } catch (...) {
+      errors.push_back(make_error<compile_error::unexpected_error>(
+        srcn, srcs, "Internal error: Unknown exception detected"));
+    }
+    return tl::nullopt;
   }
 
   auto node_compiler::impl::optimize(executable&& exe)
     -> tl::optional<executable>
   {
+    return std::move(exe);
   }
 } // namespace yave
