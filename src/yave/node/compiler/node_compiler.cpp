@@ -16,6 +16,7 @@
 
 #include <range/v3/algorithm.hpp>
 #include <boost/uuid/uuid_hash.hpp>
+#include <tl/optional.hpp>
 
 YAVE_DECL_G_LOGGER(node_compiler)
 
@@ -23,80 +24,71 @@ using namespace std::string_literals;
 
 namespace yave {
 
+  // tl::optional -> std::optional
+  template <class T>
+  constexpr auto to_std(tl::optional<T>&& opt) -> std::optional<T>
+  {
+    if (opt)
+      return std::move(*opt);
+    else
+      return std::nullopt;
+  }
+
+  class node_compiler::impl
+  {
+    error_list errors;
+
+    auto type(
+      const managed_node_graph& parsed_graph,
+      const node_definition_store& defs) -> tl::optional<executable>;
+
+    auto verbose_check(executable&& exe) -> tl::optional<executable>;
+
+  public:
+    auto get_errors() const
+    {
+      return errors.clone();
+    }
+
+    auto compile(
+      managed_node_graph&& parsed_graph,
+      const node_definition_store& defs) -> tl::optional<executable>
+    {
+      errors.clear();
+
+      Info(g_logger, "Start compiling node tree:");
+      Info(g_logger, "  Total {} nodes in graph", parsed_graph.nodes().size());
+      Info(g_logger, "  Total {} node definitions", defs.size());
+
+      return tl::make_optional(std::move(parsed_graph)) //
+        .and_then([&](auto&& g) { return type(g, defs); })
+        .and_then([&](auto&& g) { return verbose_check(std::move(g)); })
+        .or_else([&] {
+          Error(g_logger, "Failed to compiler node graph");
+          for (auto&& e : errors)
+            Error(g_logger, "  {}", e.message());
+        });
+    }
+  };
+
   node_compiler::node_compiler()
+    : m_pimpl {std::make_unique<impl>()}
   {
     init_logger();
   }
 
+  node_compiler::~node_compiler() noexcept = default;
+
   auto node_compiler::get_errors() const -> error_list
   {
-    return m_errors.clone();
+    return m_pimpl->get_errors();
   }
 
   auto node_compiler::compile(
     managed_node_graph&& parsed_graph,
     const node_definition_store& defs) -> std::optional<executable>
   {
-    // clear previous errors
-    m_errors.clear();
-
-    Info(g_logger, "Start compiling node tree:");
-    Info(g_logger, "  Total {} nodes in graph", parsed_graph.nodes().size());
-    Info(g_logger, "  Total {} node definitions", defs.size());
-
-    // early optimize stage?
-    auto ng = _optimize_early(std::move(parsed_graph));
-    if (!ng) {
-      Error(g_logger, "Failed to optmize parsed node graph");
-      for (auto&& e : m_errors) {
-        Error(g_logger, "error: {}", e.message());
-      }
-      return std::nullopt;
-    }
-
-    // type check and create apply tree
-    auto exe = _type(*ng, defs);
-    if (!exe) {
-      Error(g_logger, "Failed to type node graph");
-      for (auto&& e : m_errors) {
-        Error(g_logger, "error: {}", e.message());
-      }
-      return std::nullopt;
-    }
-
-    // optimize executable
-    exe = _optimize(std::move(*exe), *ng);
-
-    // verbose type check
-    auto succ = _verbose_check(*exe, *ng);
-    if (!succ) {
-      Error(g_logger, "Verbose check failed");
-      for (auto&& e : m_errors) {
-        Error(g_logger, "error: {}", e.message());
-      }
-      return std::nullopt;
-    }
-
-    return exe;
-  }
-
-  // AST optimization stage.
-  auto node_compiler::_optimize_early(managed_node_graph&& parsed_graph)
-    -> std::optional<managed_node_graph>
-  {
-    // TODO...
-    return std::move(parsed_graph);
-  }
-
-  // Graph optimization stage.
-  auto node_compiler::_optimize(
-    executable&& exe,
-    const managed_node_graph& graph) -> executable
-  {
-    // TODO...
-    (void)graph;
-
-    return std::move(exe);
+    return to_std(m_pimpl->compile(std::move(parsed_graph), defs));
   }
 
   /*
@@ -116,9 +108,9 @@ namespace yave {
     Most of errors thrown from type checker does not relate to node handle, so
     we need to keep track relation between backend object and nodes.
    */
-  auto node_compiler::_type(
+  auto node_compiler::impl::type(
     const managed_node_graph& parsed_graph,
-    const node_definition_store& defs) -> std::optional<executable>
+    const node_definition_store& defs) -> tl::optional<executable>
   {
     struct
     {
@@ -245,7 +237,6 @@ namespace yave {
       }
     } impl;
 
-
     auto root_group = parsed_graph.root_group();
 
     assert(parsed_graph.output_sockets(root_group).size() == 1);
@@ -269,77 +260,76 @@ namespace yave {
       auto [ty, app2] = type_of_overloaded(app, env);
 
       // return result tree
-      if (m_errors.empty()) {
+      if (errors.empty()) {
         Info(
           g_logger, "Successfully type checked node tree! : {}", to_string(ty));
         return executable(app2, ty);
       } else
-        return std::nullopt;
+        return tl::nullopt;
 
       // common type errors
     } catch (const type_error::no_valid_overloading& e) {
-      m_errors.push_back(
+      errors.push_back(
         make_error<compile_error::no_valid_overloading>(srcn, srcs));
     } catch (const type_error::type_missmatch& e) {
-      m_errors.push_back(make_error<compile_error::type_missmatch>(
+      errors.push_back(make_error<compile_error::type_missmatch>(
         srcn, srcs, e.expected(), e.provided()));
 
       // internal type errors
     } catch (const type_error::unbounded_variable& e) {
-      m_errors.push_back(make_error<compile_error::unexpected_error>(
+      errors.push_back(make_error<compile_error::unexpected_error>(
         srcn, srcs, "Internal type error: unbounded variable detected"));
     } catch (const type_error::circular_constraint& e) {
-      m_errors.push_back(make_error<compile_error::unexpected_error>(
+      errors.push_back(make_error<compile_error::unexpected_error>(
         srcn, srcs, "Internal type error: circular constraint detected"));
     } catch (const type_error::type_error& e) {
-      m_errors.push_back(make_error<compile_error::unexpected_error>(
+      errors.push_back(make_error<compile_error::unexpected_error>(
         srcn, srcs, "Internal type error: "s + e.what()));
 
       // forward
     } catch (const error_info_base& e) {
-      m_errors.push_back(error(e.clone()));
+      errors.push_back(error(e.clone()));
 
       // others
     } catch (const std::exception& e) {
-      m_errors.push_back(make_error<compile_error::unexpected_error>(
+      errors.push_back(make_error<compile_error::unexpected_error>(
         srcn,
         srcs,
         "Internal error: Unknown std::exception detected: "s + e.what()));
     } catch (...) {
-      m_errors.push_back(make_error<compile_error::unexpected_error>(
+      errors.push_back(make_error<compile_error::unexpected_error>(
         srcn, srcs, "Internal error: Unknown exception detected"));
     }
-    return std::nullopt;
+    return tl::nullopt;
   }
 
-  auto node_compiler::_verbose_check(
-    const executable& exe,
-    const managed_node_graph& graph) -> bool
+  auto node_compiler::impl::verbose_check(executable&& exe)
+    -> tl::optional<executable>
   {
     // FIXME
-    auto srcn = graph.root_group();
-    auto srcs = graph.output_sockets(srcn).at(0);
+    auto srcn = node_handle();
+    auto srcs = socket_handle();
 
     try {
 
       auto tp = type_of(exe.object());
 
       if (!same_type(tp, exe.type())) {
-        m_errors.push_back(make_error<compile_error::unexpected_error>(
+        errors.push_back(make_error<compile_error::unexpected_error>(
           srcn, srcs, "Verbose type check failed: result type does not match"));
-        return false;
+        return tl::nullopt;
       }
 
-      return true;
+      return std::move(exe);
 
     } catch (const std::exception& e) {
-      m_errors.push_back(make_error<compile_error::unexpected_error>(
+      errors.push_back(make_error<compile_error::unexpected_error>(
         srcn, srcs, "Exception thrown while checking result: "s + e.what()));
     } catch (...) {
-      m_errors.push_back(make_error<compile_error::unexpected_error>(
+      errors.push_back(make_error<compile_error::unexpected_error>(
         srcn, srcs, "Exception thrown while checking result: "));
     }
-    return false;
+    return tl::nullopt;
   }
 
 } // namespace yave
