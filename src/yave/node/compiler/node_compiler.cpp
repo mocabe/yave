@@ -440,7 +440,6 @@ namespace yave {
       {
         (void)os;
 
-        fill_variables(f, ng);
         omit_unused_defaults(f, ng);
 
         // inputs
@@ -494,7 +493,10 @@ namespace yave {
     {
       bool is_lambda(const node_handle& n, const structured_node_graph& ng)
       {
-        return ng.input_connections(n).size() < ng.input_sockets(n).size();
+        for (auto&& s : ng.input_sockets(n))
+          if (ng.connections(s).empty() && !ng.get_data(s))
+            return true;
+        return false;
       }
 
       auto get_function_body(
@@ -596,12 +598,27 @@ namespace yave {
         if (is_lambda(f, ng))
           return body;
 
-        // inputs
-        for (auto&& c : ng.input_connections(f)) {
+        for (auto&& s : ng.input_sockets(f)) {
+
+          // default value
+          if (auto data = ng.get_data(s)) {
+
+            // FIXME: Remove this branch
+            if (auto holder = value_cast_if<DataTypeHolder>(data))
+              body = body << holder->get_data_constructor();
+            else
+              body = body << data;
+
+            continue;
+          }
+
+          assert(ng.connections(s).size() == 1);
+          auto c  = ng.connections(s)[0];
           auto ci = ng.get_info(c);
           body =
             body << rec_n(ci->src_node(), ci->src_socket(), in, defs, ng, env);
         }
+
         return body;
       }
 
