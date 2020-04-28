@@ -604,8 +604,7 @@ namespace yave {
           if (cs.empty())
             return body;
 
-          auto c  = ng.connections(s)[0];
-          auto ci = ng.get_info(c);
+          auto ci = ng.get_info(cs[0]);
           body =
             body << rec_n(ci->src_node(), ci->src_socket(), in, defs, ng, env);
         }
