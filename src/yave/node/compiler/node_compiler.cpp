@@ -26,12 +26,8 @@ YAVE_DECL_G_LOGGER(node_compiler)
 using namespace std::string_literals;
 
 // MACROS ARE (NOT) YOUR FRIEND.
-#pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-#define VA_mem_fn(...) , ##__VA_ARGS__
-#define mem_fn(FN, ...)                                                 \
-  [&](auto&& arg) {                                                     \
-    return FN(std::forward<decltype(arg)>(arg) VA_mem_fn(__VA_ARGS__)); \
-  }
+#define mem_fn(FN, ...) \
+  [&](auto&& arg) { return FN(std::forward<decltype(arg)>(arg), __VA_ARGS__); }
 
 namespace yave {
 
@@ -56,18 +52,18 @@ namespace yave {
       const managed_node_graph& parsed_graph,
       const node_definition_store& defs) -> tl::optional<executable>;
 
-    auto verbose_check(executable&& exe) -> tl::optional<executable>;
+    auto verbose_check(executable&& exe, int) -> tl::optional<executable>;
 
-    auto desugar(structured_node_graph&& ng)
+    auto desugar(structured_node_graph&& ng, int)
       -> tl::optional<structured_node_graph>;
 
     auto gen(structured_node_graph&& ng, const node_definition_store& defs)
       -> tl::optional<std::pair<object_ptr<const Object>, class_env>>;
 
-    auto type(std::pair<object_ptr<const Object>, class_env>&& p)
+    auto type(std::pair<object_ptr<const Object>, class_env>&& p, int)
       -> tl::optional<executable>;
 
-    auto optimize(executable&& exe) -> tl::optional<executable>;
+    auto optimize(executable&& exe, int) -> tl::optional<executable>;
 
   public:
     auto get_errors() const
@@ -87,7 +83,7 @@ namespace yave {
 
       return tl::make_optional(std::move(parsed_graph)) //
         .and_then(mem_fn(type, defs))
-        .and_then(mem_fn(verbose_check))
+        .and_then(mem_fn(verbose_check, 0))
         .or_else([&] {
           Error(g_logger, "Failed to compiler node graph");
           for (auto&& e : errors)
@@ -104,11 +100,11 @@ namespace yave {
       Info(g_logger, "  Total {} node definitions", defs.size());
 
       return tl::make_optional(std::move(ng)) //
-        .and_then(mem_fn(desugar))
+        .and_then(mem_fn(desugar, 0))
         .and_then(mem_fn(gen, defs))
-        .and_then(mem_fn(type))
-        .and_then(mem_fn(optimize))
-        .and_then(mem_fn(verbose_check))
+        .and_then(mem_fn(type, 0))
+        .and_then(mem_fn(optimize, 0))
+        .and_then(mem_fn(verbose_check, 0))
         .or_else([&] {
           Error(g_logger, "Failed to compile node graph");
           for (auto&& e : errors)
@@ -356,7 +352,7 @@ namespace yave {
     return tl::nullopt;
   }
 
-  auto node_compiler::impl::verbose_check(executable&& exe)
+  auto node_compiler::impl::verbose_check(executable&& exe, int)
     -> tl::optional<executable>
   {
     // FIXME
@@ -385,7 +381,7 @@ namespace yave {
     return tl::nullopt;
   }
 
-  auto node_compiler::impl::desugar(structured_node_graph&& ng)
+  auto node_compiler::impl::desugar(structured_node_graph&& ng, int)
     -> tl::optional<structured_node_graph>
   {
     struct
@@ -683,8 +679,8 @@ namespace yave {
   }
 
   auto node_compiler::impl::type(
-    std::pair<object_ptr<const Object>, class_env>&& p)
-    -> tl::optional<executable>
+    std::pair<object_ptr<const Object>, class_env>&& p,
+    int) -> tl::optional<executable>
   {
     // FIXME
     node_handle srcn;
@@ -733,7 +729,7 @@ namespace yave {
     return tl::nullopt;
   }
 
-  auto node_compiler::impl::optimize(executable&& exe)
+  auto node_compiler::impl::optimize(executable&& exe, int)
     -> tl::optional<executable>
   {
     return std::move(exe);
