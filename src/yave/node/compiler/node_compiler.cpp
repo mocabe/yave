@@ -389,15 +389,16 @@ namespace yave {
       // Add Variables on empty input socket of lambda calls
       void fill_variables(const node_handle& n, structured_node_graph& ng)
       {
+        assert(ng.is_group(n));
         if (ng.input_connections(n).size() < ng.input_sockets(n).size())
           for (auto&& s : ng.input_sockets(n))
-            if (!ng.get_data(s))
-              ng.set_data(s, make_object<Variable>());
+            ng.set_data(s, make_object<Variable>());
       }
 
       // Rmove unsued default socket data
       void omit_unused_defaults(const node_handle& n, structured_node_graph& ng)
       {
+        assert(ng.is_function(n));
         for (auto&& s : ng.input_sockets(n))
           if (!ng.connections(s).empty())
             ng.set_data(s, nullptr);
@@ -487,14 +488,6 @@ namespace yave {
   {
     struct
     {
-      bool is_lambda(const node_handle& n, const structured_node_graph& ng)
-      {
-        for (auto&& s : ng.input_sockets(n))
-          if (ng.connections(s).empty() && !ng.get_data(s))
-            return true;
-        return false;
-      }
-
       auto get_function_body(
         const node_handle& f,
         const socket_handle& os,
@@ -532,7 +525,7 @@ namespace yave {
         std::vector<object_ptr<const Object>> ins;
         for (auto&& s : ng.input_sockets(g)) {
 
-          // default value / variable
+          // variable
           if (auto data = ng.get_data(s)) {
             assert(ng.connections(s).empty());
             ins.push_back(data);
@@ -558,10 +551,10 @@ namespace yave {
           ret     = rec_n(ci->src_node(), ci->src_socket(), ins, defs, ng, env);
         }
 
-        // Lambda
-        if (is_lambda(g, ng))
-          for (auto&& i : ins | rv::reverse)
-            ret = make_object<Lambda>(value_cast<const Variable>(i), ret);
+        // add Lambda
+        for (auto&& i : ins | rv::reverse)
+          if (auto var = value_cast_if<Variable>(i))
+            ret = make_object<Lambda>(var, ret);
 
         return ret;
       }
@@ -591,9 +584,6 @@ namespace yave {
 
         auto body = get_function_body(f, os, defs, ng, env);
 
-        if (is_lambda(f, ng))
-          return body;
-
         for (auto&& s : ng.input_sockets(f)) {
 
           // default value
@@ -608,7 +598,12 @@ namespace yave {
             continue;
           }
 
-          assert(ng.connections(s).size() == 1);
+          auto cs = ng.connections(s);
+
+          // lambda
+          if (cs.empty())
+            return body;
+
           auto c  = ng.connections(s)[0];
           auto ci = ng.get_info(c);
           body =
