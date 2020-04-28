@@ -20,37 +20,25 @@ namespace yave {
   public:
     /// Ctor
     node_compiler();
+    /// Dtor
+    ~node_compiler() noexcept;
 
     /// Compile parsed graph
     [[nodiscard]] auto compile(
       managed_node_graph&& graph,
       const node_definition_store& defs) -> std::optional<executable>;
 
+    /// Compile parsed V2 node graph
+    [[nodiscard]] auto compile(
+      structured_node_graph&& graph,
+      const node_definition_store& defs) -> std::optional<executable>;
+
     /// Get last errors
     [[nodiscard]] auto get_errors() const -> error_list;
 
   private:
-    /// Optimize parsed graph
-    [[nodiscard]] auto _optimize_early(managed_node_graph&& graph)
-      -> std::optional<managed_node_graph>;
-
-    /// Resolve overloadings and check type
-    [[nodiscard]] auto _type(
-      const managed_node_graph& graph,
-      const node_definition_store& defs) -> std::optional<executable>;
-
-    /// Verbose type check
-    [[nodiscard]] auto _verbose_check(
-      const executable& executable,
-      const managed_node_graph& graph) -> bool;
-
-    /// Optimize executable
-    [[nodiscard]] auto _optimize(
-      executable&& exe,
-      const managed_node_graph& graph) -> executable;
-
-  private:
-    error_list m_errors;
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
   };
 
 } // namespace yave
