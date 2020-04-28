@@ -68,7 +68,7 @@ namespace yave {
     auto info = get_node_declaration<node::Image>();
 
     return std::vector {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<modules::_std::image::LoadImage>(mngr.get_pool_object()),
       info.description())};

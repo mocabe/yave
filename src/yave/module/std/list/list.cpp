@@ -98,7 +98,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::ListNil>();
     return {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<yave::modules::_std::list::ListNil>(),
       info.name())};
@@ -109,7 +109,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::ListCons>();
     return {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<yave::modules::_std::list::ListCons>(),
       info.name())};
@@ -121,7 +121,7 @@ namespace yave {
     auto info = get_node_declaration<node::ListDecompose>();
 
     auto d1 = node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<yave::modules::_std::list::ListHead>(),
       info.description());

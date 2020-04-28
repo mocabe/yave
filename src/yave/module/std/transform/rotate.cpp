@@ -166,7 +166,7 @@ namespace yave {
     auto info = get_node_declaration<node::Rotate>();
 
     return {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<modules::_std::geometry::Rotate>(),
       info.description())};
@@ -178,7 +178,7 @@ namespace yave {
     auto info = get_node_declaration<node::RotateX>();
 
     return {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<modules::_std::geometry::RotateX>(),
       info.description())};
@@ -190,7 +190,7 @@ namespace yave {
     auto info = get_node_declaration<node::RotateY>();
 
     return {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<modules::_std::geometry::RotateY>(),
       info.description())};
@@ -202,7 +202,7 @@ namespace yave {
     auto info = get_node_declaration<node::RotateZ>();
 
     return {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<modules::_std::geometry::RotateZ>(),
       info.description())};

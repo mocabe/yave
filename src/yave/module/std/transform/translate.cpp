@@ -63,7 +63,7 @@ namespace yave {
     auto info = get_node_declaration<node::Translate>();
 
     return {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<modules::_std::geometry::Translate>(),
       info.description())};

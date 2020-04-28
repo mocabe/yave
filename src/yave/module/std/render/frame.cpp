@@ -23,7 +23,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Frame>();
     return std::vector {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<modules::_std::render::FrameBufferConstructor>(
         mngr.get_pool_object()),
