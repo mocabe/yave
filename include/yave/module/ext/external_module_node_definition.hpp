@@ -20,16 +20,16 @@ namespace yave {
   {
     external_module_node_definition(const node_definition& def)
     {
-      m_name        = def.name();
-      m_instance    = def.instance();
-      m_output      = def.output_socket();
-      m_description = def.description();
+      m_qualified_name = def.qualified_name();
+      m_instance       = def.instance();
+      m_output         = def.output_socket();
+      m_description    = def.description();
     }
 
     /// Get name
-    [[nodiscard]] auto name() const -> std::string
+    [[nodiscard]] auto qualified_name() const -> std::string
     {
-      return m_name;
+      return m_qualified_name;
     }
 
     /// Get output socket index
@@ -53,11 +53,11 @@ namespace yave {
     /// Convert to yave::bind info
     [[nodiscard]] auto node_definition() const -> node_definition
     {
-      return {name(), output_socket(), instance(), description()};
+      return {qualified_name(), output_socket(), instance(), description()};
     }
 
   private:
-    string m_name;                       // 16
+    string m_qualified_name;             // 16
     string m_description;                // 16
     uint64_t m_output;                   // 8
     object_ptr<const Object> m_instance; // 8

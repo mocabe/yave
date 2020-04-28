@@ -39,24 +39,24 @@ namespace yave {
     /// Add definitions
     void add(const std::vector<node_definition>& defs);
     /// Remove definitions
-    void remove(const std::string& name);
+    void remove(const std::string& qualified_name);
     /// Remove definitions
-    void remove(const std::vector<std::string>& names);
+    void remove(const std::vector<std::string>& qualified_name);
 
     /// Exists?
-    [[nodiscard]] bool exists(const std::string& name) const;
+    [[nodiscard]] bool exists(const std::string& qualified_name) const;
     /// Exists?
     [[nodiscard]] bool exists(
-      const std::string& name,
+      const std::string& qualified_name,
       const size_t& output_socket) const;
 
     /// Find definition
-    [[nodiscard]] auto find(const std::string& name) const
+    [[nodiscard]] auto find(const std::string& qualified_name) const
       -> std::vector<std::shared_ptr<const node_definition>>;
 
     /// Get compatible binds
     [[nodiscard]] auto get_binds(
-      const std::string& name,
+      const std::string& qualified_name,
       const size_t& output_socket) const
       -> std::vector<std::shared_ptr<const node_definition>>;
 
