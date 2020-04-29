@@ -22,6 +22,7 @@ namespace yave::app {
     struct queue_data
     {
       std::shared_ptr<const node_data_snapshot> snapshot;
+      node_declaration_store decls;
       node_definition_store defs;
     };
 
@@ -100,7 +101,8 @@ namespace yave::app {
                 continue;
               } else {
                 // compile
-                auto exe = compiler.compile(std::move(*parsed), top.defs);
+                auto exe =
+                  compiler.compile(std::move(*parsed), top.decls, top.defs);
                 if (!exe) {
                   new_result->success        = false;
                   new_result->compile_errors = compiler.get_errors();
@@ -150,13 +152,14 @@ namespace yave::app {
 
     void compile(
       const std::shared_ptr<const node_data_snapshot>& snapshot,
-      const node_definition_store& decl)
+      const node_declaration_store& decls,
+      const node_definition_store& defs)
     {
       if (!is_running())
         throw std::runtime_error("Compiler thread not running");
 
       std::unique_lock lck {mtx};
-      queue.push({snapshot, decl});
+      queue.push({snapshot, decls, defs});
       cond.notify_one();
     }
 
@@ -197,9 +200,10 @@ namespace yave::app {
 
   void node_compiler_thread::compile(
     const std::shared_ptr<const node_data_snapshot>& snapshot,
-    const node_definition_store& decl)
+    const node_declaration_store& decls,
+    const node_definition_store& defs)
   {
-    m_pimpl->compile(snapshot, decl);
+    m_pimpl->compile(snapshot, decls, defs);
   }
 
   auto node_compiler_thread::get_last_result() const

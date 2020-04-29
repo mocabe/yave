@@ -50,6 +50,7 @@ namespace yave {
 
     auto type(
       const managed_node_graph& parsed_graph,
+      const node_declaration_store& decls,
       const node_definition_store& defs) -> tl::optional<executable>;
 
     auto verbose_check(executable&& exe, int) -> tl::optional<executable>;
@@ -73,16 +74,18 @@ namespace yave {
 
     auto compile(
       managed_node_graph&& parsed_graph,
+      const node_declaration_store& decls,
       const node_definition_store& defs) -> tl::optional<executable>
     {
       errors.clear();
 
       Info(g_logger, "Start compiling node tree:");
       Info(g_logger, "  Total {} nodes in graph", parsed_graph.nodes().size());
+      Info(g_logger, "  Total {} node declarations", decls.size());
       Info(g_logger, "  Total {} node definitions", defs.size());
 
       return tl::make_optional(std::move(parsed_graph)) //
-        .and_then(mem_fn(type, defs))
+        .and_then(mem_fn(type, decls, defs))
         .and_then(mem_fn(verbose_check, 0))
         .or_else([&] {
           Error(g_logger, "Failed to compiler node graph");
@@ -128,9 +131,10 @@ namespace yave {
 
   auto node_compiler::compile(
     managed_node_graph&& parsed_graph,
+    const node_declaration_store& decls,
     const node_definition_store& defs) -> std::optional<executable>
   {
-    return to_std(m_pimpl->compile(std::move(parsed_graph), defs));
+    return to_std(m_pimpl->compile(std::move(parsed_graph), decls, defs));
   }
 
   auto node_compiler::compile(
@@ -158,154 +162,130 @@ namespace yave {
     we need to keep track relation between backend object and nodes.
    */
   auto node_compiler::impl::type(
-    const managed_node_graph& parsed_graph,
+    const managed_node_graph& ng,
+    const node_declaration_store& decls,
     const node_definition_store& defs) -> tl::optional<executable>
   {
-    struct
-    {
-      // build apply graph
-      inline auto rec(
-        class_env& env,
-        socket_instance_manager& sim,
-        const node_definition_store& nds,
-        const managed_node_graph& graph,
-        const socket_handle& socket) -> object_ptr<const Object>
-      {
-        assert(graph.get_info(socket)->type() == socket_type::output);
+    auto root_group = ng.root_group();
 
-        auto node = graph.node(socket);
+    assert(ng.output_sockets(root_group).size() == 1);
+    assert(ng.input_sockets(root_group).empty());
 
-        size_t socket_index = 0;
-        for (auto&& s : graph.output_sockets(node)) {
-          if (s == socket)
-            break;
-          ++socket_index;
-        }
-
-        if (auto inst = sim.find(socket)) {
-          return inst->instance;
-        }
-
-        auto iss = graph.input_sockets(node);
-
-        // group: make lambda if it's lambda form
-        if (graph.is_group(node)) {
-
-          // lambda form
-          auto isLambda = [&] {
-            for (auto&& s : iss) {
-              if (graph.connections(s).empty())
-                return true;
-            }
-            return false;
-          }();
-
-          auto inside = graph.get_group_socket_inside(socket);
-
-          auto body = rec(
-            env,
-            sim,
-            nds,
-            graph,
-            graph.get_info(graph.connections(inside)[0])->src_socket());
-
-          // apply lambda
-          if (isLambda) {
-            for (auto iter = iss.rbegin(); iter != iss.rend(); ++iter) {
-              auto& s = *iter;
-              body    = make_object<Lambda>(
-                value_cast<Variable>(graph.get_data(s)), body);
-            }
-          }
-
-          return body;
-        }
-
-        // group input
-        if (graph.is_group_input(node)) {
-
-          auto outside = graph.get_group_socket_outside(socket);
-
-          // not connected: return variable
-          if (graph.connections(outside).empty())
-            return value_cast<Variable>(graph.get_data(outside));
-
-          return rec(
-            env,
-            sim,
-            nds,
-            graph,
-            graph.get_info(graph.connections(outside)[0])->src_socket());
-        }
-
-        // acquire node object
-
-        auto defs = nds.get_binds(*graph.get_name(node), socket_index);
-
-        if (defs.empty())
-          throw compile_error::no_valid_overloading(node, socket);
-
-        std::vector<object_ptr<const Object>> insts;
-        insts.reserve(defs.size());
-        for (auto&& def : defs) {
-          insts.push_back(def->instance());
-        }
-
-        auto overloaded =
-          insts.size() == 1
-            ? insts[0]
-            : env.add_overloading(uid::random_generate(), insts);
-
-        // apply inputs
-        for (auto&& s : iss) {
-          if (graph.connections(s).empty()) {
-
-            // lambda form
-            if (!graph.get_data(s))
-              return overloaded;
-
-            // apply default argument
-            if (auto holder = value_cast_if<DataTypeHolder>(graph.get_data(s)))
-              overloaded = overloaded << holder->get_data_constructor();
-            else
-              overloaded = overloaded << graph.get_data(s);
-
-          } else {
-            // normal argument
-            assert(graph.connections(s).size() == 1);
-
-            overloaded =
-              overloaded << rec(
-                env,
-                sim,
-                nds,
-                graph,
-                graph.get_info(graph.connections(s)[0])->src_socket());
-          }
-        }
-
-        return overloaded;
-      }
-    } impl;
-
-    auto root_group = parsed_graph.root_group();
-
-    assert(parsed_graph.output_sockets(root_group).size() == 1);
-    assert(parsed_graph.input_sockets(root_group).empty());
-
-    auto root_socket = parsed_graph.output_sockets(root_group)[0];
+    auto root_socket = ng.output_sockets(root_group)[0];
 
     class_env env;
     socket_instance_manager sim;
 
+    auto rec =
+      [&](auto&& self, const auto& socket) -> object_ptr<const Object> {
+      assert(ng.get_info(socket)->type() == socket_type::output);
+
+      auto node = ng.node(socket);
+
+      size_t socket_index = 0;
+      for (auto&& s : ng.output_sockets(node)) {
+        if (s == socket)
+          break;
+        ++socket_index;
+      }
+
+      if (auto inst = sim.find(socket)) {
+        return inst->instance;
+      }
+
+      auto iss = ng.input_sockets(node);
+
+      // group: make lambda if it's lambda form
+      if (ng.is_group(node)) {
+
+        // lambda form
+        auto isLambda = [&] {
+          for (auto&& s : iss) {
+            if (ng.connections(s).empty())
+              return true;
+          }
+          return false;
+        }();
+
+        auto inside = ng.get_group_socket_inside(socket);
+
+        auto body = self(ng.get_info(ng.connections(inside)[0])->src_socket());
+
+        // apply lambda
+        if (isLambda) {
+          for (auto iter = iss.rbegin(); iter != iss.rend(); ++iter) {
+            auto& s = *iter;
+            body =
+              make_object<Lambda>(value_cast<Variable>(ng.get_data(s)), body);
+          }
+        }
+
+        return body;
+      }
+
+      // group input
+      if (ng.is_group_input(node)) {
+
+        auto outside = ng.get_group_socket_outside(socket);
+
+        // not connected: return variable
+        if (ng.connections(outside).empty())
+          return value_cast<Variable>(ng.get_data(outside));
+
+        return self(ng.get_info(ng.connections(outside)[0])->src_socket());
+      }
+
+      // acquire node object
+      assert(decls.find(*ng.get_name(node)));
+      auto qualified_name = decls.find(*ng.get_name(node))->qualified_name();
+      auto ds             = defs.get_binds(qualified_name, socket_index);
+
+      if (ds.empty())
+        throw compile_error::no_valid_overloading(node, socket);
+
+      std::vector<object_ptr<const Object>> insts;
+      insts.reserve(defs.size());
+      for (auto&& def : ds) {
+        insts.push_back(def->instance());
+      }
+
+      auto overloaded = insts.size() == 1
+                          ? insts[0]
+                          : env.add_overloading(uid::random_generate(), insts);
+
+      // apply inputs
+      for (auto&& s : iss) {
+        if (ng.connections(s).empty()) {
+
+          // lambda form
+          if (!ng.get_data(s))
+            return overloaded;
+
+          // apply default argument
+          if (auto holder = value_cast_if<DataTypeHolder>(ng.get_data(s)))
+            overloaded = overloaded << holder->get_data_constructor();
+          else
+            overloaded = overloaded << ng.get_data(s);
+
+        } else {
+          // normal argument
+          assert(ng.connections(s).size() == 1);
+
+          overloaded = overloaded
+                       << self(ng.get_info(ng.connections(s)[0])->src_socket());
+        }
+      }
+      return overloaded;
+    };
+
     // FIXME: Implement proper error info
     auto srcn = root_group;
-    auto srcs = parsed_graph.output_sockets(srcn).at(0);
+    auto srcs = ng.output_sockets(srcn).at(0);
 
     try {
 
       // build apply tree
-      auto app = impl.rec(env, sim, defs, parsed_graph, root_socket);
+      auto app = fix_lambda(rec)(root_socket);
 
       // now we can check type and resolve overloadings
       auto [ty, app2] = type_of_overloaded(app, env);
