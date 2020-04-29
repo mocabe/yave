@@ -9,13 +9,14 @@
 namespace yave {
 
   auto class_env::add_overloading(
+    const uid& id,
     const std::vector<object_ptr<const Object>>& instances)
     -> object_ptr<const Overloaded>
   {
-    auto src = make_object<Overloaded>();
-    auto id  = src->id_var;
+    auto src    = make_object<Overloaded>(id.data);
+    auto id_var = src->id_var;
 
-    if (m_map.find(id) != m_map.end())
+    if (m_map.find(id_var) != m_map.end())
       throw std::invalid_argument("Class is already defined");
 
     // calculate generalized type
@@ -48,9 +49,21 @@ namespace yave {
     }
 
     // add
-    m_map.emplace(id, overloaded_class {gentp, instances});
+    m_map.emplace(id_var, overloaded_class {gentp, instances});
 
     return src;
+  }
+
+  auto class_env::find_overloaded(const uid& id) const
+    -> object_ptr<const Overloaded>
+  {
+    auto id_var = make_object<Type>(var_type {id.data});
+
+    if (m_map.find(id_var) != m_map.end())
+      // always create new object
+      return make_object<Overloaded>(id.data);
+
+    return nullptr;
   }
 
   auto class_env::find_overloading(const object_ptr<const Type>& class_id) const

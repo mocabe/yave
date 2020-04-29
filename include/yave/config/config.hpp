@@ -13,6 +13,7 @@
 #include <yave/config/os.hpp>
 #include <yave/config/compiler.hpp>
 #include <yave/config/uuid.hpp>
+#include <yave/config/fix.hpp>
 
 #include <cstdint>
 #include <cstddef>

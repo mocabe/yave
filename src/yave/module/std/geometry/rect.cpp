@@ -51,7 +51,7 @@ namespace yave {
     auto info = get_node_declaration<node::Rect2>();
 
     return std::vector {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<modules::_std::geometry::Rect2Ctor>(),
       info.description())};
@@ -63,7 +63,7 @@ namespace yave {
     auto info = get_node_declaration<node::Rect3>();
 
     return std::vector {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<modules::_std::geometry::Rect3Ctor>(),
       info.description())};

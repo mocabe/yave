@@ -805,7 +805,8 @@ namespace yave::app {
   public:
     void compile()
     {
-      compiler_thread.compile(snapshot, project.node_definitions());
+      compiler_thread.compile(
+        snapshot, project.node_declarations(), project.node_definitions());
     }
 
     bool is_compiling() const

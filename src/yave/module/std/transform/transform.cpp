@@ -40,7 +40,7 @@ namespace yave {
     auto info = get_node_declaration<node::Transform>();
 
     return {node_definition(
-      info.name(),
+      info.qualified_name(),
       0,
       make_object<modules::_std::geometry::TransformConstructor>(),
       info.description())};

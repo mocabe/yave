@@ -48,7 +48,7 @@ struct yave::node_declaration_traits<n::Add>
   static auto get_node_declaration()
   {
     class X;
-    return node_declaration("add", "/test", "", {"x", "y"}, {"out"});
+    return node_declaration("Add", "/test", "", {"x", "y"}, {"out"});
   }
 };
 
@@ -59,11 +59,17 @@ struct yave::node_definition_traits<n::Add, test_backend>
   {
     // Int version
     auto defi = node_definition(
-      get_node_declaration<n::Add>().name(), 0, make_object<AddI>(), "AddI");
+      get_node_declaration<n::Add>().qualified_name(),
+      0,
+      make_object<AddI>(),
+      "AddI");
 
     // Float version
     auto defd = node_definition(
-      get_node_declaration<n::Add>().name(), 0, make_object<AddF>(), "AddF");
+      get_node_declaration<n::Add>().qualified_name(),
+      0,
+      make_object<AddF>(),
+      "AddF");
 
     return {defi, defd};
   }
@@ -376,7 +382,7 @@ TEST_CASE("node_compiler V2")
   SECTION("f = [x y -> x + y]")
   {
     auto f = ng.create_group(root);
-    ng.set_name(f, "/x y -> x + y");
+    ng.set_name(f, "(x y -> x + y)");
     auto a = ng.create_copy(f, add_func);
     REQUIRE(ng.add_output_socket(f, "out"));
     REQUIRE(ng.add_input_socket(f, "x"));
@@ -500,7 +506,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(
       graph.connect(graph.output_sockets(i2)[0], graph.input_sockets(add)[1]));
 
-    REQUIRE(compiler.compile(std::move(graph), defs));
+    REQUIRE(compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("add x x")
@@ -518,7 +524,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(
       graph.connect(graph.output_sockets(i)[0], graph.input_sockets(add)[1]));
 
-    REQUIRE(compiler.compile(std::move(graph), defs));
+    REQUIRE(compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("add (add x x) x")
@@ -546,7 +552,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(graph.connect(i_value, add2_x));
     REQUIRE(graph.connect(i_value, add2_y));
 
-    REQUIRE(compiler.compile(std::move(graph), defs));
+    REQUIRE(compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("add x d")
@@ -569,7 +575,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(graph.connect(i_value, add_x));
     REQUIRE(graph.connect(d_value, add_y));
 
-    REQUIRE(!compiler.compile(std::move(graph), defs));
+    REQUIRE(!compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("add (add x d) x")
@@ -599,7 +605,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(graph.connect(i_value, add2_x));
     REQUIRE(graph.connect(d_value, add2_y));
 
-    REQUIRE(!compiler.compile(std::move(graph), defs));
+    REQUIRE(!compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("if b x y")
@@ -624,7 +630,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(graph.connect(i_value, _if_then));
     REQUIRE(graph.connect(i_value, _if_else));
 
-    REQUIRE(compiler.compile(std::move(graph), defs));
+    REQUIRE(compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("if b (if b x y) z")
@@ -660,7 +666,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(graph.connect(i_value, if2_else));
     REQUIRE(graph.connect(i_value, if1_else));
 
-    REQUIRE(compiler.compile(std::move(graph), defs));
+    REQUIRE(compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("if b x d")
@@ -688,7 +694,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(graph.connect(i_value, _if_then));
     REQUIRE(graph.connect(d_value, _if_else));
 
-    REQUIRE(!compiler.compile(std::move(graph), defs));
+    REQUIRE(!compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("add<int> x y")
@@ -708,7 +714,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(graph.connect(i_value, add_x));
     REQUIRE(graph.connect(i_value, add_y));
 
-    REQUIRE(compiler.compile(std::move(graph), defs));
+    REQUIRE(compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("add<double> x y")
@@ -728,7 +734,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(graph.connect(d_value, add_x));
     REQUIRE(graph.connect(d_value, add_y));
 
-    REQUIRE(compiler.compile(std::move(graph), defs));
+    REQUIRE(compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("add<?> x y")
@@ -751,7 +757,7 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(graph.connect(i_value, add_x));
     REQUIRE(graph.connect(d_value, add_y));
 
-    REQUIRE(!compiler.compile(std::move(graph), defs));
+    REQUIRE(!compiler.compile(std::move(graph), decls, defs));
   }
 
   SECTION("42 : []")
@@ -774,6 +780,6 @@ TEST_CASE("add", "[node_compiler]")
     REQUIRE(graph.connect(i_value, cons_head));
     REQUIRE(graph.connect(nil_value, cons_tail));
 
-    REQUIRE(compiler.compile(std::move(graph), defs));
+    REQUIRE(compiler.compile(std::move(graph), decls, defs));
   }
 }

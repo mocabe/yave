@@ -54,6 +54,7 @@ namespace yave::app {
     /// Queue compilation
     void compile(
       const std::shared_ptr<const node_data_snapshot>& snapshot,
+      const node_declaration_store& decls,
       const node_definition_store& defs);
 
     /// Get last executable
