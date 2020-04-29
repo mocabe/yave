@@ -384,86 +384,6 @@ namespace yave {
   auto node_compiler::impl::desugar(structured_node_graph&& ng, int)
     -> tl::optional<structured_node_graph>
   {
-    struct
-    {
-      // Add Variables on empty input socket of lambda calls
-      void fill_variables(const node_handle& n, structured_node_graph& ng)
-      {
-        assert(ng.is_group(n));
-        if (ng.input_connections(n).size() < ng.input_sockets(n).size())
-          for (auto&& s : ng.input_sockets(n))
-            ng.set_data(s, make_object<Variable>());
-      }
-
-      // Rmove unsued default socket data
-      void omit_unused_defaults(const node_handle& n, structured_node_graph& ng)
-      {
-        assert(ng.is_function(n));
-        for (auto&& s : ng.input_sockets(n))
-          if (!ng.connections(s).empty())
-            ng.set_data(s, nullptr);
-      }
-
-      void rec_g(
-        const node_handle& g,
-        const socket_handle& os,
-        structured_node_graph& ng)
-      {
-        fill_variables(g, ng);
-
-        // inputs
-        for (auto&& c : ng.input_connections(g)) {
-          auto ci = ng.get_info(c);
-          rec_n(ci->src_node(), ci->src_socket(), ng);
-        }
-
-        // inside
-        {
-          auto go  = ng.get_group_output(g);
-          auto idx = *ng.get_index(os);
-          auto s   = ng.input_sockets(go)[idx];
-
-          for (auto&& c : ng.connections(s)) {
-            auto ci = ng.get_info(c);
-            rec_n(ci->src_node(), ci->src_socket(), ng);
-          }
-        }
-      }
-
-      void rec_f(
-        const node_handle& f,
-        const socket_handle& os,
-        structured_node_graph& ng)
-      {
-        (void)os;
-
-        omit_unused_defaults(f, ng);
-
-        // inputs
-        for (auto&& c : ng.input_connections(f)) {
-          auto ci = ng.get_info(c);
-          rec_n(ci->src_node(), ci->src_socket(), ng);
-        }
-      }
-
-      void rec_n(
-        const node_handle& n,
-        const socket_handle& os,
-        structured_node_graph& ng)
-      {
-        if (ng.is_group(n))
-          return rec_g(n, os, ng);
-
-        if (ng.is_function(n))
-          return rec_f(n, os, ng);
-
-        if (ng.is_group_input(n))
-          return;
-
-        assert(false);
-      }
-    } impl;
-
     auto roots = ng.search_path("/");
 
     auto root = [&] {
@@ -476,7 +396,74 @@ namespace yave {
     assert(ng.output_sockets(root).size() == 1);
     auto rootos = ng.output_sockets(root)[0];
 
-    impl.rec_n(root, rootos, ng);
+    // Add Variables on empty input socket of lambda calls
+    auto fill_variables = [](const auto& n, auto& ng) {
+      assert(ng.is_group(n));
+      if (ng.input_connections(n).size() < ng.input_sockets(n).size())
+        for (auto&& s : ng.input_sockets(n))
+          ng.set_data(s, make_object<Variable>());
+    };
+
+    // Rmove unsued default socket data
+    auto omit_unused_defaults = [](const auto& n, auto& ng) {
+      assert(ng.is_function(n));
+      for (auto&& s : ng.input_sockets(n))
+        if (!ng.connections(s).empty())
+          ng.set_data(s, nullptr);
+    };
+
+    // for group
+    auto rec_g = [&](auto&& rec_n, const auto& g, const auto& os) -> void {
+      // fill
+      fill_variables(g, ng);
+
+      // inputs
+      for (auto&& c : ng.input_connections(g)) {
+        auto ci = ng.get_info(c);
+        rec_n(ci->src_node(), ci->src_socket());
+      }
+
+      // inside
+      {
+        auto go  = ng.get_group_output(g);
+        auto idx = *ng.get_index(os);
+        auto s   = ng.input_sockets(go)[idx];
+
+        for (auto&& c : ng.connections(s)) {
+          auto ci = ng.get_info(c);
+          rec_n(ci->src_node(), ci->src_socket());
+        }
+      }
+    };
+
+    // for function
+    auto rec_f = [&](auto&& rec_n, const auto& f) -> void {
+      // omit
+      omit_unused_defaults(f, ng);
+
+      // inputs
+      for (auto&& c : ng.input_connections(f)) {
+        auto ci = ng.get_info(c);
+        rec_n(ci->src_node(), ci->src_socket());
+      }
+    };
+
+    // general
+    auto rec_n = [&](auto&& self, const auto& n, const auto& os) {
+      if (ng.is_group(n))
+        return rec_g(self, n, os);
+
+      if (ng.is_function(n))
+        return rec_f(self, n);
+
+      if (ng.is_group_input(n))
+        return;
+
+      assert(false);
+    };
+
+    auto rec = fix_lambda(rec_n);
+    rec(root, rootos);
 
     return std::move(ng);
   }
@@ -486,153 +473,6 @@ namespace yave {
     const node_definition_store& defs)
     -> tl::optional<std::pair<object_ptr<const Object>, class_env>>
   {
-    struct
-    {
-      auto get_function_body(
-        const node_handle& f,
-        const socket_handle& os,
-        const node_definition_store& defs,
-        const structured_node_graph& ng,
-        class_env& env)
-      {
-        assert(ng.is_function(f));
-
-        auto ds = defs.get_binds(*ng.get_name(f), *ng.get_index(os));
-
-        if (ds.empty())
-          throw compile_error::no_valid_overloading(f, os);
-
-        std::vector<object_ptr<const Object>> insts;
-        insts.reserve(defs.size());
-
-        for (auto&& d : ds)
-          insts.push_back(d->instance());
-
-        return insts.size() == 1 ? insts[0] : env.add_overloading(insts);
-      }
-
-      auto rec_g(
-        const node_handle& g,
-        const socket_handle& os,
-        const std::vector<object_ptr<const Object>>& in,
-        const node_definition_store& defs,
-        structured_node_graph& ng,
-        class_env& env)
-      {
-        assert(ng.is_group(g));
-
-        // inputs
-        std::vector<object_ptr<const Object>> ins;
-        for (auto&& s : ng.input_sockets(g)) {
-
-          // variable
-          if (auto data = ng.get_data(s)) {
-            assert(ng.connections(s).empty());
-            ins.push_back(data);
-            continue;
-          }
-
-          assert(ng.connections(s).size() == 1);
-          auto ci = ng.get_info(ng.connections(s)[0]);
-          ins.push_back(
-            rec_n(ci->src_node(), ci->src_socket(), in, defs, ng, env));
-        }
-
-        // inside
-        object_ptr<const Object> ret;
-        {
-          auto go  = ng.get_group_output(g);
-          auto idx = *ng.get_index(os);
-          auto s   = ng.input_sockets(go)[idx];
-
-          assert(ng.connections(s).size() == 1);
-
-          auto ci = ng.get_info(ng.connections(s)[0]);
-          ret     = rec_n(ci->src_node(), ci->src_socket(), ins, defs, ng, env);
-        }
-
-        // add Lambda
-        for (auto&& i : ins | rv::reverse)
-          if (auto var = value_cast_if<Variable>(i))
-            ret = make_object<Lambda>(var, ret);
-
-        return ret;
-      }
-
-      auto rec_i(
-        const node_handle& i,
-        const socket_handle& os,
-        const std::vector<object_ptr<const Object>>& in,
-        structured_node_graph& ng)
-      {
-        assert(ng.is_group_input(i));
-
-        auto idx = *ng.get_index(os);
-        return in[idx];
-      }
-
-      auto rec_f(
-        const node_handle& f,
-        const socket_handle& os,
-        const std::vector<object_ptr<const Object>>& in,
-        const node_definition_store& defs,
-        structured_node_graph& ng,
-        class_env& env)
-      {
-        (void)os;
-        assert(ng.is_function(f));
-
-        auto body = get_function_body(f, os, defs, ng, env);
-
-        for (auto&& s : ng.input_sockets(f)) {
-
-          // default value
-          if (auto data = ng.get_data(s)) {
-
-            // FIXME: Remove this branch
-            if (auto holder = value_cast_if<DataTypeHolder>(data))
-              body = body << holder->get_data_constructor();
-            else
-              body = body << data;
-
-            continue;
-          }
-
-          auto cs = ng.connections(s);
-
-          // lambda
-          if (cs.empty())
-            return body;
-
-          auto ci = ng.get_info(cs[0]);
-          body =
-            body << rec_n(ci->src_node(), ci->src_socket(), in, defs, ng, env);
-        }
-
-        return body;
-      }
-
-      auto rec_n(
-        const node_handle& n,
-        const socket_handle& os,
-        const std::vector<object_ptr<const Object>>& in,
-        const node_definition_store& defs,
-        structured_node_graph& ng,
-        class_env& env) -> object_ptr<const Object>
-      {
-        if (ng.is_group(n))
-          return rec_g(n, os, in, defs, ng, env);
-
-        if (ng.is_function(n))
-          return rec_f(n, os, in, defs, ng, env);
-
-        if (ng.is_group_input(n))
-          return rec_i(n, os, in, ng);
-
-        assert(false);
-      }
-    } impl;
-
     auto roots = ng.search_path("/");
 
     auto root = [&] {
@@ -645,15 +485,144 @@ namespace yave {
     assert(ng.output_sockets(root).size() == 1);
     auto rootos = ng.output_sockets(root)[0];
 
+    // class overload environment
+    class_env env;
+
+    // get overloaded function
+    auto get_function_body = [&](const auto& f, const auto& os) {
+      assert(ng.is_function(f));
+
+      auto ds = defs.get_binds(*ng.get_name(f), *ng.get_index(os));
+
+      if (ds.empty())
+        throw compile_error::no_valid_overloading(f, os);
+
+      std::vector<object_ptr<const Object>> insts;
+      insts.reserve(defs.size());
+
+      for (auto&& d : ds)
+        insts.push_back(d->instance());
+
+      return insts.size() == 1 ? insts[0] : env.add_overloading(insts);
+    };
+
+    // group
+    auto rec_g = [&](
+                   auto&& rec_n,
+                   const auto& g,
+                   const auto& os,
+                   const auto& in) -> object_ptr<const Object> {
+      assert(ng.is_group(g));
+
+      Info(g_logger, "rec_g: {}", *ng.get_name(g));
+
+      // inputs
+      std::vector<object_ptr<const Object>> ins;
+      for (auto&& s : ng.input_sockets(g)) {
+
+        // variable
+        if (auto data = ng.get_data(s)) {
+          assert(ng.connections(s).empty());
+          ins.push_back(data);
+          continue;
+        }
+
+        assert(ng.connections(s).size() == 1);
+        auto ci = ng.get_info(ng.connections(s)[0]);
+        ins.push_back(rec_n(ci->src_node(), ci->src_socket(), in));
+      }
+
+      // inside
+      object_ptr<const Object> ret;
+      {
+        auto go  = ng.get_group_output(g);
+        auto idx = *ng.get_index(os);
+        auto s   = ng.input_sockets(go)[idx];
+
+        assert(ng.connections(s).size() == 1);
+
+        auto ci = ng.get_info(ng.connections(s)[0]);
+        ret     = rec_n(ci->src_node(), ci->src_socket(), ins);
+      }
+
+      // add Lambda
+      for (auto&& i : ins | rv::reverse)
+        if (auto var = value_cast_if<Variable>(i))
+          ret = make_object<Lambda>(var, ret);
+
+      return ret;
+    };
+
+    // function
+    auto rec_f = [&](
+                   auto&& rec_n,
+                   const auto& f,
+                   const auto& os,
+                   const auto& in) -> object_ptr<const Object> {
+      (void)os;
+      assert(ng.is_function(f));
+
+      Info(g_logger, "rec_f: {}", *ng.get_name(f));
+
+      auto body = get_function_body(f, os);
+
+      for (auto&& s : ng.input_sockets(f)) {
+
+        // default value
+        if (auto data = ng.get_data(s)) {
+
+          // FIXME: Remove this branch
+          if (auto holder = value_cast_if<DataTypeHolder>(data))
+            body = body << holder->get_data_constructor();
+          else
+            body = body << data;
+
+          continue;
+        }
+
+        auto cs = ng.connections(s);
+
+        // lambda
+        if (cs.empty())
+          return body;
+
+        auto ci = ng.get_info(cs[0]);
+        body    = body << rec_n(ci->src_node(), ci->src_socket(), in);
+      }
+
+      return body;
+    };
+
+    // group input
+    auto rec_i = [&](const auto& i, const auto& os, const auto& in) {
+      assert(ng.is_group_input(i));
+      auto idx = *ng.get_index(os);
+      return in[idx];
+    };
+
+    // general
+    auto rec_n =
+      [&](auto&& self, const auto& n, const auto& os, const auto& in) {
+        if (ng.is_group(n))
+          return rec_g(self, n, os, in);
+
+        if (ng.is_function(n))
+          return rec_f(self, n, os, in);
+
+        if (ng.is_group_input(n))
+          return rec_i(n, os, in);
+
+        assert(false);
+      };
+
     // FIXME:
     node_handle srcn;
     socket_handle srcs;
 
     try {
 
-      class_env env;
-      auto app = impl.rec_n(root, rootos, {}, defs, ng, env);
-
+      auto rec = fix_lambda(rec_n);
+      auto app = rec(root, rootos, std::vector<object_ptr<const Object>>());
       return std::make_pair(std::move(app), std::move(env));
 
       // forward
