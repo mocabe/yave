@@ -27,7 +27,7 @@ TEST_CASE("overloading")
     auto id = make_object<Identity>();
 
     class_env env;
-    auto o = env.add_overloading({f});
+    auto o = env.add_overloading(uid::random_generate(), {f});
 
     SECTION("f 42")
     {
@@ -105,7 +105,7 @@ TEST_CASE("overloading")
     auto id = make_object<Identity>();
 
     class_env env;
-    auto o = env.add_overloading({f, g});
+    auto o = env.add_overloading(uid::random_generate(), {f, g});
 
     SECTION("(id f) (f 42)")
     {
@@ -197,7 +197,7 @@ TEST_CASE("overloading")
     auto id = make_object<Identity>();
 
     class_env env;
-    auto ovl = env.add_overloading({j, i, h, g, f});
+    auto ovl = env.add_overloading(uid::random_generate(), {j, i, h, g, f});
 
     SECTION("f Int")
     {
@@ -301,7 +301,7 @@ TEST_CASE("overloading")
     auto id = make_object<Identity>();
 
     class_env env;
-    auto o = env.add_overloading({f, g});
+    auto o = env.add_overloading(uid::random_generate(), {f, g});
 
     SECTION("f Int")
     {
@@ -387,7 +387,7 @@ TEST_CASE("overloading")
     SECTION("2")
     {
       class_env env;
-      auto overloaded = env.add_overloading({f, g});
+      auto overloaded = env.add_overloading(uid::random_generate(), {f, g});
 
       auto app = overloaded << (overloaded << h);
 

@@ -25,14 +25,20 @@ namespace yave {
 
   class class_env
   {
-  private:
     std::map<object_ptr<const Type>, overloaded_class, var_type_comp> m_map;
 
   public:
+    /// register overloading info and returns new Overloaded object
     [[nodiscard]] auto add_overloading(
+      const uid& id,
       const std::vector<object_ptr<const Object>>& instances)
       -> object_ptr<const Overloaded>;
 
+    /// Finds registered overloading from ID and returns new Overloaded object
+    [[nodiscard]] auto find_overloaded(const uid& id) const
+      -> object_ptr<const Overloaded>;
+
+    /// Aquire overloading info from class ID
     [[nodiscard]] auto find_overloading(
       const object_ptr<const Type>& class_id) const -> const overloaded_class*;
   };

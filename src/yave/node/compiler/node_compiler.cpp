@@ -252,7 +252,9 @@ namespace yave {
         }
 
         auto overloaded =
-          insts.size() == 1 ? insts[0] : env.add_overloading(insts);
+          insts.size() == 1
+            ? insts[0]
+            : env.add_overloading(uid::random_generate(), insts);
 
         // apply inputs
         for (auto&& s : iss) {
@@ -489,10 +491,19 @@ namespace yave {
     class_env env;
 
     // get overloaded function
-    auto get_function_body = [&](const auto& f, const auto& os) {
+    auto get_function_body =
+      [&](const auto& f, const auto& os) -> object_ptr<const Object> {
       assert(ng.is_function(f));
 
-      auto ds = defs.get_binds(*ng.get_name(f), *ng.get_index(os));
+      auto defcall = ng.get_definition(f);
+
+      Info(g_logger, "get_function_body(): {}", *ng.get_path(defcall));
+
+      // check if already added
+      if (auto overloaded = env.find_overloaded(defcall.id()))
+        return overloaded;
+
+      auto ds = defs.get_binds(*ng.get_path(defcall), *ng.get_index(os));
 
       if (ds.empty())
         throw compile_error::no_valid_overloading(f, os);
@@ -503,7 +514,8 @@ namespace yave {
       for (auto&& d : ds)
         insts.push_back(d->instance());
 
-      return insts.size() == 1 ? insts[0] : env.add_overloading(insts);
+      return insts.size() == 1 ? insts[0]
+                               : env.add_overloading(defcall.id(), insts);
     };
 
     // group

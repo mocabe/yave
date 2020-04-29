@@ -48,7 +48,7 @@ struct yave::node_declaration_traits<n::Add>
   static auto get_node_declaration()
   {
     class X;
-    return node_declaration("add", "/test", "", {"x", "y"}, {"out"});
+    return node_declaration("Add", "/test", "", {"x", "y"}, {"out"});
   }
 };
 
@@ -59,11 +59,17 @@ struct yave::node_definition_traits<n::Add, test_backend>
   {
     // Int version
     auto defi = node_definition(
-      get_node_declaration<n::Add>().name(), 0, make_object<AddI>(), "AddI");
+      get_node_declaration<n::Add>().qualified_name(),
+      0,
+      make_object<AddI>(),
+      "AddI");
 
     // Float version
     auto defd = node_definition(
-      get_node_declaration<n::Add>().name(), 0, make_object<AddF>(), "AddF");
+      get_node_declaration<n::Add>().qualified_name(),
+      0,
+      make_object<AddF>(),
+      "AddF");
 
     return {defi, defd};
   }
@@ -376,7 +382,7 @@ TEST_CASE("node_compiler V2")
   SECTION("f = [x y -> x + y]")
   {
     auto f = ng.create_group(root);
-    ng.set_name(f, "/x y -> x + y");
+    ng.set_name(f, "(x y -> x + y)");
     auto a = ng.create_copy(f, add_func);
     REQUIRE(ng.add_output_socket(f, "out"));
     REQUIRE(ng.add_input_socket(f, "x"));
