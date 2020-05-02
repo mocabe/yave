@@ -5,7 +5,8 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/rts/kind_typing.hpp>
+#include <yave/rts/kinds.hpp>
+#include <yave/rts/types.hpp>
 
 using namespace yave;
 
@@ -30,15 +31,14 @@ void test_is_ty()
 {
   static_assert(is_tvar(type_c<tvar<int, kstar>>));
   static_assert(is_tcon(type_c<ty_value<int>>));
-  static_assert(is_tgen(type_c<tgen<0>>));
   static_assert(is_tcon(type_c<tcon<void, void>>));
 }
 
 void test_ty()
 {
-  using tArrow = tcon<ty_arrow_tag, kfun<kstar, kfun<kstar, kstar>>>;
-  using tList  = tcon<ty_list_tag, kfun<kstar, kstar>>;
-  using tInt   = tcon<int, kstar>;
+  using tArrow = tcon<arrow_tcon_tag, kfun<kstar, kfun<kstar, kstar>>>;
+  using tList  = tcon<list_tcon_tag, kfun<kstar, kstar>>;
+  using tInt   = tcon<value_tcon_tag<int>, kstar>;
 
   class a;
 
