@@ -9,6 +9,7 @@
 #include <yave/rts/meta_tuple.hpp>
 #include <yave/rts/meta_set.hpp>
 #include <yave/rts/meta_pair.hpp>
+#include <yave/rts/meta_result.hpp>
 #include <yave/rts/terms.hpp>
 #include <yave/rts/types.hpp>
 #include <yave/rts/object.hpp>
@@ -16,309 +17,248 @@
 namespace yave {
 
   // ------------------------------------------
-  // subst
+  // apply_subst
 
-  /// Type substitution
-  /// \param ar type map of substitution
-  /// \param type type to apply substitution
-  template <class TyT1Tag, class TyT2, class T>
-  [[nodiscard]] constexpr auto subst(
-    meta_type<tyarrow<ty_var<TyT1Tag>, TyT2>> ar,
-    meta_type<T> type)
+  template <class TyT1Tag, class TyT1Kind, class TyT2, class T>
+  [[nodiscard]] constexpr auto apply_tyarrow(
+    meta_type<tyarrow<tvar<TyT1Tag, TyT1Kind>, TyT2>> s,
+    meta_type<T> t)
   {
-    (void)ar;
-    (void)type;
-
-    if constexpr (type == ar.t1()) {
-      return ar.t2();
-    } else if constexpr (is_ty_arrow(type)) {
-      auto lt = subst(ar, type.t1());
-      auto rt = subst(ar, type.t2());
-      return make_ty_arrow(lt, rt);
-    } else if constexpr (is_ty_value(type)) {
-      return type;
-    } else if constexpr (is_ty_var(type)) {
-      return type;
-    } else if constexpr (is_ty_varvalue(type)) {
-      return type;
-    } else if constexpr (is_ty_list(type)) {
-      auto t = subst(ar, type.t());
-      return make_ty_list(t);
+    if constexpr (t == s.t1()) {
+      return s.t2();
+    } else if constexpr (is_tap(t)) {
+      return make_tap(apply_tyarrow(s, t.t1()), apply_tyarrow(s, t.t2()));
     } else
-      static_assert(false_v<T>, "Invalid type");
+      return t;
   }
 
-  // ------------------------------------------
-  // subst_all
-
-  /// Process list of type substitution
-  template <class... TyArrow, class Ty>
-  [[nodiscard]] constexpr auto subst_all(
-    meta_tuple<TyArrow...> tyarrows,
-    meta_type<Ty> type)
+  template <class... TyArrows, class T>
+  [[nodiscard]] constexpr auto apply_subst(
+    meta_tuple<TyArrows...> s,
+    meta_type<T> t)
   {
-    if constexpr (empty(tyarrows))
-      return type;
+    if constexpr (empty(s))
+      return t;
     else
-      return subst_all(tail(tyarrows), subst(head(tyarrows), type));
+      return apply_subst(tail(s), apply_tyarrow(head(s), t));
+  }
+
+  template <class... TyArrows, class... Ts>
+  [[nodiscard]] constexpr auto apply_subst(
+    meta_tuple<TyArrows...> s,
+    meta_tuple<Ts...> ts)
+  {
+    return map(
+      ts, [=](auto t) constexpr { return apply_subst(s, t); });
   }
 
   // ------------------------------------------
-  // Constr
+  // vars
 
-  /// Type constraint
-  template <class T1, class T2>
-  struct tyconstr
+  template <class T>
+  [[nodiscard]] constexpr auto vars(meta_type<T> t)
   {
-    using type = tyconstr<T1, T2>;
-    using t1   = T1;
-    using t2   = T2;
-  };
-
-  template <class T1, class T2>
-  struct meta_type<tyconstr<T1, T2>>
-  {
-    [[nodiscard]] constexpr auto t1() const
-    {
-      return type_c<T1>;
-    }
-    [[nodiscard]] constexpr auto t2() const
-    {
-      return type_c<T2>;
-    }
-  };
-
-  template <class T1, class T2>
-  [[nodiscard]] constexpr auto make_tyconstr(meta_type<T1>, meta_type<T2>)
-  {
-    return type_c<tyconstr<T1, T2>>;
+    if constexpr (is_tvar(t)) {
+      return make_set(t);
+    } else if constexpr (is_tap(t)) {
+      return merge(vars(t.t1()), vars(t.t2()));
+    } else
+      return set_c<>;
   }
 
-  // ------------------------------------------
-  // subst_constr
-
-  /// Type substitution on type constraint
-  template <class TyT1, class TyT2, class T1, class T2>
-  [[nodiscard]] constexpr auto subst_constr(
-    meta_type<tyarrow<TyT1, TyT2>> a,
-    meta_type<tyconstr<T1, T2>>)
+  template <class... Ts>
+  [[nodiscard]] constexpr auto vars(meta_tuple<Ts...> ts)
   {
-    auto t1 = subst(a, type_c<T1>);
-    auto t2 = subst(a, type_c<T2>);
-    return make_tyconstr(t1, t2);
-  }
-
-  // ------------------------------------------
-  // subst_constr_all
-
-  /// Process list of type substitution on a type constraint
-  template <class TyT1, class TyT2, class... Cs>
-  [[nodiscard]] constexpr auto subst_constr_all(
-    meta_type<tyarrow<TyT1, TyT2>> a,
-    meta_tuple<Cs...>)
-  {
-    (void)a;
-
-    return make_tuple(subst_constr(a, type_c<Cs>)...);
+    return make_set(flatten(map(ts, [=](auto t) {
+      // lift to meta_type<meta_tuple<...>>
+      return type_c<decltype(make_tuple(vars(t)))>;
+    })));
   }
 
   // ------------------------------------------
   // compose_subst
 
-  namespace detail {
-
-    template <class... TyArrows, class TyT1, class TyT2, class... Results>
-    constexpr auto compose_subst_impl(
-      meta_tuple<TyArrows...> tyarrows,
-      meta_type<tyarrow<TyT1, TyT2>> a,
-      meta_tuple<Results...> result)
-    {
-      auto h = head(tyarrows);
-      auto t = tail(tyarrows);
-
-      auto r = make_tyarrow(h.t1(), subst(a, h.t2()));
-
-      if constexpr (empty(t))
-        return append(r, result);
-      else
-        return compose_subst_impl(t, a, append(r, result));
-    }
-  } // namespace detail
-
-  /// compose substitution
-  template <class... TyArrows, class TyT1, class TyT2>
+  template <class... TyArrows1, class... TyArrows2>
   [[nodiscard]] constexpr auto compose_subst(
-    meta_tuple<TyArrows...> tyarrows,
-    meta_type<tyarrow<TyT1, TyT2>> a)
+    meta_tuple<TyArrows1...> s1,
+    meta_tuple<TyArrows2...> s2)
   {
-    // g(f(S)):
-    // | X->g(T) when (X->T) belongs f
-    // | X->T    when (X->T) belongs g && X not belongs dom(f)
-    if constexpr (empty(tyarrows))
-      return make_tuple(a);
-    else {
-      auto r = detail::compose_subst_impl(tyarrows, a, tuple_c<>);
-      // FIXME: add domain check
-      return append(a, r);
-    }
+    return concat(
+      map(
+        s2,
+        [=](auto s) { return make_tyarrow(s.t1(), apply_subst(s1, s.t2())); }),
+      s1);
+  }
+
+  // ------------------------------------------
+  // merge_subst
+
+  template <class... TyArrows1, class... TyArrows2>
+  [[nodiscard]] constexpr auto merge_subst(
+    meta_tuple<TyArrows1...> s1,
+    meta_tuple<TyArrows2...> s2)
+  {
+    constexpr auto fst = [=](auto s) { return s.t1(); };
+
+    // GCC 9.2 bug: s1 is not constant expression.
+    // constexpr auto agree = [=](auto v) {
+    //   return apply_subst(s1, v) == apply_subst(s2, v);
+    // };
+
+    if constexpr (all(
+                    intersect(map(s1, fst), map(s2, fst)),
+                    /* agree */ [=](auto v) {
+                      return apply_subst(s1, v) == apply_subst(s2, v);
+                    }))
+      return make_succ(concat(s1, s2));
+    else
+      return make_error(make_unknown_error());
   }
 
   // ------------------------------------------
   // occurs
 
-  /// "Occurs check" algorithm
-  template <class X, class T>
-  [[nodiscard]] constexpr auto occurs(meta_type<X> x, meta_type<T> t)
+  template <class Tag, class Kind, class T>
+  [[nodiscard]] constexpr auto occurs(
+    meta_type<tvar<Tag, Kind>> u,
+    meta_type<T> t)
   {
-    (void)x;
-    (void)t;
+    (void)u;
 
-    if constexpr (is_ty_arrow(t)) {
-      constexpr bool b = occurs(x, t.t1()) || occurs(x, t.t2());
-      return std::bool_constant<b> {};
-    } else if constexpr (is_ty_value(t)) {
+    if constexpr (is_tap(t))
+      return occurs(u, t.t1()) || occurs(u, t.t2());
+    else if constexpr (is_tvar(t))
+      return u == t;
+    else if constexpr (is_tcon(t))
       return false_c;
-    } else if constexpr (is_ty_var(t)) {
-      return x == t;
-    } else if constexpr (is_ty_varvalue(t)) {
-      return false_c;
-    } else if constexpr (is_ty_list(t)) {
-      return occurs(x, t.t());
-    } else
+    else
       static_assert(false_v<T>, "Invalid type");
+  }
+
+  // ------------------------------------------
+  // mgu
+
+  template <class Tag, class Kind, class T>
+  [[nodiscard]] constexpr auto mgu_var(
+    meta_type<tvar<Tag, Kind>> u,
+    meta_type<T> t)
+  {
+    if constexpr (u == t)
+      return make_succ(tuple_c<>);
+    else if constexpr (occurs(u, t))
+      return make_error(make_circular_constraints(u, t));
+    else if constexpr (kind_of(u) != kind_of(t))
+      return make_error(make_kind_missmatch(u, t));
+    else
+      return make_succ(tuple_c<tyarrow<tvar<Tag, Kind>, T>>);
+  }
+
+  /// most general unifier
+  /// \returns succ of meta_tuple<tyarrow<T1, T2>...>, or err of tyerror
+  template <class T1, class T2>
+  [[nodiscard]] constexpr auto mgu(meta_type<T1> t1, meta_type<T2> t2)
+  {
+    // clang-format off
+    if constexpr (is_tap(t1) && is_tap(t2))
+      return mgu(t1.t1(), t2.t1())
+        .and_then([=](auto s1) { return mgu(apply_subst(s1, t1.t2()), apply_subst(s1, t2.t2()))
+        .and_then([=](auto s2) { return make_succ(compose_subst(s2, s1)); }); });
+    // clang-format on
+    else if constexpr (is_tvar(t1))
+      return mgu_var(t1, t2);
+    else if constexpr (is_tvar(t2))
+      return mgu_var(t2, t1);
+    else if constexpr (is_tcon(t1) && is_tcon(t2)) {
+      if constexpr (t1 == t2)
+        return make_succ(tuple_c<>);
+      else
+        return make_error(make_type_missmatch(t1, t2));
+    } else
+      return make_error(make_unsolvable_constraints(t1, t2));
+  }
+
+  // ------------------------------------------
+  // match
+
+  template <class T1, class T2>
+  [[nodiscard]] constexpr auto match(meta_type<T1> t1, meta_type<T2> t2)
+  {
+    // clang-format off
+    if constexpr (is_tap(t1) && is_tap(t2))
+      return match(t1.t1(), t2.t1())
+        .and_then([=](auto s1) { return match(t1.t2(), t2.t2())
+        .and_then([=](auto s2) { return merge_subst(s1, s2); }); });
+    // clang-format on
+    else if constexpr (is_tvar(t1))
+      return mgu_var(t1, t2);
+    else if constexpr (is_tcon(t1) && is_tcon(t2))
+      if constexpr (t1 == t2)
+        return make_succ(tuple_c<>);
+      else
+        return make_error(make_type_missmatch(t1, t2));
+    else
+      return make_error(make_unsolvable_constraints(t1, t2));
   }
 
   // ------------------------------------------
   // unify
 
-  namespace detail {
-
-    template <class... Cs>
-    constexpr auto unify_impl(meta_tuple<Cs...> cs);
-
-    template <class Var, class X, class... Cs>
-    constexpr auto unify_impl_vars(
-      meta_type<Var> var,
-      meta_type<X> x,
-      meta_tuple<Cs...> cs)
-    {
-      // occurs check
-      if constexpr (occurs(var, x)) {
-        return make_circular_constraints(var, cs);
-      } else {
-        auto arr = make_tyarrow(var, x);
-        auto t   = unify_impl(subst_constr_all(arr, tail(cs)));
-        // error handling
-        if constexpr (is_tyerror(t))
-          return t;
-        else
-          return compose_subst(t, arr);
-      }
+  /// emit static_assert for static type check errors
+  template <class T>
+  [[nodiscard]] constexpr auto unify_assert(T type)
+  {
+    constexpr auto tag = type.tag();
+    if constexpr (is_type_missmatch(tag)) {
+      static_assert(false_v<T>, "Unification error: Type missmatch");
+      // print error info
+      using left  = typename decltype(tag)::type::left::_show;
+      using right = typename decltype(tag)::type::right::_show;
+      using other = typename decltype(tag)::type::other::_show;
+      static_assert(false_v<left, right, other>, "Unification failed.");
+    } else if constexpr (is_unsolvable_constraints(tag)) {
+      static_assert(false_v<T>, "Unification error: Unsolvable constraints");
+      // print error info
+      using left  = typename decltype(tag)::type::left::_show;
+      using right = typename decltype(tag)::type::right::_show;
+      using other = typename decltype(tag)::type::other::_show;
+      static_assert(false_v<left, right, other>, "Unification failed.");
+    } else if constexpr (is_circular_constraints(tag)) {
+      static_assert(false_v<T>, "Unification error: Circular constraints");
+      // print error info
+      using var   = typename decltype(tag)::type::var::_show;
+      using other = typename decltype(tag)::type::other::_show;
+      static_assert(false_v<var, other>, "Unification failed.");
+    } else if constexpr (is_unknown_error(tag)) {
+      static_assert(
+        false_v<T>,
+        "Unification error: Unknown error(probably invalid constraints)");
+    } else {
+      static_assert(false_v<T>, "Invalid error tag for tyerror");
     }
-
-    template <class... Cs>
-    constexpr auto unify_impl(meta_tuple<Cs...> cs)
-    {
-      if constexpr (empty(cs)) {
-        return tuple_c<>;
-      } else {
-        auto c  = head(cs);
-        auto tl = tail(cs);
-
-        (void)tl;
-
-        if constexpr (c.t1() == c.t2()) {
-          return unify_impl(tl);
-        }
-        // constr(arrow(S1, S2), arrow(T1, T2))
-        else if constexpr (is_ty_arrow(c.t1()) && is_ty_arrow(c.t2())) {
-          auto a1 = c.t1();
-          auto a2 = c.t2();
-          return unify_impl(concat(
-            make_tuple(
-              make_tyconstr(a1.t1(), a2.t1()), make_tyconstr(a1.t2(), a2.t2())),
-            tl));
-        }
-        // constr(x , var)
-        else if constexpr (is_ty_var(c.t2())) {
-          auto x   = c.t1();
-          auto var = c.t2();
-          return unify_impl_vars(var, x, cs);
-        }
-        // constr(var, x)
-        else if constexpr (is_ty_var(c.t1())) {
-          auto var = c.t1();
-          auto x   = c.t2();
-          return unify_impl_vars(var, x, cs);
-        }
-        // constr(list(T1), list(T2))
-        else if constexpr (is_ty_list(c.t1()) && is_ty_list(c.t2())) {
-          auto l = c.t1();
-          auto r = c.t2();
-          return unify_impl(
-            concat(make_tuple(make_tyconstr(l.t(), r.t())), tl));
-        } else
-          return make_type_missmatch(c.t1(), c.t2(), tl);
-      }
-    }
-
-    /// emit static_assert for static type check errors
-    template <class T>
-    [[nodiscard]] constexpr auto unify_assert(T type)
-    {
-      constexpr auto tag = type.tag();
-      if constexpr (is_type_missmatch(tag)) {
-        static_assert(false_v<T>, "Unification error: Type missmatch");
-        // print error info
-        using left  = typename decltype(tag)::type::left::_show;
-        using right = typename decltype(tag)::type::right::_show;
-        using other = typename decltype(tag)::type::other::_show;
-        static_assert(false_v<left, right, other>, "Unification failed.");
-      } else if constexpr (is_unsolvable_constraints(tag)) {
-        static_assert(false_v<T>, "Unification error: Unsolvable constraints");
-        // print error info
-        using left  = typename decltype(tag)::type::left::_show;
-        using right = typename decltype(tag)::type::right::_show;
-        using other = typename decltype(tag)::type::other::_show;
-        static_assert(false_v<left, right, other>, "Unification failed.");
-      } else if constexpr (is_circular_constraints(tag)) {
-        static_assert(false_v<T>, "Unification error: Circular constraints");
-        // print error info
-        using var   = typename decltype(tag)::type::var::_show;
-        using other = typename decltype(tag)::type::other::_show;
-        static_assert(false_v<var, other>, "Unification failed.");
-      } else if constexpr (is_unknown_error(tag)) {
-        static_assert(
-          false_v<T>,
-          "Unification error: Unknown error(probably invalid constraints)");
-      } else {
-        static_assert(false_v<T>, "Invalid error tag for tyerror");
-      }
-      return type;
+    return type;
   }
 
-  } // namespace detail
-
-  /// Compile time unification.
-  /// \param cs a list of constraints
-  /// \param enable_assert if `true_type` then emit `static_assert` otherwise
-  /// return `tyerror`.
-  /// \return `meta_set` of `constr` or `tyerror` on failure(when
-  /// `enable_assert` is `false_type`).
-  template <bool B, class... Cs>
+  /// unification
+  /// \returns meta_tuple<tyarrow<T1,T2>...> or tyerror<E>
+  template <class T1, class T2, bool B>
   [[nodiscard]] constexpr auto unify(
-    meta_tuple<Cs...> cs,
+    meta_type<T1> t1,
+    meta_type<T2> t2,
     std::bool_constant<B> enable_assert)
   {
-    (void)cs;
     (void)enable_assert;
 
-    constexpr auto t = detail::unify_impl(cs);
+    auto result = mgu(t1, t2);
 
-    if constexpr (enable_assert && is_tyerror(t))
-      return detail::unify_assert(t);
-    else
-      return t;
+    if constexpr (result.is_succ())
+      return result.value();
+
+    if constexpr (result.is_error()) {
+      if constexpr (enable_assert)
+        return unify_assert(result.error());
+      else
+        return result.error();
+    }
   }
 
   // ------------------------------------------
@@ -408,7 +348,7 @@ namespace yave {
         return genpoly_impl(term.t(), gen, target);
       } else if constexpr (is_tm_var(term)) {
         return make_pair(
-          subst_term(term, gen_tm_var(gen), target), nextgen(gen));
+          subst_term(term, make_tm_var(gen), target), nextgen(gen));
       } else
         return make_pair(target, gen);
     }
@@ -545,14 +485,13 @@ namespace yave {
             return make_pair(t2, g2);
           } else {
             // type check subtree
-            auto var = gen_ty_var(g2);
+            auto var = make_ty_var(g2);
             auto g3  = nextgen(g2);
-            auto c   = make_tuple(make_tyconstr(t1, make_ty_arrow(t2, var)));
-            auto s   = unify(c, enable_assert);
+            auto s   = unify(t1, make_ty_arrow(t2, var), enable_assert);
             if constexpr (is_tyerror(s))
               return make_pair(s, g3);
             else
-              return make_pair(subst_all(s, var), g3);
+              return make_pair(apply_subst(s, var), g3);
           }
         }
       } else if constexpr (is_tm_list(term)) {

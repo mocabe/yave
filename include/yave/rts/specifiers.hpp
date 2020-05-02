@@ -7,6 +7,7 @@
 
 #include <yave/rts/meta_type.hpp>
 #include <yave/rts/meta_tuple.hpp>
+#include <yave/rts/types.hpp>
 
 namespace yave {
 
@@ -180,9 +181,6 @@ namespace yave {
   // get_value_object_type
 
   template <class T>
-  struct ty_value;
-
-  template <class T>
   [[nodiscard]] constexpr auto get_value_object_type(meta_type<ty_value<T>>)
   {
     return type_c<T>;
@@ -199,9 +197,6 @@ namespace yave {
 
   template <class T>
   using List = Box<list_object_value<T>>;
-
-  template <class T>
-  struct ty_list;
 
   template <class T>
   [[nodiscard]] constexpr auto get_list_object_type(meta_type<ty_list<T>>)

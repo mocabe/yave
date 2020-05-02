@@ -227,30 +227,49 @@ namespace yave {
     meta_type<T> type,
     meta_type<ClosureProxy<Ts...>> result)
   {
-    if constexpr (is_ty_arrow(type)) {
-      return guess_object_type_closure(
-        type.t2(), append(guess_object_type(type.t1()), result));
-    } else {
-      return append(guess_object_type(type), result);
-    }
+    return append(guess_object_type(type), result);
+  }
+
+  template <class T1, class T2, class... Ts>
+  [[nodiscard]] constexpr auto guess_object_type_closure(
+    meta_type<ty_arrow<T1, T2>>,
+    meta_type<ClosureProxy<Ts...>> result)
+  {
+    return guess_object_type_closure(
+      type_c<T2>, append(guess_object_type(type_c<T1>), result));
   }
 
   /// Guess C++ type of a type.
   /// Unknown types will be converted into proxy.
   template <class T>
-  [[nodiscard]] constexpr auto guess_object_type(meta_type<T> type)
+  [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_list<T>>)
   {
-    if constexpr (is_ty_arrow(type)) {
-      return guess_object_type_closure(type, type_c<ClosureProxy<>>);
-    } else if constexpr (is_ty_value(type)) {
-      return get_value_object_type(type);
-    } else if constexpr (is_ty_varvalue(type) || is_ty_var(type)) {
-      using tag = typename decltype(type.tag())::type;
-      return type_c<VarValueProxy<tag>>;
-    } else if constexpr (is_ty_list(type)) {
-      return get_list_object_type(make_ty_list(guess_object_type(type.t())));
-    } else
-      static_assert(false_v<T>, "Invalid type");
+    return get_list_object_type(make_ty_list(guess_object_type(type_c<T>)));
+  }
+
+  template <class T1, class T2>
+  [[nodiscard]] constexpr auto guess_object_type(
+    meta_type<ty_arrow<T1, T2>> type)
+  {
+    return guess_object_type_closure(type, type_c<ClosureProxy<>>);
+  }
+
+  template <class Tag>
+  [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_value<Tag>> type)
+  {
+    return get_value_object_type(type);
+  }
+
+  template <class Tag>
+  [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_varvalue<Tag>>)
+  {
+    return type_c<VarValueProxy<Tag>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_var<T>>)
+  {
+    return type_c<VarValueProxy<T>>;
   }
 
 } // namespace yave
