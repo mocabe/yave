@@ -21,7 +21,7 @@ namespace yave {
 
   /// meta_tuple constant
   template <class... Ts>
-  static constexpr meta_tuple<Ts...> tuple_c {};
+  inline constexpr meta_tuple<Ts...> tuple_c {};
 
   template <class... Ts1, class... Ts2>
   [[nodiscard]] constexpr auto equal(
@@ -50,6 +50,21 @@ namespace yave {
     meta_tuple<Ts2...> t2)
   {
     return std::bool_constant<!(t1 == t2)> {};
+  }
+
+  // ------------------------------------------
+  // is_tuple
+
+  template <class... Ts>
+  [[nodiscard]] constexpr auto is_tuple(meta_tuple<Ts...>)
+  {
+    return true_c;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto is_tuple(T)
+  {
+    return false_c;
   }
 
   // ------------------------------------------
@@ -168,22 +183,79 @@ namespace yave {
   }
 
   // ------------------------------------------
+  // intersect
+
+  namespace detail {
+
+    template <class... Ts1, class... Rs>
+    constexpr auto intersect_impl(
+      meta_tuple<Ts1...>,
+      meta_tuple<>,
+      meta_tuple<Rs...> result)
+    {
+      return result;
+    }
+
+    template <class... Ts1, class... Ts2, class... Rs>
+    constexpr auto intersect_impl(
+      meta_tuple<Ts1...> ts1,
+      meta_tuple<Ts2...> ts2,
+      meta_tuple<Rs...> result)
+    {
+      if constexpr (contains(head(ts2), ts1))
+        return intersect_impl(ts1, tail(ts2), append(head(ts2), result));
+      else
+        return intersect_impl(ts1, tail(ts2), result);
+    }
+  } // namespace detail
+
+  template <class... Ts1, class... Ts2>
+  [[nodiscard]] constexpr auto intersect(
+    meta_tuple<Ts1...> ts1,
+    meta_tuple<Ts2...> ts2)
+  {
+    return detail::intersect_impl(ts1, ts2, tuple_c<>);
+  }
+
+  // ------------------------------------------
+  // flatten
+
+  namespace detail {
+    template <class... Tups, class... Ts>
+    constexpr auto flatten_impl(
+      meta_tuple<Tups...> tuples,
+      meta_tuple<Ts...> result)
+    {
+      if constexpr (empty(tuples))
+        return result;
+      else {
+        return flatten_impl(
+          tail(tuples),
+          // head(tuples) is type_c<meta_tuple<...>>
+          concat(result, typename decltype(head(tuples))::type {}));
+      }
+    }
+  } // namespace detail
+
+  /// Flatten tuple of tuples
+  template <class... Tups>
+  [[nodiscard]] constexpr auto flatten(meta_tuple<Tups...> tuples)
+  {
+    if constexpr ((is_tuple(Tups {}) && ...))
+      return detail::flatten_impl(tuples, tuple_c<>);
+    else
+      static_assert(false_v<Tups...>, "not tuple of tuples");
+  }
+
+  // ------------------------------------------
   // contains
 
   /// Check if the tuple contains specific type.
   template <class E, class... Ts>
-  [[nodiscard]] constexpr auto contains(meta_type<E> e, meta_tuple<Ts...> tuple)
+  [[nodiscard]] constexpr auto contains(meta_type<E>, meta_tuple<Ts...>)
   {
-    (void)e;
-    (void)tuple;
-
-    if constexpr (empty(tuple)) {
-      return false_c;
-    } else if constexpr (e == head(tuple)) {
-      return true_c;
-    } else {
-      return contains(e, tail(tuple));
-    }
+    constexpr bool b = ((type_c<Ts> == type_c<E>) || ...);
+    return std::bool_constant<b> {};
   }
 
   // ------------------------------------------
@@ -197,6 +269,50 @@ namespace yave {
       return tuple_c<>;
     else
       return concat(make_tuple(head(tuple)), remove_last(tail(tuple)));
+  }
+
+  // ------------------------------------------
+  // map
+
+  namespace detail {
+
+    template <class F, class... Rs>
+    constexpr auto map_impl(meta_tuple<>, F, meta_tuple<Rs...> result)
+    {
+      return result;
+    }
+
+    template <class... Ts, class F, class... Rs>
+    constexpr auto map_impl(
+      meta_tuple<Ts...> tuple,
+      F f,
+      meta_tuple<Rs...> result)
+    {
+      return map_impl(tail(tuple), f, append(f(head(tuple)), result));
+    }
+
+  } // namespace detail
+
+  template <class... Ts, class F>
+  [[nodiscard]] constexpr auto map(meta_tuple<Ts...> tuple, F f)
+  {
+    return detail::map_impl(tuple, f, tuple_c<>);
+  }
+
+  // ------------------------------------------
+  // all
+
+  template <class F>
+  [[nodiscard]] constexpr auto all(meta_tuple<>, F)
+  {
+    return true_c;
+  }
+
+  template <class... Ts, class F>
+  [[nodiscard]] constexpr auto all(meta_tuple<Ts...>, F f)
+  {
+    constexpr bool b = (f(type_c<Ts>) && ...);
+    return std::bool_constant<b> {};
   }
 
 } // namespace yave
