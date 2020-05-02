@@ -162,30 +162,18 @@ namespace yave {
   // ------------------------------------------
   // is_tm_apply
 
-  namespace detail {
+  template <class T1, class T2>
+  [[nodiscard]] constexpr auto is_tm_apply(meta_type<tm_apply<T1, T2>>)
+  {
+    return true_c;
+  }
 
-    template <class T>
-    struct is_tm_apply_impl
-    {
-      static constexpr auto value = false_c;
-    };
-
-    template <class T1, class T2>
-    struct is_tm_apply_impl<tm_apply<T1, T2>>
-    {
-      static constexpr auto value = true_c;
-    };
-
-  } // namespace detail
-
-  /// is_apply_v
   template <class T>
   [[nodiscard]] constexpr auto is_tm_apply(meta_type<T>)
   {
-    return detail::is_tm_apply_impl<T>::value;
+    return false_c;
   }
 
-  /// has_apply_v
   template <class T>
   [[nodiscard]] constexpr auto has_tm_apply()
   {
@@ -195,30 +183,18 @@ namespace yave {
   // ------------------------------------------
   // is_tm_value
 
-  namespace detail {
+  template <class Tag>
+  [[nodiscard]] constexpr auto is_tm_value(meta_type<tm_value<Tag>>)
+  {
+    return true_c;
+  }
 
-    template <class T>
-    struct is_tm_value_impl
-    {
-      static constexpr auto value = false_c;
-    };
-
-    template <class Tag>
-    struct is_tm_value_impl<tm_value<Tag>>
-    {
-      static constexpr auto value = true_c;
-    };
-
-  } // namespace detail
-
-  /// is_value_v
   template <class T>
   [[nodiscard]] constexpr auto is_tm_value(meta_type<T>)
   {
-    return detail::is_tm_value_impl<T>::value;
+    return false_c;
   }
 
-  /// has_value_v
   template <class T>
   [[nodiscard]] constexpr auto has_tm_value()
   {
@@ -228,30 +204,18 @@ namespace yave {
   // ------------------------------------------
   // is_tm_closure
 
-  namespace detail {
+  template <class... Ts>
+  [[nodiscard]] constexpr auto is_tm_closure(meta_type<tm_closure<Ts...>>)
+  {
+    return true_c;
+  }
 
-    template <class T>
-    struct is_tm_closure_impl
-    {
-      static constexpr auto value = false_c;
-    };
-
-    template <class... Ts>
-    struct is_tm_closure_impl<tm_closure<Ts...>>
-    {
-      static constexpr auto value = true_c;
-    };
-
-  } // namespace detail
-
-  /// is_closure_v
   template <class T>
   [[nodiscard]] constexpr auto is_tm_closure(meta_type<T>)
   {
-    return detail::is_tm_closure_impl<T>::value;
+    return false_c;
   }
 
-  /// has_closure_v
   template <class T>
   [[nodiscard]] constexpr auto has_tm_closure()
   {
@@ -261,30 +225,18 @@ namespace yave {
   // ------------------------------------------
   // is_tm_var
 
-  namespace detail {
+  template <class Tag>
+  [[nodiscard]] constexpr auto is_tm_var(meta_type<tm_var<Tag>>)
+  {
+    return true_c;
+  }
 
-    template <class T>
-    struct is_tm_var_impl
-    {
-      static constexpr auto value = false_c;
-    };
-
-    template <class Tag>
-    struct is_tm_var_impl<tm_var<Tag>>
-    {
-      static constexpr auto value = true_c;
-    };
-
-  } // namespace detail
-
-  /// is_var_v
   template <class T>
   [[nodiscard]] constexpr auto is_tm_var(meta_type<T>)
   {
-    return detail::is_tm_var_impl<T>::value;
+    return false_c;
   }
 
-  /// has_var_v
   template <class T>
   [[nodiscard]] constexpr auto has_tm_var()
   {
@@ -294,30 +246,18 @@ namespace yave {
   // ------------------------------------------
   // is_tm_varvalue
 
-  namespace detail {
+  template <class Tag>
+  [[nodiscard]] constexpr auto is_tm_varvalue(meta_type<tm_varvalue<Tag>>)
+  {
+    return true_c;
+  }
 
-    template <class T>
-    struct is_tm_varvalue_impl
-    {
-      static constexpr auto value = false_c;
-    };
-
-    template <class Tag>
-    struct is_tm_varvalue_impl<tm_varvalue<Tag>>
-    {
-      static constexpr auto value = true_c;
-    };
-
-  } // namespace detail
-
-  /// is_tm_varvalue
   template <class T>
   [[nodiscard]] constexpr auto is_tm_varvalue(meta_type<T>)
   {
-    return detail::is_tm_varvalue_impl<T>::value;
+    return false_c;
   }
 
-  /// has_tm_varvalue_v
   template <class T>
   [[nodiscard]] constexpr auto has_tm_varvalue()
   {
@@ -327,29 +267,18 @@ namespace yave {
   // ------------------------------------------
   // is_tm_list
 
-  namespace detail {
-
-    template <class T>
-    struct is_tm_list_impl
-    {
-      static constexpr auto value = false_c;
-    };
-
-    template <class T>
-    struct is_tm_list_impl<tm_list<T>>
-    {
-      static constexpr auto value = true_c;
-    };
+  template <class T>
+  [[nodiscard]] constexpr auto is_tm_list(meta_type<tm_list<T>>)
+  {
+    return true_c;
   }
 
-  /// is_tm_list
   template <class T>
   [[nodiscard]] constexpr auto is_tm_list(meta_type<T>)
   {
-    return detail::is_tm_list_impl<T>::value;
+    return false_c;
   }
 
-  /// has_tm_list
   template <class T>
   [[nodiscard]] constexpr auto has_tm_list()
   {
