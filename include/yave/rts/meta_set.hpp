@@ -119,6 +119,44 @@ namespace yave {
   }
 
   // ------------------------------------------
+  // empty
+
+  /// empty
+  template <class... Ts>
+  [[nodiscard]] constexpr auto empty(meta_set<Ts...>)
+  {
+    if constexpr (sizeof...(Ts) == 0)
+      return true_c;
+    else
+      return false_c;
+  }
+
+  // ------------------------------------------
+  // head
+
+  /// Get head of set.
+  template <class H, class... Ts>
+  [[nodiscard]] constexpr auto head(meta_set<H, Ts...>)
+  {
+    return type_c<H>;
+  }
+
+  // ------------------------------------------
+  // tail
+
+  /// Get tail of set.
+  template <class H, class... Ts>
+  [[nodiscard]] constexpr auto tail(meta_set<H, Ts...>)
+  {
+    return make_set(tuple_c<Ts...>);
+  }
+
+  [[nodiscard]] constexpr auto tail(meta_set<>)
+  {
+    return set_c<>;
+  }
+
+  // ------------------------------------------
   // equal
 
   template <class... Ts1, class... Ts2>
@@ -140,6 +178,18 @@ namespace yave {
       return s;
     else
       return set_c<Ts..., T>;
+  }
+
+  // ------------------------------------------
+  // merge
+
+  template <class... Ts1, class... Ts2>
+  [[nodiscard]] constexpr auto merge(meta_set<Ts1...> s1, meta_set<Ts2...> s2)
+  {
+    if constexpr (empty(s2))
+      return s1;
+    else
+      return merge(insert(head(s2), s1), tail(s2));
   }
 
 } // namespace yave
