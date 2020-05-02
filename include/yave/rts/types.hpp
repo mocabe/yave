@@ -5,42 +5,152 @@
 
 #pragma once
 
-#include <yave/rts/meta_type.hpp>
+#include <yave/rts/kinds.hpp>
+#include <yave/rts/meta_tuple.hpp>
 
 namespace yave {
 
   // ------------------------------------------
-  // Types
-
-  /// Arrow type
-  template <class T1, class T2>
-  struct ty_arrow
-  {
-  };
+  // Type primitives
 
   /// Type variable
-  template <class Tag>
-  struct ty_var
+  template <class Tag, class Kind>
+  struct tvar
   {
   };
 
-  /// Value type
-  template <class Tag>
-  struct ty_value
+  /// Type constructor
+  template <class Tag, class Kind>
+  struct tcon
   {
   };
 
-  /// Var value
-  template <class Tag>
-  struct ty_varvalue
+  /// Type level application
+  template <class T1, class T2>
+  struct tap
   {
   };
 
-  /// List type
+  template <class Tag, class Kind>
+  struct meta_type<tvar<Tag, Kind>>
+  {
+    [[nodiscard]] constexpr auto tag() const
+    {
+      return type_c<Tag>;
+    }
+    [[nodiscard]] constexpr auto kind() const
+    {
+      return type_c<Kind>;
+    }
+  };
+
+  template <class Tag, class Kind>
+  struct meta_type<tcon<Tag, Kind>>
+  {
+    [[nodiscard]] constexpr auto tag() const
+    {
+      return type_c<Tag>;
+    }
+    [[nodiscard]] constexpr auto kind() const
+    {
+      return type_c<Kind>;
+    }
+  };
+
+  template <class T1, class T2>
+  struct meta_type<tap<T1, T2>>
+  {
+    [[nodiscard]] constexpr auto t1() const
+    {
+      return type_c<T1>;
+    }
+    [[nodiscard]] constexpr auto t2() const
+    {
+      return type_c<T2>;
+    }
+  };
+
+  template <class Tag, class Kind>
+  [[nodiscard]] constexpr auto make_tvar(meta_type<Tag>, meta_type<Kind>)
+  {
+    return type_c<tvar<Tag, Kind>>;
+  }
+
+  template <class Tag, class Kind>
+  [[nodiscard]] constexpr auto make_tcon(meta_type<Tag>, meta_type<Kind>)
+  {
+    return type_c<tcon<Tag, Kind>>;
+  }
+
+  template <class T1, class T2>
+  [[nodiscard]] constexpr auto make_tap(meta_type<T1>, meta_type<T2>)
+  {
+    return type_c<tap<T1, T2>>;
+  }
+
+  // ------------------------------------------
+  // Type constructor tags
+
+  struct arrow_tcon_tag;
+
+  struct list_tcon_tag;
+
+  template <class Tag>
+  struct varvalue_tcon_tag;
+
+  template <size_t N>
+  struct var_tcon_tag;
+
   template <class T>
-  struct ty_list
+  struct value_tcon_tag;
+
+  // ------------------------------------------
+  // Types
+
+  // ty_var
+  template <class Tag, class Kind = kstar>
+  using ty_var = tvar<Tag, Kind>;
+
+  // ty_varvalue
+  template <class Tag>
+  using ty_varvalue = tcon<varvalue_tcon_tag<Tag>, kstar>;
+
+  // ty_value
+  template <class T>
+  using ty_value = tcon<value_tcon_tag<T>, kstar>;
+
+  // ty_arrow
+  template <class T1, class T2>
+  using ty_arrow =
+    tap<tap<tcon<arrow_tcon_tag, kfun<kstar, kfun<kstar, kstar>>>, T1>, T2>;
+
+  // ty_list
+  template <class T>
+  using ty_list = tap<tcon<list_tcon_tag, kfun<kstar, kstar>>, T>;
+
+  // ------------------------------------------
+  // kind_of
+
+  template <class Tag, class Kind>
+  [[nodiscard]] constexpr auto kind_of(meta_type<tvar<Tag, Kind>>)
   {
-  };
+    return type_c<Kind>;
+  }
+
+  template <class Tag, class Kind>
+  [[nodiscard]] constexpr auto kind_of(meta_type<tcon<Tag, Kind>>)
+  {
+    return type_c<Kind>;
+  }
+
+  template <class T1, class T2>
+  [[nodiscard]] constexpr auto kind_of(meta_type<tap<T1, T2>>)
+  {
+    return kind_of(type_c<T1>).k2();
+  }
+
+  // ------------------------------------------
+  // tyarrow
 
   /// Type mapping
   template <class T1, class T2>
@@ -48,9 +158,30 @@ namespace yave {
   {
   };
 
+  template <class T1, class T2>
+  struct meta_type<tyarrow<T1, T2>>
+  {
+    [[nodiscard]] constexpr auto t1() const
+    {
+      return type_c<T1>;
+    }
+    [[nodiscard]] constexpr auto t2() const
+    {
+      return type_c<T2>;
+    }
+  };
+
+  // ------------------------------------------
+  // tyerror
+
   /// Type error
   template <class Tag>
   struct tyerror
+  {
+  };
+
+  template <class Tag>
+  struct meta_type<tyerror<Tag>>
   {
     [[nodiscard]] constexpr auto tag() const
     {
@@ -62,7 +193,7 @@ namespace yave {
   namespace error_tags {
 
     /// type_missmatch
-    template <class T1, class T2, class Other = std::tuple<>>
+    template <class T1, class T2, class Other>
     struct type_missmatch
     {
       using left  = T1;
@@ -70,8 +201,16 @@ namespace yave {
       using other = Other;
     };
 
+    template <class K1, class K2, class Other>
+    struct kind_missmatch
+    {
+      using left  = K1;
+      using right = K2;
+      using other = Other;
+    };
+
     /// unsolvable_constraints
-    template <class T1, class T2, class Other = std::tuple<>>
+    template <class T1, class T2, class Other>
     struct unsolvable_constraints
     {
       using left  = T1;
@@ -80,7 +219,7 @@ namespace yave {
     };
 
     /// circular_constraints
-    template <class Var, class Other = std::tuple<>>
+    template <class Var, class Other>
     struct circular_constraints
     {
       using var   = Var;
@@ -98,36 +237,10 @@ namespace yave {
   // meta_type specializations
 
   template <class T1, class T2>
-  struct meta_type<ty_arrow<T1, T2>>
-  {
-    [[nodiscard]] constexpr auto t1() const
-    {
-      return type_c<T1>;
-    }
-    [[nodiscard]] constexpr auto t2() const
-    {
-      return type_c<T2>;
-    }
-  };
-
-  template <class T1, class T2>
   [[nodiscard]] constexpr auto make_ty_arrow(meta_type<T1>, meta_type<T2>)
   {
     return type_c<ty_arrow<T1, T2>>;
   }
-
-  template <class T1, class T2>
-  struct meta_type<tyarrow<T1, T2>>
-  {
-    [[nodiscard]] constexpr auto t1() const
-    {
-      return type_c<T1>;
-    }
-    [[nodiscard]] constexpr auto t2() const
-    {
-      return type_c<T2>;
-    }
-  };
 
   template <class T1, class T2>
   [[nodiscard]] constexpr auto make_tyarrow(meta_type<T1>, meta_type<T2>)
@@ -136,43 +249,16 @@ namespace yave {
   }
 
   template <class Tag>
-  struct meta_type<ty_value<Tag>>
-  {
-    [[nodiscard]] constexpr auto tag() const
-    {
-      return type_c<Tag>;
-    }
-  };
-
-  template <class Tag>
   [[nodiscard]] constexpr auto make_ty_value(meta_type<Tag>)
   {
     return type_c<ty_value<Tag>>;
   }
 
-  template <class Tag>
-  struct meta_type<ty_var<Tag>>
+  template <class T>
+  [[nodiscard]] constexpr auto make_ty_var(meta_type<T>)
   {
-    [[nodiscard]] constexpr auto tag() const
-    {
-      return type_c<Tag>;
-    }
-  };
-
-  template <class Tag>
-  [[nodiscard]] constexpr auto make_ty_var(meta_type<Tag>)
-  {
-    return type_c<ty_var<Tag>>;
+    return type_c<ty_var<T>>;
   }
-
-  template <class Tag>
-  struct meta_type<ty_varvalue<Tag>>
-  {
-    [[nodiscard]] constexpr auto tag() const
-    {
-      return type_c<Tag>;
-    }
-  };
 
   template <class Tag>
   [[nodiscard]] constexpr auto make_ty_varvalue(meta_type<Tag>)
@@ -180,317 +266,254 @@ namespace yave {
     return type_c<ty_varvalue<Tag>>;
   }
 
-  template <class Tag>
-  struct meta_type<tyerror<Tag>>
-  {
-    [[nodiscard]] constexpr auto tag() const
-    {
-      return type_c<Tag>;
-    }
-  };
-
   template <class T>
   [[nodiscard]] constexpr auto make_ty_list(meta_type<T>)
   {
     return type_c<ty_list<T>>;
   }
 
-  template <class T>
-  struct meta_type<ty_list<T>>
-  {
-    [[nodiscard]] constexpr auto t() const
-    {
-      return type_c<T>;
-    }
-  };
-
-  template <class T1, class T2, class Other>
+  template <class T1, class T2, class Other = meta_tuple<>>
   [[nodiscard]] constexpr auto make_unsolvable_constraints(
     meta_type<T1>,
     meta_type<T2>,
-    Other)
+    Other = {})
   {
     return type_c<tyerror<error_tags::unsolvable_constraints<T1, T2, Other>>>;
   }
 
-  template <class T1, class T2, class Other>
+  template <class T1, class T2, class Other = meta_tuple<>>
   [[nodiscard]] constexpr auto make_type_missmatch(
     meta_type<T1>,
     meta_type<T2>,
-    Other)
+    Other = {})
   {
     return type_c<tyerror<error_tags::type_missmatch<T1, T2, Other>>>;
   }
 
-  template <class Var, class Other>
-  [[nodiscard]] constexpr auto make_circular_constraints(meta_type<Var>, Other)
+  template <class T1, class T2, class Other = meta_tuple<>>
+  [[nodiscard]] constexpr auto make_kind_missmatch(
+    meta_type<T1>,
+    meta_type<T2>,
+    Other = {})
+  {
+    return type_c<tyerror<error_tags::kind_missmatch<T1, T2, Other>>>;
+  }
+
+  template <class Var, class Other = meta_tuple<>>
+  [[nodiscard]] constexpr auto make_circular_constraints(
+    meta_type<Var>,
+    Other = {})
   {
     return type_c<tyerror<error_tags::circular_constraints<Var, Other>>>;
+  }
+
+  [[nodiscard]] constexpr auto make_unknown_error()
+  {
+    return type_c<tyerror<error_tags::unknown_error>>;
   }
 
   // ------------------------------------------
   // is_tyerror
 
-  namespace detail {
-    template <class T>
-    struct is_tyerror_impl
-    {
-      static constexpr std::false_type value {};
-    };
-
-    template <class Tag>
-    struct is_tyerror_impl<tyerror<Tag>>
-    {
-      static constexpr std::true_type value {};
-    };
-  } // namespace detail
-
   template <class T>
-  [[nodiscard]] constexpr auto is_tyerror(meta_type<T>)
+  [[nodiscard]] constexpr auto is_tyerror(meta_type<tyerror<T>>)
   {
-    return detail::is_tyerror_impl<T>::value;
+    return true_c;
   }
 
   template <class T>
   [[nodiscard]] constexpr auto is_tyerror(T)
   {
-    return std::false_type {};
+    return false_c;
   }
 
   // ------------------------------------------
   // is_type_missmatch
 
-  template <class T>
-  struct is_type_missmatch_impl
-  {
-    static constexpr std::false_type value {};
-  };
-
   template <class T1, class T2, class Other>
-  struct is_type_missmatch_impl<error_tags::type_missmatch<T1, T2, Other>>
+  [[nodiscard]] constexpr auto is_type_missmatch(
+    meta_type<error_tags::type_missmatch<T1, T2, Other>>)
   {
-    static constexpr std::true_type value {};
-  };
+    return true_c;
+  }
 
   template <class T>
-  [[nodiscard]] constexpr auto is_type_missmatch(meta_type<T>)
+  [[nodiscard]] constexpr auto is_type_missmatch(T)
   {
-    return is_type_missmatch_impl<T>::value;
+    return false_c;
   }
 
   // ------------------------------------------
   // is_unsolvable_constraints
 
-  template <class T>
-  struct is_unsolvable_constraints_impl
-  {
-    static constexpr std::false_type value {};
-  };
-
   template <class T1, class T2, class Other>
-  struct is_unsolvable_constraints_impl<
-    error_tags::unsolvable_constraints<T1, T2, Other>>
+  [[nodiscard]] constexpr auto is_unsolvable_constraints(
+    meta_type<error_tags::unsolvable_constraints<T1, T2, Other>>)
   {
-    static constexpr std::true_type value {};
-  };
+    return true_c;
+  }
 
   template <class T>
-  [[nodiscard]] constexpr auto is_unsolvable_constraints(meta_type<T>)
+  [[nodiscard]] constexpr auto is_unsolvable_constraints(T)
   {
-    return is_unsolvable_constraints_impl<T>::value;
+    return false_c;
   }
 
   // ------------------------------------------
   // is_circular_constraints
 
-  template <class T>
-  struct is_circular_constraints_impl
-  {
-    static constexpr std::false_type value {};
-  };
-
   template <class Var, class Other>
-  struct is_circular_constraints_impl<
-    error_tags::circular_constraints<Var, Other>>
+  [[nodiscard]] constexpr auto is_circular_constraints(
+    meta_type<error_tags::circular_constraints<Var, Other>>)
   {
-    static constexpr std::true_type value {};
-  };
+    return true_c;
+  }
 
   template <class T>
-  [[nodiscard]] constexpr auto is_circular_constraints(meta_type<T>)
+  [[nodiscard]] constexpr auto is_circular_constraints(T)
   {
-    return is_circular_constraints_impl<T>::value;
+    return false_c;
   }
 
   // ------------------------------------------
   // is_unknown_error
 
-  template <class T>
-  struct is_unknown_error_impl
+  [[nodiscard]] constexpr auto is_unknown_error(
+    meta_type<error_tags::unknown_error>)
   {
-    static constexpr std::false_type value {};
-  };
-
-  template <>
-  struct is_unknown_error_impl<error_tags::unknown_error>
-  {
-    static constexpr std::true_type value {};
-  };
+    return true_c;
+  }
 
   template <class T>
-  [[nodiscard]] constexpr auto is_unknown_error(meta_type<T>)
+  [[nodiscard]] constexpr auto is_unknown_error(T)
   {
-    return is_unknown_error_impl<T>::value;
+    return false_c;
   }
 
   // ------------------------------------------
-  // is_ty_value
+  // is_tvar
 
-  namespace detail {
-    template <class T>
-    struct is_ty_value_impl
-    {
-      static constexpr std::false_type value {};
-    };
-
-    template <class Tag>
-    struct is_ty_value_impl<ty_value<Tag>>
-    {
-      static constexpr std::true_type value {};
-    };
-  } // namespace detail
+  template <class Tag, class Kind>
+  [[nodiscard]] constexpr auto is_tvar(meta_type<tvar<Tag, Kind>>)
+  {
+    return true_c;
+  }
 
   template <class T>
-  [[nodiscard]] constexpr auto is_ty_value(meta_type<T>)
+  [[nodiscard]] constexpr auto is_tvar(T)
   {
-    return detail::is_ty_value_impl<T>::value;
+    return false_c;
   }
 
   // ------------------------------------------
-  // is_ty_arrow
+  // is_tcon
 
-  namespace detail {
-    template <class T>
-    struct is_ty_arrow_impl
-    {
-      static constexpr std::false_type value {};
-    };
-
-    template <class T1, class T2>
-    struct is_ty_arrow_impl<ty_arrow<T1, T2>>
-    {
-      static constexpr std::true_type value {};
-    };
-  } // namespace detail
+  template <class Tag, class Kind>
+  [[nodiscard]] constexpr auto is_tcon(meta_type<tcon<Tag, Kind>>)
+  {
+    return true_c;
+  }
 
   template <class T>
-  [[nodiscard]] constexpr auto is_ty_arrow(meta_type<T>)
+  [[nodiscard]] constexpr auto is_tcon(T)
   {
-    return detail::is_ty_arrow_impl<T>::value;
+    return false_c;
   }
 
   // ------------------------------------------
-  // is_ty_var
+  // is_tap
 
-  namespace detail {
-    template <class T>
-    struct is_ty_var_impl
-    {
-      static constexpr std::false_type value {};
-    };
-
-    template <class Tag>
-    struct is_ty_var_impl<ty_var<Tag>>
-    {
-      static constexpr std::true_type value {};
-    };
-  } // namespace detail
+  template <class T1, class T2>
+  [[nodiscard]] constexpr auto is_tap(meta_type<tap<T1, T2>>)
+  {
+    return true_c;
+  }
 
   template <class T>
-  [[nodiscard]] constexpr auto is_ty_var(meta_type<T>)
+  [[nodiscard]] constexpr auto is_tap(T)
   {
-    return detail::is_ty_var_impl<T>::value;
+    return false_c;
   }
 
   // ------------------------------------------
-  // is_ty_varvalue
-
-  namespace detail {
-    template <class T>
-    struct is_ty_varvalue_impl
-    {
-      static constexpr std::false_type value {};
-    };
-
-    template <class Tag>
-    struct is_ty_varvalue_impl<ty_varvalue<Tag>>
-    {
-      static constexpr std::true_type value {};
-    };
-  } // namespace detail
-
-  template <class T>
-  [[nodiscard]] constexpr auto is_ty_varvalue(meta_type<T>)
-  {
-    return detail::is_ty_varvalue_impl<T>::value;
-  }
-
-  // ------------------------------------------
-  // is_ty_list
-
-  namespace detail {
-    template <class T>
-    struct is_ty_list_impl
-    {
-      static constexpr std::false_type value {};
-    };
-
-    template <class T>
-    struct is_ty_list_impl<ty_list<T>>
-    {
-      static constexpr std::true_type value {};
-    };
-  } // namespace detail
-
-  template <class T>
-  [[nodiscard]] constexpr auto is_ty_list(meta_type<T>)
-  {
-    return detail::is_ty_list_impl<T>::value;
-  }
-
-  // ------------------------------------------
-  // taggen
+  // gen_c
 
   template <size_t N>
-  struct taggen
-  {
-  };
-
-  template <size_t N>
-  constexpr auto gen_c = type_c<taggen<N>>;
+  constexpr auto gen_c = type_c<var_tcon_tag<N>>;
 
   // ------------------------------------------
   // nextgen
 
   template <size_t N>
-  [[nodiscard]] constexpr auto nextgen(meta_type<taggen<N>>)
+  [[nodiscard]] constexpr auto nextgen(meta_type<var_tcon_tag<N>>)
   {
-    return type_c<taggen<N + 1>>;
+    return type_c<var_tcon_tag<N + 1>>;
   }
 
   // ------------------------------------------
   // genvar
 
   template <size_t N>
-  [[nodiscard]] constexpr auto gen_ty_var(meta_type<taggen<N>>)
+  [[nodiscard]] constexpr auto genvar(meta_type<var_tcon_tag<N>>)
   {
-    return type_c<ty_var<taggen<N>>>;
+    return type_c<ty_var<var_tcon_tag<N>>>;
   }
 
-  template <size_t N>
-  [[nodiscard]] constexpr auto gen_tm_var(meta_type<taggen<N>>)
+  // ------------------------------------------
+  // legacy compatible interfaces
+
+  template <class T1, class T2>
+  constexpr auto is_ty_arrow(meta_type<ty_arrow<T1, T2>>)
   {
-    return type_c<tm_var<taggen<N>>>;
+    return true_c;
+  }
+  template <class T>
+  constexpr auto is_ty_arrow(meta_type<T>)
+  {
+    return false_c;
   }
 
+  template <class Tag>
+  constexpr auto is_ty_value(meta_type<ty_value<Tag>>)
+  {
+    return true_c;
+  }
+  template <class T>
+  constexpr auto is_ty_value(meta_type<T>)
+  {
+    return false_c;
+  }
+
+  template <class Tag>
+  constexpr auto is_ty_varvalue(meta_type<ty_varvalue<Tag>>)
+  {
+    return true_c;
+  }
+  template <class T>
+  constexpr auto is_ty_varvalue(meta_type<T>)
+  {
+    return false_c;
+  }
+
+  template <class T, class Kind>
+  constexpr auto is_ty_var(meta_type<ty_var<T, Kind>>)
+  {
+    return true_c;
+  }
+  template <class T>
+  constexpr auto is_ty_var(meta_type<T>)
+  {
+    return false_c;
+  }
+
+  template <class T>
+  constexpr auto is_ty_list(meta_type<ty_list<T>>)
+  {
+    return true_c;
+  }
+  template <class T>
+  constexpr auto is_ty_list(meta_type<T>)
+  {
+    return false_c;
+  }
 } // namespace yave
