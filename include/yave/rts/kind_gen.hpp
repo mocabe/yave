@@ -6,46 +6,18 @@
 #pragma once
 
 #include <yave/rts/kinds.hpp>
-#include <yave/rts/box.hpp>
+#include <yave/rts/box_fwd.hpp>
 
 namespace yave {
 
-  struct kind_value;
-
-  /// Run time representation of kind
-  using Kind = Box<kind_value>;
-
-  struct kind_value
+  class kind_value
   {
+  public:
     /// kfun lhs
     object_ptr<const Kind> k1;
     /// kfun rhs
     object_ptr<const Kind> k2;
   };
-
-  inline bool is_kstar(const object_ptr<const Kind>& k)
-  {
-    // nullptr as kstar
-    return static_cast<bool>(k);
-  }
-
-  inline bool is_kfun(const object_ptr<const Kind>& k)
-  {
-    return !is_kstar(k);
-  }
-
-  inline bool same_kind(
-    const object_ptr<const Kind>& k1,
-    const object_ptr<const Kind>& k2)
-  {
-    if (is_kstar(k1) && is_kstar(k2))
-      return true;
-
-    if (is_kfun(k1) && is_kfun(k2))
-      return same_kind(k1->k1, k2->k1) && same_kind(k1->k2, k2->k2);
-
-    return false;
-  }
 
   namespace detail {
 

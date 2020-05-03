@@ -19,6 +19,7 @@ namespace yave {
 
   // value of runtime type
   class type_value;
+  class kind_value;
 
   // object info table
   struct object_info_table;
@@ -33,6 +34,7 @@ namespace yave {
 
   // heap-allocated runtime type infomation
   using Type = Box<type_value>;
+  using Kind = Box<kind_value>;
 
   // ------------------------------------------
   // Object
