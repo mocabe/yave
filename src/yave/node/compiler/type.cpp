@@ -39,7 +39,7 @@ namespace yave {
 
       for (auto&& t : types) {
         try {
-          (void)unify({{t, instp}}, nullptr);
+          (void)unify(t, instp, nullptr);
           throw std::invalid_argument("Overlapping class instance");
         } catch (type_error::type_error&) {
           // ok
@@ -57,7 +57,7 @@ namespace yave {
   auto class_env::find_overloaded(const uid& id) const
     -> object_ptr<const Overloaded>
   {
-    auto id_var = make_object<Type>(var_type {id.data});
+    auto id_var = make_var_type(id.data);
 
     if (m_map.find(id_var) != m_map.end())
       // always create new object
@@ -69,7 +69,7 @@ namespace yave {
   auto class_env::find_overloading(const object_ptr<const Type>& class_id) const
     -> const overloaded_class*
   {
-    assert(is_var_type(class_id));
+    assert(is_tvar_type(class_id));
 
     auto it = m_map.find(class_id);
 
@@ -188,12 +188,13 @@ namespace yave {
           subst = std::move(*tmp);
 
         // update A and B
-        subst.for_each([&](auto& from, auto& to) {
-          apply_subst(env.envA, {from, to});
-          apply_subst(env.envB, {from, to});
-        });
+        env.envA.for_each(
+          [&](auto&, auto& to) { to = apply_subst(subst, to); });
+        env.envB.for_each(
+          [&](auto&, auto& to) { to = apply_subst(subst, to); });
+
         // update ty
-        ty = subst_type_all(subst, ty);
+        ty = apply_subst(subst, ty);
 
         // cache result
         env.results.emplace(source, result_inst);
@@ -227,17 +228,15 @@ namespace yave {
         auto t2 = type_of_overloaded_impl(storage.arg(), env);
 
         auto var = genvar();
-        auto cs =
-          std::vector {type_constr {subst_type_all(env.envA, t1),
-                                    make_object<Type>(arrow_type {t2, var})}};
-        auto as = unify(std::move(cs), obj);
-        auto ty = subst_type_all(as, var);
+        auto as =
+          unify(apply_subst(env.envA, t1), make_arrow_type(t2, var), obj);
+        auto ty = apply_subst(as, var);
 
         as.erase(var);
-        as.for_each([&](auto& from, auto& to) {
-          compose_subst(env.envA, {from, to});
-          apply_subst(env.envB, {from, to});
-        });
+
+        // update A and B
+        compose_subst_over(env.envA, as);
+        env.envB.for_each([&](auto&, auto& to) { to = apply_subst(as, to); });
 
         // only close when envA has no free variable
         if (vars(env.envA).empty())
@@ -251,14 +250,13 @@ namespace yave {
 
         auto& storage = _get_storage(*lambda);
 
-        auto var = make_object<Type>(var_type {storage.var->id()});
+        auto var = make_var_type(storage.var->id());
         env.envA.insert(type_arrow {var, var});
 
         auto t1 = type_of_overloaded_impl(storage.var, env);
         auto t2 = type_of_overloaded_impl(storage.body, env);
 
-        auto ty =
-          make_object<Type>(arrow_type {subst_type_all(env.envA, t1), t2});
+        auto ty = make_arrow_type(apply_subst(env.envA, t1), t2);
 
         env.envA.erase(t1);
 
@@ -268,7 +266,7 @@ namespace yave {
       // Variable
       if (auto variable = value_cast_if<Variable>(obj)) {
 
-        auto var = make_object<Type>(var_type {variable->id()});
+        auto var = make_var_type(variable->id());
         if (auto s = env.envA.find(var))
           return s->to;
 
@@ -280,38 +278,21 @@ namespace yave {
         return env.instantiate_class(overloaded);
       }
 
-      // arrow -> arrow or PAP
-      if (has_arrow_type(obj)) {
-        auto c = reinterpret_cast<const Closure<>*>(obj.get());
-        // pap: return root apply node
-        // app: get_type
-        return c->is_pap()
-                 ? type_of_overloaded_impl(c->vertebrae(c->arity), env)
-                 : genpoly(get_type(obj), env.envA);
-      }
+      // Partially applied closure
+      if (has_arrow_type(obj))
+        if (auto c = (const Closure<>*)obj.get(); c->is_pap())
+          return type_of_overloaded_impl(c->vertebrae(c->arity), env);
 
-      // list:
-      //  | []   : [] a
-      //  | x:xs : [type_of(x)]
-      if (has_list_type(obj)) {
+      // tap
+      if (has_tap_type(obj))
+        return genpoly(get_type(obj), env.envA);
 
-        auto list = static_object_cast<const List<Object>>(obj);
-
-        auto& storage = _get_storage(*list);
-
-        if (storage.is_nil())
-          return get_type(obj);
-        else
-          return make_object<Type>(
-            list_type {type_of_overloaded_impl(storage.car, env)});
-      }
-
-      // value -> value
-      if (has_value_type(obj))
+      // tcon
+      if (has_tcon_type(obj))
         return get_type(obj);
 
-      // var -> var
-      if (has_var_type(obj))
+      // tvar
+      if (has_tvar_type(obj))
         return get_type(obj);
 
       unreachable();

@@ -102,10 +102,18 @@ TEST_CASE("overloading")
     auto f  = make_object<F>();
     auto g  = make_object<G>();
     auto i  = make_object<Int>(42);
+    auto b  = make_object<Bool>(true);
     auto id = make_object<Identity>();
 
     class_env env;
     auto o = env.add_overloading(uid::random_generate(), {f, g});
+
+    SECTION("f true")
+    {
+      auto app = o << b;
+      REQUIRE_THROWS_AS(
+        type_of_overloaded(app, env), type_error::no_valid_overloading);
+    }
 
     SECTION("(id f) (f 42)")
     {
