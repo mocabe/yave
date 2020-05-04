@@ -97,7 +97,7 @@ namespace yave {
       inline static const Type type //
         {static_construct,
          tcon_type {tcon_traits<Tag>::id,
-                    kind_address<kstar>(),
+                    kind_address<Kind>(),
                     tcon_traits<Tag>::name}};
     };
 
@@ -119,7 +119,8 @@ namespace yave {
     struct type_initializer<tvar<Tag, Kind>>
     {
       inline static const Type type //
-        {static_construct, tvar_type::random_generate()};
+        {static_construct,
+         tvar_type {tvar_type::random_generate().id, kind_address<Kind>()}};
     };
 
     // ------------------------------------------
@@ -164,7 +165,7 @@ namespace yave {
 
     constexpr auto arrow_type_name()
     {
-      return "ty_arrow";
+      return "->";
     }
 
     template <>
@@ -197,6 +198,16 @@ namespace yave {
     };
 
     // ------------------------------------------
+    // varvalue type
+
+    template <class Tag>
+    struct term_to_type<tm_varvalue<Tag>>
+    {
+      // fallback to var type
+      using type = ty_var<Tag>;
+    };
+
+    // ------------------------------------------
     // list type
 
     constexpr auto list_type_uuid()
@@ -207,7 +218,7 @@ namespace yave {
 
     constexpr auto list_type_name()
     {
-      return "ty_list";
+      return "[]";
     }
 
     template <>
@@ -240,6 +251,20 @@ namespace yave {
   {
     constexpr auto ptr = detail::object_type_impl(get_term(type_c<T>));
     return ptr;
+  }
+
+  /// for arrow type
+  [[nodiscard]] inline auto arrow_type_tcon() -> object_ptr<const Type>
+  {
+    return &detail::type_initializer<
+      tcon<arrow_tcon_tag, kfun<kstar, kfun<kstar, kstar>>>>::type;
+  }
+
+  /// for list type
+  [[nodiscard]] inline auto list_type_tcon() -> object_ptr<const Type>
+  {
+    return &detail::type_initializer<
+      tcon<list_tcon_tag, kfun<kstar, kstar>>>::type;
   }
 
   // ------------------------------------------

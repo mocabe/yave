@@ -24,24 +24,20 @@ namespace yave {
       if (depth > MaxDepth)
         return "[...]";
 
-      if (auto value = get_if<value_type>(type.value())) {
-        return "Value[" + to_string(*value) + "]";
+      if (auto con = get_if<tcon_type>(type.value())) {
+        return to_string(*con);
       }
 
-      if (auto arrow = get_if<arrow_type>(type.value())) {
-        return "(" +                                                  //
-               to_string_impl<MaxDepth>(arrow->captured, depth + 1) + //
-               " -> " +                                               //
-               to_string_impl<MaxDepth>(arrow->returns, depth + 1) +  //
-               ")";                                                   //
+      if (auto ap = get_if<tap_type>(type.value())) {
+        return "(" +                                         //
+               to_string_impl<MaxDepth>(ap->t1, depth + 1) + //
+               " " +                                         //
+               to_string_impl<MaxDepth>(ap->t2, depth + 1) + //
+               ")";                                          //
       }
 
-      if (auto var = get_if<var_type>(type.value())) {
-        return "Var[" + to_string(*var) + "]";
-      }
-
-      if (auto list = get_if<list_type>(type.value())) {
-        return "List<" + to_string_impl<MaxDepth>(list->t, depth + 1) + ">";
+      if (auto var = get_if<tvar_type>(type.value())) {
+        return "var(" + to_string(*var) + ")";
       }
 
       unreachable();

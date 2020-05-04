@@ -115,6 +115,70 @@ namespace yave {
       object_ptr<const Type> m_var;
     };
 
+    class unsolvable_constraints : public type_error
+    {
+    public:
+      unsolvable_constraints(
+        object_ptr<const Object> source,
+        object_ptr<const Type> t1,
+        object_ptr<const Type> t2)
+        : type_error(std::move(source), "Unsolvable constraits")
+        , m_t1 {std::move(t1)}
+        , m_t2 {std::move(t2)}
+      {
+      }
+
+      /// t1
+      [[nodiscard]] auto& t1() const
+      {
+        return m_t1;
+      }
+
+      /// t2
+      [[nodiscard]] auto& t2() const
+      {
+        return m_t2;
+      }
+
+    private:
+      /// t1
+      object_ptr<const Type> m_t1;
+      /// t2
+      object_ptr<const Type> m_t2;
+    };
+
+    class kind_missmatch : public type_error
+    {
+    public:
+      kind_missmatch(
+        object_ptr<const Object> source,
+        object_ptr<const Kind> expected,
+        object_ptr<const Kind> provided)
+        : type_error(std::move(source), "Kind missmatch")
+        , m_expected {std::move(expected)}
+        , m_provided {std::move(provided)}
+      {
+      }
+
+      /// expected
+      [[nodiscard]] auto& expected() const
+      {
+        return m_expected;
+      }
+
+      /// provided
+      [[nodiscard]] auto& provided() const
+      {
+        return m_provided;
+      }
+
+    private:
+      /// t1
+      object_ptr<const Kind> m_expected;
+      /// t2
+      object_ptr<const Kind> m_provided;
+    };
+
     /// unification error(missmatch)
     class type_missmatch : public type_error
     {

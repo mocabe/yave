@@ -31,22 +31,21 @@ namespace yave {
 
     /// Friendly name of this value type.
     const char* name;
-
-    /// compare two value types
-    [[nodiscard]] static bool equal(
-      const tcon_type& lhs,
-      const tcon_type& rhs) noexcept
-    {
-      if constexpr (has_SSE) {
-        auto xmm1 = _mm_loadu_si128((const __m128i*)lhs.id.data());
-        auto xmm2 = _mm_loadu_si128((const __m128i*)rhs.id.data());
-        auto cmp  = _mm_cmpeq_epi8(xmm1, xmm2);
-        auto mask = _mm_movemask_epi8(cmp);
-        return mask == 0xffffU;
-      } else
-        return lhs.id == rhs.id;
-    }
   };
+
+  [[nodiscard]] inline bool tcon_id_eq(
+    std::array<char, 16> lhs,
+    std::array<char, 16> rhs)
+  {
+    if constexpr (has_SSE) {
+      auto xmm1 = _mm_loadu_si128((const __m128i*)lhs.data());
+      auto xmm2 = _mm_loadu_si128((const __m128i*)rhs.data());
+      auto cmp  = _mm_cmpeq_epi8(xmm1, xmm2);
+      auto mask = _mm_movemask_epi8(cmp);
+      return mask == 0xffffU;
+    } else
+      return lhs == rhs;
+  }
 
   /// to_string
   [[nodiscard]] inline auto to_string(const tcon_type& v) -> std::string
@@ -90,6 +89,11 @@ namespace yave {
       return {mt()};
     }
   };
+
+  [[nodiscard]] inline bool tvar_id_eq(uint64_t lhs, uint64_t rhs)
+  {
+    return lhs == rhs;
+  }
 
   [[nodiscard]] inline auto to_string(const tvar_type& v) -> std::string
   {
