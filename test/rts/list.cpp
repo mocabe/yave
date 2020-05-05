@@ -31,7 +31,7 @@ TEST_CASE("List<Int>")
     REQUIRE_THROWS(l->head());
     REQUIRE_THROWS(l->tail());
     REQUIRE(value_cast_if<List<Int>>(l));
-    REQUIRE(value_cast_if<List<Double>>(l));
+    REQUIRE(!value_cast_if<List<Double>>(l));
   }
 
   SECTION("make_object")
@@ -120,6 +120,8 @@ TEST_CASE("List<Int>")
     auto l =
       make_list<Int>(make_object<Int>(42), i, make_object<const Int>(42));
     REQUIRE(l);
+    REQUIRE(value_cast_if<List<Int>>(l));
+    REQUIRE(!value_cast_if<List<Double>>(l));
 
     while (!l->is_nil()) {
       REQUIRE(*eval(l->head()) == 42);

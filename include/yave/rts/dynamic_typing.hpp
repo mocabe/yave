@@ -602,8 +602,8 @@ namespace yave {
     if (is_tvar_type(t2))
       return mgu_var(t2, t1);
 
-    if (auto tcon1 = is_tcon_type_if(t1)) {
-      if (auto tcon2 = is_tcon_type_if(t2)) {
+    if (is_tcon_type_if(t1)) {
+      if (is_tcon_type_if(t2)) {
         if (same_type(t1, t2))
           return {};
         else
@@ -894,19 +894,7 @@ namespace yave {
       // List
       else if constexpr (has_tm_list<T>()) {
 
-        if (unlikely(!obj) || !has_list_type(obj))
-          return false;
-
-        auto& storage =
-          _get_storage(*static_object_cast<const List<Object>>(obj));
-
-        // [] can be any type
-        if (storage.is_nil())
-          return true;
-
-        using elem_tp = typename decltype(get_term<T>().t().tag())::type;
-
-        return has_type_impl<elem_tp>(storage.car);
+        return same_type(get_type(obj), object_type<T>());
 
       } else
         static_assert(false_v<T>, "T is not value type");
