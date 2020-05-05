@@ -140,14 +140,32 @@ namespace yave {
     return get_if<tcon_type>(tp.value());
   }
 
+  /// is_tcon_type_if
+  [[nodiscard]] inline auto is_tcon_type_if(const object_ptr<const Type>& tp)
+  {
+    return get_if<tcon_type>(tp.value());
+  }
+
   /// is_tap_type
   [[nodiscard]] inline bool is_tap_type(const object_ptr<const Type>& tp)
   {
     return get_if<tap_type>(tp.value());
   }
 
+  /// is_tap_type_if
+  [[nodiscard]] inline auto is_tap_type_if(const object_ptr<const Type>& tp)
+  {
+    return get_if<tap_type>(tp.value());
+  }
+
   /// is_tvar_type
   [[nodiscard]] inline bool is_tvar_type(const object_ptr<const Type>& tp)
+  {
+    return get_if<tvar_type>(tp.value());
+  }
+
+  /// is_tvar_type_if
+  [[nodiscard]] inline auto is_tvar_type_if(const object_ptr<const Type>& tp)
   {
     return get_if<tvar_type>(tp.value());
   }
@@ -185,8 +203,8 @@ namespace yave {
   {
     auto t = get_type(obj);
 
-    if (auto tap1 = get_if<tap_type>(t.value()))
-      if (auto tap2 = get_if<tap_type>(tap1->t1.value()))
+    if (auto tap1 = is_tap_type_if(t))
+      if (auto tap2 = is_tap_type_if(tap1->t1))
         if (same_type(tap2->t1, arrow_type_tcon()))
           return true;
 
@@ -205,7 +223,7 @@ namespace yave {
   {
     auto t = get_type(obj);
 
-    if (auto tap = get_if<tap_type>(t.value()))
+    if (auto tap = is_tap_type_if(t))
       if (same_type(tap->t1, list_type_tcon()))
         return true;
 
@@ -237,13 +255,13 @@ namespace yave {
     inline auto copy_type_impl(const object_ptr<const Type>& t)
       -> object_ptr<const Type>
     {
-      if (auto con = get_if<tcon_type>(t.value()))
+      if (auto con = is_tcon_type_if(t))
         return make_object<Type>(tcon_type {*con});
 
-      if (auto var = get_if<tvar_type>(t.value()))
+      if (auto var = is_tvar_type_if(t))
         return make_object<Type>(tvar_type {*var});
 
-      if (auto ap = get_if<tap_type>(t.value()))
+      if (auto ap = is_tap_type_if(t))
         return make_object<Type>(
           tap_type {copy_type_impl(ap->t1), copy_type_impl(ap->t2)});
 
@@ -279,7 +297,7 @@ namespace yave {
       const type_arrow& ta,
       const object_ptr<const Type>& in) -> object_ptr<const Type>
     {
-      if (auto tap = get_if<tap_type>(in.value())) {
+      if (auto tap = is_tap_type_if(in)) {
         auto t1 = apply_type_arrow_impl_rec(ta, tap->t1);
         auto t2 = apply_type_arrow_impl_rec(ta, tap->t2);
         return (!t1 && !t2) ? nullptr
@@ -320,8 +338,7 @@ namespace yave {
       const object_ptr<const Type>& l,
       const object_ptr<const Type>& r) const noexcept
     {
-      return (
-        get_if<tvar_type>(l.value())->id < get_if<tvar_type>(r.value())->id);
+      return (is_tvar_type_if(l)->id < is_tvar_type_if(r)->id);
     }
   };
 
@@ -430,7 +447,7 @@ namespace yave {
       if (is_tvar_type(tp))
         vars.push_back(tp);
 
-      if (auto tap = get_if<tap_type>(tp.value())) {
+      if (auto tap = is_tap_type_if(tp)) {
         vars_impl(tap->t1, vars);
         vars_impl(tap->t2, vars);
       }
@@ -531,7 +548,7 @@ namespace yave {
     if (is_tvar_type(t))
       return same_type(u, t);
 
-    if (auto ap = get_if<tap_type>(t.value()))
+    if (auto ap = is_tap_type_if(t))
       return occurs(u, ap->t1) || occurs(u, ap->t2);
 
     unreachable();
@@ -565,8 +582,8 @@ namespace yave {
     const object_ptr<const Type>& t1,
     const object_ptr<const Type>& t2) -> type_arrow_map
   {
-    if (auto tap1 = get_if<tap_type>(t1.value())) {
-      if (auto tap2 = get_if<tap_type>(t2.value())) {
+    if (auto tap1 = is_tap_type_if(t1)) {
+      if (auto tap2 = is_tap_type_if(t2)) {
         auto s1 = mgu(tap1->t1, tap2->t1);
         auto s2 = mgu(apply_subst(s1, tap1->t2), apply_subst(s1, tap2->t2));
         compose_subst_over(s1, s2);
@@ -580,8 +597,8 @@ namespace yave {
     if (is_tvar_type(t2))
       return mgu_var(t2, t1);
 
-    if (auto tcon1 = get_if<tcon_type>(t1.value())) {
-      if (auto tcon2 = get_if<tcon_type>(t2.value())) {
+    if (auto tcon1 = is_tcon_type_if(t1)) {
+      if (auto tcon2 = is_tcon_type_if(t2)) {
         if (same_type(t1, t2))
           return {};
         else
@@ -599,8 +616,8 @@ namespace yave {
     const object_ptr<const Type>& t1,
     const object_ptr<const Type>& t2) -> type_arrow_map
   {
-    if (auto tap1 = get_if<tap_type>(t1.value())) {
-      if (auto tap2 = get_if<tap_type>(t2.value())) {
+    if (auto tap1 = is_tap_type_if(t1)) {
+      if (auto tap2 = is_tap_type_if(t2)) {
         auto s1 = match(tap1->t1, tap2->t1);
         auto s2 = match(tap1->t2, tap2->t2);
         merge_subst(s1, s2);
@@ -657,8 +674,8 @@ namespace yave {
         return t1;
 
       // try to get least general form
-      if (auto tap1 = get_if<tap_type>(t1.value())) {
-        if (auto tap2 = get_if<tap_type>(t2.value())) {
+      if (auto tap1 = is_tap_type_if(t1)) {
+        if (auto tap2 = is_tap_type_if(t2)) {
           auto r1 = generalize_impl_rec(tap1->t1, tap2->t1, table);
           auto r2 = generalize_impl_rec(tap1->t2, tap2->t2, table);
           if (r1 && r2)
