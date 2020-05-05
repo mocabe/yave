@@ -16,7 +16,7 @@ namespace yave {
   struct variable_object_value
   {
     variable_object_value() noexcept
-      : m_id {var_type::random_generate().id}
+      : m_id {tvar_type::random_generate().id}
     {
     }
 

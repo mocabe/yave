@@ -20,33 +20,35 @@ namespace yave {
   // ------------------------------------------
   // TypeValue union values
 
-  /// Value type
-  struct value_type
+  /// tcon type
+  struct tcon_type
   {
     /// 128bit UUID.
-    std::array<char, 16> data;
+    std::array<char, 16> id;
+
+    /// kind
+    object_ptr<const Kind> kind;
 
     /// Friendly name of this value type.
     const char* name;
-
-    /// compare two value types
-    [[nodiscard]] static bool equal(
-      const value_type& lhs,
-      const value_type& rhs) noexcept
-    {
-      if constexpr (has_SSE) {
-        auto xmm1 = _mm_loadu_si128((const __m128i*)lhs.data.data());
-        auto xmm2 = _mm_loadu_si128((const __m128i*)rhs.data.data());
-        auto cmp  = _mm_cmpeq_epi8(xmm1, xmm2);
-        auto mask = _mm_movemask_epi8(cmp);
-        return mask == 0xffffU;
-      } else
-        return lhs.data == rhs.data;
-    }
   };
 
+  [[nodiscard]] inline bool tcon_id_eq(
+    std::array<char, 16> lhs,
+    std::array<char, 16> rhs)
+  {
+    if constexpr (has_SSE) {
+      auto xmm1 = _mm_loadu_si128((const __m128i*)lhs.data());
+      auto xmm2 = _mm_loadu_si128((const __m128i*)rhs.data());
+      auto cmp  = _mm_cmpeq_epi8(xmm1, xmm2);
+      auto mask = _mm_movemask_epi8(cmp);
+      return mask == 0xffffU;
+    } else
+      return lhs == rhs;
+  }
+
   /// to_string
-  [[nodiscard]] inline auto to_string(const value_type& v) -> std::string
+  [[nodiscard]] inline auto to_string(const tcon_type& v) -> std::string
   {
     std::string ret;
 
@@ -55,28 +57,31 @@ namespace yave {
     ret.reserve(ret.capacity() + 10);
 
     ret += '(';
-    ret += uuid_to_string_short(v.data);
+    ret += uuid_to_string_short(v.id);
     ret += ')';
 
     return ret;
   }
 
-  /// Arrow type
-  struct arrow_type
+  /// tap type
+  struct tap_type
   {
+    /// applied type
+    object_ptr<const Type> t1;
     /// argument type
-    object_ptr<const Type> captured;
-    /// return type
-    object_ptr<const Type> returns;
+    object_ptr<const Type> t2;
   };
 
-  /// Any type
-  struct var_type
+  /// tvar type
+  struct tvar_type
   {
     /// unique id for VarTpye object
     uint64_t id;
 
-    [[nodiscard]] static auto random_generate() -> var_type
+    /// kind (always kstar now)
+    object_ptr<const Kind> kind = nullptr;
+
+    [[nodiscard]] static auto random_generate() -> tvar_type
     {
       // MinGW workaround: use <chrono> instead of random_device.
       static std::mt19937_64 mt(
@@ -85,51 +90,42 @@ namespace yave {
     }
   };
 
-  [[nodiscard]] inline auto to_string(const var_type& v) -> std::string
+  [[nodiscard]] inline bool tvar_id_eq(uint64_t lhs, uint64_t rhs)
+  {
+    return lhs == rhs;
+  }
+
+  [[nodiscard]] inline auto to_string(const tvar_type& v) -> std::string
   {
     std::array<uint8_t, 8> buff;
     std::memcpy(&buff, &v.id, 8);
     return id_to_string_short(buff);
   }
 
-  /// List type
-  struct list_type
-  {
-    /// value type of list
-    object_ptr<const Type> t;
-  };
-
   // ------------------------------------------
   // TypeValue
 
   struct type_value_storage
   {
-
     /// default ctor is disabled
     type_value_storage() = delete;
 
     // initializers
-    type_value_storage(value_type t) noexcept
-      : value {std::move(t)}
-      , index {value_index}
+    type_value_storage(tcon_type t) noexcept
+      : con {std::move(t)}
+      , index {tcon_idx}
     {
     }
 
-    type_value_storage(arrow_type t) noexcept
-      : arrow {std::move(t)}
-      , index {arrow_index}
+    type_value_storage(tap_type t) noexcept
+      : ap {std::move(t)}
+      , index {tap_idx}
     {
     }
 
-    type_value_storage(var_type t) noexcept
+    type_value_storage(tvar_type t) noexcept
       : var {std::move(t)}
-      , index {var_index}
-    {
-    }
-
-    type_value_storage(list_type t) noexcept
-      : list {std::move(t)}
-      , index {list_index}
+      , index {tvar_idx}
     {
     }
 
@@ -138,69 +134,60 @@ namespace yave {
       : index {other.index}
     {
       // copy union
-      if (other.index == value_index)
-        value = other.value;
-      if (other.index == arrow_index)
-        arrow = other.arrow;
-      if (other.index == var_index)
+      if (other.index == tcon_idx)
+        con = other.con;
+      if (other.index == tap_idx)
+        ap = other.ap;
+      if (other.index == tvar_idx)
         var = other.var;
-      if (other.index == list_index)
-        list = other.list;
     }
 
     /// Destructor
     ~type_value_storage() noexcept
     {
       // call destructor
-      if (index == value_index)
-        value.~value_type();
-      if (index == arrow_index)
-        arrow.~arrow_type();
-      if (index == var_index)
-        var.~var_type();
-      if (index == list_index)
-        list.~list_type();
+      if (index == tcon_idx)
+        con.~tcon_type();
+      if (index == tap_idx)
+        ap.~tap_type();
+      if (index == tvar_idx)
+        var.~tvar_type();
     }
 
     template <class T>
     [[nodiscard]] static constexpr auto type_index() -> uint64_t
     {
-      if constexpr (std::is_same_v<std::decay_t<T>, value_type>) {
-        return value_index;
-      } else if constexpr (std::is_same_v<std::decay_t<T>, arrow_type>) {
-        return arrow_index;
-      } else if constexpr (std::is_same_v<std::decay_t<T>, var_type>) {
-        return var_index;
-      } else if constexpr (std::is_same_v<std::decay_t<T>, list_type>) {
-        return list_index;
+      if constexpr (std::is_same_v<std::decay_t<T>, tcon_type>) {
+        return tcon_idx;
+      } else if constexpr (std::is_same_v<std::decay_t<T>, tap_type>) {
+        return tap_idx;
+      } else if constexpr (std::is_same_v<std::decay_t<T>, tvar_type>) {
+        return tvar_idx;
       } else {
         static_assert(false_v<T>, "Invalid type of type value union");
       }
     }
 
     // hard-coded type index
-    static constexpr uint64_t value_index = 0;
-    static constexpr uint64_t arrow_index = 1;
-    static constexpr uint64_t var_index   = 2;
-    static constexpr uint64_t list_index  = 3;
+    static constexpr uint64_t tcon_idx = 0;
+    static constexpr uint64_t tap_idx  = 1;
+    static constexpr uint64_t tvar_idx = 2;
 
-    // 16 byte union
+    // union
     union
     {
-      value_type value;
-      arrow_type arrow;
-      var_type var;
-      list_type list;
+      tcon_type con;
+      tap_type ap;
+      tvar_type var;
     };
 
     // 8 byte index
     uint64_t index;
   };
 
-  static_assert(offset_of_member(&type_value_storage::value) == 0);
-  static_assert(offset_of_member(&type_value_storage::arrow) == 0);
+  static_assert(offset_of_member(&type_value_storage::con) == 0);
+  static_assert(offset_of_member(&type_value_storage::ap) == 0);
   static_assert(offset_of_member(&type_value_storage::var) == 0);
-  static_assert(offset_of_member(&type_value_storage::list) == 0);
 
   /// Base class for TypeValue
   class type_value : type_value_storage
@@ -220,22 +207,17 @@ namespace yave {
     /// default ctor is disabled
     type_value() = delete;
 
-    type_value(value_type t) noexcept
+    type_value(tcon_type t) noexcept
       : base {t}
     {
     }
 
-    type_value(arrow_type t) noexcept
+    type_value(tap_type t) noexcept
       : base {t}
     {
     }
 
-    type_value(var_type t) noexcept
-      : base {t}
-    {
-    }
-
-    type_value(list_type t) noexcept
+    type_value(tvar_type t) noexcept
       : base {t}
     {
     }
@@ -284,17 +266,14 @@ namespace yave {
       nullptr_t>* = nullptr>
   [[nodiscard]] constexpr auto _access(T&& v) noexcept -> decltype(auto)
   {
-    if constexpr (Idx == type_value_storage::value_index) {
-      auto&& ref = std::forward<T>(v).value;
+    if constexpr (Idx == type_value_storage::tcon_idx) {
+      auto&& ref = std::forward<T>(v).con;
       return ref;
-    } else if constexpr (Idx == type_value_storage::arrow_index) {
-      auto&& ref = std::forward<T>(v).arrow;
+    } else if constexpr (Idx == type_value_storage::tap_idx) {
+      auto&& ref = std::forward<T>(v).ap;
       return ref;
-    } else if constexpr (Idx == type_value_storage::var_index) {
+    } else if constexpr (Idx == type_value_storage::tvar_idx) {
       auto&& ref = std::forward<T>(v).var;
-      return ref;
-    } else if constexpr (Idx == type_value_storage::list_index) {
-      auto&& ref = std::forward<T>(v).list;
       return ref;
     } else {
       static_assert(false_v<Idx>, "Invalid index of type value union");

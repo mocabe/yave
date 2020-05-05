@@ -49,20 +49,28 @@ namespace yave {
     class type_error : public std::logic_error
     {
     public:
-      type_error(object_ptr<const Object> source)
-        : logic_error("type_error")
-        , m_source {std::move(source)}
-      {
-      }
-
-      type_error(object_ptr<const Object> source, const char* msg)
+      type_error(
+        const char* msg                 = "type_error",
+        object_ptr<const Object> source = nullptr)
         : logic_error(msg)
         , m_source {std::move(source)}
       {
       }
 
+      /// has valid source?
+      [[nodiscard]] bool has_source() const
+      {
+        return static_cast<bool>(m_source);
+      }
+
       /// error source node
-      [[nodiscard]] auto source() const
+      [[nodiscard]] auto& source() const
+      {
+        return m_source;
+      }
+
+      /// error source node
+      [[nodiscard]] auto& source()
       {
         return m_source;
       }
@@ -76,15 +84,15 @@ namespace yave {
     {
     public:
       unbounded_variable(
-        object_ptr<const Object> source,
-        object_ptr<const Type> var)
-        : type_error(std::move(source), "Unbounded variable detected")
+        object_ptr<const Type> var,
+        object_ptr<const Object> src)
+        : type_error("Unbounded variable detected", std::move(src))
         , m_var {std::move(var)}
       {
       }
 
       /// var
-      [[nodiscard]] auto var() const -> const object_ptr<const Type>&
+      [[nodiscard]] auto& var() const
       {
         return m_var;
       }
@@ -98,15 +106,15 @@ namespace yave {
     {
     public:
       circular_constraint(
-        object_ptr<const Object> source,
-        object_ptr<const Type> var)
-        : type_error(std::move(source), "Circular constraints")
+        object_ptr<const Type> var,
+        object_ptr<const Object> src)
+        : type_error("Circular constraints", std::move(src))
         , m_var {std::move(var)}
       {
       }
 
       /// var
-      [[nodiscard]] auto var() const -> const object_ptr<const Type>&
+      [[nodiscard]] auto& var() const
       {
         return m_var;
       }
@@ -115,28 +123,92 @@ namespace yave {
       object_ptr<const Type> m_var;
     };
 
-    /// unification error(missmatch)
-    class type_missmatch : public type_error
+    class unsolvable_constraints : public type_error
     {
     public:
-      type_missmatch(
-        object_ptr<const Object> source,
-        object_ptr<const Type> expected,
-        object_ptr<const Type> provided)
-        : type_error(std::move(source), "Type missmatch")
+      unsolvable_constraints(
+        object_ptr<const Type> t1,
+        object_ptr<const Type> t2,
+        object_ptr<const Object> src)
+        : type_error("Unsolvable constraits", std::move(src))
+        , m_t1 {std::move(t1)}
+        , m_t2 {std::move(t2)}
+      {
+      }
+
+      /// t1
+      [[nodiscard]] auto& t1() const
+      {
+        return m_t1;
+      }
+
+      /// t2
+      [[nodiscard]] auto& t2() const
+      {
+        return m_t2;
+      }
+
+    private:
+      /// t1
+      object_ptr<const Type> m_t1;
+      /// t2
+      object_ptr<const Type> m_t2;
+    };
+
+    class kind_missmatch : public type_error
+    {
+    public:
+      kind_missmatch(
+        object_ptr<const Kind> expected,
+        object_ptr<const Kind> provided,
+        object_ptr<const Object> src)
+        : type_error("Kind missmatch", std::move(src))
         , m_expected {std::move(expected)}
         , m_provided {std::move(provided)}
       {
       }
 
       /// expected
-      [[nodiscard]] auto expected() const -> const object_ptr<const Type>&
+      [[nodiscard]] auto& expected() const
       {
         return m_expected;
       }
 
       /// provided
-      [[nodiscard]] auto provided() const -> const object_ptr<const Type>&
+      [[nodiscard]] auto& provided() const
+      {
+        return m_provided;
+      }
+
+    private:
+      /// t1
+      object_ptr<const Kind> m_expected;
+      /// t2
+      object_ptr<const Kind> m_provided;
+    };
+
+    /// unification error(missmatch)
+    class type_missmatch : public type_error
+    {
+    public:
+      type_missmatch(
+        object_ptr<const Type> expected,
+        object_ptr<const Type> provided,
+        object_ptr<const Object> src)
+        : type_error("Type missmatch", std::move(src))
+        , m_expected {std::move(expected)}
+        , m_provided {std::move(provided)}
+      {
+      }
+
+      /// expected
+      [[nodiscard]] auto& expected() const
+      {
+        return m_expected;
+      }
+
+      /// provided
+      [[nodiscard]] auto& provided() const
       {
         return m_provided;
       }
@@ -153,23 +225,23 @@ namespace yave {
     {
     public:
       bad_type_check(
-        object_ptr<const Object> source,
         object_ptr<const Type> expected,
-        object_ptr<const Type> provided)
-        : type_error(std::move(source), "type_error: Runtime type check failed")
+        object_ptr<const Type> provided,
+        object_ptr<const Object> src)
+        : type_error("type_error: Runtime type check failed", std::move(src))
         , m_expected {std::move(expected)}
         , m_provided {std::move(provided)}
       {
       }
 
       /// expected
-      [[nodiscard]] auto expected() const -> const object_ptr<const Type>&
+      [[nodiscard]] auto& expected() const
       {
         return m_expected;
       }
 
       /// result
-      [[nodiscard]] auto provided() const -> const object_ptr<const Type>&
+      [[nodiscard]] auto& provided() const
       {
         return m_provided;
       }
@@ -185,8 +257,8 @@ namespace yave {
     class no_valid_overloading : public type_error
     {
     public:
-      no_valid_overloading(object_ptr<const Object> source)
-        : type_error(std::move(source), "type_error: No valid overloading")
+      no_valid_overloading(object_ptr<const Object> src)
+        : type_error("type_error: No valid overloading", std::move(src))
       {
       }
     };

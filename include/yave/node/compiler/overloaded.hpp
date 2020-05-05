@@ -13,9 +13,9 @@ namespace yave {
   struct overloaded_object_value
   {
     overloaded_object_value(
-      uint64_t id = var_type::random_generate().id) noexcept
+      uint64_t id = tvar_type::random_generate().id) noexcept
       : id {id}
-      , id_var {make_object<Type>(var_type {id})}
+      , id_var {make_object<Type>(tvar_type {id})}
     {
     }
 
