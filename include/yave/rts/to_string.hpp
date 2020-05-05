@@ -17,29 +17,26 @@
 namespace yave {
 
   namespace detail {
+
     /// get string represents type
-    template <size_t MaxDepth>
-    auto to_string_impl(const object_ptr<const Type>& type, size_t depth)
+    inline auto to_string_impl(const object_ptr<const Type>& type)
       -> std::string
     {
-      if (depth > MaxDepth)
-        return "[...]";
-
       if (is_arrow_type(type)) {
         auto ap1 = is_tap_type_if(type);
         auto ap2 = is_tap_type_if(ap1->t1);
-        return "(" +                                          //
-               to_string_impl<MaxDepth>(ap1->t2, depth + 1) + //
-               " -> " +                                       //
-               to_string_impl<MaxDepth>(ap2->t2, depth + 1) + //
-               ")";                                           //
+        return "(" +                     //
+               to_string_impl(ap1->t2) + //
+               " -> " +                  //
+               to_string_impl(ap2->t2) + //
+               ")";                      //
       }
 
       if (is_list_type(type)) {
         auto ap = is_tap_type_if(type);
-        return "[" +                                         //
-               to_string_impl<MaxDepth>(ap->t2, depth + 1) + //
-               "]";                                          //
+        return "[" +                    //
+               to_string_impl(ap->t2) + //
+               "]";                     //
       }
 
       if (auto con = is_tcon_type_if(type)) {
@@ -47,11 +44,11 @@ namespace yave {
       }
 
       if (auto ap = is_tap_type_if(type)) {
-        return "(" +                                         //
-               to_string_impl<MaxDepth>(ap->t1, depth + 1) + //
-               " " +                                         //
-               to_string_impl<MaxDepth>(ap->t2, depth + 1) + //
-               ")";                                          //
+        return "(" +                    //
+               to_string_impl(ap->t1) + //
+               " " +                    //
+               to_string_impl(ap->t2) + //
+               ")";                     //
       }
 
       if (auto var = is_tvar_type_if(type)) {
@@ -63,11 +60,10 @@ namespace yave {
   } // namespace detail
 
   /// convert type to string
-  template <size_t MaxDepth = 48>
-  [[nodiscard]] auto to_string(const object_ptr<const Type>& type)
+  [[nodiscard]] inline auto to_string(const object_ptr<const Type>& type)
     -> std::string
   {
-    return detail::to_string_impl<MaxDepth>(type, 1);
+    return detail::to_string_impl(type);
   }
 
 } // namespace yave
