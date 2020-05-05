@@ -199,16 +199,18 @@ namespace yave {
       tap_type {make_object<Type>(tap_type {arrow_type_tcon(), t1}), t2});
   }
 
-  [[nodiscard]] inline auto has_arrow_type(const object_ptr<const Object>& obj)
+  [[nodiscard]] inline auto is_arrow_type(const object_ptr<const Type>& t)
   {
-    auto t = get_type(obj);
-
     if (auto tap1 = is_tap_type_if(t))
       if (auto tap2 = is_tap_type_if(tap1->t1))
         if (same_type(tap2->t1, arrow_type_tcon()))
           return true;
-
     return false;
+  }
+
+  [[nodiscard]] inline auto has_arrow_type(const object_ptr<const Object>& obj)
+  {
+    return is_arrow_type(get_type(obj));
   }
 
   // ------------------------------------------
@@ -219,15 +221,18 @@ namespace yave {
     return make_object<Type>(tap_type {list_type_tcon(), t});
   }
 
-  [[nodiscard]] inline auto has_list_type(const object_ptr<const Object>& obj)
+  [[nodiscard]] inline auto is_list_type(const object_ptr<const Type>& t)
   {
-    auto t = get_type(obj);
-
     if (auto tap = is_tap_type_if(t))
       if (same_type(tap->t1, list_type_tcon()))
         return true;
 
     return false;
+  }
+
+  [[nodiscard]] inline auto has_list_type(const object_ptr<const Object>& obj)
+  {
+    return is_list_type(get_type(obj));
   }
 
   // ------------------------------------------
