@@ -39,7 +39,7 @@ namespace yave {
 
       for (auto&& t : types) {
         try {
-          (void)unify(t, instp, nullptr);
+          (void)unify(t, instp);
           throw std::invalid_argument("Overlapping class instance");
         } catch (type_error::type_error&) {
           // ok
@@ -121,7 +121,7 @@ namespace yave {
         auto overload = classes.find_overloading(src->id_var);
 
         if (!overload)
-          throw type_error::type_error(src, "Invalid class ID");
+          throw type_error::type_error("Invalid class ID", src);
 
         auto var = genvar();
         auto tp  = genpoly(overload->type, envA);
@@ -141,7 +141,7 @@ namespace yave {
     inline auto close_assumption(
       overloading_env& env,
       object_ptr<const Type> ty,
-      const object_ptr<const Object>& src) -> object_ptr<const Type>
+      const object_ptr<const Object>& src = nullptr) -> object_ptr<const Type>
     {
       // lsit of closed assumptions
       std::vector<object_ptr<const Type>> closed;
@@ -227,22 +227,29 @@ namespace yave {
         auto t1 = type_of_overloaded_impl(storage.app(), env);
         auto t2 = type_of_overloaded_impl(storage.arg(), env);
 
-        auto var = genvar();
-        auto as =
-          unify(apply_subst(env.envA, t1), make_arrow_type(t2, var), obj);
-        auto ty = apply_subst(as, var);
+        try {
 
-        as.erase(var);
+          auto var = genvar();
+          auto as  = unify(apply_subst(env.envA, t1), make_arrow_type(t2, var));
+          auto ty  = apply_subst(as, var);
 
-        // update A and B
-        compose_subst_over(env.envA, as);
-        env.envB.for_each([&](auto&, auto& to) { to = apply_subst(as, to); });
+          as.erase(var);
 
-        // only close when envA has no free variable
-        if (vars(env.envA).empty())
-          ty = close_assumption(env, ty, obj);
+          // update A and B
+          compose_subst_over(env.envA, as);
+          env.envB.for_each([&](auto&, auto& to) { to = apply_subst(as, to); });
 
-        return ty;
+          // only close when envA has no free variable
+          if (vars(env.envA).empty())
+            ty = close_assumption(env, ty);
+
+          return ty;
+
+        } catch (type_error::type_error& e) {
+          if (!e.has_source())
+            e.source() = obj;
+          throw;
+        }
       }
 
       // Lambda
@@ -270,7 +277,7 @@ namespace yave {
         if (auto s = env.envA.find(var))
           return s->to;
 
-        throw type_error::unbounded_variable(obj, var);
+        throw type_error::unbounded_variable(var, obj);
       }
 
       // Overloaded

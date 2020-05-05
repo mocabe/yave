@@ -70,7 +70,7 @@ namespace yave {
       auto k2 = kind_of(ap->t2);
 
       if (!is_kfun(k1) || !same_kind(k1->k1, k2))
-        throw type_error::kind_missmatch(nullptr, k1, k2);
+        throw type_error::kind_missmatch(k1, k2, nullptr);
 
       return k1->k2;
     }
@@ -503,7 +503,7 @@ namespace yave {
   // ------------------------------------------
   // merge_subst
 
-  inline void merge_subst(type_arrow_map& s1, const type_arrow_map& s2)
+  inline void merge_subst_over(type_arrow_map& s1, const type_arrow_map& s2)
   {
     std::vector<object_ptr<const Type>> ts1;
     s1.for_each([&](auto& from, auto&) { ts1.push_back(from); });
@@ -527,7 +527,7 @@ namespace yave {
     for (auto&& t : isect)
       if (!same_type(apply_subst(s1, t), apply_subst(s2, t)))
         throw type_error::unsolvable_constraints(
-          nullptr, apply_subst(s1, t), apply_subst(s2, t));
+          apply_subst(s1, t), apply_subst(s2, t), nullptr);
 
     s2.for_each([&](auto& from, auto& to) { s1.insert({from, to}); });
   }
@@ -557,7 +557,7 @@ namespace yave {
   // ------------------------------------------
   // mgu
 
-  inline auto mgu_var(
+  [[nodiscard]] inline auto mgu_var(
     const object_ptr<const Type>& u,
     const object_ptr<const Type>& t) -> type_arrow_map
   {
@@ -567,10 +567,10 @@ namespace yave {
       return {};
 
     if (occurs(u, t))
-      throw type_error::circular_constraint(nullptr, u);
+      throw type_error::circular_constraint(u, nullptr);
 
     if (!same_kind(kind_of(u), kind_of(t)))
-      throw type_error::kind_missmatch(nullptr, kind_of(u), kind_of(t));
+      throw type_error::kind_missmatch(kind_of(u), kind_of(t), nullptr);
 
     type_arrow_map ret;
     ret.insert({u, t});
@@ -602,17 +602,16 @@ namespace yave {
         if (same_type(t1, t2))
           return {};
         else
-          throw type_error::type_missmatch(nullptr, t1, t2);
+          throw type_error::type_missmatch(t1, t2, nullptr);
       }
     }
-
-    throw type_error::unsolvable_constraints(nullptr, t1, t2);
+    throw type_error::unsolvable_constraints(t1, t2, nullptr);
   }
 
   // ------------------------------------------
-  // mgu
+  // match
 
-  inline auto match(
+  [[nodiscard]] inline auto match(
     const object_ptr<const Type>& t1,
     const object_ptr<const Type>& t2) -> type_arrow_map
   {
@@ -620,7 +619,7 @@ namespace yave {
       if (auto tap2 = is_tap_type_if(t2)) {
         auto s1 = match(tap1->t1, tap2->t1);
         auto s2 = match(tap1->t2, tap2->t2);
-        merge_subst(s1, s2);
+        merge_subst_over(s1, s2);
         return s1;
       }
     }
@@ -632,10 +631,10 @@ namespace yave {
       if (same_type(t1, t2))
         return {};
       else
-        throw type_error::type_missmatch(nullptr, t1, t2);
+        throw type_error::type_missmatch(t1, t2, nullptr);
     }
 
-    throw type_error::unsolvable_constraints(nullptr, t1, t2);
+    throw type_error::unsolvable_constraints(t1, t2, nullptr);
   }
 
   // ------------------------------------------
@@ -646,8 +645,7 @@ namespace yave {
   /// \param src Source node (for error handling)
   [[nodiscard]] inline auto unify(
     const object_ptr<const Type>& t1,
-    const object_ptr<const Type>& t2,
-    const object_ptr<const Object>&) -> type_arrow_map
+    const object_ptr<const Type>& t2) -> type_arrow_map
   {
     return mgu(t1, t2);
   }
@@ -743,7 +741,7 @@ namespace yave {
   {
     try {
       return match(t1, t2);
-    } catch (type_error::type_error&) {
+    } catch (const type_error::type_error&) {
       return std::nullopt;
     }
   }
@@ -791,14 +789,22 @@ namespace yave {
         auto t1 = type_of_impl(storage.app(), env);
         auto t2 = type_of_impl(storage.arg(), env);
 
-        auto var = genvar();
-        auto as  = unify(apply_subst(env, t1), make_arrow_type(t2, var), obj);
-        auto ty  = apply_subst(as, var);
+        try {
 
-        as.erase(var);
-        compose_subst_over(env, as);
+          auto var = genvar();
+          auto as  = unify(apply_subst(env, t1), make_arrow_type(t2, var));
+          auto ty  = apply_subst(as, var);
 
-        return ty;
+          as.erase(var);
+          compose_subst_over(env, as);
+
+          return ty;
+
+        } catch (type_error::type_error& e) {
+          if (!e.has_source())
+            e.source() = obj;
+          throw;
+        }
       }
 
       // Lambda
@@ -826,7 +832,7 @@ namespace yave {
         if (auto s = env.find(var))
           return s->to;
 
-        throw type_error::unbounded_variable(obj, var);
+        throw type_error::unbounded_variable(var, obj);
       }
 
       // Partially applied closures
@@ -854,7 +860,7 @@ namespace yave {
   [[nodiscard]] inline auto type_of(const object_ptr<const Object>& obj)
     -> object_ptr<const Type>
   {
-    type_arrow_map env;  // type environment
+    type_arrow_map env; // type environment
 
     auto ty = detail::type_of_impl(obj, env);
 
@@ -929,6 +935,6 @@ namespace yave {
     auto t1 = object_type<T>();
     auto t2 = type_of(obj);
     if (unlikely(!same_type(t1, t2)))
-      throw type_error::bad_type_check(obj, t1, t2);
+      throw type_error::bad_type_check(t1, t2, obj);
   }
 } // namespace yave

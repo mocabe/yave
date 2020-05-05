@@ -286,64 +286,112 @@ TEST_CASE("overloading")
     }
   }
 
-  SECTION("f: X->Y")
+  SECTION("f : X->X with [a->a, Int->Int]")
   {
-    struct F : Function<F, Int, Double>
+    struct F : Function<F, Int, Int>
     {
-      auto code() const -> return_type
+      return_type code() const
       {
         throw;
       }
     };
 
-    struct G : Function<G, Float, Bool>
+    class a;
+    struct G : Function<G, List<a>, List<a>>
     {
-      auto code() const -> return_type
+      return_type code() const
       {
         throw;
       }
     };
 
-    auto f  = make_object<F>();
-    auto g  = make_object<G>();
-    auto id = make_object<Identity>();
+    auto f = make_object<F>();
+    auto g = make_object<G>();
 
     class_env env;
-    auto o = env.add_overloading(uid::random_generate(), {f, g});
+    auto ovl = env.add_overloading(uid::random_generate(), {g, f});
 
     SECTION("f Int")
     {
-      auto app        = o << make_object<Int>();
+      auto app        = ovl << make_object<Int>();
       auto [ty, app2] = type_of_overloaded(app, env);
 
-      REQUIRE(same_type(ty, object_type<Double>()));
+      REQUIRE(same_type(ty, object_type<Int>()));
 
       auto ty2 = type_of(app2);
       REQUIRE(same_type(ty, ty2));
     }
 
-    SECTION("f Float")
+    SECTION("f List<Int>")
     {
-      auto app        = o << make_object<Float>();
+      auto app        = ovl << make_object<List<Int>>();
       auto [ty, app2] = type_of_overloaded(app, env);
 
-      REQUIRE(same_type(ty, object_type<Bool>()));
-
-      auto ty2 = type_of(app2);
-      REQUIRE(same_type(ty, ty2));
-    }
-
-    SECTION("id ((id f) Int)")
-    {
-      auto app        = (id << o) << make_object<Int>();
-      auto [ty, app2] = type_of_overloaded(app, env);
-
-      REQUIRE(same_type(ty, object_type<Double>()));
+      REQUIRE(same_type(ty, object_type<List<Int>>()));
 
       auto ty2 = type_of(app2);
       REQUIRE(same_type(ty, ty2));
     }
   }
+
+  // SECTION("f: X->Y")
+  // {
+  //   struct F : Function<F, Int, Double>
+  //   {
+  //     auto code() const -> return_type
+  //     {
+  //       throw;
+  //     }
+  //   };
+
+  //   struct G : Function<G, Float, Bool>
+  //   {
+  //     auto code() const -> return_type
+  //     {
+  //       throw;
+  //     }
+  //   };
+
+  //   auto f  = make_object<F>();
+  //   auto g  = make_object<G>();
+  //   auto id = make_object<Identity>();
+
+  //   class_env env;
+  //   auto o = env.add_overloading(uid::random_generate(), {f, g});
+
+  //   SECTION("f Int")
+  //   {
+  //     auto app        = o << make_object<Int>();
+  //     auto [ty, app2] = type_of_overloaded(app, env);
+
+  //     REQUIRE(same_type(ty, object_type<Double>()));
+
+  //     auto ty2 = type_of(app2);
+  //     REQUIRE(same_type(ty, ty2));
+  //   }
+
+  //   SECTION("f Float")
+  //   {
+  //     auto app        = o << make_object<Float>();
+  //     auto [ty, app2] = type_of_overloaded(app, env);
+
+  //     REQUIRE(same_type(ty, object_type<Bool>()));
+
+  //     auto ty2 = type_of(app2);
+  //     REQUIRE(same_type(ty, ty2));
+  //   }
+
+  //   SECTION("id ((id f) Int)")
+  //   {
+  //     auto app        = (id << o) << make_object<Int>();
+  //     auto [ty, app2] = type_of_overloaded(app, env);
+
+  //     REQUIRE(same_type(ty, object_type<Double>()));
+
+  //     auto ty2 = type_of(app2);
+  //     REQUIRE(same_type(ty, ty2));
+  //   }
+  // }
 
   SECTION("ho")
   {

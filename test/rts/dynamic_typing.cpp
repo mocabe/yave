@@ -159,12 +159,12 @@ TEST_CASE("unify")
   SECTION("[X=int]")
   {
     auto c = type_arrow {X, object_type<Int>()};
-    auto r = unify(c.from, c.to, nullptr);
+    auto r = unify(c.from, c.to);
 
     SECTION("reunify")
     {
       c = apply_subst(r, c);
-      REQUIRE(unify(c.from, c.to, nullptr).empty());
+      REQUIRE(unify(c.from, c.to).empty());
     }
 
     SECTION("eq")
@@ -183,9 +183,9 @@ TEST_CASE("unify")
     auto c2 = type_arrow {Y, make_arrow_type(X, X)};
 
     type_arrow_map r;
-    compose_subst_over(r, unify(c1.from, c1.to, nullptr));
+    compose_subst_over(r, unify(c1.from, c1.to));
     compose_subst_over(
-      r, unify(apply_subst(r, c2.from), apply_subst(r, c2.to), nullptr));
+      r, unify(apply_subst(r, c2.from), apply_subst(r, c2.to)));
 
     SECTION("reunify")
     {
@@ -193,9 +193,9 @@ TEST_CASE("unify")
       c2 = apply_subst(r, c2);
 
       type_arrow_map r2;
-      compose_subst_over(r2, unify(c1.from, c1.to, nullptr));
+      compose_subst_over(r2, unify(c1.from, c1.to));
       compose_subst_over(
-        r2, unify(apply_subst(r2, c2.from), apply_subst(r2, c2.to), nullptr));
+        r2, unify(apply_subst(r2, c2.from), apply_subst(r2, c2.to)));
       REQUIRE(r2.empty());
     }
 
@@ -218,12 +218,12 @@ TEST_CASE("unify")
       type_arrow {make_arrow_type(object_type<Int>(), object_type<Int>()),
                   make_arrow_type(X, Y)};
 
-    auto r = unify(c.from, c.to, nullptr);
+    auto r = unify(c.from, c.to);
 
     SECTION("reunify")
     {
       c = apply_subst(r, c);
-      REQUIRE(unify(c.from, c.to, nullptr).empty());
+      REQUIRE(unify(c.from, c.to).empty());
     }
 
     SECTION("eq")
@@ -244,9 +244,9 @@ TEST_CASE("unify")
     auto c2 = type_arrow {Z, make_arrow_type(U, W)};
 
     type_arrow_map r;
-    compose_subst_over(r, unify(c1.from, c1.to, nullptr));
+    compose_subst_over(r, unify(c1.from, c1.to));
     compose_subst_over(
-      r, unify(apply_subst(r, c2.from), apply_subst(r, c2.to), nullptr));
+      r, unify(apply_subst(r, c2.from), apply_subst(r, c2.to)));
 
     SECTION("reunify")
     {
@@ -254,9 +254,9 @@ TEST_CASE("unify")
       c2 = apply_subst(r, c2);
 
       type_arrow_map r2;
-      compose_subst_over(r2, unify(c1.from, c1.to, nullptr));
+      compose_subst_over(r2, unify(c1.from, c1.to));
       compose_subst_over(
-        r2, unify(apply_subst(r2, c2.from), apply_subst(r2, c2.to), nullptr));
+        r2, unify(apply_subst(r2, c2.from), apply_subst(r2, c2.to)));
       REQUIRE(r2.empty());
     }
 
@@ -280,12 +280,12 @@ TEST_CASE("unify")
                            make_list_type(object_type<List<Double>>())),
                          make_arrow_type(make_list_type(X), make_list_type(Y))};
 
-    auto result = unify(c.from, c.to, nullptr);
+    auto result = unify(c.from, c.to);
 
     SECTION("reunify")
     {
       c = apply_subst(result, c);
-      REQUIRE(unify(c.from, c.to, nullptr).empty());
+      REQUIRE(unify(c.from, c.to).empty());
     }
 
     SECTION("eq")
