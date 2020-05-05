@@ -307,12 +307,6 @@ namespace yave {
         srcn, srcs, e.expected(), e.provided()));
 
       // internal type errors
-    } catch (const type_error::unbounded_variable& e) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Internal type error: unbounded variable detected"));
-    } catch (const type_error::circular_constraint& e) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Internal type error: circular constraint detected"));
     } catch (const type_error::type_error& e) {
       errors.push_back(make_error<compile_error::unexpected_error>(
         srcn, srcs, "Internal type error: "s + e.what()));
@@ -657,12 +651,6 @@ namespace yave {
         srcn, srcs, e.expected(), e.provided()));
 
       // internal type errors
-    } catch (const type_error::unbounded_variable& e) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Internal type error: unbounded variable detected"));
-    } catch (const type_error::circular_constraint& e) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Internal type error: circular constraint detected"));
     } catch (const type_error::type_error& e) {
       errors.push_back(make_error<compile_error::unexpected_error>(
         srcn, srcs, "Internal type error: "s + e.what()));

@@ -285,11 +285,11 @@ namespace yave {
   // ------------------------------------------
   // type structs
 
-  /// type substitution
+  /// type mapping
   struct type_arrow
   {
-    object_ptr<const Type> from;
-    object_ptr<const Type> to;
+    object_ptr<const Type> t1;
+    object_ptr<const Type> t2;
   };
 
   // ------------------------------------------
@@ -310,8 +310,8 @@ namespace yave {
                               tap_type {t1 ? t1 : tap->t1, t2 ? t2 : tap->t2});
       }
 
-      if (same_type(in, ta.from))
-        return ta.to;
+      if (same_type(in, ta.t1))
+        return ta.t2;
 
       return nullptr;
     }
@@ -358,8 +358,8 @@ namespace yave {
     // insert new subst
     void insert(const type_arrow& ta)
     {
-      assert(is_tvar_type(ta.from));
-      auto p = m_map.try_emplace(ta.from, ta.to);
+      assert(is_tvar_type(ta.t1));
+      auto p = m_map.try_emplace(ta.t1, ta.t2);
 
       if (!p.second)
         std::logic_error("duplicated insertion");
@@ -426,8 +426,8 @@ namespace yave {
     const object_ptr<const Type>& ty) -> object_ptr<const Type>
   {
     auto tmp = ty;
-    s.for_each([&](auto& from, auto& to) {
-      tmp = apply_type_arrow({from, to}, tmp);
+    s.for_each([&](auto& t1, auto& t2) {
+      tmp = apply_type_arrow({t1, t2}, tmp);
     });
     return tmp;
   }
@@ -437,7 +437,7 @@ namespace yave {
     const type_arrow_map& s,
     const type_arrow& a) -> type_arrow
   {
-    return {apply_subst(s, a.from), apply_subst(s, a.to)};
+    return {apply_subst(s, a.t1), apply_subst(s, a.t2)};
   }
 
   // ------------------------------------------
@@ -473,8 +473,8 @@ namespace yave {
     -> std::vector<object_ptr<const Type>>
   {
     std::vector<object_ptr<const Type>> ret;
-    s.for_each([&](auto&, auto& to) {
-      auto v = vars(to);
+    s.for_each([&](auto&, auto& t2) {
+      auto v = vars(t2);
       ret.insert(ret.end(), v.begin(), v.end());
     });
     return ret;
@@ -487,9 +487,9 @@ namespace yave {
   /// \note: s (s1 T), not s1 (s T)!
   inline void compose_subst_over(type_arrow_map& s1, const type_arrow& s)
   {
-    s1.for_each([&](auto&, auto& to) { to = apply_type_arrow(s, to); });
+    s1.for_each([&](auto&, auto& t2) { t2 = apply_type_arrow(s, t2); });
 
-    if (!s1.find(s.from))
+    if (!s1.find(s.t1))
       s1.insert(s);
   }
 
@@ -497,11 +497,11 @@ namespace yave {
   /// \note: s2 (s1 T), not s1 (s2 T)!
   inline void compose_subst_over(type_arrow_map& s1, const type_arrow_map& s2)
   {
-    s1.for_each([&](auto&, auto& to) { to = apply_subst(s2, to); });
+    s1.for_each([&](auto&, auto& t2) { t2 = apply_subst(s2, t2); });
 
-    s2.for_each([&](auto& from, auto& to) {
-      if (!s1.find(from))
-        s1.insert({from, to});
+    s2.for_each([&](auto& t1, auto& t2) {
+      if (!s1.find(t1))
+        s1.insert({t1, t2});
     });
   }
 
@@ -511,10 +511,10 @@ namespace yave {
   inline void merge_subst_over(type_arrow_map& s1, const type_arrow_map& s2)
   {
     std::vector<object_ptr<const Type>> ts1;
-    s1.for_each([&](auto& from, auto&) { ts1.push_back(from); });
+    s1.for_each([&](auto& t1, auto&) { ts1.push_back(t1); });
 
     std::vector<object_ptr<const Type>> ts2;
-    s2.for_each([&](auto& from, auto&) { ts2.push_back(from); });
+    s2.for_each([&](auto& t1, auto&) { ts2.push_back(t1); });
 
     assert(std::is_sorted(ts1.begin(), ts1.end(), var_type_comp()));
     assert(std::is_sorted(ts2.begin(), ts2.end(), var_type_comp()));
@@ -534,7 +534,7 @@ namespace yave {
         throw type_error::unsolvable_constraints(
           apply_subst(s1, t), apply_subst(s2, t), nullptr);
 
-    s2.for_each([&](auto& from, auto& to) { s1.insert({from, to}); });
+    s2.for_each([&](auto& t1, auto& t2) { s1.insert({t1, t2}); });
   }
 
   // ------------------------------------------
@@ -835,7 +835,7 @@ namespace yave {
 
         auto var = make_var_type(variable->id());
         if (auto s = env.find(var))
-          return s->to;
+          return s->t2;
 
         throw type_error::unbounded_variable(var, obj);
       }

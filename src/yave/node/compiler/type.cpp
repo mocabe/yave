@@ -146,18 +146,18 @@ namespace yave {
       // lsit of closed assumptions
       std::vector<object_ptr<const Type>> closed;
 
-      env.envB.for_each([&](auto& from, auto& to) {
+      env.envB.for_each([&](auto& tv, auto& assump) {
         // ignore assumptions which contains variable.
         // this is probably not ideal way, but should work fairly well.
-        if (!vars(to).empty())
+        if (!vars(assump).empty())
           return;
 
         // find overloading candidates
-        assert(env.references.find(from));
-        assert(env.sources.find(from) != env.sources.end());
-        auto class_id  = env.references.find(from)->to;
+        assert(env.references.find(tv));
+        assert(env.sources.find(tv) != env.sources.end());
+        auto class_id  = env.references.find(tv)->t2;
         auto class_val = *env.classes.find_overloading(class_id);
-        auto source    = env.sources.find(from)->second;
+        auto source    = env.sources.find(tv)->second;
 
         // find specializable overloadings
 
@@ -167,7 +167,7 @@ namespace yave {
         for (auto&& inst : class_val.instances) {
           auto insty = genpoly(get_type(inst), env.envA);
 
-          if (specializable(insty, to)) {
+          if (specializable(insty, assump)) {
             // ambiguous
             if (result_type)
               return;
@@ -184,21 +184,21 @@ namespace yave {
         // get substitition to fix
         // use empty set if it's not specializable
         type_arrow_map subst;
-        if (auto tmp = specializable(to, result_type))
+        if (auto tmp = specializable(assump, result_type))
           subst = std::move(*tmp);
 
         // update A and B
         env.envA.for_each(
-          [&](auto&, auto& to) { to = apply_subst(subst, to); });
+          [&](auto&, auto& t2) { t2 = apply_subst(subst, t2); });
         env.envB.for_each(
-          [&](auto&, auto& to) { to = apply_subst(subst, to); });
+          [&](auto&, auto& t2) { t2 = apply_subst(subst, t2); });
 
         // update ty
         ty = apply_subst(subst, ty);
 
         // cache result
         env.results.emplace(source, result_inst);
-        closed.push_back(from);
+        closed.push_back(tv);
       });
 
       // remove assumptions no longer required
@@ -275,7 +275,7 @@ namespace yave {
 
         auto var = make_var_type(variable->id());
         if (auto s = env.envA.find(var))
-          return s->to;
+          return s->t2;
 
         throw type_error::unbounded_variable(var, obj);
       }
