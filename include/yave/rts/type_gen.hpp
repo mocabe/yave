@@ -115,12 +115,11 @@ namespace yave {
     // ------------------------------------------
     // tvar type
 
-    template <class Tag, class Kind>
-    struct type_initializer<tvar<Tag, Kind>>
+    template <class Tag>
+    struct type_initializer<tvar<Tag, kstar>>
     {
       inline static const Type type //
-        {static_construct,
-         tvar_type {tvar_type::random_generate().id, kind_address<Kind>()}};
+        {static_construct, tvar_type::random_generate()};
     };
 
     // ------------------------------------------

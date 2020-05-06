@@ -108,8 +108,8 @@ namespace yave {
   // Types
 
   // ty_var
-  template <class Tag, class Kind = kstar>
-  using ty_var = tvar<Tag, Kind>;
+  template <class Tag>
+  using ty_var = tvar<Tag, kstar>;
 
   // ty_varvalue
   template <class Tag>
@@ -459,61 +459,4 @@ namespace yave {
     return type_c<ty_var<var_tcon_tag<N>>>;
   }
 
-  // ------------------------------------------
-  // legacy compatible interfaces
-
-  template <class T1, class T2>
-  constexpr auto is_ty_arrow(meta_type<ty_arrow<T1, T2>>)
-  {
-    return true_c;
-  }
-  template <class T>
-  constexpr auto is_ty_arrow(meta_type<T>)
-  {
-    return false_c;
-  }
-
-  template <class Tag>
-  constexpr auto is_ty_value(meta_type<ty_value<Tag>>)
-  {
-    return true_c;
-  }
-  template <class T>
-  constexpr auto is_ty_value(meta_type<T>)
-  {
-    return false_c;
-  }
-
-  template <class Tag>
-  constexpr auto is_ty_varvalue(meta_type<ty_varvalue<Tag>>)
-  {
-    return true_c;
-  }
-  template <class T>
-  constexpr auto is_ty_varvalue(meta_type<T>)
-  {
-    return false_c;
-  }
-
-  template <class T, class Kind>
-  constexpr auto is_ty_var(meta_type<ty_var<T, Kind>>)
-  {
-    return true_c;
-  }
-  template <class T>
-  constexpr auto is_ty_var(meta_type<T>)
-  {
-    return false_c;
-  }
-
-  template <class T>
-  constexpr auto is_ty_list(meta_type<ty_list<T>>)
-  {
-    return true_c;
-  }
-  template <class T>
-  constexpr auto is_ty_list(meta_type<T>)
-  {
-    return false_c;
-  }
 } // namespace yave

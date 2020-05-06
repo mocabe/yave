@@ -6,7 +6,6 @@
 #pragma once
 
 #include <yave/rts/object_ptr.hpp>
-#include <yave/rts/type_value.hpp> // clang requires definition of TypeValue to compile.
 #include <yave/rts/specifiers.hpp>
 #include <yave/rts/terms.hpp>
 

@@ -51,7 +51,7 @@ namespace yave {
       kind_initializer<K2>::addr()};
 
     template <class K>
-    constexpr auto kind_address(meta_type<K> = {}) -> const Kind*
+    constexpr auto kind_address() -> const Kind*
     {
       return kind_initializer<K>::addr();
     }

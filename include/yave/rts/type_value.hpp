@@ -7,6 +7,7 @@
 
 #include <yave/rts/object_ptr.hpp>
 #include <yave/rts/id_util.hpp>
+#include <yave/rts/kind_gen.hpp>
 
 #include <yave/support/offset_of_member.hpp>
 
@@ -79,7 +80,7 @@ namespace yave {
     uint64_t id;
 
     /// kind (always kstar now)
-    object_ptr<const Kind> kind = nullptr;
+    object_ptr<const Kind> kind = detail::kind_address<kstar>();
 
     [[nodiscard]] static auto random_generate() -> tvar_type
     {
