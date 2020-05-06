@@ -5,8 +5,8 @@
 
 #include <yave/lib/imgui/imgui_context.hpp>
 
-#include <yave-imgui/editor/canvas.hpp>
-#include <yave-imgui/editor/render.hpp>
+#include <yave-imgui/canvas.hpp>
+#include <yave-imgui/render.hpp>
 #include <yave/module/std/module.hpp>
 #include <yave/module/std/module_loader.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>

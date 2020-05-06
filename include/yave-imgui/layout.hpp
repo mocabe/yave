@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <yave-imgui/style.hpp>
 #include <yave/lib/imgui/extension.hpp>
-#include <yave-imgui/editor/style.hpp>
 #include <yave/node/core/managed_node_graph.hpp>
 #include <yave/app/editor_context.hpp>
 

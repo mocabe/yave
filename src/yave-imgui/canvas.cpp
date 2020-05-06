@@ -3,9 +3,9 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave-imgui/editor/canvas.hpp>
-#include <yave-imgui/editor/style.hpp>
-#include <yave-imgui/editor/layout.hpp>
+#include <yave-imgui/canvas.hpp>
+#include <yave-imgui/style.hpp>
+#include <yave-imgui/layout.hpp>
 
 #include <yave/lib/imgui/extension.hpp>
 #include <yave/module/std/primitive/primitive.hpp>

@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave-imgui/editor/layout.hpp>
+#include <yave-imgui/layout.hpp>
 
 namespace yave::editor::imgui {
 
