@@ -26,9 +26,9 @@ namespace yave {
         auto ap1 = is_tap_type_if(type);
         auto ap2 = is_tap_type_if(ap1->t1);
         return "(" +                     //
-               to_string_impl(ap1->t2) + //
-               " -> " +                  //
                to_string_impl(ap2->t2) + //
+               " -> " +                  //
+               to_string_impl(ap1->t2) + //
                ")";                      //
       }
 
