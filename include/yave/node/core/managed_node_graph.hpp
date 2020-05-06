@@ -6,7 +6,6 @@
 #pragma once
 
 #include <yave/node/core/node_graph.hpp>
-#include <yave/node/core/shared_node_handle.hpp>
 #include <yave/node/core/managed_node_info.hpp>
 #include <yave/node/core/managed_socket_info.hpp>
 #include <yave/node/core/managed_connection_info.hpp>

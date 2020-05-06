@@ -13,7 +13,6 @@ add_library(yave-node-core
   managed_connection_info.cpp
   managed_node_graph.cpp
   socket_instance_manager.cpp
-  shared_node_handle.cpp
   node_initializer.cpp
   node_declaration_store.cpp
   node_definition_store.cpp
