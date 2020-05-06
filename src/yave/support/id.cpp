@@ -8,8 +8,8 @@
 #include <boost/random/random_device.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
-#include <cstring>
-#include <sstream>
+#include <fmt/format.h>
+
 #include <random>
 
 namespace yave {
@@ -46,9 +46,7 @@ namespace yave {
 
   std::string to_string(const uid& id)
   {
-    std::stringstream stream;
-    stream << std::hex << id.data;
-    return std::string(stream.str());
+    return fmt::format("{:0>16x}", id.data);
   }
 
   uid uid::random_generate()
