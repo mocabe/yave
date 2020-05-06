@@ -2449,7 +2449,7 @@ namespace yave {
     return m_pimpl->disconnect(c);
   }
 
-  auto structured_node_graph::clone() -> structured_node_graph
+  auto structured_node_graph::clone() const -> structured_node_graph
   {
     return structured_node_graph(std::make_unique<impl>(m_pimpl->clone()));
   }

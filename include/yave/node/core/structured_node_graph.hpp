@@ -249,7 +249,7 @@ namespace yave {
 
   public:
     /// clone
-    [[nodiscard]] auto clone() -> structured_node_graph;
+    [[nodiscard]] auto clone() const -> structured_node_graph;
 
   public:
     /// clear
