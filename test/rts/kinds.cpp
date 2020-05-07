@@ -7,6 +7,7 @@
 
 #include <yave/rts/kinds.hpp>
 #include <yave/rts/types.hpp>
+#include <yave/rts/type_gen.hpp>
 
 using namespace yave;
 
@@ -49,5 +50,13 @@ void test_ty()
         tList,
         tvar<
           a,
-          kstar>>>> == type_c<ty_arrow<ty_value<int>, ty_list<ty_var<a, kstar>>>>);
+          kstar>>>> == type_c<ty_arrow<ty_value<int>, ty_list<ty_var<a>>>>);
+}
+
+void test_kind_gen()
+{
+  static_assert(!detail::kind_address<kstar>());
+  static_assert(detail::kind_address<kfun<kfun<kstar, kstar>, kstar>>());
+  static_assert(
+    detail::kind_address<kfun<kfun<kstar, kstar>, kfun<kstar, kstar>>>());
 }

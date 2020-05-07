@@ -444,6 +444,11 @@ TEST_CASE("type_of")
     auto i = make_object<Int>();
     auto d = make_object<Double>();
 
+    SECTION("self")
+    {
+      REQUIRE(!same_type(type_of(a), type_of(a)));
+    }
+
     SECTION("mono")
     {
       auto app  = a << b << i << i;
@@ -793,5 +798,4 @@ TEST_CASE("lambda")
       REQUIRE(same_type(e.provided(), object_type<Int>()));
     }
   }
-
 }

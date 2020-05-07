@@ -26,18 +26,15 @@ void test_tuple_eq()
 {
   {
     auto t = tuple_c<>;
-    static_assert(equal(t, t));
     static_assert(t == t);
   }
   {
     auto t = tuple_c<int>;
-    static_assert(equal(t, t));
     static_assert(t == t);
     static_assert(t != tuple_c<double>);
   }
   {
     auto t = tuple_c<int, double>;
-    static_assert(equal(t, t));
     static_assert(t == t);
 
     static_assert(t != tuple_c<>);
@@ -140,16 +137,13 @@ void test_tuple_remove_last()
 void test_set_eq()
 {
   {
-    static_assert(equal(set_c<>, set_c<>));
     static_assert(set_c<> == set_c<>);
   }
   {
-    static_assert(equal(set_c<int>, set_c<int>));
     static_assert(set_c<int> == set_c<int>);
     static_assert(set_c<int> != set_c<double>);
   }
   {
-    static_assert(equal(set_c<int, int>, set_c<int>));
     static_assert(set_c<int, int> == set_c<int>);
     static_assert(set_c<int, double> != set_c<int>);
   }
