@@ -80,7 +80,10 @@ namespace yave {
     meta_set<Ts1...> s1,
     meta_set<Ts2...> s2)
   {
-    return equal(s1, s2);
+    if constexpr (includes(s1, s2) && includes(s2, s1))
+      return true_c;
+    else
+      return false_c;
   }
 
   template <class... Ts1, class... Ts2>
@@ -154,18 +157,6 @@ namespace yave {
   [[nodiscard]] constexpr auto tail(meta_set<>)
   {
     return set_c<>;
-  }
-
-  // ------------------------------------------
-  // equal
-
-  template <class... Ts1, class... Ts2>
-  [[nodiscard]] constexpr auto equal(meta_set<Ts1...> t1, meta_set<Ts2...> t2)
-  {
-    if constexpr (includes(t1, t2) && includes(t2, t1))
-      return true_c;
-    else
-      return false_c;
   }
 
   // ------------------------------------------

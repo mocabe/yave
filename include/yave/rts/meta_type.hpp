@@ -10,6 +10,14 @@
 namespace yave {
 
   // ------------------------------------------
+  // bool constants
+
+  /// true_c
+  static constexpr std::true_type true_c {};
+  /// false_c
+  static constexpr std::false_type false_c {};
+
+  // ------------------------------------------
   // meta_type
 
   /// meta_type
@@ -28,9 +36,9 @@ namespace yave {
   [[nodiscard]] constexpr auto operator==(meta_type<T1>, meta_type<T2>)
   {
     if constexpr (std::is_same_v<T1, T2>)
-      return std::true_type {};
+      return true_c;
     else
-      return std::false_type {};
+      return false_c;
   }
 
   /// operator!=
@@ -39,12 +47,4 @@ namespace yave {
   {
     return std::bool_constant<!(lhs == rhs)> {};
   }
-
-  // ------------------------------------------
-  // bool constants
-
-  /// true_c
-  static constexpr std::true_type true_c {};
-  /// false_c
-  static constexpr std::false_type false_c {};
 }

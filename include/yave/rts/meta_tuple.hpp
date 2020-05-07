@@ -23,8 +23,9 @@ namespace yave {
   template <class... Ts>
   inline constexpr meta_tuple<Ts...> tuple_c {};
 
+  /// operator==
   template <class... Ts1, class... Ts2>
-  [[nodiscard]] constexpr auto equal(
+  [[nodiscard]] constexpr auto operator==(
     meta_tuple<Ts1...> t1,
     meta_tuple<Ts2...> t2)
   {
@@ -32,15 +33,6 @@ namespace yave {
       return true_c;
     else
       return false_c;
-  }
-
-  /// operator==
-  template <class... Ts1, class... Ts2>
-  [[nodiscard]] constexpr auto operator==(
-    meta_tuple<Ts1...> t1,
-    meta_tuple<Ts2...> t2)
-  {
-    return equal(t1, t2);
   }
 
   /// operaotr!=
@@ -131,15 +123,10 @@ namespace yave {
 
   /// Get last element of tuple.
   template <class... Ts>
-  [[nodiscard]] constexpr auto last(meta_tuple<Ts...> t)
+  [[nodiscard]] constexpr auto last(meta_tuple<Ts...>)
   {
-    if constexpr (empty(t))
-      static_assert(false_v<Ts...>, "Empty tuple");
-
-    if constexpr (t.size() <= 1)
-      return head(t);
-    else
-      return last(tail(t));
+    auto dummy = [](auto x) { return x; };
+    return (dummy(type_c<Ts>), ...);
   }
 
   // ------------------------------------------
@@ -274,29 +261,16 @@ namespace yave {
   // ------------------------------------------
   // map
 
-  namespace detail {
-
-    template <class F, class... Rs>
-    constexpr auto map_impl(meta_tuple<>, F, meta_tuple<Rs...> result)
-    {
-      return result;
-    }
-
-    template <class... Ts, class F, class... Rs>
-    constexpr auto map_impl(
-      meta_tuple<Ts...> tuple,
-      F f,
-      meta_tuple<Rs...> result)
-    {
-      return map_impl(tail(tuple), f, append(f(head(tuple)), result));
-    }
-
-  } // namespace detail
+  template <class F>
+  [[nodiscard]] constexpr auto map(meta_tuple<>, F)
+  {
+    return tuple_c<>;
+  }
 
   template <class... Ts, class F>
-  [[nodiscard]] constexpr auto map(meta_tuple<Ts...> tuple, F f)
+  [[nodiscard]] constexpr auto map(meta_tuple<Ts...>, F f)
   {
-    return detail::map_impl(tuple, f, tuple_c<>);
+    return make_tuple(f(type_c<Ts>)...);
   }
 
   // ------------------------------------------
