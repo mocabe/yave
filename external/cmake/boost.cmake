@@ -3,23 +3,17 @@
 message(STATUS "Find package: boost")
 
 set(YAVE_BOOST_COMPONENTS random program_options filesystem)
+set(YAVE_BOOST_VERSION 1.73.0)
 set (Boost_ARCHITECTURE "-x64")
 set(Boost_USE_STATIC_LIBS ON)
 
-# Find existing boost installation
-if(NOT YAVE_COMPILER_MSVC)
-  find_package(Boost 1.70.0 COMPONENTS ${YAVE_BOOST_COMPONENTS})
-endif()
-
-if(NOT Boost_FOUND)
-  set(BOOST_ROOT "${YAVE_EXTERNAL_DIR}/boost")
-  find_package(Boost 1.70.0 COMPONENTS ${YAVE_BOOST_COMPONENTS})
-endif()
+set(BOOST_ROOT "${YAVE_EXTERNAL_DIR}/boost")
+find_package(Boost ${YAVE_BOOST_VERSION} COMPONENTS ${YAVE_BOOST_COMPONENTS})
 
 if(NOT Boost_FOUND)
 
   message(STATUS "Initializing submodule: boost")
-  execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive --jobs 8 ${YAVE_EXTERNAL_DIR}/boost)
+  execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive ${YAVE_EXTERNAL_DIR}/boost)
   
   message(STATUS "Building boost library")
   
@@ -66,6 +60,6 @@ if(NOT Boost_FOUND)
   # Let FindBoost create Boost targets
   set(BOOST_ROOT "${YAVE_EXTERNAL_DIR}/boost")
   set(Boost_NO_SYSTEM_PATHS TRUE)
-  find_package(Boost COMPONENTS ${YAVE_BOOST_COMPONENTS} REQUIRED)
+  find_package(Boost ${YAVE_BOOST_VERSION} COMPONENTS ${YAVE_BOOST_COMPONENTS} REQUIRED)
 
 endif()
