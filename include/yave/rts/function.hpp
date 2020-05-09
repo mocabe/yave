@@ -262,6 +262,8 @@ namespace yave {
     using base::arg;
     using base::spine;
     using base::nth_arg;
+    using base::get_info_table;
+    using base::value;
 
   private:
     /// Closure info table initializer
@@ -269,7 +271,8 @@ namespace yave {
     {
       static constexpr auto get_info_table() -> const object_info_table*
       {
-        return &info_table;
+        return detail::add_info_table_tag(
+          &info_table, detail::get_info_table_tag<Closure<>>());
       }
 
       /// static closure info

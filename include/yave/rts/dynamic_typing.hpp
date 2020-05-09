@@ -208,11 +208,6 @@ namespace yave {
     return false;
   }
 
-  [[nodiscard]] inline auto has_arrow_type(const object_ptr<const Object>& obj)
-  {
-    return is_arrow_type(get_type(obj));
-  }
-
   // ------------------------------------------
   // list type
 
@@ -228,11 +223,6 @@ namespace yave {
         return true;
 
     return false;
-  }
-
-  [[nodiscard]] inline auto has_list_type(const object_ptr<const Object>& obj)
-  {
-    return is_list_type(get_type(obj));
   }
 
   // ------------------------------------------
@@ -841,8 +831,8 @@ namespace yave {
       }
 
       // Partially applied closures
-      if (has_arrow_type(obj))
-        if (auto c = (const Closure<>*)obj.get(); c->is_pap())
+      if (auto c = value_cast_if<Closure<>>(obj))
+        if (c->is_pap())
           return type_of_impl(c->vertebrae(c->arity), env);
 
       // tap
@@ -881,20 +871,15 @@ namespace yave {
     template <class T, class U>
     bool has_type_impl(const object_ptr<U>& obj)
     {
-      // general
-      if constexpr (is_tm_value(get_term<T>())) {
-        // optimize type check on certain types
+      if constexpr (is_tm_value(get_term<T>()) || has_tm_list<T>()) {
+
         if constexpr (detail::has_info_table_tag<T>())
+          // optimize type check on certain types
           return likely(obj)
                  && _get_storage(obj).template match_info_table_tag<T>();
-
-        // normal type check
-        return same_type(get_type(obj), object_type<T>());
-      }
-      // List
-      else if constexpr (has_tm_list<T>()) {
-
-        return same_type(get_type(obj), object_type<T>());
+        else
+          // normal type check
+          return same_type(get_type(obj), object_type<T>());
 
       } else
         static_assert(false_v<T>, "T is not value type");

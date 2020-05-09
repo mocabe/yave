@@ -161,7 +161,7 @@ namespace yave {
             continue;
           }
 
-          assert(has_arrow_type(bottom));
+          assert(value_cast_if<Closure<>>(bottom));
 
           // clone bottom closure
           auto fun   = bottom.clone();

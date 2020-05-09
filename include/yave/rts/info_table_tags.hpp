@@ -30,7 +30,7 @@ namespace yave {
       _2           = 2,                  // Apply
       _3           = 3,                  // Variable
       _4           = 4,                  // Lambda
-      _5           = 5,                  //
+      _5           = 5,                  // Function (Closure<>)
       _6           = 6,                  //
       _7           = 7,                  //
       extract_mask = 0x0000000000000007, // 0...0111

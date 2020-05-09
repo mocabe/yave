@@ -50,10 +50,20 @@ namespace yave {
     /// Arity of this closure.
     mutable uint64_t arity;
 
+    /// dummy term for value_cast
+    static constexpr auto term = type_c<tm_value<Closure<>>>;
+
+    /// Get closure info table
+    [[nodiscard]] auto get_info_table() const
+    {
+      return static_cast<const closure_info_table*>(
+        detail::clear_info_table_tag(info_table));
+    }
+
     /// Get number of args
     [[nodiscard]] auto n_args() const noexcept
     {
-      return static_cast<const closure_info_table*>(info_table)->n_args;
+      return get_info_table()->n_args;
     }
 
     /// PAP?
@@ -79,12 +89,25 @@ namespace yave {
       return _get_storage(*vertebrae(n)).arg();
     }
 
-  public: /* can modify mutable members */
     /// Execute core with vtable function
+    /// \note will modify mutable members
     [[nodiscard]] auto call() const noexcept
     {
-      return static_cast<const closure_info_table*>(info_table)->code(this);
+      return get_info_table()->code(this);
     }
+
+    /// for object_ptr<Closure<>>
+    [[nodiscard]] auto& value() const
+    {
+      return *this;
+    }
+  };
+
+  template <>
+  struct object_type_traits<Closure<>>
+  {
+    /// for value_cast<Closure<>> on instance of Function
+    static constexpr auto info_table_tag = detail::info_table_tags::_5;
   };
 
   /** \brief ClosureN
@@ -97,6 +120,9 @@ namespace yave {
   template <uint64_t N>
   struct ClosureN : Closure<>
   {
+    /// args
+    mutable std::array<object_ptr<const Apply>, N> spine = {};
+
     /// get raw arg
     template <uint64_t Arg>
     [[nodiscard]] auto nth_arg() const noexcept
@@ -113,8 +139,5 @@ namespace yave {
       else
         return storage.arg();
     }
-
-    /// args
-    mutable std::array<object_ptr<const Apply>, N> spine = {};
   };
 }

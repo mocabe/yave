@@ -285,9 +285,9 @@ namespace yave {
         return env.instantiate_class(overloaded);
       }
 
-      // Partially applied closure
-      if (has_arrow_type(obj))
-        if (auto c = (const Closure<>*)obj.get(); c->is_pap())
+      // Partially applied closures
+      if (auto c = value_cast_if<Closure<>>(obj))
+        if (c->is_pap())
           return type_of_overloaded_impl(c->vertebrae(c->arity), env);
 
       // tap
