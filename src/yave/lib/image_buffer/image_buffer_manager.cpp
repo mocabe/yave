@@ -29,7 +29,7 @@ namespace yave {
     PMR_IMAGE_TYPE(rgb16);
 
     // variant of all images
-    using any_image_t = gil::any_image<mpl::vector<
+    using any_image_t = gil::any_image<mp11::mp_list<
       rgba8_image_t,
       rgba16_image_t,
       rgba32f_image_t,
