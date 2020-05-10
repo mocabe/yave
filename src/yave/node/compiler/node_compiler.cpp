@@ -366,7 +366,7 @@ namespace yave {
       for (auto&& r : roots)
         if (ng.get_name(r) == "root")
           return r;
-      assert(false);
+      unreachable();
     }();
 
     assert(ng.output_sockets(root).size() == 1);
@@ -455,7 +455,7 @@ namespace yave {
       for (auto&& r : roots)
         if (ng.get_name(r) == "root")
           return r;
-      assert(false);
+      unreachable();
     }();
 
     assert(ng.output_sockets(root).size() == 1);
@@ -598,7 +598,7 @@ namespace yave {
         if (ng.is_group_input(n))
           return rec_i(n, os, in);
 
-        assert(false);
+        unreachable();
       };
 
     // FIXME:

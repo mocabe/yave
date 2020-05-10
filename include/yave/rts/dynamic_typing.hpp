@@ -720,7 +720,7 @@ namespace yave {
     assert(!ts.empty());
 
     // should not be type constructor
-    for (auto&& t : ts)
+    for ([[maybe_unused]] auto&& t : ts)
       assert(is_kstar(kind_of(t)));
 
     return detail::generalize_impl(ts);

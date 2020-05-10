@@ -85,7 +85,8 @@ namespace yave::app {
       if (!new_group)
         return;
 
-      assert(g.is_group(new_group));
+      if(!g.is_group(new_group))
+        return;
 
       if (group == new_group)
         return;
@@ -372,7 +373,7 @@ namespace yave::app {
 
   public:
     // for debug
-    [[maybe_unused]] bool in_frame = false;
+    bool in_frame = false;
 
   public:
     // data thread
