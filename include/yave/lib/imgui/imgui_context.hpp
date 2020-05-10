@@ -32,7 +32,7 @@ namespace yave::imgui {
       vulkan::vulkan_context& vulkan_ctx,
       init_flags flags = _init_flags());
     /// Dtor
-    ~imgui_context();
+    ~imgui_context() noexcept;
 
   public:
     /// Set current context

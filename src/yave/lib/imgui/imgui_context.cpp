@@ -825,15 +825,6 @@ namespace yave::imgui {
 
   class imgui_context::impl
   {
-  public:
-    impl(
-      vulkan::vulkan_context& vulkan_ctx,
-      glfw::glfw_context::init_flags glfw_flags,
-      uint32_t width,
-      uint32_t height,
-      const char* windowName);
-    ~impl() noexcept;
-
   public: /* ref */
     vulkan::vulkan_context& vulkanCtx;
 
@@ -868,6 +859,37 @@ namespace yave::imgui {
   public:
     uint32_t fps;
     std::array<float, 4> clearColor;
+
+  public:
+    impl(
+      vulkan::vulkan_context& vulkan_ctx,
+      glfw::glfw_context::init_flags glfw_flags,
+      uint32_t width,
+      uint32_t height,
+      const char* windowName);
+    ~impl() noexcept;
+
+  public:
+    void set_current();
+    void begin_frame();
+    void end_frame();
+
+  public:
+    void render();
+
+  public:
+    auto add_texture(
+      const std::string& name,
+      const vk::Extent2D& extent,
+      const vk::DeviceSize& byte_size,
+      const vk::Format& format,
+      const uint8_t* data) -> ImTextureID;
+    auto find_texture(const std::string& name) const -> ImTextureID;
+    void update_texture(
+      const std::string& name,
+      const uint8_t* srcData,
+      const vk::DeviceSize& srcSize);
+    void remove_texture(const std::string& name);
   };
 
   imgui_context::impl::impl(
@@ -876,17 +898,393 @@ namespace yave::imgui {
     uint32_t widt,
     uint32_t height,
     const char* windowName)
-    : vulkanCtx {vulkan_ctx},
-      glfwCtx {glfw_flags},
-      glfwWindow {glfwCtx.create_window(widt, height, windowName)},
-      windowCtx {vulkanCtx, glfwWindow},
-      imCtx {ImGui::CreateContext()}
+    : vulkanCtx {vulkan_ctx}
+    , glfwCtx {glfw_flags}
+    , glfwWindow {glfwCtx.create_window(widt, height, windowName)}
+    , windowCtx {vulkanCtx, glfwWindow}
+    , imCtx {ImGui::CreateContext()}
   {
+    /* init ImGui */
+    {
+      IMGUI_CHECKVERSION();
+      ImGui::StyleColorsDark();
+
+      ImGuiIO& io = ImGui::GetIO();
+
+      /* Enable docking */
+      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+      /* Enable viewport */
+      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+      /* setup vulkan binding */
+      io.BackendRendererName = "yave::imgui_context";
+
+      Info(g_logger, "Initialized ImGui context");
+    }
+
+    /* setup GLFW input binding */
+    {
+      ImGui_ImplGlfw_InitForVulkan(glfwWindow.get(), true);
+    }
+
+    /* register fonts */
+    {
+      // Add default font
+      ImGuiIO& io = ImGui::GetIO();
+      io.Fonts->AddFontDefault();
+      io.Fonts->AddFontFromFileTTF(YAVE_TOSTR(YAVE_IMGUI_FONT_ROBOTO), 13);
+    }
+
+    /* build fonts with FreeType */
+    {
+      ImGuiIO& io       = ImGui::GetIO();
+      auto raster_flags = ImGuiFreeType::RasterizerFlags::NoHinting;
+      ImGuiFreeType::BuildFontAtlas(io.Fonts, raster_flags);
+    }
+
+    /* prepare uploading font texture */
+    {
+      fontSampler = createImGuiFontSampler(windowCtx.device());
+      Info(g_logger, "Created ImGui font sampler");
+    }
+
+    {
+      descriptorPool = createImGuiDescriptorPool(windowCtx.device());
+      descriptorSetLayout =
+        createImGuiDescriptorSetLayout(fontSampler.get(), windowCtx.device());
+      Info(g_logger, "Created ImGui descriptor set");
+    }
+
+    {
+      pipelineCache  = createPipelineCache(windowCtx.device());
+      pipelineLayout = createImGuiPipelineLayout(
+        descriptorSetLayout.get(), windowCtx.device());
+      pipeline = createImGuiPipeline(
+        windowCtx.swapchain_extent(),
+        windowCtx.render_pass(),
+        pipelineCache.get(),
+        pipelineLayout.get(),
+        windowCtx.device());
+
+      Info(g_logger, "Created ImGui pipeline");
+    }
+
+    /* upload font texture */
+    {
+      auto cmd                             = windowCtx.single_time_command();
+      auto [imageMemory, image, imageView] = createImGuiFontTexture(
+        windowCtx, vulkanCtx.physical_device(), windowCtx.device());
+      fontImageMemory = std::move(imageMemory);
+      fontImage       = std::move(image);
+      fontImageView   = std::move(imageView);
+
+      Info(g_logger, "Uploaded ImGui font texture");
+    }
+
+    /* create default descriptor set (font texture) */
+    {
+      descriptorSet = createImGuiDescriptorSet(
+        descriptorPool.get(), descriptorSetLayout.get(), windowCtx.device());
+
+      vk::DescriptorImageInfo info;
+      info.sampler     = fontSampler.get();
+      info.imageView   = fontImageView.get();
+      info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+
+      vk::WriteDescriptorSet write;
+      write.dstSet          = descriptorSet.get();
+      write.descriptorCount = 1;
+      write.descriptorType  = vk::DescriptorType::eCombinedImageSampler;
+      write.pImageInfo      = &info;
+
+      windowCtx.device().updateDescriptorSets(write, {});
+
+      // set font texture ID
+      ImGui::GetIO().Fonts->TexID = toImTextureId(&descriptorSet.get());
+
+      Info(g_logger, "Updated ImGui descriptor set");
+    }
+
+    // texture staging buffer
+    texture_staging = vulkan::create_staging_buffer(
+      1, windowCtx.device(), vulkanCtx.physical_device());
+
+    // for rendering loop
+    lastTime = std::chrono::high_resolution_clock::now();
+
+    // default clear color
+    clearColor = {0.45f, 0.55f, 0.60f, 1.f};
+
+    // default fps
+    fps = glfwWindow.refresh_rate();
   }
 
   imgui_context::impl::~impl() noexcept
   {
+    Info(g_logger, "Destroying ImGui context");
+    // wait idle
+    windowCtx.device().waitIdle();
+    // unbind GLFW
+    ImGui_ImplGlfw_Shutdown();
+    // destroy ImGui
     ImGui::DestroyContext(imCtx);
+  }
+
+  void imgui_context::impl::set_current()
+  {
+    ImGui::SetCurrentContext(imCtx);
+  }
+
+  void imgui_context::impl::begin_frame()
+  {
+    /* start ImGui frame */
+    {
+      glfwPollEvents();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+    }
+  }
+
+  void imgui_context::impl::end_frame()
+  {
+    /* end ImGui frame */
+    {
+      ImGui::EndFrame();
+      ImGui::Render();
+    }
+  }
+
+  void imgui_context::impl::render()
+  {
+    /* render Vulkan frame */
+
+    // ImGui draw data
+    const auto* drawData = ImGui::GetDrawData();
+
+    assert(drawData->Valid);
+
+    windowCtx.set_clear_color(
+      clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+
+    /* Render with Vulkan */
+    {
+      // begin new frame
+      windowCtx.begin_frame();
+      auto commandBuffer = windowCtx.begin_record();
+
+      // device
+      auto physicalDevice = vulkanCtx.physical_device();
+      auto device         = windowCtx.device();
+
+      /* Resize buffers vector to match current in-flight frames */
+      {
+        auto frameCount = windowCtx.frame_index_count();
+        // vertec buffer
+        if (vertexBuffers.size() > frameCount) {
+          for (size_t i = 0; i < vertexBuffers.size() - frameCount; ++i)
+            vertexBuffers.pop_back();
+        } else {
+          for (size_t i = 0; i < frameCount - vertexBuffers.size(); ++i)
+            vertexBuffers.emplace_back(vk::BufferUsageFlagBits::eVertexBuffer);
+        }
+        // index buffer
+        if (indexBuffers.size() > frameCount) {
+          for (size_t i = 0; i < indexBuffers.size() - frameCount; ++i)
+            indexBuffers.pop_back();
+        } else {
+          for (size_t i = 0; i < frameCount - indexBuffers.size(); ++i)
+            indexBuffers.emplace_back(vk::BufferUsageFlagBits::eIndexBuffer);
+        }
+      }
+
+      auto& vertexBuffer = vertexBuffers[windowCtx.frame_index()];
+      auto& indexBuffer  = indexBuffers[windowCtx.frame_index()];
+
+      /* Resize vertex/index buffers */
+      {
+        {
+          auto newSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
+          vertexBuffer.resize(newSize, physicalDevice, device);
+          assert(vertexBuffer.size() == newSize);
+        }
+        {
+          auto newSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+          indexBuffer.resize(newSize, physicalDevice, device);
+          assert(indexBuffer.size() == newSize);
+        }
+      }
+
+      /* Upload vertex/index data to GPU */
+      uploadImGuiDrawData(vertexBuffer, indexBuffer, drawData, device);
+
+      /* Initialize pipeline */
+      initImGuiPipeline(
+        drawData,
+        pipelineLayout.get(),
+        pipeline.get(),
+        vertexBuffer.buffer(),
+        indexBuffer.buffer(),
+        windowCtx.swapchain_extent(),
+        commandBuffer);
+
+      /* Record draw commands */
+      renderImGuiDrawData(
+        drawData,
+        descriptorSet.get(),
+        pipelineLayout.get(),
+        pipeline.get(),
+        vertexBuffer.buffer(),
+        indexBuffer.buffer(),
+        windowCtx.swapchain_extent(),
+        commandBuffer);
+
+      windowCtx.end_record(commandBuffer);
+      windowCtx.end_frame();
+    }
+
+    /* frame rate limiter */
+
+    using namespace std::chrono_literals;
+    auto endTime         = std::chrono::high_resolution_clock::now();
+    auto frameTime       = (endTime - lastTime);
+    auto frameTimeWindow = std::chrono::nanoseconds(1s) / fps;
+    auto sleepTime       = frameTimeWindow - frameTime;
+
+    if (sleepTime.count() > 0) {
+      lastTime = endTime + sleepTime;
+      std::this_thread::sleep_for(sleepTime);
+    } else {
+      lastTime = endTime;
+    }
+  }
+
+  class ImGuiTextureDataHolder
+  {
+  public:
+    ImGuiTextureDataHolder(vulkan::texture_data&& tex)
+      : tex_data {std::move(tex)} {};
+
+    vulkan::texture_data tex_data;
+
+    ImTextureID get_texture()
+    {
+      return toImTextureId(&tex_data.dsc_set.get());
+    }
+  };
+
+  auto imgui_context::impl::add_texture(
+    const std::string& name,
+    const vk::Extent2D& extent,
+    const vk::DeviceSize& byte_size,
+    const vk::Format& format,
+    const uint8_t* data) -> ImTextureID
+  {
+    assert(data);
+
+    if (textures.find(name) != textures.end()) {
+      Error(g_logger, "Failed to add texture data: Texute name already used");
+      return ImTextureID();
+    }
+
+    auto device         = windowCtx.device();
+    auto physicalDevice = vulkanCtx.physical_device();
+    auto commandPool    = windowCtx.command_pool();
+    auto queue          = windowCtx.graphics_queue();
+    auto descPool       = descriptorPool.get();
+    auto descLayout     = descriptorSetLayout.get();
+
+    auto& staging = texture_staging;
+
+    auto texture = vulkan::create_texture_data(
+      extent.width,
+      extent.height,
+      format,
+      queue,
+      commandPool,
+      descPool,
+      descLayout,
+      vk::DescriptorType::eCombinedImageSampler,
+      device,
+      physicalDevice);
+
+    vulkan::store_texture_data(
+      staging,
+      texture,
+      (const std::byte*)data,
+      byte_size,
+      queue,
+      commandPool,
+      device,
+      physicalDevice);
+
+    auto texData = std::make_unique<ImGuiTextureDataHolder>(std::move(texture));
+
+    auto [iter, succ] = textures.emplace(name, std::move(texData));
+
+    assert(succ);
+
+    Info(
+      g_logger,
+      "Added new texture \"{}\": width={}, height={}",
+      name,
+      extent.width,
+      extent.height);
+
+    return iter->second->get_texture();
+  }
+
+  auto imgui_context::impl::find_texture(const std::string& name) const
+    -> ImTextureID
+  {
+    auto iter = textures.find(name);
+
+    if (iter == textures.end())
+      return ImTextureID();
+
+    return iter->second->get_texture();
+  }
+
+  void imgui_context::impl::update_texture(
+    const std::string& name,
+    const uint8_t* srcData,
+    const vk::DeviceSize& srcSize)
+  {
+    auto iter = textures.find(name);
+
+    if (iter == textures.end()) {
+      Error(g_logger, "Failed to update texture: no such texture");
+      return;
+    }
+
+    auto device         = windowCtx.device();
+    auto physicalDevice = vulkanCtx.physical_device();
+    auto commandPool    = windowCtx.command_pool();
+    auto queue          = windowCtx.graphics_queue();
+
+    auto& staging = texture_staging;
+
+    vulkan::store_texture_data(
+      staging,
+      iter->second->tex_data,
+      (const std::byte*)srcData,
+      srcSize,
+      queue,
+      commandPool,
+      device,
+      physicalDevice);
+  }
+
+  void imgui_context::impl::remove_texture(const std::string& name)
+  {
+    auto iter = textures.find(name);
+
+    if (iter == textures.end())
+      return;
+
+    textures.erase(iter);
+
+    Info(g_logger, "Destroyed texture \"{}\"", name);
   }
 
   auto imgui_context::_init_flags() noexcept -> init_flags
@@ -914,273 +1312,28 @@ namespace yave::imgui {
     // create context
     m_pimpl = std::make_unique<impl>(
       vulkan_ctx, glfw_flags, 1280, 720, "imgui_context");
-
-    /* init ImGui */
-    {
-      IMGUI_CHECKVERSION();
-      ImGui::StyleColorsDark();
-
-      ImGuiIO& io = ImGui::GetIO();
-
-      /* Enable docking */
-      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-      /* Enable viewport */
-      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-      /* setup vulkan binding */
-      io.BackendRendererName = "yave::imgui_context";
-
-      Info(g_logger, "Initialized ImGui context");
-    }
-
-    /* setup GLFW input binding */
-    {
-      ImGui_ImplGlfw_InitForVulkan(m_pimpl->glfwWindow.get(), true);
-    }
-
-    /* register fonts */
-    {
-      // Add default font
-      ImGuiIO& io = ImGui::GetIO();
-      io.Fonts->AddFontDefault();
-      io.Fonts->AddFontFromFileTTF(YAVE_TOSTR(YAVE_IMGUI_FONT_ROBOTO), 13);
-    }
-
-    /* build fonts with FreeType */
-    {
-      ImGuiIO& io       = ImGui::GetIO();
-      auto raster_flags = ImGuiFreeType::RasterizerFlags::NoHinting;
-      ImGuiFreeType::BuildFontAtlas(io.Fonts, raster_flags);
-    }
-
-    /* prepare uploading font texture */
-    {
-      m_pimpl->fontSampler =
-        createImGuiFontSampler(m_pimpl->windowCtx.device());
-      Info(g_logger, "Created ImGui font sampler");
-    }
-
-    {
-      m_pimpl->descriptorPool =
-        createImGuiDescriptorPool(m_pimpl->windowCtx.device());
-      m_pimpl->descriptorSetLayout = createImGuiDescriptorSetLayout(
-        m_pimpl->fontSampler.get(), m_pimpl->windowCtx.device());
-      Info(g_logger, "Created ImGui descriptor set");
-    }
-
-    {
-      m_pimpl->pipelineCache = createPipelineCache(m_pimpl->windowCtx.device());
-      m_pimpl->pipelineLayout = createImGuiPipelineLayout(
-        m_pimpl->descriptorSetLayout.get(), m_pimpl->windowCtx.device());
-      m_pimpl->pipeline = createImGuiPipeline(
-        m_pimpl->windowCtx.swapchain_extent(),
-        m_pimpl->windowCtx.render_pass(),
-        m_pimpl->pipelineCache.get(),
-        m_pimpl->pipelineLayout.get(),
-        m_pimpl->windowCtx.device());
-
-      Info(g_logger, "Created ImGui pipeline");
-    }
-
-    /* upload font texture */
-    {
-      auto cmd = m_pimpl->windowCtx.single_time_command();
-      auto [imageMemory, image, imageView] = createImGuiFontTexture(
-        m_pimpl->windowCtx,
-        m_pimpl->vulkanCtx.physical_device(),
-        m_pimpl->windowCtx.device());
-      m_pimpl->fontImageMemory = std::move(imageMemory);
-      m_pimpl->fontImage       = std::move(image);
-      m_pimpl->fontImageView   = std::move(imageView);
-
-      Info(g_logger, "Uploaded ImGui font texture");
-    }
-
-    /* create default descriptor set (font texture) */
-    {
-      m_pimpl->descriptorSet = createImGuiDescriptorSet(
-        m_pimpl->descriptorPool.get(),
-        m_pimpl->descriptorSetLayout.get(),
-        m_pimpl->windowCtx.device());
-
-      vk::DescriptorImageInfo info;
-      info.sampler     = m_pimpl->fontSampler.get();
-      info.imageView   = m_pimpl->fontImageView.get();
-      info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-
-      vk::WriteDescriptorSet write;
-      write.dstSet          = m_pimpl->descriptorSet.get();
-      write.descriptorCount = 1;
-      write.descriptorType  = vk::DescriptorType::eCombinedImageSampler;
-      write.pImageInfo      = &info;
-
-      m_pimpl->windowCtx.device().updateDescriptorSets(write, {});
-
-      // set font texture ID
-      ImGui::GetIO().Fonts->TexID =
-        toImTextureId(&m_pimpl->descriptorSet.get());
-
-      Info(g_logger, "Updated ImGui descriptor set");
-    }
-
-    // texture staging buffer
-    m_pimpl->texture_staging = vulkan::create_staging_buffer(
-      1, m_pimpl->windowCtx.device(), m_pimpl->vulkanCtx.physical_device());
-
-    // for rendering loop
-    m_pimpl->lastTime = std::chrono::high_resolution_clock::now();
-
-    // default clear color
-    set_clear_color(0.45f, 0.55f, 0.60f, 1.f);
-
-    // default fps
-    set_fps(m_pimpl->glfwWindow.refresh_rate());
   }
 
-  imgui_context::~imgui_context()
-  {
-    Info(g_logger, "Destroying ImGui context");
-    // wait idle
-    m_pimpl->windowCtx.device().waitIdle();
-    // unbind GLFW
-    ImGui_ImplGlfw_Shutdown();
-  }
+  imgui_context::~imgui_context() noexcept = default;
 
   void imgui_context::set_current()
   {
-    ImGui::SetCurrentContext(m_pimpl->imCtx);
+    m_pimpl->set_current();
   }
 
   void imgui_context::begin_frame()
   {
-    /* start ImGui frame */
-    {
-      glfwPollEvents();
-      ImGui_ImplGlfw_NewFrame();
-      ImGui::NewFrame();
-    }
+    m_pimpl->begin_frame();
   }
 
   void imgui_context::end_frame()
   {
-    /* end ImGui frame */
-    {
-      ImGui::EndFrame();
-      ImGui::Render();
-    }
+    m_pimpl->end_frame();
   }
 
   void imgui_context::render()
   {
-    /* render Vulkan frame */
-
-    // ImGui draw data
-    const auto* drawData = ImGui::GetDrawData();
-
-    assert(drawData->Valid);
-
-    m_pimpl->windowCtx.set_clear_color(
-      m_pimpl->clearColor[0],
-      m_pimpl->clearColor[1],
-      m_pimpl->clearColor[2],
-      m_pimpl->clearColor[3]);
-
-    /* Render with Vulkan */
-    {
-      // begin new frame
-      m_pimpl->windowCtx.begin_frame();
-      auto commandBuffer = m_pimpl->windowCtx.begin_record();
-
-      // device
-      auto physicalDevice = m_pimpl->vulkanCtx.physical_device();
-      auto device         = m_pimpl->windowCtx.device();
-
-      /* Resize buffers vector to match current in-flight frames */
-      {
-        auto frameCount = m_pimpl->windowCtx.frame_index_count();
-        // vertec buffer
-        if (m_pimpl->vertexBuffers.size() > frameCount) {
-          for (size_t i = 0; i < m_pimpl->vertexBuffers.size() - frameCount;
-               ++i)
-            m_pimpl->vertexBuffers.pop_back();
-        } else {
-          for (size_t i = 0; i < frameCount - m_pimpl->vertexBuffers.size();
-               ++i)
-            m_pimpl->vertexBuffers.emplace_back(
-              vk::BufferUsageFlagBits::eVertexBuffer);
-        }
-        // index buffer
-        if (m_pimpl->indexBuffers.size() > frameCount) {
-          for (size_t i = 0; i < m_pimpl->indexBuffers.size() - frameCount; ++i)
-            m_pimpl->indexBuffers.pop_back();
-        } else {
-          for (size_t i = 0; i < frameCount - m_pimpl->indexBuffers.size(); ++i)
-            m_pimpl->indexBuffers.emplace_back(
-              vk::BufferUsageFlagBits::eIndexBuffer);
-        }
-      }
-
-      auto& vertexBuffer =
-        m_pimpl->vertexBuffers[m_pimpl->windowCtx.frame_index()];
-      auto& indexBuffer =
-        m_pimpl->indexBuffers[m_pimpl->windowCtx.frame_index()];
-
-      /* Resize vertex/index buffers */
-      {
-        {
-          auto newSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
-          vertexBuffer.resize(newSize, physicalDevice, device);
-          assert(vertexBuffer.size() == newSize);
-        }
-        {
-          auto newSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
-          indexBuffer.resize(newSize, physicalDevice, device);
-          assert(indexBuffer.size() == newSize);
-        }
-      }
-
-      /* Upload vertex/index data to GPU */
-      uploadImGuiDrawData(vertexBuffer, indexBuffer, drawData, device);
-
-      /* Initialize pipeline */
-      initImGuiPipeline(
-        drawData,
-        m_pimpl->pipelineLayout.get(),
-        m_pimpl->pipeline.get(),
-        vertexBuffer.buffer(),
-        indexBuffer.buffer(),
-        m_pimpl->windowCtx.swapchain_extent(),
-        commandBuffer);
-
-      /* Record draw commands */
-      renderImGuiDrawData(
-        drawData,
-        m_pimpl->descriptorSet.get(),
-        m_pimpl->pipelineLayout.get(),
-        m_pimpl->pipeline.get(),
-        vertexBuffer.buffer(),
-        indexBuffer.buffer(),
-        m_pimpl->windowCtx.swapchain_extent(),
-        commandBuffer);
-
-      m_pimpl->windowCtx.end_record(commandBuffer);
-      m_pimpl->windowCtx.end_frame();
-    }
-
-    /* frame rate limiter */
-
-    auto endTime         = std::chrono::high_resolution_clock::now();
-    auto frameTime       = (endTime - m_pimpl->lastTime);
-    auto frameTimeWindow = std::chrono::nanoseconds(1000000000) / m_pimpl->fps;
-    auto sleepTime       = frameTimeWindow - frameTime;
-
-    if (sleepTime.count() > 0) {
-      m_pimpl->lastTime = endTime + sleepTime;
-      std::this_thread::sleep_for(sleepTime);
-    } else {
-      m_pimpl->lastTime = endTime;
-    }
+    m_pimpl->render();
   }
 
   auto imgui_context::get_texture_id(const vk::DescriptorSet& tex) const
@@ -1254,20 +1407,6 @@ namespace yave::imgui {
     return m_pimpl->fontImageView.get();
   }
 
-  class ImGuiTextureDataHolder
-  {
-  public:
-    ImGuiTextureDataHolder(vulkan::texture_data&& tex)
-      : tex_data {std::move(tex)} {};
-
-    vulkan::texture_data tex_data;
-
-    ImTextureID get_texture()
-    {
-      return toImTextureId(&tex_data.dsc_set.get());
-    }
-  };
-
   auto imgui_context::add_texture(
     const std::string& name,
     const vk::Extent2D& extent,
@@ -1275,68 +1414,12 @@ namespace yave::imgui {
     const vk::Format& format,
     const uint8_t* data) -> ImTextureID
   {
-    assert(data);
-
-    if (m_pimpl->textures.find(name) != m_pimpl->textures.end()) {
-      Error(g_logger, "Failed to add texture data: Texute name already used");
-      return ImTextureID();
-    }
-
-    auto device           = m_pimpl->windowCtx.device();
-    auto physicalDevice   = m_pimpl->vulkanCtx.physical_device();
-    auto commandPool      = m_pimpl->windowCtx.command_pool();
-    auto queue            = m_pimpl->windowCtx.graphics_queue();
-    auto descriptorPool   = m_pimpl->descriptorPool.get();
-    auto descriptorLayout = m_pimpl->descriptorSetLayout.get();
-
-    auto& staging         = m_pimpl->texture_staging;
-
-    auto texture = vulkan::create_texture_data(
-      extent.width,
-      extent.height,
-      format,
-      queue,
-      commandPool,
-      descriptorPool,
-      descriptorLayout,
-      vk::DescriptorType::eCombinedImageSampler,
-      device,
-      physicalDevice);
-
-    vulkan::store_texture_data(
-      staging,
-      texture,
-      (const std::byte*)data,
-      byte_size,
-      queue,
-      commandPool,
-      device,
-      physicalDevice);
-
-    auto texData = std::make_unique<ImGuiTextureDataHolder>(std::move(texture));
-
-    auto [iter, succ] = m_pimpl->textures.emplace(name, std::move(texData));
-
-    assert(succ);
-
-    Info(
-      g_logger,
-      "Added new texture \"{}\": width={}, height={}",
-      name,
-      extent.width,
-      extent.height);
-
-    return iter->second->get_texture();
+    return m_pimpl->add_texture(name, extent, byte_size, format, data);
   }
 
   auto imgui_context::find_texture(const std::string& name) const -> ImTextureID
   {
-    auto iter = m_pimpl->textures.find(name);
-
-    if (iter == m_pimpl->textures.end())
-      return ImTextureID();
-
-    return iter->second->get_texture();
+    return m_pimpl->find_texture(name);
   }
 
   void imgui_context::update_texture(
@@ -1344,41 +1427,12 @@ namespace yave::imgui {
     const uint8_t* srcData,
     const vk::DeviceSize& srcSize)
   {
-    auto iter = m_pimpl->textures.find(name);
-
-    if (iter == m_pimpl->textures.end()) {
-      Error(g_logger, "Failed to update texture: no such texture");
-      return;
-    }
-
-    auto device         = m_pimpl->windowCtx.device();
-    auto physicalDevice = m_pimpl->vulkanCtx.physical_device();
-    auto commandPool    = m_pimpl->windowCtx.command_pool();
-    auto queue          = m_pimpl->windowCtx.graphics_queue();
-
-    auto& staging = m_pimpl->texture_staging;
-
-    vulkan::store_texture_data(
-      staging,
-      iter->second->tex_data,
-      (const std::byte*)srcData,
-      srcSize,
-      queue,
-      commandPool,
-      device,
-      physicalDevice);
+    m_pimpl->update_texture(name, srcData, srcSize);
   }
 
   void imgui_context::remove_texture(const std::string& name)
   {
-    auto iter = m_pimpl->textures.find(name);
-
-    if (iter == m_pimpl->textures.end())
-      return;
-
-    m_pimpl->textures.erase(iter);
-
-    Info(g_logger, "Destroyed texture \"{}\"", name);
+    m_pimpl->remove_texture(name);
   }
 
   auto imgui::imgui_context::get_clear_color() const -> std::array<float, 4>
