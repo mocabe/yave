@@ -525,10 +525,6 @@ namespace yave::vulkan {
   class window_context::impl
   {
   public:
-    impl(vulkan_context& vk_ctx, glfw::glfw_window& glfw_win);
-    ~impl() noexcept;
-
-  public:
     vulkan_context& vulkan_ctx;  // non-owning
     glfw::glfw_window& glfw_win; // non-owning
 
@@ -572,6 +568,23 @@ namespace yave::vulkan {
   public:
     // GLFW window size callback will update this on window resize
     std::atomic<VkExtent2D> window_extent;
+
+  public:
+    impl(vulkan_context& vk_ctx, glfw::glfw_window& glfw_win);
+    ~impl() noexcept;
+
+  public:
+    void rebuild_frame_buffers();
+    void begin_frame();
+    void end_frame();
+    auto begin_record() -> vk::CommandBuffer;
+    void end_record(const vk::CommandBuffer&);
+
+  public:
+    bool resized() const;
+    bool should_close() const;
+    void set_clear_color(float r, float g, float b, float a);
+    auto single_time_command() const -> vulkan::single_time_command;
   };
 
   window_context::impl::impl(vulkan_context& ctx, glfw::glfw_window& win)
@@ -659,10 +672,7 @@ namespace yave::vulkan {
 
     // create frame buffers
     frame_buffers = createFrameBuffers(
-      swapchain_image_views,
-      render_pass.get(),
-      swapchain_extent,
-      device.get());
+      swapchain_image_views, render_pass.get(), swapchain_extent, device.get());
 
     // create command pool
     command_pool = createCommandPool(graphics_queue_index, device.get());
@@ -695,103 +705,80 @@ namespace yave::vulkan {
     Info(g_logger, "Destroying window context");
   }
 
-  window_context::window_context(vulkan_context& ctx, glfw::glfw_window& win)
-    : m_pimpl {std::make_unique<impl>(ctx, win)}
-  {
-  }
-
-  window_context::~window_context() noexcept
-  {
-  }
-
-  void window_context::rebuild_frame_buffers()
+  void window_context::impl::rebuild_frame_buffers()
   {
     // new swapchain extent
-    auto newWindowExtent = m_pimpl->window_extent.load();
+    auto newWindowExtent = window_extent.load();
 
     // Windows: minimized window have zero extent. Wait until next event.
     while (vk::Extent2D(newWindowExtent) == vk::Extent2D(0, 0)) {
       glfwWaitEvents();
-      newWindowExtent = m_pimpl->window_extent.load();
+      newWindowExtent = window_extent.load();
     }
 
     // wait idle
-    m_pimpl->device->waitIdle();
+    device->waitIdle();
 
     /* destroy swapchain resources */
-    m_pimpl->in_flight_fences.clear();
-    m_pimpl->complete_semaphores.clear();
-    m_pimpl->acquire_semaphores.clear();
-    m_pimpl->command_buffers.clear();
-    m_pimpl->frame_buffers.clear();
-    m_pimpl->render_pass.reset();
-    m_pimpl->swapchain_image_views.clear();
-    m_pimpl->swapchain_images.clear();
-    m_pimpl->swapchain.reset();
+    in_flight_fences.clear();
+    complete_semaphores.clear();
+    acquire_semaphores.clear();
+    command_buffers.clear();
+    frame_buffers.clear();
+    render_pass.reset();
+    swapchain_image_views.clear();
+    swapchain_images.clear();
+    swapchain.reset();
 
     /* reset index */
-    m_pimpl->frame_index = 0;
-    m_pimpl->image_index = 0;
+    frame_index = 0;
+    image_index = 0;
 
     /* create new swapchain resources */
 
     // reload extent to get accurate value at this point
-    newWindowExtent = m_pimpl->window_extent.load();
+    newWindowExtent = window_extent.load();
 
-    m_pimpl->swapchain = createSwapchain(
-      m_pimpl->surface.get(),
+    swapchain = createSwapchain(
+      surface.get(),
       newWindowExtent,
-      m_pimpl->graphics_queue_index,
-      m_pimpl->present_queue_index,
-      m_pimpl->vulkan_ctx.physical_device(),
-      m_pimpl->device.get(),
-      &m_pimpl->swapchain_format,
-      &m_pimpl->swapchain_present_mode,
-      &m_pimpl->swapchain_extent,
-      &m_pimpl->swapchain_image_count);
+      graphics_queue_index,
+      present_queue_index,
+      vulkan_ctx.physical_device(),
+      device.get(),
+      &swapchain_format,
+      &swapchain_present_mode,
+      &swapchain_extent,
+      &swapchain_image_count);
 
-    m_pimpl->swapchain_images =
-      m_pimpl->device->getSwapchainImagesKHR(m_pimpl->swapchain.get());
+    swapchain_images = device->getSwapchainImagesKHR(swapchain.get());
 
-    m_pimpl->swapchain_image_views = createSwapchainImageViews(
-      m_pimpl->swapchain.get(),
-      m_pimpl->swapchain_format,
-      m_pimpl->device.get());
+    swapchain_image_views = createSwapchainImageViews(
+      swapchain.get(), swapchain_format, device.get());
 
-    m_pimpl->render_pass =
-      createRenderPass(m_pimpl->swapchain_format, m_pimpl->device.get());
+    render_pass = createRenderPass(swapchain_format, device.get());
 
-    m_pimpl->frame_buffers = createFrameBuffers(
-      m_pimpl->swapchain_image_views,
-      m_pimpl->render_pass.get(),
-      m_pimpl->swapchain_extent,
-      m_pimpl->device.get());
+    frame_buffers = createFrameBuffers(
+      swapchain_image_views, render_pass.get(), swapchain_extent, device.get());
 
-    m_pimpl->command_buffers = createCommandBuffers(
-      m_pimpl->swapchain_image_count,
+    command_buffers = createCommandBuffers(
+      swapchain_image_count,
       vk::CommandBufferLevel::ePrimary,
-      m_pimpl->command_pool.get(),
-      m_pimpl->device.get());
+      command_pool.get(),
+      device.get());
 
-    m_pimpl->acquire_semaphores =
-      createSemaphores(m_pimpl->swapchain_image_count, m_pimpl->device.get());
+    acquire_semaphores = createSemaphores(swapchain_image_count, device.get());
 
-    m_pimpl->complete_semaphores =
-      createSemaphores(m_pimpl->swapchain_image_count, m_pimpl->device.get());
+    complete_semaphores = createSemaphores(swapchain_image_count, device.get());
 
-    m_pimpl->in_flight_fences = createFences(
-      m_pimpl->swapchain_image_count,
-      m_pimpl->device.get(),
-      vk::FenceCreateFlagBits::eSignaled);
+    in_flight_fences = createFences(
+      swapchain_image_count, device.get(), vk::FenceCreateFlagBits::eSignaled);
   }
 
-  void window_context::begin_frame()
+  void window_context::impl::begin_frame()
   {
-    auto device = m_pimpl->device.get();
-
     // set next frame index
-    m_pimpl->frame_index =
-      (m_pimpl->frame_index + 1) % m_pimpl->swapchain_image_count;
+    frame_index = (frame_index + 1) % swapchain_image_count;
 
     {
       // acquire next image, get next image_index.
@@ -804,12 +791,12 @@ namespace yave::vulkan {
         rebuild_frame_buffers();
 
       // try without fence first time
-      auto err = device.acquireNextImageKHR(
-        m_pimpl->swapchain.get(),
+      auto err = device->acquireNextImageKHR(
+        swapchain.get(),
         std::numeric_limits<uint64_t>::max(),
-        m_pimpl->acquire_semaphores[m_pimpl->frame_index].get(),
+        acquire_semaphores[frame_index].get(),
         vk::Fence(),
-        &m_pimpl->image_index);
+        &image_index);
 
       // loop
       while (err == vk::Result::eErrorOutOfDateKHR) {
@@ -819,19 +806,17 @@ namespace yave::vulkan {
 
         rebuild_frame_buffers();
 
-        device.resetFences(m_pimpl->acquire_fence.get());
+        device->resetFences(acquire_fence.get());
 
-        err = device.acquireNextImageKHR(
-          m_pimpl->swapchain.get(),
+        err = device->acquireNextImageKHR(
+          swapchain.get(),
           std::numeric_limits<uint64_t>::max(),
-          m_pimpl->acquire_semaphores[m_pimpl->frame_index].get(),
-          m_pimpl->acquire_fence.get(),
-          &m_pimpl->image_index);
+          acquire_semaphores[frame_index].get(),
+          acquire_fence.get(),
+          &image_index);
 
-        auto wait_err = device.waitForFences(
-          m_pimpl->acquire_fence.get(),
-          VK_TRUE,
-          std::numeric_limits<uint64_t>::max());
+        auto wait_err = device->waitForFences(
+          acquire_fence.get(), VK_TRUE, std::numeric_limits<uint64_t>::max());
 
         if (wait_err != vk::Result::eSuccess)
           throw std::runtime_error(
@@ -848,8 +833,8 @@ namespace yave::vulkan {
       // because rebuilding frame buffers may reset all fences to signaled
       // state.
 
-      auto err = device.waitForFences(
-        m_pimpl->in_flight_fences[m_pimpl->frame_index].get(),
+      auto err = device->waitForFences(
+        in_flight_fences[frame_index].get(),
         VK_TRUE,
         std::numeric_limits<uint64_t>::max());
 
@@ -858,19 +843,16 @@ namespace yave::vulkan {
           "Failed to wait for in-flight fence: " + vk::to_string(err));
 
       // reset fence
-      device.resetFences(m_pimpl->in_flight_fences[m_pimpl->frame_index].get());
+      device->resetFences(in_flight_fences[frame_index].get());
     }
   }
 
-  void window_context::end_frame()
+  void window_context::impl::end_frame()
   {
-    auto graphicsQueue = m_pimpl->graphics_queue;
-    auto presentQueue  = m_pimpl->present_queue;
-
     std::array<vk::Semaphore, 1> waitSemaphores = {
-      m_pimpl->acquire_semaphores[m_pimpl->frame_index].get()};
+      acquire_semaphores[frame_index].get()};
     std::array<vk::Semaphore, 1> signalSemaphores = {
-      m_pimpl->complete_semaphores[m_pimpl->frame_index].get()};
+      complete_semaphores[frame_index].get()};
     vk::PipelineStageFlags waitStage = {
       vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
@@ -883,12 +865,11 @@ namespace yave::vulkan {
       submitInfo.pSignalSemaphores    = signalSemaphores.data();
       submitInfo.pWaitDstStageMask    = &waitStage;
       submitInfo.commandBufferCount   = 1;
-      submitInfo.pCommandBuffers =
-        &m_pimpl->command_buffers[m_pimpl->frame_index].get();
+      submitInfo.pCommandBuffers      = &command_buffers[frame_index].get();
 
       // submit
-      auto err = graphicsQueue.submit(
-        1, &submitInfo, m_pimpl->in_flight_fences[m_pimpl->frame_index].get());
+      auto err = graphics_queue.submit(
+        1, &submitInfo, in_flight_fences[frame_index].get());
 
       if (err != vk::Result::eSuccess)
         throw std::runtime_error(
@@ -901,10 +882,10 @@ namespace yave::vulkan {
       presentInfo.waitSemaphoreCount = (uint32_t)signalSemaphores.size();
       presentInfo.pWaitSemaphores    = signalSemaphores.data();
       presentInfo.swapchainCount     = 1;
-      presentInfo.pSwapchains        = &m_pimpl->swapchain.get();
-      presentInfo.pImageIndices      = &m_pimpl->image_index;
+      presentInfo.pSwapchains        = &swapchain.get();
+      presentInfo.pImageIndices      = &image_index;
 
-      auto err = presentQueue.presentKHR(&presentInfo);
+      auto err = present_queue.presentKHR(&presentInfo);
 
       // Surface is not longer compatible with current frame buffer.
       if (err == vk::Result::eErrorOutOfDateKHR) {
@@ -916,9 +897,9 @@ namespace yave::vulkan {
     }
   }
 
-  auto window_context::begin_record() -> vk::CommandBuffer
+  auto window_context::impl::begin_record() -> vk::CommandBuffer
   {
-    auto buffer = m_pimpl->command_buffers[m_pimpl->frame_index].get();
+    auto buffer = command_buffers[frame_index].get();
 
     /* begin command buffer */
     {
@@ -930,28 +911,81 @@ namespace yave::vulkan {
     {
       // you can set clear color with set_clear_color()
       vk::ClearValue clearValue;
-      clearValue.color = m_pimpl->clearColor;
+      clearValue.color = clearColor;
 
       // begin render pass
       vk::RenderPassBeginInfo beginInfo;
-      beginInfo.renderPass        = m_pimpl->render_pass.get();
-      beginInfo.renderArea.extent = m_pimpl->swapchain_extent;
+      beginInfo.renderPass        = render_pass.get();
+      beginInfo.renderArea.extent = swapchain_extent;
       beginInfo.clearValueCount   = 1;
       beginInfo.pClearValues      = &clearValue;
-      beginInfo.framebuffer =
-        m_pimpl->frame_buffers[m_pimpl->image_index].get();
+      beginInfo.framebuffer       = frame_buffers[image_index].get();
 
       buffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
     }
     return buffer;
   }
 
-  void window_context::end_record(const vk::CommandBuffer& buffer)
+  void window_context::impl::end_record(const vk::CommandBuffer& buffer)
   {
     // end render pass
     buffer.endRenderPass();
     // end command buffer
     buffer.end();
+  }
+
+  bool window_context::impl::resized() const
+  {
+    glfwPollEvents();
+    return vk::Extent2D(window_extent) != swapchain_extent;
+  }
+
+  bool window_context::impl::should_close() const
+  {
+    return glfwWindowShouldClose(glfw_win.get());
+  }
+
+  void window_context::impl::set_clear_color(float r, float g, float b, float a)
+  {
+    clearColor = std::array {r, g, b, a};
+  }
+
+  auto window_context::impl::single_time_command() const
+    -> vulkan::single_time_command
+  {
+    return {device.get(), graphics_queue, command_pool.get()};
+  }
+
+  window_context::window_context(vulkan_context& ctx, glfw::glfw_window& win)
+    : m_pimpl {std::make_unique<impl>(ctx, win)}
+  {
+  }
+
+  window_context::~window_context() noexcept = default;
+
+  void window_context::rebuild_frame_buffers()
+  {
+    m_pimpl->rebuild_frame_buffers();
+  }
+
+  void window_context::begin_frame()
+  {
+    m_pimpl->begin_frame();
+  }
+
+  void window_context::end_frame()
+  {
+    m_pimpl->end_frame();
+  }
+
+  auto window_context::begin_record() -> vk::CommandBuffer
+  {
+    return m_pimpl->begin_record();
+  }
+
+  void window_context::end_record(const vk::CommandBuffer& buffer)
+  {
+    m_pimpl->end_record(buffer);
   }
 
   auto window_context::vulkan_ctx() -> vulkan_context&
@@ -1066,26 +1100,23 @@ namespace yave::vulkan {
 
   bool window_context::resized() const
   {
-    glfwPollEvents();
-    return vk::Extent2D(m_pimpl->window_extent) != m_pimpl->swapchain_extent;
+    return m_pimpl->resized();
   }
 
   bool window_context::should_close() const
   {
-    return glfwWindowShouldClose(m_pimpl->glfw_win.get());
+    return m_pimpl->should_close();
   }
 
   void window_context::set_clear_color(float r, float g, float b, float a)
   {
-    m_pimpl->clearColor = std::array {r, g, b, a};
+    m_pimpl->set_clear_color(r, g, b, a);
   }
 
   auto window_context::single_time_command() const
     -> vulkan::single_time_command
   {
-    return {m_pimpl->device.get(),
-            m_pimpl->graphics_queue,
-            m_pimpl->command_pool.get()};
+    return m_pimpl->single_time_command();
   }
 
   uint32_t window_context::swapchain_index() const
