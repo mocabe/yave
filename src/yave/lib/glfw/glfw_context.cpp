@@ -65,8 +65,19 @@ namespace yave::glfw {
     m_map.erase(key);
   }
 
-  glfw_window::glfw_window(GLFWwindow* window)
-    : m_window {window}
+  glfw_window::glfw_window(
+    glfw_context& ctx,
+    std::string title,
+    uint32_t width,
+    uint32_t height)
+    : m_ctx {ctx}
+    , m_window {glfwCreateWindow(
+        width,
+        height,
+        title.c_str(),
+        nullptr,
+        nullptr)}
+    , m_title {title}
   {
     assert(!glfwGetWindowUserPointer(m_window));
 
@@ -78,9 +89,10 @@ namespace yave::glfw {
   }
 
   glfw_window::glfw_window(glfw_window&& other) noexcept
-    : m_window {}
+    : m_ctx {other.m_ctx}
+    , m_window {std::exchange(other.m_window, nullptr)}
+    , m_title {std::exchange(other.m_title, "")}
   {
-    std::swap(m_window, other.m_window);
   }
 
   glfw_window::~glfw_window() noexcept
@@ -96,6 +108,11 @@ namespace yave::glfw {
     delete user_data;
     // destroy window handle
     glfwDestroyWindow(m_window);
+  }
+
+  auto glfw_window::glfw_ctx() -> glfw::glfw_context&
+  {
+    return m_ctx;
   }
 
   auto glfw_window::get() const -> GLFWwindow*
@@ -158,6 +175,32 @@ namespace yave::glfw {
     return mode->refreshRate;
   }
 
+  auto glfw_window::pos() const -> glm::u32vec2
+  {
+    int x, y;
+    glfwGetWindowPos(m_window, &x, &y);
+    return {x, y};
+  }
+
+  auto glfw_window::size() const -> glm::u32vec2
+  {
+    int w, h;
+    glfwGetWindowSize(m_window, &w, &h);
+    return {w, h};
+  }
+
+  auto glfw_window::buffer_size() const -> glm::u32vec2
+  {
+    int width, height;
+    glfwGetFramebufferSize(m_window, &width, &height);
+    return {width, height};
+  }
+
+  auto glfw_window::title() const -> std::string
+  {
+    return m_title;
+  }
+
   auto glfw_context::_init_flags() noexcept -> init_flags
   {
     return init_flags::enable_logging;
@@ -189,7 +232,7 @@ namespace yave::glfw {
   auto glfw_context::create_window(
     uint32_t width,
     uint32_t height,
-    const char* title) const -> glfw_window
+    const char* title) -> glfw_window
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -197,8 +240,7 @@ namespace yave::glfw {
     glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
 
     // create new window
-    auto window =
-      glfw_window(glfwCreateWindow(width, height, title, nullptr, nullptr));
+    auto window = glfw_window(*this, title, width, height);
 
     Info(g_logger, "Created new window: {}({}*{})", title, width, height);
 

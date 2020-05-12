@@ -10,6 +10,7 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 
 namespace yave::glfw {
@@ -29,6 +30,8 @@ namespace yave::glfw {
     ~glfw_window() noexcept;
 
   public:
+    /// Get glfw context
+    [[nodiscard]] auto glfw_ctx() -> glfw::glfw_context&;
     /// Get GLFWwindow
     [[nodiscard]] auto get() const -> GLFWwindow*;
 
@@ -52,14 +55,33 @@ namespace yave::glfw {
 
   public:
     /// Get current refresh rate of window
-    auto refresh_rate() const -> uint32_t;
+    [[nodiscard]] auto refresh_rate() const -> uint32_t;
+
+    /// Get current window pos
+    [[nodiscard]] auto pos() const -> glm::u32vec2;
+
+    /// Get current window size
+    [[nodiscard]] auto size() const -> glm::u32vec2;
+
+    /// Get current frame buffer size
+    [[nodiscard]] auto buffer_size() const -> glm::u32vec2;
+
+    /// Get current windlw title
+    [[nodiscard]] auto title() const -> std::string;
 
   private:
-    glfw_window(GLFWwindow* window);
+    glfw_window(
+      glfw::glfw_context& ctx,
+      std::string titne,
+      uint32_t width,
+      uint32_t height);
 
   private:
+    glfw::glfw_context& m_ctx;
     /// window
     GLFWwindow* m_window;
+    /// window title
+    std::string m_title;
   };
 
   /// GLFW context
@@ -85,7 +107,7 @@ namespace yave::glfw {
     [[nodiscard]] auto create_window(
       uint32_t width,
       uint32_t height,
-      const char* name) const -> glfw_window;
+      const char* name) -> glfw_window;
 
   public:
     /// poll events
