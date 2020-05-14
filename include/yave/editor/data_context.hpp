@@ -6,7 +6,8 @@
 #pragma once
 
 #include <yave/editor/data_command.hpp>
-#include <yave/editor/editor_data.hpp>
+
+#include <yave/node/core/structured_node_graph.hpp>
 
 #include <memory>
 
@@ -33,9 +34,9 @@ namespace yave::editor {
     void redo();
 
   public:
-    /// access data
-    auto editor_data() const -> const editor::editor_data&;
-    /// access data
-    auto editor_data() -> editor::editor_data&;
+    /// node graph
+    auto node_graph() const -> const structured_node_graph&;
+    /// node graph
+    auto node_graph() -> structured_node_graph&;
   };
 }

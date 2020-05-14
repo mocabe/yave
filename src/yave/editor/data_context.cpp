@@ -7,6 +7,8 @@
 #include <yave/support/log.hpp>
 #include <yave/support/overloaded.hpp>
 
+#include <functional>
+#include <chrono>
 #include <thread>
 #include <queue>
 #include <stack>
@@ -29,6 +31,23 @@ namespace yave::editor {
     using cmd_ptr = std::unique_ptr<data_command>;
 
     using cmd = std::variant<cmd_ptr, cmd_undo, cmd_redo>;
+
+    // internal editor data holder
+    struct editor_data
+    {
+      auto& node_graph()
+      {
+        return m_node_graph;
+      }
+
+      auto& node_graph() const
+      {
+        return m_node_graph;
+      }
+
+    private:
+      structured_node_graph m_node_graph;
+    };
 
   } // namespace
 
@@ -245,16 +264,16 @@ namespace yave::editor {
     m_pimpl->redo();
   }
 
-  auto data_context::editor_data() const -> const editor::editor_data&
+  auto data_context::node_graph() const -> const structured_node_graph&
   {
     m_pimpl->check_exception();
-    return m_pimpl->editor_data;
+    return m_pimpl->editor_data.node_graph();
   }
 
-  auto data_context::editor_data() -> editor::editor_data&
+  auto data_context::node_graph() -> structured_node_graph&
   {
     m_pimpl->check_exception();
-    return m_pimpl->editor_data;
+    return m_pimpl->editor_data.node_graph();
   }
 
 } // namespace yave::editor
