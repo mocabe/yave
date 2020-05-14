@@ -201,6 +201,11 @@ namespace yave::glfw {
     return m_title;
   }
 
+  bool glfw_window::should_close() const
+  {
+    return glfwWindowShouldClose(m_window);
+  }
+
   auto glfw_context::_init_flags() noexcept -> init_flags
   {
     return init_flags::enable_logging;

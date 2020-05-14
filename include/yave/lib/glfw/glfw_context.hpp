@@ -69,6 +69,9 @@ namespace yave::glfw {
     /// Get current windlw title
     [[nodiscard]] auto title() const -> std::string;
 
+    /// Should close?
+    [[nodiscard]] bool should_close() const;
+
   private:
     glfw_window(
       glfw::glfw_context& ctx,
