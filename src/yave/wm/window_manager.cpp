@@ -123,12 +123,9 @@ namespace yave::wm {
       root->update(dctx, vctx);
     }
 
-    void dispatch(const std::unique_ptr<event_dispatcher>& dispatcher)
+    void dispatch(window_visitor& visitor, window_traverser& traverser)
     {
-      if (!dispatcher)
-        return;
-
-      dispatcher->dispatch(root.get());
+      traverser.traverse(root.get(), visitor);
     }
   };
 
@@ -191,9 +188,10 @@ namespace yave::wm {
   }
 
   void window_manager::dispatch(
-    const std::unique_ptr<event_dispatcher>& dispatcher)
+    window_visitor& visitor,
+    window_traverser& traverser)
   {
-    return m_pimpl->dispatch(std::move(dispatcher));
+    return m_pimpl->dispatch(visitor, traverser);
   }
 
 } // namespace yave::wm

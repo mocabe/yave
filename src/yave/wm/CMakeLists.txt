@@ -4,6 +4,7 @@ add_library(yave-wm
   window.cpp
   root_window.cpp
   window_manager.cpp
+  window_visitor.cpp
   event_dispatcher.cpp)
 
 add_library(yave::wm ALIAS yave-wm)

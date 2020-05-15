@@ -44,8 +44,8 @@ namespace yave::wm {
   public:
     /// process update on window tree
     void update(editor::data_context& dctx, editor::view_context& vctx);
-    /// dispatch event to window tree
-    void dispatch(const std::unique_ptr<event_dispatcher>& dispatcher);
+    /// dispatch visitor to window tree
+    void dispatch(window_visitor& visitor, window_traverser& traverser);
 
   private:
     class impl;
