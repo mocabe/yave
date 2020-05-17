@@ -20,20 +20,13 @@ namespace yave {
     /// No valid overloading error
     struct no_valid_overloading : error_info<no_valid_overloading>
     {
-      no_valid_overloading(const node_handle& node, const socket_handle& socket)
-        : m_node {node}
-        , m_socket {socket}
+      no_valid_overloading(const socket_handle& socket)
+        : m_socket {socket}
       {
       }
 
       /// Get error message
       [[nodiscard]] auto message() const -> std::string override;
-
-      /// Get node ID
-      [[nodiscard]] auto node() const -> const node_handle&
-      {
-        return m_node;
-      }
 
       /// Get socket
       [[nodiscard]] auto socket() const -> const socket_handle&
@@ -42,7 +35,7 @@ namespace yave {
       }
 
     private:
-      node_handle m_node;
+      /// src socket
       socket_handle m_socket;
     };
 
@@ -50,12 +43,12 @@ namespace yave {
     struct type_missmatch : error_info<type_missmatch>
     {
       type_missmatch(
-        const node_handle& node,
-        const socket_handle& socket,
+        const socket_handle& s_expected,
+        const socket_handle& s_provided,
         const object_ptr<const Type> expected,
         const object_ptr<const Type>& provided)
-        : m_node {node}
-        , m_socket {socket}
+        : m_socket_expected {s_expected}
+        , m_socket_provided {s_provided}
         , m_expected {expected}
         , m_provided {provided}
       {
@@ -64,58 +57,52 @@ namespace yave {
       /// Get error message
       [[nodiscard]] auto message() const -> std::string override;
 
-      /// Get node ID
-      [[nodiscard]] auto id() const -> const node_handle&
+      /// Get socket
+      [[nodiscard]] auto& socket_expected() const
       {
-        return m_node;
+        return m_socket_expected;
       }
 
       /// Get socket
-      [[nodiscard]] auto socket() const -> const socket_handle&
+      [[nodiscard]] auto& socket_provided() const
       {
-        return m_socket;
+        return m_socket_expected;
       }
 
       /// Get expected type
-      [[nodiscard]] auto expected() const -> const object_ptr<const Type>&
+      [[nodiscard]] auto& expected() const
       {
         return m_expected;
       }
 
       /// Get provided type
-      [[nodiscard]] auto provided() const -> const object_ptr<const Type>&
+      [[nodiscard]] auto& provided() const
       {
         return m_provided;
       }
 
     private:
-      node_handle m_node;
-      socket_handle m_socket;
+      /// src socket
+      socket_handle m_socket_expected;
+      /// src socket
+      socket_handle m_socket_provided;
+      /// expected type
       object_ptr<const Type> m_expected;
+      /// provided type
       object_ptr<const Type> m_provided;
     };
 
     /// Unexpected compile error
     struct unexpected_error : error_info<unexpected_error>
     {
-      unexpected_error(
-        const node_handle& node,
-        const socket_handle& socket,
-        const std::string& msg)
-        : m_node {node}
-        , m_socket {socket}
+      unexpected_error(const socket_handle& socket, const std::string& msg)
+        : m_socket {socket}
         , m_msg {msg}
       {
       }
 
       /// get message
       [[nodiscard]] auto message() const -> std::string override;
-
-      /// get node
-      [[nodiscard]] auto node() const -> const node_handle&
-      {
-        return m_node;
-      }
 
       /// get socket
       [[nodiscard]] auto socket() const -> const socket_handle&
@@ -124,8 +111,9 @@ namespace yave {
       }
 
     private:
-      node_handle m_node;
+      /// src socket
       socket_handle m_socket;
+      /// message
       std::string m_msg;
     };
 

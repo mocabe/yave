@@ -4,6 +4,7 @@
 //
 
 #include <yave/node/compiler/node_compiler.hpp>
+#include <yave/node/compiler/location.hpp>
 #include <yave/support/log.hpp>
 #include <yave/node/core/socket_instance_manager.hpp>
 #include <yave/node/core/node_definition.hpp>
@@ -59,10 +60,12 @@ namespace yave {
       -> tl::optional<structured_node_graph>;
 
     auto gen(structured_node_graph&& ng, const node_definition_store& defs)
-      -> tl::optional<std::pair<object_ptr<const Object>, class_env>>;
+      -> tl::optional<
+        std::tuple<object_ptr<const Object>, class_env, location_map>>;
 
-    auto type(std::pair<object_ptr<const Object>, class_env>&& p, int)
-      -> tl::optional<executable>;
+    auto type(
+      std::tuple<object_ptr<const Object>, class_env, location_map>&& p,
+      int) -> tl::optional<executable>;
 
     auto optimize(executable&& exe, int) -> tl::optional<executable>;
 
@@ -241,7 +244,7 @@ namespace yave {
       auto ds             = defs.get_binds(qualified_name, socket_index);
 
       if (ds.empty())
-        throw compile_error::no_valid_overloading(node, socket);
+        throw compile_error::no_valid_overloading(socket);
 
       std::vector<object_ptr<const Object>> insts;
       insts.reserve(defs.size());
@@ -278,10 +281,6 @@ namespace yave {
       return overloaded;
     };
 
-    // FIXME: Implement proper error info
-    auto srcn = root_group;
-    auto srcs = ng.output_sockets(srcn).at(0);
-
     try {
 
       // build apply tree
@@ -298,32 +297,23 @@ namespace yave {
       } else
         return tl::nullopt;
 
-      // common type errors
-    } catch (const type_error::no_valid_overloading& e) {
-      errors.push_back(
-        make_error<compile_error::no_valid_overloading>(srcn, srcs));
-    } catch (const type_error::type_missmatch& e) {
-      errors.push_back(make_error<compile_error::type_missmatch>(
-        srcn, srcs, e.expected(), e.provided()));
+      // normal errors
+    } catch (const error_info_base& e) {
+      errors.push_back(error(e.clone()));
 
       // internal type errors
     } catch (const type_error::type_error& e) {
       errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Internal type error: "s + e.what()));
-
-      // forward
-    } catch (const error_info_base& e) {
-      errors.push_back(error(e.clone()));
+        socket_handle(), "Internal type error: "s + e.what()));
 
       // others
     } catch (const std::exception& e) {
       errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn,
-        srcs,
+        socket_handle(),
         "Internal error: Unknown std::exception detected: "s + e.what()));
     } catch (...) {
       errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Internal error: Unknown exception detected"));
+        socket_handle(), "Internal error: Unknown exception detected"));
     }
     return tl::nullopt;
   }
@@ -331,17 +321,14 @@ namespace yave {
   auto node_compiler::impl::verbose_check(executable&& exe, int)
     -> tl::optional<executable>
   {
-    // FIXME
-    auto srcn = node_handle();
-    auto srcs = socket_handle();
-
     try {
 
       auto tp = type_of(exe.object());
 
       if (!same_type(tp, exe.type())) {
         errors.push_back(make_error<compile_error::unexpected_error>(
-          srcn, srcs, "Verbose type check failed: result type does not match"));
+          socket_handle(),
+          "Verbose type check failed: result type does not match"));
         return tl::nullopt;
       }
 
@@ -349,10 +336,11 @@ namespace yave {
 
     } catch (const std::exception& e) {
       errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Exception thrown while checking result: "s + e.what()));
+        socket_handle(),
+        "Exception thrown while checking result: "s + e.what()));
     } catch (...) {
       errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Exception thrown while checking result: "));
+        socket_handle(), "Exception thrown while checking result: "));
     }
     return tl::nullopt;
   }
@@ -447,7 +435,8 @@ namespace yave {
   auto node_compiler::impl::gen(
     structured_node_graph&& ng,
     const node_definition_store& defs)
-    -> tl::optional<std::pair<object_ptr<const Object>, class_env>>
+    -> tl::optional<
+      std::tuple<object_ptr<const Object>, class_env, location_map>>
   {
     auto roots = ng.search_path("/");
 
@@ -463,6 +452,8 @@ namespace yave {
 
     // class overload environment
     class_env env;
+    // location
+    location_map loc;
 
     // get overloaded function
     auto get_function_body =
@@ -480,7 +471,7 @@ namespace yave {
       auto ds = defs.get_binds(*ng.get_path(defcall), *ng.get_index(os));
 
       if (ds.empty())
-        throw compile_error::no_valid_overloading(f, os);
+        throw compile_error::no_valid_overloading(os);
 
       std::vector<object_ptr<const Object>> insts;
       insts.reserve(defs.size());
@@ -500,7 +491,7 @@ namespace yave {
                    const auto& in) -> object_ptr<const Object> {
       assert(ng.is_group(g));
 
-      Info(g_logger, "rec_g: {}", *ng.get_name(g));
+      Info(g_logger, "rec_g: {}, os={}", *ng.get_name(g), to_string(os.id()));
 
       // inputs
       std::vector<object_ptr<const Object>> ins;
@@ -509,6 +500,7 @@ namespace yave {
         // variable
         if (auto data = ng.get_data(s)) {
           assert(ng.connections(s).empty());
+          loc.add_location(data, s);
           ins.push_back(data);
           continue;
         }
@@ -532,9 +524,12 @@ namespace yave {
       }
 
       // add Lambda
-      for (auto&& i : ins | rv::reverse)
-        if (auto var = value_cast_if<Variable>(i))
+      for (auto&& i : ins | rv::reverse) {
+        if (auto var = value_cast_if<Variable>(i)) {
           ret = make_object<Lambda>(var, ret);
+          loc.add_location(ret, os);
+        }
+      }
 
       return ret;
     };
@@ -548,9 +543,10 @@ namespace yave {
       (void)os;
       assert(ng.is_function(f));
 
-      Info(g_logger, "rec_f: {}", *ng.get_name(f));
+      Info(g_logger, "rec_f: {}, os={}", *ng.get_name(f), to_string(os.id()));
 
       auto body = get_function_body(f, os);
+      loc.add_location(body, os);
 
       for (auto&& s : ng.input_sockets(f)) {
 
@@ -563,6 +559,7 @@ namespace yave {
           else
             body = body << data;
 
+          loc.add_location(body, os);
           continue;
         }
 
@@ -574,6 +571,7 @@ namespace yave {
 
         auto ci = ng.get_info(cs[0]);
         body    = body << rec_n(ci->src_node(), ci->src_socket(), in);
+        loc.add_location(body, os);
       }
 
       return body;
@@ -583,7 +581,10 @@ namespace yave {
     auto rec_i = [&](const auto& i, const auto& os, const auto& in) {
       assert(ng.is_group_input(i));
       auto idx = *ng.get_index(os);
-      return in[idx];
+
+      auto ret = in[idx];
+      loc.add_location(ret, os);
+      return ret;
     };
 
     // general
@@ -601,73 +602,56 @@ namespace yave {
         unreachable();
       };
 
-    // FIXME:
-    node_handle srcn;
-    socket_handle srcs;
-
     try {
 
       auto rec = fix_lambda(rec_n);
       auto app = rec(root, rootos, std::vector<object_ptr<const Object>>());
-      return std::make_pair(std::move(app), std::move(env));
+      return std::make_tuple(std::move(app), std::move(env), std::move(loc));
 
       // forward
     } catch (const error_info_base& e) {
       errors.push_back(error(e.clone()));
+
       // other
     } catch (const std::exception& e) {
       errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn,
-        srcs,
+        socket_handle(),
         "Internal error: Unknown std::exception detected: "s + e.what()));
     } catch (...) {
       errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Internal error: Unknown exception detected"));
+        socket_handle(), "Internal error: Unknown exception detected"));
     }
     return tl::nullopt;
   }
 
   auto node_compiler::impl::type(
-    std::pair<object_ptr<const Object>, class_env>&& p,
+    std::tuple<object_ptr<const Object>, class_env, location_map>&& p,
     int) -> tl::optional<executable>
   {
-    // FIXME
-    node_handle srcn;
-    socket_handle srcs;
-
     try {
 
-      auto [app, env] = p;
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [app, env, loc] = std::move(p);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       return executable(app2, ty);
 
-      // common type errors
-    } catch (const type_error::no_valid_overloading& e) {
-      errors.push_back(
-        make_error<compile_error::no_valid_overloading>(srcn, srcs));
-    } catch (const type_error::type_missmatch& e) {
-      errors.push_back(make_error<compile_error::type_missmatch>(
-        srcn, srcs, e.expected(), e.provided()));
+      // normal errors
+    } catch (const error_info_base& e) {
+      errors.push_back(error(e.clone()));
 
       // internal type errors
     } catch (const type_error::type_error& e) {
       errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Internal type error: "s + e.what()));
-
-      // forward
-    } catch (const error_info_base& e) {
-      errors.push_back(error(e.clone()));
+        socket_handle(), "Internal type error: "s + e.what()));
 
       // others
     } catch (const std::exception& e) {
       errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn,
-        srcs,
+        socket_handle(),
         "Internal error: Unknown std::exception detected: "s + e.what()));
     } catch (...) {
       errors.push_back(make_error<compile_error::unexpected_error>(
-        srcn, srcs, "Internal error: Unknown exception detected"));
+        socket_handle(), "Internal error: Unknown exception detected"));
     }
     return tl::nullopt;
   }

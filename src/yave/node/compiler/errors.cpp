@@ -11,23 +11,25 @@ namespace yave::compile_error {
 
   std::string no_valid_overloading::message() const
   {
-    return fmt::format("No valid overloading: node={}", to_string(m_node.id()));
+    return fmt::format(
+      "No valid overloading: socket={}", to_string(m_socket.id()));
   }
 
   std::string type_missmatch::message() const
   {
     return fmt::format(
-      "Type missmatch: node={}, expected={}, provided={}",
-      to_string(m_node.id()),
+      "Type missmatch: expected={} s={}, provided={} s={}",
       to_string(m_expected),
-      to_string(m_provided));
+      to_string(m_socket_expected.id()),
+      to_string(m_provided),
+      to_string(m_socket_provided.id()));
   }
 
   std::string unexpected_error::message() const
   {
     return fmt::format(
-      "Unexpected compile error occured: node={}, msg = {}",
-      to_string(m_node.id()),
+      "Unexpected compile error occured: socket={}, msg = {}",
+      to_string(m_socket.id()),
       m_msg);
   }
-}
+} // namespace yave::compile_error

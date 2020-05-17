@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/compiler/overloaded.hpp>
+#include <yave/node/compiler/location.hpp>
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/node/core/node_handle.hpp>
 #include <yave/node/core/socket_handle.hpp>
@@ -51,6 +52,12 @@ namespace yave {
   [[nodiscard]] auto type_of_overloaded(
     const object_ptr<const Object>& obj,
     class_env classes)
+    -> std::pair<object_ptr<const Type>, object_ptr<const Object>>;
+
+  [[nodiscard]] auto type_of_overloaded(
+    const object_ptr<const Object>& obj,
+    class_env&& classes,
+    location_map&& loc)
     -> std::pair<object_ptr<const Type>, object_ptr<const Object>>;
 
 } // namespace yave
