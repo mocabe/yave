@@ -56,35 +56,77 @@ namespace yave {
 
   namespace detail {
 
-    /// Build spine stack and assign spine pointers.
-    /// Only allocates memory once at bottom, but uses more stack compared to
-    /// incremental buffer allocation.
-    [[nodiscard]] inline auto build_spine_stack(
-      const object_ptr<const Object>& obj,
-      size_t depth) -> std::
-      pair<object_ptr<const Object>, std::vector<object_ptr<const Apply>>>
+    /// Get spine depth and bottom closure
+    inline auto inspect_spine(const object_ptr<const Object>& obj)
+      -> std::pair<size_t, object_ptr<const Object>>
     {
       if (auto apply = value_cast_if<Apply>(obj)) {
 
-        auto& apply_storage = _get_storage(*apply);
+        auto& storage = _get_storage(*apply);
 
-        if (apply_storage.is_result())
-          return build_spine_stack(apply_storage.get_result(), depth);
+        if (storage.is_result())
+          return inspect_spine(storage.get_result());
 
-        auto [bottom, stack] =
-          build_spine_stack(apply_storage.app(), depth + 1);
+        auto [depth, bottom] = inspect_spine(storage.app());
+        return {depth + 1, std::move(bottom)};
+      }
+      return {0, obj};
+    }
 
-        // assign each vertebrae
+    /// Assign each vertebrae to spine stack
+    /// \param obj apply tree
+    /// \param stack mutable ref to stack buffer
+    /// \param depth current depth of recursion
+    inline void assign_spine_stack(
+      const object_ptr<const Object>& obj,
+      std::vector<object_ptr<const Apply>>& stack,
+      const size_t& depth)
+    {
+      if (auto apply = value_cast_if<Apply>(obj)) {
+
+        auto& storage = _get_storage(*apply);
+
+        if (storage.is_result())
+          return assign_spine_stack(storage.get_result(), stack, depth);
+
+        assert(depth < stack.size());
         stack[depth] = std::move(apply);
 
-        return {std::move(bottom), std::move(stack)};
+        assign_spine_stack(storage.app(), stack, depth + 1);
       }
+    }
 
-      return {obj, std::vector<object_ptr<const Apply>>(depth)};
+    /// Assign each vertebrae to local stack
+    /// \param obj apply tree
+    /// \param closure bottom closure
+    /// \param arity arity of bottom closure
+    /// \param size size of local stack of bottom closure
+    /// \param depth current depth of recursion
+    inline void assign_spine_stack_direct(
+      const object_ptr<const Object>& obj,
+      const object_ptr<Closure<>>& closure,
+      const size_t& arity,
+      const size_t& size,
+      const size_t& depth)
+    {
+      if (auto apply = value_cast_if<Apply>(obj)) {
+
+        auto& storage = _get_storage(*apply);
+
+        if (storage.is_result())
+          return assign_spine_stack_direct(
+            storage.get_result(), closure, arity, size, depth);
+
+        assert(depth < size);
+        closure->vertebrae(arity - size + depth) = std::move(apply);
+
+        assign_spine_stack_direct(
+          storage.app(), closure, arity, size, depth + 1);
+      }
     }
 
     /// instantiate lambda body with actual argument
-    [[nodiscard]] inline auto instantiate_lambda_body(
+    inline auto instantiate_lambda_body(
       const object_ptr<const Object>& obj,
       const object_ptr<const Variable>& var,
       const object_ptr<const Object>& arg) -> object_ptr<const Object>
@@ -114,7 +156,8 @@ namespace yave {
       return obj;
     }
 
-    [[nodiscard]] inline auto eval_spine(const object_ptr<const Object>& obj)
+    /// evaluete apply graph
+    inline auto eval_spine(const object_ptr<const Object>& obj)
       -> object_ptr<const Object>
     {
       if (auto apply = value_cast_if<Apply>(obj)) {
@@ -122,27 +165,59 @@ namespace yave {
         auto& apply_storage = _get_storage(*apply);
 
         // when we don't have any arguments to apply in stack and apply node
-        // has already evaluated, we can directly return cached result. if we
-        // can guarantee cached results are only PAP or values, we actually
-        // don't need to call eval_spine() on these results.
+        // has already evaluated, we can directly return cached result.
         if (apply_storage.is_result())
           return apply_storage.get_result();
 
-        // build stack and get bottom closure/lambda
-        auto [bottom, stack] = build_spine_stack(apply_storage.app(), 1);
-        stack[0]             = std::move(apply);
+        // inspect spine structure without allocation
+        auto [depth, bottom] = inspect_spine(apply_storage.app());
+
+        // avoid allocation of stack buffer when spine stack can fit in local
+        // stack of closure.
+        if (auto closure = value_cast_if<Closure<>>(bottom)) {
+
+          auto arity = closure->arity;
+          auto size  = depth + 1;
+
+          if (size <= arity) {
+
+            auto fun = closure.clone();
+
+            // dump to local stack directly
+            assign_spine_stack_direct(apply_storage.app(), fun, arity, size, 1);
+            fun->vertebrae(arity - size) = std::move(apply);
+            fun->arity -= size;
+
+            if (size != arity)
+              return fun;
+
+            auto result = fun->call();
+
+            if (auto e = value_cast_if<Exception>(std::move(result)))
+              throw exception_result(e);
+
+            return result;
+          }
+        }
+
+        // build spine stack on heap.
+        // TODO: support allocating on stack when size of buffer is small
+        // enough, but more than local stack size.
+        auto stack = std::vector<object_ptr<const Apply>>(depth + 1);
+        assign_spine_stack(apply_storage.app(), stack, 1);
+        stack[0] = std::move(apply);
 
         for (;;) {
 
           // Handle lambda application
           // TODO: optimization
-          if (auto lam = value_cast_if<Lambda>(std::move(bottom))) {
+          if (auto lam = value_cast_if<Lambda>(bottom)) {
             // arg vartebrae
             auto& vert = _get_storage(*stack.back());
             // instantiate
-            auto& storage = _get_storage(*lam);
-            auto inst =
-              instantiate_lambda_body(storage.body, storage.var, vert.arg());
+            auto& lam_storage = _get_storage(*lam);
+            auto inst         = instantiate_lambda_body(
+              lam_storage.body, lam_storage.var, vert.arg());
 
             // eval body of lambda
             auto result = eval_obj(inst);
@@ -165,7 +240,7 @@ namespace yave {
 
           // clone bottom closure
           auto fun   = bottom.clone();
-          auto cfun  = reinterpret_cast<const Closure<>*>(fun.get());
+          auto cfun  = reinterpret_cast<Closure<>*>(fun.get());
           auto arity = cfun->arity;
           auto size  = stack.size();
 
