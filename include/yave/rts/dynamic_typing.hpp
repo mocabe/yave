@@ -195,8 +195,8 @@ namespace yave {
     const object_ptr<const Type>& t1,
     const object_ptr<const Type>& t2)
   {
-    return make_object<Type>(
-      tap_type {make_object<Type>(tap_type {arrow_type_tcon(), t1}), t2});
+    return make_object<const Type>(
+      tap_type {make_object<const Type>(tap_type {arrow_type_tcon(), t1}), t2});
   }
 
   [[nodiscard]] inline auto is_arrow_type(const object_ptr<const Type>& t)
@@ -213,7 +213,7 @@ namespace yave {
 
   [[nodiscard]] inline auto make_list_type(const object_ptr<const Type>& t)
   {
-    return make_object<Type>(tap_type {list_type_tcon(), t});
+    return make_object<const Type>(tap_type {list_type_tcon(), t});
   }
 
   [[nodiscard]] inline auto is_list_type(const object_ptr<const Type>& t)
@@ -230,7 +230,7 @@ namespace yave {
 
   [[nodiscard]] inline auto make_var_type(uint64_t id)
   {
-    return make_object<Type>(tvar_type {id /* kstar */});
+    return make_object<const Type>(tvar_type {id /* kstar */});
   }
 
   // ------------------------------------------
@@ -239,7 +239,7 @@ namespace yave {
   /// generate new type variable
   [[nodiscard]] inline auto genvar() -> object_ptr<const Type>
   {
-    return make_object<Type>(tvar_type::random_generate());
+    return make_object<const Type>(tvar_type::random_generate());
   }
 
   // ------------------------------------------
