@@ -21,8 +21,8 @@ FRP can be very powerful tool to create animations and sounds, but current frame
 
 ### Compiler
 
-YAVE is currently under development using C++17.  
-To build this project, C++17 capable compiler is required.  
+YAVE is currently under development using C++17 (and partly C++20).  
+To build this project, C++17/C++20 capable compiler is required.  
 MSVC support is still rough, and requires latest preview version of VS2019.
 
 ### Building 
