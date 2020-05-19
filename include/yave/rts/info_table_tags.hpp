@@ -45,8 +45,8 @@ namespace yave {
     template <class T>
     struct has_info_table_tag_impl<
       T,
-      std::void_t<decltype(object_type_traits<T>::info_table_tag)>>
-      : std::true_type
+      std::void_t<decltype(
+        object_type_traits<std::decay_t<T>>::info_table_tag)>> : std::true_type
     {
     };
 
@@ -62,7 +62,7 @@ namespace yave {
     [[nodiscard]] constexpr auto get_info_table_tag()
     {
       static_assert(has_info_table_tag<T>());
-      return object_type_traits<T>::info_table_tag;
+      return object_type_traits<std::decay_t<T>>::info_table_tag;
     }
 
     /// Add info table tag of type T to given pointer.
