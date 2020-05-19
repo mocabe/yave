@@ -10,26 +10,26 @@
 namespace yave {
 
   /// bad_value_cast exception
-  class bad_value_cast : public std::logic_error
+  class bad_value_cast : public exception
   {
   public:
     explicit bad_value_cast(
       object_ptr<const Type> from,
       object_ptr<const Type> to)
-      : std::logic_error("bad_value_cast")
+      : exception(u8"bad_value_cast")
       , m_from {std::move(from)}
       , m_to {std::move(to)}
     {
     }
 
     /// get from
-    [[nodiscard]] auto from() const -> const object_ptr<const Type>&
+    [[nodiscard]] auto from() const
     {
       return m_from;
     }
 
     /// get to
-    [[nodiscard]] auto to() const -> const object_ptr<const Type>&
+    [[nodiscard]] auto to() const
     {
       return m_to;
     }

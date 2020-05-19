@@ -62,7 +62,7 @@ namespace yave::filesystem {
     /// Get string
     [[nodiscard]] auto string() const -> yave::string
     {
-      return std::string(m_string);
+      return m_string;
     }
 
     friend inline bool operator==(const path& lhs, const path& rhs)

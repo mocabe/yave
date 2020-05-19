@@ -46,13 +46,13 @@ namespace yave {
   namespace type_error {
 
     /// type_error
-    class type_error : public std::logic_error
+    class type_error : public exception
     {
     public:
       type_error(
-        const char* msg                 = "type_error",
+        const char8_t* msg              = u8"type_error",
         object_ptr<const Object> source = nullptr)
-        : logic_error(msg)
+        : exception(msg)
         , m_source {std::move(source)}
       {
       }
@@ -86,7 +86,7 @@ namespace yave {
       unbounded_variable(
         object_ptr<const Type> var,
         object_ptr<const Object> src)
-        : type_error("Unbounded variable detected", std::move(src))
+        : type_error(u8"Unbounded variable detected", std::move(src))
         , m_var {std::move(var)}
       {
       }
@@ -108,7 +108,7 @@ namespace yave {
       circular_constraint(
         object_ptr<const Type> var,
         object_ptr<const Object> src)
-        : type_error("Circular constraints", std::move(src))
+        : type_error(u8"Circular constraints", std::move(src))
         , m_var {std::move(var)}
       {
       }
@@ -130,7 +130,7 @@ namespace yave {
         object_ptr<const Type> t1,
         object_ptr<const Type> t2,
         object_ptr<const Object> src)
-        : type_error("Unsolvable constraits", std::move(src))
+        : type_error(u8"Unsolvable constraits", std::move(src))
         , m_t1 {std::move(t1)}
         , m_t2 {std::move(t2)}
       {
@@ -162,7 +162,7 @@ namespace yave {
         object_ptr<const Kind> expected,
         object_ptr<const Kind> provided,
         object_ptr<const Object> src)
-        : type_error("Kind missmatch", std::move(src))
+        : type_error(u8"Kind missmatch", std::move(src))
         , m_expected {std::move(expected)}
         , m_provided {std::move(provided)}
       {
@@ -195,7 +195,7 @@ namespace yave {
         object_ptr<const Type> expected,
         object_ptr<const Type> provided,
         object_ptr<const Object> src)
-        : type_error("Type missmatch", std::move(src))
+        : type_error(u8"Type missmatch", std::move(src))
         , m_expected {std::move(expected)}
         , m_provided {std::move(provided)}
       {
@@ -228,7 +228,7 @@ namespace yave {
         object_ptr<const Type> expected,
         object_ptr<const Type> provided,
         object_ptr<const Object> src)
-        : type_error("type_error: Runtime type check failed", std::move(src))
+        : type_error(u8"type_error: Runtime type check failed", std::move(src))
         , m_expected {std::move(expected)}
         , m_provided {std::move(provided)}
       {
@@ -258,7 +258,7 @@ namespace yave {
     {
     public:
       no_valid_overloading(object_ptr<const Object> src)
-        : type_error("type_error: No valid overloading", std::move(src))
+        : type_error(u8"type_error: No valid overloading", std::move(src))
       {
       }
     };

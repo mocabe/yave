@@ -14,6 +14,41 @@
 
 namespace yave {
 
+  /// exception base with String message container
+  class exception : public std::exception
+  {
+  public:
+    exception(const char8_t* str)
+      : m_str {make_object<String>(str)}
+    {
+    }
+
+    exception(const exception& other) noexcept
+      : m_str {other.m_str}
+    {
+    }
+
+    exception(exception&& other) noexcept
+      : m_str {std::move(other.m_str)}
+    {
+    }
+
+    /// std::exception::what()
+    const char* what() const noexcept override
+    {
+      return m_str->c_str();
+    }
+
+    /// UTF-8 error message
+    const char8_t* u8_what() const noexcept
+    {
+      return m_str->u8_str();
+    }
+
+  private:
+    object_ptr<const String> m_str;
+  };
+
   /// \brief Exception value
   ///
   /// Exception object holds a pointer to arbitary error value.

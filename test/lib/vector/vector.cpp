@@ -19,12 +19,12 @@ TEST_CASE("init", "[lib][vector]")
 
   vector<string>();
   vector<string>(1);
-  vector<string>(1, "Hello, World");
-  vector<string>(std::vector<string>(1, "Hello, World"));
+  vector<string>(1, u8"Hello, World");
+  vector<string>(std::vector<string>(1, u8"Hello, World"));
 
   vector<vector<string>>();
   vector<vector<string>>(1);
-  vector<vector<string>>(1, vector<string>(1, "Hello, World"));
+  vector<vector<string>>(1, vector<string>(1, u8"Hello, World"));
 }
 
 TEST_CASE("assign", "[lib][vector]")
@@ -69,19 +69,19 @@ TEST_CASE("empty", "[lib][vector]")
   REQUIRE(std::vector<int>(v0.begin(), v0.end()).empty());
   REQUIRE(v0.size() == 0);
   REQUIRE(v0.begin() == v0.end());
-  REQUIRE(v0.cend()  == v0.cend());
+  REQUIRE(v0.cend() == v0.cend());
 
   auto v1 = v0;
   REQUIRE(v1.empty());
   REQUIRE(v1.size() == 0);
   REQUIRE(v1.begin() == v1.end());
-  REQUIRE(v1.cend()  == v1.cend());
+  REQUIRE(v1.cend() == v1.cend());
 
   auto v2 = std::move(v1);
   REQUIRE(v2.empty());
   REQUIRE(v2.size() == 0);
   REQUIRE(v2.begin() == v2.end());
-  REQUIRE(v2.cend()  == v2.cend());
+  REQUIRE(v2.cend() == v2.cend());
 }
 
 TEST_CASE("42", "[lib][vector]")
@@ -143,21 +143,21 @@ TEST_CASE("access", "[lib][vector]")
 
 TEST_CASE("conv", "[lib][vector]")
 {
-  std::vector<string> str = {"Hello", "World", "!"};
+  std::vector<string> str = {u8"Hello", u8"World", u8"!"};
   vector<string> v        = str;
-  REQUIRE(v[0] == "Hello");
-  REQUIRE(v[1] == "World");
-  REQUIRE(v[2] == "!");
+  REQUIRE(v[0] == u8"Hello");
+  REQUIRE(v[1] == u8"World");
+  REQUIRE(v[2] == u8"!");
 
-  v[2] = "?";
+  v[2] = u8"?";
 
   str = static_cast<std::vector<string>>(v);
 
-  REQUIRE(v[0] == "Hello");
-  REQUIRE(v[1] == "World");
-  REQUIRE(v[2] == "?");
+  REQUIRE(v[0] == u8"Hello");
+  REQUIRE(v[1] == u8"World");
+  REQUIRE(v[2] == u8"?");
 
-  REQUIRE(str[0] == "Hello");
-  REQUIRE(str[1] == "World");
-  REQUIRE(str[2] == "?");
+  REQUIRE(str[0] == u8"Hello");
+  REQUIRE(str[1] == u8"World");
+  REQUIRE(str[2] == u8"?");
 }

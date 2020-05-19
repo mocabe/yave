@@ -30,13 +30,13 @@ namespace yave {
   namespace result_error {
 
     /// result_error
-    class result_error : public std::runtime_error
+    class result_error : public exception
     {
     public:
-      using std::runtime_error::runtime_error;
+      using exception::exception;
 
       result_error()
-        : runtime_error("result_error")
+        : exception(u8"result_error")
       {
       }
     };
@@ -46,7 +46,7 @@ namespace yave {
     {
     public:
       null_result()
-        : result_error("Null result detected while evaluation")
+        : result_error(u8"Null result detected while evaluation")
       {
       }
     };
@@ -71,17 +71,17 @@ namespace yave {
   // Exception result
 
   /// exception_result
-  class exception_result : public std::runtime_error
+  class exception_result : public exception
   {
   public:
     exception_result(object_ptr<const Exception> e)
-      : runtime_error("Exception detected while evaluation")
+      : yave::exception(u8"Exception detected while evaluation")
       , m_exception {std::move(e)}
     {
     }
 
     /// exception
-    [[nodiscard]] auto exception() const -> const object_ptr<const Exception>&
+    [[nodiscard]] auto& exception() const
     {
       return m_exception;
     }

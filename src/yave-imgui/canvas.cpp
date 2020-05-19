@@ -482,7 +482,7 @@ namespace yave::editor::imgui {
               if (auto s = value_cast_if<String>(holder->data())) {
                 std::string val = *s;
                 ImGui::InputText("", &val);
-                *s = val;
+                *s = yave::string(val);
               }
             }
           }
