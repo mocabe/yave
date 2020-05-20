@@ -23,12 +23,6 @@ namespace yave {
     /// Dtor
     ~node_compiler() noexcept;
 
-    /// Compile parsed graph
-    [[nodiscard]] auto compile(
-      managed_node_graph&& graph,
-      const node_declaration_store& decls,
-      const node_definition_store& defs) -> std::optional<executable>;
-
     /// Compile parsed V2 node graph
     [[nodiscard]] auto compile(
       structured_node_graph&& graph,

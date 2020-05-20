@@ -49,11 +49,6 @@ namespace yave {
   {
     error_list errors;
 
-    auto type(
-      const managed_node_graph& parsed_graph,
-      const node_declaration_store& decls,
-      const node_definition_store& defs) -> tl::optional<executable>;
-
     auto verbose_check(executable&& exe, int) -> tl::optional<executable>;
 
     auto desugar(structured_node_graph&& ng, int)
@@ -73,28 +68,6 @@ namespace yave {
     auto get_errors() const
     {
       return errors.clone();
-    }
-
-    auto compile(
-      managed_node_graph&& parsed_graph,
-      const node_declaration_store& decls,
-      const node_definition_store& defs) -> tl::optional<executable>
-    {
-      errors.clear();
-
-      Info(g_logger, "Start compiling node tree:");
-      Info(g_logger, "  Total {} nodes in graph", parsed_graph.nodes().size());
-      Info(g_logger, "  Total {} node declarations", decls.size());
-      Info(g_logger, "  Total {} node definitions", defs.size());
-
-      return tl::make_optional(std::move(parsed_graph)) //
-        .and_then(mem_fn(type, decls, defs))
-        .and_then(mem_fn(verbose_check, 0))
-        .or_else([&] {
-          Error(g_logger, "Failed to compiler node graph");
-          for (auto&& e : errors)
-            Error(g_logger, "  {}", e.message());
-        });
     }
 
     auto compile(structured_node_graph&& ng, const node_definition_store& defs)
@@ -133,189 +106,10 @@ namespace yave {
   }
 
   auto node_compiler::compile(
-    managed_node_graph&& parsed_graph,
-    const node_declaration_store& decls,
-    const node_definition_store& defs) -> std::optional<executable>
-  {
-    return to_std(m_pimpl->compile(std::move(parsed_graph), decls, defs));
-  }
-
-  auto node_compiler::compile(
     structured_node_graph&& graph,
     const node_definition_store& defs) -> std::optional<executable>
   {
     return to_std(m_pimpl->compile(std::move(graph), defs));
-  }
-
-  /*
-    Type check prime trees and generate apply graph.
-    Assumes prime tree is already successfully parsed by node_parser.
-    We use socket_instance_manager to collect all node instances attached to
-    specific node/socket combination to share instance objects across multiple
-    inputs.
-
-    This function is depending on overloading resolution extension in RTS
-    module. After typing over gneralized types on each overloaded functions,
-    type checker checks existance of appropriate function to call, then replace
-    all occurence of overloaded call with the selected closure object. If type
-    checking or overloading selection failed, it throws type_error so we need to
-    trap them to report to frontend.
-
-    Most of errors thrown from type checker does not relate to node handle, so
-    we need to keep track relation between backend object and nodes.
-   */
-  auto node_compiler::impl::type(
-    const managed_node_graph& ng,
-    const node_declaration_store& decls,
-    const node_definition_store& defs) -> tl::optional<executable>
-  {
-    auto root_group = ng.root_group();
-
-    assert(ng.output_sockets(root_group).size() == 1);
-    assert(ng.input_sockets(root_group).empty());
-
-    auto root_socket = ng.output_sockets(root_group)[0];
-
-    class_env env;
-    socket_instance_manager sim;
-
-    auto rec =
-      [&](auto&& self, const auto& socket) -> object_ptr<const Object> {
-      assert(ng.get_info(socket)->type() == socket_type::output);
-
-      auto node = ng.node(socket);
-
-      size_t socket_index = 0;
-      for (auto&& s : ng.output_sockets(node)) {
-        if (s == socket)
-          break;
-        ++socket_index;
-      }
-
-      if (auto inst = sim.find(socket)) {
-        return inst->instance;
-      }
-
-      auto iss = ng.input_sockets(node);
-
-      // group: make lambda if it's lambda form
-      if (ng.is_group(node)) {
-
-        // lambda form
-        auto isLambda = [&] {
-          for (auto&& s : iss) {
-            if (ng.connections(s).empty())
-              return true;
-          }
-          return false;
-        }();
-
-        auto inside = ng.get_group_socket_inside(socket);
-
-        auto body = self(ng.get_info(ng.connections(inside)[0])->src_socket());
-
-        // apply lambda
-        if (isLambda) {
-          for (auto iter = iss.rbegin(); iter != iss.rend(); ++iter) {
-            auto& s = *iter;
-            body =
-              make_object<Lambda>(value_cast<Variable>(ng.get_data(s)), body);
-          }
-        }
-
-        return body;
-      }
-
-      // group input
-      if (ng.is_group_input(node)) {
-
-        auto outside = ng.get_group_socket_outside(socket);
-
-        // not connected: return variable
-        if (ng.connections(outside).empty())
-          return value_cast<Variable>(ng.get_data(outside));
-
-        return self(ng.get_info(ng.connections(outside)[0])->src_socket());
-      }
-
-      // acquire node object
-      assert(decls.find(*ng.get_name(node)));
-      auto qualified_name = decls.find(*ng.get_name(node))->qualified_name();
-      auto ds             = defs.get_binds(qualified_name, socket_index);
-
-      if (ds.empty())
-        throw compile_error::no_valid_overloading(socket);
-
-      std::vector<object_ptr<const Object>> insts;
-      insts.reserve(defs.size());
-      for (auto&& def : ds) {
-        insts.push_back(def->instance());
-      }
-
-      auto overloaded = insts.size() == 1
-                          ? insts[0]
-                          : env.add_overloading(uid::random_generate(), insts);
-
-      // apply inputs
-      for (auto&& s : iss) {
-        if (ng.connections(s).empty()) {
-
-          // lambda form
-          if (!ng.get_data(s))
-            return overloaded;
-
-          // apply default argument
-          if (auto holder = value_cast_if<DataTypeHolder>(ng.get_data(s)))
-            overloaded = overloaded << holder->get_data_constructor();
-          else
-            overloaded = overloaded << ng.get_data(s);
-
-        } else {
-          // normal argument
-          assert(ng.connections(s).size() == 1);
-
-          overloaded = overloaded
-                       << self(ng.get_info(ng.connections(s)[0])->src_socket());
-        }
-      }
-      return overloaded;
-    };
-
-    try {
-
-      // build apply tree
-      auto app = fix_lambda(rec)(root_socket);
-
-      // now we can check type and resolve overloadings
-      auto [ty, app2] = type_of_overloaded(app, env);
-
-      // return result tree
-      if (errors.empty()) {
-        Info(
-          g_logger, "Successfully type checked node tree! : {}", to_string(ty));
-        return executable(app2, ty);
-      } else
-        return tl::nullopt;
-
-      // normal errors
-    } catch (const error_info_base& e) {
-      errors.push_back(error(e.clone()));
-
-      // internal type errors
-    } catch (const type_error::type_error& e) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        socket_handle(), "Internal type error: "s + e.what()));
-
-      // others
-    } catch (const std::exception& e) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        socket_handle(),
-        "Internal error: Unknown std::exception detected: "s + e.what()));
-    } catch (...) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        socket_handle(), "Internal error: Unknown exception detected"));
-    }
-    return tl::nullopt;
   }
 
   auto node_compiler::impl::verbose_check(executable&& exe, int)
@@ -473,11 +267,9 @@ namespace yave {
       if (ds.empty())
         throw compile_error::no_valid_overloading(os);
 
-      std::vector<object_ptr<const Object>> insts;
-      insts.reserve(defs.size());
-
-      for (auto&& d : ds)
-        insts.push_back(d->instance());
+      auto insts = ds //
+                   | rv::transform([](auto& d) { return d->instance(); })
+                   | rs::to_vector;
 
       return insts.size() == 1 ? insts[0]
                                : env.add_overloading(defcall.id(), insts);
@@ -578,10 +370,8 @@ namespace yave {
     };
 
     // group input
-    auto rec_i = [&](const auto& i, const auto& os, const auto& in) {
-      assert(ng.is_group_input(i));
+    auto rec_i = [&](const auto& os, const auto& in) {
       auto idx = *ng.get_index(os);
-
       auto ret = in[idx];
       loc.add_location(ret, os);
       return ret;
@@ -597,7 +387,7 @@ namespace yave {
           return rec_f(self, n, os, in);
 
         if (ng.is_group_input(n))
-          return rec_i(n, os, in);
+          return rec_i(os, in);
 
         unreachable();
       };
@@ -624,6 +414,23 @@ namespace yave {
     return tl::nullopt;
   }
 
+  /*
+    Type check prime trees and generate apply graph.
+    Assumes prime tree is already successfully parsed by node_parser.
+    We use socket_instance_manager to collect all node instances attached to
+    specific node/socket combination to share instance objects across multiple
+    inputs.
+
+    This function is depending on overloading resolution extension in RTS
+    module. After typing over gneralized types on each overloaded functions,
+    type checker checks existance of appropriate function to call, then replace
+    all occurence of overloaded call with the selected closure object. If type
+    checking or overloading selection failed, it throws type_error so we need to
+    trap them to report to frontend.
+
+    Most of errors thrown from type checker does not relate to node handle, so
+    we need to keep track relation between backend object and nodes.
+   */
   auto node_compiler::impl::type(
     std::tuple<object_ptr<const Object>, class_env, location_map>&& p,
     int) -> tl::optional<executable>
