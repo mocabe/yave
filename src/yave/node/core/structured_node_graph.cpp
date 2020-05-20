@@ -1351,11 +1351,15 @@ namespace yave {
     {
       assert(is_valid(node));
 
-      if (auto call = get_call(node))
+      if (auto call = get_call(node)) {
         call->pos = newpos;
+        return;
+      }
 
-      if (auto io = get_io(node))
+      if (auto io = get_io(node)) {
         io->pos = newpos;
+        return;
+      }
 
       unreachable();
     }
