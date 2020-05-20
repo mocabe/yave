@@ -8,10 +8,6 @@ add_library(yave-node-core
   node_property.cpp
   socket_property.cpp
   node_graph.cpp
-  managed_node_info.cpp
-  managed_socket_info.cpp
-  managed_connection_info.cpp
-  managed_node_graph.cpp
   socket_instance_manager.cpp
   node_initializer.cpp
   node_declaration_store.cpp
@@ -23,5 +19,6 @@ add_library(yave::node::core ALIAS yave-node-core)
 
 target_link_libraries(yave-node-core PUBLIC yave::config)
 target_link_libraries(yave-node-core PUBLIC yave::lib::vec)
+target_link_libraries(yave-node-core PUBLIC yave::lib::graph)
 target_link_libraries(yave-node-core PRIVATE yave::support::log)
 target_link_libraries(yave-node-core PRIVATE yave::support::id)
