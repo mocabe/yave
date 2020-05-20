@@ -7,7 +7,7 @@
 
 #include <yave-imgui/style.hpp>
 #include <yave/lib/imgui/extension.hpp>
-#include <yave/node/core/managed_node_graph.hpp>
+#include <yave/node/core/structured_node_graph.hpp>
 #include <yave/app/editor_context.hpp>
 
 namespace yave::editor::imgui {
@@ -32,17 +32,17 @@ namespace yave::editor::imgui {
 
   [[nodiscard]] ImVec2 calc_socket_min_area_size(
     const socket_handle& socket,
-    const managed_node_graph& g);
+    const structured_node_graph& g);
 
   [[nodiscard]] ImVec2 calc_socket_size(
     const ImVec2& node_size,
     const socket_handle& socket,
-    const managed_node_graph& g);
+    const structured_node_graph& g);
 
   [[nodiscard]] ImVec2 calc_socket_slot_relpos(
     const ImVec2& node_size,
     const socket_handle& s,
-    const managed_node_graph& g);
+    const structured_node_graph& g);
 
   [[nodiscard]] ImVec2 calc_socket_slot_pos(
     const socket_type& type,
@@ -58,13 +58,13 @@ namespace yave::editor::imgui {
   /// calculate node size
   [[nodiscard]] ImVec2 calc_node_background_size(
     const node_handle& node,
-    const managed_node_graph& g);
+    const structured_node_graph& g);
 
   /// calculate node header size
   [[nodiscard]] ImVec2 calc_node_header_size(
     const ImVec2& node_size,
     const node_handle& node,
-    const managed_node_graph& g);
+    const structured_node_graph& g);
 
   /// Runtime socket layout data
   struct socket_layout
@@ -123,14 +123,14 @@ namespace yave::editor::imgui {
   [[nodiscard]] auto calc_node_layout(
     const ImVec2& node_screen_pos,
     const node_handle& node,
-    const managed_node_graph& g) -> node_layout;
+    const structured_node_graph& g) -> node_layout;
 
   /// Calculate socket layout
   [[nodiscard]] auto calc_socket_layout(
     const ImVec2& socket_screen_pos,
     const ImVec2& node_size,
     const socket_handle& socket,
-    const managed_node_graph& g) -> socket_layout;
+    const structured_node_graph& g) -> socket_layout;
 
   /// Calculate layout of canvas from given list of nodes.
   /// All layout information will be stored in map tree structure.

@@ -5,7 +5,6 @@
 
 #include <yave/app/project.hpp>
 
-#include <yave/node/core/managed_node_graph.hpp>
 #include <yave/node/core/node_declaration_store.hpp>
 #include <yave/node/core/node_definition_store.hpp>
 #include <yave/module/module.hpp>
@@ -103,6 +102,11 @@ namespace yave::app {
           Error(g_logger, "Failed to register node declaration");
         }
         data.defs.add(m->get_node_definitions());
+      }
+
+      // create functions
+      for (auto&& decl : data.decls.enumerate()) {
+        data.graph.create_function(*decl);
       }
     }
 
@@ -213,12 +217,12 @@ namespace yave::app {
     return m_pimpl->cfg.modules;
   }
 
-  auto project::graph() -> managed_node_graph&
+  auto project::graph() -> structured_node_graph&
   {
     return m_pimpl->data.graph;
   }
 
-  auto project::graph() const -> const managed_node_graph&
+  auto project::graph() const -> const structured_node_graph&
   {
     return m_pimpl->data.graph;
   }

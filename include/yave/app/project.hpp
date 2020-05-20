@@ -9,7 +9,7 @@
 #include <yave/module/module_loader.hpp>
 #include <yave/node/core/node_declaration_store.hpp>
 #include <yave/node/core/node_definition_store.hpp>
-#include <yave/node/core/managed_node_graph.hpp>
+#include <yave/node/core/structured_node_graph.hpp>
 
 #include <memory>
 #include <filesystem>
@@ -40,7 +40,7 @@ namespace yave::app {
     /// set of all definitions (from modules)
     node_definition_store defs;
     /// node graph
-    managed_node_graph graph;
+    structured_node_graph graph;
   };
 
   /// On memory project data holder.
@@ -87,9 +87,9 @@ namespace yave::app {
     /// Access modules names
     auto modules() const -> const std::vector<std::string>&;
     /// Access node graph
-    auto graph() -> managed_node_graph&;
+    auto graph() -> structured_node_graph&;
     /// Access node graph
-    auto graph() const -> const managed_node_graph&;
+    auto graph() const -> const structured_node_graph&;
 
   private:
     class impl;

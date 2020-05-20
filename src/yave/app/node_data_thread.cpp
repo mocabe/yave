@@ -27,13 +27,13 @@ namespace yave::app {
     struct queue_data
     {
       /// node data operation
-      std::function<void(managed_node_graph&)> op;
+      std::function<void(structured_node_graph&)> op;
       /// request timestamp
       std::chrono::time_point<std::chrono::steady_clock> request_time;
     };
 
   public:
-    managed_node_graph& graph;
+    structured_node_graph& graph;
     std::shared_ptr<const node_data_snapshot> snapshot;
 
   public:
@@ -46,7 +46,7 @@ namespace yave::app {
     std::condition_variable notify_cond;
 
   public:
-    impl(managed_node_graph& g)
+    impl(structured_node_graph& g)
       : graph {g}
       , terminate_flag {0}
     {
@@ -65,7 +65,7 @@ namespace yave::app {
         stop();
     }
 
-    void send(std::function<void(managed_node_graph&)>&& op)
+    void send(std::function<void(structured_node_graph&)>&& op)
     {
       {
         std::unique_lock lck {m_mtx};
@@ -86,7 +86,7 @@ namespace yave::app {
         throw std::runtime_error("Data thread not running");
 
       terminate_flag = 1;
-      send([](managed_node_graph&) {});
+      send([](structured_node_graph&) {});
       thread.join();
     }
 
@@ -174,7 +174,7 @@ namespace yave::app {
     }
   };
 
-  node_data_thread::node_data_thread(managed_node_graph& graph)
+  node_data_thread::node_data_thread(structured_node_graph& graph)
     : m_pimpl {std::make_unique<impl>(graph)}
   {
   }
@@ -188,7 +188,7 @@ namespace yave::app {
     return m_pimpl->is_running();
   }
 
-  void node_data_thread::send(std::function<void(managed_node_graph&)> op)
+  void node_data_thread::send(std::function<void(structured_node_graph&)> op)
   {
     return m_pimpl->send(std::move(op));
   }

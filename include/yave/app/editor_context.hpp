@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/app/project.hpp>
-#include <yave/node/core/managed_node_graph.hpp>
+#include <yave/node/core/structured_node_graph.hpp>
 #include <yave/app/editor_node_info.hpp>
 #include <yave/app/editor_socket_info.hpp>
 #include <yave/app/editor_connection_info.hpp>
@@ -28,7 +28,7 @@ namespace yave::app {
 
   public: /* const interface */
     /// Accessing node graph snapshot
-    auto node_graph() const -> const managed_node_graph&;
+    auto node_graph() const -> const structured_node_graph&;
     /// Accessing node declarations
     auto node_declarations() const -> const node_declaration_store&;
     /// Accessing node declarations
