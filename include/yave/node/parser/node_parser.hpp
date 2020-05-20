@@ -6,7 +6,6 @@
 #pragma once
 
 #include <yave/node/core/structured_node_graph.hpp>
-#include <yave/node/core/managed_node_graph.hpp>
 #include <yave/support/error.hpp>
 
 #include <optional>
@@ -23,10 +22,6 @@ namespace yave {
     node_parser();
     /// Dtor
     ~node_parser() noexcept;
-
-    /// Parser node tree.
-    [[nodiscard]] auto parse(const managed_node_graph& graph)
-      -> std::optional<managed_node_graph>;
 
     /// Parse node graph
     [[nodiscard]] auto parse(structured_node_graph&& ng)
