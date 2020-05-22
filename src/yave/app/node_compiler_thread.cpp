@@ -90,7 +90,7 @@ namespace yave::app {
               auto new_result = std::make_shared<compile_result>();
 
               // parse
-              auto parsed = parser.parse(top.snapshot->graph);
+              auto parsed = parser.parse(top.snapshot->graph.clone());
 
               if (!parsed) {
                 new_result->success      = false;
@@ -101,8 +101,7 @@ namespace yave::app {
                 continue;
               } else {
                 // compile
-                auto exe =
-                  compiler.compile(std::move(*parsed), top.decls, top.defs);
+                auto exe = compiler.compile(std::move(*parsed), top.defs);
                 if (!exe) {
                   new_result->success        = false;
                   new_result->compile_errors = compiler.get_errors();

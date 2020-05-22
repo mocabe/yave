@@ -52,7 +52,7 @@ namespace yave::editor::imgui {
 
   ImVec2 calc_socket_min_area_size(
     const socket_handle& socket,
-    const managed_node_graph& g)
+    const structured_node_graph& g)
   {
     assert(g.exists(socket));
     auto name      = g.get_name(socket);
@@ -65,7 +65,7 @@ namespace yave::editor::imgui {
   ImVec2 calc_socket_size(
     const ImVec2& node_size,
     const socket_handle& socket,
-    const managed_node_graph& g)
+    const structured_node_graph& g)
   {
     auto ssmin = calc_socket_min_area_size(socket, g);
     return {node_size.x, ssmin.y};
@@ -74,7 +74,7 @@ namespace yave::editor::imgui {
   ImVec2 calc_socket_slot_relpos(
     const ImVec2& node_size,
     const socket_handle& s,
-    const managed_node_graph& g)
+    const structured_node_graph& g)
   {
     auto size = calc_socket_size(node_size, s, g);
     auto type = g.get_info(s)->type();
@@ -118,7 +118,7 @@ namespace yave::editor::imgui {
   /// calculate node size
   auto calc_node_background_size(
     const node_handle& node,
-    const managed_node_graph& g) -> ImVec2
+    const structured_node_graph& g) -> ImVec2
   {
     assert(g.exists(node));
 
@@ -146,7 +146,7 @@ namespace yave::editor::imgui {
   auto calc_node_header_size(
     const ImVec2& node_size,
     const node_handle& node,
-    const managed_node_graph& g) -> ImVec2
+    const structured_node_graph& g) -> ImVec2
   {
     auto title = *g.get_name(node);
     auto min   = calc_node_header_min_size(title);
@@ -157,7 +157,7 @@ namespace yave::editor::imgui {
   auto calc_node_layout(
     const ImVec2& node_screen_pos,
     const node_handle& node,
-    const managed_node_graph& g) -> node_layout
+    const structured_node_graph& g) -> node_layout
   {
     using namespace yave::imgui;
 
@@ -186,7 +186,7 @@ namespace yave::editor::imgui {
     const ImVec2& socket_screen_pos,
     const ImVec2& node_size,
     const socket_handle& socket,
-    const managed_node_graph& g) -> socket_layout
+    const structured_node_graph& g) -> socket_layout
   {
     using namespace yave::imgui;
 

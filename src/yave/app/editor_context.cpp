@@ -74,18 +74,20 @@ namespace yave::app {
     fvec2 drag_source_pos = {};
 
   public:
-    editor_context_front(const managed_node_graph& graph)
-      : group {graph.root_group()}
+    editor_context_front(const structured_node_graph& graph)
+      : group {graph.search_path("/root").at(0)}
     {
     }
 
     // set new group
-    void switch_group(const node_handle& new_group, const managed_node_graph& g)
+    void switch_group(
+      const node_handle& new_group,
+      const structured_node_graph& g)
     {
       if (!new_group)
         return;
 
-      if(!g.is_group(new_group))
+      if (!g.is_group(new_group))
         return;
 
       if (group == new_group)
@@ -96,7 +98,7 @@ namespace yave::app {
     }
 
     // update handles to make it valid in new graph instance
-    void refresh_nodes(const managed_node_graph& g)
+    void refresh_nodes(const structured_node_graph& g)
     {
       auto _update = [&](auto& h) {
         using ht = std::decay_t<decltype(h)>;
@@ -134,10 +136,10 @@ namespace yave::app {
       _update(group);
 
       if (!group)
-        switch_group(g.root_group(), g);
+        switch_group(g.search_path("/root").at(0), g);
     }
 
-    void begin_frame(const managed_node_graph& g)
+    void begin_frame(const structured_node_graph& g)
     {
       // reset hovered node every frame
       n_hovered = {};
@@ -461,7 +463,7 @@ namespace yave::app {
 
     // get refreshed handle
     static constexpr auto refh =
-      [](const auto& h, const managed_node_graph& g) {
+      [](const auto& h, const structured_node_graph& g) {
         using ht = std::decay_t<decltype(h)>;
         if (!h)
           return h;
@@ -479,7 +481,7 @@ namespace yave::app {
       const fvec2& pos)
     {
       assert(in_frame);
-      data_thread.send([=](managed_node_graph& g) {
+      data_thread.send([=](structured_node_graph& g) {
         // find decl from name
         auto decl = project.node_declarations().find(name);
         if (!decl) {
@@ -490,7 +492,17 @@ namespace yave::app {
           return;
         }
         // create new node
-        auto h = g.create(refh(group, g), *decl);
+        auto def = g.search_path(decl->qualified_name());
+
+        if (def.empty()) {
+          Error(
+            g_logger,
+            "Could not create node: Node name {} does not exist",
+            name);
+          return;
+        }
+
+        auto h = g.create_copy(refh(group, g), def[0]);
         g.set_pos(h, pos);
       });
     }
@@ -499,7 +511,7 @@ namespace yave::app {
     {
       assert(in_frame);
       data_thread.send(
-        [=](managed_node_graph& g) { g.destroy(refh(node, g)); });
+        [=](structured_node_graph& g) { g.destroy(refh(node, g)); });
     }
 
     void connect(
@@ -507,7 +519,7 @@ namespace yave::app {
       const socket_handle& dst_socket)
     {
       assert(in_frame);
-      data_thread.send([=](managed_node_graph& g) {
+      data_thread.send([=](structured_node_graph& g) {
         (void)g.connect(refh(src_socket, g), refh(dst_socket, g));
       });
     }
@@ -516,13 +528,13 @@ namespace yave::app {
     {
       assert(in_frame);
       data_thread.send(
-        [=](managed_node_graph& g) { g.disconnect(refh(c, g)); });
+        [=](structured_node_graph& g) { g.disconnect(refh(c, g)); });
     }
 
     void group(const std::vector<node_handle>& nodes)
     {
       assert(in_frame);
-      data_thread.send([=](managed_node_graph& g) {
+      data_thread.send([=](structured_node_graph& g) {
         // get new handle
         auto p  = refh(context_front.group, g);
         auto ns = nodes //
@@ -537,7 +549,7 @@ namespace yave::app {
         }
 
         // make group
-        auto group = g.group(p, ns);
+        auto group = g.create_group(p, ns);
 
         // set new position
         if (group) {
@@ -549,25 +561,26 @@ namespace yave::app {
     void ungroup(const node_handle& group)
     {
       assert(in_frame);
-      data_thread.send([=](managed_node_graph& g) {
-        // group to remove
-        auto rm_g = refh(group, g);
-        // current group
-        auto cr_g = context_front.group;
+      // data_thread.send([=](structured_node_graph& g) {
+      //   // group to remove
+      //   auto rm_g = refh(group, g);
+      //   // current group
+      //   auto cr_g = context_front.group;
 
-        if (rm_g == cr_g) {
-          auto parent = g.get_parent_group(cr_g);
-          context_front.switch_group(parent, g);
-        }
-        g.ungroup(rm_g);
-      });
+      //   if (rm_g == cr_g) {
+      //     auto parent = g.get_parent_group(cr_g);
+      //     context_front.switch_group(parent, g);
+      //   }
+      //   g.ungroup(rm_g);
+      // });
+      Error(g_logger, "ungroup not implemented yet");
     }
 
     void set_data(const socket_handle& socket, const object_ptr<Object>& data)
     {
       assert(in_frame);
       data_thread.send(
-        [=](managed_node_graph& g) { g.set_data(refh(socket, g), data); });
+        [=](structured_node_graph& g) { g.set_data(refh(socket, g), data); });
     }
 
     auto get_state() const
@@ -650,7 +663,7 @@ namespace yave::app {
     {
       assert(in_frame);
       data_thread.send(
-        [=](managed_node_graph& g) { g.set_pos(refh(node, g), new_pos); });
+        [=](structured_node_graph& g) { g.set_pos(refh(node, g), new_pos); });
     }
 
     auto& get_scroll() const
@@ -695,7 +708,7 @@ namespace yave::app {
 
       if constexpr (std::is_same_v<Handle, node_handle>)
         data_thread.send(
-          [=](managed_node_graph& g) { g.bring_front(refh(h, g)); });
+          [=](structured_node_graph& g) { g.bring_front(refh(h, g)); });
 
       command_queue.emplace_back([&, h] {
         auto& g = snapshot->graph;
@@ -838,7 +851,7 @@ namespace yave::app {
     m_pimpl->end_frame();
   }
 
-  auto editor_context::node_graph() const -> const managed_node_graph&
+  auto editor_context::node_graph() const -> const structured_node_graph&
   {
     return m_pimpl->node_graph();
   }

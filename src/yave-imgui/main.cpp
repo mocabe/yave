@@ -57,7 +57,9 @@ int main()
     {"my project", {modules::_std::module_name}, {}, config}, std_loader};
 
   auto& graph = project.graph();
-  graph.add_group_output_socket(graph.root_group(), "out");
+  auto root   = graph.create_group({});
+  graph.set_name(root, "root");
+  graph.add_output_socket(root, "out");
 
   app::editor_context editor_ctx(project);
 
@@ -118,7 +120,8 @@ int main()
                 .count());
 
             try {
-              ImGui::Text("Result Type: %s", to_string(type_of(obj)).c_str());
+              ImGui::Text(
+                "Result Type: %s", to_string(result->exe.type()).c_str());
             } catch (type_error::type_error& e) {
               ImGui::Text("Erroneous Result Type: %s", e.what());
             }

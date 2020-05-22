@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/node/core/managed_node_graph.hpp>
+#include <yave/node/core/structured_node_graph.hpp>
 
 #include <chrono>
 #include <functional>
@@ -15,7 +15,7 @@ namespace yave::app {
   struct node_data_snapshot
   {
     node_data_snapshot(
-      managed_node_graph&& g,
+      structured_node_graph&& g,
       std::chrono::time_point<std::chrono::steady_clock> rt,
       std::chrono::time_point<std::chrono::steady_clock> pt) noexcept
       : graph {std::move(g)}
@@ -25,7 +25,7 @@ namespace yave::app {
     }
 
     /// node graph
-    managed_node_graph graph;
+    structured_node_graph graph;
     /// timestamp of request
     std::chrono::time_point<std::chrono::steady_clock> request_time;
     /// timestamp on process
@@ -37,14 +37,14 @@ namespace yave::app {
   {
   public:
     /// Init data thread
-    node_data_thread(managed_node_graph& graph);
+    node_data_thread(structured_node_graph& graph);
 
     /// Dtor
     ~node_data_thread() noexcept;
 
     /// Send operation
     /// \requires is_running()
-    void send(std::function<void(managed_node_graph&)> function);
+    void send(std::function<void(structured_node_graph&)> function);
 
     /// Stop running thread
     /// \requres is_running();
