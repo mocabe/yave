@@ -34,9 +34,13 @@ namespace yave::editor {
     void redo();
 
   public:
+    /// aquire data lock
+    [[nodiscard]] auto lock() const -> std::unique_lock<std::mutex>;
+
+  public:
     /// node graph
-    auto node_graph() const -> const structured_node_graph&;
+    [[nodiscard]] auto node_graph() const -> const structured_node_graph&;
     /// node graph
-    auto node_graph() -> structured_node_graph&;
+    [[nodiscard]] auto node_graph() -> structured_node_graph&;
   };
 }

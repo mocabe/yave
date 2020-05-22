@@ -96,52 +96,73 @@ namespace yave::editor {
     /// error
     std::exception_ptr exception;
 
-  public:
-    auto cmd_lock()
+  private:
+    /// data lock
+    std::mutex data_mtx;
+
+  private:
+    /// acquire command queue lock
+    auto lock_queue()
     {
       return std::unique_lock {cmd_mtx};
     }
 
+    /// acquire data lock
+    auto lock_data()
+    {
+      return std::unique_lock {data_mtx};
+    }
+
+  public:
+    /// check exception in data thread
     void check_exception()
     {
       if (exception)
         std::rethrow_exception(exception);
     }
 
-  public:
+    /// push exec
     void exec(cmd_ptr&& op)
     {
-      auto lck = cmd_lock();
+      auto lck = lock_queue();
       if (op)
         cmd_queue.emplace(std::move(op));
       cmd_cond.notify_one();
     }
 
+    /// push undo
     void undo()
     {
-      auto lck = cmd_lock();
+      auto lck = lock_queue();
       cmd_queue.emplace(cmd_undo {});
       cmd_cond.notify_one();
     }
 
+    /// push redo
     void redo()
     {
-      auto lck = cmd_lock();
+      auto lck = lock_queue();
       cmd_queue.emplace(cmd_redo {});
       cmd_cond.notify_one();
     }
 
+    /// get read lock
+    auto lock()
+    {
+      return lock_data();
+    }
+
   public:
+    // execute single command
     void exec_one()
     {
       cmd top;
       {
-        auto lck = cmd_lock();
+        auto lck = lock_queue();
         top      = std::move(cmd_queue.front());
         cmd_queue.pop();
       }
 
-      // switch based on command types
       std::visit(
         [&](auto&& x) { process(std::forward<decltype(x)>(x)); },
         std::move(top));
@@ -150,11 +171,15 @@ namespace yave::editor {
     // process normal commands
     void process(cmd_ptr&& top)
     {
-      // execute
-      top->exec(*_this);
-      // register to undo stack
-      auto lck = cmd_lock();
-      cmd_undo_stack.push(std::move(top));
+      {
+        auto lck = lock_data();
+        top->exec(*_this);
+      }
+
+      {
+        auto lck = lock_queue();
+        cmd_undo_stack.push(std::move(top));
+      }
     }
 
     // process undo
@@ -162,7 +187,7 @@ namespace yave::editor {
     {
       cmd_ptr top;
       {
-        auto lck = cmd_lock();
+        auto lck = lock_queue();
 
         if (cmd_undo_stack.empty())
           return;
@@ -171,11 +196,13 @@ namespace yave::editor {
         cmd_undo_stack.pop();
       }
 
-      // execute
-      top->undo(*_this);
+      {
+        auto lck = lock_data();
+        top->undo(*_this);
+      }
 
       {
-        auto lck = cmd_lock();
+        auto lck = lock_queue();
         cmd_redo_stack.push(std::move(top));
       }
     }
@@ -185,7 +212,7 @@ namespace yave::editor {
     {
       cmd_ptr top;
       {
-        auto lck = cmd_lock();
+        auto lck = lock_queue();
 
         if (cmd_redo_stack.empty())
           return;
@@ -194,11 +221,13 @@ namespace yave::editor {
         cmd_redo_stack.pop();
       }
 
-      // execute
-      top->exec(*_this);
+      {
+        auto lck = lock_data();
+        top->exec(*_this);
+      }
 
       {
-        auto lck = cmd_lock();
+        auto lck = lock_queue();
         cmd_undo_stack.push(std::move(top));
       }
     }
@@ -206,14 +235,13 @@ namespace yave::editor {
   public:
     void wait_cmd()
     {
-      auto lck = cmd_lock();
-      Info(g_logger, "waiting...");
+      auto lck = lock_queue();
       cmd_cond.wait(lck, [&] { return !cmd_queue.empty(); });
     }
 
     auto cmd_size()
     {
-      auto lck = cmd_lock();
+      auto lck = lock_queue();
       return cmd_queue.size();
     }
 
@@ -262,6 +290,12 @@ namespace yave::editor {
   {
     m_pimpl->check_exception();
     m_pimpl->redo();
+  }
+
+  auto data_context::lock() const -> std::unique_lock<std::mutex>
+  {
+    m_pimpl->check_exception();
+    return m_pimpl->lock();
   }
 
   auto data_context::node_graph() const -> const structured_node_graph&

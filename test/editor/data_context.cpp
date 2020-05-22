@@ -94,4 +94,22 @@ TEST_CASE("data_context")
       REQUIRE(i == 42);
     }
   }
+
+  SECTION("data lock")
+  {
+    int i = 0;
+    {
+      editor::data_context ctx;
+      ctx.exec(editor::make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+      ctx.exec(editor::make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+      {
+        auto lck = ctx.lock();
+        auto tmp = i;
+        ctx.exec(editor::make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+        ctx.exec(editor::make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+        REQUIRE(i == tmp);
+      }
+    }
+    REQUIRE(i == 4);
+  }
 }
