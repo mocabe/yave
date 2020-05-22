@@ -352,35 +352,7 @@ namespace yave {
       unreachable();
     }
 
-    /// Duplicates call for overloaded function.
-    /// To resolve overloading, we need unique identifier for each occurence
-    /// of overloaded call, one of the easiest (but rather stupid) way is
-    /// duplicate entire subtree with overloaded call so each Overloaded node
-    /// can have unique address.
-    inline auto duplicate_overloads(const object_ptr<const Object>& obj)
-      -> object_ptr<const Object>
-    {
-      if (auto apply = value_cast_if<Apply>(obj)) {
-        auto& storage = _get_storage(*apply);
-        return make_object<Apply>(
-          duplicate_overloads(storage.app()),
-          duplicate_overloads(storage.arg()));
-      }
-
-      if (auto lambda = value_cast_if<Lambda>(obj)) {
-        auto& storage = _get_storage(*lambda);
-        return make_object<Lambda>(
-          storage.var, duplicate_overloads(storage.body));
-      }
-
-      if (auto overloaded = value_cast_if<Overloaded>(obj)) {
-        return overloaded.clone();
-      }
-
-      return obj;
-    }
-
-    inline auto rebuild_overloads(
+    auto rebuild_overloads(
       const object_ptr<const Object>& obj,
       const overloading_env& env) -> object_ptr<const Object>
     {
@@ -415,18 +387,6 @@ namespace yave {
       return obj;
     }
   } // namespace
-
-  auto type_of_overloaded(
-    const object_ptr<const Object>& obj,
-    class_env classes)
-    -> std::pair<object_ptr<const Type>, object_ptr<const Object>>
-  {
-    overloading_env env(std::move(classes), {});
-    auto tree = duplicate_overloads(obj);
-    auto ty   = type_of_overloaded_impl(tree, env);
-    ty        = close_assumption(env, ty);
-    return {ty, rebuild_overloads(tree, env)};
-  }
 
   auto type_of_overloaded(
     const object_ptr<const Object>& obj,

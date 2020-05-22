@@ -51,11 +51,6 @@ namespace yave {
   /// kinds and qualified type constraints like Haskell.
   [[nodiscard]] auto type_of_overloaded(
     const object_ptr<const Object>& obj,
-    class_env classes)
-    -> std::pair<object_ptr<const Type>, object_ptr<const Object>>;
-
-  [[nodiscard]] auto type_of_overloaded(
-    const object_ptr<const Object>& obj,
     class_env&& classes,
     location_map&& loc)
     -> std::pair<object_ptr<const Type>, object_ptr<const Object>>;

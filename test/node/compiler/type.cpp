@@ -13,6 +13,9 @@ using namespace yave;
 
 TEST_CASE("overloading")
 {
+  // empty loc map
+  location_map loc;
+
   SECTION("f: X->X with Int->Int")
   {
     struct F : Function<F, Int, Int>
@@ -33,7 +36,7 @@ TEST_CASE("overloading")
     SECTION("f 42")
     {
       auto app        = o << i;
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -44,7 +47,7 @@ TEST_CASE("overloading")
     SECTION("f (f 42)")
     {
       auto app        = o << (o << i);
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -55,7 +58,7 @@ TEST_CASE("overloading")
     SECTION("(id f) 42")
     {
       auto app        = (id << o) << i;
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -72,7 +75,7 @@ TEST_CASE("overloading")
       _get_storage(*lam).body = o << var;
 
       auto app        = lam << i;
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -113,13 +116,14 @@ TEST_CASE("overloading")
     {
       auto app = o << b;
       REQUIRE_THROWS_AS(
-        type_of_overloaded(app, env), compile_error::no_valid_overloading);
+        type_of_overloaded(app, std::move(env), std::move(loc)),
+        compile_error::no_valid_overloading);
     }
 
     SECTION("(id f) (f 42)")
     {
       auto app        = (id << o) << (o << i);
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -130,7 +134,7 @@ TEST_CASE("overloading")
     SECTION("(id f) 42")
     {
       auto app        = (id << o) << i;
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -147,7 +151,7 @@ TEST_CASE("overloading")
       _get_storage(*lam).body = (id << o) << var;
 
       auto app        = (id << lam) << i;
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -211,7 +215,7 @@ TEST_CASE("overloading")
     SECTION("f Int")
     {
       auto app        = (id << ovl) << make_object<Int>();
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -222,7 +226,7 @@ TEST_CASE("overloading")
     SECTION("f Float")
     {
       auto app        = (id << ovl) << make_object<Float>();
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Float>()));
 
@@ -233,7 +237,7 @@ TEST_CASE("overloading")
     SECTION("f List<Int>")
     {
       auto app        = (id << ovl) << make_object<List<Int>>();
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<List<Int>>()));
 
@@ -244,7 +248,7 @@ TEST_CASE("overloading")
     SECTION("f List<Double>")
     {
       auto app        = (id << ovl) << make_object<List<Double>>();
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<List<Double>>()));
 
@@ -261,7 +265,7 @@ TEST_CASE("overloading")
       _get_storage(*lam).body = ovl << var;
 
       auto app        = lam << make_object<Int>();
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -278,7 +282,7 @@ TEST_CASE("overloading")
       _get_storage(*lam).body = id << ovl << var;
 
       auto app        = lam << make_object<List<Double>>();
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<List<Double>>()));
 
@@ -315,7 +319,7 @@ TEST_CASE("overloading")
     SECTION("f Int")
     {
       auto app        = ovl << make_object<Int>();
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<Int>()));
 
@@ -326,7 +330,7 @@ TEST_CASE("overloading")
     SECTION("f List<Int>")
     {
       auto app        = ovl << make_object<List<Int>>();
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<List<Int>>()));
 
@@ -363,7 +367,8 @@ TEST_CASE("overloading")
   //   SECTION("f Int")
   //   {
   //     auto app        = o << make_object<Int>();
-  //     auto [ty, app2] = type_of_overloaded(app, env);
+  //     auto [ty, app2] = type_of_overloaded(app, std::move(env),
+  //     std::move(loc));
 
   //     REQUIRE(same_type(ty, object_type<Double>()));
 
@@ -374,7 +379,8 @@ TEST_CASE("overloading")
   //   SECTION("f Float")
   //   {
   //     auto app        = o << make_object<Float>();
-  //     auto [ty, app2] = type_of_overloaded(app, env);
+  //     auto [ty, app2] = type_of_overloaded(app, std::move(env),
+  //     std::move(loc));
 
   //     REQUIRE(same_type(ty, object_type<Bool>()));
 
@@ -385,7 +391,8 @@ TEST_CASE("overloading")
   //   SECTION("id ((id f) Int)")
   //   {
   //     auto app        = (id << o) << make_object<Int>();
-  //     auto [ty, app2] = type_of_overloaded(app, env);
+  //     auto [ty, app2] = type_of_overloaded(app, std::move(env),
+  //     std::move(loc));
 
   //     REQUIRE(same_type(ty, object_type<Double>()));
 
@@ -448,7 +455,7 @@ TEST_CASE("overloading")
 
       auto app = overloaded << (overloaded << h);
 
-      auto [ty, app2] = type_of_overloaded(app, env);
+      auto [ty, app2] = type_of_overloaded(app, std::move(env), std::move(loc));
 
       REQUIRE(same_type(ty, object_type<closure<Int, Double>>()));
 
