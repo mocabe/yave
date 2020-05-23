@@ -25,6 +25,8 @@ namespace yave::wm {
     // fwd
     class mouse_click;
     class mouse_double_click;
+    class mouse_press;
+    class mouse_release;
     class mouse_hover;
     class key_press;
     class key_release;
@@ -35,6 +37,19 @@ namespace yave::wm {
   class window
   {
     friend class window_manager;
+
+    /// parent pointer
+    window* m_parent;
+    /// id
+    uid m_id;
+    /// child windows
+    std::vector<std::unique_ptr<window>> m_children;
+
+  protected:
+    /// name
+    std::string m_name;
+    /// window size
+    fvec2 m_pos, m_size;
 
   public:
     /// ctor
@@ -55,49 +70,61 @@ namespace yave::wm {
   public: /* event functions */
     // emit new event
     void emit(
-      event& e,
+      wm::event& e,
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) const;
 
-    /// click
+    /// button press
     virtual void on_mouse_click(
-      events::mouse_click& e,
+      wm::events::mouse_click& e,
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) const;
 
-    /// double click
+    /// button double press
     virtual void on_mouse_double_click(
-      events::mouse_double_click& e,
+      wm::events::mouse_double_click& e,
+      editor::data_context& data_ctx,
+      editor::view_context& view_ctx) const;
+
+    /// button press
+    virtual void on_mouse_press(
+      wm::events::mouse_press& e,
+      editor::data_context& data_ctx,
+      editor::view_context& view_ctx) const;
+
+    /// button release
+    virtual void on_mouse_release(
+      wm::events::mouse_release& e,
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) const;
 
     /// hover
     virtual void on_mouse_hover(
-      events::mouse_hover& e,
+      wm::events::mouse_hover& e,
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) const;
 
     /// key press
     virtual void on_key_press(
-      events::key_press& e,
+      wm::events::key_press& e,
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) const;
 
     /// key release
     virtual void on_key_release(
-      events::key_release& e,
+      wm::events::key_release& e,
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) const;
 
     /// key repeat
     virtual void on_key_repeat(
-      events::key_repeat& e,
+      wm::events::key_repeat& e,
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) const;
 
     /// custom event
     virtual void on_custom_event(
-      event& e,
+      wm::event& e,
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) const;
 
@@ -132,26 +159,9 @@ namespace yave::wm {
       return m_children;
     }
 
-  private:
-    /// parent pointer
-    window* m_parent;
-    /// id
-    uid m_id;
-    /// child windows
-    std::vector<std::unique_ptr<window>> m_children;
-
-  protected:
-    /// name
-    std::string m_name;
-    /// window size
-    fvec2 m_pos, m_size;
+  public:
+    /// Get virtual screen pos
+    auto screen_pos() const -> fvec2;
   };
-
-  /// Create new window
-  template <class W, class... Args>
-  [[nodiscard]] auto make_window(Args&&... args)
-  {
-    return std::make_unique<W>(std::forward<Args>(args)...);
-  }
 
 } // namespace yave::wm

@@ -12,9 +12,8 @@
 namespace yave::wm {
 
   /// Event dispatcher
-  struct event_dispatcher final : window_visitor
+  struct event_dispatcher : window_visitor
   {
-  public:
     /// Ctor
     event_dispatcher(
       std::unique_ptr<event>&& e,
@@ -27,7 +26,7 @@ namespace yave::wm {
     /// Dispatch event to window
     bool visit(window* w) override;
 
-  private:
+  protected:
     std::unique_ptr<event> m_event;
     editor::data_context& m_data_ctx;
     editor::view_context& m_view_ctx;

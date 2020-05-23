@@ -18,7 +18,8 @@ namespace yave::wm {
 
     /// Visit window
     /// \param win window to visit
-    /// \returns continuation flag (true for continue, false to stop)
+    /// \returns continuation flag (true for stop, false to continue visiting
+    /// other windows)
     virtual bool visit(window* win) = 0;
   };
 

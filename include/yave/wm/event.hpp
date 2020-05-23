@@ -36,13 +36,6 @@ namespace yave::wm {
     bool m_accepted = false;
   };
 
-  /// Allocate new event
-  template <class E, class... Args>
-  [[nodiscard]] auto make_event(Args&&... args)
-  {
-    return std::make_unique<E>(std::forward<Args>(args)...);
-  }
-
   /// Cast events
   template <class E>
   [[nodiscard]] auto event_cast_if(event* e) -> E*

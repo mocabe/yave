@@ -32,6 +32,8 @@ namespace yave::wm {
   {
     YAVE_WM_DISPATCH_EVENT(mouse_click, data_ctx, view_ctx);
     YAVE_WM_DISPATCH_EVENT(mouse_double_click, data_ctx, view_ctx);
+    YAVE_WM_DISPATCH_EVENT(mouse_press, data_ctx, view_ctx);
+    YAVE_WM_DISPATCH_EVENT(mouse_release, data_ctx, view_ctx);
     YAVE_WM_DISPATCH_EVENT(mouse_hover, data_ctx, view_ctx);
 
     YAVE_WM_DISPATCH_EVENT(key_press, data_ctx, view_ctx);
@@ -50,6 +52,20 @@ namespace yave::wm {
 
   void window::on_mouse_double_click(
     events::mouse_double_click&,
+    editor::data_context&,
+    editor::view_context&) const
+  {
+  }
+
+  void window::on_mouse_press(
+    events::mouse_press&,
+    editor::data_context&,
+    editor::view_context&) const
+  {
+  }
+
+  void window::on_mouse_release(
+    events::mouse_release&,
     editor::data_context&,
     editor::view_context&) const
   {
@@ -88,6 +104,18 @@ namespace yave::wm {
     editor::data_context&,
     editor::view_context&) const
   {
+  }
+
+  auto window::screen_pos() const -> fvec2
+  {
+    const window* w = this;
+
+    fvec2 p = pos();
+
+    while ((w = w->parent()))
+      p += w->pos();
+
+    return p;
   }
 
 } // namespace yave::wm

@@ -44,6 +44,8 @@ namespace yave::wm {
   public:
     /// process update on window tree
     void update(editor::data_context& dctx, editor::view_context& vctx);
+    /// render widnow tree
+    void render(editor::render_context& rctx);
     /// dispatch visitor to window tree
     void dispatch(window_visitor& visitor, window_traverser& traverser);
 

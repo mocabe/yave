@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/wm/event.hpp>
+#include <yave/wm/event_dispatcher.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -15,7 +16,7 @@
 namespace yave::wm {
 
   /// key input
-  enum class key
+  enum class key : int
   {
     unknown       = GLFW_KEY_UNKNOWN,
     space         = GLFW_KEY_SPACE,
@@ -142,10 +143,10 @@ namespace yave::wm {
 
   namespace events {
 
-    class key_event_base : public event
+    class key_event : public event
     {
     protected:
-      key_event_base(std::vector<key> ks)
+      key_event(std::vector<key> ks)
         : m_keys {std::move(ks)}
       {
       }
@@ -164,32 +165,45 @@ namespace yave::wm {
       std::vector<key> m_keys;
     };
 
-    class key_press final : public key_event_base
+    class key_press final : public key_event
     {
     public:
       key_press(const std::vector<key>& ks)
-        : key_event_base(ks)
+        : key_event(ks)
       {
       }
     };
 
-    class key_release final : public key_event_base
+    class key_release final : public key_event
     {
     public:
       key_release(const std::vector<key>& ks)
-        : key_event_base(ks)
+        : key_event(ks)
       {
       }
     };
 
-    class key_repeat final : public key_event_base
+    class key_repeat final : public key_event
     {
     public:
       key_repeat(const std::vector<key>& ks)
-        : key_event_base(ks)
+        : key_event(ks)
       {
       }
     };
 
   } // namespace events
+
+  /// key event dispatcher
+  struct key_event_dispatcher : event_dispatcher
+  {
+    key_event_dispatcher(
+      std::unique_ptr<events::key_event>&& e,
+      editor::data_context& dctx,
+      editor::view_context& vctx)
+      : event_dispatcher(std::move(e), dctx, vctx)
+    {
+    }
+  };
+
 } // namespace yave::wm

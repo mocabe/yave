@@ -26,8 +26,8 @@ namespace yave::wm {
     bool dfs_traverse(window* w, window_visitor& visitor)
     {
       if constexpr (Order == traverse_order::pre) {
-        if (!visitor.visit(w))
-          return false;
+        if (visitor.visit(w))
+          return true;
       }
 
       auto children = [&] {
@@ -38,15 +38,15 @@ namespace yave::wm {
       }();
 
       for (auto&& c : children) {
-        if (!dfs_traverse<Order, Reversed>(c.get(), visitor))
-          return false;
+        if (dfs_traverse<Order, Reversed>(c.get(), visitor))
+          return true;
       }
 
       if constexpr (Order == traverse_order::post) {
-        if (!visitor.visit(w))
-          return false;
+        if (visitor.visit(w))
+          return true;
       }
-      return true;
+      return false;
     }
   } // namespace
 

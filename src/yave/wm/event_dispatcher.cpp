@@ -20,6 +20,6 @@ namespace yave::wm {
   bool event_dispatcher::visit(window* w)
   {
     w->emit(*m_event, m_data_ctx, m_view_ctx);
-    return !m_event->accepted();
+    return m_event->accepted();
   }
 } // namespace yave::wm

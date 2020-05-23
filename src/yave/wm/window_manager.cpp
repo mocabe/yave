@@ -123,6 +123,11 @@ namespace yave::wm {
       root->update(dctx, vctx);
     }
 
+    void render(editor::render_context& rctx)
+    {
+      root->render(rctx);
+    }
+
     void dispatch(window_visitor& visitor, window_traverser& traverser)
     {
       traverser.traverse(root.get(), visitor);
@@ -185,6 +190,11 @@ namespace yave::wm {
     editor::view_context& vctx)
   {
     return m_pimpl->update(dctx, vctx);
+  }
+
+  void window_manager::render(editor::render_context& rctx)
+  {
+    return m_pimpl->render(rctx);
   }
 
   void window_manager::dispatch(
