@@ -28,38 +28,34 @@ namespace yave::wm {
     class mouse_event : public event
     {
     public:
-      mouse_event(std::vector<mouse_button> buttons, fvec2 pos)
-        : m_buttons {std::move(buttons)}
+      mouse_event(mouse_button button, fvec2 pos)
+        : m_button {button}
         , m_pos {pos}
       {
       }
 
-      bool contains(mouse_button b)
-      {
-        return std::find(m_buttons.begin(), m_buttons.end(), b)
-               != m_buttons.end();
-      }
-
+      /// position of mouse in screen coordinate
       auto& pos() const
       {
         return m_pos;
       }
 
-      auto& buttons() const
+      /// event source button
+      auto& button() const
       {
-        return m_buttons;
+        return m_button;
       }
 
     protected:
-      std::vector<mouse_button> m_buttons;
+      mouse_button m_button;
       fvec2 m_pos;
     };
 
     class mouse_click final : public mouse_event
     {
     public:
-      mouse_click(std::vector<mouse_button> button, fvec2 pos)
-        : mouse_event {std::move(button), pos}
+      mouse_click(mouse_button button, fvec2 pos)
+        : mouse_event {button, pos}
       {
       }
     };
@@ -67,8 +63,8 @@ namespace yave::wm {
     class mouse_double_click final : public mouse_event
     {
     public:
-      mouse_double_click(std::vector<mouse_button> button, fvec2 pos)
-        : mouse_event {std::move(button), pos}
+      mouse_double_click(mouse_button button, fvec2 pos)
+        : mouse_event {button, pos}
       {
       }
     };
@@ -76,8 +72,8 @@ namespace yave::wm {
     class mouse_press final : public mouse_event
     {
     public:
-      mouse_press(std::vector<mouse_button> button, fvec2 pos)
-        : mouse_event {std::move(button), pos}
+      mouse_press(mouse_button button, fvec2 pos)
+        : mouse_event {button, pos}
       {
       }
     };
@@ -85,8 +81,17 @@ namespace yave::wm {
     class mouse_release final : public mouse_event
     {
     public:
-      mouse_release(std::vector<mouse_button> button, fvec2 pos)
-        : mouse_event {std::move(button), pos}
+      mouse_release(mouse_button button, fvec2 pos)
+        : mouse_event {button, pos}
+      {
+      }
+    };
+
+    class mouse_repeat final : public mouse_event
+    {
+    public:
+      mouse_repeat(mouse_button button, fvec2 pos)
+        : mouse_event {button, pos}
       {
       }
     };
@@ -94,15 +99,15 @@ namespace yave::wm {
     class mouse_hover final : public mouse_event
     {
     public:
-      mouse_hover(std::vector<mouse_button> button, fvec2 pos)
-        : mouse_event {std::move(button), pos}
+      mouse_hover(fvec2 pos)
+        : mouse_event {{}, pos}
       {
       }
     };
 
   } // namespace events
 
-  /// mouse event dispatcher
+  /// mouse event dispatcher base
   struct mouse_event_dispatcher : event_dispatcher
   {
     mouse_event_dispatcher(
@@ -113,27 +118,61 @@ namespace yave::wm {
     {
     }
 
-    bool visit(window* w) override
-    {
-      auto e = get_mouse_event();
-
-      // bbox
-      auto p1 = w->screen_pos();
-      auto p2 = p1 + w->size();
-      auto p  = e->pos();
-
-      if (p1.x <= p.x && p.x <= p2.x)
-        if (p1.y <= p.y && p.y <= p2.y)
-          return event_dispatcher::visit(w);
-
-      return false;
-    }
+    /// dispatch mouse event based on hit detection
+    bool visit(window* w) override;
 
     /// get pointer to mouse event
-    auto get_mouse_event() -> events::mouse_event*
+    auto get_mouse_event() const -> events::mouse_event*
     {
       return static_cast<events::mouse_event*>(m_event.get());
     }
+
+    /// is the event accepted?
+    bool accepted() const
+    {
+      return m_accepted;
+    }
+
+    /// get accepted window
+    auto reciever() const -> window*
+    {
+      assert(accepted());
+      return m_accepted;
+    }
+
+  protected:
+    /// last window accepted mouse event
+    window* m_accepted = nullptr;
   };
 
+  // safer wrapper for specific event
+  template <class Event>
+  struct mouse_event_dispatcher_wrapper : mouse_event_dispatcher
+  {
+    mouse_event_dispatcher_wrapper(
+      std::unique_ptr<Event>&& e,
+      editor::data_context& dctx,
+      editor::view_context& vctx)
+      : mouse_event_dispatcher(std::move(e), dctx, vctx)
+    {
+    }
+  };
+
+  using mouse_press_dispatcher =
+    mouse_event_dispatcher_wrapper<events::mouse_press>;
+
+  using mouse_release_dispatcher =
+    mouse_event_dispatcher_wrapper<events::mouse_release>;
+
+  using mouse_repeat_dispatcher =
+    mouse_event_dispatcher_wrapper<events::mouse_repeat>;
+
+  using mouse_hover_dispatcher =
+    mouse_event_dispatcher_wrapper<events::mouse_hover>;
+
+  using mouse_click_dispatcher =
+    mouse_event_dispatcher_wrapper<events::mouse_click>;
+
+  using mouse_double_click_dispatcher =
+    mouse_event_dispatcher_wrapper<events::mouse_double_click>;
 } // namespace yave::wm

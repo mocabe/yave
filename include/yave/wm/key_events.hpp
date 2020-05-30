@@ -146,30 +146,20 @@ namespace yave::wm {
     class key_event : public event
     {
     protected:
-      key_event(std::vector<key> ks)
-        : m_keys {std::move(ks)}
+      key_event(wm::key key)
+        : m_key {key}
       {
-      }
-
-      bool contains(key k)
-      {
-        return std::find(m_keys.begin(), m_keys.end(), k) != m_keys.end();
-      }
-
-      auto count() const
-      {
-        return m_keys.size();
       }
 
     protected:
-      std::vector<key> m_keys;
+      wm::key m_key;
     };
 
     class key_press final : public key_event
     {
     public:
-      key_press(const std::vector<key>& ks)
-        : key_event(ks)
+      key_press(wm::key key)
+        : key_event(key)
       {
       }
     };
@@ -177,8 +167,8 @@ namespace yave::wm {
     class key_release final : public key_event
     {
     public:
-      key_release(const std::vector<key>& ks)
-        : key_event(ks)
+      key_release(wm::key key)
+        : key_event(key)
       {
       }
     };
@@ -186,8 +176,8 @@ namespace yave::wm {
     class key_repeat final : public key_event
     {
     public:
-      key_repeat(const std::vector<key>& ks)
-        : key_event(ks)
+      key_repeat(wm::key key)
+        : key_event(key)
       {
       }
     };

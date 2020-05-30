@@ -30,15 +30,18 @@ namespace yave::wm {
           return true;
       }
 
-      auto children = [&] {
-        if constexpr (Reversed)
-          return w->children() | views::reverse;
-        else
-          return w->children() | views::all;
-      }();
+      auto children =
+        [&] {
+          if constexpr (Reversed)
+            return w->children() | views::reverse;
+          else
+            return w->children() | views::all;
+        }()
+        // convert to window*
+        | views::transform([&](auto&& c) { return w->as_mut_child(c); });
 
       for (auto&& c : children) {
-        if (dfs_traverse<Order, Reversed>(c.get(), visitor))
+        if (dfs_traverse<Order, Reversed>(c, visitor))
           return true;
       }
 
