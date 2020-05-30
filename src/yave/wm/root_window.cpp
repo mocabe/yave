@@ -4,32 +4,113 @@
 //
 
 #include <yave/wm/root_window.hpp>
+#include <yave/wm/window_manager.hpp>
+
+#include <thread>
+#include <limits>
+#include <algorithm>
 
 namespace yave::wm {
 
-  root_window::root_window()
-    : window("root_window", {}, {})
+  root_window::root_window(wm::window_manager& wmngr)
+    : window(
+      "root_window",
+      // virtual screen origin
+      {0, 0},
+      // has infinitely large size: useful for hit detection
+      {std::numeric_limits<float>::max(), std::numeric_limits<float>::max()})
+    , m_wm {wmngr}
+    , m_last_update {std::chrono::high_resolution_clock::now()}
   {
   }
 
-  void root_window::render(editor::render_context& render_ctx) const
+  void root_window::render(editor::render_context&) const
   {
-    for (auto&& c : children())
-      c->render(render_ctx);
+    assert(false);
   }
 
-  void root_window::resize(const fvec2& pos, const fvec2& size)
+  void root_window::resize(const fvec2&, const fvec2&)
   {
-    for (auto&& c : children())
-      c->resize(pos, size);
+    assert(false);
   }
 
   void root_window::update(
     editor::data_context& data_ctx,
     editor::view_context& view_ctx)
   {
-    for (auto&& c : children())
-      c->update(data_ctx, view_ctx);
+    auto& viewports = children();
+
+    // remove closed windows
+    auto it = std::remove_if(viewports.begin(), viewports.end(), [&](auto& c) {
+      return c->template as<wm::viewport_window>()->should_close();
+    });
+    viewports.erase(it, viewports.end());
+
+    // wait until next frame
+    {
+      // get update rate
+      // TODO: support per-viewport framerates
+      uint32_t fps = 60;
+      for (auto&& c : viewports)
+        fps = std::max(fps, c->as<wm::viewport_window>()->fps());
+
+      using namespace std::chrono_literals;
+      auto end_time          = std::chrono::high_resolution_clock::now();
+      auto frame_time        = end_time - m_last_update;
+      auto frame_time_window = std::chrono::nanoseconds(1s) / fps;
+      auto sleep_time        = frame_time_window - frame_time;
+
+      // wait based on fps
+      if (sleep_time.count() > 0) {
+        m_last_update = end_time + sleep_time;
+        std::this_thread::sleep_for(sleep_time);
+      } else {
+        m_last_update = end_time;
+      }
+    }
+
+    // dispatch viewport events
+    for (auto&& c : children()) {
+      as_mut_child(c)->update(data_ctx, view_ctx);
+    }
   }
 
+  void root_window::render()
+  {
+    for (auto&& c : children())
+      as_mut_child(c)->as<wm::viewport_window>()->render();
+  }
+
+  void root_window::events(
+    editor::data_context& data_ctx,
+    editor::view_context& view_ctx)
+  {
+    for (auto&& c : children())
+      as_mut_child(c)->as<wm::viewport_window>()->events(data_ctx, view_ctx);
+  }
+
+  auto root_window::add_viewport(
+    uint32_t width,
+    uint32_t height,
+    std::u8string name,
+    glfw::glfw_context& glfw_ctx) -> viewport_window*
+  {
+    // create new viewoprt
+    auto vp = std::make_unique<wm::viewport_window>(
+      m_wm, glfw_ctx.create_window(width, height, (const char*)name.c_str()));
+
+    auto ret = vp.get();
+    add_any_window(children().end(), std::move(vp));
+    return ret;
+  }
+
+  void root_window::remove_viewport(uid id)
+  {
+    remove_any_window(id);
+  }
+
+  bool root_window::should_close() const
+  {
+    return children().empty();
+  }
 } // namespace yave::wm
