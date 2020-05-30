@@ -7,12 +7,17 @@
 
 #include <yave/wm/window.hpp>
 #include <yave/wm/event_dispatcher.hpp>
+#include <yave/wm/viewport_window.hpp>
+#include <yave/wm/root_window.hpp>
 
 namespace yave::wm {
 
   /// Window mamanger class
   class window_manager
   {
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+
   public:
     /// Initialize new window manager
     window_manager();
@@ -20,37 +25,50 @@ namespace yave::wm {
     ~window_manager() noexcept;
 
   public:
-    /// add new window
-    /// \param parent_id id of parent window
-    /// \param index insert position of new window
-    /// \param w new window to insert
-    [[nodiscard]] auto add_window(
-      uid parent_id,
-      size_t index,
-      std::unique_ptr<window>&& w) -> window*;
-
-    /// remoev window
-    /// \param window_id id of target window
-    void remove_window(uid window_id);
+    /// get root window
+    [[nodiscard]] auto root() -> wm::root_window*;
+    /// get root window
+    [[nodiscard]] auto root() const -> const wm::root_window*;
 
   public:
-    /// get root window
-    [[nodiscard]] auto root() const -> window*;
-    /// find window from ID
-    [[nodiscard]] auto get_window(uid id) const -> window*;
     /// exists?
     [[nodiscard]] bool exists(uid id) const;
+    /// find window from ID
+    [[nodiscard]] auto get_window(uid id) const -> const window*;
+    /// find window from ID
+    [[nodiscard]] auto get_window(uid id) -> window*;
+    /// should close event loop?
+    [[nodiscard]] bool should_close() const;
+
+  public:
+    /// get screen pos of window
+    /// \requires exists(win->id())
+    [[nodiscard]] auto screen_pos(const window* win) const -> fvec2;
+
+    /// check if given position on screen lies on a window
+    /// \param win target window
+    /// \param pos virtual screen position
+    /// \requires exists(win->id())
+    [[nodiscard]] bool validate_pos(const window* win, const fvec2& pos) const;
 
   public:
     /// process update on window tree
     void update(editor::data_context& dctx, editor::view_context& vctx);
-    /// render widnow tree
-    void render(editor::render_context& rctx);
+    /// render viewoprts
+    void render();
+    /// process viewport events
+    void events(editor::data_context& dctx, editor::view_context& vctx);
+
+  public:
     /// dispatch visitor to window tree
     void dispatch(window_visitor& visitor, window_traverser& traverser);
 
-  private:
-    class impl;
-    std::unique_ptr<impl> m_pimpl;
+  public:
+    /// add new viewport
+    auto add_viewport(uint32_t width, uint32_t height, std::u8string name)
+      -> viewport_window*;
+
+    /// remove viewport
+    void reomev_viewport(uid id);
   };
 } // namespace yave::wm

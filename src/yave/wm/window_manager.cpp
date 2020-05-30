@@ -5,8 +5,11 @@
 
 #include <yave/wm/window_manager.hpp>
 #include <yave/wm/root_window.hpp>
+#include <yave/wm/viewport_window.hpp>
 
-#include<yave/support/log.hpp>
+#include <yave/lib/glfw/glfw_context.hpp>
+#include <yave/support/log.hpp>
+#include <tl/optional.hpp>
 
 #include <map>
 #include <algorithm>
@@ -17,172 +20,185 @@ namespace yave::wm {
 
   class window_manager::impl
   {
+    window_manager& wm;
+
   public:
+    /// glfw context
+    glfw::glfw_context glfw_ctx;
     /// window tree
-    std::unique_ptr<root_window> root;
-    /// window id map
-    std::map<uid, window*> id_map;
+    std::unique_ptr<root_window> root_win;
 
   public:
-    void init();
-    impl();
-    ~impl() noexcept;
-
-  public:
-    bool exists(uid id)
+    void init()
     {
-      return id_map.find(id) != id_map.end();
+      // init root window
+      root_win = std::make_unique<root_window>(wm);
     }
 
+    impl(wm::window_manager& wmngr)
+      : wm {wmngr}
+      , glfw_ctx {}
+    {
+      init_logger();
+      init();
+    }
+
+  public:
     auto get_window(uid id) -> window*
     {
-      auto it = id_map.find(id);
+      auto rec = [&](auto&& self, window* w) -> window* {
+        if (w->id() == id)
+          return w;
 
-      if (it == id_map.end())
+        for (auto&& c : w->children()) {
+          auto cw = w->as_mut_child(c);
+          if (self(cw))
+            return cw;
+        }
+
         return nullptr;
+      };
 
-      return it->second;
+      return fix_lambda(rec)(root_win.get());
+    }
+
+    bool exists(uid id)
+    {
+      return get_window(id);
+    }
+
+    auto root() -> root_window*
+    {
+      return root_win.get();
+    }
+
+    bool should_close() const
+    {
+      return root_win->should_close();
     }
 
   public:
-    auto add_window(uid parent_id, size_t index, std::unique_ptr<window>&& w)
-      -> window*
+    auto screen_pos(const window* win) const -> fvec2
     {
-      assert(!w->parent());
+      const window* w = win;
 
-      auto parent = get_window(parent_id);
+      fvec2 p = w->pos();
 
-      if (!parent) {
-        Info(
-          g_logger,
-          "Failed to add new window: Invalid parent ID of {}",
-          to_string(parent_id));
-        return nullptr;
-      }
+      while ((w = w->parent()))
+        p += w->pos();
 
-      if (index > parent->m_children.size()) {
-        Warning(g_logger, "add_window(): Index out of range, adding to last");
-        index = parent->m_children.size();
-      }
-
-      Info(
-        g_logger,
-        "Add new window {} under {}",
-        to_string(w->id()),
-        to_string(parent->id()));
-
-      auto ret = w.get();
-
-      // add to ID map
-      id_map.emplace(w->id(), w.get());
-      // create link
-      w->m_parent = parent;
-      parent->m_children.insert(
-        parent->m_children.begin() + index, std::move(w));
-
-      return ret;
+      return p;
     }
 
-    void remove_window(uid window_id)
+    bool validate_pos(const window* win, const fvec2& pos) const
     {
-      auto w = get_window(window_id);
+      // check if spos is inside of bbox of all prents
+      auto rec = [&](auto&& self, const window* w) -> tl::optional<fvec2> {
+        if (w->parent()) {
+          return self(w->parent())
+            .and_then([&](auto ppos) -> tl::optional<fvec2> {
+              auto p1 = ppos + w->pos();
+              auto p2 = p1 + w->size();
+              // bbox check
+              if (p1.x <= pos.x && pos.x <= p2.x)
+                if (p1.y <= pos.y && pos.y <= p2.y)
+                  return tl::make_optional(p1);
+              // fail
+              return tl::nullopt;
+            });
+        }
+        // root window
+        return tl::make_optional(fvec2 {0, 0});
+      };
 
-      if (!w) {
-        Error(
-          g_logger,
-          "remove_window(): ID {} does not exists",
-          to_string(window_id));
-        return;
-      }
-
-      auto p = w->parent();
-
-      if (!p) {
-        Error(g_logger, "Cannot reomve root window");
-        return;
-      }
-
-      auto it = std::remove_if(
-        p->m_children.begin(), p->m_children.end(), [&](auto& x) {
-          return x->id() == window_id;
-        });
-
-      Info(
-        g_logger, "Removing window {}", to_string(p->id()), to_string(w->id()));
-
-      // delete link
-      w->m_parent = nullptr;
-      p->m_children.erase(it, p->m_children.end());
-      // remove from ID map
-      id_map.erase(window_id);
+      return fix_lambda(rec)(win).has_value();
     }
 
   public:
     void update(editor::data_context& dctx, editor::view_context& vctx)
     {
-      root->update(dctx, vctx);
+      // poll window events
+      glfw_ctx.poll_events();
+      // update
+      root_win->update(dctx, vctx);
     }
 
-    void render(editor::render_context& rctx)
+    void render()
     {
-      root->render(rctx);
+      root_win->render();
     }
 
+    void events(editor::data_context& dctx, editor::view_context& vctx)
+    {
+      root_win->events(dctx, vctx);
+    }
+
+  public:
     void dispatch(window_visitor& visitor, window_traverser& traverser)
     {
-      traverser.traverse(root.get(), visitor);
+      traverser.traverse(root_win.get(), visitor);
+    }
+
+  public:
+    auto add_viewport(uint32_t width, uint32_t height, std::u8string name)
+      -> viewport_window*
+    {
+      return root_win->add_viewport(width, height, name, glfw_ctx);
+    }
+
+    void remove_viewport(uid id)
+    {
+      root_win->remove_viewport(id);
     }
   };
 
-  void window_manager::impl::init()
-  {
-    // add root window
-    root = std::make_unique<root_window>();
-    // add to ID map
-    id_map.emplace(root->id(), root.get());
-  }
-
-  window_manager::impl::impl()
-  {
-    init_logger();
-    init();
-  }
-
-  window_manager::impl::~impl() noexcept = default;
-
   window_manager::window_manager()
-    : m_pimpl {std::make_unique<impl>()}
+    : m_pimpl {std::make_unique<impl>(*this)}
   {
   }
 
   window_manager::~window_manager() noexcept = default;
 
-  auto window_manager::add_window(
-    uid parent_id,
-    size_t index,
-    std::unique_ptr<window>&& w) -> window*
+  auto window_manager::root() -> root_window*
   {
-    return m_pimpl->add_window(parent_id, index, std::move(w));
+    return m_pimpl->root();
   }
 
-  void window_manager::remove_window(uid window_id)
+  auto window_manager::root() const -> const root_window*
   {
-    m_pimpl->remove_window(window_id);
+    return m_pimpl->root();
   }
 
-  auto window_manager::root() const -> window*
-  {
-    return m_pimpl->root.get();
-  }
-
-  auto window_manager::get_window(uid id) const -> window*
+  auto window_manager::get_window(uid id) -> window*
   {
     return m_pimpl->get_window(id);
+  }
+
+  auto window_manager::get_window(uid id) const -> const window*
+  {
+    return m_pimpl->get_window(id);
+  }
+
+  bool window_manager::should_close() const
+  {
+    return m_pimpl->should_close();
   }
 
   bool window_manager::exists(uid id) const
   {
     return m_pimpl->exists(id);
+  }
+
+  auto window_manager::screen_pos(const window* win) const -> fvec2
+  {
+    assert(exists(win->id()));
+    return m_pimpl->screen_pos(win);
+  }
+
+  bool window_manager::validate_pos(const window* win, const fvec2& pos) const
+  {
+    assert(exists(win->id()));
+    return m_pimpl->validate_pos(win, pos);
   }
 
   void window_manager::update(
@@ -192,9 +208,16 @@ namespace yave::wm {
     return m_pimpl->update(dctx, vctx);
   }
 
-  void window_manager::render(editor::render_context& rctx)
+  void window_manager::render()
   {
-    return m_pimpl->render(rctx);
+    return m_pimpl->render();
+  }
+
+  void window_manager::events(
+    editor::data_context& dctx,
+    editor::view_context& vctx)
+  {
+    return m_pimpl->events(dctx, vctx);
   }
 
   void window_manager::dispatch(
@@ -204,4 +227,16 @@ namespace yave::wm {
     return m_pimpl->dispatch(visitor, traverser);
   }
 
+  auto window_manager::add_viewport(
+    uint32_t width,
+    uint32_t height,
+    std::u8string name) -> viewport_window*
+  {
+    return m_pimpl->add_viewport(width, height, name);
+  }
+
+  void window_manager::reomev_viewport(uid id)
+  {
+    m_pimpl->remove_viewport(id);
+  }
 } // namespace yave::wm
