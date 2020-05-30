@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <memory>
+#include <typeinfo>
 
 namespace yave::editor {
   // fwd
@@ -27,6 +28,7 @@ namespace yave::wm {
     class mouse_double_click;
     class mouse_press;
     class mouse_release;
+    class mouse_repeat;
     class mouse_hover;
     class key_press;
     class key_release;
@@ -36,20 +38,120 @@ namespace yave::wm {
   /// Base class of GUI window and widgets
   class window
   {
-    friend class window_manager;
-
-    /// parent pointer
-    window* m_parent;
-    /// id
+    /// unique id for this window
     uid m_id;
+    /// pointer to parent
+    window* m_parent;
     /// child windows
-    std::vector<std::unique_ptr<window>> m_children;
-
-  protected:
+    std::vector<std::unique_ptr<const window>> m_children;
     /// name
     std::string m_name;
     /// window size
     fvec2 m_pos, m_size;
+
+  protected:
+    /// utility function to add new window
+    /// \param it iterator position for insertion
+    /// \param win window to insert
+    void add_any_window(
+      typename decltype(m_children)::iterator it,
+      std::unique_ptr<window>&& win);
+
+    /// utility function to remove child window
+    void remove_any_window(uid id);
+
+  public:
+    /// for linking new child window
+    void set_parent(window* new_parent)
+    {
+      m_parent = new_parent;
+    }
+
+    /// get mutable child window pointer
+    auto as_mut_child(const std::unique_ptr<const window>& win)
+    {
+      return const_cast<window*>(win.get());
+    }
+
+  public: /* public accessors */
+    auto parent() const -> const window*
+    {
+      return m_parent;
+    }
+
+    auto parent()
+    {
+      return m_parent;
+    }
+
+    auto& id() const
+    {
+      return m_id;
+    }
+
+    auto& id()
+    {
+      return m_id;
+    }
+
+    auto& name() const
+    {
+      return m_name;
+    }
+
+    auto& name()
+    {
+      return m_name;
+    }
+
+    auto& pos() const
+    {
+      return m_pos;
+    }
+
+    auto& pos()
+    {
+      return m_pos;
+    }
+
+    auto& size() const
+    {
+      return m_size;
+    }
+
+    auto& size()
+    {
+      return m_size;
+    }
+
+    auto& children() const
+    {
+      return m_children;
+    }
+
+    auto& children()
+    {
+      return m_children;
+    }
+
+  public:
+    /// dynamic casting
+    template <class Derived>
+    auto as()
+    {
+      static_assert(std::is_base_of_v<window, Derived>);
+      assert(typeid(*this) == typeid(Derived));
+      return static_cast<Derived*>(this);
+    }
+
+    /// dynamic casting
+    template <class Derived>
+    auto as() const
+    {
+      static_assert(std::is_base_of_v<window, Derived>);
+      assert(typeid(*this) == typeid(Derived));
+      return static_cast<const Derived*>(this);
+    }
 
   public:
     /// ctor
@@ -98,6 +200,12 @@ namespace yave::wm {
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) const;
 
+    /// button repeat
+    virtual void on_mouse_repeat(
+      wm::events::mouse_repeat& e,
+      editor::data_context& data_ctx,
+      editor::view_context& view_ctx) const;
+
     /// hover
     virtual void on_mouse_hover(
       wm::events::mouse_hover& e,
@@ -127,41 +235,6 @@ namespace yave::wm {
       wm::event& e,
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) const;
-
-  public:
-    auto& parent() const
-    {
-      return m_parent;
-    }
-
-    auto& id() const
-    {
-      return m_id;
-    }
-
-    auto& name() const
-    {
-      return m_name;
-    }
-
-    auto& pos() const
-    {
-      return m_pos;
-    }
-
-    auto& size() const
-    {
-      return m_size;
-    }
-
-    auto& children() const
-    {
-      return m_children;
-    }
-
-  public:
-    /// Get virtual screen pos
-    auto screen_pos() const -> fvec2;
   };
 
 } // namespace yave::wm
