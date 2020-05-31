@@ -6,7 +6,9 @@
 #pragma once
 
 #include <yave/wm/window.hpp>
+
 #include <yave/lib/glfw/glfw_context.hpp>
+#include <yave/lib/vulkan/vulkan_context.hpp>
 
 namespace yave::wm {
 
@@ -18,7 +20,9 @@ namespace yave::wm {
 
   public:
     /// ctor
-    viewport_graphics(glfw::glfw_window& glfw_win);
+    viewport_graphics(
+      vulkan::vulkan_context& vk_ctx,
+      glfw::glfw_window& glfw_win);
     /// dtor
     ~viewport_graphics() noexcept;
 

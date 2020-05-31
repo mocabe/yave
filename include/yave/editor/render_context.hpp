@@ -58,7 +58,7 @@ namespace yave::editor {
 
   public:
     /// ctor
-    render_context(glfw::glfw_window& glfw_win);
+    render_context(vulkan::vulkan_context& vk_ctx, glfw::glfw_window& glfw_win);
     /// dtor
     ~render_context() noexcept;
 

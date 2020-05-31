@@ -24,6 +24,8 @@ namespace yave::wm {
   {
     // window manager ref
     wm::window_manager& wm;
+    /// vulkan
+    vulkan::vulkan_context& vk;
     /// glfw window
     glfw::glfw_window glfw_win;
     /// io interface
@@ -35,7 +37,10 @@ namespace yave::wm {
 
   public:
     /// Construct viewport from GLFW window.
-    viewport_window(wm::window_manager& wm, glfw::glfw_window&& glfw_win);
+    viewport_window(
+      wm::window_manager& wm,
+      vulkan::vulkan_context& vk_ctx,
+      glfw::glfw_window&& glfw_win);
 
     /// dtor
     ~viewport_window() noexcept;

@@ -14,14 +14,16 @@ namespace yave::wm {
     editor::render_context render_ctx;
 
   public:
-    impl(glfw::glfw_window& gw)
-      : render_ctx {gw}
+    impl(vulkan::vulkan_context& vk, glfw::glfw_window& gw)
+      : render_ctx {vk, gw}
     {
     }
   };
 
-  viewport_graphics::viewport_graphics(glfw::glfw_window& glfw_win)
-    : m_pimpl(std::make_unique<impl>(glfw_win))
+  viewport_graphics::viewport_graphics(
+    vulkan::vulkan_context& vk_ctx,
+    glfw::glfw_window& glfw_win)
+    : m_pimpl(std::make_unique<impl>(vk_ctx, glfw_win))
   {
   }
 

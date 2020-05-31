@@ -21,16 +21,18 @@ namespace yave::wm {
 
   viewport_window::viewport_window(
     wm::window_manager& wmng,
+    vulkan::vulkan_context& vk_ctx,
     glfw::glfw_window&& win)
     : window(
       std::u8string((const char8_t*)win.title().c_str()),
       win.pos(),
       win.size())
     , wm {wmng}
+    , vk {vk_ctx}
     , glfw_win {std::move(win)}
     , io {glfw_win}
     , io_state {wm}
-    , graphics {glfw_win}
+    , graphics {vk, glfw_win}
   {
     init_logger();
   }

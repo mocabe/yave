@@ -151,7 +151,7 @@ namespace yave::wm {
     auto add_viewport(uint32_t width, uint32_t height, std::u8string name)
       -> viewport_window*
     {
-      return root_win->add_viewport(width, height, name, glfw_ctx);
+      return root_win->add_viewport(width, height, name, vk_ctx, glfw_ctx);
     }
 
     void remove_viewport(uid id)

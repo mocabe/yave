@@ -98,11 +98,14 @@ namespace yave::wm {
     uint32_t width,
     uint32_t height,
     std::u8string name,
+    vulkan::vulkan_context& vulkan_ctx,
     glfw::glfw_context& glfw_ctx) -> viewport_window*
   {
     // create new viewoprt
     auto vp = std::make_unique<wm::viewport_window>(
-      m_wm, glfw_ctx.create_window(width, height, (const char*)name.c_str()));
+      m_wm,
+      vulkan_ctx,
+      glfw_ctx.create_window(width, height, (const char*)name.c_str()));
 
     auto ret = vp.get();
     add_any_window(children().end(), std::move(vp));

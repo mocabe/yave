@@ -46,18 +46,24 @@ namespace yave::editor {
   class render_context::impl
   {
   public:
-    impl(editor::render_context& render_ctx, glfw::glfw_window& glfw_win)
+    impl(
+      editor::render_context& render_ctx,
+      vulkan::vulkan_context& vk_ctx,
+      glfw::glfw_window& glfw_win)
       : render_ctx {render_ctx}
-      , vulkan_ctx {}
+      , vulkan_ctx {vk_ctx}
       , window_ctx {vulkan_ctx, glfw_win}
       , view_ctx {nullptr}
     {
     }
     ~impl() noexcept = default;
 
+    // render
     editor::render_context& render_ctx;
+    // vulkan
+    vulkan::vulkan_context& vulkan_ctx;
 
-    vulkan::vulkan_context vulkan_ctx;
+    // window render pass
     vulkan::window_context window_ctx;
 
     // (in frame) view context pointer
@@ -140,8 +146,10 @@ namespace yave::editor {
     }
   };
 
-  render_context::render_context(glfw::glfw_window& glfw_win)
-    : m_pimpl {std::make_unique<impl>(*this, glfw_win)}
+  render_context::render_context(
+    vulkan::vulkan_context& vk_ctx,
+    glfw::glfw_window& glfw_win)
+    : m_pimpl {std::make_unique<impl>(*this, vk_ctx, glfw_win)}
   {
   }
 

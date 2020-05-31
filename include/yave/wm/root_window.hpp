@@ -47,6 +47,7 @@ namespace yave::wm {
       uint32_t width,
       uint32_t height,
       std::u8string name,
+      vulkan::vulkan_context& vulkan_ctx,
       glfw::glfw_context& glfw_ctx) -> viewport_window*;
 
     /// remove viewport
