@@ -42,7 +42,7 @@ namespace yave::wm {
 
   public:
     /// render viewport
-    void render();
+    void render(editor::data_context& data_ctx, editor::view_context& view_ctx);
     /// dispatch viewport events
     void events(editor::data_context& data_ctx, editor::view_context& view_ctx);
 
@@ -54,7 +54,10 @@ namespace yave::wm {
 
   public:
     /// clear framebuffer
-    void render(editor::render_context& rc) const override;
+    void render(
+      editor::data_context& dc,
+      editor::view_context& vc,
+      editor::render_context& rc) const override;
 
     /// Handle viewport reisze and move.
     /// This function will be called from update().
@@ -63,8 +66,13 @@ namespace yave::wm {
     void resize(const fvec2& pos, const fvec2& size) override;
 
     /// Handle viewport window updates, call resize().
-    void update(editor::data_context& dctx, editor::view_context& vctx)
-      override;
+    void update(editor::data_context& dc, editor::view_context& vc) override;
+
+  public:
+    /// Add child window
+    auto add_window(std::unique_ptr<window>&& win) -> window*;
+    /// Remove child window
+    void remove_window(uid id);
 
   public:
     void on_mouse_click(

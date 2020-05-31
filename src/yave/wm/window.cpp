@@ -26,7 +26,7 @@ namespace yave::wm {
     ws.erase(it, ws.end());
   }
 
-  window::window(std::string name, fvec2 pos, fvec2 size)
+  window::window(std::u8string name, fvec2 pos, fvec2 size)
     : m_id {uid::random_generate()}
     , m_parent {nullptr}
     , m_children {}

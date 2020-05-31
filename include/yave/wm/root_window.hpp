@@ -26,18 +26,20 @@ namespace yave::wm {
   public:
     root_window(window_manager& wmngr);
 
-  private:
-    void render(editor::render_context&) const override; // not used
-    void resize(const fvec2&, const fvec2&) override;    // not used
+  private: /* unused */
+    void render(
+      editor::data_context&,
+      editor::view_context&,
+      editor::render_context&) const override;
+    void resize(const fvec2&, const fvec2&) override;
 
   private:
     /// wait next frame, update viewports
-    void update(editor::data_context& data_ctx, editor::view_context& view_ctx)
-      override;
+    void update(editor::data_context& dc, editor::view_context& vc) override;
     /// rendering entry point
-    void render();
+    void render(editor::data_context& dc, editor::view_context& vc);
     /// dispatch viewport events
-    void events(editor::data_context& data_ctx, editor::view_context& view_ctx);
+    void events(editor::data_context& dc, editor::view_context& vc);
 
   private:
     /// add new viewport

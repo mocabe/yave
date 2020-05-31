@@ -10,6 +10,9 @@
 #include <yave/wm/viewport_window.hpp>
 #include <yave/wm/root_window.hpp>
 
+#include <yave/lib/vulkan/vulkan_context.hpp>
+#include <yave/lib/glfw/glfw_context.hpp>
+
 namespace yave::wm {
 
   /// Window mamanger class
@@ -20,7 +23,7 @@ namespace yave::wm {
 
   public:
     /// Initialize new window manager
-    window_manager();
+    window_manager(vulkan::vulkan_context& vkctx, glfw::glfw_context& glfwctx);
     /// destroy window
     ~window_manager() noexcept;
 
@@ -51,11 +54,12 @@ namespace yave::wm {
     /// \requires exists(win->id())
     [[nodiscard]] bool validate_pos(const window* win, const fvec2& pos) const;
 
-  public:
+  private:
+    friend class editor::view_context;
     /// process update on window tree
     void update(editor::data_context& dctx, editor::view_context& vctx);
     /// render viewoprts
-    void render();
+    void render(editor::data_context& dctx, editor::view_context& vctx);
     /// process viewport events
     void events(editor::data_context& dctx, editor::view_context& vctx);
 

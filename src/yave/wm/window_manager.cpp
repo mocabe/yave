@@ -6,7 +6,7 @@
 #include <yave/wm/window_manager.hpp>
 #include <yave/wm/root_window.hpp>
 #include <yave/wm/viewport_window.hpp>
-
+#include <yave/editor/data_context.hpp> 
 #include <yave/lib/glfw/glfw_context.hpp>
 #include <yave/support/log.hpp>
 #include <tl/optional.hpp>
@@ -23,8 +23,10 @@ namespace yave::wm {
     window_manager& wm;
 
   public:
+    /// vulkan context ref
+    vulkan::vulkan_context& vk_ctx;
     /// glfw context
-    glfw::glfw_context glfw_ctx;
+    glfw::glfw_context& glfw_ctx;
     /// window tree
     std::unique_ptr<root_window> root_win;
 
@@ -35,9 +37,13 @@ namespace yave::wm {
       root_win = std::make_unique<root_window>(wm);
     }
 
-    impl(wm::window_manager& wmngr)
+    impl(
+      wm::window_manager& wmngr,
+      vulkan::vulkan_context& vkctx,
+      glfw::glfw_context& glfwctx)
       : wm {wmngr}
-      , glfw_ctx {}
+      , vk_ctx {vkctx}
+      , glfw_ctx {glfwctx}
     {
       init_logger();
       init();
@@ -117,15 +123,17 @@ namespace yave::wm {
   public:
     void update(editor::data_context& dctx, editor::view_context& vctx)
     {
+      // lock data thread
+      auto lck = dctx.lock();
       // poll window events
       glfw_ctx.poll_events();
       // update
       root_win->update(dctx, vctx);
     }
 
-    void render()
+    void render(editor::data_context& dctx, editor::view_context& vctx)
     {
-      root_win->render();
+      root_win->render(dctx, vctx);
     }
 
     void events(editor::data_context& dctx, editor::view_context& vctx)
@@ -152,8 +160,10 @@ namespace yave::wm {
     }
   };
 
-  window_manager::window_manager()
-    : m_pimpl {std::make_unique<impl>(*this)}
+  window_manager::window_manager(
+    vulkan::vulkan_context& vkctx,
+    glfw::glfw_context& glfwctx)
+    : m_pimpl {std::make_unique<impl>(*this, vkctx, glfwctx)}
   {
   }
 
@@ -208,9 +218,11 @@ namespace yave::wm {
     return m_pimpl->update(dctx, vctx);
   }
 
-  void window_manager::render()
+  void window_manager::render(
+    editor::data_context& dctx,
+    editor::view_context& vctx)
   {
-    return m_pimpl->render();
+    return m_pimpl->render(dctx, vctx);
   }
 
   void window_manager::events(

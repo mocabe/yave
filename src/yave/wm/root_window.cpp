@@ -14,7 +14,7 @@ namespace yave::wm {
 
   root_window::root_window(wm::window_manager& wmngr)
     : window(
-      "root_window",
+      u8"root_window",
       // virtual screen origin
       {0, 0},
       // has infinitely large size: useful for hit detection
@@ -24,7 +24,10 @@ namespace yave::wm {
   {
   }
 
-  void root_window::render(editor::render_context&) const
+  void root_window::render(
+    editor::data_context&,
+    editor::view_context&,
+    editor::render_context&) const
   {
     assert(false);
   }
@@ -75,10 +78,12 @@ namespace yave::wm {
     }
   }
 
-  void root_window::render()
+  void root_window::render(
+    editor::data_context& dctx,
+    editor::view_context& vctx)
   {
     for (auto&& c : children())
-      as_mut_child(c)->as<wm::viewport_window>()->render();
+      as_mut_child(c)->as<wm::viewport_window>()->render(dctx, vctx);
   }
 
   void root_window::events(

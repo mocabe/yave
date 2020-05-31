@@ -45,9 +45,15 @@ namespace yave::wm {
     /// child windows
     std::vector<std::unique_ptr<const window>> m_children;
     /// name
-    std::string m_name;
+    std::u8string m_name;
     /// window size
     fvec2 m_pos, m_size;
+
+  public:
+    /// ctor
+    window(std::u8string name, fvec2 pos, fvec2 size);
+    /// dtor
+    virtual ~window() noexcept;
 
   protected:
     /// utility function to add new window
@@ -153,18 +159,17 @@ namespace yave::wm {
       return static_cast<const Derived*>(this);
     }
 
-  public:
-    /// ctor
-    window(std::string name, fvec2 pos, fvec2 size);
-    /// dtor
-    virtual ~window() noexcept;
-
   public: /* recursive functions */
-    /// render content.
-    virtual void render(editor::render_context& render_ctx) const = 0;
+    /// render content in window
+    virtual void render(
+      editor::data_context& data_ctx,
+      editor::view_context& view_ctx,
+      editor::render_context& render_ctx) const = 0;
+
     /// resize window. this function will be called from update().
     virtual void resize(const fvec2& pos, const fvec2& size) = 0;
-    /// update window based on view model
+
+    /// update window before event handling
     virtual void update(
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) = 0;

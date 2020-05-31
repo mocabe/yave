@@ -33,8 +33,8 @@ namespace yave::editor {
       wm::window_manager wm;
 
     public:
-      view_data()
-        : wm {}
+      view_data(vulkan::vulkan_context& vkctx, glfw::glfw_context& glfwctx)
+        : wm {vkctx, glfwctx}
       {
         init_logger();
       }
@@ -57,9 +57,14 @@ namespace yave::editor {
     std::queue<cmd_ptr> cmd_queue;
 
   public:
-    impl(data_context* d, view_context* v)
-      : pdata {d}
-      , pview {v}
+    impl(
+      data_context& d,
+      view_context& v,
+      vulkan::vulkan_context& vk,
+      glfw::glfw_context& glfw)
+      : pdata {&d}
+      , pview {&v}
+      , data {vk, glfw}
     {
     }
 
@@ -97,7 +102,7 @@ namespace yave::editor {
     void stage_render()
     {
       // render windows
-      data.wm.render();
+      data.wm.render(*pdata, *pview);
     }
     /// command process stage
     void stage_commands()
@@ -110,7 +115,6 @@ namespace yave::editor {
     /// main loop
     void run()
     {
-      // main loop
       while (!data.wm.should_close()) {
         // update view data
         stage_update();
@@ -122,11 +126,13 @@ namespace yave::editor {
         stage_commands();
       }
     }
-
   };
 
-  view_context::view_context(data_context& dctx)
-    : m_pimpl {std::make_unique<impl>(&dctx, this)}
+  view_context::view_context(
+    data_context& dctx,
+    vulkan::vulkan_context& vkctx,
+    glfw::glfw_context& glfwctx)
+    : m_pimpl {std::make_unique<impl>(dctx, *this, vkctx, glfwctx)}
   {
   }
 

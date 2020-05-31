@@ -22,7 +22,10 @@ namespace yave::wm {
   viewport_window::viewport_window(
     wm::window_manager& wmng,
     glfw::glfw_window&& win)
-    : window(win.title(), win.pos(), win.size())
+    : window(
+      std::u8string((const char8_t*)win.title().c_str()),
+      win.pos(),
+      win.size())
     , wm {wmng}
     , glfw_win {std::move(win)}
     , io {glfw_win}
@@ -34,15 +37,18 @@ namespace yave::wm {
 
   viewport_window::~viewport_window() noexcept = default;
 
-  void viewport_window::render()
+  void viewport_window::render(
+    editor::data_context& data_ctx,
+    editor::view_context& view_ctx)
   {
     auto& render_ctx = graphics.render_context();
 
-    render_ctx.begin_frame();
+    render_ctx.begin_frame(view_ctx);
     {
-      render(render_ctx);
+      render(data_ctx, view_ctx, render_ctx);
     }
     render_ctx.end_frame();
+    render_ctx.render();
   }
 
   void viewport_window::events(
@@ -173,12 +179,19 @@ namespace yave::wm {
     return glfw_win.refresh_rate();
   }
 
-  void viewport_window::render(editor::render_context& rc) const
+  void viewport_window::render(
+    editor::data_context& dc,
+    editor::view_context& vc,
+    editor::render_context& rc) const
   {
-    rc.vulkan_window().set_clear_color(.5, .5, .2, 1);
-
-    for (auto&& c : children())
-      c->render(rc);
+    auto drawer = rc.create_window_drawer(this);
+    {
+      // bg color
+      rc.vulkan_window().set_clear_color(.5, .5, .2, 1);
+      // draw children
+      for (auto&& c : children())
+        c->render(dc, vc, rc);
+    }
   }
 
   /// handle viewport reisze and move
@@ -212,6 +225,18 @@ namespace yave::wm {
     // update
     for (auto&& c : children())
       as_mut_child(c)->update(dctx, vctx);
+  }
+
+  auto viewport_window::add_window(std::unique_ptr<window>&& win) -> window*
+  {
+    auto ret = win.get();
+    add_any_window(children().end(), std::move(win));
+    return ret;
+  }
+
+  void viewport_window::remove_window(uid id)
+  {
+    remove_any_window(id);
   }
 
   void viewport_window::on_mouse_click(

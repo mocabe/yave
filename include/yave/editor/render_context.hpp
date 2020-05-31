@@ -21,43 +21,33 @@ namespace yave::editor {
     friend class render_context;
 
     /// context
-    render_context& render_ctx;
+    render_context& m_render_ctx;
 
+    /// context
+    const view_context& m_view_ctx;
     /// window
     const wm::window* m_window;
 
     /// window screen pos
-    const glm::vec2 m_window_viewport_pos;
+    const fvec2 m_window_pos;
 
-    /// clip rect stack.
-    /// initial cilp rect will be matched with window area to render
-    std::vector<draw_clip> m_clip_rect_stack;
-
-    /// merged clip rect
-    draw_clip m_clip_rect;
-
-    /// draw commands for this window.
-    /// coordinate is relative to viewport pos
+    /// draw list for this window
     draw_list m_draw_list;
 
   private:
-    window_drawer(const wm::window* win);
+    window_drawer(
+      render_context& render_ctx,
+      const view_context& view_ctx,
+      const wm::window* win);
 
   public:
     ~window_drawer() noexcept;
 
   public:
-    /// push clip rect stack
-    void push_clip_rect(const glm::vec2& p1, const glm::vec2& p2);
-    /// pop clip rect stack
-    void pop_clip_rect();
-
-  public:
-    /// draw rect
-    void add_rect(
-      const glm::vec2& p1,
-      const glm::vec2& p2,
-      const glm::vec4& color);
+    /// add rect
+    void add_rect(const fvec2& p1, const fvec2& p2, const fvec4& col);
+    /// add filled rect
+    void add_rect_filled(const fvec2& p1, const fvec2& p2, const fvec4& col);
   };
 
   /// editor render context
@@ -73,14 +63,27 @@ namespace yave::editor {
     ~render_context() noexcept;
 
   public:
-    /// for view context
-    void begin_frame();
-    /// for view context
+    /// start render pass
+    void begin_frame(editor::view_context& view_ctx);
+    /// end render pass
     void end_frame();
+    /// render
+    void render();
 
   public:
-    /// create command pass for window
-    auto create_drawer(const wm::window* win) -> window_drawer;
+    /// window drawer
+    auto create_window_drawer(const wm::window* win) -> window_drawer;
+
+  private: // for window_drawer
+    friend class window_drawer;
+    /// push clip rect stack
+    void push_clip_rect(const glm::vec2& p1, const glm::vec2& p2);
+    /// pop clip rect stack
+    void pop_clip_rect();
+    /// get current clip rect
+    auto get_clip_rect() -> draw_clip;
+    /// add draw list
+    void add_draw_list(draw_list&& dl);
 
   public:
     /// vulkan context

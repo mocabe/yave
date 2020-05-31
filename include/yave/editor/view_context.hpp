@@ -22,7 +22,10 @@ namespace yave::editor {
 
   public:
     /// ctor
-    view_context(data_context& dctx);
+    view_context(
+      data_context& dctx,
+      vulkan::vulkan_context& vkctx,
+      glfw::glfw_context& glfwctx);
     /// dtor
     ~view_context() noexcept;
 
