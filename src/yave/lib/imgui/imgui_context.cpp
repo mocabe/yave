@@ -205,7 +205,7 @@ namespace {
     colAttachments[0].srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
     colAttachments[0].dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
     colAttachments[0].colorBlendOp        = vk::BlendOp::eAdd;
-    colAttachments[0].srcAlphaBlendFactor = vk::BlendFactor::eOne;
+    colAttachments[0].srcAlphaBlendFactor = vk::BlendFactor::eSrcAlpha;
     colAttachments[0].dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
     colAttachments[0].alphaBlendOp        = vk::BlendOp::eAdd;
 
