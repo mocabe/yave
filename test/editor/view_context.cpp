@@ -8,6 +8,8 @@
 #include <yave/wm/root_window.hpp>
 #include <catch2/catch.hpp>
 
+#include <yave/editor/button.hpp>
+
 #include <iostream>
 
 using namespace yave;
@@ -27,6 +29,9 @@ TEST_CASE("view_context")
 
     auto vp = ctx.window_manager().add_viewport(1280, 720, u8"ぽだもし");
     REQUIRE(vp);
+
+    vp->add_window(std::make_unique<editor::button>(
+      u8"ぱみだむ", fvec2 {100, 100}, fvec2 {500, 500}));
 
     // main loop
     ctx.run();

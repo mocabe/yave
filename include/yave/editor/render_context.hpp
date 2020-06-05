@@ -12,6 +12,7 @@
 #include <yave/lib/vulkan/window_context.hpp>
 
 #include <memory>
+#include <span>
 
 namespace yave::editor {
 
@@ -46,6 +47,8 @@ namespace yave::editor {
   public:
     /// add rect
     void add_rect(const fvec2& p1, const fvec2& p2, const fvec4& col);
+    /// add filled polygon
+    void add_polygon(const std::span<fvec2>& ps, const fvec4& col);
     /// add filled rect
     void add_rect_filled(const fvec2& p1, const fvec2& p2, const fvec4& col);
   };
@@ -84,6 +87,8 @@ namespace yave::editor {
     auto get_clip_rect() -> draw_clip;
     /// add draw list
     void add_draw_list(draw_list&& dl);
+    /// default tex
+    auto get_default_texture() -> draw_tex;
 
   public:
     /// vulkan context

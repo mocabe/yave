@@ -7,12 +7,16 @@
 #include <yave/wm/mouse_events.hpp>
 #include <yave/wm/key_events.hpp>
 
+#include <iostream>
+
 namespace yave::wm {
 
   void window::add_any_window(
     typename decltype(m_children)::iterator it,
     std::unique_ptr<window>&& win)
   {
+    assert(!win->parent());
+    win->set_parent(this);
     children().emplace(it, std::move(win));
   }
 

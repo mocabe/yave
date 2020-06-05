@@ -460,14 +460,43 @@ namespace yave::editor {
     m_render_ctx.pop_clip_rect();
   }
 
-  void add_rect(const fvec2& p1, const fvec2& p2, const fvec4& col)
+  void window_drawer::add_rect(
+    const fvec2& p1,
+    const fvec2& p2,
+    const fvec4& col)
   {
-    assert(!"TODO");
+    // assert(!"TODO");
   }
 
-  void add_rect_filled(const fvec2& p1, const fvec2& p2, const fvec4& col)
+  void window_drawer::add_polygon(const std::span<fvec2>& ps, const fvec4& col)
   {
-    assert(!"TODO");
+    auto& dl = m_draw_list;
+
+    if (ps.size() < 3)
+      return;
+
+    uint32_t vtx_off  = dl.vtx_buffer.size();
+    uint32_t idx_off  = dl.idx_buffer.size();
+    uint32_t vtx_size = ps.size();
+    uint32_t idx_size = (ps.size() - 2) * 3;
+
+    dl.cmd_buffer.push_back({idx_size,
+                             idx_off,
+                             vtx_off,
+                             m_render_ctx.get_default_texture(),
+                             m_render_ctx.get_clip_rect()});
+
+    dl.vtx_buffer.reserve(dl.vtx_buffer.size() + vtx_size);
+    dl.idx_buffer.reserve(dl.idx_buffer.size() + idx_size);
+
+    for (size_t i = 0; i < vtx_size; ++i)
+      dl.vtx_buffer.push_back({ps[i], glm::vec2(), col});
+
+    for (size_t i = 2; i < vtx_size; ++i) {
+      dl.idx_buffer.push_back({(uint16_t)(0)});
+      dl.idx_buffer.push_back({(uint16_t)(i - 1)});
+      dl.idx_buffer.push_back({(uint16_t)(i)});
+    }
   }
 
   void window_drawer::add_rect_filled(
@@ -475,6 +504,8 @@ namespace yave::editor {
     const fvec2& p2,
     const fvec4& col)
   {
+    std::array<fvec2, 2> ps = {p1, p2};
+    add_polygon(ps, col);
   }
 
   class render_context::impl
@@ -712,6 +743,11 @@ namespace yave::editor {
   void render_context::add_draw_list(draw_list&& dl)
   {
     return m_pimpl->add_draw_list(std::move(dl));
+  }
+
+  auto render_context::get_default_texture() -> draw_tex
+  {
+    return to_draw_tex(m_pimpl->default_texture.dsc_set.get());
   }
 
   auto render_context::vulkan_context() const -> const vulkan::vulkan_context&

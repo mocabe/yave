@@ -20,7 +20,7 @@ namespace yave::wm {
       // has infinitely large size: useful for hit detection
       {std::numeric_limits<float>::max(), std::numeric_limits<float>::max()})
     , m_wm {wmngr}
-    , m_last_update {std::chrono::high_resolution_clock::now()}
+    , m_last_update {}
   {
   }
 
@@ -48,6 +48,9 @@ namespace yave::wm {
       return c->template as<wm::viewport_window>()->should_close();
     });
     viewports.erase(it, viewports.end());
+
+    if (viewports.empty())
+      return;
 
     // wait until next frame
     {
