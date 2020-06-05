@@ -22,12 +22,6 @@ namespace yave {
     {
       return F::operator()(*this, std::forward<Args>(args)...);
     }
-
-    template <typename... Args>
-    constexpr decltype(auto) operator()(Args&&... args)
-    {
-      return F::operator()(*this, std::forward<Args>(args)...);
-    }
   };
 
   template <class F>
