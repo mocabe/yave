@@ -1,1 +1,0 @@
-YAVE_Test(window_manager wm yave::wm)
