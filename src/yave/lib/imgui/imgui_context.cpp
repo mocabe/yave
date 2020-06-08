@@ -1347,12 +1347,27 @@ namespace yave::imgui {
     return m_pimpl->glfwCtx;
   }
 
+  auto imgui_context::glfw_context() -> glfw::glfw_context&
+  {
+    return m_pimpl->glfwCtx;
+  }
+
   auto imgui_context::vulkan_context() const -> const vulkan::vulkan_context&
   {
     return m_pimpl->vulkanCtx;
   }
 
+  auto imgui_context::vulkan_context() -> vulkan::vulkan_context&
+  {
+    return m_pimpl->vulkanCtx;
+  }
+
   auto imgui_context::window_context() const -> const vulkan::window_context&
+  {
+    return m_pimpl->windowCtx;
+  }
+
+  auto imgui_context::window_context() -> vulkan::window_context&
   {
     return m_pimpl->windowCtx;
   }

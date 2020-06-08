@@ -55,8 +55,11 @@ namespace yave::imgui {
     // clang-format off
   public:
     [[nodiscard]] auto glfw_context() const   -> const glfw::glfw_context&;
+    [[nodiscard]] auto glfw_context()         -> glfw::glfw_context&;
     [[nodiscard]] auto vulkan_context() const -> const vulkan::vulkan_context&;
+    [[nodiscard]] auto vulkan_context()       -> vulkan::vulkan_context&;
     [[nodiscard]] auto window_context() const -> const vulkan::window_context&;
+    [[nodiscard]] auto window_context()       ->  vulkan::window_context&;
     // clang-format on
 
   public:
