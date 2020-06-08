@@ -10,6 +10,7 @@
 #include <yave/module/std/color/color.hpp>
 #include <yave/module/std/filesystem/path.hpp>
 #include <yave/module/std/geometry/vec.hpp>
+#include <yave/module/std/geometry/mat.hpp>
 #include <yave/module/std/geometry/rect.hpp>
 #include <yave/module/std/image/image.hpp>
 #include <yave/module/std/list/list.hpp>
@@ -19,8 +20,6 @@
 #include <yave/module/std/render/frame.hpp>
 #include <yave/module/std/time/set_time.hpp>
 #include <yave/module/std/time/time.hpp>
-#include <yave/module/std/transform/transform.hpp>
-#include <yave/module/std/transform/set_transform.hpp>
 #include <yave/module/std/transform/rotate.hpp>
 #include <yave/module/std/transform/translate.hpp>
 
@@ -128,6 +127,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::Vec2>(),
             get_node_declaration<node::Vec3>(),
             get_node_declaration<node::Vec4>(),
+            get_node_declaration<node::Mat4>(),
             get_node_declaration<node::Rect2>(),
             get_node_declaration<node::Rect3>(),
             get_node_declaration<node::Image>(),
@@ -143,8 +143,6 @@ namespace yave::modules::_std {
             get_node_declaration<node::Frame>(),
             get_node_declaration<node::SetTime>(),
             get_node_declaration<node::Time>(),
-            get_node_declaration<node::Transform>(),
-            get_node_declaration<node::SetTransform>(),
             get_node_declaration<node::Translate>(),
             get_node_declaration<node::Rotate>(),
             get_node_declaration<node::RotateX>(),
@@ -174,6 +172,7 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Vec2, _std::tag>());
     add(yave::get_node_definitions<node::Vec3, _std::tag>());
     add(yave::get_node_definitions<node::Vec4, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4, _std::tag>());
     add(yave::get_node_definitions<node::Rect2, _std::tag>());
     add(yave::get_node_definitions<node::Rect3, _std::tag>());
     add(yave::get_node_definitions<node::ListNil, _std::tag>());
@@ -187,13 +186,11 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::String, _std::tag>());
     add(yave::get_node_definitions<node::Time, _std::tag>());
     add(yave::get_node_definitions<node::SetTime, _std::tag>());
-    add(yave::get_node_definitions<node::Transform, _std::tag>());
-    add(yave::get_node_definitions<node::SetTransform, _std::tag>());
-    add(yave::get_node_definitions<node::Translate, _std::tag>());
-    add(yave::get_node_definitions<node::Rotate, _std::tag>());
-    add(yave::get_node_definitions<node::RotateX, _std::tag>());
-    add(yave::get_node_definitions<node::RotateY, _std::tag>());
-    add(yave::get_node_definitions<node::RotateZ, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4Rotate, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4RotateX, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4RotateY, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4RotateZ, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4Translate, _std::tag>());
 
     return ret;
   }

@@ -12,10 +12,10 @@ namespace yave {
 
   namespace node {
     /// Translate
+    /// a -> FVec3 -> a
     struct Translate;
   } // namespace node
 
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Translate);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Translate, modules::_std::tag);
 
 } // namespace yave

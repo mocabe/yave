@@ -36,7 +36,7 @@ namespace yave {
       {
         auto fd = eval_arg<2>();
         auto t  = eval(arg<1>() << fd);
-        return arg<0>() << make_object<FrameDemand>(*t, fd->transform);
+        return arg<0>() << make_object<FrameDemand>(*t);
       }
     };
 

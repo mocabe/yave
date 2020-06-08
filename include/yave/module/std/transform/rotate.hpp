@@ -12,23 +12,22 @@ namespace yave {
 
   namespace node {
     /// Rotate
+    /// a -> Float -> FVec3 -> a
     struct Rotate;
     /// RotateX
+    /// a -> Float -> a
     struct RotateX;
     /// RotateY
+    /// a -> Float -> a
     struct RotateY;
     /// RotateZ
+    /// a -> Float -> a
     struct RotateZ;
   } // namespace node
 
+  // declaration only
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Rotate);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::RotateX);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::RotateY);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::RotateZ);
-
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Rotate, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::RotateX, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::RotateY, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::RotateZ, modules::_std::tag);
-
 } // namespace yave

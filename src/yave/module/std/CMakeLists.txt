@@ -5,6 +5,7 @@ add_library(yave-module-std
   filesystem/path.cpp
   geometry/rect.cpp
   geometry/vec.cpp
+  geometry/mat.cpp
   image/image.cpp
   list/list.cpp
   logic/apply.cpp
@@ -14,8 +15,6 @@ add_library(yave-module-std
   time/set_time.cpp 
   time/time.cpp
   transform/rotate.cpp
-  transform/set_transform.cpp
-  transform/transform.cpp
   transform/translate.cpp
   module.cpp
   module_loader.cpp
