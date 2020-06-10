@@ -19,12 +19,11 @@
 #include <yave/app/node_compiler_thread.hpp>
 #include <yave/support/log.hpp>
 #include <yave/lib/image/image_view.hpp>
-
 #include <yave/app/project.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
-
+#include <imgui_internal.h>
 #include <boost/gil.hpp>
 
 int main()
@@ -63,135 +62,207 @@ int main()
 
   app::editor_context editor_ctx(project);
 
+  auto& glfw_win = imgui_ctx.window_context().glfw_win();
+
   while (!imgui_ctx.window_context().should_close()) {
 
     imgui_ctx.begin_frame();
     {
-      // demo window
-      static bool show_demo_window = true;
-      ImGui::ShowDemoWindow(&show_demo_window);
-      // editor window
+      // root styles
 
-      ImGui::Begin("node canvas");
+      auto root_pos = ImVec2 {};
+      auto root_size =
+        ImVec2 {(float)glfw_win.size().x, (float)glfw_win.size().y};
+
+      ImGui::SetNextWindowPos(root_pos);
+      ImGui::SetNextWindowSize(root_size);
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+      ImGui::PushStyleColor(ImGuiCol_WindowBg, {0.1, 0.1, 0.1, 1.f});
+
+      auto root_flags = ImGuiWindowFlags_NoTitleBar |  //
+                        ImGuiWindowFlags_NoScrollbar | //
+                        ImGuiWindowFlags_NoResize |    //
+                        ImGuiWindowFlags_MenuBar;      //
+
+      // root window
+      ImGui::Begin("root_window", nullptr, root_flags);
       {
-        editor::imgui::draw_node_canvas(imgui_ctx, editor_ctx);
-      }
-      ImGui::End();
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
+        // main menu bar
+        if (ImGui::BeginMenuBar()) {
+          if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("1")) { }
+            if (ImGui::MenuItem("2")) { }
+            if (ImGui::MenuItem("3")) { }
+            ImGui::EndMenu();
+          }
+          ImGui::EndMenuBar();
+        }
+        ImGui::PopStyleVar(1);
 
-      ImGui::Begin("parser");
-      {
-        static auto* graph  = &editor_ctx.node_graph();
-        static auto ftime   = 0.f;
-        static bool compile = true;
+        static bool init         = false;
+        static auto dockspace_id = ImGui::GetID("root_dockspace");
 
-        ImGui::Checkbox("compile", &compile);
-        ImGui::SliderFloat("time", &ftime, 0, 10);
+        if (!init) {
 
-        if (editor_ctx.is_compiling()) {
-          ImGui::Text("Compiling...");
+          ImGui::DockBuilderRemoveNode(dockspace_id);
+          ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+          ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetWindowSize());
+
+          auto dock_main = dockspace_id;
+
+          auto dock_bottom = ImGui::DockBuilderSplitNode(
+            dock_main, ImGuiDir_Down, 0.5f, nullptr, &dock_main);
+
+          auto dock_right = ImGui::DockBuilderSplitNode(
+            dock_main, ImGuiDir_Right, 0.2f, nullptr, &dock_main);
+
+          // windows
+          ImGui::DockBuilderDockWindow("inspector", dock_right);
+          ImGui::DockBuilderDockWindow("node_editor", dock_bottom);
+          ImGui::DockBuilderDockWindow("compiler", dock_bottom);
+          ImGui::DockBuilderDockWindow("render_view", dock_main);
+          ImGui::DockBuilderFinish(dockspace_id);
+
+          init = true;
         }
 
-        if (!editor_ctx.is_compiling() && compile) {
-          // compile
-          if (graph != &editor_ctx.node_graph()) {
-            graph = &editor_ctx.node_graph();
-            editor_ctx.compile();
+        ImGui::DockSpace(dockspace_id);
+
+        // inspector
+        ImGui::Begin("inspector");
+        {
+        }
+        ImGui::End();
+
+        // render window
+        ImGui::Begin("render_view");
+        {
+          yave::editor::imgui::draw_render_window(
+            imgui_ctx,
+            editor_ctx,
+            config,
+            render_result_tex_name,
+            render_background_tex_name);
+        }
+        ImGui::End();
+
+        // compiler
+        ImGui::Begin("compiler");
+        {
+          static auto* graph  = &editor_ctx.node_graph();
+          static auto ftime   = 0.f;
+          static bool compile = true;
+
+          ImGui::Checkbox("compile", &compile);
+          ImGui::SliderFloat("time", &ftime, 0, 10);
+
+          if (editor_ctx.is_compiling()) {
+            ImGui::Text("Compiling...");
           }
-          // show result
-          auto result = editor_ctx.get_compile_result();
 
-          if (result->success) {
+          if (!editor_ctx.is_compiling() && compile) {
+            // compile
+            if (graph != &editor_ctx.node_graph()) {
+              graph = &editor_ctx.node_graph();
+              editor_ctx.compile();
+            }
+            // show result
+            auto result = editor_ctx.get_compile_result();
 
-            ImGui::Text(
-              "Compile time: %ld ms",
-              std::chrono::duration_cast<std::chrono::milliseconds>(
-                result->end_time - result->bgn_time)
-                .count());
+            if (result->success) {
 
-            auto bgn_time = std::chrono::high_resolution_clock::now();
-            auto t        = time::seconds(ftime);
-            auto obj      = result->exe.execute({{t, {}}, fmat4(1.0)});
-            auto end_time = std::chrono::high_resolution_clock::now();
-
-            ImGui::Text(
-              "Execution time: %ld ms",
-              std::chrono::duration_cast<std::chrono::milliseconds>(
-                end_time - bgn_time)
-                .count());
-
-            try {
               ImGui::Text(
-                "Result Type: %s", to_string(result->exe.type()).c_str());
-            } catch (type_error::type_error& e) {
-              ImGui::Text("Erroneous Result Type: %s", e.what());
-            }
+                "Compile time: %ld ms",
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                  result->end_time - result->bgn_time)
+                  .count());
 
-            if (auto i = value_cast_if<Int>(obj)) {
-              ImGui::Text("Result: %d", *i);
-            }
+              auto bgn_time = std::chrono::high_resolution_clock::now();
+              auto t        = time::seconds(ftime);
+              auto obj      = result->exe.execute({{t, {}}});
+              auto end_time = std::chrono::high_resolution_clock::now();
 
-            if (auto f = value_cast_if<Float>(obj)) {
-              ImGui::Text("Result: %f", *f);
-            }
+              ImGui::Text(
+                "Execution time: %ld ms",
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                  end_time - bgn_time)
+                  .count());
 
-            if (auto t = value_cast_if<FrameTime>(obj)) {
-              ImGui::Text("Result: %lf", t->time_point.seconds().count());
-            }
-
-            if (auto s = value_cast_if<String>(obj)) {
-              ImGui::Text("Result: %s", s->c_str());
-            }
-
-            if (auto m = value_cast_if<FMat4>(obj)) {
-              ImGui::Text("Result: fmat4");
-              for (int i = 0; i < 4; ++i) {
+              try {
                 ImGui::Text(
-                  "%s", glm::to_string((glm::transpose(*m))[i]).c_str());
+                  "Result Type: %s", to_string(result->exe.type()).c_str());
+              } catch (type_error::type_error& e) {
+                ImGui::Text("Erroneous Result Type: %s", e.what());
+              }
+
+              if (auto i = value_cast_if<Int>(obj)) {
+                ImGui::Text("Result: %d", *i);
+              }
+
+              if (auto f = value_cast_if<Float>(obj)) {
+                ImGui::Text("Result: %f", *f);
+              }
+
+              if (auto t = value_cast_if<FrameTime>(obj)) {
+                ImGui::Text("Result: %lf", t->time_point.seconds().count());
+              }
+
+              if (auto s = value_cast_if<String>(obj)) {
+                ImGui::Text("Result: %s", s->c_str());
+              }
+
+              if (auto m = value_cast_if<FMat4>(obj)) {
+                ImGui::Text("Result: fmat4");
+                for (int i = 0; i < 4; ++i) {
+                  ImGui::Text(
+                    "%s", glm::to_string((glm::transpose(*m))[i]).c_str());
+                }
+              }
+
+              // upload result frame to GUI renderer
+              if (auto f = value_cast_if<FrameBuffer>(obj)) {
+
+                const_image_view view(
+                  config.width(), config.height(), config.frame_format());
+
+                if (!imgui_ctx.find_texture(render_result_tex_name))
+                  (void)imgui_ctx.add_texture(
+                    render_result_tex_name,
+                    vk::Extent2D(view.width(), view.height()),
+                    view.byte_size(),
+                    vk::Format::eR32G32B32A32Sfloat,
+                    (const uint8_t*)f->view().data());
+                else
+                  imgui_ctx.update_texture(
+                    render_result_tex_name,
+                    (const uint8_t*)f->view().data(),
+                    view.byte_size());
+              }
+            } else {
+              ImGui::Text("Failed to compile!");
+              for (auto&& e : result->parse_errors) {
+                ImGui::Text("%s", e.message().c_str());
+              }
+              for (auto&& e : result->compile_errors) {
+                ImGui::Text("%s", e.message().c_str());
               }
             }
-
-            // upload result frame to GUI renderer
-            if (auto f = value_cast_if<FrameBuffer>(obj)) {
-
-              const_image_view view(
-                config.width(), config.height(), config.frame_format());
-
-              if (!imgui_ctx.find_texture(render_result_tex_name))
-                (void)imgui_ctx.add_texture(
-                  render_result_tex_name,
-                  vk::Extent2D(view.width(), view.height()),
-                  view.byte_size(),
-                  vk::Format::eR32G32B32A32Sfloat,
-                  (const uint8_t*)f->view().data());
-              else
-                imgui_ctx.update_texture(
-                  render_result_tex_name,
-                  (const uint8_t*)f->view().data(),
-                  view.byte_size());
-            }
-          } else {
-            ImGui::Text("Failed to compile!");
-            for (auto&& e : result->parse_errors) {
-              ImGui::Text("%s", e.message().c_str());
-            }
-            for (auto&& e : result->compile_errors) {
-              ImGui::Text("%s", e.message().c_str());
-            }
           }
         }
-      }
-      ImGui::End();
+        ImGui::End();
 
-      ImGui::Begin("render window");
-      {
-        yave::editor::imgui::draw_render_window(
-          imgui_ctx,
-          editor_ctx,
-          config,
-          render_result_tex_name,
-          render_background_tex_name);
+        // node editor
+        ImGui::Begin("node_editor");
+        {
+          editor::imgui::draw_node_canvas(imgui_ctx, editor_ctx);
+        }
+        ImGui::End();
       }
       ImGui::End();
+      ImGui::PopStyleVar(2);
+      ImGui::PopStyleColor();
     }
     imgui_ctx.end_frame();
     imgui_ctx.render();
