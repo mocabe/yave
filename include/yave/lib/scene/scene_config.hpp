@@ -15,6 +15,10 @@ namespace yave {
   class scene_config
   {
   public:
+    /// Create default scene config.
+    /// 1280*720, 60fps, rgba8, 44.1Khz
+    scene_config();
+
     /// Setup scene config.
     /// \param width non-zero frame buffer width
     /// \param height non-zero frame buffer height

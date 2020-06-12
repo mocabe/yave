@@ -10,6 +10,16 @@ YAVE_DECL_G_LOGGER(scene_config)
 
 namespace yave {
 
+  scene_config::scene_config()
+    : scene_config(
+      1280,
+      729,
+      60,
+      yave::image_format::rgba8,
+      yave::audio_format::pcm_44100_stereo)
+  {
+  }
+
   scene_config::scene_config(
     uint32_t width,
     uint32_t height,
@@ -44,7 +54,7 @@ namespace yave {
         "This may cause innaccurate time mapping.");
     }
 
-    m_frame_rate     = frame_rate;
+    m_frame_rate = frame_rate;
 
     if (frame_format == image_format::unknown) {
       throw std::invalid_argument("Invalid frame buffer format");
