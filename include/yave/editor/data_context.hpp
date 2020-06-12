@@ -6,8 +6,7 @@
 #pragma once
 
 #include <yave/editor/data_command.hpp>
-
-#include <yave/node/core/structured_node_graph.hpp>
+#include <yave/editor/editor_data.hpp>
 
 #include <memory>
 
@@ -38,9 +37,9 @@ namespace yave::editor {
     [[nodiscard]] auto lock() const -> std::unique_lock<std::mutex>;
 
   public:
-    /// node graph
-    [[nodiscard]] auto node_graph() const -> const structured_node_graph&;
-    /// node graph
-    [[nodiscard]] auto node_graph() -> structured_node_graph&;
+    /// get data
+    auto data() const -> const editor_data&;
+    /// get data
+    auto data() -> editor_data&;
   };
 }
