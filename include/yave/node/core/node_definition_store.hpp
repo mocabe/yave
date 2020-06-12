@@ -35,9 +35,9 @@ namespace yave {
     node_definition_store& operator=(node_definition_store&&) noexcept;
 
     /// Add definition
-    void add(const node_definition& def);
+    [[nodiscard]] bool add(const node_definition& def);
     /// Add definitions
-    void add(const std::vector<node_definition>& defs);
+    [[nodiscard]] bool add(const std::vector<node_definition>& defs);
     /// Remove definitions
     void remove(const std::string& qualified_name);
     /// Remove definitions

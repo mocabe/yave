@@ -42,7 +42,7 @@ namespace yave {
     return *this;
   }
 
-  void node_definition_store::add(const node_definition& def)
+  bool node_definition_store::add(const node_definition& def)
   {
     m_map.emplace(def.qualified_name(), std::make_shared<node_definition>(def));
 
@@ -51,12 +51,16 @@ namespace yave {
       "Added new definition: name={}, os={}",
       def.qualified_name(),
       def.output_socket());
+
+    return true;
   }
 
-  void node_definition_store::add(const std::vector<node_definition>& defs)
+  bool node_definition_store::add(const std::vector<node_definition>& defs)
   {
     for (auto&& def : defs)
       add(def);
+
+    return true;
   }
 
   void node_definition_store::remove(const std::string& name)
