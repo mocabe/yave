@@ -2,7 +2,10 @@
 
 add_library(yave-editor
   data_command.cpp
-  data_context.cpp)
+  data_context.cpp
+  view_command.cpp
+  view_context.cpp
+)
 
 add_library(yave::editor ALIAS yave-editor)
 
