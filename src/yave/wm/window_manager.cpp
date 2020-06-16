@@ -46,14 +46,14 @@ namespace yave::wm {
   public:
     auto get_window(uid id) -> window*
     {
-      auto rec = [&](auto&& self, window* w) -> window* {
+      auto rec = [id](auto&& self, window* w) -> window* {
         if (w->id() == id)
           return w;
 
         for (auto&& c : w->children()) {
           auto cw = w->as_mut_child(c);
-          if (self(cw))
-            return cw;
+          if (auto r = self(cw))
+            return r;
         }
 
         return nullptr;
