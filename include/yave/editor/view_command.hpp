@@ -72,4 +72,15 @@ namespace yave::editor {
       std::forward<ExecFunc>(exec));
   }
 
+  /// Create view command for specific window
+  template <class ExecFunc, class Window>
+  [[nodiscard]] auto make_window_view_command(const Window& w, ExecFunc&& exec)
+  {
+    return make_view_command(
+      [exec = std::forward<ExecFunc>(exec), id = w.id()](auto& ctx) {
+        if (auto w = ctx.window_manager().get_window(id))
+          exec(*w->template as<Window>());
+      });
+  }
+
 } // namespace yave::editor
