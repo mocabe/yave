@@ -159,7 +159,8 @@ namespace yave::editor {
         top->exec(*_this);
       }
 
-      {
+      // dispose command if not undoable
+      if (top->undoable()) {
         auto lck = lock_queue();
         cmd_undo_stack.push(std::move(top));
       }

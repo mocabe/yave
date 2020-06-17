@@ -29,6 +29,11 @@ namespace yave::editor {
     virtual void exec(data_context& data_ctx) = 0;
     /// Undo command
     virtual void undo(data_context& data_ctx) = 0;
+    /// Undoable command?
+    virtual bool undoable() const
+    {
+      return true;
+    }
 
     /// Dtor
     virtual ~data_command() noexcept = default;
@@ -51,7 +56,29 @@ namespace yave::editor {
   };
 
   namespace detail {
-    /// Helper class for make_operator()
+    /// Helper class for single time data command
+    template <class ExecFunc>
+    struct lambda_data_command_st : public data_command, ExecFunc
+    {
+      lambda_data_command_st(ExecFunc&& exec)
+        : ExecFunc(std::forward<ExecFunc>(exec))
+      {
+      }
+      void exec(data_context& data_ctx) override
+      {
+        ExecFunc::operator()(data_ctx);
+      }
+      void undo(data_context& data_ctx) override
+      {
+        // not used
+      }
+      bool undoable() const
+      {
+        return false;
+      }
+    };
+
+    /// Helper class for undoable data command
     template <class ExecFunc, class UndoFunc>
     struct lambda_data_command : public data_command, ExecFunc, UndoFunc
     {
@@ -70,6 +97,14 @@ namespace yave::editor {
       }
     };
   } // namespace detail
+
+  /// Create data command from lambda functions
+  template <class ExecFunc>
+  [[nodiscard]] auto make_data_command(ExecFunc&& exec)
+  {
+    return std::make_unique<detail::lambda_data_command_st<ExecFunc>>(
+      std::forward<ExecFunc>(exec));
+  }
 
   /// Create data command from lambda functions
   template <class ExecFunc, class UndoFunc>
