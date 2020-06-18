@@ -23,11 +23,13 @@ namespace yave {
       std::string name,
       socket_type type,
       node_handle node,
-      size_t index)
-      : m_name {name}
+      size_t index,
+      std::vector<connection_handle> cs)
+      : m_name {std::move(name)}
       , m_type {type}
       , m_node {node}
       , m_index {index}
+      , m_cs {std::move(cs)}
     {
     }
 
@@ -67,11 +69,18 @@ namespace yave {
       return m_index;
     }
 
+    /// connections
+    [[nodiscard]] auto& connections() const
+    {
+      return m_cs;
+    }
+
   private:
     std::string m_name;
     socket_type m_type;
     node_handle m_node;
     size_t m_index;
+    std::vector<connection_handle> m_cs;
   };
 
 } // namespace yave

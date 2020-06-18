@@ -1019,8 +1019,10 @@ namespace yave {
       auto n = info->interfaces()[0];
       assert(is_valid(n));
 
+      auto cs = ng.connections(socket);
+
       return structured_socket_info(
-        info->name(), info->type(), n, get_index(n, socket));
+        info->name(), info->type(), n, get_index(n, socket), cs);
     }
 
     auto get_info(const connection_handle& connection) const
