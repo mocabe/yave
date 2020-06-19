@@ -112,7 +112,8 @@ namespace yave::editor::imgui {
     // Height: 32 px
     // Font: 15 px
     auto text_size = calc_text_size(title, font_size_level::e15);
-    return {text_size.x + 2 * gridpx(4), gridpx(4)};
+    auto min_width = 3 * gridpx(6);
+    return {std::max(text_size.x + 2 * gridpx(4), min_width), gridpx(4)};
   }
 
   /// calculate node size
