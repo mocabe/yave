@@ -114,7 +114,7 @@ namespace yave::editor::imgui {
       // popup menu
       auto popup_name = "node_background_menu";
 
-      bool hovered;
+      bool hovered = false;
       InvisibleButtonEx("node background input", wsize, &hovered);
 
       // switch by current state
@@ -362,7 +362,7 @@ namespace yave::editor::imgui {
       ImGui::PushID(s.id().data);
       {
         // handle slot
-        bool hovered;
+        bool hovered = false;
         ImGui::SetCursorScreenPos(slot_pos - ImVec2 {slot_size, slot_size});
         InvisibleButtonEx("slot", {2 * slot_size, 2 * slot_size}, &hovered);
 
@@ -520,7 +520,7 @@ namespace yave::editor::imgui {
 
         const char* popup_name = "node_info_popup";
 
-        bool hovered;
+        bool hovered = false;
         InvisibleButtonEx("node", nsize, &hovered);
 
         // switch by current state
