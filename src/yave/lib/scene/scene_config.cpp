@@ -15,7 +15,7 @@ namespace yave {
       1280,
       729,
       60,
-      yave::image_format::rgba8,
+      yave::image_format::rgba32f,
       yave::audio_format::pcm_44100_stereo)
   {
   }
