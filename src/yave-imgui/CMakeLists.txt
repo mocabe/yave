@@ -1,6 +1,10 @@
 # yave-imgui
 
 add_executable(yave-imgui 
+  application.cpp
+  root_window.cpp
+  node_window.cpp
+  node_window_drawables.cpp
   main.cpp
   canvas.cpp
   render.cpp
@@ -17,3 +21,4 @@ target_link_libraries(yave-imgui PRIVATE yave::support)
 target_link_libraries(yave-imgui PRIVATE yave::node)
 target_link_libraries(yave-imgui PRIVATE yave::module::std)
 target_link_libraries(yave-imgui PRIVATE yave::app)
+target_link_libraries(yave-imgui PRIVATE yave::wm)
