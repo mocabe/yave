@@ -6,6 +6,8 @@
 #include <yave-imgui/node_window_drawables.hpp>
 #include <yave-imgui/node_window.hpp>
 
+#include <yave/module/std/primitive/primitive.hpp>
+#include <imgui_stdlib.h>
 #include <iostream>
 
 namespace yave::editor::imgui {
@@ -322,12 +324,15 @@ namespace yave::editor::imgui {
 
   struct basic_socket_drawer : socket_drawable
   {
+    object_ptr<Object> data;
+
     basic_socket_drawer(
       const socket_handle& s,
       const structured_node_graph& g,
       const node_window& nw)
       : socket_drawable {s, *g.get_info(s)}
     {
+      data = g.get_data(s);
     }
 
     auto min_size(node_window_draw_info&) const -> ImVec2 override
@@ -474,6 +479,89 @@ namespace yave::editor::imgui {
       ImGui::PopID();
     }
 
+    void draw_content(
+      const node_window& nw,
+      data_context& dctx,
+      view_context& vctx,
+      node_window_draw_info& draw_info,
+      ImVec2 pos,
+      ImVec2 size) const
+    {
+      auto s    = handle;
+      auto n    = info.node();
+      auto type = info.type();
+      auto name = info.name();
+
+      bool has_custom_data = false;
+
+      if (data && info.connections().empty()) {
+
+        auto slider_bg_col   = get_socket_slider_color();
+        auto slider_text_col = get_socket_slider_text_color();
+
+        // custom data handling
+        if (auto holder = value_cast_if<DataTypeHolder>(data)) {
+
+          has_custom_data = true;
+
+          ImGui::PushID(s.id().data);
+          ImGui::SetCursorScreenPos(pos);
+          ImGui::PushItemWidth(size.x);
+          ImGui::PushStyleColor(ImGuiCol_Text, ImU32(slider_text_col));
+          ImGui::PushStyleColor(ImGuiCol_FrameBg, ImU32(slider_bg_col));
+          ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImU32(slider_bg_col));
+          ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
+          ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
+          {
+            /*  */ if (auto f = value_cast_if<Float>(holder->data())) {
+              float val = *f;
+              ImGui::DragFloat("", &val);
+              *f = val;
+            } else if (auto i = value_cast_if<Int>(holder->data())) {
+              int val = *i;
+              ImGui::DragInt("", &val);
+              *i = val;
+            } else if (auto b = value_cast_if<Bool>(holder->data())) {
+              ImGui::Checkbox("", &*b);
+            } else if (auto s = value_cast_if<String>(holder->data())) {
+              std::string val = *s;
+              ImGui::InputText("", &val);
+              *s = yave::string(val);
+            } else
+              // invalid data type. fallback to text
+              has_custom_data = false;
+          }
+          ImGui::PopStyleColor(4);
+          ImGui::PopStyleVar(1);
+          ImGui::PopItemWidth();
+          ImGui::PopID();
+        }
+      }
+
+      // draw generic socket name as text
+      if (!has_custom_data) {
+
+        text_alignment align;
+
+        switch (type) {
+          case socket_type::input:
+            align = text_alignment::right;
+            break;
+          case socket_type::output:
+            align = text_alignment::left;
+            break;
+          default:
+            unreachable();
+        }
+
+        auto text_pos = calc_text_pos(name, font_size_level::e15, size, align);
+        auto col      = get_socket_text_color();
+
+        ImGui::SetCursorScreenPos(pos + text_pos);
+        ImGui::TextColored(col, "%s", name.c_str());
+      }
+    }
+
     void draw(
       const node_window& nw,
       data_context& dctx,
@@ -489,6 +577,10 @@ namespace yave::editor::imgui {
       // draw slots
       auto slotpos = pos + slot_pos(draw_info, size);
       draw_slot(nw, dctx, vctx, draw_info, slotpos);
+      // draw content
+      auto padding = ImVec2 {gridpx(1), gridpx(1)};
+      draw_content(
+        nw, dctx, vctx, draw_info, pos + padding, size - padding * 2);
     }
   };
 
