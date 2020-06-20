@@ -455,13 +455,41 @@ namespace yave::editor::imgui {
             };
 
             if (nw.state() == node_window::state::socket) {
+              // sockets to connect
               auto s1 = nw.get_selected_socket().value();
               auto s2 = s;
-
               if (info.is_output())
                 std::swap(s1, s2);
 
-              dctx.exec(std::make_unique<dcmd_connect>(s1, s2));
+              // disconnect existing connection to target input
+              auto& sd2 = draw_info.find_drawable(s2);
+              if (!sd2->info.connections().empty()) {
+
+                assert(sd2->info.connections().size() == 1);
+                auto c   = sd2->info.connections()[0];
+                auto& cd = draw_info.find_drawable(c);
+
+                auto srcs = cd->info.src_socket();
+                auto dsts = cd->info.dst_socket();
+
+                // ignore when connection already exist
+                if (srcs != s1 || dsts != s2) {
+                  // disconnect existing connection
+                  dctx.exec(make_data_command(
+                    [c](auto& ctx) {
+                      auto& g = ctx.data().node_graph;
+                      g.disconnect(c);
+                    },
+                    [srcs, dsts](auto& ctx) {
+                      auto& g = ctx.data().node_graph;
+                      (void)g.connect(srcs, dsts);
+                    }));
+                  // connect sockets
+                  dctx.exec(std::make_unique<dcmd_connect>(s1, s2));
+                }
+              } else
+                // connect sockets
+                dctx.exec(std::make_unique<dcmd_connect>(s1, s2));
             }
           }
           ImGui::EndDragDropTarget();
