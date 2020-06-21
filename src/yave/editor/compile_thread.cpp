@@ -104,6 +104,7 @@ namespace yave::editor {
                 auto& data             = data_ctx.data();
                 data.compiler.m_result = std::move(exe);
               }
+              data_ctx.data().executor.notify_execute();
             }
           }
         } catch (...) {
@@ -115,7 +116,7 @@ namespace yave::editor {
 
     void stop()
     {
-      terminate_flag = 1;
+      terminate_flag = true;
       cond.notify_one();
       thread.join();
       Info(g_logger, "Terminated compile thread");
@@ -124,7 +125,7 @@ namespace yave::editor {
     void notify_recompile()
     {
       Info(g_logger, "Requesting recompile");
-      recompile_flag = 1;
+      recompile_flag = true;
       cond.notify_one();
     }
   };

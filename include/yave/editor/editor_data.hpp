@@ -13,6 +13,7 @@
 #include <yave/lib/scene/scene_config.hpp>
 
 #include <yave/editor/compile_thread.hpp>
+#include <yave/editor/execute_thread.hpp>
 
 #include <string>
 #include <filesystem>
@@ -43,5 +44,7 @@ namespace yave::editor {
   public:
     /// compiler interface
     compile_thread_interface compiler;
+    /// executor interface
+    execute_thread_interface executor;
   };
 } // namespace yave::editor

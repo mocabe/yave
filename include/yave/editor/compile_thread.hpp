@@ -41,13 +41,12 @@ namespace yave::editor {
     error_list m_parse_errors = {};
     /// compile errors
     error_list m_compile_errors = {};
-    /// flag to recompile
-    bool m_recompile_requested = false;
     /// result
     std::optional<executable> m_result;
 
   public:
-    compile_thread_interface() = default;
+    compile_thread_interface()                                = default;
+    compile_thread_interface(const compile_thread_interface&) = delete;
 
     void init(compile_thread& th)
     {
@@ -66,7 +65,6 @@ namespace yave::editor {
     void notify_recompile()
     {
       assert(m_thread_ptr);
-      m_recompile_requested = true;
       m_thread_ptr->notify_recompile();
     }
 

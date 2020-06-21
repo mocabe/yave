@@ -6,6 +6,7 @@ add_library(yave-editor
   view_command.cpp
   view_context.cpp
   compile_thread.cpp
+  execute_thread.cpp
 )
 
 add_library(yave::editor ALIAS yave-editor)
