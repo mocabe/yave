@@ -6,6 +6,7 @@
 #include <yave-imgui/node_window_drawables.hpp>
 #include <yave-imgui/node_window.hpp>
 
+#include <yave/editor/editor_data.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
 #include <imgui_stdlib.h>
 #include <iostream>

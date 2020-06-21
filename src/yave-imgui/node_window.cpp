@@ -5,6 +5,7 @@
 
 #include <yave-imgui/node_window.hpp>
 
+#include <yave/editor/editor_data.hpp>
 #include <yave/support/log.hpp>
 
 #include <imgui_internal.h>

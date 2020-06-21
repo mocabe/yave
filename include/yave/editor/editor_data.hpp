@@ -12,6 +12,8 @@
 #include <yave/node/core/structured_node_graph.hpp>
 #include <yave/lib/scene/scene_config.hpp>
 
+#include <yave/editor/compile_thread.hpp>
+
 #include <string>
 #include <filesystem>
 
@@ -37,5 +39,9 @@ namespace yave::editor {
     node_definition_store node_defs;
     /// node graph
     structured_node_graph node_graph;
+
+  public:
+    /// compiler interface
+    compile_thread_interface compiler;
   };
 } // namespace yave::editor

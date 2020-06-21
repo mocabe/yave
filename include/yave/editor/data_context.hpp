@@ -6,11 +6,12 @@
 #pragma once
 
 #include <yave/editor/data_command.hpp>
-#include <yave/editor/editor_data.hpp>
 
 #include <memory>
 
 namespace yave::editor {
+
+  struct editor_data;
 
   /// Application data context
   class data_context

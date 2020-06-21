@@ -11,6 +11,8 @@
 #include <yave/module/std/module_loader.hpp>
 #include <yave/editor/data_context.hpp>
 #include <yave/editor/view_context.hpp>
+#include <yave/editor/editor_data.hpp>
+#include <yave/editor/compile_thread.hpp>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -28,6 +30,10 @@ namespace yave::editor::imgui {
   public: /* editor contexts */
     yave::editor::data_context data_ctx;
     yave::editor::view_context view_ctx;
+
+  public: /* threads */
+    yave::editor::compile_thread compiler;
+    // yave::editor::execute_thread executor;
 
   public:
     impl();
@@ -81,12 +87,18 @@ namespace yave::editor::imgui {
     // create root group
     auto root_group = data.node_graph.create_group({}, {});
     data.node_graph.set_name(root_group, "root");
+    data.node_graph.add_output_socket(root_group, "out");
+
+    // init compiler
+    data.compiler.init(compiler);
   }
 
   void application::impl::deinit_data()
   {
     auto lck   = data_ctx.lock();
     auto& data = data_ctx.data();
+
+    data.compiler.deinit();
 
     // deinit modules
     for (auto&& m : data.module_loader->get())
@@ -98,6 +110,7 @@ namespace yave::editor::imgui {
     , imgui_ctx {vulkan_ctx}
     , data_ctx {}
     , view_ctx {data_ctx}
+    , compiler {data_ctx}
   {
     init_data();
 
