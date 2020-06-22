@@ -5,6 +5,7 @@
 
 #include <yave-imgui/root_window.hpp>
 #include <yave-imgui/node_window.hpp>
+#include <yave-imgui/render_view_window.hpp>
 
 #include <yave/support/log.hpp>
 #include <imgui_internal.h>
@@ -24,6 +25,12 @@ namespace yave::editor::imgui {
     { // node canvas
       auto w      = std::make_unique<node_window>(im);
       node_canvas = w.get();
+      add_any_window(children().end(), std::move(w));
+    }
+
+    { // render view
+      auto w      = std::make_unique<render_view_window>(im);
+      render_view = w.get();
       add_any_window(children().end(), std::move(w));
     }
   }

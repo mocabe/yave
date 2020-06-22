@@ -71,6 +71,9 @@ namespace yave::editor {
               auto g = [&] {
                 auto data_lck = data_ctx.lock();
                 auto& data    = data_ctx.data();
+                // clear last result
+                data.compiler.m_result = std::nullopt;
+                // get node graph
                 return data.node_graph.clone();
               }();
 
@@ -78,9 +81,10 @@ namespace yave::editor {
               auto parsed = parser.parse(std::move(g));
 
               if (!parsed) {
-                auto data_lck                = data_ctx.lock();
-                auto& data                   = data_ctx.data();
-                data.compiler.m_parse_errors = parser.get_errors();
+                auto data_lck                  = data_ctx.lock();
+                auto& data                     = data_ctx.data();
+                data.compiler.m_parse_errors   = parser.get_errors();
+                data.compiler.m_compile_errors = {};
                 Info(g_logger, "Failed to parse node graph");
                 continue;
               }
@@ -93,6 +97,7 @@ namespace yave::editor {
               if (!exe) {
                 auto data_lck                  = data_ctx.lock();
                 auto& data                     = data_ctx.data();
+                data.compiler.m_parse_errors   = parser.get_errors();
                 data.compiler.m_compile_errors = compiler.get_errors();
                 Info(g_logger, "Failed to compile node graph");
                 continue;

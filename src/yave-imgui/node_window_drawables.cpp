@@ -406,10 +406,12 @@ namespace yave::editor::imgui {
                   [c](auto& ctx) {
                     auto& g = ctx.data().node_graph;
                     g.disconnect(c);
+                    ctx.data().compiler.notify_recompile();
                   },
                   [srcs, dsts](auto& ctx) {
                     auto& g = ctx.data().node_graph;
                     (void)g.connect(srcs, dsts);
+                    ctx.data().compiler.notify_recompile();
                   }));
 
                 socket_to_select = srcs;
@@ -430,7 +432,7 @@ namespace yave::editor::imgui {
         }
 
         if (ImGui::BeginDragDropTarget()) {
-          if (auto pld = ImGui::AcceptDragDropPayload("socket_dd")) {
+          if (ImGui::AcceptDragDropPayload("socket_dd")) {
 
             struct dcmd_connect : data_command
             {
@@ -447,6 +449,7 @@ namespace yave::editor::imgui {
               {
                 auto& g = dctx.data().node_graph;
                 m_c     = g.connect(m_s1, m_s2);
+                dctx.data().compiler.notify_recompile();
               }
               void undo(data_context& dctx) override
               {

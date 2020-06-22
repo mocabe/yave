@@ -26,6 +26,7 @@ namespace yave::editor::imgui {
 
     // child window refs
     wm::window* node_canvas;
+    wm::window* render_view;
 
   public:
     root_window(yave::imgui::imgui_context& im);

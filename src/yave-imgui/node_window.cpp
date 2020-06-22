@@ -395,15 +395,14 @@ namespace yave::editor::imgui {
     editor::data_context& data_ctx,
     editor::view_context& view_ctx) const
   {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {1, 1});
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
     ImGui::Begin(name().c_str());
     {
       auto wsize   = ImGui::GetContentRegionAvail();
       auto wborder = false;
       auto wflag   = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove
                    | ImGuiWindowFlags_AlwaysUseWindowPadding;
-
-      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {1, 1});
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
 
       ImGui::BeginChild(name().c_str(), wsize, wborder, wflag);
       {
@@ -424,9 +423,9 @@ namespace yave::editor::imgui {
         channels.Merge(dl);
       }
       ImGui::EndChild();
-      ImGui::PopStyleVar(2);
     }
     ImGui::End();
+    ImGui::PopStyleVar(2);
   }
 
   auto node_window::state() const -> enum state { return current_state; }

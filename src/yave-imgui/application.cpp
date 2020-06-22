@@ -13,6 +13,7 @@
 #include <yave/editor/view_context.hpp>
 #include <yave/editor/editor_data.hpp>
 #include <yave/editor/compile_thread.hpp>
+#include <yave/editor/execute_thread.hpp>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -33,7 +34,7 @@ namespace yave::editor::imgui {
 
   public: /* threads */
     yave::editor::compile_thread compiler;
-    // yave::editor::execute_thread executor;
+    yave::editor::execute_thread executor;
 
   public:
     impl();
@@ -91,6 +92,7 @@ namespace yave::editor::imgui {
 
     // init compiler
     data.compiler.init(compiler);
+    data.executor.init(executor);
   }
 
   void application::impl::deinit_data()
@@ -99,6 +101,7 @@ namespace yave::editor::imgui {
     auto& data = data_ctx.data();
 
     data.compiler.deinit();
+    data.executor.deinit();
 
     // deinit modules
     for (auto&& m : data.module_loader->get())
@@ -111,6 +114,7 @@ namespace yave::editor::imgui {
     , data_ctx {}
     , view_ctx {data_ctx}
     , compiler {data_ctx}
+    , executor {data_ctx}
   {
     init_data();
 

@@ -72,9 +72,12 @@ namespace yave::editor {
       m_time = newtime;
     }
 
-    auto& get_result() const
+    auto get_result() const -> const frame_buffer*
     {
-      return *m_result;
+      if (m_result)
+        return m_result.value();
+      else
+        return nullptr;
     }
   };
 } // namespace yave::editor

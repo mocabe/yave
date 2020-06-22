@@ -62,7 +62,8 @@ namespace yave::editor {
               auto data = [&] {
                 auto lck       = data_ctx.lock();
                 auto& executor = data_ctx.data().executor;
-                auto& compiler = data_ctx.data().compiler;
+                auto& compiler    = data_ctx.data().compiler;
+                executor.m_result = nullptr;
                 return std::make_tuple(compiler.get_result(), executor.time());
               }();
 
