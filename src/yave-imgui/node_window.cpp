@@ -337,6 +337,47 @@ namespace yave::editor::imgui {
       // draw node and sockets
       n->draw(*this, dctx, vctx, di, chs, idx);
     }
+
+    if (current_state == state::neutral && !n_selected.empty()) {
+
+      // Ctrl + G = grouping
+      if (
+        ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL)
+        && ImGui::IsKeyPressed(GLFW_KEY_G)) {
+
+        // FIXME: supoprt undo
+        dctx.exec(
+          make_data_command([g = current_group, ns = n_selected](auto& ctx) {
+            auto& ng = ctx.data().node_graph;
+
+            auto newg = ng.create_group(g, {ns});
+
+            fvec2 newpos = {};
+            for (auto&& n : ns)
+              if (auto np = ng.get_pos(n))
+                newpos += *np;
+            newpos /= ns.size();
+            ng.set_pos(newg, newpos);
+          }));
+
+        vctx.push(
+          make_window_view_command(*this, [](auto& w) { w.clear_selected(); }));
+      }
+
+      // Delete nodes
+      if (ImGui::IsKeyPressed(GLFW_KEY_DELETE)) {
+
+        // FIXME support undo
+        dctx.exec(make_data_command([ns = n_selected](auto& ctx) {
+          auto& ng = ctx.data().node_graph;
+          for (auto&& n : ns)
+            ng.destroy(n);
+        }));
+
+        vctx.push(
+          make_window_view_command(*this, [](auto& w) { w.clear_selected(); }));
+      }
+    }
   }
 
   void node_window::_draw_foreground(
