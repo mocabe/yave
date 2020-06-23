@@ -85,17 +85,14 @@ namespace yave::editor::imgui {
     ImGui::DockBuilderDockWindow("inspector", dock_right);
     ImGui::DockBuilderDockWindow(node_canvas->name().c_str(), dock_bottom);
     ImGui::DockBuilderDockWindow("compiler", dock_bottom);
-    ImGui::DockBuilderDockWindow("render_view", dock_main);
+    ImGui::DockBuilderDockWindow(render_view->name().c_str(), dock_main);
     ImGui::DockBuilderFinish(dockid);
 
     ImGui::DockSpace(dockid);
 
-    vctx.push(make_view_command([dockid, id = id()](auto& ctx) {
-      if (auto w = ctx.window_manager().get_window(id)) {
-        auto _this          = w->template as<root_window>();
-        _this->layout_init  = true;
-        _this->dockspace_id = dockid;
-      }
+    vctx.push(make_window_view_command(*this, [dockid](auto& w) {
+      w.layout_init  = true;
+      w.dockspace_id = dockid;
     }));
   }
 

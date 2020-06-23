@@ -117,14 +117,13 @@ namespace yave::editor::imgui {
     node_window_draw_info& di,
     ImDrawListSplitter& chs) const
   {
-    chs.SetCurrentChannel(
-      ImGui::GetWindowDrawList(), di.background_channel_index);
-
     // draw stuff (WIP)
 
     auto wpos  = ImGui::GetWindowPos();
     auto wsize = ImGui::GetWindowSize();
     auto dl    = ImGui::GetWindowDrawList();
+
+    chs.SetCurrentChannel(dl, di.background_channel_index);
 
     // cover entire canvas to hover test
     ImGui::SetCursorScreenPos(wpos);
@@ -172,7 +171,6 @@ namespace yave::editor::imgui {
     for (auto&& n : n_selected)
       ImGui::Text("nsel: %s", to_string(n.id()).c_str());
 
-
     // handle scrolling
     if (
       ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive()
@@ -180,11 +178,8 @@ namespace yave::editor::imgui {
 
       auto delta = ImGui::GetIO().MouseDelta;
 
-      vctx.push(make_view_command([scroll, delta, id = id()](auto& ctx) {
-        if (auto w = ctx.window_manager().get_window(id)) {
-          auto _this        = w->template as<node_window>();
-          _this->scroll_pos = to_tvec2(scroll + delta);
-        }
+      vctx.push(make_window_view_command(*this, [scroll, delta](auto& w) {
+        w.scroll_pos = to_tvec2(scroll + delta);
       }));
     }
 
