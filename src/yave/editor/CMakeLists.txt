@@ -13,6 +13,8 @@ add_library(yave::editor ALIAS yave-editor)
 
 target_link_libraries(yave-editor PUBLIC yave::config)
 target_link_libraries(yave-editor PUBLIC yave::node::core)
+target_link_libraries(yave-editor PUBLIC yave::node::compiler)
+target_link_libraries(yave-editor PUBLIC yave::node::parser)
 target_link_libraries(yave-editor PUBLIC yave::lib::scene)
 target_link_libraries(yave-editor PRIVATE yave::support::log)
 target_link_libraries(yave-editor PRIVATE yave::support::error)
