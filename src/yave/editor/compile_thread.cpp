@@ -7,6 +7,7 @@
 #include <yave/editor/editor_data.hpp>
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/compiler/node_compiler.hpp>
+#include <yave/node/core/function.hpp>
 #include <yave/support/log.hpp>
 
 #include <thread>
@@ -100,6 +101,25 @@ namespace yave::editor {
                 data.compiler.m_parse_errors   = parser.get_errors();
                 data.compiler.m_compile_errors = compiler.get_errors();
                 Info(g_logger, "Failed to compile node graph");
+                continue;
+              }
+
+              // result is not framebuffer
+              // TODO: make proper error type
+              if (!same_type(
+                    exe->type(), object_type<node_closure<FrameBuffer>>())) {
+                auto data_lck                  = data_ctx.lock();
+                auto& data                     = data_ctx.data();
+                data.compiler.m_parse_errors   = {};
+                data.compiler.m_compile_errors = {};
+
+                auto n = data.node_graph.search_path("/root").at(0);
+                auto s = data.node_graph.output_sockets(n).at(0);
+                data.compiler.m_compile_errors.push_back(
+                  make_error<compile_error::unexpected_error>(
+                    s, "Output type is not FrameBuffer"));
+
+                Info(g_logger, "Failed to compiler node graph");
                 continue;
               }
 
