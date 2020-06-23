@@ -72,7 +72,7 @@ namespace yave::editor {
       {
         // not used
       }
-      bool undoable() const
+      bool undoable() const override
       {
         return false;
       }

@@ -112,7 +112,8 @@ namespace yave::editor::imgui {
     // Height: 32 px
     // Font: 15 px
     auto text_size = calc_text_size(title, font_size_level::e15);
-    return {text_size.x + 2 * gridpx(4), gridpx(4)};
+    auto min_width = 3 * gridpx(6);
+    return {std::max(text_size.x + 2 * gridpx(4), min_width), gridpx(4)};
   }
 
   /// calculate node size
@@ -151,143 +152,6 @@ namespace yave::editor::imgui {
     auto title = *g.get_name(node);
     auto min   = calc_node_header_min_size(title);
     return {node_size.x, min.y};
-  }
-
-  /// Claculate node layout
-  auto calc_node_layout(
-    const ImVec2& node_screen_pos,
-    const node_handle& node,
-    const structured_node_graph& g) -> node_layout
-  {
-    using namespace yave::imgui;
-
-    auto node_name = *g.get_name(node);
-
-    // calc node layout
-    auto node_size        = calc_node_background_size(node, g);
-    auto node_header_size = calc_node_header_size(node_size, node, g);
-
-    // layout
-    node_layout nlayout;
-    nlayout.pos         = node_screen_pos;
-    nlayout.size        = node_size;
-    nlayout.header_size = node_header_size;
-
-    // socket area cursor
-    ImVec2 cursor = {0, node_header_size.y};
-
-    nlayout.socket_area_pos  = node_screen_pos + cursor;
-    nlayout.socket_area_size = node_size - cursor;
-
-    return nlayout;
-  }
-
-  auto calc_socket_layout(
-    const ImVec2& socket_screen_pos,
-    const ImVec2& node_size,
-    const socket_handle& socket,
-    const structured_node_graph& g) -> socket_layout
-  {
-    using namespace yave::imgui;
-
-    auto socket_size            = calc_socket_size(node_size, socket, g);
-    auto socket_slot_pos        = calc_socket_slot_relpos(node_size, socket, g);
-    auto socket_slot_screen_pos = socket_screen_pos + socket_slot_pos;
-
-    // layout
-    socket_layout slayout;
-    slayout.pos      = socket_screen_pos;
-    slayout.size     = socket_size;
-    slayout.slot_pos = socket_slot_screen_pos;
-
-    // cauclate padding
-    ImVec2 padding = {gridpx(1), gridpx(1)};
-
-    slayout.area_pos  = slayout.pos + padding;
-    slayout.area_size = slayout.size - padding * 2;
-
-    return slayout;
-  }
-
-  /// Calculate layout of canvas from given list of nodes.
-  /// All layout information will be stored in map tree structure.
-  auto calc_canvas_layout(
-    const std::vector<node_handle>& nodes,
-    const app::editor_context& editor_ctx) -> canvas_layout
-  {
-    using namespace yave::imgui;
-
-    canvas_layout layout;
-    layout.nodes = nodes;
-
-    // set channel index
-    layout.background_channel_index = 0;
-    layout.connection_channel_index = 1;
-    layout.node_channel_index       = 2; // includes nodes.size() subchannels
-    layout.foreground_channel_index = 2 + nodes.size();
-    layout.channel_size             = 3 + nodes.size();
-
-    auto wpos   = ImGui::GetWindowPos();
-    auto scroll = to_ImVec2(editor_ctx.get_scroll());
-
-    auto& g = editor_ctx.node_graph();
-
-    for (auto&& n : nodes)
-      assert(g.exists(n));
-
-    for (size_t i = 0; i < nodes.size(); ++i) {
-
-      auto& n = nodes[i];
-
-      auto node_screen_pos = wpos + scroll + to_ImVec2(*editor_ctx.get_pos(n));
-
-      // handle dragged node
-      if (editor_ctx.get_state() == app::editor_state::node) {
-        if (editor_ctx.is_selected(n)) {
-          auto drag_src_pos = to_ImVec2(editor_ctx.get_drag_source_pos());
-          node_screen_pos =
-            node_screen_pos + ImGui::GetMousePos() - drag_src_pos;
-        }
-      }
-
-      // layout
-      node_layout nlayout = calc_node_layout(node_screen_pos, n, g);
-
-      // set subchannel index
-      nlayout.channel_index = layout.node_channel_index + i;
-
-      // calc socket layouts
-
-      ImVec2 socket_screen_pos = nlayout.socket_area_pos;
-
-      for (auto&& s : g.output_sockets(n)) {
-
-        // layout
-        socket_layout slayout =
-          calc_socket_layout(socket_screen_pos, nlayout.size, s, g);
-
-        // move cursor
-        socket_screen_pos.y += slayout.size.y;
-
-        nlayout.sockets.emplace(s, std::move(slayout));
-      }
-
-      for (auto&& s : g.input_sockets(n)) {
-
-        // layout
-        socket_layout slayout =
-          calc_socket_layout(socket_screen_pos, nlayout.size, s, g);
-
-        // move cursor
-        socket_screen_pos.y += slayout.size.y;
-
-        nlayout.sockets.emplace(s, std::move(slayout));
-      }
-
-      layout.map.emplace(n, std::move(nlayout));
-    }
-
-    return layout;
   }
 
 } // namespace yave::editor::imgui

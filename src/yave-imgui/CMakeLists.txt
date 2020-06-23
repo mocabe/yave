@@ -1,10 +1,13 @@
 # yave-imgui
 
 add_executable(yave-imgui 
-  main.cpp
-  canvas.cpp
-  render.cpp
+  application.cpp
+  root_window.cpp
+  node_window.cpp
+  render_view_window.cpp
+  node_window_drawables.cpp
   layout.cpp
+  main.cpp
 )
 
 target_include_directories(yave-imgui PRIVATE ${YAVE_INCLUDE_DIR})
@@ -16,4 +19,4 @@ target_link_libraries(yave-imgui PRIVATE yave::lib::imgui)
 target_link_libraries(yave-imgui PRIVATE yave::support)
 target_link_libraries(yave-imgui PRIVATE yave::node)
 target_link_libraries(yave-imgui PRIVATE yave::module::std)
-target_link_libraries(yave-imgui PRIVATE yave::app)
+target_link_libraries(yave-imgui PRIVATE yave::wm)
