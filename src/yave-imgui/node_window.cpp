@@ -299,6 +299,12 @@ namespace yave::editor::imgui {
           auto nsize = nd->size(*draw_info);
           auto nrect = ImRect {npos, npos + nsize};
 
+          // fix inverted rect
+          if (rect.Min.x > rect.Max.x)
+            std::swap(rect.Min.x, rect.Max.x);
+          if (rect.Min.y > rect.Max.y)
+            std::swap(rect.Min.y, rect.Max.y);
+
           if (rect.Overlaps(nrect))
             vctx.push(make_window_view_command(
               *this, [n = nd->handle](auto& w) { w.add_selected(n); }));
