@@ -102,7 +102,7 @@ namespace yave {
     template <class T1, class T2>
     constexpr auto check_return_type(meta_type<T1> t1, meta_type<T2> t2)
     {
-      if constexpr (t1 != t2) {
+      if constexpr (!match(t2, t1).is_succ()) {
         static_assert(false_v<T1, T2>, "return type does not match.");
         using lhs = typename T1::_show;
         using rhs = typename T2::_show;

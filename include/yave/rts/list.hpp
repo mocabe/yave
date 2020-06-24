@@ -84,9 +84,10 @@ namespace yave {
       if (m_storage.car == nullptr)
         throw std::invalid_argument("car == nullptr");
 
-      constexpr auto elem_tp = type_of(get_term<T>());
+      constexpr auto elem_tp  = type_of(get_term<T>());
+      constexpr auto car_type = type_of(get_term<Car>());
 
-      if constexpr (type_of(get_term<Car>()) != elem_tp)
+      if constexpr (!match(elem_tp, car_type).is_succ())
         static_assert(false_v<Car>, "Invalid Car type. Should result T");
     }
 
@@ -108,13 +109,13 @@ namespace yave {
       constexpr auto car_type = type_of(get_term<Car>());
       constexpr auto cdr_type = type_of(get_term<Cdr>());
 
-      if constexpr (car_type != elem_tp) {
-        static_assert(false_v<T>, "Invalid Car type. Should result T");
-      }
+      if constexpr (!match(elem_tp, car_type).is_succ())
+        static_assert(
+          false_v<decltype(car_type), decltype(elem_tp)>,
+          "Invalid Car type. Should result T");
 
-      if constexpr (cdr_type != list_tp) {
+      if constexpr (!match(list_tp, cdr_type).is_succ())
         static_assert(false_v<T>, "Invalid Cdr type. Should result List<T>");
-      }
     }
 
     /// Dtor
