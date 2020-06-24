@@ -50,7 +50,7 @@ namespace yave {
     class ListHead_X;
     class ListTail_X;
 
-    struct ListNil : NodeFunction<ListNil, List<forall<ListNil_X>>>
+    struct ListNil : NodeFunction<ListNil, List<ListNil_X>>
     {
       return_type code() const
       {
@@ -58,26 +58,31 @@ namespace yave {
       }
     };
 
-    struct ListCons : NodeFunction<
+    struct ListCons : Function<
                         ListCons,
-                        forall<ListCons_X>,
-                        List<forall<ListCons_X>>,
-                        List<forall<ListCons_X>>>
+                        node_closure<ListCons_X>,
+                        node_closure<List<node_closure<ListCons_X>>>,
+                        FrameDemand,
+                        List<node_closure<ListCons_X>>>
     {
       return_type code() const
       {
-        // arg<0>(): VarValueProxy<ListCons_X>
-        // arg<1>(): List<VarValueProxy<ListCons_X>>
-        return make_object<List<VarValueProxy<ListCons_X>>>(arg<0>(), arg<1>());
+        auto fd = eval_arg<2>();
+        auto e  = eval_arg<0>();
+        auto l  = eval(arg<1>() << fd);
+        return make_object<List<node_closure<ListCons_X>>>(e, l);
       }
     };
 
-    struct ListHead
-      : NodeFunction<ListHead, List<forall<ListHead_X>>, forall<ListHead_X>>
+    struct ListHead : Function<
+                        ListHead,
+                        node_closure<List<node_closure<ListHead_X>>>,
+                        FrameDemand,
+                        ListHead_X>
     {
-      return_type code() const
+      auto code() const -> return_type
       {
-        return eval_arg<0>()->head();
+        return eval(arg<0>() << arg<1>())->head() << arg<1>();
       }
     };
 
@@ -127,7 +132,7 @@ namespace yave {
       info.description());
 
     auto d2 = node_definition(
-      info.name(),
+      info.qualified_name(),
       1,
       make_object<yave::modules::_std::list::ListTail>(),
       info.description());
