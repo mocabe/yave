@@ -365,6 +365,8 @@ namespace yave::editor::imgui {
                 newpos += *np;
             newpos /= ns.size();
             ng.set_pos(newg, newpos);
+
+            ctx.data().compiler.notify_recompile();
           }));
 
         vctx.push(
@@ -379,6 +381,8 @@ namespace yave::editor::imgui {
           auto& ng = ctx.data().node_graph;
           for (auto&& n : ns)
             ng.destroy(n);
+
+          ctx.data().compiler.notify_recompile();
         }));
 
         vctx.push(
