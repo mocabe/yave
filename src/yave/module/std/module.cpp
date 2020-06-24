@@ -14,6 +14,7 @@
 #include <yave/module/std/geometry/rect.hpp>
 #include <yave/module/std/image/image.hpp>
 #include <yave/module/std/list/list.hpp>
+#include <yave/module/std/list/algorithm.hpp>
 #include <yave/module/std/logic/apply.hpp>
 #include <yave/module/std/logic/if.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
@@ -134,6 +135,8 @@ namespace yave::modules::_std {
             get_node_declaration<node::ListNil>(),
             get_node_declaration<node::ListCons>(),
             get_node_declaration<node::ListDecompose>(),
+            get_node_declaration<node::ListMap>(),
+            get_node_declaration<node::ListRepeat>(),
             get_node_declaration<node::Apply>(),
             get_node_declaration<node::If>(),
             get_node_declaration<node::Int>(),
@@ -178,6 +181,8 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::ListNil, _std::tag>());
     add(yave::get_node_definitions<node::ListCons, _std::tag>());
     add(yave::get_node_definitions<node::ListDecompose, _std::tag>());
+    add(yave::get_node_definitions<node::ListMap, _std::tag>());
+    add(yave::get_node_definitions<node::ListRepeat, _std::tag>());
     add(yave::get_node_definitions<node::If, _std::tag>());
     add(yave::get_node_definitions<node::Apply, _std::tag>());
     add(yave::get_node_definitions<node::Int, _std::tag>());

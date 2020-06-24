@@ -8,6 +8,7 @@ add_library(yave-module-std
   geometry/mat.cpp
   image/image.cpp
   list/list.cpp
+  list/algorithm.cpp
   logic/apply.cpp
   logic/if.cpp
   primitive/primitive.cpp
