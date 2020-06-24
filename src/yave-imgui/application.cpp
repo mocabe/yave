@@ -86,9 +86,9 @@ namespace yave::editor::imgui {
         throw std::runtime_error("failed to create builtin function");
 
     // create root group
-    auto root_group = data.node_graph.create_group({}, {});
-    data.node_graph.set_name(root_group, "root");
-    data.node_graph.add_output_socket(root_group, "out");
+    data.root_group = data.node_graph.create_group({}, {});
+    data.node_graph.set_name(data.root_group, "root");
+    data.node_graph.add_output_socket(data.root_group, "out");
 
     // init compiler
     data.compiler.init(compiler);

@@ -113,7 +113,7 @@ namespace yave::editor {
                 data.compiler.m_parse_errors   = {};
                 data.compiler.m_compile_errors = {};
 
-                auto n = data.node_graph.search_path("/root").at(0);
+                auto n = data.root_group;
                 auto s = data.node_graph.output_sockets(n).at(0);
                 data.compiler.m_compile_errors.push_back(
                   make_error<compile_error::unexpected_error>(

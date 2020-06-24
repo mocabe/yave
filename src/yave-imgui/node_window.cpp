@@ -117,13 +117,14 @@ namespace yave::editor::imgui {
     node_window_draw_info& di,
     ImDrawListSplitter& chs) const
   {
+    chs.SetCurrentChannel(
+      ImGui::GetWindowDrawList(), di.background_channel_index);
+
     // draw stuff (WIP)
 
     auto wpos  = ImGui::GetWindowPos();
     auto wsize = ImGui::GetWindowSize();
     auto dl    = ImGui::GetWindowDrawList();
-
-    chs.SetCurrentChannel(dl, di.background_channel_index);
 
     // cover entire canvas to hover test
     ImGui::SetCursorScreenPos(wpos);
@@ -171,6 +172,7 @@ namespace yave::editor::imgui {
     for (auto&& n : n_selected)
       ImGui::Text("nsel: %s", to_string(n.id()).c_str());
 
+
     // handle scrolling
     if (
       ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive()
@@ -178,8 +180,11 @@ namespace yave::editor::imgui {
 
       auto delta = ImGui::GetIO().MouseDelta;
 
-      vctx.push(make_window_view_command(*this, [scroll, delta](auto& w) {
-        w.scroll_pos = to_tvec2(scroll + delta);
+      vctx.push(make_view_command([scroll, delta, id = id()](auto& ctx) {
+        if (auto w = ctx.window_manager().get_window(id)) {
+          auto _this        = w->template as<node_window>();
+          _this->scroll_pos = to_tvec2(scroll + delta);
+        }
       }));
     }
 
@@ -333,12 +338,13 @@ namespace yave::editor::imgui {
       n->draw(*this, dctx, vctx, di, chs, idx);
     }
 
-    if (current_state == state::neutral && !n_selected.empty()) {
+    if (current_state == state::neutral) {
 
       // Ctrl + G = grouping
       if (
-        ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL)
-        && ImGui::IsKeyPressed(GLFW_KEY_G)) {
+        !n_selected.empty() &&                     //
+        ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) && //
+        ImGui::IsKeyPressed(GLFW_KEY_G)) {
 
         // FIXME: supoprt undo
         dctx.exec(
@@ -360,7 +366,7 @@ namespace yave::editor::imgui {
       }
 
       // Delete nodes
-      if (ImGui::IsKeyPressed(GLFW_KEY_DELETE)) {
+      if (!n_selected.empty() && ImGui::IsKeyPressed(GLFW_KEY_DELETE)) {
 
         // FIXME support undo
         dctx.exec(make_data_command([ns = n_selected](auto& ctx) {
@@ -371,6 +377,25 @@ namespace yave::editor::imgui {
 
         vctx.push(
           make_window_view_command(*this, [](auto& w) { w.clear_selected(); }));
+      }
+
+      // Ctrol + U = move to upper group
+      if (
+        ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) && //
+        ImGui::IsKeyPressed(GLFW_KEY_U)) {
+
+        vctx.push(
+          make_window_view_command(*this, [&dctx, g = current_group](auto& w) {
+            auto lck   = dctx.lock();
+            auto& ng   = dctx.data().node_graph;
+            auto& root = dctx.data().root_group;
+
+            assert(ng.exists(root));
+            if (g == root)
+              return;
+
+            w.set_group(ng.get_parent_group(g));
+          }));
       }
     }
   }

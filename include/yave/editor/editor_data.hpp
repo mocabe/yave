@@ -40,6 +40,8 @@ namespace yave::editor {
     node_definition_store node_defs;
     /// node graph
     structured_node_graph node_graph;
+    /// node group
+    node_handle root_group;
 
   public:
     /// compiler interface
