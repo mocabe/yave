@@ -19,6 +19,5 @@ add_library(yave::node::core ALIAS yave-node-core)
 
 target_link_libraries(yave-node-core PUBLIC yave::config)
 target_link_libraries(yave-node-core PUBLIC yave::lib::vec)
-target_link_libraries(yave-node-core PUBLIC yave::lib::graph)
 target_link_libraries(yave-node-core PRIVATE yave::support::log)
 target_link_libraries(yave-node-core PRIVATE yave::support::id)
