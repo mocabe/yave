@@ -19,11 +19,11 @@ namespace yave {
     /// Ctor
     executable(object_ptr<const Object> obj, object_ptr<const Type> type);
     /// Ctor
-    executable(const executable& other);
+    executable(const executable& other) = delete;
     /// Ctor
     executable(executable&& other) noexcept;
     /// operator=
-    executable& operator=(const executable& other);
+    executable& operator=(const executable& other) = delete;
     /// operator=
     executable& operator=(executable&& other) noexcept;
 
