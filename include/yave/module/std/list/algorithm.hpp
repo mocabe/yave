@@ -15,11 +15,15 @@ namespace yave {
     struct ListMap;
     /// repeat
     struct ListRepeat;
+    /// enumerate
+    struct ListEnumerate;
   } // namespace node
 
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ListMap);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ListRepeat);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ListEnumerate);
 
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ListMap, modules::_std::tag);
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ListRepeat, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ListEnumerate, modules::_std::tag);
 }

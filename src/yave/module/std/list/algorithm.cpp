@@ -29,11 +29,20 @@ namespace yave {
       {{1, make_data_type_holder<Int>(1)}});
   }
 
+  auto node_declaration_traits<node::ListEnumerate>::get_node_declaration()
+    -> node_declaration
+  {
+    return node_declaration(
+      "Enumerate", "/std/list", "enumerate", {"list", "func"}, {"list"});
+  }
+
   namespace modules::_std::list {
 
     class ListMap_X;
     class ListMap_Y;
     class ListRepeat_X;
+    class ListEnum_X;
+    class ListEnum_Y;
 
     // (FD->[FD->X]) -> ((FD->X)->(FD->Y)) -> (FD->[FD->Y])
     struct LazyListMap : Function<
@@ -123,6 +132,49 @@ namespace yave {
       }
     };
 
+    struct ListEnumerate : Function<
+                             ListEnumerate,
+                             node_closure<List<node_closure<ListEnum_X>>>,
+                             node_closure<Int, ListEnum_X, ListEnum_Y>,
+                             FrameDemand,
+                             List<node_closure<ListEnum_Y>>>
+    {
+      auto code() const -> return_type
+      {
+        auto fd = eval_arg<2>();
+        auto l  = eval(arg<0>() << fd);
+        auto f  = eval_arg<1>();
+
+        auto ret = make_object<List<node_closure<ListEnum_Y>>>();
+
+        // \fd.idx
+        struct ListEnumerateH : NodeFunction<ListEnumerateH, Int>
+        {
+          int m_idx;
+
+          ListEnumerateH(int idx)
+            : m_idx {idx}
+          {
+          }
+
+          auto code() const -> return_type
+          {
+            return make_object<Int>(m_idx);
+          }
+        };
+
+        auto idx = 0;
+        while (!l->is_nil()) {
+          ret = make_object<List<node_closure<ListEnum_Y>>>(
+            eval(f << make_object<ListEnumerateH>(idx) << l->head()), ret);
+          l = eval(l->tail());
+          ++idx;
+        }
+
+        return ret;
+      }
+    };
+
   } // namespace modules::_std::list
 
   auto node_definition_traits<node::ListMap, modules::_std::tag>::
@@ -144,6 +196,17 @@ namespace yave {
       info.qualified_name(),
       0,
       make_object<yave::modules::_std::list::ListRepeat>(),
+      info.name())};
+  }
+
+  auto node_definition_traits<node::ListEnumerate, modules::_std::tag>::
+    get_node_definitions() -> std::vector<node_definition>
+  {
+    auto info = get_node_declaration<node::ListEnumerate>();
+    return {node_definition(
+      info.qualified_name(),
+      0,
+      make_object<yave::modules::_std::list::ListEnumerate>(),
       info.name())};
   }
 } // namespace yave
