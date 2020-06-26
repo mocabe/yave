@@ -292,8 +292,14 @@ namespace yave {
             env.locations.locate(e.provided()),
             e.expected(),
             e.provided());
+        } catch (type_error::unsolvable_constraints& e) {
+          throw compile_error::unsolvable_constraints(
+            env.locations.locate(e.t1()),
+            env.locations.locate(e.t2()),
+            e.t1(),
+            e.t2());
         } catch (type_error::type_error& e) {
-          throw; // TODO other type errors
+          throw; // TODO catch other type errors
         }
       }
 

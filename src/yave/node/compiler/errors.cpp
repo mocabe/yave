@@ -9,13 +9,13 @@
 
 namespace yave::compile_error {
 
-  std::string no_valid_overloading::message() const
+  auto no_valid_overloading::message() const -> std::string
   {
     return fmt::format(
       "No valid overloading: socket={}", to_string(m_socket.id()));
   }
 
-  std::string type_missmatch::message() const
+  auto type_missmatch::message() const -> std::string
   {
     return fmt::format(
       "Type missmatch: expected={} s={}, provided={} s={}",
@@ -25,7 +25,17 @@ namespace yave::compile_error {
       to_string(m_socket_provided.id()));
   }
 
-  std::string unexpected_error::message() const
+  auto unsolvable_constraints::message() const -> std::string
+  {
+    return fmt::format(
+      "Unsolvable constraint: t1={}, s1={}, t2={}, s2={}",
+      to_string(m_t1),
+      to_string(m_s1.id()),
+      to_string(m_t2),
+      to_string(m_s2.id()));
+  }
+
+  auto unexpected_error::message() const -> std::string
   {
     return fmt::format(
       "Unexpected compile error occured: socket={}, msg = {}",
