@@ -37,6 +37,9 @@ namespace yave {
     [[nodiscard]] auto execute(const frame_demand& frame)
       -> object_ptr<const Object>;
 
+    /// Clone.
+    [[nodiscard]] auto clone() const -> executable;
+
   private:
     object_ptr<const Object> m_obj;
     object_ptr<const Type> m_type;

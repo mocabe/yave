@@ -80,9 +80,12 @@ namespace yave::editor {
       return m_compile_errors;
     }
 
-    auto get_result()
+    auto get_result() const -> std::optional<executable>
     {
-      return std::move(m_result);
+      if (m_result)
+        return m_result->clone();
+      else
+        return std::nullopt;
     }
   };
 } // namespace yave::editor

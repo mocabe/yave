@@ -46,4 +46,9 @@ namespace yave {
   {
     return eval(m_obj << make_object<FrameDemand>(demand));
   }
+
+  auto executable::clone() const -> executable
+  {
+    return {copy_apply_graph(m_obj), m_type};
+  }
 }
