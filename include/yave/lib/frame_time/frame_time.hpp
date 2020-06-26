@@ -10,12 +10,6 @@
 namespace yave {
 
   /// Data type to represent frame time to render.
-  struct frame_time
-  {
-    /// Time point of frame.
-    yave::time time_point;
-    /// Duration of frame to render.
-    yave::time duration;
-  };
+  using frame_time = yave::time;
 
 } // namespace yave

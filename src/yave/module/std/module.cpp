@@ -19,7 +19,7 @@
 #include <yave/module/std/logic/if.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
 #include <yave/module/std/render/frame.hpp>
-#include <yave/module/std/time/set_time.hpp>
+#include <yave/module/std/time/retime.hpp>
 #include <yave/module/std/time/time.hpp>
 #include <yave/module/std/transform/rotate.hpp>
 #include <yave/module/std/transform/translate.hpp>
@@ -145,7 +145,9 @@ namespace yave::modules::_std {
             get_node_declaration<node::Bool>(),
             get_node_declaration<node::String>(),
             get_node_declaration<node::Frame>(),
-            get_node_declaration<node::SetTime>(),
+            get_node_declaration<node::ReTime>(),
+            get_node_declaration<node::DelayTime>(),
+            get_node_declaration<node::ScaleTime>(),
             get_node_declaration<node::Time>(),
             get_node_declaration<node::Translate>(),
             get_node_declaration<node::Rotate>(),
@@ -192,7 +194,9 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Bool, _std::tag>());
     add(yave::get_node_definitions<node::String, _std::tag>());
     add(yave::get_node_definitions<node::Time, _std::tag>());
-    add(yave::get_node_definitions<node::SetTime, _std::tag>());
+    add(yave::get_node_definitions<node::ReTime, _std::tag>());
+    add(yave::get_node_definitions<node::DelayTime, _std::tag>());
+    add(yave::get_node_definitions<node::ScaleTime, _std::tag>());
     add(yave::get_node_definitions<node::Mat4Rotate, _std::tag>());
     add(yave::get_node_definitions<node::Mat4RotateX, _std::tag>());
     add(yave::get_node_definitions<node::Mat4RotateY, _std::tag>());
