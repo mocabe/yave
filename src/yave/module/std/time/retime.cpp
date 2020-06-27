@@ -71,9 +71,13 @@ namespace yave {
     {
       return_type code() const
       {
-        auto fd = eval_arg<2>();
-        auto t  = eval(arg<1>() << fd);
-        return arg<0>() << make_object<FrameDemand>(*t + fd->time);
+        auto fd    = eval_arg<2>();
+        auto delay = eval(arg<1>() << fd);
+
+        // t - delay
+        auto delayed = fd->time - *delay;
+
+        return arg<0>() << make_object<FrameDemand>(delayed);
       }
     };
 
