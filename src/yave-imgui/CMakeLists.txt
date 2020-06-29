@@ -6,6 +6,9 @@ add_executable(yave-imgui
   node_window.cpp
   render_view_window.cpp
   node_window_drawables.cpp
+  basic_node_drawer.cpp
+  basic_socket_drawer.cpp
+  basic_connection_drawer.cpp
   layout.cpp
   main.cpp
 )
