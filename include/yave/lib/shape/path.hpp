@@ -62,6 +62,8 @@ namespace yave {
     [[nodiscard]] bool closed() const;
     /// Empty?
     [[nodiscard]] bool empty() const;
+    /// Size
+    [[nodiscard]] auto size() const -> size_t;
 
   public:
     /// Line

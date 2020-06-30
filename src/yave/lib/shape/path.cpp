@@ -44,6 +44,11 @@ namespace yave {
     return m_points.empty();
   }
 
+  auto path::size() const -> size_t
+  {
+    return m_points.size();
+  }
+
   void path::line(const fvec2& p)
   {
     add_path_point(m_points, m_commands, p, path_cmd::move);
