@@ -3,6 +3,7 @@
 add_library(yave-lib-shape 
   path.cpp
   shape.cpp
+  circle.cpp
 )
 
 add_library(yave::lib::shape ALIAS yave-lib-shape)
