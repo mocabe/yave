@@ -37,9 +37,12 @@ namespace yave::editor {
     /// execute thread ref
     execute_thread* m_thread_ptr = nullptr;
     /// time to execute
-    time m_time;
+    yave::time m_time;
     /// execution result
     object_ptr<const FrameBuffer> m_result;
+    /// timestamp
+    std::chrono::steady_clock::time_point m_timestamp =
+      std::chrono::steady_clock::now();
 
   public:
     execute_thread_interface()                                = default;
@@ -70,6 +73,11 @@ namespace yave::editor {
     void set_time(const yave::time& newtime)
     {
       m_time = newtime;
+    }
+
+    auto& timestamp() const
+    {
+      return m_timestamp;
     }
 
     auto get_result() const -> const frame_buffer*
