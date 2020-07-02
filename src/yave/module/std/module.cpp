@@ -197,11 +197,11 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::ReTime, _std::tag>());
     add(yave::get_node_definitions<node::DelayTime, _std::tag>());
     add(yave::get_node_definitions<node::ScaleTime, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4Rotate, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4RotateX, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4RotateY, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4RotateZ, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4Translate, _std::tag>());
+    add(yave::get_node_definitions<node::Rotate, _std::geometry::tag>());
+    add(yave::get_node_definitions<node::RotateX, _std::geometry::tag>());
+    add(yave::get_node_definitions<node::RotateY, _std::geometry::tag>());
+    add(yave::get_node_definitions<node::RotateZ, _std::geometry::tag>());
+    add(yave::get_node_definitions<node::Translate, _std::geometry::tag>());
 
     return ret;
   }
