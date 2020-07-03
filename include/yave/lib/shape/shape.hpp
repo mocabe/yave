@@ -63,13 +63,14 @@ namespace yave {
 
   public:
     /// transform
+    /// \requires `mat` is valid transformation matrix
     void transform(const fmat3& mat);
     /// translate
     void translate(float x, float y);
     /// rotate around some point
     void rotate(float degree, const fvec2& center = {0, 0});
     /// scale
-    void scale(float sx, float sy);
+    void scale(float sx, float sy, const fvec2& center = {0, 0});
   };
 
   /// Merge two shapes

@@ -5,6 +5,7 @@
 
 #include <yave/lib/shape/shape.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
+#include <glm/gtc/constants.hpp>
 
 namespace yave {
 
@@ -23,10 +24,7 @@ namespace yave {
   {
     auto transform_point = [&](auto& p) {
       auto v = m_transform * fvec3(p, 1.f);
-      if (v.z == 0.f)
-        p = {0, 0};
-      else
-        p = {v.x / v.z, v.y / v.z};
+      return fvec2(v.x, v.y);
     };
 
     for (auto&& path : m_paths)
@@ -51,13 +49,17 @@ namespace yave {
     auto e   = glm::mat3x3(1.f);
     auto t1  = fmat3(glm::translate(e, -center));
     auto t2  = fmat3(glm::translate(e, +center));
-    auto rot = fmat3(glm::rotate(e, degree));
+    auto rot = fmat3(glm::rotate(e, degree / 180 * glm::pi<float>()));
     transform(t2 * rot * t1);
   }
 
-  void shape::scale(float sx, float sy)
+  void shape::scale(float sx, float sy, const fvec2& center)
   {
-    transform(fmat3(glm::scale(glm::mat3x3(1.f), glm::vec2(sx, sy))));
+    auto e  = glm::mat3x3(1.f);
+    auto t1 = fmat3(glm::translate(e, -center));
+    auto t2 = fmat3(glm::translate(e, +center));
+    auto s  = fmat3(glm::scale(glm::mat3x3(1.f), glm::vec2(sx, sy)));
+    transform(t2 * s * t1);
   }
 
   auto merge(const shape& s1, const shape& s2) -> shape
