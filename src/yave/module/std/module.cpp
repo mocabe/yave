@@ -23,6 +23,9 @@
 #include <yave/module/std/time/time.hpp>
 #include <yave/module/std/transform/rotate.hpp>
 #include <yave/module/std/transform/translate.hpp>
+#include <yave/module/std/shape/circle.hpp>
+#include <yave/module/std/shape/draw.hpp>
+#include <yave/module/std/shape/transform.hpp>
 
 #include <yave/lib/vulkan/offscreen_renderer_2D.hpp>
 #include <yave/support/log.hpp>
@@ -153,7 +156,12 @@ namespace yave::modules::_std {
             get_node_declaration<node::Rotate>(),
             get_node_declaration<node::RotateX>(),
             get_node_declaration<node::RotateY>(),
-            get_node_declaration<node::RotateZ>()};
+            get_node_declaration<node::RotateZ>(),
+            get_node_declaration<node::CircleShape>(),
+            get_node_declaration<node::DrawShape>(fmngr),
+            get_node_declaration<node::ShapeTranslate>(),
+            get_node_declaration<node::ShapeRotate>(),
+            get_node_declaration<node::ShapeScale>()};
   }
 
   auto module::get_node_definitions() const -> std::vector<node_definition>
@@ -197,11 +205,16 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::ReTime, _std::tag>());
     add(yave::get_node_definitions<node::DelayTime, _std::tag>());
     add(yave::get_node_definitions<node::ScaleTime, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4Rotate, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4RotateX, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4RotateY, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4RotateZ, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4Translate, _std::tag>());
+    add(yave::get_node_definitions<node::Rotate, _std::geometry::tag>());
+    add(yave::get_node_definitions<node::RotateX, _std::geometry::tag>());
+    add(yave::get_node_definitions<node::RotateY, _std::geometry::tag>());
+    add(yave::get_node_definitions<node::RotateZ, _std::geometry::tag>());
+    add(yave::get_node_definitions<node::Translate, _std::geometry::tag>());
+    add(yave::get_node_definitions<node::CircleShape, _std::tag>());
+    add(yave::get_node_definitions<node::DrawShape, _std::tag>(fmngr));
+    add(yave::get_node_definitions<node::ShapeTranslate, _std::tag>());
+    add(yave::get_node_definitions<node::ShapeRotate, _std::tag>());
+    add(yave::get_node_definitions<node::ShapeScale, _std::tag>());
 
     return ret;
   }

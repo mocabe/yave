@@ -20,13 +20,15 @@ namespace yave::editor {
     yave::imgui::imgui_context& imgui_ctx;
 
     const char* res_tex_name = "render_view_res";
-    const char* bg_tex_name = "render_view_bg";
+    const char* bg_tex_name  = "render_view_bg";
 
     uint32_t width, height;
     image_format frame_format;
 
     ImVec2 scroll = {0, 0};
     float scale   = 1.f;
+
+    std::chrono::steady_clock::time_point last_exec_time;
 
   public:
     render_view_window(yave::imgui::imgui_context& imctx);

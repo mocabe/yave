@@ -22,36 +22,6 @@ namespace yave {
       "Mat4", "/std/geometry", "4x4 Matrix", {}, {"value"});
   }
 
-  auto node_declaration_traits<node::Mat4Rotate>::get_node_declaration()
-    -> node_declaration
-  {
-    return yave::get_node_declaration<node::Rotate>();
-  }
-
-  auto node_declaration_traits<node::Mat4RotateX>::get_node_declaration()
-    -> node_declaration
-  {
-    return yave::get_node_declaration<node::RotateX>();
-  }
-
-  auto node_declaration_traits<node::Mat4RotateY>::get_node_declaration()
-    -> node_declaration
-  {
-    return yave::get_node_declaration<node::RotateY>();
-  }
-
-  auto node_declaration_traits<node::Mat4RotateZ>::get_node_declaration()
-    -> node_declaration
-  {
-    return yave::get_node_declaration<node::RotateZ>();
-  }
-
-  auto node_declaration_traits<node::Mat4Translate>::get_node_declaration()
-    -> node_declaration
-  {
-    return yave::get_node_declaration<node::Translate>();
-  }
-
   namespace modules::_std::geometry {
 
     // Mat4 constructor
@@ -146,10 +116,10 @@ namespace yave {
       info.description())};
   }
 
-  auto node_definition_traits<node::Mat4Rotate, modules::_std::tag>::
+  auto node_definition_traits<node::Rotate, modules::_std::geometry::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Mat4Rotate>();
+    auto info = get_node_declaration<node::Rotate>();
 
     return {node_definition(
       info.qualified_name(),
@@ -158,10 +128,10 @@ namespace yave {
       info.description())};
   }
 
-  auto node_definition_traits<node::Mat4RotateX, modules::_std::tag>::
+  auto node_definition_traits<node::RotateX, modules::_std::geometry::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Mat4RotateX>();
+    auto info = get_node_declaration<node::RotateX>();
 
     return {node_definition(
       info.qualified_name(),
@@ -170,10 +140,10 @@ namespace yave {
       info.description())};
   }
 
-  auto node_definition_traits<node::Mat4RotateY, modules::_std::tag>::
+  auto node_definition_traits<node::RotateY, modules::_std::geometry::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Mat4RotateY>();
+    auto info = get_node_declaration<node::RotateY>();
 
     return {node_definition(
       info.qualified_name(),
@@ -182,10 +152,10 @@ namespace yave {
       info.description())};
   }
 
-  auto node_definition_traits<node::Mat4RotateZ, modules::_std::tag>::
+  auto node_definition_traits<node::RotateZ, modules::_std::geometry::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Mat4RotateZ>();
+    auto info = get_node_declaration<node::RotateZ>();
 
     return {node_definition(
       info.qualified_name(),
@@ -194,10 +164,10 @@ namespace yave {
       info.description())};
   }
 
-  auto node_definition_traits<node::Mat4Translate, modules::_std::tag>::
+  auto node_definition_traits<node::Translate, modules::_std::geometry::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Mat4Translate>();
+    auto info = get_node_declaration<node::Translate>();
 
     return {node_definition(
       info.qualified_name(),

@@ -60,10 +60,9 @@ namespace yave::editor {
 
               // get compiled result
               auto data = [&] {
-                auto lck          = data_ctx.lock();
-                auto& executor    = data_ctx.data().executor;
-                auto& compiler    = data_ctx.data().compiler;
-                executor.m_result = nullptr;
+                auto lck       = data_ctx.lock();
+                auto& executor = data_ctx.data().executor;
+                auto& compiler = data_ctx.data().compiler;
                 return std::make_tuple(compiler.get_result(), executor.time());
               }();
 
@@ -92,6 +91,7 @@ namespace yave::editor {
                 auto lck          = data_ctx.lock();
                 auto& executor    = data_ctx.data().executor;
                 executor.m_result = value_cast<FrameBuffer>(std::move(result));
+                executor.m_timestamp = std::chrono::steady_clock::now();
               }
             }
           }

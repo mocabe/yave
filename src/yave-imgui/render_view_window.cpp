@@ -36,10 +36,14 @@ namespace yave::editor {
     height       = data.scene_config.height();
     frame_format = data.scene_config.frame_format();
 
+    // no update
+    if (data.executor.timestamp() <= last_exec_time)
+      return;
+
     // take execution result
     if (auto fb = data.executor.get_result()) {
 
-      const_image_view view(width, height, frame_format);
+      auto view = fb->const_view();
 
       if (!imgui_ctx.find_texture(res_tex_name))
         (void)imgui_ctx.add_texture(
@@ -47,12 +51,12 @@ namespace yave::editor {
           vk::Extent2D(view.width(), view.height()),
           view.byte_size(),
           vk::Format::eR32G32B32A32Sfloat,
-          (const uint8_t*)fb->const_view().data());
+          (const uint8_t*)view.data());
       else
         imgui_ctx.update_texture(
-          res_tex_name,
-          (const uint8_t*)fb->const_view().data(),
-          view.byte_size());
+          res_tex_name, (const uint8_t*)view.data(), view.byte_size());
+
+      last_exec_time = data.executor.timestamp();
     }
   }
 
