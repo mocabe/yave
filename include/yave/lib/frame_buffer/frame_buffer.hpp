@@ -63,6 +63,48 @@ namespace yave {
       return m_pool;
     }
 
+    /// Bind memory data
+    void bind()
+    {
+      m_pool->bind(m_id);
+    }
+
+    /// Unbind memory data
+    void unbind()
+    {
+      m_pool->unbind(m_id);
+    }
+
+    /// Get data pointer
+    [[nodiscard]] auto data() const -> const std::byte*
+    {
+      return m_pool->get_data(m_id);
+    }
+
+    /// Get data pointer
+    [[nodiscard]] auto data() -> std::byte*
+    {
+      return m_pool->get_data(m_id);
+    }
+
+    /// Get width
+    [[nodiscard]] auto width() const
+    {
+      return m_pool->width();
+    }
+
+    /// Get height
+    [[nodiscard]] auto height() const
+    {
+      return m_pool->height();
+    }
+
+    /// Get format
+    [[nodiscard]] auto format() const
+    {
+      return m_pool->format();
+    }
+
     /// Get image view.
     [[nodiscard]] auto mutable_view() -> mutable_image_view
     {

@@ -23,6 +23,8 @@ namespace yave {
       void (*ref)(void*, uint64_t) noexcept,
       void (*unref)(void*, uint64_t) noexcept,
       auto (*get_use_count)(void* handle, uint64_t id) noexcept->uint64_t,
+      void (*bind)(void*, uint64_t) noexcept,
+      void (*unbind)(void*, uint64_t) noexcept,
       auto (*get_data)(void*, uint64_t) noexcept->std::byte*,
       auto (*get_width)(void*) noexcept->uint32_t,
       auto (*get_height)(void*) noexcept->uint32_t,
@@ -34,6 +36,8 @@ namespace yave {
       , m_ref {ref}
       , m_unref {unref}
       , m_get_use_count {get_use_count}
+      , m_bind {bind}
+      , m_unbind {unbind}
       , m_get_data {get_data}
       , m_get_format {get_format}
       , m_get_width {get_width}
@@ -81,6 +85,18 @@ namespace yave {
     [[nodiscard]] auto get_use_count(uint64_t id) const noexcept
     {
       return m_get_use_count(m_handle, id);
+    }
+
+    /// Bind memory
+    [[nodiscard]] auto bind(uint64_t id) const noexcept
+    {
+      return m_bind(m_handle, id);
+    }
+
+    /// Unbind memory
+    [[nodiscard]] auto unbind(uint64_t id) const noexcept
+    {
+      return m_unbind(m_handle, id);
     }
 
     /// Access to data of buffer
@@ -136,9 +152,16 @@ namespace yave {
     /// \note id should be valid.
     auto (*m_get_use_count)(void* handle, uint64_t id) noexcept -> uint64_t;
 
-    /// Get data pointer.
+    /// Bind pixel data to host memory, if not already binded.
+    void (*m_bind)(void* handle, uint64_t id) noexcept;
+
+    /// Unbind pixel data from host memory, if it is currently binded.
+    void (*m_unbind)(void* handle, uint64_t id) noexcept;
+
+    /// Get host visible data pointer.
     /// \note id should be valid.
-    auto (*m_get_data)(void* handle, uint64_t) noexcept -> std::byte*;
+    /// \returns nullptr when pixel data is not binded to host memory.
+    auto (*m_get_data)(void* handle, uint64_t id) noexcept -> std::byte*;
 
     /// Get format of frame buffer.
     /// \note Should always return same format.

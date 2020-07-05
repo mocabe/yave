@@ -30,6 +30,8 @@ namespace yave {
       const uint32_t id;
       // image representation
       frame_image_t image;
+      // bind state
+      bool bind;
 
       frame_table(
         uint32_t id,
@@ -39,6 +41,7 @@ namespace yave {
         : refcount {1}
         , id {id}
         , image {width, height, 0, mr}
+        , bind {false}
       {
       }
 
@@ -46,6 +49,7 @@ namespace yave {
         : refcount {1}
         , id {id}
         , image {other.image}
+        , bind {false}
       {
       }
     };
@@ -107,6 +111,8 @@ namespace yave {
         [](void* handle, uint64_t id) noexcept -> void         { return ((impl*)handle)->ref({id}); },
         [](void* handle, uint64_t id) noexcept -> void         { return ((impl*)handle)->unref({id}); },
         [](void* handle, uint64_t id) noexcept -> uint64_t     { return ((impl*)handle)->use_count({id}); },
+        [](void* handle, uint64_t id) noexcept -> void         { return ((impl*)handle)->bind({id}); },
+        [](void* handle, uint64_t id) noexcept -> void         { return ((impl*)handle)->unbind({id}); },
         [](void* handle, uint64_t id) noexcept -> std::byte*   { return ((impl*)handle)->data({id}); },
         [](void* handle)              noexcept -> uint32_t     { return ((impl*)handle)->width(); },
         [](void* handle)              noexcept -> uint32_t     { return ((impl*)handle)->height(); },
@@ -189,10 +195,28 @@ namespace yave {
       return 0;
     }
 
+    void bind(uid id) noexcept
+    try {
+      auto ptr = id_to_table_ptr(id);
+      if (!ptr->bind)
+        ptr->bind = true;
+    } catch (...) {
+    }
+
+    void unbind(uid id) noexcept
+    try {
+      auto ptr = id_to_table_ptr(id);
+      if (ptr->bind)
+        ptr->bind = false;
+    } catch (...) {
+    }
+
     auto data(uid id) noexcept -> std::byte*
     try {
       auto ptr = id_to_table_ptr(id);
-      return reinterpret_cast<std::byte*>(view(ptr->image).row_begin(0));
+      if (ptr->bind)
+        return reinterpret_cast<std::byte*>(view(ptr->image).row_begin(0));
+      return nullptr;
     } catch (...) {
       return nullptr;
     }
