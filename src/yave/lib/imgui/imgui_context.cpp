@@ -475,15 +475,32 @@ namespace {
   }
 
   auto createImGuiDescriptorSet(
+    const vk::ImageView& view,
     const vk::DescriptorPool& pool,
     const vk::DescriptorSetLayout& layout,
+    const vk::DescriptorType type,
     const vk::Device& device) -> vk::UniqueDescriptorSet
   {
-    vk::DescriptorSetAllocateInfo info;
-    info.descriptorPool     = pool;
-    info.descriptorSetCount = 1;
-    info.pSetLayouts        = &layout;
-    return std::move(device.allocateDescriptorSetsUnique(info).front());
+    vk::DescriptorSetAllocateInfo dscInfo;
+    dscInfo.descriptorPool     = pool;
+    dscInfo.descriptorSetCount = 1;
+    dscInfo.pSetLayouts        = &layout;
+
+    auto set = std::move(device.allocateDescriptorSetsUnique(dscInfo).front());
+
+    vk::DescriptorImageInfo imgInfo;
+    imgInfo.imageView   = view;
+    imgInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+
+    vk::WriteDescriptorSet write;
+    write.dstSet          = set.get();
+    write.descriptorCount = 1;
+    write.descriptorType  = type;
+    write.pImageInfo      = &imgInfo;
+
+    device.updateDescriptorSets(write, {});
+
+    return set;
   }
 
   template <class BufferT>
@@ -820,8 +837,21 @@ namespace yave::imgui {
     m_memory   = std::move(mem);
   }
 
-  // fwd
-  class ImGuiTextureDataHolder;
+  // texture binding data
+  struct ImGuiTextureBinding
+  {
+    ImGuiTextureBinding(vk::UniqueDescriptorSet ds)
+      : dsc_set {std::move(ds)}
+    {
+    }
+
+    vk::UniqueDescriptorSet dsc_set;
+
+    auto get_texture_id()
+    {
+      return toImTextureId(&dsc_set.get());
+    }
+  };
 
   class imgui_context::impl
   {
@@ -854,7 +884,7 @@ namespace yave::imgui {
 
   public:
     vulkan::staging_buffer texture_staging;
-    std::map<std::string, std::unique_ptr<ImGuiTextureDataHolder>> textures;
+    std::map<vk::Image, std::unique_ptr<ImGuiTextureBinding>> texture_bindings;
 
   public:
     uint32_t fps;
@@ -878,18 +908,21 @@ namespace yave::imgui {
     void render();
 
   public:
-    auto add_texture(
-      const std::string& name,
-      const vk::Extent2D& extent,
-      const vk::DeviceSize& byte_size,
-      const vk::Format& format,
-      const uint8_t* data) -> ImTextureID;
-    auto find_texture(const std::string& name) const -> ImTextureID;
-    void update_texture(
-      const std::string& name,
+    auto create_texture(const vk::Extent2D& extent, const vk::Format& format)
+      -> vulkan::texture_data;
+
+    void write_texture(
+      vulkan::texture_data& tex,
       const uint8_t* srcData,
       const vk::DeviceSize& srcSize);
-    void remove_texture(const std::string& name);
+
+    void clear_texture(
+      vulkan::texture_data& tex,
+      const vk::ClearColorValue& col);
+
+  public:
+    auto bind_texture(const vulkan::texture_data& tex) -> ImTextureID;
+    void unbind_texture(const vulkan::texture_data& tex);
   };
 
   imgui_context::impl::impl(
@@ -985,20 +1018,11 @@ namespace yave::imgui {
     /* create default descriptor set (font texture) */
     {
       descriptorSet = createImGuiDescriptorSet(
-        descriptorPool.get(), descriptorSetLayout.get(), windowCtx.device());
-
-      vk::DescriptorImageInfo info;
-      info.sampler     = fontSampler.get();
-      info.imageView   = fontImageView.get();
-      info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-
-      vk::WriteDescriptorSet write;
-      write.dstSet          = descriptorSet.get();
-      write.descriptorCount = 1;
-      write.descriptorType  = vk::DescriptorType::eCombinedImageSampler;
-      write.pImageInfo      = &info;
-
-      windowCtx.device().updateDescriptorSets(write, {});
+        fontImageView.get(),
+        descriptorPool.get(),
+        descriptorSetLayout.get(),
+        vk::DescriptorType::eCombinedImageSampler,
+        windowCtx.device());
 
       // set font texture ID
       ImGui::GetIO().Fonts->TexID = toImTextureId(&descriptorSet.get());
@@ -1159,34 +1183,10 @@ namespace yave::imgui {
     }
   }
 
-  class ImGuiTextureDataHolder
-  {
-  public:
-    ImGuiTextureDataHolder(vulkan::texture_data&& tex)
-      : tex_data {std::move(tex)} {};
-
-    vulkan::texture_data tex_data;
-
-    ImTextureID get_texture()
-    {
-      return toImTextureId(&tex_data.dsc_set.get());
-    }
-  };
-
-  auto imgui_context::impl::add_texture(
-    const std::string& name,
+  auto imgui_context::impl::create_texture(
     const vk::Extent2D& extent,
-    const vk::DeviceSize& byte_size,
-    const vk::Format& format,
-    const uint8_t* data) -> ImTextureID
+    const vk::Format& format) -> vulkan::texture_data
   {
-    assert(data);
-
-    if (textures.find(name) != textures.end()) {
-      Error(g_logger, "Failed to add texture data: Texute name already used");
-      return ImTextureID();
-    }
-
     auto device         = windowCtx.device();
     auto physicalDevice = vulkanCtx.physical_device();
     auto commandPool    = windowCtx.command_pool();
@@ -1202,61 +1202,17 @@ namespace yave::imgui {
       format,
       queue,
       commandPool,
-      descPool,
-      descLayout,
-      vk::DescriptorType::eCombinedImageSampler,
       device,
       physicalDevice);
 
-    vulkan::store_texture_data(
-      staging,
-      texture,
-      (const std::byte*)data,
-      byte_size,
-      queue,
-      commandPool,
-      device,
-      physicalDevice);
-
-    auto texData = std::make_unique<ImGuiTextureDataHolder>(std::move(texture));
-
-    auto [iter, succ] = textures.emplace(name, std::move(texData));
-
-    assert(succ);
-
-    Info(
-      g_logger,
-      "Added new texture \"{}\": width={}, height={}",
-      name,
-      extent.width,
-      extent.height);
-
-    return iter->second->get_texture();
+    return texture;
   }
 
-  auto imgui_context::impl::find_texture(const std::string& name) const
-    -> ImTextureID
-  {
-    auto iter = textures.find(name);
-
-    if (iter == textures.end())
-      return ImTextureID();
-
-    return iter->second->get_texture();
-  }
-
-  void imgui_context::impl::update_texture(
-    const std::string& name,
+  void imgui_context::impl::write_texture(
+    vulkan::texture_data& tex,
     const uint8_t* srcData,
     const vk::DeviceSize& srcSize)
   {
-    auto iter = textures.find(name);
-
-    if (iter == textures.end()) {
-      Error(g_logger, "Failed to update texture: no such texture");
-      return;
-    }
-
     auto device         = windowCtx.device();
     auto physicalDevice = vulkanCtx.physical_device();
     auto commandPool    = windowCtx.command_pool();
@@ -1266,7 +1222,7 @@ namespace yave::imgui {
 
     vulkan::store_texture_data(
       staging,
-      iter->second->tex_data,
+      tex,
       (const std::byte*)srcData,
       srcSize,
       queue,
@@ -1275,16 +1231,45 @@ namespace yave::imgui {
       physicalDevice);
   }
 
-  void imgui_context::impl::remove_texture(const std::string& name)
+  void imgui_context::impl::clear_texture(
+    vulkan::texture_data& tex,
+    const vk::ClearColorValue& col)
   {
-    auto iter = textures.find(name);
+    auto device         = windowCtx.device();
+    auto physicalDevice = vulkanCtx.physical_device();
+    auto commandPool    = windowCtx.command_pool();
+    auto queue          = windowCtx.graphics_queue();
 
-    if (iter == textures.end())
-      return;
+    vulkan::clear_texture_data(
+      tex, col, queue, commandPool, device, physicalDevice);
+  }
 
-    textures.erase(iter);
+  auto imgui_context::impl::bind_texture(const vulkan::texture_data& tex)
+    -> ImTextureID
+  {
+    assert(tex.image.get());
 
-    Info(g_logger, "Destroyed texture \"{}\"", name);
+    auto view      = tex.view.get();
+    auto dscPool   = descriptorPool.get();
+    auto dscLayout = descriptorSetLayout.get();
+    auto dscType   = vk::DescriptorType::eCombinedImageSampler;
+    auto device    = windowCtx.device();
+
+    auto bind = std::make_unique<ImGuiTextureBinding>(
+      createImGuiDescriptorSet(view, dscPool, dscLayout, dscType, device));
+
+    auto [it, succ] =
+      texture_bindings.emplace(tex.image.get(), std::move(bind));
+
+    if (!succ)
+      throw std::runtime_error("Texture alread binded to imgui_context");
+
+    return it->second->get_texture_id();
+  }
+
+  void imgui_context::impl::unbind_texture(const vulkan::texture_data& tex)
+  {
+    texture_bindings.erase(tex.image.get());
   }
 
   auto imgui_context::_init_flags() noexcept -> init_flags
@@ -1422,32 +1407,37 @@ namespace yave::imgui {
     return m_pimpl->fontImageView.get();
   }
 
-  auto imgui_context::add_texture(
-    const std::string& name,
+  auto imgui_context::create_texture(
     const vk::Extent2D& extent,
-    const vk::DeviceSize& byte_size,
-    const vk::Format& format,
-    const uint8_t* data) -> ImTextureID
+    const vk::Format& format) -> vulkan::texture_data
   {
-    return m_pimpl->add_texture(name, extent, byte_size, format, data);
+    return m_pimpl->create_texture(extent, format);
   }
 
-  auto imgui_context::find_texture(const std::string& name) const -> ImTextureID
-  {
-    return m_pimpl->find_texture(name);
-  }
-
-  void imgui_context::update_texture(
-    const std::string& name,
+  void imgui_context::write_texture(
+    vulkan::texture_data& tex,
     const uint8_t* srcData,
     const vk::DeviceSize& srcSize)
   {
-    m_pimpl->update_texture(name, srcData, srcSize);
+    m_pimpl->write_texture(tex, srcData, srcSize);
   }
 
-  void imgui_context::remove_texture(const std::string& name)
+  void imgui_context::clear_texture(
+    vulkan::texture_data& tex,
+    const vk::ClearColorValue& color)
   {
-    m_pimpl->remove_texture(name);
+    m_pimpl->clear_texture(tex, color);
+  }
+
+  auto imgui_context::bind_texture(const vulkan::texture_data& tex)
+    -> ImTextureID
+  {
+    return m_pimpl->bind_texture(tex);
+  }
+
+  void imgui_context::unbind_texture(const vulkan::texture_data& tex)
+  {
+    return m_pimpl->unbind_texture(tex);
   }
 
   auto imgui::imgui_context::get_clear_color() const -> std::array<float, 4>

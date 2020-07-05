@@ -7,6 +7,7 @@
 
 #include <yave/lib/vulkan/vulkan_context.hpp>
 #include <yave/lib/vulkan/window_context.hpp>
+#include <yave/lib/vulkan/texture.hpp>
 #include <yave/support/enum_flag.hpp>
 
 #include <imgui.h>
@@ -74,27 +75,30 @@ namespace yave::imgui {
     [[nodiscard]] auto font_image() const -> vk::Image;
     [[nodiscard]] auto font_image_view() const -> vk::ImageView;
 
-  public: /* texture management */
+  public: /* texture utility */
     /// Add texture data
-    [[nodiscard]] auto add_texture(
-      const std::string& name,
+    [[nodiscard]] auto create_texture(
       const vk::Extent2D& extent,
-      const vk::DeviceSize& byte_size,
-      const vk::Format& format,
-      const uint8_t* data) -> ImTextureID;
-
-    /// Find texture data from name
-    [[nodiscard]] auto find_texture(const std::string& name) const
-      -> ImTextureID;
+      const vk::Format& format) -> vulkan::texture_data;
 
     /// Update texture data
-    void update_texture(
-      const std::string&,
+    void write_texture(
+      vulkan::texture_data& tex,
       const uint8_t* srcData,
       const vk::DeviceSize& srcSize);
 
-    /// Remove texture data
-    void remove_texture(const std::string& name);
+    /// Clear texture
+    void clear_texture(
+      vulkan::texture_data& tex,
+      const vk::ClearColorValue& color);
+
+  public: /* texture management */
+    /// Bind texture to context.
+    /// User should manually unbind textures.
+    [[nodiscard]] auto bind_texture(const vulkan::texture_data& tex)
+      -> ImTextureID;
+    /// Unbind texture to context
+    void unbind_texture(const vulkan::texture_data& tex);
 
   public: /* misc */
     /// Get clear color

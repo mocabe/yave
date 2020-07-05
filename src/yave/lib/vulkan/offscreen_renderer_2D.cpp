@@ -12,6 +12,8 @@
 #include <yave/support/log.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 
+#include <map>
+
 YAVE_DECL_G_LOGGER(composition_pipeline_2D)
 
 namespace {
@@ -109,6 +111,35 @@ namespace {
     info.pPoolSizes    = poolSizes.data();
 
     return device.createDescriptorPoolUnique(info);
+  }
+
+  auto createDescriptorSet(
+    const vk::ImageView& view,
+    const vk::DescriptorPool& pool,
+    const vk::DescriptorSetLayout& layout,
+    const vk::DescriptorType type,
+    const vk::Device& device) -> vk::UniqueDescriptorSet
+  {
+    vk::DescriptorSetAllocateInfo dscInfo;
+    dscInfo.descriptorPool     = pool;
+    dscInfo.descriptorSetCount = 1;
+    dscInfo.pSetLayouts        = &layout;
+
+    auto set = std::move(device.allocateDescriptorSetsUnique(dscInfo).front());
+
+    vk::DescriptorImageInfo imgInfo;
+    imgInfo.imageView   = view;
+    imgInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+
+    vk::WriteDescriptorSet write;
+    write.dstSet          = set.get();
+    write.descriptorCount = 1;
+    write.descriptorType  = type;
+    write.pImageInfo      = &imgInfo;
+
+    device.updateDescriptorSets(write, {});
+
+    return set;
   }
 
   auto createPipelineCache(const vk::Device& device)
@@ -485,8 +516,13 @@ namespace yave::vulkan {
 
   public:
     staging_buffer texture_staging;
-    texture_data default_texture;
-    std::vector<texture_data> textures;
+
+  public:
+    texture_data default_texture_data;
+    vk::UniqueDescriptorSet default_texture_dsc;
+
+  public:
+    std::map<vk::Image, vk::UniqueDescriptorSet> texture_bindings;
 
   public:
     render_buffer vtx_buff;
@@ -514,20 +550,24 @@ namespace yave::vulkan {
       pipeline              = createPipeline(render_pass.frame_extent(), render_pass.render_pass(), pipeline_cache.get(), pipeline_layout.get(), device);
       // clang-format on
 
-      default_texture = create_texture_data(
+      default_texture_data = create_texture_data(
         1,
         1,
         vk::Format::eR32G32B32A32Sfloat,
         graphicsQueue,
         commandPool,
-        descriptor_pool.get(),
-        descriptor_set_layout.get(),
-        vk::DescriptorType::eCombinedImageSampler,
         device,
         physicalDevice);
 
+      default_texture_dsc = createDescriptorSet(
+        default_texture_data.view.get(),
+        descriptor_pool.get(),
+        descriptor_set_layout.get(),
+        vk::DescriptorType::eCombinedImageSampler,
+        device);
+
       clear_texture_data(
-        default_texture,
+        default_texture_data,
         vk::ClearColorValue(std::array {1.f, 1.f, 1.f, 1.f}),
         graphicsQueue,
         commandPool,
@@ -568,7 +608,7 @@ namespace yave::vulkan {
           cmd,
           draw_data,
           viewport,
-          default_texture.dsc_set.get(),
+          default_texture_dsc.get(),
           pipeline_layout.get());
       }
       render_pass.end_pass();
@@ -576,10 +616,10 @@ namespace yave::vulkan {
 
     auto get_default_texture()
     {
-      return draw2d_tex {default_texture.dsc_set.get()};
+      return draw2d_tex {default_texture_dsc.get()};
     }
 
-    auto add_texture(const boost::gil::rgba32fc_view_t& view) -> draw2d_tex
+    auto create_texture(vk::Extent2D extent, vk::Format format) -> texture_data
     {
       auto physicalDevice = vulkan_ctx.physical_device();
       auto commandPool    = render_pass.command_pool();
@@ -587,41 +627,72 @@ namespace yave::vulkan {
       auto graphicsQueue  = offscreen_ctx.graphics_queue();
 
       auto tex = create_texture_data(
-        view.width(),
-        view.height(),
-        vk::Format::eR32G32B32A32Sfloat,
+        extent.width,
+        extent.height,
+        format,
         graphicsQueue,
         commandPool,
+        device,
+        physicalDevice);
+
+      return tex;
+    }
+
+    void write_texture(
+      vulkan::texture_data& tex,
+      const uint8_t* srcData,
+      const vk::DeviceSize& srcSize)
+    {
+      auto physicalDevice = vulkan_ctx.physical_device();
+      auto commandPool    = render_pass.command_pool();
+      auto device         = offscreen_ctx.device();
+      auto graphicsQueue  = offscreen_ctx.graphics_queue();
+
+      auto& staging = texture_staging;
+
+      vulkan::store_texture_data(
+        staging,
+        tex,
+        (const std::byte*)srcData,
+        srcSize,
+        graphicsQueue,
+        commandPool,
+        device,
+        physicalDevice);
+    }
+
+    void clear_texture(texture_data& tex, const vk::ClearColorValue& col)
+    {
+      auto physicalDevice = vulkan_ctx.physical_device();
+      auto commandPool    = render_pass.command_pool();
+      auto device         = offscreen_ctx.device();
+      auto graphicsQueue  = offscreen_ctx.graphics_queue();
+
+      vulkan::clear_texture_data(
+        tex, col, graphicsQueue, commandPool, device, physicalDevice);
+    }
+
+    auto bind_texture(const texture_data& tex)
+    {
+      auto dsc = createDescriptorSet(
+        tex.view.get(),
         descriptor_pool.get(),
         descriptor_set_layout.get(),
         vk::DescriptorType::eCombinedImageSampler,
-        device,
-        physicalDevice);
+        offscreen_ctx.device());
 
-      store_texture_data(
-        texture_staging,
-        tex,
-        (const std::byte*)view.row_begin(0),
-        view.size() * sizeof(boost::gil::rgba32f_pixel_t),
-        graphicsQueue,
-        commandPool,
-        device,
-        physicalDevice);
+      auto [it, succ] =
+        texture_bindings.emplace(tex.image.get(), std::move(dsc));
 
-      Info(g_logger, "Added texture: {},{}", view.width(), view.height());
+      if (!succ)
+        throw std::runtime_error("Failed to bind textue");
 
-      draw2d_tex ret {tex.dsc_set.get()};
-      textures.push_back(std::move(tex));
-      return ret;
+      return draw2d_tex {it->second.get()};
     }
 
-    void remove_texture(const draw2d_tex& tex)
+    void unbind_texture(const texture_data& tex)
     {
-      auto end =
-        std::remove_if(textures.begin(), textures.end(), [&](auto& td) {
-          return td.dsc_set.get() == tex.descriptor_set;
-        });
-      textures.erase(end, textures.end());
+      texture_bindings.erase(tex.image.get());
     }
   };
 
@@ -674,14 +745,38 @@ namespace yave::vulkan {
     return m_pimpl->get_default_texture();
   }
 
-  auto rgba32f_offscreen_renderer_2D::add_texture(
-    const boost::gil::rgba32fc_view_t& view) -> draw2d_tex
+  auto rgba32f_offscreen_renderer_2D::create_texture(
+    const vk::Extent2D& extent,
+    const vk::Format& format) -> vulkan::texture_data
   {
-    return m_pimpl->add_texture(view);
+    return m_pimpl->create_texture(extent, format);
   }
 
-  void rgba32f_offscreen_renderer_2D::remove_texture(const draw2d_tex& tex)
+  void rgba32f_offscreen_renderer_2D::write_texture(
+    vulkan::texture_data& tex,
+    const uint8_t* srcData,
+    const vk::DeviceSize& srcSize)
   {
-    m_pimpl->remove_texture(tex);
+    m_pimpl->write_texture(tex, srcData, srcSize);
   }
+
+  void rgba32f_offscreen_renderer_2D::clear_texture(
+    vulkan::texture_data& tex,
+    const vk::ClearColorValue& color)
+  {
+    m_pimpl->clear_texture(tex, color);
+  }
+
+  auto rgba32f_offscreen_renderer_2D::bind_texture(
+    const vulkan::texture_data& tex) -> draw2d_tex
+  {
+    return m_pimpl->bind_texture(tex);
+  }
+
+  void rgba32f_offscreen_renderer_2D::unbind_texture(
+    const vulkan::texture_data& tex)
+  {
+    m_pimpl->unbind_texture(tex);
+  }
+
 } // namespace yave::vulkan

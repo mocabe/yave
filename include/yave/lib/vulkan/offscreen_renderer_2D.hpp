@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/lib/vulkan/offscreen_render_pass.hpp>
+#include <yave/lib/vulkan/texture.hpp>
 #include <yave/lib/vulkan/draw2d.hpp>
 
 #include <glm/glm.hpp>
@@ -47,11 +48,31 @@ namespace yave::vulkan {
   public:
     /// Get default texture
     [[nodiscard]] auto default_texture() const -> draw2d_tex;
-    /// Add new texture
-    [[nodiscard]] auto add_texture(const boost::gil::rgba32fc_view_t& view)
+
+  public: /* texture utility */
+    /// Add texture data
+    [[nodiscard]] auto create_texture(
+      const vk::Extent2D& extent,
+      const vk::Format& format) -> vulkan::texture_data;
+
+    /// Update texture data
+    void write_texture(
+      vulkan::texture_data& tex,
+      const uint8_t* srcData,
+      const vk::DeviceSize& srcSize);
+
+    /// Clear texture
+    void clear_texture(
+      vulkan::texture_data& tex,
+      const vk::ClearColorValue& color);
+
+  public: /* texture management */
+    /// Bind texture to context.
+    /// User should manually unbind textures.
+    [[nodiscard]] auto bind_texture(const vulkan::texture_data& tex)
       -> draw2d_tex;
-    /// Remove texture
-    void remove_texture(const draw2d_tex& tex);
+    /// Unbind texture to context
+    void unbind_texture(const vulkan::texture_data& tex);
 
   private:
     class impl;
