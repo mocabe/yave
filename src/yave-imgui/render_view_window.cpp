@@ -35,6 +35,7 @@ namespace yave::editor {
     width        = data.scene_config.width();
     height       = data.scene_config.height();
     frame_format = data.scene_config.frame_format();
+    current_time = data.executor.time();
 
     // no update
     if (data.executor.timestamp() <= last_exec_time)
@@ -125,10 +126,19 @@ namespace yave::editor {
       ImGui::EndChild();
       ImGui::PopStyleColor();
 
-      static float f = 0.f;
+      float sec = current_time.seconds().count();
       ImGui::PushItemWidth(-1);
-      ImGui::SliderFloat("s", &f, 0, 100);
+      ImGui::SliderFloat("s", &sec, 0, 100);
       ImGui::PopItemWidth();
+
+      data_ctx.exec(
+        make_data_command([t = yave::time::seconds(sec)](auto& ctx) {
+          auto& data = ctx.data();
+          if (data.executor.time() != t) {
+            data.executor.set_time(t);
+            data.executor.notify_execute();
+          }
+        }));
 
       view_ctx.push(make_window_view_command(*this, [=](auto& w) {
         w.scroll = scroll;

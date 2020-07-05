@@ -10,6 +10,7 @@
 #include <yave/editor/view_context.hpp>
 #include <yave/lib/imgui/imgui_context.hpp>
 #include <yave/lib/image/image_format.hpp>
+#include <yave/lib/time/time.hpp>
 
 namespace yave::editor {
 
@@ -27,6 +28,8 @@ namespace yave::editor {
 
     ImVec2 scroll = {0, 0};
     float scale   = 1.f;
+
+    yave::time current_time;
 
     std::chrono::steady_clock::time_point last_exec_time;
 
