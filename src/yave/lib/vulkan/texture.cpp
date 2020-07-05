@@ -10,6 +10,8 @@ namespace yave::vulkan {
 
   namespace {
 
+    using namespace yave::vulkan;
+
     auto textureImageSubresourceRange()
     {
       vk::ImageSubresourceRange range;
@@ -70,9 +72,6 @@ namespace yave::vulkan {
     const vk::Format& format,
     const vk::Queue& cmdQueue,
     const vk::CommandPool& cmdPool,
-    const vk::DescriptorPool& dscPool,
-    const vk::DescriptorSetLayout& dscLayout,
-    const vk::DescriptorType& dscType,
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice) -> texture_data
   {
@@ -117,30 +116,7 @@ namespace yave::vulkan {
       view                  = device.createImageViewUnique(info);
     }
 
-    vk::UniqueDescriptorSet dsc;
     {
-      vk::DescriptorSetAllocateInfo info;
-      info.descriptorPool     = dscPool;
-      info.descriptorSetCount = 1;
-      info.pSetLayouts        = &dscLayout;
-      dsc = std::move(device.allocateDescriptorSetsUnique(info)[0]);
-    }
-
-    {
-      vk::DescriptorImageInfo info;
-      info.imageView   = view.get();
-      info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-
-      vk::WriteDescriptorSet write;
-      write.descriptorCount = 1;
-      write.dstSet          = dsc.get();
-      write.descriptorType  = dscType;
-      write.pImageInfo      = &info;
-      device.updateDescriptorSets(write, {});
-    }
-
-    {
-      using namespace yave::vulkan;
       auto stc = single_time_command(device, cmdQueue, cmdPool);
       auto cmd = stc.command_buffer();
 
@@ -169,14 +145,14 @@ namespace yave::vulkan {
       textureLayoutTransferDstToShaderReadOnly(cmd, image.get());
     }
 
-    return {width,
-            height,
-            format,
-            format_texel_size(format) * width * height,
-            std::move(image),
-            std::move(view),
-            std::move(memory),
-            std::move(dsc)};
+    return {
+      width,
+      height,
+      format,
+      format_texel_size(format) * width * height,
+      std::move(image),
+      std::move(view),
+      std::move(memory)};
   }
 
   void clear_texture_data(

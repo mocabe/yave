@@ -33,8 +33,6 @@ namespace yave::vulkan {
     vk::UniqueImageView view;
     /// image memory
     vk::UniqueDeviceMemory memory;
-    /// descriptor set
-    vk::UniqueDescriptorSet dsc_set;
   };
 
   /// Create texture data on GPU.
@@ -45,9 +43,6 @@ namespace yave::vulkan {
     const vk::Format& format,
     const vk::Queue& cmdQueue,
     const vk::CommandPool& cmdPool,
-    const vk::DescriptorPool& dscPool,
-    const vk::DescriptorSetLayout& dscLayout,
-    const vk::DescriptorType& dscType,
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice) -> texture_data;
 
