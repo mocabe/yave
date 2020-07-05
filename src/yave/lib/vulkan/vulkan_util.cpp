@@ -71,9 +71,6 @@ namespace yave::vulkan {
     return m_buffer.get();
   }
 
-  // -----------------------------------------
-  // find memory type
-
   auto find_memory_type_index(
     const vk::MemoryRequirements& requirements,
     const vk::MemoryPropertyFlags& properties,
@@ -108,4 +105,59 @@ namespace yave::vulkan {
         unreachable();
     }
   }
+
+  auto convert_to_blend_state(blend_operation op)
+    -> vk::PipelineColorBlendAttachmentState
+  {
+    // blending: expect premultiplied alpha
+    vk::PipelineColorBlendAttachmentState state;
+
+    state.blendEnable = true;
+    state.colorWriteMask =
+      vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
+      | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+
+    vk::BlendFactor srcFactor = vk::BlendFactor::eSrcAlpha;
+    vk::BlendFactor dstFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+
+    switch (op) {
+      case blend_operation::src:
+        srcFactor = vk::BlendFactor::eOne;
+        dstFactor = vk::BlendFactor::eZero;
+        break;
+      case blend_operation::dst:
+        srcFactor = vk::BlendFactor::eZero;
+        dstFactor = vk::BlendFactor::eOne;
+        break;
+      case blend_operation::over:
+        srcFactor = vk::BlendFactor::eSrcAlpha;
+        dstFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+        break;
+      case blend_operation::in:
+        srcFactor = vk::BlendFactor::eDstAlpha;
+        dstFactor = vk::BlendFactor::eZero;
+        break;
+      case blend_operation::out:
+        srcFactor = vk::BlendFactor::eOneMinusDstAlpha;
+        dstFactor = vk::BlendFactor::eZero;
+        break;
+      case blend_operation::add:
+        srcFactor = vk::BlendFactor::eOne;
+        dstFactor = vk::BlendFactor::eOne;
+        break;
+    }
+
+    // color components
+    state.srcColorBlendFactor = srcFactor;
+    state.dstColorBlendFactor = dstFactor;
+    state.colorBlendOp        = vk::BlendOp::eAdd;
+
+    // alpha component
+    state.srcAlphaBlendFactor = srcFactor;
+    state.dstAlphaBlendFactor = dstFactor;
+    state.alphaBlendOp        = vk::BlendOp::eAdd;
+
+    return state;
+  }
+
 } // namespace yave

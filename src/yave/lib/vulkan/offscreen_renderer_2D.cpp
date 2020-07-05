@@ -159,59 +159,6 @@ namespace {
     return device.createShaderModuleUnique(info);
   }
 
-  auto createColorBlendState(blend_operation op)
-  {
-    // blending: expect premultiplied alpha
-    vk::PipelineColorBlendAttachmentState state;
-
-    state.blendEnable = true;
-    state.colorWriteMask =
-      vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
-      | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-
-    vk::BlendFactor srcFactor = vk::BlendFactor::eSrcAlpha;
-    vk::BlendFactor dstFactor = vk::BlendFactor::eOneMinusSrcAlpha;
-
-    switch (op) {
-      case blend_operation::src:
-        srcFactor = vk::BlendFactor::eOne;
-        dstFactor = vk::BlendFactor::eZero;
-        break;
-      case blend_operation::dst:
-        srcFactor = vk::BlendFactor::eZero;
-        dstFactor = vk::BlendFactor::eOne;
-        break;
-      case blend_operation::over:
-        srcFactor = vk::BlendFactor::eSrcAlpha;
-        dstFactor = vk::BlendFactor::eOneMinusSrcAlpha;
-        break;
-      case blend_operation::in:
-        srcFactor = vk::BlendFactor::eDstAlpha;
-        dstFactor = vk::BlendFactor::eZero;
-        break;
-      case blend_operation::out:
-        srcFactor = vk::BlendFactor::eOneMinusDstAlpha;
-        dstFactor = vk::BlendFactor::eZero;
-        break;
-      case blend_operation::add:
-        srcFactor = vk::BlendFactor::eOne;
-        dstFactor = vk::BlendFactor::eOne;
-        break;
-    }
-
-    // color components
-    state.srcColorBlendFactor = srcFactor;
-    state.dstColorBlendFactor = dstFactor;
-    state.colorBlendOp        = vk::BlendOp::eAdd;
-
-    // alpha component
-    state.srcAlphaBlendFactor = srcFactor;
-    state.dstAlphaBlendFactor = dstFactor;
-    state.alphaBlendOp        = vk::BlendOp::eAdd;
-
-    return state;
-  }
-
   auto createPipelineLayout(
     const vk::DescriptorSetLayout& setLayout,
     const vk::Device& device)
@@ -328,7 +275,7 @@ namespace {
 
     std::array<vk::PipelineColorBlendAttachmentState, 1> colAttachments;
     // defualt: alpha blending
-    colAttachments[0] = createColorBlendState(blend_operation::over);
+    colAttachments[0] = convert_to_blend_state(blend_operation::over);
 
     vk::PipelineColorBlendStateCreateInfo colorBlendStateInfo;
     colorBlendStateInfo.attachmentCount = colAttachments.size();

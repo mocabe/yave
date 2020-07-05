@@ -13,6 +13,7 @@
 #  include <windows.h>
 #endif
 
+#include <yave/lib/image/blend_operation.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace yave::vulkan {
@@ -55,5 +56,9 @@ namespace yave::vulkan {
   /// Get texel size of format
   [[nodiscard]] auto format_texel_size(const vk::Format& format)
     -> vk::DeviceSize;
+
+  /// Get blend state from blend op
+  [[nodiscard]] auto convert_to_blend_state(blend_operation op)
+    -> vk::PipelineColorBlendAttachmentState;
 
 } // namespace yave
