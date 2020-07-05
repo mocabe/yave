@@ -44,18 +44,22 @@ namespace yave::editor {
     // take execution result
     if (auto fb = data.executor.get_result()) {
 
-      auto view = fb->const_view();
+      fb->bind();
+      {
+        auto view = fb->const_view();
 
-      if (!imgui_ctx.find_texture(res_tex_name))
-        (void)imgui_ctx.add_texture(
-          res_tex_name,
-          vk::Extent2D(view.width(), view.height()),
-          view.byte_size(),
-          vk::Format::eR32G32B32A32Sfloat,
-          (const uint8_t*)view.data());
-      else
-        imgui_ctx.update_texture(
-          res_tex_name, (const uint8_t*)view.data(), view.byte_size());
+        if (!imgui_ctx.find_texture(res_tex_name))
+          (void)imgui_ctx.add_texture(
+            res_tex_name,
+            vk::Extent2D(view.width(), view.height()),
+            view.byte_size(),
+            vk::Format::eR32G32B32A32Sfloat,
+            (const uint8_t*)view.data());
+        else
+          imgui_ctx.update_texture(
+            res_tex_name, (const uint8_t*)view.data(), view.byte_size());
+      }
+      fb->unbind();
 
       last_exec_time = data.executor.timestamp();
     }
