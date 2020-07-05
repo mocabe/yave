@@ -14,15 +14,23 @@ namespace yave::editor {
   render_view_window::render_view_window(imgui::imgui_context& imctx)
     : imgui_ctx {imctx}
     , wm::window("render_view")
+    , res_tex_id {0}
   {
-    std::array<float, 4> bg_tex = {0, 0, 0, 1};
+    bg_tex_data =
+      imgui_ctx.create_texture({1, 1}, vk::Format::eR32G32B32A32Sfloat);
 
-    (void)imgui_ctx.add_texture(
-      bg_tex_name,
-      {1, 1},
-      sizeof(float) * 4,
-      vk::Format::eR32G32B32A32Sfloat,
-      (const uint8_t*)bg_tex.data());
+    bg_tex_id = imgui_ctx.bind_texture(bg_tex_data);
+
+    auto col = std::array<float, 4> {0, 0, 0, 1};
+    imgui_ctx.clear_texture(bg_tex_data, vk::ClearColorValue(col));
+  }
+
+  render_view_window::~render_view_window() noexcept
+  {
+    if (!res_tex_id)
+      imgui_ctx.unbind_texture(res_tex_data);
+
+    imgui_ctx.unbind_texture(bg_tex_data);
   }
 
   void render_view_window::update(
@@ -48,16 +56,14 @@ namespace yave::editor {
       {
         auto view = fb->const_view();
 
-        if (!imgui_ctx.find_texture(res_tex_name))
-          (void)imgui_ctx.add_texture(
-            res_tex_name,
-            vk::Extent2D(view.width(), view.height()),
-            view.byte_size(),
-            vk::Format::eR32G32B32A32Sfloat,
-            (const uint8_t*)view.data());
-        else
-          imgui_ctx.update_texture(
-            res_tex_name, (const uint8_t*)view.data(), view.byte_size());
+        if (!res_tex_id) {
+          res_tex_data = imgui_ctx.create_texture(
+            {view.width(), view.height()}, vk::Format::eR32G32B32A32Sfloat);
+          res_tex_id = imgui_ctx.bind_texture(res_tex_data);
+        }
+
+        imgui_ctx.write_texture(
+          res_tex_data, (const uint8_t*)view.data(), view.byte_size());
       }
       fb->unbind();
 
@@ -70,7 +76,6 @@ namespace yave::editor {
     editor::view_context& view_ctx) const
   {
     const_image_view view(width, height, frame_format);
-    auto tex = imgui_ctx.find_texture(res_tex_name);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -94,15 +99,14 @@ namespace yave::editor {
         {scale * scroll.x + wsize.x / 2 - scale * size.x / 2,
          scale * scroll.y + wsize.y / 2 - scale * size.y / 2});
 
-      ImGui::Image(
-        imgui_ctx.find_texture(bg_tex_name), {size.x * scale, size.y * scale});
+      ImGui::Image(bg_tex_id, {size.x * scale, size.y * scale});
 
       ImGui::SetCursorPos(
         {scale * scroll.x + wsize.x / 2 - scale * size.x / 2,
          scale * scroll.y + wsize.y / 2 - scale * size.y / 2});
 
-      if (tex)
-        ImGui::Image(tex, {size.x * scale, size.y * scale});
+      if (res_tex_id)
+        ImGui::Image(res_tex_id, {size.x * scale, size.y * scale});
 
       // scroll
       if (
@@ -124,7 +128,7 @@ namespace yave::editor {
       ImGui::Text("sz: %f %f", wsize.x, wsize.y);
       ImGui::Text("scroll: %f %f", scroll.x, scroll.y);
       ImGui::Text("scale: %f", scale * 100);
-      if (!tex)
+      if (!res_tex_id)
         ImGui::Text("No render result");
 
       ImGui::EndChild();

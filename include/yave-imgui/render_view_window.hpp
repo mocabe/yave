@@ -20,8 +20,11 @@ namespace yave::editor {
     /// imgui context
     yave::imgui::imgui_context& imgui_ctx;
 
-    const char* res_tex_name = "render_view_res";
-    const char* bg_tex_name  = "render_view_bg";
+    yave::vulkan::texture_data bg_tex_data;
+    ImTextureID bg_tex_id;
+
+    yave::vulkan::texture_data res_tex_data;
+    ImTextureID res_tex_id;
 
     uint32_t width, height;
     image_format frame_format;
@@ -35,6 +38,7 @@ namespace yave::editor {
 
   public:
     render_view_window(yave::imgui::imgui_context& imctx);
+    ~render_view_window() noexcept;
 
   public:
     void update(editor::data_context& data_ctx, editor::view_context& view_ctx)
