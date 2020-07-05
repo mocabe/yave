@@ -64,13 +64,13 @@ namespace yave {
     }
 
     /// Bind memory data
-    void bind()
+    void bind() const
     {
       m_pool->bind(m_id);
     }
 
     /// Unbind memory data
-    void unbind()
+    void unbind() const
     {
       m_pool->unbind(m_id);
     }
