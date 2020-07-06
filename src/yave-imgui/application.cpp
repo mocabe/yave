@@ -140,6 +140,8 @@ namespace yave::editor::imgui {
       imgui_ctx.end_frame();
       imgui_ctx.render();
     }
+    // avoid resource destruction before finishing render tasks.
+    imgui_ctx.window_context().device().waitIdle();
   }
 
   application::application()

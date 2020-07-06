@@ -27,7 +27,7 @@ namespace yave::editor {
 
   render_view_window::~render_view_window() noexcept
   {
-    if (!res_tex_id)
+    if (res_tex_id)
       imgui_ctx.unbind_texture(res_tex_data);
 
     imgui_ctx.unbind_texture(bg_tex_data);
