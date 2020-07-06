@@ -114,8 +114,7 @@ namespace {
 #endif
 
   // validation layer name
-  constexpr const char* ValidationLayerName =
-    "VK_LAYER_LUNARG_standard_validation";
+  constexpr const char* ValidationLayerName = "VK_LAYER_KHRONOS_validation";
 
   // debug report extension
   constexpr const char* DebugReportExtensionName =
