@@ -84,8 +84,9 @@ namespace yave::imgui {
     /// Update texture data
     void write_texture(
       vulkan::texture_data& tex,
-      const uint8_t* srcData,
-      const vk::DeviceSize& srcSize);
+      vk::Offset2D offset,
+      vk::Extent2D size,
+      const uint8_t* srcData);
 
     /// Clear texture
     void clear_texture(
@@ -97,6 +98,7 @@ namespace yave::imgui {
     /// User should manually unbind textures.
     [[nodiscard]] auto bind_texture(const vulkan::texture_data& tex)
       -> ImTextureID;
+
     /// Unbind texture to context
     void unbind_texture(const vulkan::texture_data& tex);
 

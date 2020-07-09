@@ -913,8 +913,9 @@ namespace yave::imgui {
 
     void write_texture(
       vulkan::texture_data& tex,
-      const uint8_t* srcData,
-      const vk::DeviceSize& srcSize);
+      vk::Offset2D offset,
+      vk::Extent2D size,
+      const uint8_t* data);
 
     void clear_texture(
       vulkan::texture_data& tex,
@@ -1205,26 +1206,38 @@ namespace yave::imgui {
       device,
       physicalDevice);
 
+    vulkan::clear_texture_data(
+      texture,
+      std::array {0.f, 0.f, 0.f, 0.f},
+      queue,
+      commandPool,
+      device,
+      physicalDevice);
+
     return texture;
   }
 
   void imgui_context::impl::write_texture(
     vulkan::texture_data& tex,
-    const uint8_t* srcData,
-    const vk::DeviceSize& srcSize)
+    vk::Offset2D offset,
+    vk::Extent2D size,
+    const uint8_t* data)
   {
+    assert(
+      vulkan::format_texel_size(tex.format) * size.width * size.height
+      <= tex.size);
+
     auto device         = windowCtx.device();
     auto physicalDevice = vulkanCtx.physical_device();
     auto commandPool    = windowCtx.command_pool();
     auto queue          = windowCtx.graphics_queue();
 
-    auto& staging = texture_staging;
-
     vulkan::store_texture_data(
-      staging,
+      texture_staging,
       tex,
-      (const std::byte*)srcData,
-      srcSize,
+      offset,
+      size,
+      data,
       queue,
       commandPool,
       device,
@@ -1416,10 +1429,11 @@ namespace yave::imgui {
 
   void imgui_context::write_texture(
     vulkan::texture_data& tex,
-    const uint8_t* srcData,
-    const vk::DeviceSize& srcSize)
+    vk::Offset2D offset,
+    vk::Extent2D size,
+    const uint8_t* data)
   {
-    m_pimpl->write_texture(tex, srcData, srcSize);
+    m_pimpl->write_texture(tex, offset, size, data);
   }
 
   void imgui_context::clear_texture(
