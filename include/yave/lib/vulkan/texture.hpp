@@ -21,11 +21,11 @@ namespace yave::vulkan {
     /// format
     vk::Format format = vk::Format::eUndefined;
     /// size
-    vk::DeviceSize size;
+    vk::DeviceSize size = 0;
     /// texture image.
     /// this image has following specs:
     /// layout:  eShaderReadOnlyOptimal
-    /// usage:   eSampled | eTransferDst
+    /// usage:   eSampled | eTransferDst | eTransferSrc
     /// sharing: eExclusive
     /// range:   single layer, single level
     vk::UniqueImage image;
@@ -46,6 +46,14 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice) -> texture_data;
 
+  /// Create new texture by copying existing texture data
+  [[nodiscard]] auto clone_texture_data(
+    const texture_data& tex,
+    const vk::Queue& cmdQueue,
+    const vk::CommandPool& cmdPool,
+    const vk::Device& device,
+    const vk::PhysicalDevice& physicalDevice) -> texture_data;
+
   /// Clear texture image
   void clear_texture_data(
     texture_data& dst,
@@ -55,12 +63,32 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice);
 
-  /// Upload image data to texture from host memory
+  /// Write image data to texture from host memory
+  /// \param offset offset in texture data to write
+  /// \param size size of area of texture to write
+  /// \param data host memory to read
+  /// \note reads `(size of texel) * size.width * size.height` bytes from `data`
   void store_texture_data(
     staging_buffer& staging,
-    texture_data& dst,        // texture to upload
-    const std::byte* srcData, // src data pointer
-    const uint32_t& srcSize,  // src data size
+    texture_data& dst,
+    const vk::Offset2D& offset,
+    const vk::Extent2D& size,
+    const uint8_t* data,
+    const vk::Queue& cmdQueue,
+    const vk::CommandPool& cmdPool,
+    const vk::Device& device,
+    const vk::PhysicalDevice& physicalDevice);
+
+  /// Read back texture data to host memory
+  /// \param offset offset in texture data to read
+  /// \param size size of area of texture to read
+  /// \param data host memory to write
+  void read_texture_data(
+    staging_buffer& staging,
+    const texture_data& src,
+    const vk::Offset2D& offset,
+    const vk::Extent2D& size,
+    uint8_t* data,
     const vk::Queue& cmdQueue,
     const vk::CommandPool& cmdPool,
     const vk::Device& device,
