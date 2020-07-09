@@ -11,6 +11,7 @@ add_library(yave-lib-vulkan
   vulkan_util.cpp
   offscreen_context.cpp
   offscreen_render_pass.cpp
+  offscreen_compositor.cpp
 )
 
 add_library(yave::lib::vulkan ALIAS yave-lib-vulkan)

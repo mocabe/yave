@@ -27,6 +27,7 @@
 #include <yave/module/std/shape/draw.hpp>
 #include <yave/module/std/shape/transform.hpp>
 
+#include <yave/lib/vulkan/offscreen_compositor.hpp>
 #include <yave/support/log.hpp>
 #include <yave/support/id.hpp>
 
@@ -40,17 +41,18 @@ namespace yave::modules::_std {
     struct module_resource
     {
       module_resource(const scene_config& config, vulkan::vulkan_context& ctx)
-        : image_buff {module_id}
-        , frame_buff {config.width(),
-                      config.height(),
-                      config.frame_format(),
-                      module_id}
-        , renderer {config.width(), config.height(), ctx}
+        : offscreen_ctx {ctx}
+        , image_buff {module_id}
+        , frame_buff {config.width(), config.height(), config.frame_format(), module_id, offscreen_ctx}
+        , compositor {config.width(), config.height(), offscreen_ctx}
       {
       }
+
+      vulkan::offscreen_context offscreen_ctx;
+
       image_buffer_manager image_buff;
       frame_buffer_manager frame_buff;
-      vulkan::rgba32f_offscreen_renderer_2D renderer;
+      vulkan::rgba32f_offscreen_compositor compositor;
     };
   } // namespace
 
@@ -173,9 +175,9 @@ namespace yave::modules::_std {
         ret.push_back(def);
     };
 
-    auto& imngr    = m_pimpl->resource->image_buff;
-    auto& fmngr    = m_pimpl->resource->frame_buff;
-    auto& renderer = m_pimpl->resource->renderer;
+    auto& imngr      = m_pimpl->resource->image_buff;
+    auto& fmngr      = m_pimpl->resource->frame_buff;
+    auto& compositor = m_pimpl->resource->compositor;
 
     add(yave::get_node_definitions<node::Image, _std::tag>(imngr));
     add(yave::get_node_definitions<node::Frame, _std::tag>(fmngr));
