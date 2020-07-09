@@ -63,28 +63,26 @@ namespace yave {
       return m_pool;
     }
 
-    /// Bind memory data
-    void bind() const
+    /// Store data to frame buffer
+    void store_data(
+      uint32_t offset_x,
+      uint32_t offset_y,
+      uint32_t width,
+      uint32_t height,
+      const uint8_t* data)
     {
-      m_pool->bind(m_id);
+      m_pool->store_data(m_id, offset_x, offset_y, width, height, data);
     }
 
-    /// Unbind memory data
-    void unbind() const
+    /// Read data from frame buffer
+    void read_data(
+      uint32_t offset_x,
+      uint32_t offset_y,
+      uint32_t width,
+      uint32_t height,
+      uint8_t* data) const
     {
-      m_pool->unbind(m_id);
-    }
-
-    /// Get data pointer
-    [[nodiscard]] auto data() const -> const std::byte*
-    {
-      return m_pool->get_data(m_id);
-    }
-
-    /// Get data pointer
-    [[nodiscard]] auto data() -> std::byte*
-    {
-      return m_pool->get_data(m_id);
+      m_pool->read_data(m_id, offset_x, offset_y, width, height, data);
     }
 
     /// Get width
@@ -105,44 +103,10 @@ namespace yave {
       return m_pool->format();
     }
 
-    /// Get image view.
-    [[nodiscard]] auto mutable_view() -> mutable_image_view
+    /// Get byte size of buffer
+    [[nodiscard]] auto byte_size() const
     {
-      auto d = m_pool->get_data(m_id);
-      auto w = m_pool->width();
-      auto h = m_pool->height();
-      auto f = m_pool->format();
-
-      if (!d || f == image_format::unknown)
-        throw std::runtime_error("Failed to create frame buffer view");
-
-      return mutable_image_view(d, w, h, f);
-    }
-
-    /// Get image view.
-    [[nodiscard]] auto const_view() const -> const_image_view
-    {
-      auto d = m_pool->get_data(m_id);
-      auto w = m_pool->width();
-      auto h = m_pool->height();
-      auto f = m_pool->format();
-
-      if (!d || f == image_format::unknown)
-        throw std::runtime_error("Failed to create frame buffer view");
-
-      return const_image_view(d, w, h, f);
-    }
-
-    /// Get image view.
-    [[nodiscard]] auto view() -> mutable_image_view
-    {
-      return mutable_view();
-    }
-
-    /// Get image view.
-    [[nodiscard]] auto view() const -> const_image_view
-    {
-      return const_view();
+      return const_image_view(nullptr, width(), height(), format()).byte_size();
     }
 
   private:

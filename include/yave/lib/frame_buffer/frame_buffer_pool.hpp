@@ -23,9 +23,8 @@ namespace yave {
       void (*ref)(void*, uint64_t) noexcept,
       void (*unref)(void*, uint64_t) noexcept,
       auto (*get_use_count)(void* handle, uint64_t id) noexcept->uint64_t,
-      void (*bind)(void*, uint64_t) noexcept,
-      void (*unbind)(void*, uint64_t) noexcept,
-      auto (*get_data)(void*, uint64_t) noexcept->std::byte*,
+      void (*store_data)(void*, uint64_t ,uint32_t, uint32_t, uint32_t, uint32_t, const uint8_t*) noexcept,
+      void (*read_data )(void*, uint64_t, uint32_t, uint32_t, uint32_t, uint32_t, uint8_t*) noexcept,
       auto (*get_width)(void*) noexcept->uint32_t,
       auto (*get_height)(void*) noexcept->uint32_t,
       auto (*get_format)(void*) noexcept->image_format)
@@ -36,9 +35,8 @@ namespace yave {
       , m_ref {ref}
       , m_unref {unref}
       , m_get_use_count {get_use_count}
-      , m_bind {bind}
-      , m_unbind {unbind}
-      , m_get_data {get_data}
+      , m_store_data {store_data}
+      , m_read_data {read_data}
       , m_get_format {get_format}
       , m_get_width {get_width}
       , m_get_height {get_height}
@@ -87,26 +85,32 @@ namespace yave {
       return m_get_use_count(m_handle, id);
     }
 
-    /// Bind memory
-    [[nodiscard]] auto bind(uint64_t id) const noexcept
+    /// Store data
+    void store_data(
+      uint64_t id,
+      uint32_t offset_x,
+      uint32_t offset_y,
+      uint32_t width,
+      uint32_t height,
+      const uint8_t* data) const noexcept
     {
-      return m_bind(m_handle, id);
+      m_store_data(m_handle, id, offset_x, offset_y, width, height, data);
     }
 
-    /// Unbind memory
-    [[nodiscard]] auto unbind(uint64_t id) const noexcept
+    /// Read data
+    void read_data(
+      uint64_t id,
+      uint32_t offset_x,
+      uint32_t offset_y,
+      uint32_t width,
+      uint32_t height,
+      uint8_t* data) const noexcept
     {
-      return m_unbind(m_handle, id);
-    }
-
-    /// Access to data of buffer
-    [[nodiscard]] auto get_data(uint64_t id) const noexcept
-    {
-      return m_get_data(m_handle, id);
+      m_read_data(m_handle, id, offset_x, offset_y, width, height, data);
     }
 
     /// Get width
-    [[nodiscard]] auto width() const noexcept 
+    [[nodiscard]] auto width() const noexcept
     {
       return m_get_width(m_handle);
     }
@@ -152,16 +156,25 @@ namespace yave {
     /// \note id should be valid.
     auto (*m_get_use_count)(void* handle, uint64_t id) noexcept -> uint64_t;
 
-    /// Bind pixel data to host memory, if not already binded.
-    void (*m_bind)(void* handle, uint64_t id) noexcept;
+    /// Store data to buffer
+    void (*m_store_data)(
+      void* handle,
+      uint64_t id,
+      uint32_t offset_x,
+      uint32_t offset_y,
+      uint32_t width,
+      uint32_t height,
+      const uint8_t* data) noexcept;
 
-    /// Unbind pixel data from host memory, if it is currently binded.
-    void (*m_unbind)(void* handle, uint64_t id) noexcept;
-
-    /// Get host visible data pointer.
-    /// \note id should be valid.
-    /// \returns nullptr when pixel data is not binded to host memory.
-    auto (*m_get_data)(void* handle, uint64_t id) noexcept -> std::byte*;
+    /// Read data from buffer
+    void (*m_read_data)(
+      void* handle,
+      uint64_t id,
+      uint32_t offset_x,
+      uint32_t offset_y,
+      uint32_t width,
+      uint32_t height,
+      uint8_t* data) noexcept;
 
     /// Get format of frame buffer.
     /// \note Should always return same format.
