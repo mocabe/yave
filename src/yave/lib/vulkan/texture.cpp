@@ -5,136 +5,11 @@
 
 #include <yave/lib/vulkan/texture.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
+#include <yave/lib/vulkan/image.hpp>
 
 namespace yave::vulkan {
 
-  namespace {
-
-    using namespace yave::vulkan;
-
-    auto textureImageSubresourceRange()
-    {
-      vk::ImageSubresourceRange range;
-      range.aspectMask = vk::ImageAspectFlagBits::eColor;
-      range.layerCount = 1;
-      range.levelCount = 1;
-      return range;
-    }
-
-    void textureLayoutTransition(
-      vk::CommandBuffer cmd,
-      vk::Image image,
-      vk::ImageLayout oldLayout,
-      vk::ImageLayout newLayout,
-      vk::AccessFlags srcAccessMask,
-      vk::AccessFlags dstAccessMask,
-      vk::PipelineStageFlags srcStage,
-      vk::PipelineStageFlags dstStage)
-    {
-      auto range = textureImageSubresourceRange();
-
-      vk::ImageMemoryBarrier barrier;
-      barrier.image            = image;
-      barrier.subresourceRange = range;
-      barrier.oldLayout        = oldLayout;
-      barrier.newLayout        = newLayout;
-      barrier.srcAccessMask    = srcAccessMask;
-      barrier.dstAccessMask    = dstAccessMask;
-
-      cmd.pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
-    }
-
-    void textureLayoutShaderReadOnlyToTransferDst(
-      const vk::CommandBuffer& cmd,
-      const vk::Image& image)
-    {
-      textureLayoutTransition(
-        cmd,
-        image,
-        vk::ImageLayout::eShaderReadOnlyOptimal,
-        vk::ImageLayout::eTransferDstOptimal,
-        vk::AccessFlagBits::eShaderRead,
-        vk::AccessFlagBits::eTransferWrite,
-        vk::PipelineStageFlagBits::eFragmentShader,
-        vk::PipelineStageFlagBits::eTransfer);
-    }
-
-    void textureLayoutShaderReadOnlyToTransferSrc(
-      const vk::CommandBuffer& cmd,
-      const vk::Image& image)
-    {
-      textureLayoutTransition(
-        cmd,
-        image,
-        vk::ImageLayout::eShaderReadOnlyOptimal,
-        vk::ImageLayout::eTransferSrcOptimal,
-        vk::AccessFlagBits::eShaderRead,
-        vk::AccessFlagBits::eTransferRead,
-        vk::PipelineStageFlagBits::eFragmentShader,
-        vk::PipelineStageFlagBits::eTransfer);
-    }
-
-    void textureLayoutTransferDstToShaderReadOnly(
-      const vk::CommandBuffer& cmd,
-      const vk::Image& image)
-    {
-      textureLayoutTransition(
-        cmd,
-        image,
-        vk::ImageLayout::eTransferDstOptimal,
-        vk::ImageLayout::eShaderReadOnlyOptimal,
-        vk::AccessFlagBits::eTransferWrite,
-        vk::AccessFlagBits::eShaderRead,
-        vk::PipelineStageFlagBits::eTransfer,
-        vk::PipelineStageFlagBits::eFragmentShader);
-    }
-
-    void textureLayoutTransferSrcToShaderReadOnly(
-      const vk::CommandBuffer& cmd,
-      const vk::Image& image)
-    {
-      textureLayoutTransition(
-        cmd,
-        image,
-        vk::ImageLayout::eTransferSrcOptimal,
-        vk::ImageLayout::eShaderReadOnlyOptimal,
-        vk::AccessFlagBits::eTransferRead,
-        vk::AccessFlagBits::eShaderRead,
-        vk::PipelineStageFlagBits::eTransfer,
-        vk::PipelineStageFlagBits::eFragmentShader);
-    }
-
-    void textureLayoutUndefinedToTransferDst(
-      const vk::CommandBuffer& cmd,
-      const vk::Image& image)
-    {
-      textureLayoutTransition(
-        cmd,
-        image,
-        vk::ImageLayout::eUndefined,
-        vk::ImageLayout::eTransferDstOptimal,
-        vk::AccessFlagBits(),
-        vk::AccessFlagBits::eTransferWrite,
-        vk::PipelineStageFlagBits::eTopOfPipe,
-        vk::PipelineStageFlagBits::eTransfer);
-    }
-
-    [[maybe_unused]]
-    void textureLayoutUndefinedToShaderReadOnly(
-      const vk::CommandBuffer& cmd,
-      const vk::Image& image)
-    {
-      textureLayoutTransition(
-        cmd,
-        image,
-        vk::ImageLayout::eUndefined,
-        vk::ImageLayout::eShaderReadOnlyOptimal,
-        vk::AccessFlagBits(),
-        vk::AccessFlagBits::eShaderRead,
-        vk::PipelineStageFlagBits::eTopOfPipe,
-        vk::PipelineStageFlagBits::eFragmentShader);
-    }
-  } // namespace
+  using namespace yave::vulkan;
 
   auto create_texture_data(
     const uint32_t& width,
@@ -175,7 +50,7 @@ namespace yave::vulkan {
       device.bindImageMemory(image.get(), memory.get(), 0);
     }
 
-    auto range = textureImageSubresourceRange();
+    auto range = image_subresource_range();
 
     vk::UniqueImageView view;
     {
@@ -193,16 +68,16 @@ namespace yave::vulkan {
 
       // set (0,1,0,1) for debug
       if constexpr (is_debug) {
-        textureLayoutUndefinedToTransferDst(cmd, image.get());
+        image_layout_undefined_to_transfer_dst(cmd, image.get());
         if constexpr (is_debug)
           cmd.clearColorImage(
             image.get(),
             vk::ImageLayout::eTransferDstOptimal,
             vk::ClearColorValue(std::array {0.f, 1.f, 0.f, 1.f}),
             range);
-        textureLayoutTransferDstToShaderReadOnly(cmd, image.get());
+        image_layout_transfer_dst_to_shader_read(cmd, image.get());
       } else
-        textureLayoutUndefinedToShaderReadOnly(cmd, image.get());
+        image_layout_undefined_to_shader_read(cmd, image.get());
     }
 
     return {
@@ -279,8 +154,8 @@ namespace yave::vulkan {
       auto stc = vulkan::single_time_command(device, cmdQueue, cmdPool);
       auto cmd = stc.command_buffer();
 
-      textureLayoutShaderReadOnlyToTransferSrc(cmd, tex.image.get());
-      textureLayoutUndefinedToTransferDst(cmd, image.get());
+      image_layout_shader_read_to_transfer_src(cmd, tex.image.get());
+      image_layout_undefined_to_transfer_dst(cmd, image.get());
 
       // copy data
       {
@@ -297,8 +172,8 @@ namespace yave::vulkan {
           region);
       }
 
-      textureLayoutTransferSrcToShaderReadOnly(cmd, tex.image.get());
-      textureLayoutTransferDstToShaderReadOnly(cmd, image.get());
+      image_layout_transfer_src_to_shader_read(cmd, tex.image.get());
+      image_layout_transfer_dst_to_shader_read(cmd, image.get());
     }
 
     return {
@@ -322,15 +197,15 @@ namespace yave::vulkan {
     auto stc = single_time_command(device, cmdQueue, cmdPool);
     auto cmd = stc.command_buffer();
 
-    textureLayoutShaderReadOnlyToTransferDst(cmd, dst.image.get());
+    image_layout_shader_read_to_transfer_dst(cmd, dst.image.get());
 
     cmd.clearColorImage(
       dst.image.get(),
       vk::ImageLayout::eTransferDstOptimal,
       clearColor,
-      textureImageSubresourceRange());
+      image_subresource_range());
 
-    textureLayoutTransferDstToShaderReadOnly(cmd, dst.image.get());
+    image_layout_transfer_dst_to_shader_read(cmd, dst.image.get());
   }
 
   void store_texture_data(
@@ -369,7 +244,7 @@ namespace yave::vulkan {
       auto stc = single_time_command(device, cmdQueue, cmdPool);
       auto cmd = stc.command_buffer();
 
-      textureLayoutShaderReadOnlyToTransferDst(cmd, dst.image.get());
+      image_layout_shader_read_to_transfer_dst(cmd, dst.image.get());
 
       vk::BufferImageCopy region;
       region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -381,7 +256,7 @@ namespace yave::vulkan {
       cmd.copyBufferToImage(
         buffer, dst.image.get(), vk::ImageLayout::eTransferDstOptimal, region);
 
-      textureLayoutTransferDstToShaderReadOnly(cmd, dst.image.get());
+      image_layout_transfer_dst_to_shader_read(cmd, dst.image.get());
     }
   }
 
@@ -412,7 +287,7 @@ namespace yave::vulkan {
       auto stc = single_time_command(device, cmdQueue, cmdPool);
       auto cmd = stc.command_buffer();
 
-      textureLayoutShaderReadOnlyToTransferSrc(cmd, src.image.get());
+      image_layout_shader_read_to_transfer_src(cmd, src.image.get());
 
       vk::BufferImageCopy region;
       region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -424,7 +299,7 @@ namespace yave::vulkan {
       cmd.copyImageToBuffer(
         src.image.get(), vk::ImageLayout::eTransferSrcOptimal, buffer, region);
 
-      textureLayoutTransferSrcToShaderReadOnly(cmd, src.image.get());
+      image_layout_transfer_src_to_shader_read(cmd, src.image.get());
     }
 
     /* upload data */
