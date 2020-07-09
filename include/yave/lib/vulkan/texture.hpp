@@ -81,7 +81,7 @@ namespace yave::vulkan {
   /// \param offset offset in texture data to read
   /// \param size size of area of texture to read
   /// \param data host memory to write
-  void read_texture_data(
+  void load_texture_data(
     staging_buffer& staging,
     const texture_data& src,
     const vk::Offset2D& offset,

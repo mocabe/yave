@@ -258,7 +258,7 @@ namespace yave::vulkan {
     }
   }
 
-  void read_texture_data(
+  void load_texture_data(
     staging_buffer& staging,
     const texture_data& src,
     const vk::Offset2D& offset,
