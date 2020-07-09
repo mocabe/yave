@@ -5,110 +5,9 @@
 
 #include <yave/lib/vulkan/offscreen.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
+#include <yave/lib/vulkan/image.hpp>
 
 namespace yave::vulkan {
-
-  namespace {
-
-    auto offscreenBufferImageResourceRange()
-    {
-      vk::ImageSubresourceRange subResourceRange;
-      subResourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-      subResourceRange.levelCount = 1;
-      subResourceRange.layerCount = 1;
-      return subResourceRange;
-    }
-
-    auto offscreenBufferLayoutColorAttachmentToTransferDst(
-      const vk::CommandBuffer& cmd,
-      const vk::Image& image)
-    {
-      auto range = offscreenBufferImageResourceRange();
-
-      vk::ImageMemoryBarrier barrier;
-      barrier.image            = image;
-      barrier.subresourceRange = range;
-      barrier.oldLayout        = vk::ImageLayout::eColorAttachmentOptimal;
-      barrier.newLayout        = vk::ImageLayout::eTransferDstOptimal;
-      barrier.srcAccessMask    = vk::AccessFlagBits::eColorAttachmentRead
-                              | vk::AccessFlagBits::eColorAttachmentWrite;
-      barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-
-      vk::PipelineStageFlags srcStage =
-        vk::PipelineStageFlagBits::eColorAttachmentOutput;
-      vk::PipelineStageFlags dstStage = vk::PipelineStageFlagBits::eTransfer;
-
-      cmd.pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
-    }
-
-    auto offscreenBufferLayoutColorAttachmentToTransferSrc(
-      const vk::CommandBuffer& cmd,
-      const vk::Image& image)
-    {
-      auto range = offscreenBufferImageResourceRange();
-
-      vk::ImageMemoryBarrier barrier;
-      barrier.image            = image;
-      barrier.subresourceRange = range;
-      barrier.oldLayout        = vk::ImageLayout::eColorAttachmentOptimal;
-      barrier.newLayout        = vk::ImageLayout::eTransferSrcOptimal;
-      barrier.srcAccessMask    = vk::AccessFlagBits::eColorAttachmentRead
-                              | vk::AccessFlagBits::eColorAttachmentWrite;
-      barrier.dstAccessMask =
-        vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
-
-      vk::PipelineStageFlags srcStage =
-        vk::PipelineStageFlagBits::eColorAttachmentOutput;
-      vk::PipelineStageFlags dstStage = vk::PipelineStageFlagBits::eTransfer;
-
-      cmd.pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
-    }
-
-    auto offscreenBufferLayoutTransferDstToColorAttachment(
-      const vk::CommandBuffer& cmd,
-      const vk::Image& image)
-    {
-      auto range = offscreenBufferImageResourceRange();
-
-      vk::ImageMemoryBarrier barrier;
-      barrier.image            = image;
-      barrier.subresourceRange = range;
-      barrier.oldLayout        = vk::ImageLayout::eTransferDstOptimal;
-      barrier.newLayout        = vk::ImageLayout::eColorAttachmentOptimal;
-      barrier.srcAccessMask =
-        vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eTransferRead;
-      barrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead
-                              | vk::AccessFlagBits::eColorAttachmentWrite;
-
-      vk::PipelineStageFlags srcStage = vk::PipelineStageFlagBits::eTransfer;
-      vk::PipelineStageFlags dstStage =
-        vk::PipelineStageFlagBits::eColorAttachmentOutput;
-
-      cmd.pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
-    }
-
-    auto offscreenBufferLayoutTransferSrcToColorAttachment(
-      const vk::CommandBuffer& cmd,
-      const vk::Image& image)
-    {
-      auto range = offscreenBufferImageResourceRange();
-
-      vk::ImageMemoryBarrier barrier;
-      barrier.image            = image;
-      barrier.subresourceRange = range;
-      barrier.oldLayout        = vk::ImageLayout::eTransferSrcOptimal;
-      barrier.newLayout        = vk::ImageLayout::eColorAttachmentOptimal;
-      barrier.srcAccessMask    = vk::AccessFlagBits::eTransferRead;
-      barrier.dstAccessMask    = vk::AccessFlagBits::eColorAttachmentRead
-                              | vk::AccessFlagBits::eColorAttachmentWrite;
-
-      vk::PipelineStageFlags srcStage = vk::PipelineStageFlagBits::eTransfer;
-      vk::PipelineStageFlags dstStage =
-        vk::PipelineStageFlagBits::eColorAttachmentOutput;
-
-      cmd.pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
-    }
-  } // namespace
 
   auto create_offscreen_frame_data(
     const vk::Extent2D& extent,
@@ -152,7 +51,7 @@ namespace yave::vulkan {
       device.bindImageMemory(image.get(), memory.get(), 0);
     }
 
-    auto range = offscreenBufferImageResourceRange();
+    auto range = image_subresource_range();
 
     vk::UniqueImageView view;
     {
@@ -204,7 +103,7 @@ namespace yave::vulkan {
         vk::ClearColorValue(std::array {0.f, 1.f, 0.f, 1.f}),
         range);
 
-      offscreenBufferLayoutTransferDstToColorAttachment(cmd, image.get());
+      image_layout_transfer_dst_to_color_attachment(cmd, image.get());
     }
 
     return {extent,
@@ -227,39 +126,45 @@ namespace yave::vulkan {
     auto stc = single_time_command(device, cmdQueue, cmdPool);
     auto cmd = stc.command_buffer();
 
-    offscreenBufferLayoutColorAttachmentToTransferDst(cmd, dst.image.get());
+    image_layout_color_attachment_to_transfer_dst(cmd, dst.image.get());
 
     cmd.clearColorImage(
       dst.image.get(),
       vk::ImageLayout::eTransferDstOptimal,
       clearColor,
-      offscreenBufferImageResourceRange());
+      image_subresource_range());
 
-    offscreenBufferLayoutTransferDstToColorAttachment(cmd, dst.image.get());
+    image_layout_transfer_dst_to_color_attachment(cmd, dst.image.get());
   }
 
   void store_offscreen_frame_data(
     staging_buffer& staging,
     offscreen_frame_data& dst,
-    const std::byte* srcData,
-    const vk::DeviceSize& srcSize,
+    const vk::Offset2D& offset,
+    const vk::Extent2D& size,
+    const std::byte* data,
     const vk::Queue& cmdQueue,
     const vk::CommandPool& cmdPool,
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
-    assert(srcSize <= dst.size);
+    assert(staging.buffer.get());
+    assert(dst.image.get());
+    assert(offset.x + size.width <= dst.extent.width);
+    assert(offset.y + size.height <= dst.extent.height);
 
-    // ensure staging buffer is large enoguh
-    resize_staging_buffer(staging, srcSize, device, physicalDevice);
+    auto texel_size = format_texel_size(dst.format);
+    auto buff_size  = size.width * size.height * texel_size;
+
+    resize_staging_buffer(staging, buff_size, device, physicalDevice);
 
     auto buffer       = staging.buffer.get();
     auto bufferMemory = staging.memory.get();
 
     /* upload data */
     {
-      void* ptr = device.mapMemory(bufferMemory, 0, srcSize);
-      std::memcpy(ptr, srcData, srcSize);
+      void* ptr = device.mapMemory(bufferMemory, 0, buff_size);
+      std::memcpy(ptr, data, buff_size);
       device.unmapMemory(bufferMemory);
     }
 
@@ -268,39 +173,39 @@ namespace yave::vulkan {
       auto stc = single_time_command(device, cmdQueue, cmdPool);
       auto cmd = stc.command_buffer();
 
-      offscreenBufferLayoutColorAttachmentToTransferDst(cmd, dst.image.get());
+      image_layout_color_attachment_to_transfer_dst(cmd, dst.image.get());
 
-      {
-        vk::BufferImageCopy region;
-        region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-        region.imageSubresource.layerCount = 1;
-        region.imageExtent                 = vk::Extent3D {dst.extent, 1};
+      vk::BufferImageCopy region;
+      region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+      region.imageSubresource.layerCount = 1;
+      region.imageOffset                 = vk::Offset3D {offset, 0};
+      region.imageExtent                 = vk::Extent3D {size, 1};
 
-        cmd.copyBufferToImage(
-          buffer,
-          dst.image.get(),
-          vk::ImageLayout::eTransferDstOptimal,
-          region);
-      }
+      cmd.copyBufferToImage(
+        buffer, dst.image.get(), vk::ImageLayout::eTransferDstOptimal, region);
 
-      offscreenBufferLayoutTransferDstToColorAttachment(cmd, dst.image.get());
+      image_layout_transfer_dst_to_color_attachment(cmd, dst.image.get());
     }
   }
 
   void load_offscreen_frame_data(
     staging_buffer& staging,
     const offscreen_frame_data& src,
+    const vk::Offset2D& offset,
+    const vk::Extent2D& size,
     std::byte* dstData,
-    const vk::DeviceSize& dstSize,
     const vk::Queue& cmdQueue,
     const vk::CommandPool& cmdPool,
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
-    assert(src.size <= dstSize);
+    assert(offset.x + size.width <= src.extent.width);
+    assert(offset.y + size.height <= src.extent.height);
 
-    // ensure size of buffer
-    resize_staging_buffer(staging, src.size, device, physicalDevice);
+    auto texel_size = format_texel_size(src.format);
+    auto buff_size  = size.width * size.height * texel_size;
+
+    resize_staging_buffer(staging, buff_size, device, physicalDevice);
 
     auto buffer       = staging.buffer.get();
     auto bufferMemory = staging.memory.get();
@@ -310,29 +215,117 @@ namespace yave::vulkan {
       auto stc = single_time_command(device, cmdQueue, cmdPool);
       auto cmd = stc.command_buffer();
 
-      offscreenBufferLayoutColorAttachmentToTransferSrc(cmd, src.image.get());
+      image_layout_color_attachment_to_transfer_src(cmd, src.image.get());
 
-      {
-        vk::BufferImageCopy region;
-        region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-        region.imageSubresource.layerCount = 1;
-        region.imageExtent                 = vk::Extent3D {src.extent, 1};
+      vk::BufferImageCopy region;
+      region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+      region.imageSubresource.layerCount = 1;
+      region.imageOffset                 = vk::Offset3D {offset, 0};
+      region.imageExtent                 = vk::Extent3D {size, 1};
 
-        cmd.copyImageToBuffer(
-          src.image.get(),
-          vk::ImageLayout::eTransferSrcOptimal,
-          buffer,
-          region);
-      }
+      cmd.copyImageToBuffer(
+        src.image.get(), vk::ImageLayout::eTransferSrcOptimal, buffer, region);
 
-      offscreenBufferLayoutTransferSrcToColorAttachment(cmd, src.image.get());
+      image_layout_transfer_src_to_color_attachment(cmd, src.image.get());
     }
 
     // buffer -> host memory
     {
-      const void* ptr = device.mapMemory(bufferMemory, 0, dstSize);
-      std::memcpy(dstData, ptr, dstSize);
+      const void* ptr = device.mapMemory(bufferMemory, 0, buff_size);
+      std::memcpy(dstData, ptr, buff_size);
       device.unmapMemory(bufferMemory);
+    }
+  }
+
+  void store_offscreen_frame_data(
+    const texture_data& src,
+    const vk::Offset2D& srcOffset,
+    offscreen_frame_data& dst,
+    const vk::Offset2D& dstOffset,
+    const vk::Extent2D& size,
+    const vk::Queue& cmdQueue,
+    const vk::CommandPool& cmdPool,
+    const vk::Device& device,
+    const vk::PhysicalDevice& physicalDevice)
+  {
+    assert(srcOffset.x + size.width <= dst.extent.width);
+    assert(srcOffset.y + size.height <= dst.extent.height);
+    assert(dstOffset.x + size.width <= src.width);
+    assert(dstOffset.y + size.height <= src.height);
+
+    vk::ImageSubresourceLayers layer;
+    layer.aspectMask = vk::ImageAspectFlagBits::eColor;
+    layer.layerCount = 1;
+
+    vk::ImageCopy region;
+    region.srcSubresource = layer;
+    region.srcOffset      = vk::Offset3D {srcOffset, 0};
+    region.dstSubresource = layer;
+    region.dstOffset      = vk::Offset3D {dstOffset, 0};
+    region.extent         = vk::Extent3D {size, 1};
+
+    {
+      auto stc = single_time_command(device, cmdQueue, cmdPool);
+      auto cmd = stc.command_buffer();
+
+      image_layout_shader_read_to_transfer_src(cmd, src.image.get());
+      image_layout_color_attachment_to_transfer_dst(cmd, dst.image.get());
+
+      cmd.copyImage(
+        src.image.get(),
+        vk::ImageLayout::eTransferSrcOptimal,
+        dst.image.get(),
+        vk::ImageLayout::eTransferDstOptimal,
+        region);
+
+      image_layout_transfer_src_to_shader_read(cmd, src.image.get());
+      image_layout_transfer_dst_to_color_attachment(cmd, dst.image.get());
+    }
+  }
+
+  void load_offscreen_frame_data(
+    const offscreen_frame_data& src,
+    const vk::Offset2D& srcOffset,
+    texture_data& dst,
+    const vk::Offset2D& dstOffset,
+    const vk::Extent2D& size,
+    const vk::Queue& cmdQueue,
+    const vk::CommandPool& cmdPool,
+    const vk::Device& device,
+    const vk::PhysicalDevice& physicalDevice)
+  {
+    assert(srcOffset.x + size.width <= dst.width);
+    assert(srcOffset.y + size.height <= dst.height);
+    assert(dstOffset.x + size.width <= src.extent.width);
+    assert(dstOffset.y + size.height <= src.extent.height);
+
+    vk::ImageSubresourceLayers layer;
+    layer.aspectMask = vk::ImageAspectFlagBits::eColor;
+    layer.layerCount = 1;
+
+    vk::ImageCopy region;
+    region.srcSubresource = layer;
+    region.srcOffset      = vk::Offset3D {srcOffset, 0};
+    region.dstSubresource = layer;
+    region.dstOffset      = vk::Offset3D {dstOffset, 0};
+    region.extent         = vk::Extent3D {size, 1};
+
+    {
+      auto stc = single_time_command(device, cmdQueue, cmdPool);
+      auto cmd = stc.command_buffer();
+
+      image_layout_color_attachment_to_transfer_src(cmd, src.image.get());
+      image_layout_shader_read_to_transfer_dst(cmd, dst.image.get());
+
+      cmd.copyImage(
+        src.image.get(),
+        vk::ImageLayout::eTransferSrcOptimal,
+        dst.image.get(),
+        vk::ImageLayout::eTransferDstOptimal,
+        region);
+
+      image_layout_transfer_src_to_color_attachment(cmd, src.image.get());
+      image_layout_transfer_dst_to_shader_read(cmd, dst.image.get());
     }
   }
 } // namespace yave::vulkan

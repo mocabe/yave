@@ -8,6 +8,7 @@
 #include <yave/config/config.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
 #include <yave/lib/vulkan/staging.hpp>
+#include <yave/lib/vulkan/texture.hpp>
 
 namespace yave::vulkan {
 
@@ -53,8 +54,9 @@ namespace yave::vulkan {
   void store_offscreen_frame_data(
     staging_buffer& staging,
     offscreen_frame_data& dst,
-    const std::byte* srcData,
-    const vk::DeviceSize& srcSize,
+    const vk::Offset2D& offset,
+    const vk::Extent2D& size,
+    const std::byte* data,
     const vk::Queue& cmdQueue,
     const vk::CommandPool& cmdPool,
     const vk::Device& device,
@@ -64,8 +66,33 @@ namespace yave::vulkan {
   void load_offscreen_frame_data(
     staging_buffer& staging,
     const offscreen_frame_data& src,
+    const vk::Offset2D& offset,
+    const vk::Extent2D& extent,
     std::byte* dstData,
-    const vk::DeviceSize& dstSize,
+    const vk::Queue& cmdQueue,
+    const vk::CommandPool& cmdPool,
+    const vk::Device& device,
+    const vk::PhysicalDevice& physicalDevice);
+
+  /// Store texture data to frame
+  void store_offscreen_frame_data(
+    const texture_data& src,
+    const vk::Offset2D& srcOffset,
+    offscreen_frame_data& dst,
+    const vk::Offset2D& dstOffset,
+    const vk::Extent2D& size,
+    const vk::Queue& cmdQueue,
+    const vk::CommandPool& cmdPool,
+    const vk::Device& device,
+    const vk::PhysicalDevice& physicalDevice);
+
+  /// Load frame to texture
+  void load_offscreen_frame_data(
+    const offscreen_frame_data& src,
+    const vk::Offset2D& srcOffset,
+    texture_data& dst,
+    const vk::Offset2D& dstOffset,
+    const vk::Extent2D& size,
     const vk::Queue& cmdQueue,
     const vk::CommandPool& cmdPool,
     const vk::Device& device,
