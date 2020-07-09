@@ -27,7 +27,6 @@
 #include <yave/module/std/shape/draw.hpp>
 #include <yave/module/std/shape/transform.hpp>
 
-#include <yave/lib/vulkan/offscreen_renderer_2D.hpp>
 #include <yave/support/log.hpp>
 #include <yave/support/id.hpp>
 
