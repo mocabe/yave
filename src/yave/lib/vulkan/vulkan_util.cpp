@@ -160,4 +160,23 @@ namespace yave::vulkan {
     return state;
   }
 
-} // namespace yave
+  auto convert_to_format(image_format fmt) -> vk::Format
+  {
+    if (fmt == image_format::rgba8)
+      return vk::Format::eR8G8B8A8Unorm;
+
+    if (fmt == image_format::rgba16)
+      return vk::Format::eR16G16B16A16Unorm;
+
+    if (fmt == image_format::rgba32f)
+      return vk::Format::eR32G32B32A32Sfloat;
+
+    if (fmt == image_format::rgb8)
+      return vk::Format::eR8G8B8Unorm;
+
+    if (fmt == image_format::rgb16)
+      return vk::Format::eR16G16B16Unorm;
+
+    return vk::Format::eUndefined;
+  }
+} // namespace yave::vulkan

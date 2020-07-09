@@ -14,6 +14,7 @@
 #endif
 
 #include <yave/lib/image/blend_operation.hpp>
+#include <yave/lib/image/image_format.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace yave::vulkan {
@@ -60,5 +61,8 @@ namespace yave::vulkan {
   /// Get blend state from blend op
   [[nodiscard]] auto convert_to_blend_state(blend_operation op)
     -> vk::PipelineColorBlendAttachmentState;
+
+  /// Get vk::Format from image format
+  [[nodiscard]] auto convert_to_format(image_format fmt) -> vk::Format;
 
 } // namespace yave
