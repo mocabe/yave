@@ -250,8 +250,8 @@ namespace yave::vulkan {
   {
     assert(srcOffset.x + size.width <= dst.extent.width);
     assert(srcOffset.y + size.height <= dst.extent.height);
-    assert(dstOffset.x + size.width <= src.width);
-    assert(dstOffset.y + size.height <= src.height);
+    assert(dstOffset.x + size.width <= src.extent.width);
+    assert(dstOffset.y + size.height <= src.extent.height);
 
     vk::ImageSubresourceLayers layer;
     layer.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -294,8 +294,8 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
-    assert(srcOffset.x + size.width <= dst.width);
-    assert(srcOffset.y + size.height <= dst.height);
+    assert(srcOffset.x + size.width <= dst.extent.width);
+    assert(srcOffset.y + size.height <= dst.extent.height);
     assert(dstOffset.x + size.width <= src.extent.width);
     assert(dstOffset.y + size.height <= src.extent.height);
 

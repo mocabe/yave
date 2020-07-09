@@ -14,10 +14,8 @@ namespace yave::vulkan {
   /// 2D Texture data structure for vulkan.
   struct texture_data
   {
-    /// width
-    uint32_t width = 0;
-    /// height
-    uint32_t height = 0;
+    /// extent
+    vk::Extent2D extent;
     /// format
     vk::Format format = vk::Format::eUndefined;
     /// size

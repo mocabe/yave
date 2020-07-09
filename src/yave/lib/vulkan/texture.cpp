@@ -81,8 +81,7 @@ namespace yave::vulkan {
     }
 
     return {
-      width,
-      height,
+      {width, height},
       format,
       format_texel_size(format) * width * height,
       std::move(image),
@@ -102,7 +101,7 @@ namespace yave::vulkan {
       vk::ImageCreateInfo info;
       info.imageType   = vk::ImageType::e2D;
       info.format      = tex.format;
-      info.extent      = vk::Extent3D {tex.width, tex.height, 1};
+      info.extent      = vk::Extent3D {tex.extent, 1};
       info.mipLevels   = 1;
       info.arrayLayers = 1;
       info.samples     = vk::SampleCountFlagBits::e1;
@@ -162,7 +161,7 @@ namespace yave::vulkan {
         vk::ImageCopy region;
         region.srcSubresource = layer;
         region.dstSubresource = layer;
-        region.extent         = vk::Extent3D {tex.width, tex.height, 1};
+        region.extent         = vk::Extent3D {tex.extent, 1};
 
         cmd.copyImage(
           tex.image.get(),
@@ -177,8 +176,7 @@ namespace yave::vulkan {
     }
 
     return {
-      tex.width,
-      tex.height,
+      tex.extent,
       tex.format,
       tex.size,
       std::move(image),
@@ -221,8 +219,8 @@ namespace yave::vulkan {
   {
     assert(staging.buffer.get());
     assert(dst.image.get());
-    assert(offset.x + size.width <= dst.width);
-    assert(offset.y + size.height <= dst.height);
+    assert(offset.x + size.width <= dst.extent.width);
+    assert(offset.y + size.height <= dst.extent.height);
 
     auto texel_size = format_texel_size(dst.format);
     auto buff_size  = size.width * size.height * texel_size;
@@ -271,8 +269,8 @@ namespace yave::vulkan {
     const vk::Device& device,
     const vk::PhysicalDevice& physicalDevice)
   {
-    assert(offset.x + size.width <= src.width);
-    assert(offset.y + size.height <= src.height);
+    assert(offset.x + size.width <= src.extent.width);
+    assert(offset.y + size.height <= src.extent.height);
 
     auto texel_size = format_texel_size(src.format);
     auto buff_size  = size.width * size.height * texel_size;
