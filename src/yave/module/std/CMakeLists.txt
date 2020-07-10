@@ -13,6 +13,7 @@ add_library(yave-module-std
   logic/if.cpp
   primitive/primitive.cpp
   render/frame.cpp
+  render/mix.cpp
   time/retime.cpp 
   time/time.cpp
   transform/rotate.cpp
