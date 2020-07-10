@@ -30,7 +30,7 @@ namespace yave {
     /// construction.
     /// \requires `data` should be valid memory storage allocated using `alloc`
     image(
-      std::byte* data,
+      uint8_t* data,
       const uint32_t& width,
       const uint32_t& height,
       const image_format& image_format,
@@ -85,7 +85,7 @@ namespace yave {
     /// Release the owenership of the instance.
     /// \effects Calls `clear()` without deallocating `m_data`.
     /// \requires Should always success.
-    [[nodiscard]] auto release() noexcept -> std::byte*;
+    [[nodiscard]] auto release() noexcept -> uint8_t*;
 
     /// Check if the instance has data.
     /// \effects None.
@@ -93,10 +93,10 @@ namespace yave {
     [[nodiscard]] bool empty() const noexcept;
 
     /// get data pointer
-    [[nodiscard]] const std::byte* data() const noexcept;
+    [[nodiscard]] const uint8_t* data() const noexcept;
 
     /// get data pointer
-    [[nodiscard]] std::byte* data() noexcept;
+    [[nodiscard]] uint8_t* data() noexcept;
 
     /// format
     [[nodiscard]] yave::image_format image_format() const noexcept;
@@ -143,22 +143,22 @@ namespace yave {
 
   private:
     /// Allocate memory using allocator
-    std::byte* _alloc(
+    uint8_t* _alloc(
       size_t size,
       std::pmr::polymorphic_allocator<std::byte>& alloc);
     /// Deallocate memory
     void _dealloc(
-      std::byte* ptr,
+      uint8_t* ptr,
       size_t size,
       std::pmr::polymorphic_allocator<std::byte>& alloc) noexcept;
     /// Copy bytes from src to dst
-    void _copy_bytes(std::byte* dst, std::byte* src, uint64_t size) noexcept;
+    void _copy_bytes(uint8_t* dst, uint8_t* src, uint64_t size) noexcept;
     /// Validation
     bool _is_valid() const;
 
   private:
     /// data ptr
-    std::byte* m_data = nullptr;
+    uint8_t* m_data = nullptr;
     /// width
     uint32_t m_width = 0;
     /// height

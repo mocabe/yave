@@ -157,7 +157,6 @@ namespace yave {
     auto data   = image.byte_ptr();
 
     auto ret = yave::image(
-      (std::byte*)data,
       width,
       height,
       image_format {pfmt, sfmt, static_cast<uint16_t>(bpc)},
@@ -186,8 +185,7 @@ namespace yave {
       to_sln(image.image_format().color_type),
       to_sln(image.image_format().data_type));
 
-    return ConstantDynImageView(
-      (const uint8_t*)image.data(), layout, semantics);
+    return ConstantDynImageView(image.data(), layout, semantics);
   }
 
   /// Convert mutable_image_view to sln::MutableDynImageView
@@ -206,7 +204,7 @@ namespace yave {
       to_sln(image.image_format().color_type),
       to_sln(image.image_format().data_type));
 
-    return MutableDynImageView((uint8_t*)image.data(), layout, semantics);
+    return MutableDynImageView(image.data(), layout, semantics);
   }
 
   /// Convert sln::ConstantDynImageView to const_image_view
@@ -219,10 +217,7 @@ namespace yave {
                     static_cast<uint16_t>(image.nr_bytes_per_channel())};
 
     return const_image_view(
-      (const std::byte*)image.byte_ptr(),
-      image.width().value(),
-      image.height().value(),
-      fmt);
+      image.byte_ptr(), image.width().value(), image.height().value(), fmt);
   }
 
   /// Convert sln::MutableDynImageView to mutable_image_view
@@ -235,10 +230,7 @@ namespace yave {
                     static_cast<uint16_t>(image.nr_bytes_per_channel())};
 
     return mutable_image_view(
-      (std::byte*)image.byte_ptr(),
-      image.width().value(),
-      image.height().value(),
-      fmt);
+      image.byte_ptr(), image.width().value(), image.height().value(), fmt);
   }
 
 } // namespace yave

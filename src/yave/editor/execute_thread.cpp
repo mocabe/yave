@@ -86,8 +86,7 @@ namespace yave::editor {
                     value_cast<FrameBuffer>(exe->execute(frame_demand {time}));
                   // load to host memory
                   auto img = image(r->width(), r->height(), r->format());
-                  r->read_data(
-                    0, 0, r->width(), r->height(), (uint8_t*)img.data());
+                  r->read_data(0, 0, r->width(), r->height(), img.data());
                   return img;
                 } catch (...) {
                   // execution error

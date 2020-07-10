@@ -75,7 +75,7 @@ namespace yave {
 
         // upload image to GPU
         m_compositor.render_pass().write_texture(
-          tex, {}, {fb->width(), fb->height()}, (const uint8_t*)img.data());
+          tex, {}, {fb->width(), fb->height()}, img.data());
 
         auto& fbtex = m_fbm.get_texture_data(fb->id());
 

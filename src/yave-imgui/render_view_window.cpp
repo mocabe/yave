@@ -60,7 +60,7 @@ namespace yave::editor {
       }
 
       imgui_ctx.write_texture(
-        res_tex_data, {0, 0}, res_tex_data.extent, (const uint8_t*)fb->data());
+        res_tex_data, {0, 0}, res_tex_data.extent, fb->data());
 
       last_timestamp = data.executor.timestamp();
       exec_time      = data.executor.exec_time();
