@@ -22,6 +22,9 @@ namespace yave::vulkan {
     /// memory size
     vk::DeviceSize size;
     /// image
+    /// layout: eColorAttachment
+    /// prop: eColorAttachment | eTransferDst | eTransferSrc
+    /// sharing: eExclusive
     vk::UniqueImage image;
     /// image memory
     vk::UniqueDeviceMemory memory;
@@ -56,7 +59,7 @@ namespace yave::vulkan {
     offscreen_frame_data& dst,
     const vk::Offset2D& offset,
     const vk::Extent2D& size,
-    const std::byte* data,
+    const std::uint8_t* data,
     const vk::Queue& cmdQueue,
     const vk::CommandPool& cmdPool,
     const vk::Device& device,
@@ -68,7 +71,7 @@ namespace yave::vulkan {
     const offscreen_frame_data& src,
     const vk::Offset2D& offset,
     const vk::Extent2D& extent,
-    std::byte* dstData,
+    std::uint8_t* dstData,
     const vk::Queue& cmdQueue,
     const vk::CommandPool& cmdPool,
     const vk::Device& device,

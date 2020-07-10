@@ -177,6 +177,6 @@ namespace yave::vulkan {
     if (fmt == image_format::rgb16)
       return vk::Format::eR16G16B16Unorm;
 
-    return vk::Format::eUndefined;
+    unreachable();
   }
 } // namespace yave::vulkan

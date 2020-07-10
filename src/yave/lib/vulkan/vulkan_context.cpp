@@ -539,7 +539,7 @@ namespace yave::vulkan {
       for (auto&& e : extensions) {
         auto it = std::find_if(
           supportedExtensions.begin(), supportedExtensions.end(), [&](auto& x) {
-            return x.extensionName == e;
+            return (const char*)x.extensionName == e;
           });
         if (it == supportedExtensions.end())
           return false;
@@ -555,7 +555,7 @@ namespace yave::vulkan {
       for (auto&& l : layers) {
         auto it = std::find_if(
           supportedLayers.begin(), supportedLayers.end(), [&](auto& x) {
-            return x.layerName == l;
+            return (const char*)x.layerName == l;
           });
         if (it == supportedLayers.end())
           return false;
