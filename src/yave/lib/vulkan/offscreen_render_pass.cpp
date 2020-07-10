@@ -124,20 +124,11 @@ namespace {
 
 namespace yave::vulkan {
 
-  inline auto gilToVkFormat(boost::gil::rgba32f_pixel_t)
+  class rgba32f_offscreen_render_pass::impl
   {
-    return vk::Format::eR32G32B32A32Sfloat;
-  }
-
-  template <class PixelLocType>
-  struct composition_pass_impl
-  {
-  public:
-    using pixel_loc_type = PixelLocType;
-    using pixel_type     = typename pixel_loc_type::value_type;
-
   public:
     offscreen_context& offscreen_ctx;
+    vulkan_context& vulkan_ctx;
 
   public:
     vk::UniqueCommandPool command_pool;
@@ -146,119 +137,192 @@ namespace yave::vulkan {
   public: /* pipeline */
     vk::UniqueRenderPass render_pass;
     offscreen_frame_data frame_data;
-    staging_buffer frame_staging;
 
   public:
     // fence to wait submitted queue operations finish
     vk::UniqueFence submit_fence;
 
   public:
-    composition_pass_impl(
-      uint32_t width,
-      uint32_t height,
-      offscreen_context& ctx)
+    staging_buffer texture_staging;
+
+  public:
+    impl(uint32_t width, uint32_t height, offscreen_context& ctx)
       : offscreen_ctx {ctx}
+      , vulkan_ctx {ctx.vulkan_ctx()}
     {
       init_logger();
 
       auto extent = vk::Extent2D {width, height};
-      auto format = gilToVkFormat(pixel_type());
+      auto format = convert_to_format(image_format::rgba32f);
+
+      auto device             = offscreen_ctx.device();
+      auto graphicsQueue      = offscreen_ctx.graphics_queue();
+      auto graphicsQueueIndex = offscreen_ctx.graphics_queue_index();
+      auto physicalDevice     = vulkan_ctx.physical_device();
 
       // create render pass
       render_pass = createRenderPass(format, ctx.device());
 
       // create command pool for graphics
-      command_pool =
-        createCommandPool(ctx.graphics_queue_index(), ctx.device());
+      command_pool = createCommandPool(graphicsQueueIndex, device);
 
       // command buffer for rendering
       command_buffer = std::move(createCommandBuffers(
-        1,
-        vk::CommandBufferLevel::ePrimary,
-        command_pool.get(),
-        ctx.device())[0]);
+        1, vk::CommandBufferLevel::ePrimary, command_pool.get(), device)[0]);
 
       // create fence
-      submit_fence =
-        createFence(vk::FenceCreateFlagBits::eSignaled, ctx.device());
+      submit_fence = createFence(vk::FenceCreateFlagBits::eSignaled, device);
 
       frame_data = create_offscreen_frame_data(
         extent,
         format,
-        ctx.graphics_queue(),
+        graphicsQueue,
         command_pool.get(),
         render_pass.get(),
-        ctx.device(),
-        ctx.vulkan_ctx().physical_device());
+        device,
+        physicalDevice);
 
       clear_offscreen_frame_data(
         frame_data,
         vk::ClearColorValue(),
-        ctx.graphics_queue(),
+        graphicsQueue,
         command_pool.get(),
-        ctx.device(),
-        ctx.vulkan_ctx().physical_device());
+        device,
+        physicalDevice);
 
-      frame_staging = create_staging_buffer(
-        frame_data.size, ctx.device(), ctx.vulkan_ctx().physical_device());
+      texture_staging = create_staging_buffer(1, device, physicalDevice);
     }
 
-    ~composition_pass_impl() noexcept
+    ~impl() noexcept
     {
       offscreen_ctx.device().waitIdle();
     }
 
     void store_frame(
-      const boost::gil::image_view<typename pixel_loc_type::const_t>& view)
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent,
+      const uint8_t* data)
     {
-      if (
-        frame_data.extent
-        != vk::Extent2D {static_cast<uint32_t>(view.width()),
-                         static_cast<uint32_t>(view.height())})
-        throw std::runtime_error("Incompatible size for frame buffer");
-
-      assert(view.is_1d_traversable());
-
-      wait_draw();
-
       store_offscreen_frame_data(
-        frame_staging,
+        texture_staging,
         frame_data,
-        reinterpret_cast<const std::byte*>(view.row_begin(0)),
-        view.size() * sizeof(pixel_type),
+        offset,
+        extent,
+        data,
         offscreen_ctx.graphics_queue(),
         command_pool.get(),
         offscreen_ctx.device(),
         offscreen_ctx.vulkan_ctx().physical_device());
     }
 
-    void load_frame(const boost::gil::image_view<pixel_loc_type>& view)
+    void store_frame(
+      const texture_data& src,
+      const vk::Offset2D& srcOffset,
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent)
     {
-      if (
-        frame_data.extent
-        != vk::Extent2D {static_cast<uint32_t>(view.width()),
-                         static_cast<uint32_t>(view.height())})
-        throw std::runtime_error("Incompatible size for frame buffer");
-
-      assert(view.is_1d_traversable());
-
-      wait_draw();
-
-      load_offscreen_frame_data(
-        frame_staging,
+      store_offscreen_frame_data(
+        src,
+        srcOffset,
         frame_data,
-        reinterpret_cast<std::byte*>(view.row_begin(0)),
-        view.size() * sizeof(pixel_type),
+        offset,
+        extent,
         offscreen_ctx.graphics_queue(),
         command_pool.get(),
         offscreen_ctx.device(),
         offscreen_ctx.vulkan_ctx().physical_device());
+    }
+
+    void load_frame(
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent,
+      uint8_t* data)
+    {
+      load_offscreen_frame_data(
+        texture_staging,
+        frame_data,
+        offset,
+        extent,
+        data,
+        offscreen_ctx.graphics_queue(),
+        command_pool.get(),
+        offscreen_ctx.device(),
+        offscreen_ctx.vulkan_ctx().physical_device());
+    }
+
+    void load_frame(
+      texture_data& dst,
+      const vk::Offset2D& dstOffset,
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent) 
+    {
+      load_offscreen_frame_data(
+        frame_data,
+        dstOffset,
+        dst,
+        offset,
+        extent,
+        offscreen_ctx.graphics_queue(),
+        command_pool.get(),
+        offscreen_ctx.device(),
+        offscreen_ctx.vulkan_ctx().physical_device());
+    }
+
+    void clear_frame(const vk::ClearColorValue& col)
+    {
+      clear_offscreen_frame_data(
+        frame_data,
+        col,
+        offscreen_ctx.graphics_queue(),
+        command_pool.get(),
+        offscreen_ctx.device(),
+        offscreen_ctx.vulkan_ctx().physical_device());
+    }
+
+    auto create_texture(vk::Extent2D extent, vk::Format format) -> texture_data
+    {
+      auto tex = create_texture_data(
+        extent.width,
+        extent.height,
+        format,
+        offscreen_ctx.graphics_queue(),
+        command_pool.get(),
+        offscreen_ctx.device(),
+        vulkan_ctx.physical_device());
+
+      return tex;
+    }
+
+    void write_texture(
+      vulkan::texture_data& tex,
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent,
+      const uint8_t* data)
+    {
+      vulkan::store_texture_data(
+        texture_staging,
+        tex,
+        offset,
+        extent,
+        data,
+        offscreen_ctx.graphics_queue(),
+        command_pool.get(),
+        offscreen_ctx.device(),
+        vulkan_ctx.physical_device());
+    }
+
+    void clear_texture(texture_data& tex, const vk::ClearColorValue& col)
+    {
+      auto physicalDevice = vulkan_ctx.physical_device();
+      auto device         = offscreen_ctx.device();
+      auto graphicsQueue  = offscreen_ctx.graphics_queue();
+
+      vulkan::clear_texture_data(
+        tex, col, graphicsQueue, command_pool.get(), device, physicalDevice);
     }
 
     auto begin_pass() -> vk::CommandBuffer
     {
-      wait_draw();
-
       auto buffer = command_buffer.get();
 
       // begin command buffer
@@ -283,8 +347,6 @@ namespace yave::vulkan {
 
     void end_pass()
     {
-      wait_draw();
-
       auto buffer = command_buffer.get();
 
       // end recording
@@ -316,12 +378,6 @@ namespace yave::vulkan {
       offscreen_ctx.device().waitForFences(
         submit_fence.get(), true, std::numeric_limits<uint64_t>::max());
     }
-  };
-
-  class rgba32f_offscreen_render_pass::impl
-    : public composition_pass_impl<pixel_loc_type>
-  {
-    using composition_pass_impl::composition_pass_impl;
   };
 
   rgba32f_offscreen_render_pass::rgba32f_offscreen_render_pass(
@@ -357,18 +413,70 @@ namespace yave::vulkan {
   }
 
   void rgba32f_offscreen_render_pass::store_frame(
-    const boost::gil::rgba32fc_view_t& view)
+    const vk::Offset2D& offset,
+    const vk::Extent2D& extent,
+    const uint8_t* data)
   {
-    m_pimpl->store_frame(view);
+    m_pimpl->store_frame(offset, extent, data);
+  }
+
+  void rgba32f_offscreen_render_pass::store_frame(
+    const texture_data& src,
+    const vk::Offset2D& srcOffset,
+    const vk::Offset2D& offset,
+    const vk::Extent2D& extent)
+  {
+    m_pimpl->store_frame(src, srcOffset, offset, extent);
   }
 
   void rgba32f_offscreen_render_pass::load_frame(
-    const boost::gil::rgba32f_view_t& view) const
+    const vk::Offset2D& offset,
+    const vk::Extent2D& extent,
+    uint8_t* data) const
   {
-    m_pimpl->load_frame(view);
+    m_pimpl->load_frame(offset, extent, data);
   }
 
-  auto rgba32f_offscreen_render_pass::frame_extent() const noexcept -> vk::Extent2D
+  void rgba32f_offscreen_render_pass::load_frame(
+    texture_data& dst,
+    const vk::Offset2D& dstOffset,
+    const vk::Offset2D& offset,
+    const vk::Extent2D& extent) const
+  {
+    m_pimpl->load_frame(dst, dstOffset, offset, extent);
+  }
+
+  void rgba32f_offscreen_render_pass::clear_frame(
+    const vk::ClearColorValue& col)
+  {
+    m_pimpl->clear_frame(col);
+  }
+
+  auto rgba32f_offscreen_render_pass::create_texture(
+    const vk::Extent2D& extent,
+    const vk::Format& format) -> vulkan::texture_data
+  {
+    return m_pimpl->create_texture(extent, format);
+  }
+
+  void rgba32f_offscreen_render_pass::write_texture(
+    vulkan::texture_data& tex,
+    const vk::Offset2D& offset,
+    const vk::Extent2D& extent,
+    const uint8_t* data)
+  {
+    m_pimpl->write_texture(tex, offset, extent, data);
+  }
+
+  void rgba32f_offscreen_render_pass::clear_texture(
+    vulkan::texture_data& tex,
+    const vk::ClearColorValue& color)
+  {
+    m_pimpl->clear_texture(tex, color);
+  }
+
+  auto rgba32f_offscreen_render_pass::frame_extent() const noexcept
+    -> vk::Extent2D
   {
     return m_pimpl->frame_data.extent;
   }
@@ -378,7 +486,8 @@ namespace yave::vulkan {
     return m_pimpl->frame_data.image.get();
   }
 
-  auto rgba32f_offscreen_render_pass::frame_image_view() const noexcept -> vk::ImageView
+  auto rgba32f_offscreen_render_pass::frame_image_view() const noexcept
+    -> vk::ImageView
   {
     return m_pimpl->frame_data.view.get();
   }

@@ -6,10 +6,9 @@
 #pragma once
 
 #include <yave/lib/vulkan/vulkan_context.hpp>
+#include <yave/lib/vulkan/texture.hpp>
 #include <yave/lib/vulkan/offscreen_context.hpp>
 #include <yave/lib/frame_buffer/frame_buffer.hpp>
-
-#include <boost/gil.hpp>
 
 namespace yave::vulkan {
 
@@ -17,10 +16,6 @@ namespace yave::vulkan {
   /// float color frame.
   class rgba32f_offscreen_render_pass
   {
-  public:
-    using pixel_loc_type = boost::gil::rgba32f_loc_t;
-    using pixel_type     = typename pixel_loc_type::value_type;
-
   public:
     rgba32f_offscreen_render_pass(
       uint32_t width,
@@ -43,10 +38,51 @@ namespace yave::vulkan {
 
   public:
     /// Store frame onto existing image.
-    /// Existing image will be overwritten by this operation.
-    void store_frame(const boost::gil::rgba32fc_view_t& view);
+    void store_frame(
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent,
+      const uint8_t* data);
+
+    /// Store frame from texture data
+    void store_frame(
+      const texture_data& src,
+      const vk::Offset2D& srcOffset,
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent);
+
     /// Load image back to image.
-    void load_frame(const boost::gil::rgba32f_view_t& view) const;
+    void load_frame(
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent,
+      uint8_t* data) const;
+
+    /// Load image to texture
+    void load_frame(
+      texture_data& dst,
+      const vk::Offset2D& dstOffset,
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent) const;
+
+    /// Clear frame data
+    void clear_frame(const vk::ClearColorValue& col);
+
+  public: /* texture utility */
+    /// Add texture data
+    [[nodiscard]] auto create_texture(
+      const vk::Extent2D& extent,
+      const vk::Format& format) -> vulkan::texture_data;
+
+    /// Update texture data
+    void write_texture(
+      vulkan::texture_data& tex,
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent,
+      const uint8_t* data);
+
+    /// Clear texture
+    void clear_texture(
+      vulkan::texture_data& tex,
+      const vk::ClearColorValue& color);
 
   public:
     /// frame buffer extent
