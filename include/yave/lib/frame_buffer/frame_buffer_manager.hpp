@@ -10,6 +10,9 @@
 #include <yave/lib/buffer/buffer_manager.hpp>
 #include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
+#include <yave/lib/vulkan/texture.hpp>
+#include <yave/lib/vulkan/offscreen_context.hpp>
+
 #include <yave/support/id.hpp>
 #include <yave/support/uuid.hpp>
 
@@ -26,7 +29,9 @@ namespace yave {
       uint32_t width,
       uint32_t height,
       image_format format,
-      uuid backend_id);
+      uuid backend_id,
+      vulkan::offscreen_context& ctx);
+
     ~frame_buffer_manager() noexcept;
 
     frame_buffer_manager(const frame_buffer_manager&) = delete;
@@ -37,9 +42,11 @@ namespace yave {
 
   public:
     /// create
-    [[nodiscard]] uid create() noexcept;
+    [[nodiscard]] auto create() noexcept -> uid;
     /// create from
-    [[nodiscard]] uid create_from(uid) noexcept;
+    [[nodiscard]] auto create_from(uid) noexcept -> uid;
+    /// valid id?
+    [[nodiscard]] bool exists(uid id) const noexcept;
 
     /// ref
     void ref(uid id) noexcept;
@@ -48,8 +55,6 @@ namespace yave {
 
     /// Get use count
     [[nodiscard]] auto use_count(uid id) const noexcept -> uint64_t;
-    /// Get data pointer
-    [[nodiscard]] auto data(uid id) noexcept -> std::byte*;
 
     /// Get width of buffers.
     [[nodiscard]] auto width() const noexcept -> uint32_t;
@@ -61,6 +66,9 @@ namespace yave {
     /// Get proxy data
     [[nodiscard]] auto get_pool_object() const noexcept
       -> object_ptr<const FrameBufferPool>;
+
+    /// Get internal texture data
+    [[nodiscard]] auto get_texture_data(uid id) -> vulkan::texture_data&;
 
   private:
     class impl;
