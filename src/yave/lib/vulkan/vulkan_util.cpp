@@ -96,6 +96,7 @@ namespace yave::vulkan {
       case vk::Format::eR16G16B16Unorm:
         return 6;
       case vk::Format::eR8G8B8A8Unorm:
+      case vk::Format::eB8G8R8A8Unorm:
         return 4;
       case vk::Format::eR16G16B16A16Unorm:
         return 8;
@@ -130,7 +131,7 @@ namespace yave::vulkan {
         dstFactor = vk::BlendFactor::eOne;
         break;
       case blend_operation::over:
-        srcFactor = vk::BlendFactor::eSrcAlpha;
+        srcFactor = vk::BlendFactor::eOne;
         dstFactor = vk::BlendFactor::eOneMinusSrcAlpha;
         break;
       case blend_operation::in:
