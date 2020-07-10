@@ -138,6 +138,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::ListMap>(),
             get_node_declaration<node::ListRepeat>(),
             get_node_declaration<node::ListEnumerate>(),
+            get_node_declaration<node::ListFold>(),
             get_node_declaration<node::Apply>(),
             get_node_declaration<node::If>(),
             get_node_declaration<node::Int>(),
@@ -191,6 +192,7 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::ListMap, _std::tag>());
     add(yave::get_node_definitions<node::ListRepeat, _std::tag>());
     add(yave::get_node_definitions<node::ListEnumerate, _std::tag>());
+    add(yave::get_node_definitions<node::ListFold, _std::tag>());
     add(yave::get_node_definitions<node::If, _std::tag>());
     add(yave::get_node_definitions<node::Apply, _std::tag>());
     add(yave::get_node_definitions<node::Int, _std::tag>());
