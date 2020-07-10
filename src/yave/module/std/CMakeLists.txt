@@ -6,7 +6,6 @@ add_library(yave-module-std
   geometry/rect.cpp
   geometry/vec.cpp
   geometry/mat.cpp
-  image/image.cpp
   list/list.cpp
   list/algorithm.cpp
   logic/apply.cpp
@@ -31,7 +30,6 @@ target_link_libraries(yave-module-std PUBLIC yave::config)
 target_link_libraries(yave-module-std PUBLIC yave::node::core)
 target_link_libraries(yave-module-std PRIVATE yave::support::log)
 target_link_libraries(yave-module-std PRIVATE yave::support::error)
-target_link_libraries(yave-module-std PRIVATE yave::lib::image_buffer)
 target_link_libraries(yave-module-std PRIVATE yave::lib::frame_buffer)
 target_link_libraries(yave-module-std PRIVATE yave::lib::scene)
 target_link_libraries(yave-module-std PRIVATE yave::lib::vulkan)

@@ -1,1 +1,0 @@
-YAVE_Test(image_buffer image_buffer yave::lib::image_buffer)

@@ -12,7 +12,6 @@
 #include <yave/module/std/geometry/vec.hpp>
 #include <yave/module/std/geometry/mat.hpp>
 #include <yave/module/std/geometry/rect.hpp>
-#include <yave/module/std/image/image.hpp>
 #include <yave/module/std/list/list.hpp>
 #include <yave/module/std/list/algorithm.hpp>
 #include <yave/module/std/logic/apply.hpp>
@@ -43,15 +42,12 @@ namespace yave::modules::_std {
     {
       module_resource(const scene_config& config, vulkan::vulkan_context& ctx)
         : offscreen_ctx {ctx}
-        , image_buff {module_id}
         , frame_buff {config.width(), config.height(), config.frame_format(), module_id, offscreen_ctx}
         , compositor {config.width(), config.height(), offscreen_ctx}
       {
       }
 
       vulkan::offscreen_context offscreen_ctx;
-
-      image_buffer_manager image_buff;
       frame_buffer_manager frame_buff;
       vulkan::rgba32f_offscreen_compositor compositor;
     };
@@ -136,7 +132,6 @@ namespace yave::modules::_std {
             get_node_declaration<node::Mat4>(),
             get_node_declaration<node::Rect2>(),
             get_node_declaration<node::Rect3>(),
-            get_node_declaration<node::Image>(),
             get_node_declaration<node::ListNil>(),
             get_node_declaration<node::ListCons>(),
             get_node_declaration<node::ListDecompose>(),
@@ -177,11 +172,9 @@ namespace yave::modules::_std {
         ret.push_back(def);
     };
 
-    auto& imngr      = m_pimpl->resource->image_buff;
     auto& fmngr      = m_pimpl->resource->frame_buff;
     auto& compositor = m_pimpl->resource->compositor;
 
-    add(yave::get_node_definitions<node::Image, _std::tag>(imngr));
     add(yave::get_node_definitions<node::Frame, _std::tag>(fmngr));
 
     add(yave::get_node_definitions<node::Color, _std::tag>());
