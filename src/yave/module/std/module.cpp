@@ -215,7 +215,7 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::RotateZ, _std::geometry::tag>());
     add(yave::get_node_definitions<node::Translate, _std::geometry::tag>());
     add(yave::get_node_definitions<node::CircleShape, _std::tag>());
-    add(yave::get_node_definitions<node::DrawShape, _std::tag>(fmngr));
+    add(yave::get_node_definitions<node::DrawShape, _std::tag>(fmngr, compositor));
     add(yave::get_node_definitions<node::ShapeTranslate, _std::tag>());
     add(yave::get_node_definitions<node::ShapeRotate, _std::tag>());
     add(yave::get_node_definitions<node::ShapeScale, _std::tag>());
