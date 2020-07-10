@@ -214,6 +214,7 @@ namespace yave::editor::imgui {
     auto name = info.name();
 
     bool has_custom_data = false;
+    bool data_updated    = false;
 
     if (m_data && info.connections().empty()) {
 
@@ -237,17 +238,31 @@ namespace yave::editor::imgui {
           /*  */ if (auto f = value_cast_if<Float>(holder->data())) {
             float val = *f;
             ImGui::DragFloat("", &val, 1.f, 0.f, 0.f, (name + ":%.3f").c_str());
-            *f = val;
+            if (*f != val) {
+              *f           = val;
+              data_updated = true;
+            }
           } else if (auto i = value_cast_if<Int>(holder->data())) {
             int val = *i;
             ImGui::DragInt("", &val);
-            *i = val;
+            if (*i != val) {
+              *i           = val;
+              data_updated = true;
+            }
           } else if (auto b = value_cast_if<Bool>(holder->data())) {
-            ImGui::Checkbox("", &*b);
+            auto val = *b;
+            ImGui::Checkbox("", &val);
+            if (*b != val) {
+              *b           = val;
+              data_updated = true;
+            }
           } else if (auto s = value_cast_if<String>(holder->data())) {
             std::string val = *s;
             ImGui::InputText("", &val);
-            *s = yave::string(val);
+            if (std::string(*s) != val) {
+              *s           = yave::string(val);
+              data_updated = true;
+            }
           } else
             // invalid data type. fallback to text
             has_custom_data = false;
@@ -258,6 +273,11 @@ namespace yave::editor::imgui {
         ImGui::PopID();
       }
     }
+
+    // Execute on data update
+    if (data_updated)
+      dctx.exec(make_data_command(
+        [](auto& ctx) { ctx.data().executor.notify_execute(); }));
 
     // draw generic socket name as text
     if (!has_custom_data) {
