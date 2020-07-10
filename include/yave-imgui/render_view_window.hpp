@@ -34,7 +34,9 @@ namespace yave::editor {
 
     yave::time current_time;
 
-    std::chrono::steady_clock::time_point last_exec_time;
+    std::chrono::steady_clock::time_point last_timestamp;
+
+    std::chrono::nanoseconds exec_time = {};
 
   public:
     render_view_window(yave::imgui::imgui_context& imctx);

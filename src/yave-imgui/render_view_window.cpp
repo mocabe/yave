@@ -5,6 +5,7 @@
 
 #include <yave-imgui/render_view_window.hpp>
 
+#include <yave/lib/image/image.hpp>
 #include <yave/lib/image/image_view.hpp>
 #include <yave/editor/editor_data.hpp>
 #include <yave/editor/data_context.hpp>
@@ -46,28 +47,23 @@ namespace yave::editor {
     current_time = data.executor.time();
 
     // no update
-    if (data.executor.timestamp() <= last_exec_time)
+    if (data.executor.timestamp() <= last_timestamp)
       return;
 
     // take execution result
-    if (auto fb = data.executor.get_result()) {
+    if (auto& fb = data.executor.get_result()) {
 
-      fb->bind();
-      {
-        auto view = fb->const_view();
-
-        if (!res_tex_id) {
-          res_tex_data = imgui_ctx.create_texture(
-            {view.width(), view.height()}, vk::Format::eR32G32B32A32Sfloat);
-          res_tex_id = imgui_ctx.bind_texture(res_tex_data);
-        }
-
-        imgui_ctx.write_texture(
-          res_tex_data, (const uint8_t*)view.data(), view.byte_size());
+      if (!res_tex_id) {
+        res_tex_data = imgui_ctx.create_texture(
+          {fb->width(), fb->height()}, vk::Format::eR32G32B32A32Sfloat);
+        res_tex_id = imgui_ctx.bind_texture(res_tex_data);
       }
-      fb->unbind();
 
-      last_exec_time = data.executor.timestamp();
+      imgui_ctx.write_texture(
+        res_tex_data, {0, 0}, res_tex_data.extent, (const uint8_t*)fb->data());
+
+      last_timestamp = data.executor.timestamp();
+      exec_time      = data.executor.exec_time();
     }
   }
 
@@ -128,8 +124,10 @@ namespace yave::editor {
       ImGui::Text("sz: %f %f", wsize.x, wsize.y);
       ImGui::Text("scroll: %f %f", scroll.x, scroll.y);
       ImGui::Text("scale: %f", scale * 100);
-      if (!res_tex_id)
-        ImGui::Text("No render result");
+
+      auto ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(exec_time);
+      ImGui::Text("%ld ms", ms.count());
 
       ImGui::EndChild();
       ImGui::PopStyleColor();
