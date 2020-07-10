@@ -32,7 +32,6 @@ namespace yave {
     BLContext ctx(img);
 
     ctx.setCompOp(BL_COMP_OP_SRC_COPY);
-    ctx.fillAll();
 
     BLPath p;
 
