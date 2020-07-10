@@ -35,7 +35,6 @@ namespace yave {
   {
     m_data = _alloc(byte_size(), m_alloc);
     std::memset(m_data, 0, byte_size());
-
     assert(_is_valid());
   }
 
@@ -50,7 +49,6 @@ namespace yave {
   {
     m_data = _alloc(other.byte_size(), m_alloc);
     _copy_bytes(m_data, other.m_data, other.byte_size());
-
     assert(_is_valid());
   }
 
@@ -64,6 +62,34 @@ namespace yave {
   {
     other.m_data = nullptr;
     other.clear();
+  }
+
+  image& image::operator=(const image& other)
+  {
+    clear();
+    m_data   = _alloc(other.byte_size(), m_alloc);
+    m_width  = other.m_width;
+    m_height = other.m_height;
+    m_format = other.m_format;
+    _copy_bytes(m_data, other.m_data, other.byte_size());
+    assert(_is_valid());
+    assert(other._is_valid());
+    return *this;
+  }
+
+  image& image::operator=(image&& other)
+  {
+    if (m_alloc == other.m_alloc) {
+      clear();
+      std::swap(m_data, other.m_data);
+      std::swap(m_width, other.m_width);
+      std::swap(m_height, other.m_height);
+      std::swap(m_format, other.m_format);
+      assert(_is_valid());
+      assert(other._is_valid());
+      return *this;
+    }
+    return this->operator=(other);
   }
 
   image::~image() noexcept

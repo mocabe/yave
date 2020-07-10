@@ -60,6 +60,17 @@ namespace yave {
     /// \requires `other` should be valid to success `is_valid()`.
     image(image&& other) noexcept;
 
+    /// Copy assign.
+    /// \effects Copy image from other image instance. Uses its own allocator.
+    /// \requres `other.is_valid()`
+    image& operator=(const image& other);
+
+    /// Move assign
+    /// \effects Move image from other image when both have same allocator,
+    /// otherwise fallback to copy.
+    /// \requres `other.is_valid()`
+    image& operator=(image&& other);
+
     /// Destruct an image data.
     /// \effects Calls `std::free()` with `m_data`.
     /// \requires `m_data` should be valid to call `std::free()`.
