@@ -7,6 +7,7 @@
 #include <yave/editor/editor_data.hpp>
 #include <yave/obj/frame_demand/frame_demand.hpp>
 #include <yave/node/core/function.hpp>
+#include <yave/lib/image/image.hpp>
 
 #include <thread>
 #include <mutex>
@@ -60,13 +61,12 @@ namespace yave::editor {
 
               // get compiled result
               auto data = [&] {
-                auto lck       = data_ctx.lock();
+                auto dlck      = data_ctx.lock();
                 auto& executor = data_ctx.data().executor;
                 auto& compiler = data_ctx.data().compiler;
                 return std::make_tuple(compiler.get_result(), executor.time());
               }();
 
-              // sad fact: can't use structual binding here cuz it is broken
               auto& exe  = std::get<0>(data);
               auto& time = std::get<1>(data);
 
@@ -77,20 +77,31 @@ namespace yave::editor {
               assert(same_type(
                 exe->type(), object_type<node_closure<FrameBuffer>>()));
 
-              // execute app tree
-              auto result = [&]() -> object_ptr<const Object> {
+              auto bgn = std::chrono::high_resolution_clock::now();
+
+              // execute app tree.
+              auto result = [&]() -> std::optional<image> {
                 try {
-                  return exe->execute(frame_demand {time});
+                  auto r =
+                    value_cast<FrameBuffer>(exe->execute(frame_demand {time}));
+                  // load to host memory
+                  auto img = image(r->width(), r->height(), r->format());
+                  r->read_data(
+                    0, 0, r->width(), r->height(), (uint8_t*)img.data());
+                  return img;
                 } catch (...) {
                   // execution error
-                  return nullptr;
+                  return std::nullopt;
                 }
               }();
 
+              auto end = std::chrono::high_resolution_clock::now();
+
               {
-                auto lck          = data_ctx.lock();
-                auto& executor    = data_ctx.data().executor;
-                executor.m_result = value_cast<FrameBuffer>(std::move(result));
+                auto dlck            = data_ctx.lock();
+                auto& executor       = data_ctx.data().executor;
+                executor.m_result    = std::move(result);
+                executor.m_exec_time = end - bgn;
                 executor.m_timestamp = std::chrono::steady_clock::now();
               }
             }

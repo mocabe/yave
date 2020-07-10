@@ -9,6 +9,7 @@
 #include <yave/editor/data_context.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/lib/time/time.hpp>
+#include <yave/lib/image/image.hpp>
 
 namespace yave::editor {
 
@@ -39,7 +40,9 @@ namespace yave::editor {
     /// time to execute
     yave::time m_time;
     /// execution result
-    object_ptr<const FrameBuffer> m_result;
+    std::optional<image> m_result = std::nullopt;
+    /// execution time
+    std::chrono::nanoseconds m_exec_time = {};
     /// timestamp
     std::chrono::steady_clock::time_point m_timestamp =
       std::chrono::steady_clock::now();
@@ -56,7 +59,7 @@ namespace yave::editor {
     void deinit()
     {
       m_thread_ptr = nullptr;
-      m_result     = nullptr;
+      m_result     = std::nullopt;
     }
 
     void notify_execute()
@@ -75,17 +78,19 @@ namespace yave::editor {
       m_time = newtime;
     }
 
+    auto& exec_time() const
+    {
+      return m_exec_time;
+    }
+
     auto& timestamp() const
     {
       return m_timestamp;
     }
 
-    auto get_result() const -> const frame_buffer*
+    auto& get_result() const
     {
-      if (m_result)
-        return m_result.value();
-      else
-        return nullptr;
+      return m_result;
     }
   };
 } // namespace yave::editor
