@@ -75,6 +75,11 @@ namespace yave::editor::imgui {
       bool selected,
       const ImVec2& pos,
       const ImVec2& size) const;
+    // draw popup
+    void _draw_popup(
+      node_window_draw_info& draw_info,
+      data_context& dctx,
+      view_context& vctx) const;
     // input handling
     void _handle_input(
       const node_window& nw,

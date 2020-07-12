@@ -20,6 +20,7 @@ namespace yave::editor::imgui {
     const node_window& nw)
     : connection_drawable {c, *g.get_info(c)}
   {
+    (void)nw;
   }
 
   void basic_connection_drawer::draw(
@@ -30,6 +31,11 @@ namespace yave::editor::imgui {
     ImDrawListSplitter& splitter,
     int channel)
   {
+    (void)dctx;
+    (void)vctx;
+
+    splitter.SetCurrentChannel(ImGui::GetWindowDrawList(), channel);
+
     auto s1 = info.src_socket();
     auto s2 = info.dst_socket();
 

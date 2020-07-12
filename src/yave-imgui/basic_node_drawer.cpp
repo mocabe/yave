@@ -181,18 +181,18 @@ namespace yave::editor::imgui {
       // id
       ImGui::TextDisabled("id: %s", to_string(n.id()).c_str());
 
-      ImGui::Separator();
+      if (info.is_group() || info.is_group_input()) {
 
-      if (info.output_sockets().empty())
-        ImGui::TextDisabled("(no output socket)");
+        ImGui::Separator();
 
-      // os
-      for (auto& s : info.output_sockets()) {
-        ImGui::PushID(s.id().data);
+        if (info.output_sockets().empty())
+          ImGui::TextDisabled("(no output socket)");
 
-        auto& si = draw_info.find_drawable(s)->info;
+        // os
+        for (auto& s : info.output_sockets()) {
+          ImGui::PushID(s.id().data);
 
-        if (info.is_group() || info.is_group_input()) {
+          auto& si = draw_info.find_drawable(s)->info;
 
           auto button_size = ImGui::GetFrameHeight();
           auto spacing     = style.ItemInnerSpacing.x;
@@ -214,32 +214,29 @@ namespace yave::editor::imgui {
               auto& ng = ctx.data().node_graph;
               ng.remove_socket(s);
             }));
-        } else
-          ImGui::Text("%s", si.name().c_str());
+          ImGui::PopID();
+        }
 
-        ImGui::PopID();
-      }
-
-      if (info.is_group() || info.is_group_input())
         if (ImGui::Selectable("add new output socket"))
           dctx.exec(make_data_command(
             [n, idx = info.output_sockets().size()](auto& ctx) {
               auto& ng = ctx.data().node_graph;
               ng.add_output_socket(n, fmt::format("{}", idx));
             }));
+      }
 
-      ImGui::Separator();
+      if (info.is_group() || info.is_group_output()) {
 
-      if (info.input_sockets().empty())
-        ImGui::TextDisabled("(no input socket)");
+        ImGui::Separator();
 
-      // is
-      for (auto&& s : info.input_sockets()) {
-        ImGui::PushID(s.id().data);
+        if (info.input_sockets().empty())
+          ImGui::TextDisabled("(no input socket)");
 
-        auto& si = draw_info.find_drawable(s)->info;
+        // is
+        for (auto&& s : info.input_sockets()) {
+          ImGui::PushID(s.id().data);
 
-        if (info.is_group() || info.is_group_output()) {
+          auto& si = draw_info.find_drawable(s)->info;
 
           auto button_size = ImGui::GetFrameHeight();
           auto spacing     = style.ItemInnerSpacing.x;
@@ -261,19 +258,16 @@ namespace yave::editor::imgui {
               auto& ng = ctx.data().node_graph;
               ng.remove_socket(s);
             }));
-        } else
-          ImGui::Text("%s", si.name().c_str());
+          ImGui::PopID();
+        }
 
-        ImGui::PopID();
-      }
-
-      if (info.is_group() || info.is_group_output())
         if (ImGui::Selectable("add new input socket"))
           dctx.exec(make_data_command(
             [n, idx = info.input_sockets().size()](auto& ctx) {
               auto& ng = ctx.data().node_graph;
               ng.add_input_socket(n, fmt::format("{}", idx));
             }));
+      }
 
       ImGui::EndPopup();
     }
