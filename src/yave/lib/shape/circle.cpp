@@ -14,7 +14,7 @@ namespace yave {
 
     // add circle path
     path p;
-    p.line({0, 1});
+    p.move({0, 1});
     p.cubic({k, 1}, {1, k}, {1, 0});
     p.cubic({1, -k}, {k, -1}, {0, -1});
     p.cubic({-k, -1}, {-1, -k}, {-1, 0});

@@ -48,27 +48,24 @@ namespace yave {
         if (cmd == path_cmd::move)
           p.moveTo(vec.x, vec.y);
 
-        if (cmd == path_cmd::close) {
-          p.moveTo(vec.x, vec.y);
+        if (cmd == path_cmd::close)
           p.close();
-        }
+
+        if (cmd == path_cmd::line)
+          p.lineTo(vec.x, vec.y);
 
         if (cmd == path_cmd::quad) {
+          assert(path.commands().at(i + 1) == path_cmd::line);
           auto end = apply_transform(path.points()[++i]);
           p.quadTo(vec.x, vec.y, end.x, end.y);
-
-          if (path.commands()[i] == path_cmd::close)
-            p.close();
         }
 
         if (cmd == path_cmd::cubic) {
           assert(path.commands().at(i + 1) == path_cmd::cubic);
+          assert(path.commands().at(i + 2) == path_cmd::line);
           auto cp2 = apply_transform(path.points()[++i]);
           auto end = apply_transform(path.points()[++i]);
           p.cubicTo(vec.x, vec.y, cp2.x, cp2.y, end.x, end.y);
-
-          if (path.commands()[i] == path_cmd::close)
-            p.close();
         }
       }
     }

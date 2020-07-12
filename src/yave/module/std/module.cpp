@@ -11,7 +11,6 @@
 #include <yave/module/std/filesystem/path.hpp>
 #include <yave/module/std/geometry/vec.hpp>
 #include <yave/module/std/geometry/mat.hpp>
-#include <yave/module/std/geometry/rect.hpp>
 #include <yave/module/std/list/list.hpp>
 #include <yave/module/std/list/algorithm.hpp>
 #include <yave/module/std/logic/apply.hpp>
@@ -24,6 +23,7 @@
 #include <yave/module/std/transform/rotate.hpp>
 #include <yave/module/std/transform/translate.hpp>
 #include <yave/module/std/shape/circle.hpp>
+#include <yave/module/std/shape/rect.hpp>
 #include <yave/module/std/shape/draw.hpp>
 #include <yave/module/std/shape/transform.hpp>
 
@@ -130,8 +130,6 @@ namespace yave::modules::_std {
             get_node_declaration<node::Vec3>(),
             get_node_declaration<node::Vec4>(),
             get_node_declaration<node::Mat4>(),
-            get_node_declaration<node::Rect2>(),
-            get_node_declaration<node::Rect3>(),
             get_node_declaration<node::ListNil>(),
             get_node_declaration<node::ListCons>(),
             get_node_declaration<node::ListDecompose>(),
@@ -157,6 +155,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::RotateY>(),
             get_node_declaration<node::RotateZ>(),
             get_node_declaration<node::CircleShape>(),
+            get_node_declaration<node::RectShape>(),
             get_node_declaration<node::DrawShape>(fmngr),
             get_node_declaration<node::ShapeTranslate>(),
             get_node_declaration<node::ShapeRotate>(),
@@ -184,8 +183,6 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Vec3, _std::tag>());
     add(yave::get_node_definitions<node::Vec4, _std::tag>());
     add(yave::get_node_definitions<node::Mat4, _std::tag>());
-    add(yave::get_node_definitions<node::Rect2, _std::tag>());
-    add(yave::get_node_definitions<node::Rect3, _std::tag>());
     add(yave::get_node_definitions<node::ListNil, _std::tag>());
     add(yave::get_node_definitions<node::ListCons, _std::tag>());
     add(yave::get_node_definitions<node::ListDecompose, _std::tag>());
@@ -210,6 +207,7 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::RotateZ, _std::geometry::tag>());
     add(yave::get_node_definitions<node::Translate, _std::geometry::tag>());
     add(yave::get_node_definitions<node::CircleShape, _std::tag>());
+    add(yave::get_node_definitions<node::RectShape, _std::tag>());
     add(yave::get_node_definitions<node::DrawShape, _std::tag>(fmngr, compositor));
     add(yave::get_node_definitions<node::ShapeTranslate, _std::tag>());
     add(yave::get_node_definitions<node::ShapeRotate, _std::tag>());

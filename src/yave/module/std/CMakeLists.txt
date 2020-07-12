@@ -3,7 +3,6 @@
 add_library(yave-module-std
   color/color.cpp
   filesystem/path.cpp
-  geometry/rect.cpp
   geometry/vec.cpp
   geometry/mat.cpp
   list/list.cpp
@@ -18,6 +17,7 @@ add_library(yave-module-std
   transform/rotate.cpp
   transform/translate.cpp
   shape/circle.cpp
+  shape/rect.cpp
   shape/draw.cpp
   shape/transform.cpp
   module.cpp

@@ -11,13 +11,11 @@
 namespace yave {
 
   namespace node {
-    class Rect2;
-    class Rect3;
+    // Rect shape ctor
+    class RectShape;
   } // namespace node
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Rect2);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Rect3);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::RectShape);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::RectShape, modules::_std::tag);
 
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Rect2, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Rect3, modules::_std::tag);
-}
+} // namespace yave

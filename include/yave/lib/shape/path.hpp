@@ -16,9 +16,10 @@ namespace yave {
   enum class path_cmd : uint8_t
   {
     move  = 1, ///< Move
-    close = 2, ///< Move + close path
-    quad  = 3, ///< Quadratic CP
-    cubic = 4, ///< Cubic CP
+    close = 2, ///< Close path
+    line  = 3, ///< Linear CP
+    quad  = 4, ///< Quadratic CP
+    cubic = 5, ///< Cubic CP
   };
 
   /// Single shape path
@@ -66,6 +67,8 @@ namespace yave {
     [[nodiscard]] auto size() const -> size_t;
 
   public:
+    /// Move
+    void move(const fvec2& p);
     /// Line
     void line(const fvec2& p);
     /// Quad bezier path
