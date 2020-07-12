@@ -11,7 +11,14 @@
 #include <imgui_stdlib.h>
 #include <iostream>
 
+#include <fmt/format.h>
+
 namespace yave::editor::imgui {
+
+  namespace {
+    // popup name
+    static constexpr auto node_popup_name = "node_popup";
+  } // namespace
 
   using namespace yave::imgui;
 
@@ -23,9 +30,8 @@ namespace yave::editor::imgui {
     auto min_height = 32.f;
     auto x_padding  = 32.f;
     auto y_padding  = 0.f;
-    return {
-      std::max(text_size.x + x_padding * 2, min_width),
-      std::max(text_size.y + y_padding * 2, min_height)};
+    return {std::max(text_size.x + x_padding * 2, min_width),
+            std::max(text_size.y + y_padding * 2, min_height)};
   }
 
   basic_node_drawer::basic_node_drawer(
@@ -34,6 +40,7 @@ namespace yave::editor::imgui {
     const node_window& nw)
     : node_drawable {n, *g.get_info(n)}
   {
+    (void)nw;
   }
 
   auto basic_node_drawer::_calc_area_layout(
@@ -143,6 +150,136 @@ namespace yave::editor::imgui {
     dl->AddRect(pos, pos + size, col, get_node_rounding());
   }
 
+  void basic_node_drawer::_draw_popup(
+    node_window_draw_info& draw_info,
+    data_context& dctx,
+    view_context& vctx) const
+  {
+    const auto& style = ImGui::GetStyle();
+
+    // popup window
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {5, 5});
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {3, 3});
+    if (ImGui::BeginPopup(node_popup_name)) {
+
+      const auto& n = handle;
+
+      // name
+      if (info.is_group()) {
+        auto tmp  = info.name();
+        auto flag = ImGuiInputTextFlags_EnterReturnsTrue;
+        if (ImGui::InputText("", &tmp, flag)) {
+          if (info.is_group() && tmp != info.name())
+            dctx.exec(make_data_command([n, new_name = tmp](auto& ctx) {
+              auto& ng = ctx.data().node_graph;
+              ng.set_name(n, new_name);
+            }));
+        }
+      } else
+        ImGui::Text("%s", info.name().c_str());
+
+      // id
+      ImGui::TextDisabled("id: %s", to_string(n.id()).c_str());
+
+      ImGui::Separator();
+
+      if (info.output_sockets().empty())
+        ImGui::TextDisabled("(no output socket)");
+
+      // os
+      for (auto& s : info.output_sockets()) {
+        ImGui::PushID(s.id().data);
+
+        auto& si = draw_info.find_drawable(s)->info;
+
+        if (info.is_group() || info.is_group_input()) {
+
+          auto button_size = ImGui::GetFrameHeight();
+          auto spacing     = style.ItemInnerSpacing.x;
+
+          ImGui::SetNextItemWidth(
+            std::max(1.f, ImGui::CalcItemWidth() - button_size - spacing));
+
+          auto tmp  = si.name();
+          auto flag = ImGuiInputTextFlags_EnterReturnsTrue;
+          if (ImGui::InputText("", &tmp, flag))
+            dctx.exec(make_data_command([s, new_name = tmp](auto& ctx) {
+              auto& ng = ctx.data().node_graph;
+              ng.set_name(s, new_name);
+            }));
+
+          ImGui::SameLine(0, spacing);
+          if (ImGui::Button("-", {button_size, button_size}))
+            dctx.exec(make_data_command([s](auto& ctx) {
+              auto& ng = ctx.data().node_graph;
+              ng.remove_socket(s);
+            }));
+        } else
+          ImGui::Text("%s", si.name().c_str());
+
+        ImGui::PopID();
+      }
+
+      if (info.is_group() || info.is_group_input())
+        if (ImGui::Selectable("add new output socket"))
+          dctx.exec(make_data_command(
+            [n, idx = info.output_sockets().size()](auto& ctx) {
+              auto& ng = ctx.data().node_graph;
+              ng.add_output_socket(n, fmt::format("{}", idx));
+            }));
+
+      ImGui::Separator();
+
+      if (info.input_sockets().empty())
+        ImGui::TextDisabled("(no input socket)");
+
+      // is
+      for (auto&& s : info.input_sockets()) {
+        ImGui::PushID(s.id().data);
+
+        auto& si = draw_info.find_drawable(s)->info;
+
+        if (info.is_group() || info.is_group_output()) {
+
+          auto button_size = ImGui::GetFrameHeight();
+          auto spacing     = style.ItemInnerSpacing.x;
+
+          ImGui::SetNextItemWidth(
+            std::max(1.f, ImGui::CalcItemWidth() - button_size - spacing));
+
+          auto tmp  = si.name();
+          auto flag = ImGuiInputTextFlags_EnterReturnsTrue;
+          if (ImGui::InputText("", &tmp, flag))
+            dctx.exec(make_data_command([s, new_name = tmp](auto& ctx) {
+              auto& ng = ctx.data().node_graph;
+              ng.set_name(s, new_name);
+            }));
+
+          ImGui::SameLine(0, spacing);
+          if (ImGui::Button("-", {button_size, button_size}))
+            dctx.exec(make_data_command([s](auto& ctx) {
+              auto& ng = ctx.data().node_graph;
+              ng.remove_socket(s);
+            }));
+        } else
+          ImGui::Text("%s", si.name().c_str());
+
+        ImGui::PopID();
+      }
+
+      if (info.is_group() || info.is_group_output())
+        if (ImGui::Selectable("add new input socket"))
+          dctx.exec(make_data_command(
+            [n, idx = info.input_sockets().size()](auto& ctx) {
+              auto& ng = ctx.data().node_graph;
+              ng.add_input_socket(n, fmt::format("{}", idx));
+            }));
+
+      ImGui::EndPopup();
+    }
+    ImGui::PopStyleVar(2);
+  }
+
   void basic_node_drawer::_handle_input(
     const node_window& nw,
     data_context& dctx,
@@ -152,87 +289,76 @@ namespace yave::editor::imgui {
     const ImVec2& pos,
     const ImVec2& size) const
   {
-    const auto& n          = handle;
-    const char* popup_name = "node popup";
+    const auto& n = handle;
 
-    ImGui::PushID(n.id().data);
-    {
-      ImGui::SetCursorScreenPos(pos);
+    ImGui::SetCursorScreenPos(pos);
 
-      bool hov = false;
-      InvisibleButtonEx("node input", size, &hov);
+    bool hov = false;
+    InvisibleButtonEx("node input", size, &hov);
 
-      // neutral
-      if (nw.state() == node_window::state::neutral) {
+    // neutral
+    if (nw.state() == node_window::state::neutral) {
 
-        if (hov) {
+      if (hov) {
 
-          // set hover
+        // set hover
+        vctx.push(
+          make_window_view_command(nw, [n](auto& w) { w.set_hovered(n); }));
+
+        // double click: inspect
+        if (info.is_group() && ImGui::IsMouseDoubleClicked(0))
           vctx.push(
-            make_window_view_command(nw, [n](auto& w) { w.set_hovered(n); }));
+            make_window_view_command(nw, [n](auto& w) { w.set_group(n); }));
 
-          // double click: inspect
-          if (info.is_group() && ImGui::IsMouseDoubleClicked(0))
-            vctx.push(
-              make_window_view_command(nw, [n](auto& w) { w.set_group(n); }));
+        // left click: select
+        if (ImGui::IsMouseClicked(0) && !ImGui::IsMouseDoubleClicked(0)) {
 
-          // left click: select
-          if (ImGui::IsMouseClicked(0) && !ImGui::IsMouseDoubleClicked(0)) {
+          auto mpos = to_tvec2(ImGui::GetMousePos());
 
-            auto mpos = to_tvec2(ImGui::GetMousePos());
-
-            if (nw.get_selected_nodes().size() <= 1)
-              dctx.exec(make_data_command([n](auto& ctx) {
-                auto& g = ctx.data().node_graph;
-                g.bring_front(n);
-              }));
-
-            vctx.push(make_window_view_command(nw, [n, mpos](auto& w) {
-              if (!w.is_selected(n))
-                w.clear_selected();
-              w.add_selected(n);
-              w.begin_node_drag(mpos);
+          if (nw.get_selected_nodes().size() <= 1)
+            dctx.exec(make_data_command([n](auto& ctx) {
+              auto& g = ctx.data().node_graph;
+              g.bring_front(n);
             }));
-          }
 
-          // right click: open info popup
-          if (ImGui::IsMouseClicked(1)) {
-            ImGui::OpenPopup("node_info_popup");
-          }
+          vctx.push(make_window_view_command(nw, [n, mpos](auto& w) {
+            if (!w.is_selected(n))
+              w.clear_selected();
+            w.add_selected(n);
+            w.begin_node_drag(mpos);
+          }));
         }
 
-        if (ImGui::BeginPopup(popup_name)) {
-          ImGui::Text("Node: %s", info.name().c_str());
-          ImGui::Text("id: %s", to_string(n.id()).c_str());
-          ImGui::EndPopup();
-        }
-      }
-
-      // node drag
-      if (nw.state() == node_window::state::node) {
-        if (ImGui::IsMouseReleased(0)) {
-          if (nw.is_selected(n)) {
-
-            auto new_pos = to_tvec2(pos - nw.scroll() - ImGui::GetWindowPos());
-
-            // set new position
-            dctx.exec(make_data_command(
-              [n, new_pos](auto& ctx) {
-                ctx.data().node_graph.set_pos(n, new_pos);
-              },
-              [n, pos = info.pos()](auto& ctx) {
-                ctx.data().node_graph.set_pos(n, pos);
-              }));
-
-            // back to neutral
-            if (n == nw.get_selected_nodes()[0])
-              vctx.push(make_window_view_command(
-                nw, [](auto& w) { w.end_node_drag(); }));
-          }
+        // right click: open info popup
+        if (ImGui::IsMouseClicked(1)) {
+          ImGui::OpenPopup(node_popup_name);
         }
       }
     }
-    ImGui::PopID();
+
+    // node drag
+    if (nw.state() == node_window::state::node) {
+      if (ImGui::IsMouseReleased(0)) {
+        if (nw.is_selected(n)) {
+
+          auto new_pos = to_tvec2(pos - nw.scroll() - ImGui::GetWindowPos());
+
+          // set new position
+          dctx.exec(make_data_command(
+            [n, new_pos](auto& ctx) {
+              ctx.data().node_graph.set_pos(n, new_pos);
+            },
+            [n, pos = info.pos()](auto& ctx) {
+              ctx.data().node_graph.set_pos(n, pos);
+            }));
+
+          // back to neutral
+          if (n == nw.get_selected_nodes()[0])
+            vctx.push(
+              make_window_view_command(nw, [](auto& w) { w.end_node_drag(); }));
+        }
+      }
+    }
   }
 
   auto basic_node_drawer::screen_pos(
@@ -326,9 +452,14 @@ namespace yave::editor::imgui {
 
     // draw node
     splitter.SetCurrentChannel(ImGui::GetWindowDrawList(), channel);
-    _draw_background(hov, sel, screen_pos, node_size);
-    _draw_header(hov, sel, screen_pos, header_size);
-    _draw_edge(hov, sel, screen_pos, node_size);
-    _handle_input(nw, dctx, vctx, hov, sel, screen_pos, node_size);
+    ImGui::PushID(handle.id().data);
+    {
+      _draw_background(hov, sel, screen_pos, node_size);
+      _draw_header(hov, sel, screen_pos, header_size);
+      _draw_edge(hov, sel, screen_pos, node_size);
+      _draw_popup(draw_info, dctx, vctx);
+      _handle_input(nw, dctx, vctx, hov, sel, screen_pos, node_size);
+    }
+    ImGui::PopID();
   }
 } // namespace yave::editor::imgui
