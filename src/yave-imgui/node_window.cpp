@@ -233,7 +233,7 @@ namespace yave::editor::imgui {
                     - to_ImVec2(scroll_pos);
 
         // list nodes avalable
-        if (ImGui::BeginMenu("Add Node")) {
+        if (ImGui::BeginMenu("New Node")) {
           for (auto&& decl : decls) {
             if (ImGui::Selectable(decl->name().c_str())) {
 
@@ -279,6 +279,43 @@ namespace yave::editor::imgui {
             }
           }
           ImGui::EndMenu();
+        }
+
+        if (ImGui::Selectable("New Group")) {
+
+          struct dcmd_gcreate : data_command
+          {
+            ImVec2 npos;
+            node_handle group;
+
+            // created node
+            node_handle node = {};
+
+            void exec(data_context& ctx) override
+            {
+              auto& g = ctx.data().node_graph;
+
+              if (g.exists(group)) {
+                node = g.create_group(group, {});
+                g.set_pos(node, {npos.x, npos.y});
+              }
+            }
+
+            void undo(data_context& ctx) override
+            {
+              auto& g = ctx.data().node_graph;
+
+              if (g.exists(node)) {
+                g.destroy(node);
+                node = {};
+              }
+            }
+          };
+
+          auto cmd   = std::make_unique<dcmd_gcreate>();
+          cmd->npos  = npos;
+          cmd->group = current_group;
+          dctx.exec(std::move(cmd));
         }
         ImGui::EndPopup();
       }
