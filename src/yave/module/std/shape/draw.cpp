@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/shape/draw.hpp>
-#include <yave/module/std/primitive/data_holder.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
 #include <yave/module/std/render/frame.hpp>
 #include <yave/obj/shape/shape.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>

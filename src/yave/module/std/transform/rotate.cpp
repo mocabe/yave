@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/transform/rotate.hpp>
-#include <yave/module/std/primitive/data_holder.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
 #include <yave/obj/primitive/primitive.hpp>
 #include <yave/obj/mat/mat.hpp>
 

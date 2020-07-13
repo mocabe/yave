@@ -5,7 +5,7 @@
 
 #include <yave/module/std/geometry/vec.hpp>
 #include <yave/node/core/function.hpp>
-#include <yave/module/std/primitive/data_holder.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
 #include <yave/obj/vec/vec.hpp>
 
 namespace yave {

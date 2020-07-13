@@ -5,7 +5,7 @@
 
 #include <yave/module/std/color/color.hpp>
 #include <yave/obj/color/color.hpp>
-#include <yave/module/std/primitive/data_holder.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
 
 namespace yave {
 

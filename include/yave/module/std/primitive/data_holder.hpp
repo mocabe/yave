@@ -20,7 +20,7 @@ namespace yave {
         const object_ptr<Ctor>& c)
         : m_property {p}
         , m_ctor {c}
-        , m_data {p->initial_value()}
+        , m_data {p->initial_value().clone()}
       {
       }
 
@@ -67,60 +67,120 @@ namespace yave {
       }
     };
 
-    struct data_type_holder_property_value
-    {
-      /// initial value of data
-      object_ptr<const Object> m_init_value;
-
-      template <class T>
-      data_type_holder_property_value(object_ptr<T> init_value)
-        : m_init_value {std::move(init_value)}
-      {
-      }
-
-      data_type_holder_property_value(
-        const data_type_holder_property_value& other) = default;
-
-      auto initial_value() const
-      {
-        return m_init_value.clone();
-      }
-    };
-
-    // default data type property
-    using DataTypeHolderProperty = Box<data_type_holder_property_value>;
-
   } // namespace detail
-
-  /// Customize point for data type holder property object
-  template <class T>
-  struct data_type_holder_traits
-  {
-    template <class... Args>
-    static auto make_property_object(Args&&... args)
-    {
-      // create default property
-      return make_object<detail::DataTypeHolderProperty>(
-        make_object<T>(std::forward<Args>(args)...));
-    }
-  };
 
   /// Data type holder
   using DataTypeHolder = Box<detail::data_type_holder_object_value>;
+
+  /// Customization point for data type holder property
+  template <class T>
+  struct data_type_property_traits
+  {
+    /// value type of data (for example, Float and Int).
+    //using value_type = ...;
+
+    /// propert type of data.
+    /// property_type must have `initial_value()` to get initial value_type
+    /// object which will be modified by GUI by user.
+    //using property_type = ...;
+  };
+
+#define YAVE_DECL_DATA_TYPE_PROPERTY(Type, ValueType, PropType) \
+  template <>                                                   \
+  struct data_type_property_traits<Type>                        \
+  {                                                             \
+    using value_type    = ValueType;                            \
+    using property_type = PropType;                             \
+  };
 
   /// Create new data type holder
   template <class T, class... Args>
   [[nodiscard]] auto make_data_type_holder(Args&&... args)
   {
+    using traits        = data_type_property_traits<T>;
+    using value_type    = typename traits::value_type;
+    using property_type = typename traits::property_type;
+
     return make_object<DataTypeHolder>(
-      data_type_holder_traits<T>::make_property_object(
-        std::forward<Args>(args)...),
-      make_object<detail::DataTypeCtor<T>>());
+      make_object<property_type>(std::forward<Args>(args)...),
+      make_object<detail::DataTypeCtor<value_type>>());
   }
+
+  /* Some useful property generator */
+
+  namespace detail {
+
+    template <class T>
+    struct value_data_type_property
+    {
+      object_ptr<const T> m_init_value;
+
+      using data_type = typename T::value_type;
+
+      value_data_type_property(data_type val = {})
+        : m_init_value {make_object<T>(std::move(val))}
+      {
+      }
+
+      auto& initial_value() const
+      {
+        return m_init_value;
+      }
+    };
+  } // namespace detail
+
+  /// Data type property which contains single initial value
+  template <class T>
+  using ValueDataTypeProperty = Box<detail::value_data_type_property<T>>;
+
+  namespace detail {
+
+    template <class T>
+    struct numeric_data_type_property
+    {
+      object_ptr<const T> m_init_value;
+      object_ptr<const T> m_min, m_max, m_step;
+
+      using data_type = typename T::value_type;
+
+      numeric_data_type_property(
+        const data_type& val  = 0,
+        const data_type& min  = std::numeric_limits<data_type>::lowest(),
+        const data_type& max  = std::numeric_limits<data_type>::max(),
+        const data_type& step = 1)
+        : m_init_value {make_object<T>(val)}
+        , m_min {make_object<T>(min)}
+        , m_max {make_object<T>(max)}
+        , m_step {make_object<T>(step)}
+      {
+      }
+
+      auto& initial_value() const
+      {
+        return m_init_value;
+      }
+
+      auto& min() const
+      {
+        return m_min;
+      }
+
+      auto& max() const
+      {
+        return m_max;
+      }
+
+      auto& step() const
+      {
+        return m_step;
+      }
+    };
+  } // namespace detail
+
+  /// Data type property which contains numeric value properties
+  template <class T>
+  using NumericDataTypeProperty = Box<detail::numeric_data_type_property<T>>;
+
 } // namespace yave
 
 YAVE_DECL_TYPE(yave::DataTypeHolder, "8cfff49e-b86b-4cca-8d9d-34800003ff3b");
-
-YAVE_DECL_TYPE(
-  yave::detail::DataTypeHolderProperty,
-  "db9db89f-9588-4332-8946-790f39ed282a");
