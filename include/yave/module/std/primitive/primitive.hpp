@@ -53,4 +53,22 @@ namespace yave {
   YAVE_DECL_PRIM_NODE(Bool);
   YAVE_DECL_PRIM_NODE(String);
 
+
+  using BoolDataProperty = ValueDataTypeProperty<Bool>;
+  YAVE_DECL_DATA_TYPE_PROPERTY(Bool, Bool, BoolDataProperty);
+
+  using StringDataProperty = ValueDataTypeProperty<String>;
+  YAVE_DECL_DATA_TYPE_PROPERTY(String, String, StringDataProperty);
+
+  using FloatDataProperty = NumericDataTypeProperty<Float>;
+  YAVE_DECL_DATA_TYPE_PROPERTY(Float, Float, FloatDataProperty);
+
+  using IntDataProperty = NumericDataTypeProperty<Int>;
+  YAVE_DECL_DATA_TYPE_PROPERTY(Int, Int, IntDataProperty);
+
 } // namespace yave
+
+YAVE_DECL_TYPE(yave::IntDataProperty, "d60f1ac7-5a57-4037-9d78-c9805cbe5407");
+YAVE_DECL_TYPE(yave::FloatDataProperty, "621188d3-d162-4778-aedd-3be0a4745c3e");
+YAVE_DECL_TYPE(yave::BoolDataProperty, "95a0e534-273b-4911-957d-0902f8d769a4");
+YAVE_DECL_TYPE(yave::StringDataProperty, "6d7e77a5-3cd3-4bd5-bd18-e9b1a02cb494");

@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/shape/transform.hpp>
-#include <yave/module/std/primitive/data_holder.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
 #include <yave/obj/shape/shape.hpp>
 #include <yave/obj/vec/vec.hpp>
 #include <yave/obj/mat/mat.hpp>

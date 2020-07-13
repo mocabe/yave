@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/transform/translate.hpp>
-#include <yave/module/std/primitive/data_holder.hpp>
+#include <yave/module/std/primitive/primitive.hpp>
 #include <yave/obj/frame_demand/frame_demand.hpp>
 #include <yave/obj/primitive/primitive.hpp>
 #include <yave/obj/mat/mat.hpp>
@@ -16,11 +16,6 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Translate",
-      "/std/transform",
-      "Move object",
-      {"target", "vec"},
-      {"out"},
-      {{1, make_data_type_holder<FVec3>()}});
+      "Translate", "/std/transform", "Move object", {"target", "vec"}, {"out"});
   }
 } // namespace yave
