@@ -115,9 +115,9 @@ namespace yave {
     {
       object_ptr<const T> m_init_value;
 
-      using data_type = typename T::value_type;
+      using value_type = typename T::value_type;
 
-      value_data_type_property(data_type val = {})
+      value_data_type_property(value_type val = {})
         : m_init_value {make_object<T>(std::move(val))}
       {
       }
@@ -141,13 +141,13 @@ namespace yave {
       object_ptr<const T> m_init_value;
       object_ptr<const T> m_min, m_max, m_step;
 
-      using data_type = typename T::value_type;
+      using value_type = typename T::value_type;
 
       numeric_data_type_property(
-        const data_type& val  = 0,
-        const data_type& min  = std::numeric_limits<data_type>::lowest(),
-        const data_type& max  = std::numeric_limits<data_type>::max(),
-        const data_type& step = 1)
+        const value_type& val  = 0,
+        const value_type& min  = std::numeric_limits<value_type>::lowest(),
+        const value_type& max  = std::numeric_limits<value_type>::max(),
+        const value_type& step = 1)
         : m_init_value {make_object<T>(val)}
         , m_min {make_object<T>(min)}
         , m_max {make_object<T>(max)}

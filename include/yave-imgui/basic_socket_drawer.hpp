@@ -34,14 +34,17 @@ namespace yave::editor::imgui {
       ImVec2 pos,
       ImVec2 size) const override;
 
-  private:
-    void _draw_slot(
+  protected:
+    /// Draw slot
+    virtual void _draw_slot(
       const node_window& nw,
       data_context& dctx,
       view_context& vctx,
       node_window_draw_info& draw_info,
       const ImVec2& slot_pos) const;
-    void _draw_content(
+
+    /// Draw socket content
+    virtual void _draw_content(
       const node_window& nw,
       data_context& dctx,
       view_context& vctx,

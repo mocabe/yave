@@ -208,99 +208,27 @@ namespace yave::editor::imgui {
     ImVec2 pos,
     ImVec2 size) const
   {
-    auto s    = handle;
-    auto n    = info.node();
     auto type = info.type();
     auto name = info.name();
 
-    bool has_custom_data = false;
-    bool data_updated    = false;
+    text_alignment align;
 
-    if (m_data && info.connections().empty()) {
-
-      auto slider_bg_col   = get_socket_slider_color();
-      auto slider_text_col = get_socket_slider_text_color();
-
-      // custom data handling
-      if (auto holder = value_cast_if<DataTypeHolder>(m_data)) {
-
-        has_custom_data = true;
-
-        ImGui::PushID(s.id().data);
-        ImGui::SetCursorScreenPos(pos);
-        ImGui::PushItemWidth(size.x);
-        ImGui::PushStyleColor(ImGuiCol_Text, ImU32(slider_text_col));
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImU32(slider_bg_col));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImU32(slider_bg_col));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
-        {
-          /*  */ if (auto f = value_cast_if<Float>(holder->data())) {
-            float val = *f;
-            ImGui::DragFloat("", &val, 1.f, 0.f, 0.f, (name + ":%.3f").c_str());
-            if (*f != val) {
-              *f           = val;
-              data_updated = true;
-            }
-          } else if (auto i = value_cast_if<Int>(holder->data())) {
-            int val = *i;
-            ImGui::DragInt("", &val);
-            if (*i != val) {
-              *i           = val;
-              data_updated = true;
-            }
-          } else if (auto b = value_cast_if<Bool>(holder->data())) {
-            auto val = *b;
-            ImGui::Checkbox("", &val);
-            if (*b != val) {
-              *b           = val;
-              data_updated = true;
-            }
-          } else if (auto s = value_cast_if<String>(holder->data())) {
-            std::string val = *s;
-            ImGui::InputText("", &val);
-            if (std::string(*s) != val) {
-              *s           = yave::string(val);
-              data_updated = true;
-            }
-          } else
-            // invalid data type. fallback to text
-            has_custom_data = false;
-        }
-        ImGui::PopStyleColor(4);
-        ImGui::PopStyleVar(1);
-        ImGui::PopItemWidth();
-        ImGui::PopID();
-      }
+    switch (type) {
+      case socket_type::input:
+        align = text_alignment::right;
+        break;
+      case socket_type::output:
+        align = text_alignment::left;
+        break;
+      default:
+        unreachable();
     }
 
-    // Execute on data update
-    if (data_updated)
-      dctx.exec(make_data_command(
-        [](auto& ctx) { ctx.data().executor.notify_execute(); }));
+    auto text_pos = calc_text_pos(name, font_size_level::e15, size, align);
+    auto col      = get_socket_text_color();
 
-    // draw generic socket name as text
-    if (!has_custom_data) {
-
-      text_alignment align;
-
-      switch (type) {
-        case socket_type::input:
-          align = text_alignment::right;
-          break;
-        case socket_type::output:
-          align = text_alignment::left;
-          break;
-        default:
-          unreachable();
-      }
-
-      auto text_pos = calc_text_pos(name, font_size_level::e15, size, align);
-      auto col      = get_socket_text_color();
-
-      ImGui::SetCursorScreenPos(pos + text_pos);
-      ImGui::TextColored(col, "%s", name.c_str());
-    }
+    ImGui::SetCursorScreenPos(pos + text_pos);
+    ImGui::TextColored(col, "%s", name.c_str());
   }
 
   void basic_socket_drawer::draw(
