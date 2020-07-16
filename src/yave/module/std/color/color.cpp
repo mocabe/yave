@@ -18,10 +18,10 @@ namespace yave {
       "Color",
       {"R", "G", "B", "A"},
       {"color"},
-      {{0, make_data_type_holder<Float>()},
-       {1, make_data_type_holder<Float>()},
-       {2, make_data_type_holder<Float>()},
-       {3, make_data_type_holder<Float>()}});
+      {{0, make_data_type_holder<Float>(0.f, 0.f, 1.f, 0.001f)},
+       {1, make_data_type_holder<Float>(0.f, 0.f, 1.f, 0.001f)},
+       {2, make_data_type_holder<Float>(0.f, 0.f, 1.f, 0.001f)},
+       {3, make_data_type_holder<Float>(0.f, 0.f, 1.f, 0.001f)}});
   }
 
   namespace modules::_std::color {
