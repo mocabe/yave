@@ -22,6 +22,15 @@ namespace yave::editor::imgui {
   {
   }
 
+  auto data_type_socket<Float>::min_size(node_window_draw_info&) const -> ImVec2
+  {
+    auto str       = info.name() + "123.000";
+    auto text_size = calc_text_size(str, font_size_level::e15);
+    auto height    = 16.f;
+    auto padding   = get_socket_padding();
+    return {text_size.x + 2 * padding.x, height + 2 * padding.y};
+  }
+
   void data_type_socket<Float>::_draw_content(
     const node_window& nw,
     data_context& dctx,
@@ -85,6 +94,15 @@ namespace yave::editor::imgui {
     , m_property {property}
     , basic_socket_drawer(s, g, nw)
   {
+  }
+
+  auto data_type_socket<Int>::min_size(node_window_draw_info&) const -> ImVec2
+  {
+    auto str       = info.name() + "1234";
+    auto text_size = calc_text_size(str, font_size_level::e15);
+    auto height    = 16.f;
+    auto padding   = get_socket_padding();
+    return {text_size.x + 2 * padding.x, height + 2 * padding.y};
   }
 
   void data_type_socket<Int>::_draw_content(
