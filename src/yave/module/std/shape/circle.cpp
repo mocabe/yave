@@ -5,6 +5,7 @@
 
 #include <yave/module/std/shape/circle.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
+#include <yave/module/std/geometry/vec.hpp>
 #include <yave/obj/shape/shape.hpp>
 #include <yave/lib/shape/circle.hpp>
 #include <yave/obj/color/color.hpp>
@@ -21,7 +22,8 @@ namespace yave {
       "Create circle shape",
       {"pos", "radius"},
       {"shape"},
-      {{1, make_data_type_holder<Float>(128.f)}});
+      {{0, make_data_type_holder<FVec2>()},
+       {1, make_data_type_holder<Float>(128.f)}});
   }
 
   namespace modules::_std::shape {
