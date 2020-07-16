@@ -29,6 +29,8 @@ namespace yave::editor::imgui {
       const structured_node_graph& g,
       const node_window& nw);
 
+    auto min_size(node_window_draw_info&) const -> ImVec2 override;
+
     void _draw_content(
       const node_window& nw,
       data_context& dctx,
@@ -52,6 +54,8 @@ namespace yave::editor::imgui {
       const socket_handle& s,
       const structured_node_graph& g,
       const node_window& nw);
+
+    auto min_size(node_window_draw_info&) const -> ImVec2 override;
 
     void _draw_content(
       const node_window& nw,
