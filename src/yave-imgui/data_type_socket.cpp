@@ -16,9 +16,9 @@ namespace yave::editor::imgui {
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
-    : m_holder {holder}
+    : basic_socket_drawer(s, g, nw)
+    , m_holder {holder}
     , m_property {property}
-    , basic_socket_drawer(s, g, nw)
   {
   }
 
@@ -39,12 +39,13 @@ namespace yave::editor::imgui {
     ImVec2 pos,
     ImVec2 size) const
   {
+    (void)vctx, (void)nw, (void)draw_info;
+
     assert(info.type() == socket_type::input);
     assert(m_holder);
     assert(m_property);
 
     auto s    = handle;
-    auto n    = info.node();
     auto name = info.name();
 
     if (!info.connections().empty())
@@ -72,11 +73,12 @@ namespace yave::editor::imgui {
         *m_property->max(),
         (name + ":%.3f").c_str());
 
-      if (*f != val) {
-        *f = val;
-        dctx.exec(make_data_command(
-          [](auto& ctx) { ctx.data().executor.notify_execute(); }));
-      }
+      dctx.exec(make_data_command([f, val](auto& ctx) {
+        if (*f != val) {
+          *f = val;
+          ctx.data().executor.notify_execute();
+        }
+      }));
     }
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(1);
@@ -90,9 +92,9 @@ namespace yave::editor::imgui {
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
-    : m_holder {holder}
+    : basic_socket_drawer(s, g, nw)
+    , m_holder {holder}
     , m_property {property}
-    , basic_socket_drawer(s, g, nw)
   {
   }
 
@@ -113,12 +115,12 @@ namespace yave::editor::imgui {
     ImVec2 pos,
     ImVec2 size) const
   {
+    (void)nw, (void)vctx, (void)draw_info;
     assert(info.type() == socket_type::input);
     assert(m_holder);
     assert(m_property);
 
     auto s    = handle;
-    auto n    = info.node();
     auto name = info.name();
 
     if (!info.connections().empty())
@@ -146,11 +148,12 @@ namespace yave::editor::imgui {
         *m_property->max(),
         (name + ":%.3f").c_str());
 
-      if (*i != val) {
-        *i = val;
-        dctx.exec(make_data_command(
-          [](auto& ctx) { ctx.data().executor.notify_execute(); }));
-      }
+      dctx.exec(make_data_command([i, val](auto& ctx) {
+        if (*i != val) {
+          *i = val;
+          ctx.data().executor.notify_execute();
+        }
+      }));
     }
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(1);
@@ -164,9 +167,9 @@ namespace yave::editor::imgui {
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
-    : m_holder {holder}
+    : basic_socket_drawer(s, g, nw)
+    , m_holder {holder}
     , m_property {property}
-    , basic_socket_drawer(s, g, nw)
   {
   }
 
@@ -178,12 +181,12 @@ namespace yave::editor::imgui {
     ImVec2 pos,
     ImVec2 size) const
   {
+    (void)nw, (void)vctx, (void)draw_info;
     assert(info.type() == socket_type::input);
     assert(m_holder);
     assert(m_property);
 
     auto s    = handle;
-    auto n    = info.node();
     auto name = info.name();
 
     if (!info.connections().empty())
@@ -205,11 +208,12 @@ namespace yave::editor::imgui {
       auto val = *b;
       ImGui::Checkbox("", &val);
 
-      if (*b != val) {
-        *b = val;
-        dctx.exec(make_data_command(
-          [](auto& ctx) { ctx.data().executor.notify_execute(); }));
-      }
+      dctx.exec(make_data_command([b, val](auto& ctx) {
+        if (*b != val) {
+          *b = val;
+          ctx.data().executor.notify_execute();
+        }
+      }));
     }
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(1);
@@ -223,9 +227,9 @@ namespace yave::editor::imgui {
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
-    : m_holder {holder}
+    : basic_socket_drawer(s, g, nw)
+    , m_holder {holder}
     , m_property {property}
-    , basic_socket_drawer(s, g, nw)
   {
   }
 
@@ -237,12 +241,12 @@ namespace yave::editor::imgui {
     ImVec2 pos,
     ImVec2 size) const
   {
+    (void)nw, (void)vctx, (void)draw_info;
     assert(info.type() == socket_type::input);
     assert(m_holder);
     assert(m_property);
 
     auto s    = handle;
-    auto n    = info.node();
     auto name = info.name();
 
     if (!info.connections().empty())
@@ -260,15 +264,16 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto s   = value_cast<String>(m_holder->data());
-      auto val = std::string(*s);
+      auto str = value_cast<String>(m_holder->data());
+      auto val = std::string(*str);
       ImGui::InputText("", &val);
 
-      if (std::string(*s) != val) {
-        *s = yave::string(val);
-        dctx.exec(make_data_command(
-          [](auto& ctx) { ctx.data().executor.notify_execute(); }));
-      }
+      dctx.exec(make_data_command([str, val](auto& ctx) {
+        if (std::string(*str) != val) {
+          *str = yave::string(val);
+          ctx.data().executor.notify_execute();
+        }
+      }));
     }
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(1);
@@ -276,4 +281,151 @@ namespace yave::editor::imgui {
     ImGui::PopID();
   }
 
+  data_type_socket<Color>::data_type_socket(
+    const object_ptr<DataTypeHolder>& holder,
+    const object_ptr<ColorDataProperty>& property,
+    const socket_handle& s,
+    const structured_node_graph& g,
+    const node_window& nw)
+    : basic_socket_drawer(s, g, nw)
+    , m_holder {holder}
+    , m_property {property}
+  {
+  }
+
+  auto data_type_socket<Color>::min_size(node_window_draw_info&) const -> ImVec2
+  {
+    auto label_size = calc_text_size("1.234", font_size_level::e15);
+    auto padding    = get_socket_padding();
+    auto height     = 16.f;
+    return {label_size.x * 5 + 2 * padding.x, height + 2 * padding.y};
+  }
+
+  void data_type_socket<Color>::_draw_content(
+    const node_window& nw,
+    data_context& dctx,
+    view_context& vctx,
+    node_window_draw_info& draw_info,
+    ImVec2 pos,
+    ImVec2 size) const
+  {
+    (void)nw, (void)vctx, (void)draw_info;
+    assert(info.type() == socket_type::input);
+    assert(m_holder);
+    assert(m_property);
+
+    auto s    = handle;
+    auto name = info.name();
+
+    if (!info.connections().empty())
+      return;
+
+    auto slider_bg_col   = get_socket_slider_color();
+    auto slider_text_col = get_socket_slider_text_color();
+
+    ImGui::PushID(s.id().data);
+    ImGui::SetCursorScreenPos(pos);
+    ImGui::PushItemWidth(size.x);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImU32(slider_text_col));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImU32(slider_bg_col));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImU32(slider_bg_col));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
+    {
+      auto c   = value_cast<Color>(m_holder->data());
+      auto val = *c;
+      ImGui::ColorEdit4("", &(val.r), ImGuiColorEditFlags_Float);
+
+      dctx.exec(make_data_command([c, val](auto& ctx) {
+        if (*c != val) {
+          *c = val;
+          ctx.data().executor.notify_execute();
+        }
+      }));
+    }
+    ImGui::PopStyleColor(4);
+    ImGui::PopStyleVar(2);
+    ImGui::PopItemWidth();
+    ImGui::PopID();
+  }
+
+  data_type_socket<FVec2>::data_type_socket(
+    const object_ptr<DataTypeHolder>& holder,
+    const object_ptr<FVec2DataProperty>& property,
+    const socket_handle& s,
+    const structured_node_graph& g,
+    const node_window& nw)
+    : basic_socket_drawer(s, g, nw)
+    , m_holder {holder}
+    , m_property {property}
+  {
+  }
+
+  auto data_type_socket<FVec2>::min_size(node_window_draw_info&) const -> ImVec2
+  {
+    auto label_size = calc_text_size("v:1234.5", font_size_level::e15);
+    auto padding    = get_socket_padding();
+    auto height     = 16.f;
+    return {label_size.x * 2 + 2 * padding.x, height + 2 * padding.y};
+  }
+
+  void data_type_socket<FVec2>::_draw_content(
+    const node_window& nw,
+    data_context& dctx,
+    view_context& vctx,
+    node_window_draw_info& draw_info,
+    ImVec2 pos,
+    ImVec2 size) const
+  {
+    (void)nw, (void)vctx, (void)draw_info;
+    assert(info.type() == socket_type::input);
+    assert(m_holder);
+    assert(m_property);
+
+    auto s    = handle;
+    auto name = info.name();
+
+    if (!info.connections().empty())
+      return;
+
+    auto slider_bg_col   = get_socket_slider_color();
+    auto slider_text_col = get_socket_slider_text_color();
+
+    ImGui::PushID(s.id().data);
+    ImGui::SetCursorScreenPos(pos);
+    ImGui::PushItemWidth(size.x);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImU32(slider_text_col));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImU32(slider_bg_col));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImU32(slider_bg_col));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
+    {
+      auto& style = ImGui::GetStyle();
+
+      auto vec = value_cast<FVec2>(m_holder->data());
+      auto val = *vec;
+
+      auto step = 1.f;
+      auto lo   = std::numeric_limits<float>::lowest();
+      auto hi   = std::numeric_limits<float>::max();
+
+      ImGui::SetNextItemWidth((size.x - style.ItemInnerSpacing.x) / 2);
+      ImGui::DragFloat("##x", &val.x, step, lo, hi, "x:%.1f");
+      ImGui::SetNextItemWidth((size.x - style.ItemInnerSpacing.x) / 2);
+      ImGui::SameLine(0, style.ItemInnerSpacing.x);
+      ImGui::DragFloat("##y", &val.y, step, lo, hi, "y:%.1f");
+
+      dctx.exec(make_data_command([vec, val](auto& ctx) {
+        if (*vec != val) {
+          *vec = val;
+          ctx.data().executor.notify_execute();
+        }
+      }));
+    }
+    ImGui::PopStyleColor(4);
+    ImGui::PopStyleVar(1);
+    ImGui::PopItemWidth();
+    ImGui::PopID();
+  }
 } // namespace yave::editor::imgui

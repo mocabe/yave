@@ -7,6 +7,8 @@
 
 #include <yave-imgui/basic_socket_drawer.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
+#include <yave/module/std/color/color.hpp>
+#include <yave/module/std/geometry/vec.hpp>
 
 namespace yave::editor::imgui {
 
@@ -104,6 +106,58 @@ namespace yave::editor::imgui {
       const socket_handle& s,
       const structured_node_graph& g,
       const node_window& nw);
+
+    void _draw_content(
+      const node_window& nw,
+      data_context& dctx,
+      view_context& vctx,
+      node_window_draw_info& draw_info,
+      ImVec2 pos,
+      ImVec2 size) const override;
+  };
+
+  /// Color
+  template <>
+  class data_type_socket<Color> : public basic_socket_drawer
+  {
+    object_ptr<DataTypeHolder> m_holder;
+    object_ptr<ColorDataProperty> m_property;
+
+  public:
+    data_type_socket(
+      const object_ptr<DataTypeHolder>& holder,
+      const object_ptr<ColorDataProperty>& property,
+      const socket_handle& s,
+      const structured_node_graph& g,
+      const node_window& nw);
+
+    auto min_size(node_window_draw_info&) const -> ImVec2 override;
+
+    void _draw_content(
+      const node_window& nw,
+      data_context& dctx,
+      view_context& vctx,
+      node_window_draw_info& draw_info,
+      ImVec2 pos,
+      ImVec2 size) const override;
+  };
+
+  /// FVec2
+  template <>
+  class data_type_socket<FVec2> : public basic_socket_drawer
+  {
+    object_ptr<DataTypeHolder> m_holder;
+    object_ptr<FVec2DataProperty> m_property;
+
+  public:
+    data_type_socket(
+      const object_ptr<DataTypeHolder>& holder,
+      const object_ptr<FVec2DataProperty>& property,
+      const socket_handle& s,
+      const structured_node_graph& g,
+      const node_window& nw);
+
+    auto min_size(node_window_draw_info&) const -> ImVec2 override;
 
     void _draw_content(
       const node_window& nw,
