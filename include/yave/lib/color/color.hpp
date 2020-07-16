@@ -18,5 +18,18 @@ namespace yave {
     float a = 0;
   };
 
+  [[nodiscard]] inline bool operator==(const color& lhs, const color& rhs)
+  {
+    return lhs.r == rhs.r && //
+           lhs.g == rhs.g && //
+           lhs.b == rhs.b && //
+           lhs.a == rhs.a;   //
+  }
+
+  [[nodiscard]] inline bool operator!=(const color& lhs, const color& rhs)
+  {
+    return !(lhs == rhs);
+  }
+
   static_assert(sizeof(color) == sizeof(float) * 4);
 } // namespace yave
