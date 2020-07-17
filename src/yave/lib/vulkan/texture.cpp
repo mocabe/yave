@@ -9,8 +9,6 @@
 
 namespace yave::vulkan {
 
-  using namespace yave::vulkan;
-
   auto create_texture_data(
     const uint32_t& width,
     const uint32_t& height,
