@@ -66,6 +66,32 @@ TEST_CASE("node_graph init")
   REQUIRE_NOTHROW(ng.clear());
 }
 
+TEST_CASE("node_graph move")
+{
+  node_graph ng;
+
+  auto n = ng.add("test", {}, {}, node_type::normal);
+  REQUIRE(ng.exists(n));
+
+  SECTION("move ctor")
+  {
+    auto ng2 = std::move(ng);
+    REQUIRE(!ng.exists(n));
+    REQUIRE(ng2.exists(n));
+  }
+
+  SECTION("move assign")
+  {
+    node_graph ng2;
+    REQUIRE(!ng2.exists(n));
+
+    ng2 = std::move(ng);
+
+    REQUIRE(ng2.exists(n));
+    REQUIRE(!ng.exists(n));
+  }
+}
+
 TEST_CASE("node_graph control")
 {
   node_graph ng;

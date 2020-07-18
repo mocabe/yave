@@ -2020,12 +2020,21 @@ namespace yave {
   }
 
   structured_node_graph::structured_node_graph(
-    structured_node_graph&&) noexcept = default;
+    structured_node_graph&& other) noexcept
+    : structured_node_graph()
+  {
+    std::swap(m_pimpl, other.m_pimpl);
+  }
 
   structured_node_graph::~structured_node_graph() noexcept = default;
 
   structured_node_graph& structured_node_graph::operator=(
-    structured_node_graph&&) noexcept = default;
+    structured_node_graph&& other) noexcept
+  {
+    structured_node_graph tmp = std::move(other);
+    std::swap(m_pimpl, tmp.m_pimpl);
+    return *this;
+  }
 
   bool structured_node_graph::exists(const node_handle& node) const
   {

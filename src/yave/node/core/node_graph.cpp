@@ -777,12 +777,20 @@ namespace yave {
   {
   }
 
-  node_graph::~node_graph() noexcept
+  node_graph::~node_graph() noexcept = default;
+
+  node_graph::node_graph(node_graph&& other) noexcept
+    : node_graph()
   {
+    std::swap(m_pimpl, other.m_pimpl);
   }
 
-  node_graph::node_graph(node_graph&& other) noexcept = default;
-  node_graph& node_graph::operator=(node_graph&& other) noexcept = default;
+  node_graph& node_graph::operator=(node_graph&& other) noexcept
+  {
+    node_graph tmp = std::move(other);
+    std::swap(m_pimpl, tmp.m_pimpl);
+    return *this;
+  }
 
   bool node_graph::exists(const node_handle& h) const
   {

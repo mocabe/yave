@@ -19,6 +19,28 @@ TEST_CASE("init")
   (void)ng2.clone();
 }
 
+TEST_CASE("move")
+{
+  structured_node_graph ng;
+  auto g = ng.create_group({});
+  REQUIRE(ng.exists(g));
+
+  SECTION("move ctor")
+  {
+    structured_node_graph ng2 = std::move(ng);
+    REQUIRE(!ng.exists(g));
+    REQUIRE(ng2.exists(g));
+  }
+
+  SECTION("move assign")
+  {
+    structured_node_graph ng2;
+    ng2 = std::move(ng);
+    REQUIRE(!ng.exists(g));
+    REQUIRE(ng2.exists(g));
+  }
+}
+
 TEST_CASE("root")
 {
   structured_node_graph ng;
