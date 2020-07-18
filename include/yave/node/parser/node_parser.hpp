@@ -12,9 +12,22 @@
 
 namespace yave {
 
+  /// parse result
+  struct node_parser_result
+  {
+    /// Parsed node graph
+    std::optional<structured_node_graph> node_graph = std::nullopt;
+    /// Error list
+    error_list errors = {};
+
+    /// success check by bool conversion
+    operator bool() const
+    {
+      return node_graph.has_value();
+    }
+  };
+
   /// Parse node graph and generate data for compiler stage.
-  /// Parser extracts prime tree which can be passed to compiler stage.
-  /// Checks all insufficient inputs and removes intermediate nodes.
   class node_parser
   {
   public:
@@ -24,11 +37,12 @@ namespace yave {
     ~node_parser() noexcept;
 
     /// Parse node graph
-    [[nodiscard]] auto parse(structured_node_graph&& ng)
-      -> std::optional<structured_node_graph>;
-
-    /// Get last errors.
-    [[nodiscard]] auto get_errors() const -> error_list;
+    /// \param ng node graph to parse
+    /// \param out output socket of the node graph. must be output socket of
+    /// node group.
+    [[nodiscard]] auto parse(
+      structured_node_graph&& ng,
+      const socket_handle& out) -> node_parser_result;
 
   private:
     class impl;

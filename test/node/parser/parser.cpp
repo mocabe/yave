@@ -31,27 +31,30 @@ TEST_CASE("node_parser v2")
 
   REQUIRE(ng.search_path("/").empty());
 
-  SECTION("no root")
-  {
-    REQUIRE(!parser.parse(std::move(ng)));
-  }
+  // parse cloned node graph
+  auto parse_clone = [&](auto& ng, auto& out) {
+    auto ng2  = ng.clone();
+    auto out2 = ng2.socket(out.id());
+    return parser.parse(std::move(ng2), out2);
+  };
 
-  SECTION("no root out")
+  SECTION("invalid out")
   {
-    auto root = ng.create_group(nullptr);
-    ng.set_name(root, "root");
-    REQUIRE(!parser.parse(std::move(ng)));
+    REQUIRE(!parser.parse(std::move(ng), socket_handle()));
   }
 
   SECTION("root")
   {
-    auto root = ng.create_group(nullptr);
+    auto root  = ng.create_group(nullptr);
+    auto out_s = ng.add_output_socket(root, "out");
     ng.set_name(root, "root");
-    REQUIRE(ng.add_output_socket(root, "out"));
+
+    REQUIRE(ng.exists(root));
+    REQUIRE(ng.exists(out_s));
 
     SECTION("empty")
     {
-      REQUIRE(!parser.parse(std::move(ng)));
+      REQUIRE(!parser.parse(std::move(ng), out_s));
     }
 
     SECTION("ro <- g[]")
@@ -61,10 +64,10 @@ TEST_CASE("node_parser v2")
       REQUIRE(ng.connect(
         ng.output_sockets(g)[0],
         ng.input_sockets(ng.get_group_output(root))[0]));
-      REQUIRE(!parser.parse(ng.clone()));
+      REQUIRE(!parse_clone(ng, out_s));
 
       REQUIRE(ng.add_input_socket(g, "in"));
-      REQUIRE(!parser.parse(ng.clone()));
+      REQUIRE(!parser.parse(std::move(ng), out_s));
     }
 
     SECTION("ro <- decl1")
@@ -75,7 +78,7 @@ TEST_CASE("node_parser v2")
       REQUIRE(ng.connect(
         ng.output_sockets(n)[0],
         ng.input_sockets(ng.get_group_output(root))[0]));
-      REQUIRE(parser.parse(std::move(ng)));
+      REQUIRE(parser.parse(std::move(ng), out_s));
     }
 
     SECTION("ro <- decl2")
@@ -86,7 +89,7 @@ TEST_CASE("node_parser v2")
       REQUIRE(ng.connect(
         ng.output_sockets(n)[1],
         ng.input_sockets(ng.get_group_output(root))[0]));
-      REQUIRE(parser.parse(std::move(ng)));
+      REQUIRE(parser.parse(std::move(ng), out_s));
     }
 
     SECTION("ro <- decl3 <- decl1")
@@ -101,10 +104,10 @@ TEST_CASE("node_parser v2")
         ng.input_sockets(ng.get_group_output(root))[0]));
 
       // decl3 is lambda
-      REQUIRE(parser.parse(ng.clone()));
+      REQUIRE(parse_clone(ng, out_s));
 
       REQUIRE(ng.connect(ng.output_sockets(n2)[0], ng.input_sockets(n1)[0]));
-      REQUIRE(parser.parse(std::move(ng)));
+      REQUIRE(parser.parse(std::move(ng), out_s));
     }
 
     SECTION("ro <- decl4 <- decl1")
@@ -119,10 +122,10 @@ TEST_CASE("node_parser v2")
         ng.input_sockets(ng.get_group_output(root))[0]));
 
       // decl4 has defualt argument
-      REQUIRE(parser.parse(ng.clone()));
+      REQUIRE(parse_clone(ng, out_s));
 
       REQUIRE(ng.connect(ng.output_sockets(n2)[0], ng.input_sockets(n1)[0]));
-      REQUIRE(parser.parse(std::move(ng)));
+      REQUIRE(parser.parse(std::move(ng), out_s));
     }
 
     SECTION("ro <- g[ <- decl1 ] (<-...)")
@@ -137,15 +140,17 @@ TEST_CASE("node_parser v2")
       REQUIRE(ng.connect(
         ng.output_sockets(g)[0],
         ng.input_sockets(ng.get_group_output(root))[0]));
-      REQUIRE(parser.parse(ng.clone()));
+
+      REQUIRE(parse_clone(ng, out_s));
+
       // now g is lambda
       REQUIRE(ng.add_input_socket(g, "in"));
       REQUIRE(ng.add_input_socket(g, "in"));
-      REQUIRE(parser.parse(ng.clone()));
+      REQUIRE(parse_clone(ng, out_s));
       // g misses input
       auto m = ng.create_copy(root, f1);
       REQUIRE(ng.connect(ng.output_sockets(m)[0], ng.input_sockets(g)[1]));
-      REQUIRE(!parser.parse(ng.clone()));
+      REQUIRE(!parser.parse(std::move(ng), out_s));
     }
 
     SECTION("ro <- g[ <- decl3 <- ] (<-...)")
@@ -167,15 +172,14 @@ TEST_CASE("node_parser v2")
         ng.output_sockets(ng.get_group_input(g))[0], ng.input_sockets(n)[0]));
 
       // lambda
-      REQUIRE(parser.parse(ng.clone()));
-
+      REQUIRE(parse_clone(ng, out_s));
       REQUIRE(ng.add_input_socket(g, "in"));
-      REQUIRE(parser.parse(ng.clone()));
+      REQUIRE(parse_clone(ng, out_s));
 
       auto m = ng.create_copy(root, f);
       REQUIRE(ng.connect(ng.output_sockets(m)[0], ng.input_sockets(g)[0]));
       // missint at g input
-      REQUIRE(!parser.parse(ng.clone()));
+      REQUIRE(!parser.parse(std::move(ng), out_s));
     }
 
     SECTION("ro <- decl5 <<<-<< g[ <<-< decl1 ]")
@@ -198,15 +202,15 @@ TEST_CASE("node_parser v2")
       REQUIRE(ng.connect(go2, ng.input_sockets(f5)[1]));
       REQUIRE(ng.connect(go2, ng.input_sockets(f5)[2]));
 
-      REQUIRE(!parser.parse(ng.clone()));
+      REQUIRE(!parse_clone(ng, out_s));
 
       REQUIRE(ng.connect(
         ng.output_sockets(f1)[0], ng.input_sockets(ng.get_group_output(g))[0]));
-      REQUIRE(!parser.parse(ng.clone()));
+      REQUIRE(!parse_clone(ng, out_s));
 
       REQUIRE(ng.connect(
         ng.output_sockets(f1)[0], ng.input_sockets(ng.get_group_output(g))[1]));
-      REQUIRE(parser.parse(ng.clone()));
+      REQUIRE(parse_clone(ng, out_s));
     }
   }
 }

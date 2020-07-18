@@ -69,22 +69,30 @@ namespace yave::editor {
 
               recompile_flag = false;
 
-              auto g = [&] {
+              auto [g, os] = [&] {
                 auto data_lck = data_ctx.lock();
                 auto& data    = data_ctx.data();
                 // clear last result
                 data.compiler.m_result = std::nullopt;
-                // get node graph
-                return data.node_graph.clone();
+
+                // clone graph
+                auto g    = data.node_graph.clone();
+                auto root = g.node(data.root_group.id());
+
+                auto os = g.output_sockets(root).empty()
+                            ? socket_handle()
+                            : g.output_sockets(root)[0];
+
+                return std::make_tuple(std::move(g), os);
               }();
 
               // parse
-              auto parsed = parser.parse(std::move(g));
+              auto parse_result = parser.parse(std::move(g), os);
 
-              if (!parsed) {
+              if (!parse_result) {
                 auto data_lck                  = data_ctx.lock();
                 auto& data                     = data_ctx.data();
-                data.compiler.m_parse_errors   = parser.get_errors();
+                data.compiler.m_parse_errors   = std::move(parse_result.errors);
                 data.compiler.m_compile_errors = {};
                 Info(g_logger, "Failed to parse node graph");
                 continue;
@@ -92,13 +100,14 @@ namespace yave::editor {
               Info(g_logger, "Success to parse node graph");
 
               // FIXME: use lock for node defs
-              auto exe =
-                compiler.compile(std::move(*parsed), data_ctx.data().node_defs);
+              auto exe = compiler.compile(
+                std::move(parse_result.node_graph.value()),
+                data_ctx.data().node_defs);
 
               if (!exe) {
                 auto data_lck                  = data_ctx.lock();
                 auto& data                     = data_ctx.data();
-                data.compiler.m_parse_errors   = parser.get_errors();
+                data.compiler.m_parse_errors   = std::move(parse_result.errors);
                 data.compiler.m_compile_errors = compiler.get_errors();
                 Info(g_logger, "Failed to compile node graph");
                 continue;

@@ -127,8 +127,13 @@ TEST_CASE("node_compiler V2")
   REQUIRE(cons_func);
 
   auto root = ng.create_group(nullptr);
+  auto out  = ng.add_output_socket(root, "out");
   ng.set_name(root, "root");
-  REQUIRE(ng.add_output_socket(root, "out"));
+
+  auto compile_ng = [&] {
+    return compiler.compile(
+      parser.parse(std::move(ng), out).node_graph.value(), defs);
+  };
 
   auto os = ng.input_sockets(ng.get_group_output(root))[0];
 
@@ -136,7 +141,7 @@ TEST_CASE("node_compiler V2")
   {
     auto n = ng.create_copy(root, int_func);
     REQUIRE(ng.connect(ng.output_sockets(n)[0], os));
-    REQUIRE(compiler.compile(parser.parse(ng.clone()).value(), defs));
+    REQUIRE(compile_ng());
   }
 
   SECTION("int float")
@@ -148,7 +153,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(ng.connect(ng.output_sockets(i)[0], os));
     REQUIRE(ng.connect(ng.output_sockets(f)[0], ng.input_sockets(i)[0]));
     // missmatch
-    REQUIRE(!compiler.compile(parser.parse(ng.clone()).value(), defs));
+    REQUIRE(!compile_ng());
   }
 
   SECTION("add")
@@ -157,7 +162,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(add);
     REQUIRE(ng.connect(ng.output_sockets(add)[0], os));
     // ambiguous
-    REQUIRE(!compiler.compile(parser.parse(ng.clone()).value(), defs));
+    REQUIRE(!compile_ng());
   }
 
   SECTION("add int int")
@@ -173,7 +178,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(ng.connect(ng.output_sockets(add)[0], os));
     REQUIRE(ng.connect(ng.output_sockets(i1)[0], ng.input_sockets(add)[0]));
     REQUIRE(ng.connect(ng.output_sockets(i2)[0], ng.input_sockets(add)[1]));
-    REQUIRE(compiler.compile(parser.parse(ng.clone()).value(), defs));
+    REQUIRE(compile_ng());
   }
 
   SECTION("add float float")
@@ -189,7 +194,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(ng.connect(ng.output_sockets(add)[0], os));
     REQUIRE(ng.connect(ng.output_sockets(f1)[0], ng.input_sockets(add)[0]));
     REQUIRE(ng.connect(ng.output_sockets(f2)[0], ng.input_sockets(add)[1]));
-    REQUIRE(compiler.compile(parser.parse(ng.clone()).value(), defs));
+    REQUIRE(compile_ng());
   }
 
   SECTION("add int float")
@@ -206,7 +211,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(ng.connect(ng.output_sockets(i)[0], ng.input_sockets(add)[0]));
     REQUIRE(ng.connect(ng.output_sockets(f)[0], ng.input_sockets(add)[1]));
     // missmatch
-    REQUIRE(!compiler.compile(parser.parse(ng.clone()).value(), defs));
+    REQUIRE(!compile_ng());
   }
 
   SECTION("add (add int int) int")
@@ -234,7 +239,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(ng.connect(i_value, add2_x));
     REQUIRE(ng.connect(i_value, add2_y));
 
-    REQUIRE(compiler.compile(parser.parse(ng.clone()).value(), defs));
+    REQUIRE(compile_ng());
   }
 
   SECTION("add (add int float) int")
@@ -264,7 +269,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(ng.connect(i_value, add2_x));
     REQUIRE(ng.connect(d_value, add2_y));
 
-    REQUIRE(!compiler.compile(parser.parse(ng.clone()).value(), defs));
+    REQUIRE(!compile_ng());
   }
 
   SECTION("if bool int int")
@@ -289,7 +294,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(ng.connect(i_value, _if_then));
     REQUIRE(ng.connect(i_value, _if_else));
 
-    REQUIRE(compiler.compile(parser.parse(ng.clone()).value(), defs));
+    REQUIRE(compile_ng());
   }
 
   SECTION("if bool (if bool int int) int")
@@ -325,7 +330,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(ng.connect(i_value, if2_else));
     REQUIRE(ng.connect(i_value, if1_else));
 
-    REQUIRE(compiler.compile(parser.parse(std::move(ng)).value(), defs));
+    REQUIRE(compile_ng());
   }
 
   SECTION("if bool int float")
@@ -353,7 +358,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(ng.connect(i_value, _if_then));
     REQUIRE(ng.connect(d_value, _if_else));
 
-    REQUIRE(!compiler.compile(parser.parse(std::move(ng)).value(), defs));
+    REQUIRE(!compile_ng());
   }
 
   SECTION("42 : []")
@@ -376,7 +381,7 @@ TEST_CASE("node_compiler V2")
     REQUIRE(ng.connect(i_value, cons_head));
     REQUIRE(ng.connect(nil_value, cons_tail));
 
-    REQUIRE(compiler.compile(std::move(ng), defs));
+    REQUIRE(compile_ng());
   }
 
   SECTION("f = [x y -> x + y]")
@@ -399,7 +404,7 @@ TEST_CASE("node_compiler V2")
 
     SECTION("f")
     {
-      REQUIRE(!compiler.compile(parser.parse(ng.clone()).value(), defs));
+      REQUIRE(!compile_ng());
     }
 
     SECTION("f int int")
@@ -407,7 +412,7 @@ TEST_CASE("node_compiler V2")
       auto i = ng.create_copy(root, int_func);
       REQUIRE(ng.connect(ng.output_sockets(i)[0], ng.input_sockets(f)[0]));
       REQUIRE(ng.connect(ng.output_sockets(i)[0], ng.input_sockets(f)[1]));
-      REQUIRE(compiler.compile(parser.parse(ng.clone()).value(), defs));
+      REQUIRE(compile_ng());
     }
 
     SECTION("f int int")
@@ -415,7 +420,7 @@ TEST_CASE("node_compiler V2")
       auto i = ng.create_copy(root, float_func);
       REQUIRE(ng.connect(ng.output_sockets(i)[0], ng.input_sockets(f)[0]));
       REQUIRE(ng.connect(ng.output_sockets(i)[0], ng.input_sockets(f)[1]));
-      REQUIRE(compiler.compile(parser.parse(ng.clone()).value(), defs));
+      REQUIRE(compile_ng());
     }
 
     SECTION("f int float")
@@ -424,19 +429,19 @@ TEST_CASE("node_compiler V2")
       auto j = ng.create_copy(root, float_func);
       REQUIRE(ng.connect(ng.output_sockets(i)[0], ng.input_sockets(f)[0]));
       REQUIRE(ng.connect(ng.output_sockets(j)[0], ng.input_sockets(f)[1]));
-      REQUIRE(!compiler.compile(parser.parse(ng.clone()).value(), defs));
+      REQUIRE(!compile_ng());
     }
 
     SECTION("f int (f2 float float)")
     {
       auto f2 = ng.create_copy(root, f);
-      auto i = ng.create_copy(root, int_func);
-      auto j = ng.create_copy(root, float_func);
+      auto i  = ng.create_copy(root, int_func);
+      auto j  = ng.create_copy(root, float_func);
       REQUIRE(ng.connect(ng.output_sockets(i)[0], ng.input_sockets(f)[0]));
       REQUIRE(ng.connect(ng.output_sockets(f2)[0], ng.input_sockets(f)[1]));
       REQUIRE(ng.connect(ng.output_sockets(j)[0], ng.input_sockets(f2)[0]));
       REQUIRE(ng.connect(ng.output_sockets(j)[0], ng.input_sockets(f2)[1]));
-      REQUIRE(!compiler.compile(parser.parse(ng.clone()).value(), defs));
+      REQUIRE(!compile_ng());
     }
   }
 }

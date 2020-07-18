@@ -16,8 +16,8 @@
 YAVE_DECL_G_LOGGER(node_parser)
 
 // cursed, but very useful
-#define mem_fn(FN) \
-  [this](auto&&... args) { return FN(std::forward<decltype(args)>(args)...); }
+#define mem_fn(FN, ...) \
+  [&](auto&& arg) { return FN(std::forward<decltype(arg)>(arg), __VA_ARGS__); }
 
 namespace yave {
 
@@ -38,178 +38,155 @@ namespace yave {
   class node_parser::impl
   {
   public:
-    mutable std::mutex mtx = {};
-    error_list errors      = {};
-
-  public:
     impl()           = default;
     ~impl() noexcept = default;
 
-  private:
-    auto lock() const
+    auto validate(
+      structured_node_graph&& ng,
+      const socket_handle& out_socket,
+      error_list& errors) -> tl::optional<structured_node_graph>
     {
-      return std::unique_lock {mtx};
-    }
-
-    auto validate(structured_node_graph&& ng)
-      -> tl::optional<structured_node_graph>
-    {
-      auto roots = ng.search_path("/");
-
-      auto root = [&] {
-        for (auto&& r : roots)
-          if (ng.get_name(r) == "root")
-            return r;
-        return node_handle();
-      }();
-
-      if (!root) {
-        errors.push_back(
-          make_error<parse_error::unexpected_error>("Root node not found"));
+      if (!ng.exists(out_socket)) {
+        errors.push_back(make_error<parse_error::unexpected_error>(
+          "Out socket does not exist"));
         return tl::nullopt;
       }
 
-      if (ng.output_sockets(root).size() != 1) {
-        errors.push_back(make_error<parse_error::unexpected_error>(
-          "Root should have single output"));
-        return tl::nullopt;
-      }
+      auto out_node = ng.node(out_socket);
 
-      if (ng.input_sockets(root).size() != 0) {
+      if (!ng.is_group(out_node) && !ng.is_function(out_node)) {
         errors.push_back(make_error<parse_error::unexpected_error>(
-          "Root should not have input"));
+          "Out socket is not of a function or a group"));
         return tl::nullopt;
       }
 
       // node -> [socket]
       using memo = std::map<uid, std::vector<uid>>;
 
-      struct
-      {
-        bool marked(const node_handle& n, const socket_handle& s, const memo& m)
-        {
-          if (auto it = m.find(n.id()); it != m.end())
-            return rn::find(it->second, s.id()) != it->second.end();
-          return false;
-        }
+      auto marked =
+        [](
+          const node_handle& n, const socket_handle& s, const memo& m) -> bool {
+        if (auto it = m.find(n.id()); it != m.end())
+          return rn::find(it->second, s.id()) != it->second.end();
+        return false;
+      };
 
-        void mark(const node_handle& n, const socket_handle& s, memo& m)
-        {
-          assert(!marked(n, s, m));
-          if (auto it = m.find(n.id()); it != m.end())
-            it->second.push_back(s.id());
-          else
-            m.insert({n.id(), {s.id()}});
-        }
+      auto mark =
+        [&](const node_handle& n, const socket_handle& s, memo& m) -> void {
+        assert(!marked(n, s, m));
+        if (auto it = m.find(n.id()); it != m.end())
+          it->second.push_back(s.id());
+        else
+          m.insert({n.id(), {s.id()}});
+      };
 
-        // general node check
-        void chk_n(
-          const node_handle& n,
-          const socket_handle& os,
-          const structured_node_graph& ng,
-          error_list& es,
-          memo& m)
-        {
-          // IO will be checked by rec_g
-          assert(ng.is_group_member(n));
+      // general node check
+      auto chk_n = [&](
+                     const node_handle& n,
+                     const socket_handle& os,
+                     const structured_node_graph& ng,
+                     error_list& es,
+                     memo& m) -> void {
 
-          if (marked(n, os, m))
-            return;
+        // IO will be checked by rec_g
+        assert(ng.is_group_member(n));
 
-          auto ics = ng.input_connections(n);
-          auto iss = ng.input_sockets(n);
+        if (marked(n, os, m))
+          return;
 
-          auto missing = [&](auto&& s) {
-            return !ng.get_data(s) && ng.connections(s).empty();
-          };
+        auto ics = ng.input_connections(n);
+        auto iss = ng.input_sockets(n);
 
-          size_t cnt = rn::count_if(iss, missing);
+        auto missing = [&](auto&& s) {
+          return !ng.get_data(s) && ng.connections(s).empty();
+        };
 
-          if (cnt != iss.size())
-            for (auto&& s : iss)
-              if (missing(s))
-                es.push_back(
-                  make_error<parse_error::missing_input>(n.id(), s.id()));
+        size_t cnt = rn::count_if(iss, missing);
 
-          mark(n, os, m);
-        }
-
-        void rec_n(
-          const node_handle& n,
-          const socket_handle& os,
-          const structured_node_graph& ng,
-          error_list& es,
-          memo& m)
-        {
-          if (ng.is_group(n))
-            return rec_g(n, os, ng, es, m);
-
-          if (ng.is_function(n))
-            return rec_f(n, os, ng, es, m);
-
-          if (ng.is_group_input(n))
-            return;
-
-          unreachable();
-        }
-
-        // check group and its inside
-        void rec_g(
-          const node_handle& g,
-          const socket_handle& os,
-          const structured_node_graph& ng,
-          error_list& es,
-          memo& m)
-        {
-          assert(ng.is_group(g));
-
-          // check interface
-          chk_n(g, os, ng, es, m);
-
-          // check input
-          for (auto&& c : ng.input_connections(g)) {
-            auto ci = ng.get_info(c);
-            rec_n(ci->src_node(), ci->src_socket(), ng, es, m);
-          }
-
-          // check inside
-          {
-            auto go  = ng.get_group_output(g);
-            auto idx = *ng.get_index(os);
-            auto s   = ng.input_sockets(go)[idx];
-
-            if (ng.connections(s).empty())
+        if (cnt != iss.size())
+          for (auto&& s : iss)
+            if (missing(s))
               es.push_back(
-                make_error<parse_error::missing_input>(go.id(), s.id()));
+                make_error<parse_error::missing_input>(n.id(), s.id()));
 
-            for (auto&& c : ng.connections(s)) {
-              auto ci = ng.get_info(c);
-              rec_n(ci->src_node(), ci->src_socket(), ng, es, m);
-            }
-          }
+        mark(n, os, m);
+      };
+
+      // check group and its inside
+      auto rec_g = [&](
+                     auto&& rec_n,
+                     const node_handle& g,
+                     const socket_handle& os,
+                     const structured_node_graph& ng,
+                     error_list& es,
+                     memo& m) -> void {
+        assert(ng.is_group(g));
+
+        // check interface
+        chk_n(g, os, ng, es, m);
+
+        // check input
+        for (auto&& c : ng.input_connections(g)) {
+          auto ci = ng.get_info(c);
+          rec_n(ci->src_node(), ci->src_socket(), ng, es, m);
         }
 
-        // check function
-        void rec_f(
-          const node_handle& f,
-          const socket_handle& s,
-          const structured_node_graph& ng,
-          error_list& es,
-          memo& m)
+        // check inside
         {
-          chk_n(f, s, ng, es, m);
+          auto go  = ng.get_group_output(g);
+          auto idx = *ng.get_index(os);
+          auto s   = ng.input_sockets(go)[idx];
 
-          // check input
-          for (auto&& c : ng.input_connections(f)) {
+          if (ng.connections(s).empty())
+            es.push_back(
+              make_error<parse_error::missing_input>(go.id(), s.id()));
+
+          for (auto&& c : ng.connections(s)) {
             auto ci = ng.get_info(c);
             rec_n(ci->src_node(), ci->src_socket(), ng, es, m);
           }
         }
+      };
 
-      } impl;
+      // check function
+      auto rec_f = [&](
+                     auto&& rec_n,
+                     const node_handle& f,
+                     const socket_handle& s,
+                     const structured_node_graph& ng,
+                     error_list& es,
+                     memo& m) -> void {
+        chk_n(f, s, ng, es, m);
 
-      memo m;
-      impl.rec_n(root, ng.output_sockets(root)[0], ng, errors, m);
+        // check input
+        for (auto&& c : ng.input_connections(f)) {
+          auto ci = ng.get_info(c);
+          rec_n(ci->src_node(), ci->src_socket(), ng, es, m);
+        }
+      };
+
+      auto rec_n = [&](
+                     auto&& self,
+                     const node_handle& n,
+                     const socket_handle& os,
+                     const structured_node_graph& ng,
+                     error_list& es,
+                     memo& m) -> void {
+        if (ng.is_group(n))
+          return rec_g(self, n, os, ng, es, m);
+
+        if (ng.is_function(n))
+          return rec_f(self, n, os, ng, es, m);
+
+        if (ng.is_group_input(n))
+          return;
+
+        unreachable();
+      };
+
+      auto m   = memo();
+      auto rec = fix_lambda(rec_n);
+      rec(out_node, out_socket, ng, errors, m);
 
       if (errors.empty())
         return std::move(ng);
@@ -218,26 +195,22 @@ namespace yave {
     }
 
   public:
-    auto parse(structured_node_graph&& ng)
-      -> tl::optional<structured_node_graph>
+    auto parse(structured_node_graph&& ng, const socket_handle& out)
+      -> node_parser_result
     {
-      auto lck = lock();
-      errors.clear();
+      node_parser_result result;
 
-      return tl::make_optional(std::move(ng))
-        .and_then(mem_fn(validate))
-        .or_else([&] {
-          Error(g_logger, "Failed to parse node graph");
-          for (auto&& e : errors) {
-            Error(g_logger, "error: {}", e.message());
-          }
-        });
-    }
+      result.node_graph =
+        to_std(tl::make_optional(std::move(ng))
+                 .and_then(mem_fn(validate, out, result.errors))
+                 .or_else([&] {
+                   Error(g_logger, "Failed to parse node graph");
+                   for (auto&& e : result.errors) {
+                     Error(g_logger, "error: {}", e.message());
+                   }
+                 }));
 
-    auto get_errors()
-    {
-      auto lck = lock();
-      return errors.clone();
+      return result;
     }
   };
 
@@ -249,15 +222,10 @@ namespace yave {
 
   node_parser::~node_parser() noexcept = default;
 
-  auto node_parser::get_errors() const -> error_list
+  auto node_parser::parse(structured_node_graph&& ng, const socket_handle& out)
+    -> node_parser_result
   {
-    return m_pimpl->get_errors();
-  }
-
-  auto node_parser::parse(structured_node_graph&& ng)
-    -> std::optional<structured_node_graph>
-  {
-    return to_std(m_pimpl->parse(std::move(ng)));
+    return m_pimpl->parse(std::move(ng), out);
   }
 
 } // namespace yave
