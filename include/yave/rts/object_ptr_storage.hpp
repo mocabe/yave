@@ -89,6 +89,26 @@ namespace yave {
     /// decrement refcount (mutable)
     void decrement_refcount() const noexcept; // defined in object_ptr.hpp
 
+    /// atomic store with memory order
+    void atomic_store(const Object* ptr, std::memory_order ord) noexcept
+    {
+      m_ptr.store(ptr, ord);
+    }
+
+    /// atomic load with memory order
+    [[nodiscard]] auto atomic_load(std::memory_order ord) const noexcept
+    {
+      return m_ptr.load(ord);
+    }
+
+    /// atomic exchange with memory order
+    [[nodiscard]] auto atomic_exchange(
+      const Object* ptr,
+      std::memory_order ord) noexcept
+    {
+      return m_ptr.exchange(ptr, ord);
+    }
+
   public:
     /// Ctor
     template <class T>
@@ -103,15 +123,30 @@ namespace yave {
     {
     }
 
+    /// Copy ctor
+    constexpr object_ptr_storage(const object_ptr_storage& other) noexcept
+      : m_ptr {nullptr}
+    {
+      m_ptr.store(other.m_ptr, std::memory_order_relaxed);
+    }
+
+    /// Copy assign
+    auto& operator=(const object_ptr_storage& other) noexcept
+    {
+      m_ptr.store(other.m_ptr, std::memory_order_relaxed);
+      return *this;
+    }
+
   private:
     /// pointer to object
-    const Object* m_ptr;
+    std::atomic<const Object*> m_ptr;
   };
 
   // should be standard layout
+  static_assert(std::atomic<const Object*>::is_always_lock_free);
   static_assert(std::is_standard_layout_v<object_ptr_storage>);
-  static_assert(std::is_trivially_copy_constructible_v<object_ptr_storage>);
-  static_assert(std::is_trivially_copy_assignable_v<object_ptr_storage>);
-  static_assert(std::is_trivially_copyable_v<object_ptr_storage>);
+  static_assert(sizeof(object_ptr_storage) == sizeof(Object*));
+  static_assert(std::is_nothrow_copy_constructible_v<object_ptr_storage>);
+  static_assert(std::is_nothrow_move_constructible_v<object_ptr_storage>);
 
 } // namespace yave

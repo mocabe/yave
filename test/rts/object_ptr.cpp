@@ -210,3 +210,19 @@ TEST_CASE("constructor throw", "[rts][object]")
     REQUIRE(i == 42);
   }
 }
+
+TEST_CASE("atomic")
+{
+  auto i  = make_object<Int>(42);
+  auto i2 = make_object<Int>(24);
+
+  i2.atomic_store(i, std::memory_order_relaxed);
+  REQUIRE(*i == 42);
+  REQUIRE(*i2 == 42);
+
+  i2.atomic_store(make_object<Int>(24), std::memory_order_relaxed);
+  REQUIRE(*i == 42);
+  REQUIRE(*i2 == 24);
+
+  REQUIRE(*make_object<Int>(42).atomic_load(std::memory_order_relaxed) == 42);
+}

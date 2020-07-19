@@ -187,6 +187,22 @@ namespace yave {
     // destroy
     ~object_ptr() noexcept;
 
+    /// atomic store
+    void atomic_store(object_ptr<T> r, std::memory_order ord) noexcept
+    {
+      r.m_storage = {m_storage.atomic_exchange(r.m_storage.get(), ord)};
+    }
+
+    /// atomic load
+    [[nodiscard]] auto atomic_load(std::memory_order ord) const noexcept
+      -> object_ptr<T>
+    {
+      object_ptr<T> ret;
+      ret.m_storage = {m_storage.atomic_load(ord)};
+      ret.m_storage.increment_refcount();
+      return ret;
+    }
+
   private:
     /// pointer to object
     object_ptr_storage m_storage;
