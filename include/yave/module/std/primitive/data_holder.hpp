@@ -14,15 +14,7 @@ namespace yave {
 
     struct data_type_holder_object_value
     {
-      template <class Property, class Ctor>
-      data_type_holder_object_value(
-        const object_ptr<Property>& p,
-        const object_ptr<Ctor>& c)
-        : m_property {p}
-        , m_ctor {c}
-        , m_data {p->initial_value().clone()}
-      {
-      }
+      data_type_holder_object_value() = default;
 
       data_type_holder_object_value(const data_type_holder_object_value& other)
       {
@@ -32,45 +24,72 @@ namespace yave {
         m_data = other.m_data.clone();
       }
 
-      [[nodiscard]] auto get_data_constructor() -> object_ptr<Object>
+      // FIXME: This is very bad design indeed...
+      [[nodiscard]] auto get_data_constructor(
+        const object_ptr<const Box<data_type_holder_object_value>>& holder)
+        -> object_ptr<const Object>
       {
-        return m_ctor << m_data;
+        assert(this == holder.value());
+        return m_ctor << holder;
       }
 
-      [[nodiscard]] auto data()
+      [[nodiscard]] auto data() const -> object_ptr<const Object>
       {
         return m_data;
       }
 
-      [[nodiscard]] auto ctor()
+      [[nodiscard]] auto ctor() const -> object_ptr<const Object>
       {
         return m_ctor;
       }
 
-      [[nodiscard]] auto property()
+      [[nodiscard]] auto property() const -> object_ptr<const Object>
       {
         return m_property;
       }
 
-    private:
-      object_ptr<Object> m_property; // property of data
-      object_ptr<Object> m_ctor;     // constructor function referring data
-      object_ptr<Object> m_data;     // current data
-    };
-
-    template <class T>
-    struct DataTypeCtor : Function<DataTypeCtor<T>, T, FrameDemand, T>
-    {
-      auto code() const -> typename DataTypeCtor::return_type
+      void set_property(object_ptr<const Object> new_property)
       {
-        return DataTypeCtor::template arg<0>();
+        assert(!m_property);
+        m_property = std::move(new_property);
       }
+
+      void set_ctor(object_ptr<const Object> new_ctor)
+      {
+        assert(!m_ctor);
+        m_ctor = std::move(new_ctor);
+      }
+
+      void set_data(object_ptr<const Object> new_data)
+      {
+        if (m_data)
+          assert(same_type(get_type(m_data), get_type(new_data)));
+        // atomically update data
+        m_data = std::move(new_data);
+      }
+
+    private:
+      object_ptr<const Object> m_property; // property of data
+      object_ptr<const Object> m_ctor; // constructor function referring data
+      object_ptr<const Object> m_data; // current data
     };
 
   } // namespace detail
 
   /// Data type holder
   using DataTypeHolder = Box<detail::data_type_holder_object_value>;
+
+  /// Data type constructor
+  template <class T>
+  struct DataTypeCtor
+    : Function<DataTypeCtor<T>, DataTypeHolder, FrameDemand, T>
+  {
+    auto code() const -> typename DataTypeCtor::return_type
+    {
+      auto holder = DataTypeCtor::template eval_arg<0>();
+      return value_cast<T>(holder->data());
+    }
+  };
 
   /// Customization point for data type holder property
   template <class T>
@@ -91,7 +110,7 @@ namespace yave {
   {                                                             \
     using value_type    = ValueType;                            \
     using property_type = PropType;                             \
-  };
+  }
 
   /// Create new data type holder
   template <class T, class... Args>
@@ -101,9 +120,16 @@ namespace yave {
     using value_type    = typename traits::value_type;
     using property_type = typename traits::property_type;
 
-    return make_object<DataTypeHolder>(
-      make_object<property_type>(std::forward<Args>(args)...),
-      make_object<detail::DataTypeCtor<value_type>>());
+    auto holder = make_object<DataTypeHolder>();
+    auto prop   = make_object<property_type>(std::forward<Args>(args)...);
+    auto ctor   = make_object<DataTypeCtor<value_type>>();
+    auto data   = prop->initial_value().clone();
+
+    holder->set_property(prop);
+    holder->set_ctor(ctor);
+    holder->set_data(data);
+
+    return holder;
   }
 
   /* Some useful property generator */

@@ -347,7 +347,7 @@ namespace yave {
 
           // FIXME: Remove this branch
           if (auto holder = value_cast_if<DataTypeHolder>(data))
-            body = body << holder->get_data_constructor();
+            body = body << holder->get_data_constructor(holder);
           else
             body = body << data;
 

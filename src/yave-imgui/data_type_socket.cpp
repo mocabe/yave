@@ -12,7 +12,7 @@ namespace yave::editor::imgui {
 
   data_type_socket<Float>::data_type_socket(
     const object_ptr<DataTypeHolder>& holder,
-    const object_ptr<FloatDataProperty>& property,
+    const object_ptr<const FloatDataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -73,12 +73,11 @@ namespace yave::editor::imgui {
         *m_property->max(),
         (name + ":%.3f").c_str());
 
-      dctx.exec(make_data_command([f, val](auto& ctx) {
-        if (*f != val) {
-          *f = val;
-          ctx.data().executor.notify_execute();
-        }
-      }));
+      if (*f != val) {
+        m_holder->set_data(make_object<Float>(val));
+        dctx.exec(make_data_command(
+          [f, val](auto& ctx) { ctx.data().executor.notify_execute(); }));
+      }
     }
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(1);
@@ -88,7 +87,7 @@ namespace yave::editor::imgui {
 
   data_type_socket<Int>::data_type_socket(
     const object_ptr<DataTypeHolder>& holder,
-    const object_ptr<IntDataProperty>& property,
+    const object_ptr<const IntDataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -148,12 +147,11 @@ namespace yave::editor::imgui {
         *m_property->max(),
         (name + ":%.3f").c_str());
 
-      dctx.exec(make_data_command([i, val](auto& ctx) {
-        if (*i != val) {
-          *i = val;
-          ctx.data().executor.notify_execute();
-        }
-      }));
+      if (*i != val) {
+        m_holder->set_data(make_object<Int>(val));
+        dctx.exec(make_data_command(
+          [i, val](auto& ctx) { ctx.data().executor.notify_execute(); }));
+      }
     }
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(1);
@@ -163,7 +161,7 @@ namespace yave::editor::imgui {
 
   data_type_socket<Bool>::data_type_socket(
     const object_ptr<DataTypeHolder>& holder,
-    const object_ptr<BoolDataProperty>& property,
+    const object_ptr<const BoolDataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -208,12 +206,11 @@ namespace yave::editor::imgui {
       auto val = *b;
       ImGui::Checkbox("", &val);
 
-      dctx.exec(make_data_command([b, val](auto& ctx) {
-        if (*b != val) {
-          *b = val;
-          ctx.data().executor.notify_execute();
-        }
-      }));
+      if (*b != val) {
+        m_holder->set_data(make_object<Bool>(val));
+        dctx.exec(make_data_command(
+          [b, val](auto& ctx) { ctx.data().executor.notify_execute(); }));
+      }
     }
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(1);
@@ -223,7 +220,7 @@ namespace yave::editor::imgui {
 
   data_type_socket<String>::data_type_socket(
     const object_ptr<DataTypeHolder>& holder,
-    const object_ptr<StringDataProperty>& property,
+    const object_ptr<const StringDataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -268,12 +265,11 @@ namespace yave::editor::imgui {
       auto val = std::string(*str);
       ImGui::InputText("", &val);
 
-      dctx.exec(make_data_command([str, val](auto& ctx) {
-        if (std::string(*str) != val) {
-          *str = yave::string(val);
-          ctx.data().executor.notify_execute();
-        }
-      }));
+      if (std::string(*str) != val) {
+        m_holder->set_data(make_object<String>(val));
+        dctx.exec(make_data_command(
+          [str, val](auto& ctx) { ctx.data().executor.notify_execute(); }));
+      }
     }
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(1);
@@ -283,7 +279,7 @@ namespace yave::editor::imgui {
 
   data_type_socket<Color>::data_type_socket(
     const object_ptr<DataTypeHolder>& holder,
-    const object_ptr<ColorDataProperty>& property,
+    const object_ptr<const ColorDataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -337,12 +333,11 @@ namespace yave::editor::imgui {
       auto val = *c;
       ImGui::ColorEdit4("", &(val.r), ImGuiColorEditFlags_Float);
 
-      dctx.exec(make_data_command([c, val](auto& ctx) {
-        if (*c != val) {
-          *c = val;
-          ctx.data().executor.notify_execute();
-        }
-      }));
+      if (*c != val) {
+        m_holder->set_data(make_object<Color>(val));
+        dctx.exec(make_data_command(
+          [c, val](auto& ctx) { ctx.data().executor.notify_execute(); }));
+      }
     }
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(2);
@@ -352,7 +347,7 @@ namespace yave::editor::imgui {
 
   data_type_socket<FVec2>::data_type_socket(
     const object_ptr<DataTypeHolder>& holder,
-    const object_ptr<FVec2DataProperty>& property,
+    const object_ptr<const FVec2DataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -416,12 +411,11 @@ namespace yave::editor::imgui {
       ImGui::SameLine(0, style.ItemInnerSpacing.x);
       ImGui::DragFloat("##y", &val.y, step, lo, hi, "y:%.1f");
 
-      dctx.exec(make_data_command([vec, val](auto& ctx) {
-        if (*vec != val) {
-          *vec = val;
-          ctx.data().executor.notify_execute();
-        }
-      }));
+      if (*vec != val) {
+        m_holder->set_data(make_object<FVec2>(val));
+        dctx.exec(make_data_command(
+          [vec, val](auto& ctx) { ctx.data().executor.notify_execute(); }));
+      }
     }
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar(1);
