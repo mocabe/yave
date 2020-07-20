@@ -9,6 +9,7 @@
 #include <yave/module/std/config.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
+#include <yave/lib/vulkan/offscreen_compositor.hpp>
 
 namespace yave {
 
@@ -22,12 +23,15 @@ namespace yave {
   template <>
   struct node_definition_traits<node::Frame, modules::_std::tag>
   {
-    static auto get_node_definitions(frame_buffer_manager& mngr)
+    static auto get_node_definitions(
+      frame_buffer_manager& mngr,
+      vulkan::rgba32f_offscreen_compositor& comp)
       -> std::vector<node_definition>;
   };
 
   namespace modules::_std::render {
 
+    /// Generates empty frame buffer. For default frame inputs.
     struct FrameBufferConstructor
       : NodeFunction<FrameBufferConstructor, FrameBuffer>
     {

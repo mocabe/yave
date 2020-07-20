@@ -173,7 +173,7 @@ namespace yave::modules::_std {
     auto& fmngr      = m_pimpl->resource->frame_buff;
     auto& compositor = m_pimpl->resource->compositor;
 
-    add(yave::get_node_definitions<node::Frame, _std::tag>(fmngr));
+    add(yave::get_node_definitions<node::Frame, _std::tag>(fmngr, compositor));
 
     add(yave::get_node_definitions<node::Color, _std::tag>());
     add(yave::get_node_definitions<node::Vec2, _std::tag>());
