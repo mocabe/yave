@@ -2,7 +2,6 @@
 
 add_library(yave-module-std
   color/color.cpp
-  filesystem/path.cpp
   geometry/vec.cpp
   geometry/mat.cpp
   list/list.cpp
