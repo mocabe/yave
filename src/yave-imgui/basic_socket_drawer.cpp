@@ -21,6 +21,7 @@ namespace yave::editor::imgui {
     const node_window& nw)
     : socket_drawable {s, *g.get_info(s)}
   {
+    (void)nw;
     m_data = g.get_data(s);
   }
 
@@ -37,6 +38,8 @@ namespace yave::editor::imgui {
     node_window_draw_info& draw_info,
     ImVec2 size) const -> ImVec2
   {
+    (void)draw_info;
+
     auto type = info.type();
 
     switch (type) {
@@ -208,6 +211,8 @@ namespace yave::editor::imgui {
     ImVec2 pos,
     ImVec2 size) const
   {
+    (void)nw, (void)dctx, (void)vctx, (void)draw_info;
+
     auto type = info.type();
     auto name = info.name();
 

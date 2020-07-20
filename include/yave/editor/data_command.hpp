@@ -68,9 +68,9 @@ namespace yave::editor {
       {
         ExecFunc::operator()(data_ctx);
       }
-      void undo(data_context& data_ctx) override
+      void undo(data_context&) override
       {
-        // not used
+        // no undo
       }
       bool undoable() const override
       {
