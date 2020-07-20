@@ -11,6 +11,7 @@ add_library(yave-module-std
   primitive/primitive.cpp
   render/frame.cpp
   render/mix.cpp
+  render/fill.cpp
   time/retime.cpp 
   time/time.cpp
   transform/rotate.cpp

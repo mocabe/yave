@@ -5,6 +5,7 @@
 
 #include <yave/module/std/shape/rect.hpp>
 #include <yave/module/std/primitive/data_holder.hpp>
+#include <yave/module/std/geometry/vec.hpp>
 #include <yave/obj/shape/shape.hpp>
 #include <yave/lib/shape/rect.hpp>
 #include <yave/obj/color/color.hpp>
@@ -20,7 +21,9 @@ namespace yave {
       "/std/shape",
       "Create rect shape",
       {"pos", "size"},
-      {"shape"});
+      {"shape"},
+      {{0, make_data_type_holder<FVec2>()},
+       {1, make_data_type_holder<FVec2>()}});
   }
 
   namespace modules::_std::shape {
