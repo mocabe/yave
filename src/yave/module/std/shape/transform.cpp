@@ -16,7 +16,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "ShapeTranslate",
+      "Translate",
       "/std/shape",
       "Translate shape",
       {"shape", "vec"},
@@ -27,7 +27,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "ShapeRotate",
+      "Rotate",
       "/std/shape",
       "Rotate shape",
       {"shape", "degree", "center"},
@@ -39,7 +39,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "ShapeScale",
+      "Scale",
       "/std/shape",
       "Scale shape",
       {"shape", "ratio", "center"},

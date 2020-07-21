@@ -3,8 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/render/fill.hpp>
-#include <yave/module/std/render/frame.hpp>
+#include <yave/module/std/frame/fill.hpp>
+#include <yave/module/std/frame/frame.hpp>
 #include <yave/module/std/color/color.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
@@ -17,17 +17,17 @@ namespace yave {
   {
     return node_declaration(
       "Fill",
-      "/std/render",
+      "/std/frame",
       "Fill frame buffer with specified color",
       {"color", "frame"},
       {"frame"},
       {{0, make_data_type_holder<Color>()},
        {1,
-        make_object<modules::_std::render::FrameBufferConstructor>(
+        make_object<modules::_std::frame::FrameBufferConstructor>(
           fbm.get_pool_object())}});
   }
 
-  namespace modules::_std::render {
+  namespace modules::_std::frame {
 
     struct FillFrame : NodeFunction<FillFrame, Color, FrameBuffer, FrameBuffer>
     {
@@ -57,7 +57,7 @@ namespace yave {
         return dst;
       }
     };
-  } // namespace modules::_std::render
+  } // namespace modules::_std::frame
 
   auto node_definition_traits<node::FillFrame, modules::_std::tag>::
     get_node_definitions(
@@ -69,7 +69,7 @@ namespace yave {
     return std::vector {node_definition(
       info.qualified_name(),
       0,
-      make_object<modules::_std::render::FillFrame>(fbm, compositor),
+      make_object<modules::_std::frame::FillFrame>(fbm, compositor),
       info.description())};
   }
 } // namespace yave

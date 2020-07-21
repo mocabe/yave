@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/logic/apply.hpp>
+#include <yave/module/std/functional/apply.hpp>
 #include <yave/node/core/function.hpp>
 
 namespace yave {
@@ -13,13 +13,13 @@ namespace yave {
   {
     return node_declaration(
       "Apply",
-      "/std/logic",
+      "/std/functional",
       "Apply argument to function",
       {"fn", "arg"},
       {"fn"});
   }
 
-  namespace modules::_std::logic {
+  namespace modules::_std::functional {
 
     class Apply_X;
     class Apply_Y;
@@ -31,7 +31,7 @@ namespace yave {
         return arg<0>() << arg<1>();
       }
     };
-  } // namespace modules::_std::logic
+  } // namespace modules::_std::functional
 
   auto node_definition_traits<node::Apply, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
@@ -41,7 +41,7 @@ namespace yave {
     return {node_definition(
       info.qualified_name(),
       0,
-      make_object<modules::_std::logic::Apply>(),
+      make_object<modules::_std::functional::Apply>(),
       info.description())};
   }
 } // namespace yave

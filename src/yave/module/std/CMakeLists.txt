@@ -6,16 +6,14 @@ add_library(yave-module-std
   geometry/mat.cpp
   list/list.cpp
   list/algorithm.cpp
-  logic/apply.cpp
+  functional/apply.cpp
   logic/if.cpp
   primitive/primitive.cpp
-  render/frame.cpp
-  render/mix.cpp
-  render/fill.cpp
+  frame/frame.cpp
+  frame/mix.cpp
+  frame/fill.cpp
   time/retime.cpp 
   time/time.cpp
-  transform/rotate.cpp
-  transform/translate.cpp
   shape/circle.cpp
   shape/rect.cpp
   shape/draw.cpp

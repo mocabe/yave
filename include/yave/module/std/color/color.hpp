@@ -15,6 +15,8 @@ namespace yave {
   namespace node {
     // Color ctor node
     class Color;
+    // Color ctor from floats
+    class ColorFloat;
   } // namespace node
 
   // data property
@@ -22,7 +24,9 @@ namespace yave {
   YAVE_DECL_DATA_TYPE_PROPERTY(Color, Color, ColorDataProperty);
 
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Color);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ColorFloat);
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Color, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ColorFloat, modules::_std::tag);
 
 } // namespace yave
 

@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/render/frame.hpp>
+#include <yave/module/std/frame/frame.hpp>
 #include <yave/module/std/color/color.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
@@ -16,14 +16,14 @@ namespace yave {
   {
     return node_declaration(
       "Frame",
-      "/std/render",
+      "/std/frame",
       "Create new frame buffer",
       {"color"},
-      {"value"},
+      {"frame"},
       {{0, make_data_type_holder<Color>()}});
   }
 
-  namespace modules::_std::render {
+  namespace modules::_std::frame {
 
     struct FrameBufferColored
       : NodeFunction<FrameBufferColored, Color, FrameBuffer>
@@ -52,7 +52,7 @@ namespace yave {
       }
     };
 
-  } // namespace modules::_std::render
+  } // namespace modules::_std::frame
 
   auto node_definition_traits<node::Frame, modules::_std::tag>::
     get_node_definitions(
@@ -64,7 +64,7 @@ namespace yave {
     return std::vector {node_definition(
       info.qualified_name(),
       0,
-      make_object<modules::_std::render::FrameBufferColored>(mngr, comp),
+      make_object<modules::_std::frame::FrameBufferColored>(mngr, comp),
       info.description())};
   }
 } // namespace yave

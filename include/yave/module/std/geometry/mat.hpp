@@ -7,29 +7,32 @@
 
 #include <yave/node/core/get_info.hpp>
 #include <yave/module/std/config.hpp>
-#include <yave/module/std/transform/rotate.hpp>
-#include <yave/module/std/transform/translate.hpp>
 
 namespace yave {
 
   namespace node {
-    /// Mat4
     struct Mat4;
+    struct Mat4Rotate;
+    struct Mat4RotateX;
+    struct Mat4RotateY;
+    struct Mat4RotateZ;
+    struct Mat4Translate;
   } // namespace node
 
   namespace modules::_std::geometry {
-    /// tag
-    struct tag;
   } // namespace modules::_std::geometry
 
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Mat4);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Mat4, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Mat4Rotate);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Mat4RotateX);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Mat4RotateY);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Mat4RotateZ);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Mat4Translate);
 
-  // clang-format off
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Rotate, modules::_std::geometry::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::RotateX, modules::_std::geometry::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::RotateY, modules::_std::geometry::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::RotateZ, modules::_std::geometry::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Translate, modules::_std::geometry::tag);
-  // clang-format on
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Mat4, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Mat4Rotate, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Mat4RotateX, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Mat4RotateY, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Mat4RotateZ, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Mat4Translate, modules::_std::tag);
 }

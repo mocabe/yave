@@ -12,16 +12,14 @@
 #include <yave/module/std/geometry/mat.hpp>
 #include <yave/module/std/list/list.hpp>
 #include <yave/module/std/list/algorithm.hpp>
-#include <yave/module/std/logic/apply.hpp>
+#include <yave/module/std/functional/apply.hpp>
 #include <yave/module/std/logic/if.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
-#include <yave/module/std/render/frame.hpp>
-#include <yave/module/std/render/mix.hpp>
-#include <yave/module/std/render/fill.hpp>
+#include <yave/module/std/frame/frame.hpp>
+#include <yave/module/std/frame/mix.hpp>
+#include <yave/module/std/frame/fill.hpp>
 #include <yave/module/std/time/retime.hpp>
 #include <yave/module/std/time/time.hpp>
-#include <yave/module/std/transform/rotate.hpp>
-#include <yave/module/std/transform/translate.hpp>
 #include <yave/module/std/shape/circle.hpp>
 #include <yave/module/std/shape/rect.hpp>
 #include <yave/module/std/shape/draw.hpp>
@@ -125,10 +123,16 @@ namespace yave::modules::_std {
     auto& fmngr    = m_pimpl->resource->frame_buff;
 
     return {get_node_declaration<node::Color>(),
+            get_node_declaration<node::ColorFloat>(),
             get_node_declaration<node::Vec2>(),
             get_node_declaration<node::Vec3>(),
             get_node_declaration<node::Vec4>(),
             get_node_declaration<node::Mat4>(),
+            get_node_declaration<node::Mat4Translate>(),
+            get_node_declaration<node::Mat4Rotate>(),
+            get_node_declaration<node::Mat4RotateX>(),
+            get_node_declaration<node::Mat4RotateY>(),
+            get_node_declaration<node::Mat4RotateZ>(),
             get_node_declaration<node::ListNil>(),
             get_node_declaration<node::ListCons>(),
             get_node_declaration<node::ListDecompose>(),
@@ -149,11 +153,6 @@ namespace yave::modules::_std {
             get_node_declaration<node::DelayTime>(),
             get_node_declaration<node::ScaleTime>(),
             get_node_declaration<node::Time>(),
-            get_node_declaration<node::Translate>(),
-            get_node_declaration<node::Rotate>(),
-            get_node_declaration<node::RotateX>(),
-            get_node_declaration<node::RotateY>(),
-            get_node_declaration<node::RotateZ>(),
             get_node_declaration<node::CircleShape>(),
             get_node_declaration<node::RectShape>(),
             get_node_declaration<node::DrawShape>(fmngr),
@@ -178,10 +177,16 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Frame, _std::tag>(fmngr, compositor));
 
     add(yave::get_node_definitions<node::Color, _std::tag>());
+    add(yave::get_node_definitions<node::ColorFloat, _std::tag>());
     add(yave::get_node_definitions<node::Vec2, _std::tag>());
     add(yave::get_node_definitions<node::Vec3, _std::tag>());
     add(yave::get_node_definitions<node::Vec4, _std::tag>());
     add(yave::get_node_definitions<node::Mat4, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4Rotate, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4RotateX, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4RotateY, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4RotateZ, _std::tag>());
+    add(yave::get_node_definitions<node::Mat4Translate, _std::tag>());
     add(yave::get_node_definitions<node::ListNil, _std::tag>());
     add(yave::get_node_definitions<node::ListCons, _std::tag>());
     add(yave::get_node_definitions<node::ListDecompose, _std::tag>());
@@ -201,11 +206,6 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::ReTime, _std::tag>());
     add(yave::get_node_definitions<node::DelayTime, _std::tag>());
     add(yave::get_node_definitions<node::ScaleTime, _std::tag>());
-    add(yave::get_node_definitions<node::Rotate, _std::geometry::tag>());
-    add(yave::get_node_definitions<node::RotateX, _std::geometry::tag>());
-    add(yave::get_node_definitions<node::RotateY, _std::geometry::tag>());
-    add(yave::get_node_definitions<node::RotateZ, _std::geometry::tag>());
-    add(yave::get_node_definitions<node::Translate, _std::geometry::tag>());
     add(yave::get_node_definitions<node::CircleShape, _std::tag>());
     add(yave::get_node_definitions<node::RectShape, _std::tag>());
     add(yave::get_node_definitions<node::DrawShape, _std::tag>(fmngr, compositor));

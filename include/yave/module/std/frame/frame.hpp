@@ -29,7 +29,7 @@ namespace yave {
       -> std::vector<node_definition>;
   };
 
-  namespace modules::_std::render {
+  namespace modules::_std::frame {
 
     /// Generates empty frame buffer. For default frame inputs.
     struct FrameBufferConstructor
@@ -47,5 +47,5 @@ namespace yave {
 
       object_ptr<const FrameBufferPool> pool;
     };
-  } // namespace modules::_std::render
+  } // namespace modules::_std::frame
 }

@@ -5,7 +5,7 @@
 
 #include <yave/module/std/shape/draw.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
-#include <yave/module/std/render/frame.hpp>
+#include <yave/module/std/frame/frame.hpp>
 #include <yave/module/std/color/color.hpp>
 #include <yave/obj/shape/shape.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
@@ -20,7 +20,7 @@ namespace yave {
     frame_buffer_manager& fbm) -> node_declaration
   {
     return node_declaration(
-      "DrawShape",
+      "Draw",
       "/std/shape",
       "Render shape to frame buffer",
       {"shape", "fill color", "stroke color", "stroke width", "frame"},
@@ -29,7 +29,7 @@ namespace yave {
        {2, make_data_type_holder<Color>(color {0.f, 0.f, 0.f, 1.f})},
        {3, make_data_type_holder<Float>(10.f)},
        {4,
-        make_object<modules::_std::render::FrameBufferConstructor>(
+        make_object<modules::_std::frame::FrameBufferConstructor>(
           fbm.get_pool_object())}});
   }
 

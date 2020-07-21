@@ -7,7 +7,7 @@
 
 #include <yave/node/core/get_info.hpp>
 #include <yave/module/std/config.hpp>
-#include <yave/module/std/render/frame.hpp>
+#include <yave/module/std/frame/frame.hpp>
 #include <yave/lib/vulkan/offscreen_compositor.hpp>
 
 namespace yave {

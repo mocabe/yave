@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/render/mix.hpp>
+#include <yave/module/std/frame/mix.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
@@ -16,10 +16,10 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "MixFrame", "/std/renedr", "Mix frames", {"src", "dst"}, {"mix"});
+      "Mix", "/std/frame", "Mix frames", {"src", "dst"}, {"frame"});
   }
 
-  namespace modules::_std::render {
+  namespace modules::_std::frame {
 
     struct MixFrame
       : NodeFunction<MixFrame, FrameBuffer, FrameBuffer, FrameBuffer>
@@ -69,7 +69,7 @@ namespace yave {
     return std::vector {node_definition(
       info.qualified_name(),
       0,
-      make_object<modules::_std::render::MixFrame>(fbm, compositor),
+      make_object<modules::_std::frame::MixFrame>(fbm, compositor),
       info.description())};
   }
 }

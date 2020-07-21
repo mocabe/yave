@@ -18,26 +18,26 @@ namespace yave {
       "ReTime",
       "/std/time",
       "Assign new time to subtree",
-      {"target", "time"},
-      {"out"});
+      {"any", "time"},
+      {"any"});
   }
 
   auto node_declaration_traits<node::DelayTime>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "DelayTime", "/std/time", "Delay", {"target", "delay"}, {"out"});
+      "Delay", "/std/time", "Delay time", {"any", "delay"}, {"any"});
   }
 
   auto node_declaration_traits<node::ScaleTime>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "ScaleTime",
-      "/std/time",
       "Scale",
-      {"target", "scale"},
-      {"out"},
+      "/std/time",
+      "Scale time",
+      {"any", "scale"},
+      {"any"},
       {{1, make_data_type_holder<Float>(1.f)}});
   }
 
