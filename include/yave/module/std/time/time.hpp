@@ -14,12 +14,21 @@
 namespace yave {
 
   namespace node {
-    /// Pesudo primitive node for frame time.
+    /// Primitive node for frame time.
     struct Time;
+    /// Convert time to seconds
+    struct TimeSeconds;
+    /// Construct time from float seconds
+    struct TimeFromSeconds;
   } // namespace node
 
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Time);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::TimeSeconds);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::TimeFromSeconds);
+
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Time, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::TimeSeconds, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::TimeFromSeconds, modules::_std::tag);
 
   namespace modules::_std::core {
     /// Get time from demand

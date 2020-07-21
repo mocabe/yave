@@ -26,17 +26,17 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Delay", "/std/time", "Delay time", {"any", "delay"}, {"any"});
+      "DelayTime", "/std/time", "Delay time", {"any", "time"}, {"any"});
   }
 
   auto node_declaration_traits<node::ScaleTime>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Scale",
+      "ScaleTime",
       "/std/time",
       "Scale time",
-      {"any", "scale"},
+      {"any", "scaling"},
       {"any"},
       {{1, make_data_type_holder<Float>(1.f)}});
   }

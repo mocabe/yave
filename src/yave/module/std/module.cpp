@@ -153,6 +153,8 @@ namespace yave::modules::_std {
             get_node_declaration<node::DelayTime>(),
             get_node_declaration<node::ScaleTime>(),
             get_node_declaration<node::Time>(),
+            get_node_declaration<node::TimeSeconds>(),
+            get_node_declaration<node::TimeFromSeconds>(),
             get_node_declaration<node::CircleShape>(),
             get_node_declaration<node::RectShape>(),
             get_node_declaration<node::DrawShape>(fmngr),
@@ -203,6 +205,8 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::MixFrame, _std::tag>(fmngr, compositor));
     add(yave::get_node_definitions<node::FillFrame, _std::tag>(fmngr, compositor));
     add(yave::get_node_definitions<node::Time, _std::tag>());
+    add(yave::get_node_definitions<node::TimeSeconds, _std::tag>());
+    add(yave::get_node_definitions<node::TimeFromSeconds, _std::tag>());
     add(yave::get_node_definitions<node::ReTime, _std::tag>());
     add(yave::get_node_definitions<node::DelayTime, _std::tag>());
     add(yave::get_node_definitions<node::ScaleTime, _std::tag>());
