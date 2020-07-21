@@ -134,9 +134,11 @@ namespace yave::editor {
 
               {
                 Info(g_logger, "Success to compile node graph");
-                auto data_lck          = data_ctx.lock();
-                auto& data             = data_ctx.data();
-                data.compiler.m_result = std::move(exe);
+                auto data_lck                  = data_ctx.lock();
+                auto& data                     = data_ctx.data();
+                data.compiler.m_compile_errors = {};
+                data.compiler.m_parse_errors   = {};
+                data.compiler.m_result         = std::move(exe);
               }
               data_ctx.data().executor.notify_execute();
             }

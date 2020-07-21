@@ -171,6 +171,18 @@ namespace yave::editor::imgui {
     for (auto&& n : n_selected)
       ImGui::Text("nsel: %s", to_string(n.id()).c_str());
 
+    // show compile result for debug
+    {
+      auto lck   = dctx.lock();
+      auto& data = dctx.data();
+
+      for (auto&& e : data.compiler.parse_errors())
+        ImGui::TextColored({255, 0, 0, 255}, "%s", e.message().c_str());
+
+      for (auto&& e : data.compiler.compile_errors())
+        ImGui::TextColored({255, 0, 0, 255}, "%s", e.message().c_str());
+    }
+
     // handle scrolling
     if (
       ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive()
