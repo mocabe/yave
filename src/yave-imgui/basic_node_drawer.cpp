@@ -222,6 +222,7 @@ namespace yave::editor::imgui {
             dctx.exec(make_data_command([s](auto& ctx) {
               auto& ng = ctx.data().node_graph;
               ng.remove_socket(s);
+              ctx.data().compiler.notify_recompile();
             }));
           ImGui::PopID();
         }
@@ -231,6 +232,7 @@ namespace yave::editor::imgui {
             [n, idx = info.output_sockets().size()](auto& ctx) {
               auto& ng = ctx.data().node_graph;
               ng.add_output_socket(n, fmt::format("{}", idx));
+              ctx.data().compiler.notify_recompile();
             }));
       }
 
@@ -266,6 +268,7 @@ namespace yave::editor::imgui {
             dctx.exec(make_data_command([s](auto& ctx) {
               auto& ng = ctx.data().node_graph;
               ng.remove_socket(s);
+              ctx.data().compiler.notify_recompile();
             }));
           ImGui::PopID();
         }
@@ -275,6 +278,7 @@ namespace yave::editor::imgui {
             [n, idx = info.input_sockets().size()](auto& ctx) {
               auto& ng = ctx.data().node_graph;
               ng.add_input_socket(n, fmt::format("{}", idx));
+              ctx.data().compiler.notify_recompile();
             }));
       }
 
