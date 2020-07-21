@@ -44,13 +44,13 @@ namespace yave {
 
   bool node_declaration_store::add(const node_declaration& decl)
   {
-    auto [it, succ] =
-      m_map.emplace(decl.name(), std::make_shared<node_declaration>(decl));
+    auto [it, succ] = m_map.emplace(
+      decl.qualified_name(), std::make_shared<node_declaration>(decl));
 
     if (succ)
-      Info(g_logger, "Added new declaration: {}", decl.name());
+      Info(g_logger, "Added new declaration: {}", decl.qualified_name());
     else
-      Error(g_logger, "Failed to add declaration: {}", decl.name());
+      Error(g_logger, "Failed to add declaration: {}", decl.qualified_name());
 
     return succ;
   }
@@ -61,7 +61,7 @@ namespace yave {
 
     for (auto&& decl : decls) {
       if (add(decl)) {
-        added.push_back(decl.name());
+        added.push_back(decl.qualified_name());
       } else {
         for (auto&& name : added) {
           remove(name);
