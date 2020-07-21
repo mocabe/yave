@@ -175,8 +175,17 @@ namespace yave::editor::imgui {
               ng.set_name(n, new_name);
             }));
         }
-      } else
-        ImGui::Text("%s", info.name().c_str());
+      } else {
+        std::string path = [&] {
+          auto lck = dctx.lock();
+          auto& ng = dctx.data().node_graph;
+          if (auto p = ng.get_path(ng.get_definition(n)))
+            return *p;
+          else
+            return info.name();
+        }();
+        ImGui::Text("%s", path.c_str());
+      }
 
       // id
       ImGui::TextDisabled("id: %s", to_string(n.id()).c_str());
