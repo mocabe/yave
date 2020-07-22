@@ -93,6 +93,8 @@ namespace yave::editor::imgui {
     // init compiler
     data.compiler.init(compiler);
     data.executor.init(executor);
+
+    data.compiler.notify_recompile();
   }
 
   void application::impl::deinit_data()
