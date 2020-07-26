@@ -132,8 +132,6 @@ namespace yave::editor::imgui {
 
   void application::impl::run()
   {
-    auto& glfw_win = imgui_ctx.window_context().glfw_win();
-
     while (!imgui_ctx.window_context().should_close()) {
       imgui_ctx.begin_frame();
       {

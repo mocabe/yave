@@ -44,7 +44,6 @@ namespace yave {
 
         auto w   = src->width();
         auto h   = src->height();
-        auto fmt = src->format();
 
         if (!m_fbm.exists(src->id()) || !m_fbm.exists(dst->id()))
           assert(!"TODO");

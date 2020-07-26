@@ -931,7 +931,7 @@ namespace yave {
   {
     if (!exists(src_socket) || !exists(dst_socket)) {
       Error(g_logger, "Failed to connect sockets: Invalid socket descriptor");
-      return nullptr;
+      return {};
     }
 
     return m_pimpl->connect(src_socket, dst_socket);
@@ -968,7 +968,7 @@ namespace yave {
   auto node_graph::node(const socket_handle& socket) const -> node_handle
   {
     if (!exists(socket))
-      return {nullptr};
+      return {};
 
     return m_pimpl->node(socket);
   }
@@ -1081,7 +1081,7 @@ namespace yave {
   auto node_graph::get_owner(const socket_handle& socket) const -> node_handle
   {
     if (!exists(socket))
-      return {nullptr};
+      return {};
 
     return m_pimpl->get_owner(socket);
   }

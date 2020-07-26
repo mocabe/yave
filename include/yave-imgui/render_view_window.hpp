@@ -29,8 +29,8 @@ namespace yave::editor {
     uint32_t width, height;
     image_format frame_format;
 
-    ImVec2 scroll = {0, 0};
-    float scale   = 1.f;
+    ImVec2 tex_scroll = {0, 0};
+    float tex_scale   = 1.f;
 
     yave::time current_time;
 

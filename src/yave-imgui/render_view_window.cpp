@@ -13,8 +13,8 @@
 namespace yave::editor {
 
   render_view_window::render_view_window(imgui::imgui_context& imctx)
-    : imgui_ctx {imctx}
-    , wm::window("render_view")
+    : wm::window("render_view")
+    , imgui_ctx {imctx}
     , res_tex_id {0}
   {
     bg_tex_data =
@@ -38,6 +38,8 @@ namespace yave::editor {
     editor::data_context& data_ctx,
     editor::view_context& view_ctx)
   {
+    (void)view_ctx;
+
     auto lck   = data_ctx.lock();
     auto& data = data_ctx.data();
 
@@ -88,8 +90,8 @@ namespace yave::editor {
 
       auto wsize  = ImGui::GetWindowSize();
       auto size   = ImVec2 {(float)view.width(), (float)view.height()};
-      auto scroll = this->scroll;
-      auto scale  = this->scale;
+      auto scroll = this->tex_scroll;
+      auto scale  = this->tex_scale;
 
       ImGui::SetCursorPos(
         {scale * scroll.x + wsize.x / 2 - scale * size.x / 2,
@@ -147,8 +149,8 @@ namespace yave::editor {
         }));
 
       view_ctx.push(make_window_view_command(*this, [=](auto& w) {
-        w.scroll = scroll;
-        w.scale  = scale;
+        w.tex_scroll = scroll;
+        w.tex_scale  = scale;
       }));
     }
     ImGui::End();

@@ -155,6 +155,8 @@ namespace yave::editor::imgui {
     data_context& dctx,
     view_context& vctx) const
   {
+    (void)vctx;
+
     const auto& style = ImGui::GetStyle();
 
     // popup window
@@ -230,9 +232,9 @@ namespace yave::editor::imgui {
         if (ImGui::Selectable("add new output socket"))
           dctx.exec(make_data_command(
             [n, idx = info.output_sockets().size()](auto& ctx) {
-              auto& ng = ctx.data().node_graph;
-              ng.add_output_socket(n, fmt::format("{}", idx));
-              ctx.data().compiler.notify_recompile();
+              auto& data = ctx.data();
+              if (data.node_graph.add_output_socket(n, fmt::format("{}", idx)))
+                data.compiler.notify_recompile();
             }));
       }
 
@@ -276,9 +278,9 @@ namespace yave::editor::imgui {
         if (ImGui::Selectable("add new input socket"))
           dctx.exec(make_data_command(
             [n, idx = info.input_sockets().size()](auto& ctx) {
-              auto& ng = ctx.data().node_graph;
-              ng.add_input_socket(n, fmt::format("{}", idx));
-              ctx.data().compiler.notify_recompile();
+              auto& data = ctx.data();
+              if (data.node_graph.add_input_socket(n, fmt::format("{}", idx)))
+                data.compiler.notify_recompile();
             }));
       }
 
@@ -296,6 +298,8 @@ namespace yave::editor::imgui {
     const ImVec2& pos,
     const ImVec2& size) const
   {
+    (void)vctx, (void)hovered, (void)selected;
+
     const auto& n = handle;
 
     ImGui::SetCursorScreenPos(pos);
@@ -372,6 +376,8 @@ namespace yave::editor::imgui {
     const node_window& nw,
     node_window_draw_info& draw_info) const -> ImVec2
   {
+    (void)draw_info;
+
     auto spos = ImGui::GetWindowPos() + nw.scroll() + to_ImVec2(info.pos());
 
     // set dummy position to nodes being dragged, to avoid submitting
