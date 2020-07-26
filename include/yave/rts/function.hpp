@@ -30,7 +30,7 @@ namespace yave {
     // ------------------------------------------
     // vtbl_code_func
 
-    /// vrtable function to call code()
+    /// vtable function to call code()
     template <class T>
     auto vtbl_code_func(const Closure<>* _cthis) noexcept
       -> object_ptr<const Object>

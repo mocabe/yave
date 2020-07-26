@@ -417,9 +417,6 @@ namespace yave {
   /*
     Type check prime trees and generate apply graph.
     Assumes prime tree is already successfully parsed by node_parser.
-    We use socket_instance_manager to collect all node instances attached to
-    specific node/socket combination to share instance objects across multiple
-    inputs.
 
     This function is depending on overloading resolution extension in RTS
     module. After typing over gneralized types on each overloaded functions,
@@ -427,9 +424,6 @@ namespace yave {
     all occurence of overloaded call with the selected closure object. If type
     checking or overloading selection failed, it throws type_error so we need to
     trap them to report to frontend.
-
-    Most of errors thrown from type checker does not relate to node handle, so
-    we need to keep track relation between backend object and nodes.
    */
   auto node_compiler::impl::type(
     std::tuple<object_ptr<const Object>, class_env, location_map>&& p,
