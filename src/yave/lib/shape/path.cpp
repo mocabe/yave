@@ -17,11 +17,10 @@ namespace yave {
     };
 
     /// reserve extra n points
-    constexpr auto next_path_points(auto& ps, auto& cmds, size_t n)
-    {
+    constexpr auto next_path_points = [](auto& ps, auto& cmds, size_t n) {
       ps.reserve(ps.size() + n);
       cmds.reserve(cmds.size() + n);
-    }
+    };
   } // namespace
 
   path::path(std::vector<fvec2> ps, std::vector<path_cmd> cmds)
