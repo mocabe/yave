@@ -45,7 +45,7 @@ TEST_CASE("node_parser v2")
 
   SECTION("root")
   {
-    auto root  = ng.create_group(nullptr);
+    auto root  = ng.create_group({nullptr}, {});
     auto out_s = ng.add_output_socket(root, "out");
     ng.set_name(root, "root");
 
@@ -59,7 +59,7 @@ TEST_CASE("node_parser v2")
 
     SECTION("ro <- g[]")
     {
-      auto g = ng.create_group(root);
+      auto g = ng.create_group(root, {});
       REQUIRE(ng.add_output_socket(g, "o0"));
       REQUIRE(ng.connect(
         ng.output_sockets(g)[0],
@@ -131,7 +131,7 @@ TEST_CASE("node_parser v2")
     SECTION("ro <- g[ <- decl1 ] (<-...)")
     {
       auto f1 = ng.create_function(decl1);
-      auto g  = ng.create_group(root);
+      auto g  = ng.create_group(root, {});
       ng.set_name(g, "g");
       REQUIRE(ng.add_output_socket(g, "out"));
       auto n = ng.create_copy(g, f1);
@@ -156,7 +156,7 @@ TEST_CASE("node_parser v2")
     SECTION("ro <- g[ <- decl3 <- ] (<-...)")
     {
       auto f = ng.create_function(decl3);
-      auto g = ng.create_group(root);
+      auto g = ng.create_group(root, {});
       ng.set_name(g, "g");
       REQUIRE(ng.add_input_socket(g, "in"));
       REQUIRE(ng.add_output_socket(g, "out"));

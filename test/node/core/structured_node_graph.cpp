@@ -22,7 +22,7 @@ TEST_CASE("init")
 TEST_CASE("move")
 {
   structured_node_graph ng;
-  auto g = ng.create_group({});
+  auto g = ng.create_group({nullptr}, {});
   REQUIRE(ng.exists(g));
 
   SECTION("move ctor")
@@ -44,7 +44,7 @@ TEST_CASE("move")
 TEST_CASE("root")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
   REQUIRE(root);
   REQUIRE(ng.exists(root));
@@ -105,7 +105,7 @@ TEST_CASE("root")
 TEST_CASE("root destroy")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
   REQUIRE(root);
   REQUIRE(ng.exists(root));
@@ -117,7 +117,7 @@ TEST_CASE("root destroy")
 TEST_CASE("root copy")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
   auto n = ng.create_copy(root, root);
   REQUIRE(!n);
@@ -127,7 +127,7 @@ TEST_CASE("root copy")
 TEST_CASE("gruop")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
   REQUIRE(ng.exists(root));
@@ -143,7 +143,7 @@ TEST_CASE("gruop")
   {
     SECTION("collision")
     {
-      auto g = ng.create_group(nullptr);
+      auto g = ng.create_group({nullptr}, {});
       REQUIRE(ng.exists(g));
       auto name = *ng.get_name(g);
       ng.set_name(g, "root");
@@ -160,12 +160,12 @@ TEST_CASE("gruop")
 
     SECTION("io")
     {
-      auto g    = ng.create_group(nullptr);
+      auto g    = ng.create_group({nullptr}, {});
       auto name = *ng.get_name(ng.get_group_input(g));
       ng.set_name(ng.get_group_input(g), "test");
       REQUIRE(ng.get_name(ng.get_group_input(g)) == name);
 
-      auto gg = ng.create_group(g);
+      auto gg = ng.create_group(g, {});
       ng.set_name(gg, name);
       REQUIRE(*ng.get_name(gg) == name);
     }
@@ -179,7 +179,7 @@ TEST_CASE("gruop")
       REQUIRE(ng.exists(g));
       REQUIRE(ng.get_name(g) != ng.get_name(root));
 
-      REQUIRE(ng.create_group(root));
+      REQUIRE(ng.create_group(root, {}));
       auto gg = ng.create_clone(nullptr, root);
       REQUIRE(ng.exists(gg));
       REQUIRE(ng.get_name(gg) != ng.get_name(g));
@@ -208,7 +208,7 @@ TEST_CASE("gruop")
 
     SECTION("bad rec")
     {
-      auto g = ng.create_group(nullptr);
+      auto g = ng.create_group({nullptr}, {});
       REQUIRE(ng.create_copy(g, root));
       REQUIRE(!ng.create_clone(root, g));
       REQUIRE(ng.exists(g));
@@ -222,7 +222,7 @@ TEST_CASE("gruop")
 TEST_CASE("root add group out")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
   REQUIRE(ng.get_info(root)->input_sockets().empty());
   REQUIRE(ng.get_info(root)->output_sockets().empty());
@@ -295,7 +295,7 @@ TEST_CASE("root add group out")
 TEST_CASE("group socket extra")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
 
   auto in  = ng.get_group_input(root);
   auto out = ng.get_group_output(root);
@@ -326,7 +326,7 @@ TEST_CASE("group socket extra")
 TEST_CASE("root set socket name")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
   auto s = ng.add_output_socket(root, "test");
@@ -354,7 +354,7 @@ TEST_CASE("root set socket name")
 TEST_CASE("root add func")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
   auto decl = get_node_declaration<node::Int>();
@@ -412,7 +412,7 @@ TEST_CASE("root add func")
 TEST_CASE("func conn")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
   auto decl = get_node_declaration<node::Int>();
@@ -474,7 +474,7 @@ TEST_CASE("func conn")
 TEST_CASE("func destroy")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
   auto decl = get_node_declaration<node::Int>();
@@ -524,14 +524,14 @@ TEST_CASE("func destroy")
 TEST_CASE("group")
 {
   structured_node_graph ng;
-  auto root = ng.create_group({});
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
 
   SECTION("")
   {
-    auto g = ng.create_group(root);
+    auto g = ng.create_group(root, {});
     REQUIRE(ng.exists(g));
     REQUIRE(ng.is_group(g));
     REQUIRE(ng.is_definition(g));
@@ -710,7 +710,7 @@ TEST_CASE("group")
 TEST_CASE("clone")
 {
   structured_node_graph ng;
-  auto root = ng.create_group(nullptr);
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
@@ -762,7 +762,7 @@ TEST_CASE("clone")
 TEST_CASE("path")
 {
   structured_node_graph ng;
-  auto root = ng.create_group(nullptr);
+  auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
@@ -781,7 +781,7 @@ TEST_CASE("path")
   REQUIRE(ng.search_path(decl.qualified_name()) == std::vector {func});
   REQUIRE(ng.search_path(decl.qualified_name() + "/").empty());
 
-  auto g = ng.create_group(root);
+  auto g = ng.create_group(root, {});
   ng.set_name(g, "g");
   REQUIRE(*ng.get_path(g) == "/root/g");
   REQUIRE(ng.search_path("/root/") == std::vector {g});

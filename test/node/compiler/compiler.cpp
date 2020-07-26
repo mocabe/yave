@@ -126,7 +126,7 @@ TEST_CASE("node_compiler V2")
   REQUIRE(nil_func);
   REQUIRE(cons_func);
 
-  auto root = ng.create_group(nullptr);
+  auto root = ng.create_group({nullptr}, {});
   auto out  = ng.add_output_socket(root, "out");
   ng.set_name(root, "root");
 
@@ -386,7 +386,7 @@ TEST_CASE("node_compiler V2")
 
   SECTION("f = [x y -> x + y]")
   {
-    auto f = ng.create_group(root);
+    auto f = ng.create_group(root, {});
     ng.set_name(f, "(x y -> x + y)");
     auto a = ng.create_copy(f, add_func);
     REQUIRE(ng.add_output_socket(f, "out"));

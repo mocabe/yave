@@ -134,7 +134,7 @@ namespace yave {
     /// \note all nodes should be under parent group.
     [[nodiscard]] auto create_group(
       const node_handle& parent_group,
-      const std::vector<node_handle>& nodes = {}) -> node_handle;
+      const std::vector<node_handle>& nodes) -> node_handle;
 
     /// create new node by shallow copying node call
     /// \param parent parent group
