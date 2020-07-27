@@ -15,6 +15,7 @@
 #include <yave/module/std/functional/apply.hpp>
 #include <yave/module/std/logic/if.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
+#include <yave/module/std/primitive/conversion.hpp>
 #include <yave/module/std/frame/frame.hpp>
 #include <yave/module/std/frame/mix.hpp>
 #include <yave/module/std/frame/fill.hpp>
@@ -147,6 +148,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::Float>(),
             get_node_declaration<node::Bool>(),
             get_node_declaration<node::String>(),
+            get_node_declaration<node::IntToFloat>(),
             get_node_declaration<node::Frame>(),
             get_node_declaration<node::MixFrame>(),
             get_node_declaration<node::FillFrame>(fmngr),
@@ -207,6 +209,7 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Float, _std::tag>());
     add(yave::get_node_definitions<node::Bool, _std::tag>());
     add(yave::get_node_definitions<node::String, _std::tag>());
+    add(yave::get_node_definitions<node::IntToFloat, _std::tag>());
     add(yave::get_node_definitions<node::MixFrame, _std::tag>(fmngr, compositor));
     add(yave::get_node_definitions<node::FillFrame, _std::tag>(fmngr, compositor));
     add(yave::get_node_definitions<node::Time, _std::tag>());

@@ -9,6 +9,7 @@ add_library(yave-module-std
   functional/apply.cpp
   logic/if.cpp
   primitive/primitive.cpp
+  primitive/conversion.cpp
   frame/frame.cpp
   frame/mix.cpp
   frame/fill.cpp
