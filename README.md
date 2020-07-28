@@ -20,4 +20,5 @@ Some important properties of this language:
 
 WIP screenshots:
 
-![](yave.jpg)
+![](assets/1.gif)
+![](assets/2.gif)
