@@ -91,15 +91,6 @@ namespace yave {
       const node_type& type,
       const uid& id = uid::random_generate()) -> node_handle;
 
-    /// Add copy of node.
-    /// \returns handle of new node. may return null handle on error.
-    /// \throws std::bad_alloc, std::runtime_error on fail.
-    /// \note `node` should not be interface node.
-    /// \note All ID of node and sockets will also be copied.
-    [[nodiscard]] auto add_copy(
-      const node_graph& other,
-      const node_handle& node) -> node_handle;
-
     /// Attach interface socket.
     /// When attached socket is destroyed, it will also be removed from
     /// interface node.

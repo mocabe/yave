@@ -318,52 +318,6 @@ namespace yave {
       return handle;
     }
 
-    auto add_copy(const impl& other, const node_handle& node)
-    {
-      auto is   = other.input_sockets(node);
-      auto os   = other.output_sockets(node);
-      auto info = other.get_info(node);
-
-      if (!info.is_normal()) {
-        Error(g_logger, "copy_add(): Invalid node type");
-        return node_handle();
-      }
-
-      auto cpy_n =
-        g.add_node_with_id(node.id().data, other.g[node.descriptor()]);
-
-      if (!cpy_n)
-        return node_handle();
-
-      for (auto&& s : is) {
-        auto cpy_s = g.add_socket_with_id(s.id().data, other.g[s.descriptor()]);
-        if (!g.attach_socket(cpy_n, cpy_s)) {
-          for (auto&& ss : g.sockets(cpy_n))
-            g.remove_socket(ss);
-          g.remove_node(cpy_n);
-          return node_handle();
-        }
-      }
-
-      for (auto&& s : os) {
-        auto cpy_s = g.add_socket_with_id(s.id().data, other.g[s.descriptor()]);
-        if (!g.attach_socket(cpy_n, cpy_s)) {
-          for (auto&& ss : g.sockets(cpy_n))
-            g.remove_socket(ss);
-          g.remove_node(cpy_n);
-          return node_handle();
-        }
-      }
-
-      Info(
-        g_logger,
-        "Copied node from other graph: name={},id={}",
-        info.name(),
-        to_string(node.id()));
-
-      return node_handle(cpy_n, g.id(cpy_n));
-    }
-
     void remove(const node_handle& node)
     {
       if (!exists(node))
@@ -878,15 +832,6 @@ namespace yave {
     const uid& id) -> node_handle
   {
     return m_pimpl->add(name, input_sockets, output_sockets, type, id);
-  }
-
-  auto node_graph::add_copy(const node_graph& other, const node_handle& node)
-    -> node_handle
-  {
-    if (!other.exists(node))
-      throw std::runtime_error("copy_add(): Invalid node handle");
-
-    return m_pimpl->add_copy(*other.m_pimpl, node);
   }
 
   bool node_graph::attach_interface(
