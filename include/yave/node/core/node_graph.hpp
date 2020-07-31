@@ -81,17 +81,18 @@ namespace yave {
     void set_name(const socket_handle& node, const std::string& name);
 
     /// Add new node.
-    /// \returns Non-null handle of new node.
+    /// \returns handle of new node. may return null handle on error.
     /// \throws std::bad_alloc, std::runtime_error and other exceptions which
     /// can be thrown from edge_property constructors.
     [[nodiscard]] auto add(
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets,
-      const node_type& type) -> node_handle;
+      const node_type& type,
+      const uid& id = uid::random_generate()) -> node_handle;
 
     /// Add copy of node.
-    /// \returns Non-null handle of new node.
+    /// \returns handle of new node. may return null handle on error.
     /// \throws std::bad_alloc, std::runtime_error on fail.
     /// \note `node` should not be interface node.
     /// \note All ID of node and sockets will also be copied.
@@ -125,7 +126,8 @@ namespace yave {
     /// \throws std::bad_alloc
     [[nodiscard]] auto connect(
       const socket_handle& src_socket,
-      const socket_handle& dst_socket) -> connection_handle;
+      const socket_handle& dst_socket,
+      const uid& id = uid::random_generate()) -> connection_handle;
 
     /// Disconnect sockets.
     void disconnect(const connection_handle& connection);

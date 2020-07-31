@@ -172,20 +172,19 @@ namespace yave::graph {
       Args &&... args)
     {
       descriptor_type dsc;
-
-      // insert id
       {
-        auto &map = c.id_map;
+        // insert id
         auto [iter, succ] =
-          map.emplace(id, value_type(id, std::forward<Args>(args)...));
-        assert(succ);
-        dsc = &iter->second;
+          c.id_map.emplace(id, value_type(id, std::forward<Args>(args)...));
+        dsc = succ ? &iter->second : nullptr;
       }
+
+      // duplicated id
+      if (!dsc)
+        return nullptr;
+
       // insert dsc
-      {
-        auto &map = c.dsc_map;
-        map.emplace(dsc, id);
-      }
+      c.dsc_map.emplace(dsc, id);
 
       return dsc;
     }
@@ -815,23 +814,23 @@ namespace yave::graph {
       Args &&... args)
     {
       if (!exists(src))
-        throw std::invalid_argument("src descriptor doesn't exist");
+        return nullptr;
+
       if (!exists(dst))
-        throw std::invalid_argument("dst descriptor doesn't exist");
+        return nullptr;
 
-      for (auto &&e : _access(src).src_edges()) {
+      for (auto &&e : _access(src).src_edges())
         if (_access(e).dst() == dst)
-          throw std::runtime_error("edge already exists");
-      }
+          return e;
 
-      for (auto &&e : _access(dst).dst_edges()) {
+      for (auto &&e : _access(dst).dst_edges())
         if (_access(e).src() == src)
-          throw std::runtime_error("edge already exists");
-      }
+          return e;
 
       auto e = _create_e(id, src, dst, std::forward<Args>(args)...);
 
-      assert(e);
+      if (!e)
+        return nullptr;
 
       // set edge to sockets
       _access(src).set_src_edge(e);

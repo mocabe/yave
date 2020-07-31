@@ -790,3 +790,57 @@ TEST_CASE("path")
   REQUIRE(ng.search_path("/root////foo").empty());
   REQUIRE(ng.search_path("/root/In").empty());
 }
+
+TEST_CASE("custom id")
+{
+  structured_node_graph ng;
+  auto i = ng.create_function(get_node_declaration<node::Int>());
+  REQUIRE(ng.exists(i));
+
+  auto id = uid::random_generate();
+
+  SECTION("group")
+  {
+    auto g = ng.create_group(nullptr, {}, id);
+    REQUIRE(ng.exists(g));
+    REQUIRE(g.id() == id);
+    REQUIRE(ng.node(id) == g);
+
+    REQUIRE(!ng.create_group(nullptr, {}, id));
+
+    ng.destroy(g);
+    REQUIRE(!ng.exists(g));
+    REQUIRE(!ng.node(id));
+
+    g = ng.create_group(nullptr, {}, id);
+    REQUIRE(ng.exists(g));
+    REQUIRE(g.id() == id);
+
+    auto gg = ng.create_clone(nullptr, g);
+    REQUIRE(ng.exists(gg));
+    REQUIRE(gg.id() != id);
+
+    gg = ng.create_copy(nullptr, g);
+    REQUIRE(ng.exists(gg));
+    REQUIRE(gg.id() != id);
+  }
+
+  SECTION("call")
+  {
+    auto n = ng.create_copy(nullptr, i, id);
+    REQUIRE(ng.exists(n));
+    REQUIRE(n.id() == id);
+    REQUIRE(ng.node(id) == n);
+
+    REQUIRE(!ng.create_copy(nullptr, i, id));
+
+    ng.destroy(n);
+    REQUIRE(!ng.exists(n));
+    REQUIRE(!ng.node(id));
+
+    n = ng.create_copy(nullptr, i, id);
+    REQUIRE(ng.exists(n));
+    REQUIRE(n.id() == id);
+    REQUIRE(ng.node(id) == n);
+  }
+}

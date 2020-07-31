@@ -610,3 +610,48 @@ TEST_CASE("node_graph interface")
     }
   }
 }
+
+TEST_CASE("custom id")
+{
+  node_graph ng;
+
+  auto id = uid::random_generate();
+
+  SECTION("add")
+  {
+    auto n = ng.add("test", {}, {}, node_type::normal, id);
+    REQUIRE(ng.exists(n));
+    REQUIRE(n.id() == id);
+
+    REQUIRE(!ng.add("test", {}, {}, node_type::normal, id));
+
+    ng.remove(n);
+    REQUIRE(!ng.exists(n));
+    REQUIRE(!ng.node(n.id()));
+
+    n = ng.add("test", {}, {}, node_type::normal, id);
+    REQUIRE(ng.exists(n));
+    REQUIRE(ng.node(id) == n);
+  }
+
+  SECTION("connect")
+  {
+    auto n1 = ng.add("1", {}, {"out"}, node_type::normal);
+    auto n2 = ng.add("2", {"in"}, {}, node_type::normal);
+    auto os = ng.output_sockets(n1).at(0);
+    auto is = ng.input_sockets(n2).at(0);
+
+    auto c = ng.connect(os, is, id);
+    REQUIRE(ng.exists(c));
+    REQUIRE(c.id() == id);
+    REQUIRE(ng.connection(id) == c);
+
+    ng.disconnect(c);
+    REQUIRE(!ng.exists(c));
+    REQUIRE(!ng.connection(id));
+
+    c = ng.connect(os, is, id);
+    REQUIRE(ng.exists(c));
+    REQUIRE(ng.connection(id) == c);
+  }
+}

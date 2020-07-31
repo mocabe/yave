@@ -544,6 +544,8 @@ namespace yave {
         d_decl.output_sockets(),
         node_type::normal);
 
+      assert(g && i && o && d);
+
       auto gdata =
         make_node_data(node_group {g, d, {}, i, o, {i, o}, {}, {}, {}});
 
@@ -615,6 +617,7 @@ namespace yave {
         d_decl.output_sockets(),
         node_type::normal);
 
+      assert(body && dep);
       assert(!ng.get_data(body));
 
       auto bdata = make_node_data(node_function {body, dep, decl, {}});
@@ -657,6 +660,7 @@ namespace yave {
 
       // create bit
       auto bit = ng.add(bit_decl.name(), {name}, {name}, node_type::normal);
+      assert(bit);
 
       if (type == socket_type::input)
         expect(ng.attach_interface(node, ng.input_sockets(bit)[0]));
@@ -672,7 +676,8 @@ namespace yave {
     /// \param callee callee node function or group
     auto add_new_call(
       node_group* parent,
-      std::variant<node_function*, node_group*> callee) -> node_call*
+      std::variant<node_function*, node_group*> callee,
+      uid id = uid::random_generate()) -> node_call*
     {
       assert(parent);
 
@@ -683,6 +688,8 @@ namespace yave {
         d_decl.input_sockets(),
         d_decl.output_sockets(),
         node_type::normal);
+
+      assert(dep);
 
       // check dependency (ignore when it's root call)
       auto valid = std::visit(
@@ -712,7 +719,13 @@ namespace yave {
       assert(info);
 
       // create interface
-      auto n = ng.add(info->name(), {}, {}, node_type::interface);
+      auto n = ng.add(info->name(), {}, {}, node_type::interface, id);
+
+      // invalid id
+      if (!n) {
+        ng.remove(dep);
+        return nullptr;
+      }
 
       // setup in/out sockets for the interface
       std::vector<node_handle> ibits;
@@ -828,13 +841,17 @@ namespace yave {
         callee);
     }
 
-    auto copy_node_call(node_group* parent, node_call* call) -> node_call*
+    auto copy_node_call(
+      node_group* parent,
+      node_call* call,
+      uid id = uid::random_generate()) -> node_call*
     {
       assert(parent);
 
       // create new call
-      auto newc = add_new_call(parent, call->callee);
+      auto newc = add_new_call(parent, call->callee, id);
 
+      // invalid id
       if (!newc)
         return nullptr;
 
@@ -856,7 +873,10 @@ namespace yave {
       return newc;
     }
 
-    auto clone_node_group(node_group* parent, node_group* src) -> node_call*
+    auto clone_node_group(
+      node_group* parent,
+      node_group* src,
+      uid id = uid::random_generate()) -> node_call*
     {
       assert(parent);
       assert(src);
@@ -927,7 +947,7 @@ namespace yave {
       }
 
       // create new call
-      auto newc = add_new_call(parent, newg);
+      auto newc = add_new_call(parent, newg, id);
 
       // closed loop
       if (!newc) {
@@ -1486,6 +1506,8 @@ namespace yave {
             g->input_bits.insert(g->input_bits.begin() + index, newbit);
           }
 
+          assert(newbit);
+
           // attach bits
           for (auto&& bit : g->input_bits) {
             expect(
@@ -1509,6 +1531,9 @@ namespace yave {
             caller->input_bits.insert(
               caller->input_bits.begin() + index, newbit);
           }
+
+          assert(newbit);
+
           // attach bits
           for (auto&& bit : caller->input_bits)
             expect(ng.attach_interface(caller->node, ng.input_sockets(bit)[0]));
@@ -1565,6 +1590,8 @@ namespace yave {
             g->output_bits.insert(g->output_bits.begin() + index, newbit);
           }
 
+          assert(newbit);
+
           // attach bits
           for (auto&& bit : g->output_bits) {
             expect(
@@ -1588,6 +1615,9 @@ namespace yave {
             caller->output_bits.insert(
               caller->output_bits.begin() + index, newbit);
           }
+
+          assert(newbit);
+
           // attach bits
           for (auto&& bit : caller->output_bits)
             expect(
@@ -1735,7 +1765,8 @@ namespace yave {
 
     auto create_group(
       const node_handle& parent,
-      const std::vector<node_handle>& nodes) -> node_handle
+      const std::vector<node_handle>& nodes,
+      const uid& id) -> node_handle
     {
       if (!parent && !nodes.empty()) {
         Error(g_logger, "Failed to gruop nodes: Cannot group global nodes");
@@ -1769,7 +1800,14 @@ namespace yave {
       ng.set_name(newg->output_handler, "Out");
 
       // create new call
-      auto newc = add_new_call(g, newg);
+      auto newc = add_new_call(g, newg, id);
+
+      // invalid id
+      if (!newc) {
+        remove(newg);
+        return {};
+      }
+
       set_name(
         newc->node,
         fmt::format("Group#{}", to_string(newc->node.id()).substr(0, 4)));
@@ -1841,8 +1879,10 @@ namespace yave {
       return newc->node;
     }
 
-    auto create_copy(const node_handle& parent_group, const node_handle& src)
-      -> node_handle
+    auto create_copy(
+      const node_handle& parent_group,
+      const node_handle& src,
+      const uid& id) -> node_handle
     {
       assert(is_valid(src));
 
@@ -1859,17 +1899,17 @@ namespace yave {
       }
 
       if (auto c = get_call(src))
-        if (auto newc = copy_node_call(g, c))
+        if (auto newc = copy_node_call(g, c, id))
           return newc->node;
-
-      // io cannot be copied
 
       Error(g_logger, "This node cannot be copied");
       return {};
     }
 
-    auto create_clone(const node_handle& parent_group, const node_handle& src)
-      -> node_handle
+    auto create_clone(
+      const node_handle& parent_group,
+      const node_handle& src,
+      const uid& id) -> node_handle
     {
       assert(is_valid(src));
 
@@ -1887,14 +1927,12 @@ namespace yave {
 
       // src is function call, fallback to copy
       if (get_callee_function(src))
-        return create_copy(parent_group, src);
+        return create_copy(parent_group, src, id);
 
       // src is group call
       if (auto srcg = get_callee_group(src))
-        if (auto newc = clone_node_group(g, srcg))
+        if (auto newc = clone_node_group(g, srcg, id))
           return newc->node;
-
-      // io cannot be cloned
 
       Error(g_logger, "This not cannot be cloned");
       return {};
@@ -1912,7 +1950,8 @@ namespace yave {
 
     auto connect(
       const socket_handle& src_socket,
-      const socket_handle& dst_socket) -> connection_handle
+      const socket_handle& dst_socket,
+      const uid& id) -> connection_handle
     {
       auto srcn = node(src_socket);
       auto dstn = node(dst_socket);
@@ -1933,7 +1972,7 @@ namespace yave {
         return {};
       }
 
-      auto c  = ng.connect(src_socket, dst_socket);
+      auto c  = ng.connect(src_socket, dst_socket, id);
       auto cs = ng.connections(dst_socket);
 
       if (cs.size() > 1) {
@@ -2400,7 +2439,8 @@ namespace yave {
 
   auto structured_node_graph::create_group(
     const node_handle& parent_group,
-    const std::vector<node_handle>& nodes) -> node_handle
+    const std::vector<node_handle>& nodes,
+    const uid& id) -> node_handle
   {
     if (parent_group && !exists(parent_group))
       return {};
@@ -2409,12 +2449,13 @@ namespace yave {
       if (!exists(n))
         return {};
 
-    return m_pimpl->create_group(parent_group, nodes);
+    return m_pimpl->create_group(parent_group, nodes, id);
   }
 
   auto structured_node_graph::create_copy(
     const node_handle& parent_group,
-    const node_handle& src) -> node_handle
+    const node_handle& src,
+    const uid& id) -> node_handle
   {
     if (parent_group && !exists(parent_group))
       return {};
@@ -2422,12 +2463,13 @@ namespace yave {
     if (!exists(src))
       return {};
 
-    return m_pimpl->create_copy(parent_group, src);
+    return m_pimpl->create_copy(parent_group, src, id);
   }
 
   auto structured_node_graph::create_clone(
     const node_handle& parent_group,
-    const node_handle& src) -> node_handle
+    const node_handle& src,
+    const uid& id) -> node_handle
   {
     if (parent_group && !exists(parent_group))
       return {};
@@ -2435,7 +2477,7 @@ namespace yave {
     if (!exists(src))
       return {};
 
-    return m_pimpl->create_clone(parent_group, src);
+    return m_pimpl->create_clone(parent_group, src, id);
   }
 
   void structured_node_graph::destroy(const node_handle& node)
@@ -2448,12 +2490,13 @@ namespace yave {
 
   auto structured_node_graph::connect(
     const socket_handle& src_socket,
-    const socket_handle& dst_socket) -> connection_handle
+    const socket_handle& dst_socket,
+    const uid& id) -> connection_handle
   {
     if (!exists(src_socket) || !exists(dst_socket))
       return {};
 
-    return m_pimpl->connect(src_socket, dst_socket);
+    return m_pimpl->connect(src_socket, dst_socket, id);
   }
 
   void structured_node_graph::disconnect(const connection_handle& c)

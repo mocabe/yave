@@ -274,10 +274,9 @@ namespace yave {
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets,
-      const node_type& type)
+      const node_type& type,
+      const uid& id)
     {
-      auto id = uid::random_generate();
-
       assert(type == node_type::normal || type == node_type::interface);
 
       // add node
@@ -455,7 +454,8 @@ namespace yave {
 
     auto connect(
       const socket_handle& src_socket,
-      const socket_handle& dst_socket)
+      const socket_handle& dst_socket,
+      const uid& id)
     {
       // socket descriptors
       auto s = src_socket.descriptor();
@@ -485,8 +485,10 @@ namespace yave {
       }
 
       // add new edge to graph
-      auto new_edge = g.add_edge(s, d);
-      assert(new_edge);
+      auto new_edge = g.add_edge_with_id(s, d, id.data);
+
+      if (!new_edge)
+        connection_handle();
 
       // closed loop check
       if (find_loop(src_node)) {
@@ -872,29 +874,19 @@ namespace yave {
     const std::string& name,
     const std::vector<std::string>& input_sockets,
     const std::vector<std::string>& output_sockets,
-    const node_type& type) -> node_handle
+    const node_type& type,
+    const uid& id) -> node_handle
   {
-    auto ret = m_pimpl->add(name, input_sockets, output_sockets, type);
-
-    if (!ret)
-      throw std::runtime_error("Failed to add node");
-
-    return ret;
+    return m_pimpl->add(name, input_sockets, output_sockets, type, id);
   }
 
   auto node_graph::add_copy(const node_graph& other, const node_handle& node)
     -> node_handle
   {
-    if (!other.exists(node)) {
+    if (!other.exists(node))
       throw std::runtime_error("copy_add(): Invalid node handle");
-    }
 
-    auto ret = m_pimpl->add_copy(*other.m_pimpl, node);
-
-    if (!ret)
-      throw std::runtime_error("Failed to add copy of node");
-
-    return ret;
+    return m_pimpl->add_copy(*other.m_pimpl, node);
   }
 
   bool node_graph::attach_interface(
@@ -927,14 +919,15 @@ namespace yave {
 
   auto node_graph::connect(
     const socket_handle& src_socket,
-    const socket_handle& dst_socket) -> connection_handle
+    const socket_handle& dst_socket,
+    const uid& id) -> connection_handle
   {
     if (!exists(src_socket) || !exists(dst_socket)) {
       Error(g_logger, "Failed to connect sockets: Invalid socket descriptor");
       return {};
     }
 
-    return m_pimpl->connect(src_socket, dst_socket);
+    return m_pimpl->connect(src_socket, dst_socket, id);
   }
 
   void node_graph::disconnect(const connection_handle& h)

@@ -134,14 +134,16 @@ namespace yave {
     /// \note all nodes should be under parent group.
     [[nodiscard]] auto create_group(
       const node_handle& parent_group,
-      const std::vector<node_handle>& nodes) -> node_handle;
+      const std::vector<node_handle>& nodes,
+      const uid& id = uid::random_generate()) -> node_handle;
 
     /// create new node by shallow copying node call
     /// \param parent parent group
     /// \param source source node call to create
     [[nodiscard]] auto create_copy(
       const node_handle& parent,
-      const node_handle& source) -> node_handle;
+      const node_handle& source,
+      const uid& id = uid::random_generate()) -> node_handle;
 
     /// create new node by deep copying node call
     /// \param parent parent group
@@ -152,7 +154,8 @@ namespace yave {
     /// definition node with same name.
     [[nodiscard]] auto create_clone(
       const node_handle& parent,
-      const node_handle& source) -> node_handle;
+      const node_handle& source,
+      const uid& id = uid::random_generate()) -> node_handle;
 
     /// destroy node
     /// \note if `node` is group interface, remove all nodes in the node too.
@@ -163,7 +166,8 @@ namespace yave {
     /// connect sockets
     [[nodiscard]] auto connect(
       const socket_handle& src_socket,
-      const socket_handle& dst_socket) -> connection_handle;
+      const socket_handle& dst_socket,
+      const uid& id = uid::random_generate()) -> connection_handle;
 
     /// disconnect sockets
     void disconnect(const connection_handle& handle);
