@@ -56,8 +56,8 @@ namespace yave::wm {
       editor::view_context& view_ctx) = 0;
     /// draw
     virtual void draw(
-      editor::data_context& data_ctx,
-      editor::view_context& view_ctx) const = 0;
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const = 0;
 
   public:
     /// for linking new child window

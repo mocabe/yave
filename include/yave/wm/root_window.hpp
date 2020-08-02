@@ -19,7 +19,8 @@ namespace yave::wm {
     root_window();
 
   public:
-    void draw(editor::data_context&, editor::view_context&) const override;
+    void draw(const editor::data_context&, const editor::view_context&)
+      const override;
     void update(editor::data_context&, editor::view_context&) override;
 
   public:
