@@ -104,15 +104,6 @@ target_link_libraries(yave-config INTERFACE range-v3)
 target_link_libraries(yave-config INTERFACE fmt::fmt)
 
 # ------------------------------------------
-# Add clang-tidy
-
-if(YAVE_CLANG_TIDY)
-  set(CMAKE_CXX_CLANG_TIDY
-    clang-tidy;
-      -checks=-*,bugprone-*;)
-endif()
-
-# ------------------------------------------
 # Subdirectories
 
 add_subdirectory(${YAVE_SOURCE_DIR})
