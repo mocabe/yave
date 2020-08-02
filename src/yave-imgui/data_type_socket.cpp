@@ -33,8 +33,8 @@ namespace yave::editor::imgui {
 
   void data_type_socket<Float>::_draw_content(
     const node_window& nw,
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& draw_info,
     ImVec2 pos,
     ImVec2 size) const
@@ -108,8 +108,8 @@ namespace yave::editor::imgui {
 
   void data_type_socket<Int>::_draw_content(
     const node_window& nw,
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& draw_info,
     ImVec2 pos,
     ImVec2 size) const
@@ -173,8 +173,8 @@ namespace yave::editor::imgui {
 
   void data_type_socket<Bool>::_draw_content(
     const node_window& nw,
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& draw_info,
     ImVec2 pos,
     ImVec2 size) const
@@ -232,8 +232,8 @@ namespace yave::editor::imgui {
 
   void data_type_socket<String>::_draw_content(
     const node_window& nw,
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& draw_info,
     ImVec2 pos,
     ImVec2 size) const
@@ -299,8 +299,8 @@ namespace yave::editor::imgui {
 
   void data_type_socket<Color>::_draw_content(
     const node_window& nw,
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& draw_info,
     ImVec2 pos,
     ImVec2 size) const
@@ -367,8 +367,8 @@ namespace yave::editor::imgui {
 
   void data_type_socket<FVec2>::_draw_content(
     const node_window& nw,
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& draw_info,
     ImVec2 pos,
     ImVec2 size) const

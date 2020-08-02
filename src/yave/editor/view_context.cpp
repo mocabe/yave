@@ -73,7 +73,8 @@ namespace yave::editor {
         auto cmd = std::move(cmd_queue.front());
         cmd_queue.pop();
         // exec
-        cmd->exec(view_ctx);
+        auto access = view_context_access(view_ctx);
+        cmd->exec(access);
       }
     }
 
@@ -119,7 +120,7 @@ namespace yave::editor {
 
   view_context::~view_context() noexcept = default;
 
-  void view_context::push(cmd_ptr&& cmd)
+  void view_context::push(cmd_ptr&& cmd) const
   {
     m_pimpl->push(std::move(cmd));
   }

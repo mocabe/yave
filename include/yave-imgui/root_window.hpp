@@ -33,13 +33,14 @@ namespace yave::editor::imgui {
     ~root_window() noexcept;
 
   public:
-    void draw(editor::data_context&, editor::view_context&) const override;
+    void draw(const editor::data_context&, const editor::view_context&)
+      const override;
     void update(editor::data_context&, editor::view_context&) override;
 
   private:
     auto _name() const -> std::string;
     void _draw_menu_bar() const;
-    void _layout_once(editor::view_context& vctx) const;
+    void _layout_once(const editor::view_context& vctx) const;
   };
 
 } // namespace yave::editor::imgui

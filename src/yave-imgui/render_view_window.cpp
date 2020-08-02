@@ -40,8 +40,8 @@ namespace yave::editor {
   {
     (void)view_ctx;
 
-    auto lck   = data_ctx.lock();
-    auto& data = data_ctx.data();
+    auto data_lck = data_ctx.lock();
+    auto& data    = data_lck.data();
 
     width        = data.scene_config.width();
     height       = data.scene_config.height();
@@ -70,8 +70,8 @@ namespace yave::editor {
   }
 
   void render_view_window::draw(
-    editor::data_context& data_ctx,
-    editor::view_context& view_ctx) const
+    const editor::data_context& data_ctx,
+    const editor::view_context& view_ctx) const
   {
     const_image_view view(width, height, frame_format);
 

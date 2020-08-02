@@ -123,8 +123,9 @@ namespace yave::editor::imgui {
     void update(editor::data_context& data_ctx, editor::view_context& view_ctx)
       override;
 
-    void draw(editor::data_context& data_ctx, editor::view_context& view_ctx)
-      const override;
+    void draw(
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const override;
 
   public: /* state transition functions */
     /// get current state
@@ -194,26 +195,26 @@ namespace yave::editor::imgui {
 
   private:
     void _draw_background(
-      data_context&,
-      view_context&,
+      const data_context&,
+      const view_context&,
       node_window_draw_info&,
       ImDrawListSplitter&) const;
 
     void _draw_connections(
-      data_context&,
-      view_context&,
+      const data_context&,
+      const view_context&,
       node_window_draw_info&,
       ImDrawListSplitter&) const;
 
     void _draw_nodes(
-      data_context&,
-      view_context&,
+      const data_context&,
+      const view_context&,
       node_window_draw_info&,
       ImDrawListSplitter&) const;
 
     void _draw_foreground(
-      data_context&,
-      view_context&,
+      const data_context&,
+      const view_context&,
       node_window_draw_info&,
       ImDrawListSplitter&) const;
   };

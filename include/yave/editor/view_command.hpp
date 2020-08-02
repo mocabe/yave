@@ -13,7 +13,7 @@
 namespace yave::editor {
 
   // fwd
-  class view_context;
+  class view_context_access;
 
   /// Get memory resource for view commands
   [[nodiscard]] auto get_view_command_memory_resource() noexcept
@@ -24,7 +24,7 @@ namespace yave::editor {
   {
   public:
     /// command
-    virtual void exec(view_context& view_ctx) = 0;
+    virtual void exec(view_context_access& view_ctx) = 0;
 
     /// dtor
     virtual ~view_command() noexcept = default;
@@ -56,7 +56,7 @@ namespace yave::editor {
       {
       }
 
-      void exec(view_context& view_ctx) override
+      void exec(view_context_access& view_ctx) override
       {
         ExecFunc::operator()(view_ctx);
       }

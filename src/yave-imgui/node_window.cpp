@@ -97,22 +97,23 @@ namespace yave::editor::imgui {
     editor::data_context& data_ctx,
     editor::view_context& view_ctx)
   {
-    auto lck = data_ctx.lock();
-    auto& g  = data_ctx.data().node_graph;
+    auto data_lck = data_ctx.lock();
+    auto& data    = data_lck.data();
+    auto& g       = data.node_graph;
 
     if (!g.exists(current_group) || !g.is_group(current_group)) {
       Info(g_logger, "Current group is no longer valid, reset to root group");
-      current_group = data_ctx.data().root_group;
+      current_group = data.root_group;
     }
     current_group_path = *g.get_path(current_group);
 
     draw_info = std::make_unique<node_window_draw_info>(_create_draw_info(g));
-    decls     = data_ctx.data().node_decls.enumerate();
+    decls     = data.node_decls.enumerate();
   }
 
   void node_window::_draw_background(
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& di,
     ImDrawListSplitter& chs) const
   {
@@ -173,8 +174,8 @@ namespace yave::editor::imgui {
 
     // show compile result for debug
     {
-      auto lck   = dctx.lock();
-      auto& data = dctx.data();
+      auto data_lck = dctx.lock();
+      auto& data    = data_lck.data();
 
       for (auto&& e : data.compiler.parse_errors())
         ImGui::TextColored({255, 0, 0, 255}, "%s", e.message().c_str());
@@ -245,9 +246,9 @@ namespace yave::editor::imgui {
         if (ImGui::BeginMenu("New Node")) {
 
           // TODO: store tree info in update stage
-          auto lck   = dctx.lock();
-          auto& data = dctx.data();
-          auto& ng   = data.node_graph;
+          auto data_lck = dctx.lock();
+          auto& data    = data_lck.data();
+          auto& ng      = data.node_graph;
 
           auto build_menu_impl = [&](auto&& self, auto&& n) -> void {
             ImGui::PushID(n.id().data);
@@ -390,8 +391,8 @@ namespace yave::editor::imgui {
   }
 
   void node_window::_draw_connections(
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& di,
     ImDrawListSplitter& chs) const
   {
@@ -400,8 +401,8 @@ namespace yave::editor::imgui {
   }
 
   void node_window::_draw_nodes(
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& di,
     ImDrawListSplitter& chs) const
   {
@@ -469,9 +470,9 @@ namespace yave::editor::imgui {
 
         vctx.push(
           make_window_view_command(*this, [&dctx, g = current_group](auto& w) {
-            auto lck   = dctx.lock();
-            auto& ng   = dctx.data().node_graph;
-            auto& root = dctx.data().root_group;
+            auto data_lck = dctx.lock();
+            auto& ng      = data_lck.data().node_graph;
+            auto& root    = data_lck.data().root_group;
 
             assert(ng.exists(root));
             if (g == root)
@@ -484,8 +485,8 @@ namespace yave::editor::imgui {
   }
 
   void node_window::_draw_foreground(
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& di,
     ImDrawListSplitter& chs) const
   {
@@ -536,8 +537,8 @@ namespace yave::editor::imgui {
   }
 
   void node_window::draw(
-    editor::data_context& data_ctx,
-    editor::view_context& view_ctx) const
+    const editor::data_context& data_ctx,
+    const editor::view_context& view_ctx) const
   {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {1, 1});
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});

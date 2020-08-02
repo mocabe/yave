@@ -4,6 +4,7 @@
 //
 
 #include <yave/editor/data_context.hpp>
+#include <yave/editor/data_command.hpp>
 #include <yave/editor/editor_data.hpp>
 #include <yave/support/log.hpp>
 #include <yave/support/overloaded.hpp>
@@ -156,12 +157,12 @@ namespace yave::editor {
     void process(cmd_ptr&& top)
     {
       {
-        auto lck = lock_data();
-        top->exec(*_this);
+        auto lck = data_context_access(*_this, lock_data());
+        top->exec(lck);
       }
 
       // dispose command if not undoable
-      if (top->undoable()) {
+      if (top->type() == data_command_type::undo_redo) {
         auto lck = lock_queue();
         cmd_undo_stack.push(std::move(top));
       }
@@ -182,8 +183,8 @@ namespace yave::editor {
       }
 
       {
-        auto lck = lock_data();
-        top->undo(*_this);
+        auto lck = data_context_access(*_this, lock_data());
+        top->undo(lck);
       }
 
       {
@@ -207,8 +208,8 @@ namespace yave::editor {
       }
 
       {
-        auto lck = lock_data();
-        top->exec(*_this);
+        auto lck = data_context_access(*_this, lock_data());
+        top->exec(lck);
       }
 
       {
@@ -259,7 +260,7 @@ namespace yave::editor {
 
   data_context::~data_context() noexcept = default;
 
-  void data_context::exec(cmd_ptr&& op)
+  void data_context::exec(cmd_ptr&& op) const
   {
     m_pimpl->check_exception();
     m_pimpl->exec(std::move(op));
@@ -277,10 +278,16 @@ namespace yave::editor {
     m_pimpl->redo();
   }
 
-  auto data_context::lock() const -> std::unique_lock<std::mutex>
+  auto data_context::lock() -> data_context_access
   {
     m_pimpl->check_exception();
-    return m_pimpl->lock();
+    return data_context_access(*this, m_pimpl->lock());
+  }
+
+  auto data_context::lock() const -> const_data_context_access
+  {
+    m_pimpl->check_exception();
+    return const_data_context_access(*this, m_pimpl->lock());
   }
 
   auto data_context::data() const -> const editor_data&

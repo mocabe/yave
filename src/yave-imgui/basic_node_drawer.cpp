@@ -152,8 +152,8 @@ namespace yave::editor::imgui {
 
   void basic_node_drawer::_draw_popup(
     node_window_draw_info& draw_info,
-    data_context& dctx,
-    view_context& vctx) const
+    const data_context& dctx,
+    const view_context& vctx) const
   {
     (void)vctx;
 
@@ -179,8 +179,8 @@ namespace yave::editor::imgui {
         }
       } else {
         std::string path = [&] {
-          auto lck = dctx.lock();
-          auto& ng = dctx.data().node_graph;
+          auto data_lck = dctx.lock();
+          auto& ng      = data_lck.data().node_graph;
           if (auto p = ng.get_path(ng.get_definition(n)))
             return *p;
           else
@@ -291,8 +291,8 @@ namespace yave::editor::imgui {
 
   void basic_node_drawer::_handle_input(
     const node_window& nw,
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     bool hovered,
     bool selected,
     const ImVec2& pos,
@@ -430,8 +430,8 @@ namespace yave::editor::imgui {
 
   void basic_node_drawer::draw(
     const node_window& nw,
-    data_context& dctx,
-    view_context& vctx,
+    const data_context& dctx,
+    const view_context& vctx,
     node_window_draw_info& draw_info,
     ImDrawListSplitter& splitter,
     size_t channel) const

@@ -14,6 +14,23 @@
 
 namespace yave::editor {
 
+  class view_context;
+
+  /// Access proxy of view_context
+  class view_context_access
+  {
+    view_context& m_ctx;
+
+  public:
+    view_context_access(view_context& ctx)
+      : m_ctx {ctx}
+    {
+    }
+
+    /// access window manager
+    auto window_manager() -> wm::window_manager&;
+  };
+
   /// View context
   class view_context
   {
@@ -28,7 +45,7 @@ namespace yave::editor {
 
   public:
     /// push view command
-    void push(std::unique_ptr<view_command>&& op);
+    void push(std::unique_ptr<view_command>&& op) const;
     /// execute all view commands in queue
     void exec_all();
 
@@ -42,4 +59,10 @@ namespace yave::editor {
     /// wm
     auto window_manager() -> wm::window_manager&;
   };
+
+  inline auto view_context_access::window_manager() -> wm::window_manager&
+  {
+    return m_ctx.window_manager();
+  }
+
 } // namespace yave::editor

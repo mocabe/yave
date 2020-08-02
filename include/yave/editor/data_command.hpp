@@ -13,11 +13,20 @@
 namespace yave::editor {
 
   // fwd
-  class data_context;
+  class data_context_access;
 
   /// Get memory resource for data commands
   [[nodiscard]] auto get_data_command_memory_resource() noexcept
     -> std::pmr::memory_resource*;
+
+  /// type of data commands
+  enum class data_command_type
+  {
+    // single time commands
+    single_time,
+    // undoable commands
+    undo_redo,
+  };
 
   /// Data command is a kind of commands which are executed in data thread.
   /// Unlike notifiers, data operators need to support undo operation.
@@ -26,14 +35,11 @@ namespace yave::editor {
   {
   public:
     /// Exec command
-    virtual void exec(data_context& data_ctx) = 0;
+    virtual void exec(data_context_access& data_ctx) = 0;
     /// Undo command
-    virtual void undo(data_context& data_ctx) = 0;
+    virtual void undo(data_context_access& data_ctx) = 0;
     /// Undoable command?
-    virtual bool undoable() const
-    {
-      return true;
-    }
+    virtual auto type() const -> data_command_type = 0;
 
     /// Dtor
     virtual ~data_command() noexcept = default;
@@ -64,17 +70,17 @@ namespace yave::editor {
         : ExecFunc(std::forward<ExecFunc>(exec))
       {
       }
-      void exec(data_context& data_ctx) override
+      void exec(data_context_access& data_ctx) override
       {
         ExecFunc::operator()(data_ctx);
       }
-      void undo(data_context&) override
+      void undo(data_context_access&) override
       {
         // no undo
       }
-      bool undoable() const override
+      auto type() const -> data_command_type override
       {
-        return false;
+        return data_command_type::single_time;
       }
     };
 
@@ -87,13 +93,17 @@ namespace yave::editor {
         , UndoFunc(std::forward<UndoFunc>(undo))
       {
       }
-      void exec(data_context& data_ctx) override
+      void exec(data_context_access& data_ctx) override
       {
         ExecFunc::operator()(data_ctx);
       }
-      void undo(data_context& data_ctx) override
+      void undo(data_context_access& data_ctx) override
       {
         UndoFunc::operator()(data_ctx);
+      }
+      auto type() const -> data_command_type override
+      {
+        return data_command_type::undo_redo;
       }
     };
   } // namespace detail

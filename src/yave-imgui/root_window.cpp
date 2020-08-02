@@ -58,7 +58,7 @@ namespace yave::editor::imgui {
     ImGui::PopStyleVar(1);
   }
 
-  void root_window::_layout_once(editor::view_context& vctx) const
+  void root_window::_layout_once(const editor::view_context& vctx) const
   {
     // already initialized
     if (layout_init) {
@@ -104,8 +104,9 @@ namespace yave::editor::imgui {
       as_mut_child(c)->update(dctx, vctx);
   }
 
-  void root_window::draw(editor::data_context& dctx, editor::view_context& vctx)
-    const
+  void root_window::draw(
+    const editor::data_context& dctx,
+    const editor::view_context& vctx) const
   {
     auto& glfw_win = imgui_ctx.window_context().glfw_win();
 

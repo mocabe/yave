@@ -54,8 +54,8 @@ namespace yave::editor::imgui {
   /// initialize internal data structure
   void application::impl::init_data()
   {
-    auto lck   = data_ctx.lock();
-    auto& data = data_ctx.data();
+    auto data_lck = data_ctx.lock();
+    auto& data    = data_lck.data();
 
     data.name         = "New Project";
     data.path         = "";
@@ -99,8 +99,8 @@ namespace yave::editor::imgui {
 
   void application::impl::deinit_data()
   {
-    auto lck   = data_ctx.lock();
-    auto& data = data_ctx.data();
+    auto data_lck = data_ctx.lock();
+    auto& data    = data_lck.data();
 
     data.compiler.deinit();
     data.executor.deinit();

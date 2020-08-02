@@ -26,8 +26,8 @@ namespace yave::editor::imgui {
 
     void draw(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImDrawListSplitter& splitter,
       size_t channel,
@@ -38,16 +38,16 @@ namespace yave::editor::imgui {
     /// Draw slot
     virtual void _draw_slot(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       const ImVec2& slot_pos) const;
 
     /// Draw socket content
     virtual void _draw_content(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImVec2 pos,
       ImVec2 size) const;

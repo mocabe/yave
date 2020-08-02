@@ -46,7 +46,8 @@ namespace yave::editor {
     void update(editor::data_context& data_ctx, editor::view_context& view_ctx)
       override;
 
-    void draw(editor::data_context& data_ctx, editor::view_context& view_ctx)
-      const override;
+    void draw(
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const override;
   };
 } // namespace yave::editor

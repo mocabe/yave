@@ -35,8 +35,8 @@ namespace yave::editor::imgui {
 
     void _draw_content(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImVec2 pos,
       ImVec2 size) const override;
@@ -61,8 +61,8 @@ namespace yave::editor::imgui {
 
     void _draw_content(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImVec2 pos,
       ImVec2 size) const override;
@@ -85,8 +85,8 @@ namespace yave::editor::imgui {
 
     void _draw_content(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImVec2 pos,
       ImVec2 size) const override;
@@ -109,8 +109,8 @@ namespace yave::editor::imgui {
 
     void _draw_content(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImVec2 pos,
       ImVec2 size) const override;
@@ -135,8 +135,8 @@ namespace yave::editor::imgui {
 
     void _draw_content(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImVec2 pos,
       ImVec2 size) const override;
@@ -161,8 +161,8 @@ namespace yave::editor::imgui {
 
     void _draw_content(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImVec2 pos,
       ImVec2 size) const override;

@@ -19,8 +19,8 @@ namespace yave::editor::imgui {
 
     void draw(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImDrawListSplitter& splitter,
       int channel) override;

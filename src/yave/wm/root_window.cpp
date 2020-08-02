@@ -13,8 +13,8 @@ namespace yave::wm {
   }
 
   void root_window::draw(
-    editor::data_context& data_ctx,
-    editor::view_context& view_ctx) const
+    const editor::data_context& data_ctx,
+    const editor::view_context& view_ctx) const
   {
     for (auto&& c : children())
       c->draw(data_ctx, view_ctx);

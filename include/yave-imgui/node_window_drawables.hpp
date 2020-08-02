@@ -47,8 +47,8 @@ namespace yave::editor::imgui {
     /// \param size area size to draw
     virtual void draw(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& info,
       ImDrawListSplitter& splitter,
       size_t channel,
@@ -92,8 +92,8 @@ namespace yave::editor::imgui {
     /// draw node
     virtual void draw(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImDrawListSplitter& splitter,
       size_t channel) const = 0;
@@ -119,8 +119,8 @@ namespace yave::editor::imgui {
     /// draw connection
     virtual void draw(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImDrawListSplitter& splitter,
       int channel) = 0;

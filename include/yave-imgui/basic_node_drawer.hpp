@@ -48,8 +48,8 @@ namespace yave::editor::imgui {
 
     void draw(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       node_window_draw_info& draw_info,
       ImDrawListSplitter& splitter,
       size_t channel) const override;
@@ -78,16 +78,16 @@ namespace yave::editor::imgui {
     // draw popup
     void _draw_popup(
       node_window_draw_info& draw_info,
-      data_context& dctx,
-      view_context& vctx) const;
+      const data_context& dctx,
+      const view_context& vctx) const;
     // input handling
     void _handle_input(
       const node_window& nw,
-      data_context& dctx,
-      view_context& vctx,
+      const data_context& dctx,
+      const view_context& vctx,
       bool hovered,
       bool selected,
       const ImVec2& pos,
       const ImVec2& size) const;
   };
-}
+} // namespace yave::editor::imgui
