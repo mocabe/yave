@@ -47,12 +47,29 @@ namespace yave {
     auto [it, succ] = m_map.emplace(
       decl.qualified_name(), std::make_shared<node_declaration>(decl));
 
-    if (succ)
+    if (succ) {
       Info(g_logger, "Added new declaration: {}", decl.qualified_name());
-    else
-      Error(g_logger, "Failed to add declaration: {}", decl.qualified_name());
+      return true;
+    }
 
-    return succ;
+    auto& name = it->second->name();
+    auto& iss  = it->second->input_sockets();
+    auto& oss  = it->second->output_sockets();
+
+    // valid duplication
+    if (
+      name == decl.name() &&         //
+      iss == decl.input_sockets() && //
+      oss == decl.output_sockets()) {
+      Info(
+        g_logger,
+        "Node declaration {} already exists, ignored.",
+        decl.qualified_name());
+      return true;
+    }
+
+    Error(g_logger, "Failed to add declaration: {}", decl.qualified_name());
+    return false;
   }
 
   bool node_declaration_store::add(const std::vector<node_declaration>& decls)
