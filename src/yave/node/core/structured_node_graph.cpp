@@ -16,6 +16,7 @@
 
 #include <variant>
 #include <string_view>
+#include <algorithm>
 
 YAVE_DECL_G_LOGGER(structured_node_graph)
 
@@ -1487,8 +1488,7 @@ namespace yave {
       // add group input
       if (auto g = get_callee_group(group)) {
 
-        if (index == size_t(-1))
-          index = g->input_bits.size();
+        index = std::clamp(index, size_t(0), g->input_bits.size());
 
         // process group io bits
         {
@@ -1571,8 +1571,7 @@ namespace yave {
 
       if (auto g = get_callee_group(group)) {
 
-        if (index == size_t(-1))
-          index = g->output_bits.size();
+        index = std::clamp(index, size_t(0), g->output_bits.size());
 
         // process group io bits
         {
