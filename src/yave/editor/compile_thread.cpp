@@ -76,14 +76,14 @@ namespace yave::editor {
                 data.compiler.m_result = std::nullopt;
 
                 // clone graph
-                auto g    = data.node_graph.clone();
-                auto root = g.node(data.root_group.id());
+                auto _ng   = data.node_graph.clone();
+                auto _root = _ng.node(data.root_group.id());
 
-                auto os = g.output_sockets(root).empty()
-                            ? socket_handle()
-                            : g.output_sockets(root)[0];
+                auto _os = _ng.output_sockets(_root).empty()
+                             ? socket_handle()
+                             : _ng.output_sockets(_root)[0];
 
-                return std::make_tuple(std::move(g), os);
+                return std::make_tuple(std::move(_ng), _os);
               }();
 
               // parse
@@ -99,13 +99,15 @@ namespace yave::editor {
               }
               Info(g_logger, "Success to parse node graph");
 
-              // FIXME: Avoid locking data thread while compiling
-              auto exe = [&] {
-                auto data_lck = data_ctx.lock();
-                return compiler.compile(
-                  std::move(parse_result.node_graph.value()),
-                  data_lck.data().node_defs);
-              }();
+              // compile
+              auto exe = compiler.compile(
+                // move persed graph
+                std::move(parse_result.node_graph.value()),
+                // copy defs
+                [&] {
+                  auto data_lck = data_ctx.lock();
+                  return data_lck.data().node_defs;
+                }());
 
               if (!exe) {
                 auto data_lck                  = data_ctx.lock();
