@@ -18,7 +18,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Mat4", "/std/geometry", "4x4 Matrix", {}, {"value"});
+      "Mat4", "/std/geometry", "4x4 Matrix", {}, {"mat4"});
   }
 
   auto node_declaration_traits<node::Mat4Rotate>::get_node_declaration()
@@ -28,8 +28,8 @@ namespace yave {
       "Rotate",
       "/std/geometry",
       "Rotate object around axis",
-      {"target", "deg", "axis"},
-      {"out"},
+      {"mat4", "deg", "axis"},
+      {"mat4"},
       {{1, make_data_type_holder<Float>()}});
   }
 
@@ -40,8 +40,8 @@ namespace yave {
       "RotateX",
       "/std/geometry",
       "Rotate object around X axis",
-      {"target", "deg"},
-      {"out"},
+      {"mat4", "deg"},
+      {"mat4"},
       {{1, make_data_type_holder<Float>()}});
   }
 
@@ -52,8 +52,8 @@ namespace yave {
       "RotateY",
       "/std/geometry",
       "Rotate object around Y axis",
-      {"target", "deg"},
-      {"out"},
+      {"mat4", "deg"},
+      {"mat4"},
       {{1, make_data_type_holder<Float>()}});
   }
 
@@ -64,8 +64,8 @@ namespace yave {
       "RotateZ",
       "/std/geometry",
       "Rotate object around Z axis",
-      {"target", "deg"},
-      {"out"},
+      {"mat4", "deg"},
+      {"mat4"},
       {{1, make_data_type_holder<Float>()}});
   }
 
@@ -73,7 +73,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Translate", "/std/geometry", "Move object", {"target", "vec"}, {"out"});
+      "Translate", "/std/geometry", "Move object", {"mat4", "vec3"}, {"mat4"});
   }
 
   namespace modules::_std::geometry {

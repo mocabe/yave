@@ -19,9 +19,6 @@ namespace yave {
     struct Mat4Translate;
   } // namespace node
 
-  namespace modules::_std::geometry {
-  } // namespace modules::_std::geometry
-
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Mat4);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Mat4Rotate);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Mat4RotateX);
