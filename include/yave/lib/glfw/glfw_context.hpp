@@ -72,6 +72,12 @@ namespace yave::glfw {
     /// Should close?
     [[nodiscard]] bool should_close() const;
 
+    /// focused?
+    [[nodiscard]] bool focused() const;
+
+    /// hovered?
+    [[nodiscard]] bool hovered() const;
+
   private:
     glfw_window(
       glfw::glfw_context& ctx,

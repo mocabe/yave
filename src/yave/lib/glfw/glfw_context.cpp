@@ -206,6 +206,16 @@ namespace yave::glfw {
     return glfwWindowShouldClose(m_window);
   }
 
+  bool glfw_window::focused() const
+  {
+    return glfwGetWindowAttrib(m_window, GLFW_FOCUSED);
+  }
+
+  bool glfw_window::hovered() const
+  {
+    return glfwGetWindowAttrib(m_window, GLFW_HOVERED);
+  }
+
   auto glfw_context::_init_flags() noexcept -> init_flags
   {
     return init_flags::enable_logging;
