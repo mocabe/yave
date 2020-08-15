@@ -115,6 +115,11 @@ namespace yave::glfw {
     return m_ctx;
   }
 
+  auto glfw_window::glfw_ctx() const -> const glfw::glfw_context&
+  {
+    return m_ctx;
+  }
+
   auto glfw_window::get() const -> GLFWwindow*
   {
     return m_window;

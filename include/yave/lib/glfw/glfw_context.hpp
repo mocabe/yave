@@ -32,6 +32,7 @@ namespace yave::glfw {
   public:
     /// Get glfw context
     [[nodiscard]] auto glfw_ctx() -> glfw::glfw_context&;
+    [[nodiscard]] auto glfw_ctx() const -> const glfw::glfw_context&;
     /// Get GLFWwindow
     [[nodiscard]] auto get() const -> GLFWwindow*;
 
