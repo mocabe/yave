@@ -7,7 +7,6 @@
 
 #include <yave/wm/viewport_window.hpp>
 #include <yave/wm/viewport_io.hpp>
-#include <yave/wm/viewport_io_state.hpp>
 #include <yave/wm/layout_window.hpp>
 #include <yave/wm/mouse_event_emitter.hpp>
 #include <yave/wm/key_event_emitter.hpp>
