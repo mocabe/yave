@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/wm/window.hpp>
+#include <yave/wm/viewport_window.hpp>
 #include <yave/config/config.hpp>
 #include <yave/lib/imgui/imgui_context.hpp>
 #include <yave/editor/data_context.hpp>
@@ -14,7 +14,7 @@
 namespace yave::editor::imgui {
 
   /// For main menu and docking layout
-  class root_window : public wm::window
+  class root_window : public wm::viewport_window
   {
     // imgui
     yave::imgui::imgui_context& imgui_ctx;
@@ -31,6 +31,11 @@ namespace yave::editor::imgui {
   public:
     root_window(yave::imgui::imgui_context& im);
     ~root_window() noexcept;
+
+  public:
+    bool should_close() const override;
+    auto refresh_rate() const -> uint32_t override;
+    void exec(editor::data_context&, editor::view_context&) override;
 
   public:
     void draw(const editor::data_context&, const editor::view_context&)

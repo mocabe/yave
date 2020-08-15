@@ -15,7 +15,7 @@ YAVE_DECL_G_LOGGER(im_root_window)
 namespace yave::editor::imgui {
 
   root_window::root_window(yave::imgui::imgui_context& im)
-    : window("editor::imgui::root_window")
+    : viewport_window("editor::imgui::root_window")
     , imgui_ctx {im}
   {
     init_logger();
@@ -25,18 +25,41 @@ namespace yave::editor::imgui {
     { // node canvas
       auto w      = std::make_unique<node_window>(im);
       node_canvas = w.get();
-      add_any_window(children().end(), std::move(w));
+      add_any_window(children().size(), std::move(w));
     }
 
     { // render view
       auto w      = std::make_unique<render_view_window>(im);
       render_view = w.get();
-      add_any_window(children().end(), std::move(w));
+      add_any_window(children().size(), std::move(w));
     }
   }
 
   root_window::~root_window() noexcept
   {
+    // avoid resource destruction before finishing render tasks.
+    imgui_ctx.window_context().device().waitIdle();
+  }
+
+  bool root_window::should_close() const
+  {
+    return imgui_ctx.window_context().should_close();
+  }
+
+  auto root_window::refresh_rate() const -> uint32_t
+  {
+    return 60;
+  }
+
+  void root_window::exec(editor::data_context& dctx, editor::view_context& vctx)
+  {
+    imgui_ctx.begin_frame();
+    {
+      update(dctx, vctx);
+      draw(dctx, vctx);
+    }
+    imgui_ctx.end_frame();
+    imgui_ctx.render();
   }
 
   void root_window::_draw_menu_bar() const

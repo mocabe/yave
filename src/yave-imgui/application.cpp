@@ -121,7 +121,7 @@ namespace yave::editor::imgui {
     init_data();
 
     // root window
-    view_ctx.window_manager().root()->add_window(
+    view_ctx.window_manager().root()->add_viewport(
       std::make_unique<root_window>(imgui_ctx));
   }
 
@@ -132,16 +132,7 @@ namespace yave::editor::imgui {
 
   void application::impl::run()
   {
-    while (!imgui_ctx.window_context().should_close()) {
-      imgui_ctx.begin_frame();
-      {
-        view_ctx.draw();
-      }
-      imgui_ctx.end_frame();
-      imgui_ctx.render();
-    }
-    // avoid resource destruction before finishing render tasks.
-    imgui_ctx.window_context().device().waitIdle();
+    view_ctx.run();
   }
 
   application::application()
