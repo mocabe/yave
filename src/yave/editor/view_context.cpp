@@ -78,38 +78,15 @@ namespace yave::editor {
       }
     }
 
-  public:
-    /// update stage
-    void stage_update()
+    /// event loop
+    void run()
     {
-      // update view model
-      data.wm.update(data_ctx, view_ctx);
-    }
-
-    /// draw stage
-    void stage_draw()
-    {
-      // render windows
-      data.wm.draw(data_ctx, view_ctx);
-    }
-
-    /// command process stage
-    void stage_commands()
-    {
-      // run commands
-      view_ctx.exec_all();
-    }
-
-  public:
-    /// main loop
-    void draw()
-    {
-      // update view model
-      stage_update();
-      // render content
-      stage_draw();
-      // execute commands
-      stage_commands();
+      while (!data.wm.should_close()) {
+        // do event handling
+        data.wm.exec(data_ctx, view_ctx);
+        // update view model
+        view_ctx.exec_all();
+      }
     }
   };
 
@@ -130,9 +107,9 @@ namespace yave::editor {
     m_pimpl->exec_all();
   }
 
-  void view_context::draw()
+  void view_context::run()
   {
-    m_pimpl->draw();
+    m_pimpl->run();
   }
 
   auto view_context::window_manager() const -> const wm::window_manager&

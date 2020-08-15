@@ -6,6 +6,8 @@
 #pragma once
 
 #include <yave/wm/window.hpp>
+#include <yave/wm/event_dispatcher.hpp>
+#include <yave/wm/window_traverser.hpp>
 #include <yave/wm/root_window.hpp>
 
 namespace yave::wm {
@@ -37,9 +39,27 @@ namespace yave::wm {
     [[nodiscard]] auto get_window(uid id) -> window*;
 
   public:
-    /// update windows
-    void update(editor::data_context& dctx, editor::view_context& vctx);
-    /// draw windows
-    void draw(editor::data_context& dctx, editor::view_context& vctx);
+    /// calc screen pos of window
+    /// \param win target window
+    /// \return position of window in virtual screen coordinate
+    [[nodiscard]] auto screen_pos(const window* win) const -> fvec2;
+
+    /// check hit on window
+    /// \param win target window
+    /// \param pos position in virtual screen coordinate
+    [[nodiscard]] bool intersects(const window* win, const fvec2& pos) const;
+
+    /// no active viewport?
+    [[nodiscard]] bool should_close() const;
+
+    /// get current key focus
+    [[nodiscard]] auto get_key_focus() const -> window*;
+
+    /// set key focus
+    void set_key_focus(window* win);
+
+  public:
+    /// process single frame
+    void exec(editor::data_context& dctx, editor::view_context& vctx);
   };
 } // namespace yave::wm

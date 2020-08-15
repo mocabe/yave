@@ -7,6 +7,7 @@
 #include <yave/wm/root_window.hpp>
 
 #include <yave/support/log.hpp>
+#include <tl/optional.hpp>
 
 #include <map>
 #include <algorithm>
@@ -22,12 +23,14 @@ namespace yave::wm {
   public:
     /// window tree
     std::unique_ptr<root_window> root_win;
+    /// current key focus
+    uid key_focus;
 
   public:
     void init()
     {
       // init root window
-      root_win = std::make_unique<root_window>();
+      root_win = std::make_unique<root_window>(wm);
     }
 
     impl(wm::window_manager& wmngr)
@@ -68,14 +71,73 @@ namespace yave::wm {
     }
 
   public:
-    void update(editor::data_context& dctx, editor::view_context& vctx)
+    auto screen_pos(const window* win) -> fvec2
     {
-      root_win->update(dctx, vctx);
+      assert(exists(win->id()));
+
+      const window* w = win;
+
+      fvec2 p = w->pos();
+
+      while ((w = w->parent()))
+        p += w->pos();
+
+      return p;
     }
 
-    void draw(editor::data_context& dctx, editor::view_context& vctx)
+    bool intersects(const window* win, const fvec2& pos)
     {
-      root_win->draw(dctx, vctx);
+      assert(exists(win->id()));
+
+      // check if spos is inside of bbox of all prents
+      auto rec = [&](auto&& self, const window* w) -> tl::optional<fvec2> {
+        if (w->parent()) {
+          return self(w->parent())
+            .and_then([&](auto ppos) -> tl::optional<fvec2> {
+              auto p1 = ppos + w->pos();
+              auto p2 = p1 + w->size();
+              // bbox check
+              if (p1.x <= pos.x && pos.x <= p2.x)
+                if (p1.y <= pos.y && pos.y <= p2.y)
+                  return tl::make_optional(p1);
+              // fail
+              return tl::nullopt;
+            });
+        }
+        // root window
+        return tl::make_optional(fvec2 {0, 0});
+      };
+
+      return fix_lambda(rec)(win).has_value();
+    }
+
+    bool should_close()
+    {
+      return root_win->should_close();
+    }
+
+    auto get_key_focus() -> window*
+    {
+      if (key_focus == uid())
+        return nullptr;
+
+      if (auto w = get_window(key_focus))
+        return w;
+
+      Info(g_logger, "window which had key focus no longer exists");
+      key_focus = {};
+      return nullptr;
+    }
+
+    void set_key_focus(window* win)
+    {
+      assert(exists(win->id()));
+      key_focus = win->id();
+    }
+
+    void exec(editor::data_context& dctx, editor::view_context& vctx)
+    {
+      return root_win->exec(dctx, vctx);
     }
   };
 
@@ -111,17 +173,36 @@ namespace yave::wm {
     return m_pimpl->get_window(id);
   }
 
-  void window_manager::update(
-    editor::data_context& dctx,
-    editor::view_context& vctx)
+  auto window_manager::screen_pos(const window* win) const -> fvec2
   {
-    return m_pimpl->update(dctx, vctx);
+    return m_pimpl->screen_pos(win);
   }
 
-  void window_manager::draw(
+  bool window_manager::intersects(const window* win, const fvec2& pos) const
+  {
+    return m_pimpl->intersects(win, pos);
+  }
+
+  bool window_manager::should_close() const
+  {
+    return m_pimpl->should_close();
+  }
+
+  auto window_manager::get_key_focus() const -> window*
+  {
+    return m_pimpl->get_key_focus();
+  }
+
+  void window_manager::set_key_focus(window* win)
+  {
+    m_pimpl->set_key_focus(win);
+  }
+
+  void window_manager::exec(
     editor::data_context& dctx,
     editor::view_context& vctx)
   {
-    return m_pimpl->draw(dctx, vctx);
+    return m_pimpl->exec(dctx, vctx);
   }
+
 } // namespace yave::wm

@@ -50,8 +50,8 @@ namespace yave::editor {
     void exec_all();
 
   public:
-    /// process single frame
-    void draw();
+    /// begin event loop
+    void run();
 
   public:
     /// wm

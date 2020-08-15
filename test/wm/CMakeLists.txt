@@ -1,0 +1,1 @@
+YAVE_Test(viewport wm yave::config yave::support::error yave::editor yave::wm)

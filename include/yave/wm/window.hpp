@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <yave/wm/event.hpp>
 #include <yave/lib/vec/vec.hpp>
 #include <yave/support/id.hpp>
 
@@ -12,13 +13,33 @@
 #include <memory>
 #include <typeinfo>
 
+// fwd
 namespace yave::editor {
-  // fwd
   class data_context;
   class view_context;
 } // namespace yave::editor
 
+// fwd
+namespace yave::wm::events {
+  class resize;
+  class move;
+  class mouse_click;
+  class mouse_double_click;
+  class mouse_press;
+  class mouse_double_press;
+  class mouse_release;
+  class mouse_repeat;
+  class mouse_hover;
+  class key_press;
+  class key_release;
+  class key_repeat;
+  class key_char;
+} // namespace yave::wm::events
+
 namespace yave::wm {
+
+  class window_manager;
+  class root_window;
 
   /// Base class of GUI window and widgets
   class window
@@ -27,45 +48,51 @@ namespace yave::wm {
     uid m_id;
     /// pointer to parent
     window* m_parent;
+    /// window manager
+    window_manager* m_wm;
     /// child windows
     std::vector<std::unique_ptr<const window>> m_children;
     /// name
     std::string m_name;
+    /// window size
+    fvec2 m_pos, m_size;
 
   public:
-    /// ctor
+    /// ctor (legacy)
     window(std::string name);
+    /// ctor
+    window(std::string name, fvec2 pos, fvec2 size);
     /// dtor
     virtual ~window() noexcept;
 
+  private:
+    // root_window is special
+    friend class root_window;
+    window(window_manager* wm, std::string name, fvec2 pos, fvec2 size);
+
   protected:
     /// utility function to add new window
-    /// \param it iterator position for insertion
+    /// \param idx position of insertion
     /// \param win window to insert
-    void add_any_window(
-      typename decltype(m_children)::iterator it,
-      std::unique_ptr<window>&& win);
+    void add_any_window(size_t idx, std::unique_ptr<window>&& win);
+
+    /// utility function to detach child window
+    auto detach_any_window(uid id) -> std::unique_ptr<window>;
 
     /// utility function to remove child window
     void remove_any_window(uid id);
 
   public:
-    /// update
+    /// update view model
     virtual void update(
       editor::data_context& data_ctx,
       editor::view_context& view_ctx) = 0;
-    /// draw
+    /// draw content
     virtual void draw(
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const = 0;
 
   public:
-    /// for linking new child window
-    void set_parent(window* new_parent)
-    {
-      m_parent = new_parent;
-    }
-
     /// get mutable child window pointer
     auto as_mut_child(const std::unique_ptr<const window>& win)
     {
@@ -73,12 +100,7 @@ namespace yave::wm {
     }
 
   public: /* public accessors */
-    auto parent() const -> const window*
-    {
-      return m_parent;
-    }
-
-    auto parent()
+    auto parent() const -> window*
     {
       return m_parent;
     }
@@ -88,17 +110,7 @@ namespace yave::wm {
       return m_id;
     }
 
-    auto& id()
-    {
-      return m_id;
-    }
-
     auto& name() const
-    {
-      return m_name;
-    }
-
-    auto& name()
     {
       return m_name;
     }
@@ -108,9 +120,29 @@ namespace yave::wm {
       return m_children;
     }
 
-    auto& children()
+    auto& pos() const
     {
-      return m_children;
+      return m_pos;
+    }
+
+    auto& size() const
+    {
+      return m_size;
+    }
+
+    void set_name(std::string name)
+    {
+      m_name = std::move(name);
+    }
+
+    void set_pos(fvec2 pos)
+    {
+      m_pos = pos;
+    }
+
+    void set_size(fvec2 size)
+    {
+      m_size = size;
     }
 
   public:
@@ -131,6 +163,91 @@ namespace yave::wm {
       assert(typeid(*this) == typeid(Derived));
       return static_cast<const Derived*>(this);
     }
+
+  public: /* event handlers */
+    /// handle events
+    void event(
+      wm::event& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// resize
+    virtual void on_resize(
+      wm::events::resize& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// move
+    virtual void on_move(
+      wm::events::move& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// button press
+    virtual void on_mouse_click(
+      wm::events::mouse_click& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// button double press
+    virtual void on_mouse_double_click(
+      wm::events::mouse_double_click& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// button press
+    virtual void on_mouse_press(
+      wm::events::mouse_press& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// button release
+    virtual void on_mouse_release(
+      wm::events::mouse_release& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// button repeat
+    virtual void on_mouse_repeat(
+      wm::events::mouse_repeat& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// hover
+    virtual void on_mouse_hover(
+      wm::events::mouse_hover& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// key press
+    virtual void on_key_press(
+      wm::events::key_press& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// key release
+    virtual void on_key_release(
+      wm::events::key_release& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// key repeat
+    virtual void on_key_repeat(
+      wm::events::key_repeat& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// key char input
+    virtual void on_key_char(
+      wm::events::key_char& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// custom event
+    virtual void on_custom_event(
+      wm::event& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
   };
 
 } // namespace yave::wm
