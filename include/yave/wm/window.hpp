@@ -26,9 +26,7 @@ namespace yave::wm::events {
   class mouse_click;
   class mouse_double_click;
   class mouse_press;
-  class mouse_double_press;
   class mouse_release;
-  class mouse_repeat;
   class mouse_hover;
   class key_press;
   class key_release;
@@ -204,12 +202,6 @@ namespace yave::wm {
     /// button release
     virtual void on_mouse_release(
       wm::events::mouse_release& e,
-      const editor::data_context& data_ctx,
-      const editor::view_context& view_ctx) const;
-
-    /// button repeat
-    virtual void on_mouse_repeat(
-      wm::events::mouse_repeat& e,
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const;
 

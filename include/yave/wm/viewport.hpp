@@ -96,10 +96,6 @@ namespace yave::wm {
       wm::events::mouse_release& e,
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const override;
-    void on_mouse_repeat(
-      wm::events::mouse_repeat& e,
-      const editor::data_context& data_ctx,
-      const editor::view_context& view_ctx) const override;
     void on_mouse_hover(
       wm::events::mouse_hover& e,
       const editor::data_context& data_ctx,

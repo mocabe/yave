@@ -219,15 +219,6 @@ namespace yave::wm {
     Info(g_logger, "[release] {},{}", e.pos().x, e.pos().y);
   }
 
-  void viewport::on_mouse_repeat(
-    wm::events::mouse_repeat& e,
-    const editor::data_context& data_ctx,
-    const editor::view_context& view_ctx) const
-  {
-    e.accept();
-    Info(g_logger, "[repeat] {},{}", e.pos().x, e.pos().y);
-  }
-
   void viewport::on_mouse_hover(
     wm::events::mouse_hover& e,
     const editor::data_context& data_ctx,
