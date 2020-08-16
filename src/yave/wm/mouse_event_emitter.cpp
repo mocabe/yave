@@ -60,7 +60,7 @@ namespace yave::wm {
     {
       for (int i = 0; i < GLFW_MOUSE_BUTTON_LAST; ++i) {
         auto& state   = states[i];
-        auto next_raw = io.get_mouse_state(static_cast<wm::mouse_button>(i));
+        auto next_raw = io.mouse_button_state(static_cast<wm::mouse_button>(i));
 
         // match/update delta state
         auto t = [&](auto p, auto n, auto d) {

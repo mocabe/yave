@@ -45,7 +45,7 @@ namespace yave::wm {
     {
       for (int i = GLFW_KEY_SPACE; i < GLFW_KEY_LAST; ++i) {
         auto& state   = states[i];
-        auto next_raw = io.get_key_state(static_cast<wm::key>(i));
+        auto next_raw = io.key_state(static_cast<wm::key>(i));
 
         // match/update delta state
         auto t = [&](auto p, auto n, auto d) {
@@ -103,7 +103,7 @@ namespace yave::wm {
       }
 
       // key char
-      if (auto txt = io.get_text_input(); !txt.empty()) {
+      if (auto txt = io.key_text(); !txt.empty()) {
         auto e = std::make_unique<wm::events::key_char>(std::move(txt));
         auto d = wm::key_char_dispatcher(
           std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());

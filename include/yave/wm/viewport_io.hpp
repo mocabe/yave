@@ -36,13 +36,21 @@ namespace yave::wm {
     void update();
 
   public:
-    /// Get current key state
-    [[nodiscard]] auto get_key_state(wm::key k) const -> key_state;
+    /// Get new mouse event
+    [[nodiscard]] auto mouse_button_event(wm::mouse_button b) const
+      -> std::optional<wm::mouse_button_event>;
     /// Get current mouse state
-    [[nodiscard]] auto get_mouse_state(wm::mouse_button b) const
-      -> mouse_button_state;
+    [[nodiscard]] auto mouse_button_state(wm::mouse_button b) const
+      -> wm::mouse_button_state;
+
+  public:
+    /// Get new key event
+    [[nodiscard]] auto key_event(wm::key key) const
+      -> std::optional<wm::key_event>;
+    /// Get current key state
+    [[nodiscard]] auto key_state(wm::key k) const -> wm::key_state;
     /// Get text input
-    [[nodiscard]] auto get_text_input() const -> std::u8string;
+    [[nodiscard]] auto key_text() const -> std::u8string;
 
   public:
     /// Get current mouse position

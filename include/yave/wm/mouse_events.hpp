@@ -16,7 +16,7 @@
 
 namespace yave::wm {
 
-  /// Mouse button enum
+  /// mouse button enum
   enum class mouse_button : int
   {
     _1     = GLFW_MOUSE_BUTTON_1,
@@ -32,11 +32,18 @@ namespace yave::wm {
     middle = GLFW_MOUSE_BUTTON_MIDDLE,
   };
 
-  /// Mouse button state
+  /// mouse button state
   enum class mouse_button_state
   {
-    up   = 0,
-    down = 1,
+    up   = GLFW_RELEASE,
+    down = GLFW_PRESS,
+  };
+
+  /// raw mouse button event
+  enum class mouse_button_event
+  {
+    release = GLFW_RELEASE,
+    press   = GLFW_PRESS,
   };
 
   namespace events {

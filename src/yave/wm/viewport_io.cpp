@@ -10,8 +10,25 @@
 #include <cstring>
 #include <codecvt>
 #include <locale>
+#include <iostream>
 
 namespace yave::wm {
+
+  namespace {
+
+    struct button_state_data
+    {
+      int state                = GLFW_RELEASE;
+      std::optional<int> event = std::nullopt;
+    };
+
+    struct key_state_data
+    {
+      int state                = GLFW_RELEASE;
+      std::optional<int> event = std::nullopt;
+    };
+
+  } // namespace
 
   class viewport_io::impl
   {
@@ -21,8 +38,11 @@ namespace yave::wm {
 
   public:
     // current IO states
-    std::array<char, GLFW_MOUSE_BUTTON_LAST> button_state = {};
-    std::array<char, GLFW_KEY_LAST> key_state             = {};
+    std::array<button_state_data, GLFW_MOUSE_BUTTON_LAST> button_states = {};
+    std::array<key_state_data, GLFW_KEY_LAST> key_states                = {};
+    // IO event queue
+    std::array<std::vector<int>, GLFW_MOUSE_BUTTON_LAST> button_events = {};
+    std::array<std::vector<int>, GLFW_KEY_LAST> key_events             = {};
     // cursor
     fvec2 cursor_pos;
     fvec2 cursor_delta;
@@ -44,21 +64,40 @@ namespace yave::wm {
 
     /// cb
     static void glfw_mouse_button_callback(
-      GLFWwindow* /*window*/,
-      int /*button*/,
-      int /*action*/,
+      GLFWwindow* window,
+      int button,
+      int action,
       int /*mods*/)
     {
+      auto _this = get_this(window);
+
+      switch (action) {
+        case GLFW_RELEASE:
+        case GLFW_PRESS:
+          _this->button_events[button].push_back(action);
+          return;
+      }
+      unreachable();
     }
 
     /// cb
     static void glfw_key_callback(
-      GLFWwindow* /*window*/,
-      int /*key*/,
+      GLFWwindow* window,
+      int key,
       int /*scancode*/,
-      int /*action*/,
+      int action,
       int /*mods*/)
     {
+      auto _this = get_this(window);
+
+      switch (action) {
+        case GLFW_RELEASE:
+        case GLFW_PRESS:
+        case GLFW_REPEAT:
+          _this->key_events[key].push_back(action);
+          return;
+      }
+      unreachable();
     }
 
     /// cb
@@ -70,12 +109,26 @@ namespace yave::wm {
       _this->char_buff.push_back(c);
     }
 
-    void update_mouse_input()
+    void mouse_input_begin()
     {
-      // update buttons
-      for (int b = 0; b < std::ssize(button_state); ++b) {
-        // update state
-        button_state[b] = glfwGetMouseButton(glfw_win.get(), b);
+      // update states
+      for (int b = 0; b < std::ssize(button_states); ++b) {
+        auto& events = button_events[b];
+        auto& state  = button_states[b];
+
+        if (!events.empty()) {
+          // pop event
+          auto e = events.front();
+          events.erase(events.begin());
+          // set event in this frame
+          state.event = e;
+          // update state
+          if (state.state != e) {
+            state.state = e;
+          }
+        } else
+          // no event to process
+          state.event = std::nullopt;
       }
       // update cursor when viewport is hovered. this works even when window is
       // not focused.
@@ -87,13 +140,27 @@ namespace yave::wm {
       cursor_pos   = pos;
     }
 
-    void update_key_input()
+    void key_input_begin()
     {
-      for (int k = GLFW_KEY_SPACE; k < std::ssize(key_state); ++k) {
-        // update state
-        key_state[k] = glfwGetKey(glfw_win.get(), k);
-      }
+      // update key state
+      for (int k = GLFW_KEY_SPACE; k < std::ssize(key_states); ++k) {
+        auto& events = key_events[k];
+        auto& state  = key_states[k];
 
+        if (!events.empty()) {
+          // pop event
+          auto e = events.front();
+          events.erase(events.begin());
+          // set event
+          state.event = e;
+          // update state (ignore auto repeat)
+          if (e != GLFW_REPEAT && state.state != e) {
+            state.state = e;
+          }
+        } else
+          // no event to process
+          state.event = std::nullopt;
+      }
       // handle text input
       {
         std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> cvt;
@@ -141,28 +208,61 @@ namespace yave::wm {
     void update()
     {
       glfw_win.glfw_ctx().poll_events();
-      update_mouse_input();
-      update_key_input();
+      mouse_input_begin();
+      key_input_begin();
     }
 
-    auto get_state(key k)
+    auto get_event(wm::key k) -> std::optional<wm::key_event>
     {
-      switch (key_state[static_cast<int>(k)]) {
+      auto& s = key_states[static_cast<int>(k)];
+
+      if (!s.event.has_value())
+        return std::nullopt;
+
+      switch (auto e = *s.event) {
         case GLFW_RELEASE:
-          return key_state::up;
         case GLFW_PRESS:
-          return key_state::down;
+        case GLFW_REPEAT:
+          return static_cast<wm::key_event>(e);
       }
       unreachable();
     }
 
-    auto get_state(mouse_button b)
+    auto get_state(wm::key k) -> wm::key_state
     {
-      switch (button_state[static_cast<int>(b)]) {
+      auto& s = key_states[static_cast<int>(k)];
+
+      switch (auto ss = s.state) {
         case GLFW_RELEASE:
-          return mouse_button_state::up;
         case GLFW_PRESS:
-          return mouse_button_state::down;
+          return static_cast<wm::key_state>(ss);
+      }
+      unreachable();
+    }
+
+    auto get_event(mouse_button b) -> std::optional<wm::mouse_button_event>
+    {
+      auto& s = button_states[static_cast<int>(b)];
+
+      if (!s.event.has_value())
+        return std::nullopt;
+
+      switch (auto e = *s.event) {
+        case GLFW_RELEASE:
+        case GLFW_PRESS:
+          return static_cast<wm::mouse_button_event>(e);
+      }
+      unreachable();
+    }
+
+    auto get_state(wm::mouse_button b) -> wm::mouse_button_state
+    {
+      auto& s = button_states[static_cast<int>(b)];
+
+      switch (auto ss = s.state) {
+        case GLFW_PRESS:
+        case GLFW_RELEASE:
+          return static_cast<wm::mouse_button_state>(ss);
       }
       unreachable();
     }
@@ -185,18 +285,29 @@ namespace yave::wm {
     m_pimpl->update();
   }
 
-  auto viewport_io::get_key_state(wm::key k) const -> key_state
-  {
-    return m_pimpl->get_state(k);
-  }
-
-  auto viewport_io::get_mouse_state(wm::mouse_button b) const
-    -> mouse_button_state
+  auto viewport_io::mouse_button_state(wm::mouse_button b) const
+    -> wm::mouse_button_state
   {
     return m_pimpl->get_state(b);
   }
 
-  auto viewport_io::get_text_input() const -> std::u8string
+  auto viewport_io::mouse_button_event(wm::mouse_button b) const
+    -> std::optional<wm::mouse_button_event>
+  {
+    return m_pimpl->get_event(b);
+  }
+
+  auto viewport_io::key_state(wm::key k) const -> wm::key_state
+  {
+    return m_pimpl->get_state(k);
+  }
+
+  auto viewport_io::key_event(wm::key k) const -> std::optional<wm::key_event>
+  {
+    return m_pimpl->get_event(k);
+  }
+
+  auto viewport_io::key_text() const -> std::u8string
   {
     return m_pimpl->text;
   }

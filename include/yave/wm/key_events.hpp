@@ -144,8 +144,16 @@ namespace yave::wm {
   /// key state
   enum class key_state
   {
-    up   = 0,
-    down = 1,
+    up   = GLFW_RELEASE,
+    down = GLFW_PRESS,
+  };
+
+  /// raw key event
+  enum class key_event
+  {
+    release = GLFW_RELEASE,
+    press   = GLFW_PRESS,
+    repeat  = GLFW_REPEAT,
   };
 
   /// get key name
