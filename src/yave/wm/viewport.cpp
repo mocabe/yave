@@ -225,7 +225,6 @@ namespace yave::wm {
     const editor::view_context& view_ctx) const
   {
     e.accept();
-    // Info(g_logger, "[hover] {},{}", e.pos().x, e.pos().y);
   }
 
   void viewport::on_key_press(
@@ -234,7 +233,6 @@ namespace yave::wm {
     const editor::view_context& view_ctx) const
   {
     e.accept();
-    // Info(g_logger, "key press");
   }
 
   void viewport::on_key_char(

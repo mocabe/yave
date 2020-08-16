@@ -14,22 +14,8 @@ namespace yave::wm {
 
   namespace {
 
-    /// synthesized from raw input transition
-    enum class mouse_button_delta_state
-    {
-      idle    = 0, ///< up -> up
-      press   = 1, ///< up -> down
-      repeat  = 2, ///< down -> down
-      release = 3, ///< down -> up
-    };
-
     struct state_data
     {
-      /// raw state
-      mouse_button_state raw_state = mouse_button_state::up;
-      /// delta
-      mouse_button_delta_state delta_state = mouse_button_delta_state::release;
-
       /// clicks: last pressed key
       mouse_button last_pressed_key = static_cast<mouse_button>(-1);
       /// clicks: last pressed window id
@@ -56,38 +42,6 @@ namespace yave::wm {
     {
     }
 
-    void update_states()
-    {
-      for (int i = 0; i < GLFW_MOUSE_BUTTON_LAST; ++i) {
-        auto& state   = states[i];
-        auto next_raw = io.mouse_button_state(static_cast<wm::mouse_button>(i));
-
-        // match/update delta state
-        auto t = [&](auto p, auto n, auto d) {
-          if (state.raw_state == p && next_raw == n)
-            state.delta_state = d;
-        };
-
-        t(mouse_button_state::up,
-          mouse_button_state::up,
-          mouse_button_delta_state::idle);
-
-        t(mouse_button_state::up,
-          mouse_button_state::down,
-          mouse_button_delta_state::press);
-
-        t(mouse_button_state::down,
-          mouse_button_state::up,
-          mouse_button_delta_state::release);
-
-        t(mouse_button_state::down,
-          mouse_button_state::down,
-          mouse_button_delta_state::repeat);
-
-        state.raw_state = next_raw;
-      }
-    }
-
     void do_dispatch(
       viewport_window* vp,
       const editor::data_context& dctx,
@@ -108,8 +62,14 @@ namespace yave::wm {
           if (!wm.exists(state.last_pressed_window))
             reset_click_state();
 
+        // no event to process
+        if (!io.mouse_button_event(button).has_value())
+          continue;
+
+        auto event = *io.mouse_button_event(button);
+
         // mouse press
-        if (state.delta_state == mouse_button_delta_state::press) {
+        if (event == mouse_button_event::press) {
           auto e =
             std::make_unique<wm::events::mouse_press>(button, io.mouse_pos());
           auto d = wm::mouse_press_dispatcher(
@@ -148,17 +108,8 @@ namespace yave::wm {
           }
         }
 
-        // mouse repeat
-        if (state.delta_state == mouse_button_delta_state::repeat) {
-          auto e =
-            std::make_unique<wm::events::mouse_repeat>(button, io.mouse_pos());
-          auto d = wm::mouse_repeat_dispatcher(
-            std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
-          d.dispatch(vp);
-        }
-
         // mouse release
-        if (state.delta_state == mouse_button_delta_state::release) {
+        if (event == mouse_button_event::release) {
           auto e =
             std::make_unique<wm::events::mouse_release>(button, io.mouse_pos());
           auto d = wm::mouse_release_dispatcher(
@@ -203,7 +154,6 @@ namespace yave::wm {
       const editor::data_context& dctx,
       const editor::view_context& vctx)
     {
-      update_states();
       do_dispatch(vp, dctx, vctx);
     }
   };

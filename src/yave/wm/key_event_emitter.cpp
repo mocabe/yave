@@ -12,18 +12,8 @@ namespace yave::wm {
 
   namespace {
 
-    enum class key_delta_state
-    {
-      idle    = 0, ///< up -> up
-      press   = 1, ///< up -> down
-      repeat  = 2, ///< down -> down
-      release = 3, ///< down -> up
-    };
-
     struct state_data
     {
-      key_state raw_state         = key_state::up;
-      key_delta_state delta_state = key_delta_state::idle;
     };
   } // namespace
 
@@ -41,62 +31,37 @@ namespace yave::wm {
     {
     }
 
-    void update_states()
-    {
-      for (int i = GLFW_KEY_SPACE; i < GLFW_KEY_LAST; ++i) {
-        auto& state   = states[i];
-        auto next_raw = io.key_state(static_cast<wm::key>(i));
-
-        // match/update delta state
-        auto t = [&](auto p, auto n, auto d) {
-          if (state.raw_state == p && next_raw == n)
-            state.delta_state = d;
-        };
-
-        t(key_state::up, key_state::up, key_delta_state::idle);
-        t(key_state::up, key_state::down, key_delta_state::press);
-        t(key_state::down, key_state::up, key_delta_state::release);
-        t(key_state::down, key_state::down, key_delta_state::repeat);
-
-        state.raw_state = next_raw;
-      }
-    }
-
     void dispatch_events(
       const editor::data_context& dctx,
       const editor::view_context& vctx)
     {
-      update_states();
-
       auto focus = wm.get_key_focus();
 
       if (!focus)
         return;
 
       for (int i = GLFW_KEY_SPACE; i < GLFW_KEY_LAST; ++i) {
-        auto& state = states[i];
-        auto key    = static_cast<wm::key>(i);
 
-        // key press
-        if (state.delta_state == key_delta_state::press) {
-          auto e = std::make_unique<wm::events::key_press>(key);
+        auto key = static_cast<wm::key>(i);
+
+        // no event to process
+        if (!io.key_event(key).has_value())
+          continue;
+
+        auto event = *io.key_event(key);
+
+        // key press/repeat
+        if (event == key_event::press || event == key_event::repeat) {
+          auto e = std::make_unique<wm::events::key_press>(key, event);
           auto d = wm::key_press_dispatcher(
             std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
           d.dispatch(focus);
         }
 
         // key release
-        if (state.delta_state == key_delta_state::release) {
+        if (event == key_event::release) {
           auto e = std::make_unique<wm::events::key_release>(key);
           auto d = wm::key_release_dispatcher(
-            std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
-          d.dispatch(focus);
-        }
-
-        // key repeat
-        if (state.delta_state == key_delta_state::repeat) {
-          auto e = std::make_unique<wm::events::key_repeat>(key);
-          auto d = wm::key_repeat_dispatcher(
             std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
           d.dispatch(focus);
         }

@@ -176,15 +176,23 @@ namespace yave::wm {
 
     class key_press final : public key_event
     {
+      wm::key_event m_event;
+
     public:
-      key_press(wm::key key)
+      key_press(wm::key key, wm::key_event event)
         : key_event(key)
+        , m_event {event}
       {
       }
 
       auto& key() const
       {
         return m_key;
+      }
+
+      bool is_repeat() const
+      {
+        return m_event == wm::key_event::repeat;
       }
     };
 
@@ -192,20 +200,6 @@ namespace yave::wm {
     {
     public:
       key_release(wm::key key)
-        : key_event(key)
-      {
-      }
-
-      auto& key() const
-      {
-        return m_key;
-      }
-    };
-
-    class key_repeat final : public key_event
-    {
-    public:
-      key_repeat(wm::key key)
         : key_event(key)
       {
       }
@@ -254,10 +248,6 @@ namespace yave::wm {
 
   using key_release_dispatcher = composed_event_dispatcher<
     key_event_visitor<events::key_release>,
-    dfs_traverser_reverse_pre>;
-
-  using key_repeat_dispatcher = composed_event_dispatcher<
-    key_event_visitor<events::key_repeat>,
     dfs_traverser_reverse_pre>;
 
   using key_char_dispatcher = composed_event_dispatcher<

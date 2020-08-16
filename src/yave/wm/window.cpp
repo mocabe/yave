@@ -89,7 +89,6 @@ namespace yave::wm {
 
     YAVE_WM_DISPATCH_EVENT(key_press, data_ctx, view_ctx);
     YAVE_WM_DISPATCH_EVENT(key_release, data_ctx, view_ctx);
-    YAVE_WM_DISPATCH_EVENT(key_repeat, data_ctx, view_ctx);
     YAVE_WM_DISPATCH_EVENT(key_char, data_ctx, view_ctx);
 
     on_custom_event(e, data_ctx, view_ctx);
@@ -153,13 +152,6 @@ namespace yave::wm {
 
   void window::on_key_release(
     events::key_release&,
-    const editor::data_context&,
-    const editor::view_context&) const
-  {
-  }
-
-  void window::on_key_repeat(
-    events::key_repeat&,
     const editor::data_context&,
     const editor::view_context&) const
   {

@@ -30,7 +30,6 @@ namespace yave::wm::events {
   class mouse_hover;
   class key_press;
   class key_release;
-  class key_repeat;
   class key_char;
 } // namespace yave::wm::events
 
@@ -220,12 +219,6 @@ namespace yave::wm {
     /// key release
     virtual void on_key_release(
       wm::events::key_release& e,
-      const editor::data_context& data_ctx,
-      const editor::view_context& view_ctx) const;
-
-    /// key repeat
-    virtual void on_key_repeat(
-      wm::events::key_repeat& e,
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const;
 
