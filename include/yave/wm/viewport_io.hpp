@@ -53,6 +53,8 @@ namespace yave::wm {
     [[nodiscard]] auto key_modifiers(wm::key k) const -> wm::key_modifier_flags;
     /// Get text input
     [[nodiscard]] auto key_text() const -> std::u8string;
+    /// Get key name
+    [[nodiscard]] auto key_name(wm::key k) const -> std::u8string;
 
   public:
     /// Get current mouse position

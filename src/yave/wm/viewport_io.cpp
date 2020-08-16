@@ -329,6 +329,11 @@ namespace yave::wm {
     return m_pimpl->text;
   }
 
+  auto viewport_io::key_name(wm::key k) const -> std::u8string
+  {
+    return get_key_name(m_pimpl->glfw_win.glfw_ctx(), k);
+  }
+
   auto viewport_io::mouse_pos() const -> fvec2
   {
     return m_pimpl->cursor_pos;
