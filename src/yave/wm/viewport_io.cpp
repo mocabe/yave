@@ -203,10 +203,6 @@ namespace yave::wm {
       : glfw_win {win}
     {
       init_user_data();
-
-      // enable sticky mode
-      glfwSetInputMode(glfw_win.get(), GLFW_STICKY_KEYS, GLFW_TRUE);
-      glfwSetInputMode(glfw_win.get(), GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
     }
 
     ~impl() noexcept
@@ -221,7 +217,7 @@ namespace yave::wm {
       key_input_begin();
     }
 
-    auto get_event(wm::key k) -> std::optional<wm::key_event>
+    auto get_event(wm::key k) const -> std::optional<wm::key_event>
     {
       auto& s = key_states[static_cast<int>(k)];
 
@@ -237,7 +233,7 @@ namespace yave::wm {
       unreachable();
     }
 
-    auto get_state(wm::key k) -> wm::key_state
+    auto get_state(wm::key k) const -> wm::key_state
     {
       auto& s = key_states[static_cast<int>(k)];
 
@@ -249,13 +245,14 @@ namespace yave::wm {
       unreachable();
     }
 
-    auto get_modifiers(wm::key k) -> wm::key_modifier_flags
+    auto get_modifiers(wm::key k) const -> wm::key_modifier_flags
     {
       auto& s = key_states[static_cast<int>(k)];
       return static_cast<wm::key_modifier_flags>(s.modifiers);
     }
 
-    auto get_event(mouse_button b) -> std::optional<wm::mouse_button_event>
+    auto get_event(mouse_button b) const
+      -> std::optional<wm::mouse_button_event>
     {
       auto& s = button_states[static_cast<int>(b)];
 
@@ -270,7 +267,7 @@ namespace yave::wm {
       unreachable();
     }
 
-    auto get_state(wm::mouse_button b) -> wm::mouse_button_state
+    auto get_state(wm::mouse_button b) const -> wm::mouse_button_state
     {
       auto& s = button_states[static_cast<int>(b)];
 
