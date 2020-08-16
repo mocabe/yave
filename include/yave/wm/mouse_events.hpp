@@ -121,10 +121,18 @@ namespace yave::wm {
 
     class mouse_hover final : public mouse_event
     {
+      fvec2 m_delta;
+
     public:
-      mouse_hover(fvec2 pos)
+      mouse_hover(fvec2 pos, fvec2 delta)
         : mouse_event {{}, pos}
+        , m_delta {delta}
       {
+      }
+
+      auto& delta() const
+      {
+        return m_delta;
       }
     };
 

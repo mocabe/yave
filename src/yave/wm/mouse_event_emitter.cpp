@@ -142,7 +142,8 @@ namespace yave::wm {
 
       // mouse hover
       if (io.window().hovered()) {
-        auto e = std::make_unique<wm::events::mouse_hover>(io.mouse_pos());
+        auto e = std::make_unique<wm::events::mouse_hover>(
+          io.mouse_pos(), io.mouse_delta());
         auto d = wm::mouse_hover_dispatcher(
           std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
         d.dispatch(vp);
