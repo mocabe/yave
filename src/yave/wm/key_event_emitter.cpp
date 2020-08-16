@@ -52,8 +52,9 @@ namespace yave::wm {
 
         // key press/repeat
         if (event == key_event::press || event == key_event::repeat) {
-          auto e = std::make_unique<wm::events::key_press>(key, event);
-          auto d = wm::key_press_dispatcher(
+          auto mods = io.key_modifiers(key);
+          auto e    = std::make_unique<wm::events::key_press>(key, event, mods);
+          auto d    = wm::key_press_dispatcher(
             std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
           d.dispatch(focus);
         }

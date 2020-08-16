@@ -9,6 +9,7 @@
 #include <yave/wm/event_dispatcher.hpp>
 #include <yave/wm/window_traverser.hpp>
 #include <yave/lib/glfw/glfw_context.hpp>
+#include <yave/support/enum_flag.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -141,6 +142,18 @@ namespace yave::wm {
     menu          = GLFW_KEY_MENU,
   };
 
+  /// key modifier
+  enum class key_modifier_flags : int
+  {
+    none      = 0,
+    shift     = GLFW_MOD_SHIFT,
+    control   = GLFW_MOD_CONTROL,
+    alt       = GLFW_MOD_ALT,
+    super     = GLFW_MOD_SUPER,
+    caps_lock = GLFW_MOD_CAPS_LOCK,
+    num_lock  = GLFW_MOD_NUM_LOCK,
+  };
+
   /// key state
   enum class key_state
   {
@@ -177,11 +190,13 @@ namespace yave::wm {
     class key_press final : public key_event
     {
       wm::key_event m_event;
+      wm::key_modifier_flags m_mods;
 
     public:
-      key_press(wm::key key, wm::key_event event)
+      key_press(wm::key key, wm::key_event event, wm::key_modifier_flags mods)
         : key_event(key)
         , m_event {event}
+        , m_mods{mods}
       {
       }
 
@@ -190,10 +205,17 @@ namespace yave::wm {
         return m_key;
       }
 
-      bool is_repeat() const
+      auto& modifiers() const
+      {
+        return m_mods;
+      }
+
+      [[nodiscard]] bool is_repeat() const
       {
         return m_event == wm::key_event::repeat;
       }
+
+      [[nodiscard]] bool test_modifiers(wm::key_modifier_flags mods);
     };
 
     class key_release final : public key_event
@@ -255,3 +277,5 @@ namespace yave::wm {
     dfs_traverser_reverse_pre>;
 
 } // namespace yave::wm
+
+YAVE_DECL_ENUM_FLAG(yave::wm::key_modifier_flags);

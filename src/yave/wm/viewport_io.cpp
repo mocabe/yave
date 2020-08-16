@@ -25,7 +25,14 @@ namespace yave::wm {
     struct key_state_data
     {
       int state                = GLFW_RELEASE;
+      int modifiers            = 0;
       std::optional<int> event = std::nullopt;
+    };
+
+    struct key_event_data
+    {
+      int action    = 0;
+      int modifiers = 0;
     };
 
   } // namespace
@@ -42,7 +49,7 @@ namespace yave::wm {
     std::array<key_state_data, GLFW_KEY_LAST> key_states                = {};
     // IO event queue
     std::array<std::vector<int>, GLFW_MOUSE_BUTTON_LAST> button_events = {};
-    std::array<std::vector<int>, GLFW_KEY_LAST> key_events             = {};
+    std::array<std::vector<key_event_data>, GLFW_KEY_LAST> key_events  = {};
     // cursor
     fvec2 cursor_pos;
     fvec2 cursor_delta;
@@ -86,7 +93,7 @@ namespace yave::wm {
       int key,
       int /*scancode*/,
       int action,
-      int /*mods*/)
+      int mods)
     {
       auto _this = get_this(window);
 
@@ -94,7 +101,8 @@ namespace yave::wm {
         case GLFW_RELEASE:
         case GLFW_PRESS:
         case GLFW_REPEAT:
-          _this->key_events[key].push_back(action);
+          _this->key_events[key].push_back(
+            {.action = action, .modifiers = mods});
           return;
       }
       unreachable();
@@ -152,10 +160,11 @@ namespace yave::wm {
           auto e = events.front();
           events.erase(events.begin());
           // set event
-          state.event = e;
+          state.event     = e.action;
+          state.modifiers = e.modifiers;
           // update state (ignore auto repeat)
-          if (e != GLFW_REPEAT && state.state != e) {
-            state.state = e;
+          if (e.action != GLFW_REPEAT && state.state != e.action) {
+            state.state = e.action;
           }
         } else
           // no event to process
@@ -240,6 +249,12 @@ namespace yave::wm {
       unreachable();
     }
 
+    auto get_modifiers(wm::key k) -> wm::key_modifier_flags
+    {
+      auto& s = key_states[static_cast<int>(k)];
+      return static_cast<wm::key_modifier_flags>(s.modifiers);
+    }
+
     auto get_event(mouse_button b) -> std::optional<wm::mouse_button_event>
     {
       auto& s = button_states[static_cast<int>(b)];
@@ -300,6 +315,11 @@ namespace yave::wm {
   auto viewport_io::key_state(wm::key k) const -> wm::key_state
   {
     return m_pimpl->get_state(k);
+  }
+
+  auto viewport_io::key_modifiers(wm::key k) const -> wm::key_modifier_flags
+  {
+    return m_pimpl->get_modifiers(k);
   }
 
   auto viewport_io::key_event(wm::key k) const -> std::optional<wm::key_event>

@@ -7,6 +7,11 @@
 
 namespace yave::wm {
 
+  bool events::key_press::test_modifiers(wm::key_modifier_flags mods)
+  {
+    return !!(m_mods & mods);
+  }
+
   auto get_key_name(const glfw::glfw_context&, wm::key key) -> std::u8string
   {
     if (auto name = (const char8_t*)glfwGetKeyName(static_cast<int>(key), 0))
