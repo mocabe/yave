@@ -17,11 +17,12 @@ namespace yave::wm {
   /// root window
   class root_window final : public window
   {
+    friend class window_manager;
+
     // last update time
     std::chrono::high_resolution_clock::time_point m_last_update;
 
-  public:
-    /// ctor
+    /// friend ctor (cannot use std::make_unique for this!)
     root_window(window_manager& wm);
 
   public:
@@ -36,6 +37,9 @@ namespace yave::wm {
     void exec(editor::data_context&, editor::view_context&);
 
   public:
+    /// list viewports
+    auto viewports() const -> std::vector<const viewport_window*>;
+    auto viewports() -> std::vector<viewport_window*>;
     /// add viewport
     auto add_viewport(std::unique_ptr<viewport_window>&& win)
       -> viewport_window*;

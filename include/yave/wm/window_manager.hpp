@@ -8,9 +8,11 @@
 #include <yave/wm/window.hpp>
 #include <yave/wm/event_dispatcher.hpp>
 #include <yave/wm/window_traverser.hpp>
-#include <yave/wm/root_window.hpp>
 
 namespace yave::wm {
+
+  class root_window;
+  class viewport_window;
 
   /// Window mamanger class
   class window_manager
@@ -37,6 +39,10 @@ namespace yave::wm {
     [[nodiscard]] auto get_window(uid id) const -> const window*;
     /// find window from ID
     [[nodiscard]] auto get_window(uid id) -> window*;
+    /// get parent viewport
+    [[nodiscard]] auto get_viewport(uid id) const -> const viewport_window*;
+    /// get parent viewport
+    [[nodiscard]] auto get_viewport(uid id) -> viewport_window*;
 
   public:
     /// calc screen pos of window

@@ -5,6 +5,7 @@
 
 #include <yave/wm/window_manager.hpp>
 #include <yave/wm/root_window.hpp>
+#include <yave/wm/viewport_window.hpp> 
 
 #include <yave/support/log.hpp>
 #include <tl/optional.hpp>
@@ -27,17 +28,11 @@ namespace yave::wm {
     uid key_focus;
 
   public:
-    void init()
-    {
-      // init root window
-      root_win = std::make_unique<root_window>(wm);
-    }
-
     impl(wm::window_manager& wmngr)
       : wm {wmngr}
+      , root_win {new root_window(wm)}
     {
       init_logger();
-      init();
     }
 
   public:
@@ -63,6 +58,27 @@ namespace yave::wm {
       };
 
       return fix_lambda(rec)(root_win.get());
+    }
+
+    auto get_viewport(uid id) -> viewport_window*
+    {
+      auto rec = [id](auto&& self, window* w) -> bool {
+        if (w->id() == id)
+          return true;
+
+        for (auto&& c : w->children()) {
+          auto cw = w->as_mut_child(c);
+          if (self(cw))
+            return true;
+        }
+        return false;
+      };
+
+      for (auto&& vp : root_win->viewports()) {
+        if (fix_lambda(rec)(vp))
+          return vp;
+      }
+      return nullptr;
     }
 
     bool exists(uid id)
@@ -171,6 +187,16 @@ namespace yave::wm {
   auto window_manager::get_window(uid id) const -> const window*
   {
     return m_pimpl->get_window(id);
+  }
+
+  auto window_manager::get_viewport(uid id) const -> const viewport_window*
+  {
+    return m_pimpl->get_viewport(id);
+  }
+
+  auto window_manager::get_viewport(uid id) -> viewport_window*
+  {
+    return m_pimpl->get_viewport(id);
   }
 
   auto window_manager::screen_pos(const window* win) const -> fvec2

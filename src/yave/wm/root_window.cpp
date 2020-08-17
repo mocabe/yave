@@ -7,14 +7,18 @@
 
 #include <chrono>
 #include <thread>
+#include <range/v3/algorithm.hpp>
+#include <range/v3/view.hpp>
 
 namespace yave::wm {
+
+  namespace rs = ranges;
+  namespace rv = ranges::views;
 
   constexpr auto fmax = std::numeric_limits<float>::max();
 
   root_window::root_window(window_manager& wm)
     : window(
-      &wm,
       "wm::root_window",
       // virtual screen origin
       fvec2 {0, 0},
@@ -90,6 +94,24 @@ namespace yave::wm {
     for (auto&& c : children()) {
       static_cast<viewport_window*>(as_mut_child(c))->exec(dctx, vctx);
     }
+  }
+
+  auto root_window::viewports() const -> std::vector<const viewport_window*>
+  {
+    return children() //
+           | rv::transform([](auto&& c) {
+               return static_cast<const viewport_window*>(c.get());
+             })
+           | rs::to_vector;
+  }
+
+  auto root_window::viewports() -> std::vector<viewport_window*>
+  {
+    return children() //
+           | rv::transform([&](auto&& c) {
+               return static_cast<viewport_window*>(as_mut_child(c));
+             })
+           | rs::to_vector;
   }
 
   auto root_window::add_viewport(std::unique_ptr<viewport_window>&& win)
