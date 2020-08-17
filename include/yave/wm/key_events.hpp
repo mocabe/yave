@@ -196,7 +196,7 @@ namespace yave::wm {
       key_press(wm::key key, wm::key_event event, wm::key_modifier_flags mods)
         : key_event(key)
         , m_event {event}
-        , m_mods{mods}
+        , m_mods {mods}
       {
       }
 
@@ -210,12 +210,20 @@ namespace yave::wm {
         return m_mods;
       }
 
+      /// auto repeat
       [[nodiscard]] bool is_repeat() const
       {
         return m_event == wm::key_event::repeat;
       }
 
-      [[nodiscard]] bool test_modifiers(wm::key_modifier_flags mods);
+      /// test modifiers
+      [[nodiscard]] bool test_modifiers(wm::key_modifier_flags mods) const;
+      [[nodiscard]] bool shift() const;
+      [[nodiscard]] bool control() const;
+      [[nodiscard]] bool alt() const;
+      [[nodiscard]] bool super() const;
+      [[nodiscard]] bool caps_lock() const;
+      [[nodiscard]] bool num_lock() const;
     };
 
     class key_release final : public key_event
@@ -278,4 +286,4 @@ namespace yave::wm {
 
 } // namespace yave::wm
 
-YAVE_DECL_ENUM_FLAG(yave::wm::key_modifier_flags);
+YAVE_DECL_ENUM_FLAG(yave::wm::key_modifier_flags)
