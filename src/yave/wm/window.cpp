@@ -16,7 +16,6 @@ namespace yave::wm {
   window::window(std::string name, fvec2 pos, fvec2 size)
     : m_id {uid::random_generate()}
     , m_parent {nullptr}
-    , m_wm {nullptr}
     , m_children {}
     , m_name {std::move(name)}
     , m_pos {pos}
@@ -29,20 +28,12 @@ namespace yave::wm {
   {
   }
 
-  window::window(window_manager* wm, std::string name, fvec2 pos, fvec2 size)
-    : window(name, pos, size)
-  {
-    m_wm = wm;
-  }
-
   window::~window() noexcept = default;
 
   void window::add_any_window(size_t idx, std::unique_ptr<window>&& win)
   {
     assert(!win->m_parent);
-    assert(!win->m_wm);
     win->m_parent = this;
-    win->m_wm     = m_wm;
 
     auto& ws = m_children;
     auto it  = ws.begin();
@@ -54,14 +45,18 @@ namespace yave::wm {
   {
     auto& ws = m_children;
 
+    std::unique_ptr<window> ret;
+
     auto it = std::remove_if(
       ws.begin(), ws.end(), [&](auto& p) { return p->id() == id; });
 
-    assert(std::distance(it, ws.end()) < 2);
+    if (it != ws.end()) {
+      ret.reset(const_cast<window*>(it->release()));
+      ret->m_parent = nullptr;
+    }
 
-    auto ret = const_cast<window*>(it->release());
     ws.erase(it, ws.end());
-    return std::unique_ptr<window>(ret);
+    return ret;
   }
 
   void window::remove_any_window(uid id)

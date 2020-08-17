@@ -45,8 +45,6 @@ namespace yave::wm {
     uid m_id;
     /// pointer to parent
     window* m_parent;
-    /// window manager
-    window_manager* m_wm;
     /// child windows
     std::vector<std::unique_ptr<const window>> m_children;
     /// name
@@ -61,11 +59,6 @@ namespace yave::wm {
     window(std::string name, fvec2 pos, fvec2 size);
     /// dtor
     virtual ~window() noexcept;
-
-  private:
-    // root_window is special
-    friend class root_window;
-    window(window_manager* wm, std::string name, fvec2 pos, fvec2 size);
 
   protected:
     /// utility function to add new window
