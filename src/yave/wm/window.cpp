@@ -6,7 +6,7 @@
 #include <yave/wm/window.hpp>
 #include <yave/wm/mouse_events.hpp>
 #include <yave/wm/key_events.hpp>
-#include <yave/wm/system_events.hpp>
+#include <yave/wm/viewport_events.hpp>
 
 #include <algorithm>
 #include <iterator>
@@ -100,6 +100,13 @@ namespace yave::wm {
     wm::events::move&,
     const editor::data_context&,
     const editor::view_context&) const
+  {
+  }
+
+  void window::on_draw(
+    wm::events::draw& e,
+    const editor::data_context& data_ctx,
+    const editor::view_context& view_ctx) const
   {
   }
 

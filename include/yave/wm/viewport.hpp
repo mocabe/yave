@@ -11,8 +11,8 @@
 #include <yave/wm/mouse_event_emitter.hpp>
 #include <yave/wm/key_event_emitter.hpp>
 #include <yave/wm/window_manager.hpp>
+#include <yave/wm/viewport_events.hpp>
 
-#include <yave/wm/system_events.hpp>
 #include <iostream>
 
 namespace yave::wm {
@@ -34,6 +34,7 @@ namespace yave::wm {
 
     void _emit_viewport_events(editor::data_context&, editor::view_context&);
     void _emit_io_events(editor::data_context&, editor::view_context&);
+    void _emit_draw_events(editor::data_context&, editor::view_context&);
 
   public:
     viewport(wm::window_manager& wn, glfw::glfw_window&& win);
@@ -78,6 +79,10 @@ namespace yave::wm {
       const editor::view_context& view_ctx) const override;
     void on_move(
       wm::events::move& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const override;
+    void on_draw(
+      wm::events::draw& e,
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const override;
     void on_mouse_click(

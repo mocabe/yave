@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/wm/system_events.hpp>
+#include <yave/wm/viewport_events.hpp>
 #include <yave/editor/view_context.hpp>
 
 namespace yave::wm {

@@ -8,7 +8,8 @@ add_library(yave-wm
   event_dispatcher.cpp
   key_events.cpp
   mouse_events.cpp
-  system_events.cpp
+  viewoprt_events.cpp
+  draw_event.cpp
   viewport_io.cpp
   mouse_event_emitter.cpp
   key_event_emitter.cpp

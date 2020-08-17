@@ -23,6 +23,7 @@ namespace yave::editor {
 namespace yave::wm::events {
   class resize;
   class move;
+  class draw;
   class mouse_click;
   class mouse_double_click;
   class mouse_press;
@@ -170,6 +171,12 @@ namespace yave::wm {
     /// move
     virtual void on_move(
       wm::events::move& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// draw
+    virtual void on_draw(
+      wm::events::draw& e,
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const;
 

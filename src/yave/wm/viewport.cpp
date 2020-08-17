@@ -5,7 +5,8 @@
 
 #include <yave/wm/viewport.hpp>
 #include <yave/wm/window_traverser.hpp>
-#include <yave/wm/system_events.hpp>
+#include <yave/wm/viewport_events.hpp>
+#include <yave/wm/draw_event.hpp>
 
 #include <yave/editor/data_context.hpp>
 #include <yave/editor/view_context.hpp>
@@ -52,6 +53,14 @@ namespace yave::wm {
     m_io.update();
     m_key_event_emitter.dispatch_events(this, dctx, vctx);
     m_mouse_event_emitter.dispatch_events(this, dctx, vctx);
+  }
+
+  void viewport::_emit_draw_events(
+    editor::data_context& dctx,
+    editor::view_context& vctx)
+  {
+    auto d = draw_event_dispatcher(dctx, vctx);
+    d.dispatch(this);
   }
 
   viewport::viewport(wm::window_manager& wm, glfw::glfw_window&& win)
@@ -129,12 +138,8 @@ namespace yave::wm {
 
   void viewport::exec(editor::data_context& dctx, editor::view_context& vctx)
   {
-    // update stage
     update(dctx, vctx);
-    // draw stage
-    draw(dctx, vctx);
-    // event handling stage
-    m_win.glfw_ctx().poll_events();
+    _emit_draw_events(dctx, vctx);
     _emit_viewport_events(dctx, vctx);
     _emit_io_events(dctx, vctx);
   }
@@ -150,10 +155,8 @@ namespace yave::wm {
     const editor::data_context& dctx,
     const editor::view_context& vctx) const
   {
-    for (auto&& c : children()) {
-      c->draw(dctx, vctx);
+    assert(false);
     }
-  }
 
   void viewport::on_resize(
     wm::events::resize& e,
@@ -184,6 +187,14 @@ namespace yave::wm {
     Info(g_logger, "[move] {},{}", e.pos().x, e.pos().y);
   }
 
+  void viewport::on_draw(
+    wm::events::draw& e,
+    const editor::data_context& data_ctx,
+    const editor::view_context& view_ctx) const
+  {
+    Info(g_logger, "{}, {}", to_string(e.clip_pos()), to_string(e.clip_ext()));
+  }
+
   void viewport::on_mouse_click(
     wm::events::mouse_click& e,
     const editor::data_context& data_ctx,
@@ -192,6 +203,7 @@ namespace yave::wm {
     e.accept();
     Info(g_logger, "[click] {},{}", e.pos().x, e.pos().y);
   }
+
   void viewport::on_mouse_double_click(
     wm::events::mouse_double_click& e,
     const editor::data_context& data_ctx,
