@@ -14,8 +14,8 @@ namespace yave::wm {
 
     struct clip_rect
     {
-      fvec2 pos;
-      fvec2 ext;
+      glm::vec2 pos;
+      glm::vec2 ext;
     };
   } // namespace
 
@@ -29,7 +29,7 @@ namespace yave::wm {
     // clip rect pos
     std::vector<clip_rect> clip_stack;
     // window pos stack
-    std::vector<fvec2> pos_stack;
+    std::vector<glm::vec2> pos_stack;
 
   public:
     impl(const editor::data_context& dctx, const editor::view_context& vctx)

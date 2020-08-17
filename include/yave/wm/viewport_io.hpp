@@ -58,9 +58,9 @@ namespace yave::wm {
 
   public:
     /// Get current mouse position
-    [[nodiscard]] auto mouse_pos() const -> fvec2;
+    [[nodiscard]] auto mouse_pos() const -> glm::vec2;
     /// Get mouse delta
-    [[nodiscard]] auto mouse_delta() const -> fvec2;
+    [[nodiscard]] auto mouse_delta() const -> glm::vec2;
   };
 
 } // namespace yave::wm

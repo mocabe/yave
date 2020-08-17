@@ -16,13 +16,13 @@ namespace yave::wm {
     /// draw event
     class draw final : public event
     {
-      fvec2 m_clip_pos, m_clip_ext;
+      glm::vec2 m_clip_pos, m_clip_ext;
 
       using event::accept;
       using event::accepted;
 
     public:
-      draw(fvec2 clip_pos, fvec2 clip_ext)
+      draw(glm::vec2 clip_pos, glm::vec2 clip_ext)
         : event::event()
         , m_clip_pos {clip_pos}
         , m_clip_ext {clip_ext}

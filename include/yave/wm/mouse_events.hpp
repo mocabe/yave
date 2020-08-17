@@ -51,7 +51,7 @@ namespace yave::wm {
     class mouse_event : public event
     {
     public:
-      mouse_event(mouse_button button, fvec2 pos)
+      mouse_event(mouse_button button, glm::vec2 pos)
         : m_button {button}
         , m_pos {pos}
       {
@@ -71,13 +71,13 @@ namespace yave::wm {
 
     protected:
       mouse_button m_button;
-      fvec2 m_pos;
+      glm::vec2 m_pos;
     };
 
     class mouse_click final : public mouse_event
     {
     public:
-      mouse_click(mouse_button button, fvec2 pos)
+      mouse_click(mouse_button button, glm::vec2 pos)
         : mouse_event {button, pos}
       {
       }
@@ -86,7 +86,7 @@ namespace yave::wm {
     class mouse_double_click final : public mouse_event
     {
     public:
-      mouse_double_click(mouse_button button, fvec2 pos)
+      mouse_double_click(mouse_button button, glm::vec2 pos)
         : mouse_event {button, pos}
       {
       }
@@ -95,7 +95,7 @@ namespace yave::wm {
     class mouse_press final : public mouse_event
     {
     public:
-      mouse_press(mouse_button button, fvec2 pos)
+      mouse_press(mouse_button button, glm::vec2 pos)
         : mouse_event {button, pos}
       {
       }
@@ -104,7 +104,7 @@ namespace yave::wm {
     class mouse_release final : public mouse_event
     {
     public:
-      mouse_release(mouse_button button, fvec2 pos)
+      mouse_release(mouse_button button, glm::vec2 pos)
         : mouse_event {button, pos}
       {
       }
@@ -113,7 +113,7 @@ namespace yave::wm {
     class mouse_repeat final : public mouse_event
     {
     public:
-      mouse_repeat(mouse_button button, fvec2 pos)
+      mouse_repeat(mouse_button button, glm::vec2 pos)
         : mouse_event {button, pos}
       {
       }
@@ -121,10 +121,10 @@ namespace yave::wm {
 
     class mouse_hover final : public mouse_event
     {
-      fvec2 m_delta;
+      glm::vec2 m_delta;
 
     public:
-      mouse_hover(fvec2 pos, fvec2 delta)
+      mouse_hover(glm::vec2 pos, glm::vec2 delta)
         : mouse_event {{}, pos}
         , m_delta {delta}
       {

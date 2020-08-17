@@ -51,8 +51,8 @@ namespace yave::wm {
     std::array<std::vector<int>, GLFW_MOUSE_BUTTON_LAST> button_events = {};
     std::array<std::vector<key_event_data>, GLFW_KEY_LAST> key_events  = {};
     // cursor
-    fvec2 cursor_pos;
-    fvec2 cursor_delta;
+    glm::vec2 cursor_pos;
+    glm::vec2 cursor_delta;
     // text input
     std::u32string char_buff;
     std::u8string text;
@@ -143,7 +143,7 @@ namespace yave::wm {
       double x, y;
       glfwGetCursorPos(glfw_win.get(), &x, &y);
       // convert to virtual viewport coordinate
-      auto pos     = fvec2(x, y) + fvec2(glfw_win.pos());
+      auto pos     = glm::vec2(x, y) + glm::vec2(glfw_win.pos());
       cursor_delta = pos - cursor_pos;
       cursor_pos   = pos;
     }
@@ -334,12 +334,12 @@ namespace yave::wm {
     return get_key_name(m_pimpl->glfw_win.glfw_ctx(), k);
   }
 
-  auto viewport_io::mouse_pos() const -> fvec2
+  auto viewport_io::mouse_pos() const -> glm::vec2
   {
     return m_pimpl->cursor_pos;
   }
 
-  auto viewport_io::mouse_delta() const -> fvec2
+  auto viewport_io::mouse_delta() const -> glm::vec2
   {
     return m_pimpl->cursor_delta;
   }

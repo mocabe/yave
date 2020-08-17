@@ -6,9 +6,9 @@
 #pragma once
 
 #include <yave/wm/event.hpp>
-#include <yave/lib/vec/vec.hpp>
 #include <yave/support/id.hpp>
 
+#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 #include <typeinfo>
@@ -51,13 +51,13 @@ namespace yave::wm {
     /// name
     std::string m_name;
     /// window size
-    fvec2 m_pos, m_size;
+    glm::vec2 m_pos, m_size;
 
   public:
     /// ctor (legacy)
     window(std::string name);
     /// ctor
-    window(std::string name, fvec2 pos, fvec2 size);
+    window(std::string name, glm::vec2 pos, glm::vec2 size);
     /// dtor
     virtual ~window() noexcept;
 
@@ -126,12 +126,12 @@ namespace yave::wm {
       m_name = std::move(name);
     }
 
-    void set_pos(fvec2 pos)
+    void set_pos(glm::vec2 pos)
     {
       m_pos = pos;
     }
 
-    void set_size(fvec2 size)
+    void set_size(glm::vec2 size)
     {
       m_size = size;
     }

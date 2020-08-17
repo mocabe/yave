@@ -13,7 +13,7 @@
 
 namespace yave::wm {
 
-  window::window(std::string name, fvec2 pos, fvec2 size)
+  window::window(std::string name, glm::vec2 pos, glm::vec2 size)
     : m_id {uid::random_generate()}
     , m_parent {nullptr}
     , m_children {}
@@ -24,7 +24,7 @@ namespace yave::wm {
   }
 
   window::window(std::string name)
-    : window(name, fvec2(), fvec2())
+    : window(name, glm::vec2(), glm::vec2())
   {
   }
 

@@ -23,7 +23,7 @@ namespace yave::wm {
     // viewport resize
     {
       auto old_size = size();
-      auto new_size = fvec2(m_win.size());
+      auto new_size = glm::vec2(m_win.size());
       if (old_size != new_size) {
         auto e = std::make_unique<events::resize>(new_size);
         auto d = resize_event_dispatcher(
@@ -35,7 +35,7 @@ namespace yave::wm {
     // viewport move
     {
       auto old_pos = pos();
-      auto new_pos = fvec2(m_win.pos());
+      auto new_pos = glm::vec2(m_win.pos());
       if (old_pos != new_pos) {
         auto e = std::make_unique<events::move>(new_pos);
         auto d = move_event_dispatcher(
@@ -171,7 +171,6 @@ namespace yave::wm {
       c->on_resize(e, data_ctx, view_ctx);
     }
 
-    e.accept();
     Info(g_logger, "[resize] {},{}", e.size().x, e.size().y);
   }
 
@@ -183,7 +182,6 @@ namespace yave::wm {
     view_ctx.push(editor::make_window_view_command(
       *this, [pos = e.pos()](auto&& w) { w.set_pos(pos); }));
 
-    e.accept();
     Info(g_logger, "[move] {},{}", e.pos().x, e.pos().y);
   }
 

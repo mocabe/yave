@@ -21,9 +21,9 @@ namespace yave::wm {
     : window(
       "wm::root_window",
       // virtual screen origin
-      fvec2 {0, 0},
+      glm::vec2 {0, 0},
       // infinitely large area
-      fvec2 {fmax, fmax})
+      glm::vec2 {fmax, fmax})
   {
   }
 

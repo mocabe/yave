@@ -87,13 +87,13 @@ namespace yave::wm {
     }
 
   public:
-    auto screen_pos(const window* win) -> fvec2
+    auto screen_pos(const window* win) -> glm::vec2
     {
       assert(exists(win->id()));
 
       const window* w = win;
 
-      fvec2 p = w->pos();
+      glm::vec2 p = w->pos();
 
       while ((w = w->parent()))
         p += w->pos();
@@ -101,15 +101,15 @@ namespace yave::wm {
       return p;
     }
 
-    bool intersects(const window* win, const fvec2& pos)
+    bool intersects(const window* win, const glm::vec2& pos)
     {
       assert(exists(win->id()));
 
       // check if spos is inside of bbox of all prents
-      auto rec = [&](auto&& self, const window* w) -> tl::optional<fvec2> {
+      auto rec = [&](auto&& self, const window* w) -> tl::optional<glm::vec2> {
         if (w->parent()) {
           return self(w->parent())
-            .and_then([&](auto ppos) -> tl::optional<fvec2> {
+            .and_then([&](auto ppos) -> tl::optional<glm::vec2> {
               auto p1 = ppos + w->pos();
               auto p2 = p1 + w->size();
               // bbox check
@@ -121,7 +121,7 @@ namespace yave::wm {
             });
         }
         // root window
-        return tl::make_optional(fvec2 {0, 0});
+        return tl::make_optional(glm::vec2 {0, 0});
       };
 
       return fix_lambda(rec)(win).has_value();
@@ -199,12 +199,12 @@ namespace yave::wm {
     return m_pimpl->get_viewport(id);
   }
 
-  auto window_manager::screen_pos(const window* win) const -> fvec2
+  auto window_manager::screen_pos(const window* win) const -> glm::vec2
   {
     return m_pimpl->screen_pos(win);
   }
 
-  bool window_manager::intersects(const window* win, const fvec2& pos) const
+  bool window_manager::intersects(const window* win, const glm::vec2& pos) const
   {
     return m_pimpl->intersects(win, pos);
   }

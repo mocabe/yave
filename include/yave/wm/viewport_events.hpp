@@ -25,10 +25,13 @@ namespace yave::wm {
     class resize final : public event
     {
       // new size
-      fvec2 m_size;
+      glm::vec2 m_size;
+
+      using event::accept;
+      using event::accepted;
 
     public:
-      resize(const fvec2& size)
+      resize(const glm::vec2& size)
         : event::event()
         , m_size {size}
       {
@@ -46,10 +49,13 @@ namespace yave::wm {
     class move final : public event
     {
       // new relative pos
-      fvec2 m_pos;
+      glm::vec2 m_pos;
+
+      using event::accept;
+      using event::accepted;
 
     public:
-      move(const fvec2& pos)
+      move(const glm::vec2& pos)
         : event::event()
         , m_pos {pos}
       {
