@@ -5,7 +5,7 @@
 
 #include <yave/wm/window_manager.hpp>
 #include <yave/wm/root_window.hpp>
-#include <yave/wm/viewport_window.hpp> 
+#include <yave/wm/viewport_window.hpp>
 
 #include <yave/support/log.hpp>
 #include <tl/optional.hpp>
@@ -49,8 +49,7 @@ namespace yave::wm {
           return w;
 
         for (auto&& c : w->children()) {
-          auto cw = w->as_mut_child(c);
-          if (auto r = self(cw))
+          if (auto r = self(c))
             return r;
         }
 
@@ -67,8 +66,7 @@ namespace yave::wm {
           return true;
 
         for (auto&& c : w->children()) {
-          auto cw = w->as_mut_child(c);
-          if (self(cw))
+          if (self(c))
             return true;
         }
         return false;

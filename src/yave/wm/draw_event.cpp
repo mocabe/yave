@@ -41,10 +41,10 @@ namespace yave::wm {
     void dispatch(window* root)
     {
       auto rec = [&](auto&& self, const window* w) -> void {
-        // first window
+        // root window
         if (clip_stack.empty()) {
-          clip_stack.push_back({.pos = w->pos(), .ext = w->size()});
-          pos_stack.push_back(w->pos());
+          clip_stack.push_back({.pos = {0, 0}, .ext = w->size()});
+          pos_stack.push_back({0, 0});
         }
         // child window
         else {
@@ -57,12 +57,12 @@ namespace yave::wm {
         // event
         {
           auto e = events::draw(clip_stack.back().pos, clip_stack.back().ext);
-          w->on_draw(e, dctx, vctx);
+          w->event(e, dctx, vctx);
         }
 
         // children
         for (auto&& c : w->children()) {
-          self(c.get());
+          self(c);
         }
 
         pos_stack.pop_back();

@@ -28,7 +28,11 @@ namespace yave::wm {
   {
   }
 
-  window::~window() noexcept = default;
+  window::~window() noexcept
+  {
+    for (auto&& c : m_children)
+      delete c;
+  }
 
   void window::add_any_window(size_t idx, std::unique_ptr<window>&& win)
   {
@@ -38,7 +42,7 @@ namespace yave::wm {
     auto& ws = m_children;
     auto it  = ws.begin();
     std::advance(it, std::clamp(idx, size_t(0), ws.size()));
-    ws.emplace(it, std::move(win));
+    ws.emplace(it, win.release());
   }
 
   auto window::detach_any_window(uid id) -> std::unique_ptr<window>
@@ -51,7 +55,7 @@ namespace yave::wm {
       ws.begin(), ws.end(), [&](auto& p) { return p->id() == id; });
 
     if (it != ws.end()) {
-      ret.reset(const_cast<window*>(it->release()));
+      ret.reset(*it);
       ret->m_parent = nullptr;
     }
 

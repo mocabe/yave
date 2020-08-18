@@ -12,6 +12,7 @@
 #include <vector>
 #include <memory>
 #include <typeinfo>
+#include <span>
 
 // fwd
 namespace yave::editor {
@@ -44,10 +45,11 @@ namespace yave::wm {
   {
     /// unique id for this window
     uid m_id;
-    /// pointer to parent
+    /// non-owning pointer to parent
     window* m_parent;
-    /// child windows
-    std::vector<std::unique_ptr<const window>> m_children;
+    /// list of _owning_ children pointers
+    /// we can't use vector of unique_ptrs here to get std::span out of it
+    std::vector<window*> m_children;
     /// name
     std::string m_name;
     /// window size
@@ -83,17 +85,25 @@ namespace yave::wm {
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const = 0;
 
-  public:
-    /// get mutable child window pointer
-    auto as_mut_child(const std::unique_ptr<const window>& win)
-    {
-      return const_cast<window*>(win.get());
-    }
-
   public: /* public accessors */
-    auto parent() const -> window*
+    auto parent() const -> const window*
     {
       return m_parent;
+    }
+
+    auto parent() -> window*
+    {
+      return m_parent;
+    }
+
+    auto children() const -> std::span<const window* const>
+    {
+      return {m_children};
+    }
+
+    auto children() -> std::span<window* const>
+    {
+      return {m_children};
     }
 
     auto& id() const
@@ -104,11 +114,6 @@ namespace yave::wm {
     auto& name() const
     {
       return m_name;
-    }
-
-    auto& children() const
-    {
-      return m_children;
     }
 
     auto& pos() const

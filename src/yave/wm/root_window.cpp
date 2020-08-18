@@ -48,21 +48,20 @@ namespace yave::wm {
 
   void root_window::exec(editor::data_context& dctx, editor::view_context& vctx)
   {
-    auto& viewports = children();
-
     // remove closed windows
-    for (auto it = std::find_if(
-           viewports.begin(),
-           viewports.end(),
-           [](auto& c) {
-             return static_cast<const wm::viewport_window*>(c.get())
-               ->should_close();
-           });
-         it != viewports.end();) {
-      remove_any_window(it->get()->id());
+    for (;;) {
+      auto ws = children();
+      auto it = std::find_if(ws.begin(), ws.end(), [](auto& c) {
+        return static_cast<const wm::viewport_window*>(c)->should_close();
+      });
+
+      if (it == ws.end())
+        break;
+
+      remove_any_window((*it)->id());
     }
 
-    if (viewports.empty())
+    if (children().empty())
       return;
 
     // wait until next frame
@@ -70,10 +69,9 @@ namespace yave::wm {
       // get update rate
       // TODO: support per-viewport framerates
       uint32_t fps = 60;
-      for (auto&& c : viewports)
+      for (auto&& c : children())
         fps = std::max(
-          fps,
-          static_cast<const wm::viewport_window*>(c.get())->refresh_rate());
+          fps, static_cast<const wm::viewport_window*>(c)->refresh_rate());
 
       using namespace std::chrono_literals;
       auto end_time          = std::chrono::high_resolution_clock::now();
@@ -92,25 +90,23 @@ namespace yave::wm {
 
     // let viewports run its event loop
     for (auto&& c : children()) {
-      static_cast<viewport_window*>(as_mut_child(c))->exec(dctx, vctx);
+      static_cast<viewport_window*>(c)->exec(dctx, vctx);
     }
   }
 
   auto root_window::viewports() const -> std::vector<const viewport_window*>
   {
     return children() //
-           | rv::transform([](auto&& c) {
-               return static_cast<const viewport_window*>(c.get());
-             })
+           | rv::transform(
+             [](auto&& c) { return static_cast<const viewport_window*>(c); })
            | rs::to_vector;
   }
 
   auto root_window::viewports() -> std::vector<viewport_window*>
   {
     return children() //
-           | rv::transform([&](auto&& c) {
-               return static_cast<viewport_window*>(as_mut_child(c));
-             })
+           | rv::transform(
+             [&](auto&& c) { return static_cast<viewport_window*>(c); })
            | rs::to_vector;
   }
 

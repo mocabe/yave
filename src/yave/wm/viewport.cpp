@@ -115,7 +115,7 @@ namespace yave::wm {
     if (children().empty())
       return nullptr;
 
-    return static_cast<layout_window*>(as_mut_child(children().front()));
+    return static_cast<layout_window*>(children().front());
   }
 
   auto viewport::layout() const -> const layout_window*
@@ -123,7 +123,7 @@ namespace yave::wm {
     if (children().empty())
       return nullptr;
 
-    return static_cast<const layout_window*>(children().front().get());
+    return static_cast<const layout_window*>(children().front());
   }
 
   bool viewport::should_close() const
@@ -147,7 +147,7 @@ namespace yave::wm {
   void viewport::update(editor::data_context& dctx, editor::view_context& vctx)
   {
     for (auto&& c : children()) {
-      as_mut_child(c)->update(dctx, vctx);
+      c->update(dctx, vctx);
     }
   }
 
@@ -156,7 +156,7 @@ namespace yave::wm {
     const editor::view_context& vctx) const
   {
     assert(false);
-    }
+  }
 
   void viewport::on_resize(
     wm::events::resize& e,
