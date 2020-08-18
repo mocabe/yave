@@ -14,6 +14,13 @@ namespace yave::wm {
 
   namespace {
 
+    enum class click_state
+    {
+      idle    = 0,
+      pressed = 1,
+      clicked = 2,
+    };
+
     struct state_data
     {
       /// clicks: last pressed key
@@ -22,9 +29,8 @@ namespace yave::wm {
       uid last_pressed_window = {};
       /// clicks: last pressed time
       std::chrono::steady_clock::time_point last_pressed_time = {};
-      /// clicks: sequential press count on same widnow.
-      /// reset when double click event fired.
-      int click_count = 0;
+      /// clicks: current click state
+      click_state click_state = click_state::idle;
     };
   } // namespace
 
@@ -54,7 +60,7 @@ namespace yave::wm {
         auto reset_click_state = [&] {
           state.last_pressed_window = {};
           state.last_pressed_time   = {};
-          state.click_count         = 0;
+          state.click_state         = click_state::idle;
         };
 
         // invalid window id
@@ -70,83 +76,109 @@ namespace yave::wm {
 
         // mouse press
         if (event == mouse_button_event::press) {
-          auto e =
+          auto e_press =
             std::make_unique<wm::events::mouse_press>(button, io.mouse_pos());
-          auto d = wm::mouse_press_dispatcher(
-            std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
-          d.dispatch(vp);
+          auto d_press = wm::mouse_press_dispatcher(
+            std::forward_as_tuple(std::move(e_press), dctx, vctx),
+            std::tuple());
+          d_press.dispatch(vp);
 
           // update states
-          if (d.visitor().accepted()) {
-            auto wid = d.visitor().reciever()->id();
+          if (d_press.visitor().accepted()) {
+            auto wid = d_press.visitor().reciever()->id();
             auto now = std::chrono::steady_clock::now();
 
             assert(wid != uid());
 
             using namespace std::literals::chrono_literals;
 
-            state.click_count = 1;
+            auto start_new_click = [&]() {
+              state.last_pressed_window = wid;
+              state.last_pressed_time   = now;
+              state.click_state         = click_state::pressed;
+            };
 
-            if (state.last_pressed_window == wid) {
-              if (now - state.last_pressed_time < 500ms)
-                state.click_count = 2;
-            }
+            // idle
+            if (state.click_state == click_state::idle)
+              start_new_click();
 
-            state.last_pressed_window = wid;
-            state.last_pressed_time   = now;
+            // pressed
+            if (state.click_state == click_state::pressed)
+              start_new_click();
 
-            // double click
-            if (state.click_count == 2) {
-              auto e = std::make_unique<wm::events::mouse_double_click>(
-                button, io.mouse_pos());
-              auto d = wm::mouse_double_click_dispatcher(
-                std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
-              d.dispatch(vp);
-
-              reset_click_state();
+            // clicked
+            if (state.click_state == click_state::clicked) {
+              if (state.last_pressed_window == wid) {
+                if (now - state.last_pressed_time < 500ms) {
+                  auto e_dbl = std::make_unique<wm::events::mouse_double_click>(
+                    button, io.mouse_pos());
+                  auto d_dbl = wm::mouse_double_click_dispatcher(
+                    std::forward_as_tuple(std::move(e_dbl), dctx, vctx),
+                    std::tuple());
+                  d_dbl.dispatch(vp);
+                  // clicked -> idle
+                  reset_click_state();
+                } else
+                  // timeout, fallback to click
+                  start_new_click();
+              } else
+                // different window, back to click
+                start_new_click();
             }
           }
         }
 
         // mouse release
         if (event == mouse_button_event::release) {
-          auto e =
+          auto e_rel =
             std::make_unique<wm::events::mouse_release>(button, io.mouse_pos());
-          auto d = wm::mouse_release_dispatcher(
-            std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
-          d.dispatch(vp);
+          auto d_rel = wm::mouse_release_dispatcher(
+            std::forward_as_tuple(std::move(e_rel), dctx, vctx), std::tuple());
+          d_rel.dispatch(vp);
 
-          if (d.visitor().accepted()) {
-            auto wid = d.visitor().reciever()->id();
+          if (d_rel.visitor().accepted()) {
+            auto wid = d_rel.visitor().reciever()->id();
 
             assert(wid != uid());
 
-            if (state.last_pressed_window == wid) {
-
-              // click
-              if (state.click_count == 1) {
-                auto e = std::make_unique<wm::events::mouse_click>(
-                  button, io.mouse_pos());
-                auto d = wm::mouse_click_dispatcher(
-                  std::forward_as_tuple(std::move(e), dctx, vctx),
-                  std::tuple());
-                d.dispatch(vp);
-              }
-
-            } else
-              // press/release window missmatch
+            // idle
+            if (state.click_state == click_state::idle)
               reset_click_state();
+
+            // pressed
+            if (state.click_state == click_state::pressed) {
+
+              if (state.last_pressed_window == wid) {
+                auto e_clk = std::make_unique<wm::events::mouse_click>(
+                  button, io.mouse_pos());
+                auto d_clk = wm::mouse_click_dispatcher(
+                  std::forward_as_tuple(std::move(e_clk), dctx, vctx),
+                  std::tuple());
+                d_clk.dispatch(vp);
+                // pressed -> clicked
+                state.click_state = click_state::clicked;
+              } else
+                // window missmatch
+                reset_click_state();
+            }
+
+            // clicked
+            if (state.click_state == click_state::clicked) {
+              // double release on different windows
+              if (state.last_pressed_window != wid)
+                reset_click_state();
+            }
           }
         }
       }
 
       // mouse hover
       if (io.window().hovered()) {
-        auto e = std::make_unique<wm::events::mouse_hover>(
+        auto e_hov = std::make_unique<wm::events::mouse_hover>(
           io.mouse_pos(), io.mouse_delta());
-        auto d = wm::mouse_hover_dispatcher(
-          std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
-        d.dispatch(vp);
+        auto d_hov = wm::mouse_hover_dispatcher(
+          std::forward_as_tuple(std::move(e_hov), dctx, vctx), std::tuple());
+        d_hov.dispatch(vp);
       }
     }
 
