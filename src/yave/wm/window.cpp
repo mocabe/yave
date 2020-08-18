@@ -7,6 +7,7 @@
 #include <yave/wm/mouse_events.hpp>
 #include <yave/wm/key_events.hpp>
 #include <yave/wm/viewport_events.hpp>
+#include <yave/wm/draw_event.hpp>
 
 #include <algorithm>
 #include <iterator>
@@ -79,6 +80,7 @@ namespace yave::wm {
   {
     YAVE_WM_DISPATCH_EVENT(resize, data_ctx, view_ctx);
     YAVE_WM_DISPATCH_EVENT(move, data_ctx, view_ctx);
+    YAVE_WM_DISPATCH_EVENT(draw, data_ctx, view_ctx);
 
     YAVE_WM_DISPATCH_EVENT(mouse_click, data_ctx, view_ctx);
     YAVE_WM_DISPATCH_EVENT(mouse_double_click, data_ctx, view_ctx);

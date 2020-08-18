@@ -37,9 +37,10 @@ namespace yave::wm {
     void exec(editor::data_context&, editor::view_context&);
 
   public:
-    /// list viewports
-    auto viewports() const -> std::vector<const viewport_window*>;
-    auto viewports() -> std::vector<viewport_window*>;
+    /// get viewports
+    auto viewports() const -> std::span<const viewport_window* const>;
+    /// get viewports
+    auto viewports() -> std::span<viewport_window* const>;
     /// add viewport
     auto add_viewport(std::unique_ptr<viewport_window>&& win)
       -> viewport_window*;

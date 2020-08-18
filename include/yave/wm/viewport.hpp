@@ -31,6 +31,8 @@ namespace yave::wm {
     wm::mouse_event_emitter m_mouse_event_emitter;
     /// key event generator
     wm::key_event_emitter m_key_event_emitter;
+    /// non null when children().front() is layout window
+    layout_window* m_layout = nullptr;
 
     void _emit_viewport_events(editor::data_context&, editor::view_context&);
     void _emit_io_events(editor::data_context&, editor::view_context&);
@@ -58,9 +60,13 @@ namespace yave::wm {
     /// detach modal window
     auto detach_modal(uid id) -> std::unique_ptr<window>;
     /// get list of modal window, from bottom to top
-    auto modals() -> std::vector<window*>;
+    auto modals() -> std::span<window* const>;
+    /// get list of modal window, from bottom to top
+    auto modals() const -> std::span<const window* const>;
     /// get modal window from id
     auto modal(uid id) -> window*;
+    /// get modal window from id
+    auto modal(uid id) const -> const window*;
 
   public:
     bool should_close() const override;

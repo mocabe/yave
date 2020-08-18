@@ -50,18 +50,17 @@ namespace yave::wm {
   {
     // remove closed windows
     for (;;) {
-      auto ws = children();
-      auto it = std::find_if(ws.begin(), ws.end(), [](auto& c) {
-        return static_cast<const wm::viewport_window*>(c)->should_close();
-      });
+      auto vps = viewports();
+      auto it  = std::find_if(
+        vps.begin(), vps.end(), [](auto& vp) { return vp->should_close(); });
 
-      if (it == ws.end())
+      if (it == vps.end())
         break;
 
       remove_any_window((*it)->id());
     }
 
-    if (children().empty())
+    if (viewports().empty())
       return;
 
     // wait until next frame
@@ -69,9 +68,8 @@ namespace yave::wm {
       // get update rate
       // TODO: support per-viewport framerates
       uint32_t fps = 60;
-      for (auto&& c : children())
-        fps = std::max(
-          fps, static_cast<const wm::viewport_window*>(c)->refresh_rate());
+      for (auto&& vp : viewports())
+        fps = std::max(fps, vp->refresh_rate());
 
       using namespace std::chrono_literals;
       auto end_time          = std::chrono::high_resolution_clock::now();
@@ -89,25 +87,23 @@ namespace yave::wm {
     }
 
     // let viewports run its event loop
-    for (auto&& c : children()) {
-      static_cast<viewport_window*>(c)->exec(dctx, vctx);
+    for (auto&& vp : viewports()) {
+      vp->exec(dctx, vctx);
     }
   }
 
-  auto root_window::viewports() const -> std::vector<const viewport_window*>
+  auto root_window::viewports() const -> std::span<const viewport_window* const>
   {
-    return children() //
-           | rv::transform(
-             [](auto&& c) { return static_cast<const viewport_window*>(c); })
-           | rs::to_vector;
+    auto vs        = children();
+    using elem_ptr = std::add_pointer_t<const viewport_window* const>;
+    return {reinterpret_cast<elem_ptr>(vs.data()), vs.size()};
   }
 
-  auto root_window::viewports() -> std::vector<viewport_window*>
+  auto root_window::viewports() -> std::span<viewport_window* const>
   {
-    return children() //
-           | rv::transform(
-             [&](auto&& c) { return static_cast<viewport_window*>(c); })
-           | rs::to_vector;
+    auto vs        = children();
+    using elem_ptr = std::add_pointer_t<viewport_window* const>;
+    return {reinterpret_cast<elem_ptr>(vs.data()), vs.size()};
   }
 
   auto root_window::add_viewport(std::unique_ptr<viewport_window>&& win)

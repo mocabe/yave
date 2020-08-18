@@ -85,24 +85,20 @@ namespace yave::wm {
   auto viewport::set_layout(std::unique_ptr<layout_window>&& layout)
     -> layout_window*
   {
-    assert(children().size() < 2);
-
-    if (!children().empty())
-      remove_any_window(children().front()->id());
-
-    auto ret = layout.get();
+    assert(!m_layout);
+    m_layout = layout.get();
     add_any_window(0, std::move(layout));
-    return ret;
+    return m_layout;
   }
 
   auto viewport::detach_layout() -> std::unique_ptr<layout_window>
   {
-    if (children().empty())
+    if (!m_layout)
       return nullptr;
 
-    auto tmp = detach_any_window(children().front()->id());
-    return std::unique_ptr<layout_window>(
-      static_cast<layout_window*>(tmp.release()));
+    assert(m_layout->id() == children().front()->id());
+    auto tmp = detach_any_window(children().front()->id()).release();
+    return std::unique_ptr<layout_window>(tmp->as<layout_window>());
   }
 
   void viewport::remove_layout()
@@ -112,18 +108,64 @@ namespace yave::wm {
 
   auto viewport::layout() -> layout_window*
   {
-    if (children().empty())
-      return nullptr;
-
-    return static_cast<layout_window*>(children().front());
+    return m_layout;
   }
 
   auto viewport::layout() const -> const layout_window*
   {
-    if (children().empty())
-      return nullptr;
+    return m_layout;
+  }
 
-    return static_cast<const layout_window*>(children().front());
+  auto viewport::add_modal(std::unique_ptr<window>&& modal) -> window*
+  {
+    auto ret = modal.get();
+    add_any_window(-1, std::move(modal));
+    return ret;
+  }
+
+  auto viewport::detach_modal(uid id) -> std::unique_ptr<window>
+  {
+    return detach_any_window(id);
+  }
+
+  auto viewport::modals() -> std::span<window* const>
+  {
+    auto ws = children();
+
+    if (m_layout)
+      return {ws.begin() + 1, ws.end()};
+
+    return ws;
+  }
+
+  auto viewport::modals() const -> std::span<const window* const>
+  {
+    auto ws = children();
+
+    if (m_layout)
+      return {ws.begin() + 1, ws.end()};
+
+    return ws;
+  }
+
+  auto viewport::modal(uid id) -> window*
+  {
+    auto w = child(id);
+
+    if (w && w != m_layout)
+      return w;
+
+    return nullptr;
+  }
+
+  auto viewport::modal(uid id) const -> const window*
+  {
+    auto w = child(id);
+
+    if (w && w != m_layout)
+      return w;
+
+    return nullptr;
   }
 
   bool viewport::should_close() const
@@ -166,9 +208,9 @@ namespace yave::wm {
     view_ctx.push(editor::make_window_view_command(
       *this, [size = e.size()](auto&& w) { w.set_size(size); }));
 
-    // resize layout
-    for (auto&& c : children()) {
-      c->on_resize(e, data_ctx, view_ctx);
+    // resize layout to same size
+    for (auto c : children()) {
+      c->event(e, data_ctx, view_ctx);
     }
 
     Info(g_logger, "[resize] {},{}", e.size().x, e.size().y);

@@ -85,7 +85,7 @@ namespace yave::wm {
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const = 0;
 
-  public: /* public accessors */
+  public:
     auto parent() const -> const window*
     {
       return m_parent;
@@ -124,6 +124,22 @@ namespace yave::wm {
     auto& size() const
     {
       return m_size;
+    }
+
+    auto child(uid id) -> window*
+    {
+      for (auto&& c : children())
+        if (c->id() == id)
+          return c;
+      return nullptr;
+    }
+
+    auto child(uid id) const -> const window*
+    {
+      for (auto&& c : children())
+        if (c->id() == id)
+          return c;
+      return nullptr;
     }
 
     void set_name(std::string name)
