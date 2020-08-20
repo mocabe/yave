@@ -12,7 +12,7 @@ namespace yave::wm {
   {
     auto e = get_mouse_event();
 
-    if (m_view_ctx.window_manager().intersects(w, e->pos())) {
+    if (m_view_ctx.window_manager().hit_test(w, e->pos())) {
       if (event_visitor::visit(w)) {
         m_accepted = w;
         return true;

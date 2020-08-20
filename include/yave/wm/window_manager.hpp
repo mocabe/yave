@@ -53,8 +53,7 @@ namespace yave::wm {
     /// check hit on window
     /// \param win target window
     /// \param pos position in virtual screen coordinate
-    [[nodiscard]] bool intersects(const window* win, const glm::vec2& pos)
-      const;
+    [[nodiscard]] bool hit_test(const window* win, const glm::vec2& pos) const;
 
     /// no active viewport?
     [[nodiscard]] bool should_close() const;

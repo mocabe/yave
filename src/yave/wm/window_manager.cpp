@@ -99,7 +99,7 @@ namespace yave::wm {
       return p;
     }
 
-    bool intersects(const window* win, const glm::vec2& pos)
+    bool hit_test(const window* win, const glm::vec2& pos)
     {
       assert(exists(win->id()));
 
@@ -202,9 +202,9 @@ namespace yave::wm {
     return m_pimpl->screen_pos(win);
   }
 
-  bool window_manager::intersects(const window* win, const glm::vec2& pos) const
+  bool window_manager::hit_test(const window* win, const glm::vec2& pos) const
   {
-    return m_pimpl->intersects(win, pos);
+    return m_pimpl->hit_test(win, pos);
   }
 
   bool window_manager::should_close() const

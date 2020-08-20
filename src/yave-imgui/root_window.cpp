@@ -124,7 +124,7 @@ namespace yave::editor::imgui {
     editor::view_context& vctx)
   {
     for (auto&& c : children())
-      as_mut_child(c)->update(dctx, vctx);
+      c->update(dctx, vctx);
   }
 
   void root_window::draw(

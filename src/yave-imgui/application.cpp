@@ -14,6 +14,7 @@
 #include <yave/editor/editor_data.hpp>
 #include <yave/editor/compile_thread.hpp>
 #include <yave/editor/execute_thread.hpp>
+#include <yave/wm/root_window.hpp>
 
 #include <imgui.h>
 #include <imgui_internal.h>

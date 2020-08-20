@@ -12,6 +12,7 @@
 #include <yave/wm/key_event_emitter.hpp>
 #include <yave/wm/window_manager.hpp>
 #include <yave/wm/viewport_events.hpp>
+#include <yave/wm/viewport_graphics.hpp>
 
 #include <iostream>
 
@@ -31,6 +32,8 @@ namespace yave::wm {
     wm::mouse_event_emitter m_mouse_event_emitter;
     /// key event generator
     wm::key_event_emitter m_key_event_emitter;
+    /// viewport renedring
+    wm::viewport_graphics m_graphics;
     /// non null when children().front() is layout window
     layout_window* m_layout = nullptr;
 
@@ -39,7 +42,10 @@ namespace yave::wm {
     void _emit_draw_events(editor::data_context&, editor::view_context&);
 
   public:
-    viewport(wm::window_manager& wn, glfw::glfw_window&& win);
+    viewport(
+      wm::window_manager& wn,
+      vulkan::vulkan_context& vk,
+      glfw::glfw_window&& win);
 
   public:
     /// set layout. current layout will be removed.

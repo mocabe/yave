@@ -14,6 +14,8 @@
 #include <yave/support/log.hpp>
 YAVE_DECL_G_LOGGER(viewport)
 
+#include <glm/gtx/string_cast.hpp>
+
 namespace yave::wm {
 
   void viewport::_emit_viewport_events(
@@ -59,17 +61,27 @@ namespace yave::wm {
     editor::data_context& dctx,
     editor::view_context& vctx)
   {
-    auto d = draw_event_dispatcher(dctx, vctx);
-    d.dispatch(this);
+    auto& ctx = m_graphics.render_context();
+    ctx.begin_frame();
+    {
+      auto d = draw_event_dispatcher(dctx, vctx);
+      d.dispatch(this);
+    }
+    ctx.end_frame();
+    ctx.render();
   }
 
-  viewport::viewport(wm::window_manager& wm, glfw::glfw_window&& win)
+  viewport::viewport(
+    wm::window_manager& wm,
+    vulkan::vulkan_context& vk,
+    glfw::glfw_window&& win)
     : viewport_window(win.title(), win.pos(), win.size())
     , m_wm {wm}
     , m_win {std::move(win)}
     , m_io {m_win}
     , m_key_event_emitter {m_io, m_wm}
     , m_mouse_event_emitter {m_io, m_wm}
+    , m_graphics {vk, m_win}
   {
     init_logger();
 
@@ -232,7 +244,7 @@ namespace yave::wm {
     const editor::data_context& data_ctx,
     const editor::view_context& view_ctx) const
   {
-    Info(g_logger, "{}, {}", to_string(e.clip_pos()), to_string(e.clip_ext()));
+   // Info(g_logger, "{}, {}", to_string(e.clip_pos()), to_string(e.clip_ext()));
   }
 
   void viewport::on_mouse_click(
@@ -284,6 +296,10 @@ namespace yave::wm {
     const editor::data_context& data_ctx,
     const editor::view_context& view_ctx) const
   {
+    // Info(
+    //   g_logger, "[key press] {}", (const
+    //   char*)m_io.key_name(e.key()).data());
+
     e.accept();
   }
 
@@ -292,11 +308,11 @@ namespace yave::wm {
     const editor::data_context& data_ctx,
     const editor::view_context& view_ctx) const
   {
-    Info(
-      g_logger,
-      "{} chars: {}",
-      e.chars().size(),
-      (const char*)e.chars().data());
+    // Info(
+    //   g_logger,
+    //   "{} chars: {}",
+    //   e.chars().size(),
+    //   (const char*)e.chars().data());
 
     e.accept();
   }
