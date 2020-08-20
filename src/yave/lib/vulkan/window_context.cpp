@@ -208,10 +208,11 @@ namespace {
     uint32_t presentQueueIndex,
     const vk::PhysicalDevice& physicalDevice,
     const vk::Device& logicalDevice,
-    vk::SurfaceFormatKHR* out_format     = nullptr,
-    vk::PresentModeKHR* out_present_mode = nullptr,
-    vk::Extent2D* out_extent             = nullptr,
-    uint32_t* out_image_count            = nullptr) -> vk::UniqueSwapchainKHR
+    const vk::SwapchainKHR& oldSwapchain,
+    vk::SurfaceFormatKHR* out_format,
+    vk::PresentModeKHR* out_present_mode,
+    vk::Extent2D* out_extent,
+    uint32_t* out_image_count) -> vk::UniqueSwapchainKHR
   {
     if (!physicalDevice.getSurfaceSupportKHR(presentQueueIndex, surface)) {
       throw std::runtime_error(
@@ -249,6 +250,7 @@ namespace {
     info.compositeAlpha  = compositeAlpha;
     info.presentMode     = mode;
     info.clipped         = VK_TRUE;
+    info.oldSwapchain    = oldSwapchain;
     // single layer
     info.imageArrayLayers = 1;
     // directly render (as color attachment)
@@ -271,15 +273,10 @@ namespace {
     auto swapchain = logicalDevice.createSwapchainKHRUnique(info);
 
     // write out pointers
-
-    if (out_format)
-      *out_format = format;
-    if (out_present_mode)
-      *out_present_mode = mode;
-    if (out_extent)
-      *out_extent = extent;
-    if (out_image_count)
-      *out_image_count = imageCount;
+    *out_format       = format;
+    *out_present_mode = mode;
+    *out_extent       = extent;
+    *out_image_count  = imageCount;
 
     return swapchain;
   }
@@ -652,6 +649,7 @@ namespace yave::vulkan {
       present_queue_index,
       ctx.physical_device(),
       device.get(),
+      swapchain.get(),
       &swapchain_format,       // out
       &swapchain_present_mode, // out
       &swapchain_extent,       // out
@@ -725,10 +723,8 @@ namespace yave::vulkan {
     acquire_semaphores.clear();
     command_buffers.clear();
     frame_buffers.clear();
-    render_pass.reset();
     swapchain_image_views.clear();
     swapchain_images.clear();
-    swapchain.reset();
 
     /* reset index */
     frame_index = 0;
@@ -746,6 +742,7 @@ namespace yave::vulkan {
       present_queue_index,
       vulkan_ctx.physical_device(),
       device.get(),
+      swapchain.get(),
       &swapchain_format,
       &swapchain_present_mode,
       &swapchain_extent,
@@ -755,8 +752,6 @@ namespace yave::vulkan {
 
     swapchain_image_views = createSwapchainImageViews(
       swapchain.get(), swapchain_format, device.get());
-
-    render_pass = createRenderPass(swapchain_format, device.get());
 
     frame_buffers = createFrameBuffers(
       swapchain_image_views, render_pass.get(), swapchain_extent, device.get());
