@@ -23,6 +23,7 @@ namespace yave::wm {
   {
   public:
     // contexts
+    /*       */ render_context& rctx;
     const editor::data_context& dctx;
     const editor::view_context& vctx;
 
@@ -32,8 +33,12 @@ namespace yave::wm {
     std::vector<glm::vec2> pos_stack;
 
   public:
-    impl(const editor::data_context& dctx, const editor::view_context& vctx)
-      : dctx {dctx}
+    impl(
+      /*       */ render_context& rctx,
+      const editor::data_context& dctx,
+      const editor::view_context& vctx)
+      : rctx {rctx}
+      , dctx {dctx}
       , vctx {vctx}
     {
     }
@@ -56,7 +61,8 @@ namespace yave::wm {
 
         // event
         {
-          auto e = events::draw(clip_stack.back().pos, clip_stack.back().ext);
+          auto e =
+            events::draw(rctx, clip_stack.back().pos, clip_stack.back().ext);
           w->event(e, dctx, vctx);
         }
 
@@ -75,9 +81,10 @@ namespace yave::wm {
   };
 
   draw_event_dispatcher::draw_event_dispatcher(
+    /*       */ render_context& rctx,
     const editor::data_context& dctx,
     const editor::view_context& vctx)
-    : m_pimpl {std::make_unique<impl>(dctx, vctx)}
+    : m_pimpl {std::make_unique<impl>(rctx, dctx, vctx)}
   {
   }
 

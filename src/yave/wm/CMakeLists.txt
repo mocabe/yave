@@ -14,7 +14,8 @@ add_library(yave-wm
   mouse_event_emitter.cpp
   key_event_emitter.cpp
   viewport.cpp
-  render/render_context
+  render_context.cpp
+  draw.cpp
 )
 
 add_library(yave::wm ALIAS yave-wm)

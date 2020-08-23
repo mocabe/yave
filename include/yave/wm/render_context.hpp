@@ -5,15 +5,15 @@
 
 #pragma once
 
-#include <yave/wm/render/draw.hpp>
+#include <yave/wm/draw_list.hpp>
 #include <yave/lib/vulkan/window_context.hpp>
 #include <yave/lib/glfw/glfw_context.hpp>
 
 #include <glm/glm.hpp>
 
-namespace yave::wm::render {
+namespace yave::wm {
 
-  /// render context
+  /// rendering context
   class render_context
   {
     class impl;
@@ -45,4 +45,4 @@ namespace yave::wm::render {
     /// render
     void render();
   };
-} // namespace yave::wm::render
+} // namespace yave::wm

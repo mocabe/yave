@@ -3,19 +3,51 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/wm/render/render_context.hpp>
+#include <yave/wm/render_context.hpp>
 
 #include <yave/lib/vulkan/shader.hpp>
 #include <yave/lib/vulkan/render_buffer.hpp>
 #include <yave/lib/vulkan/texture.hpp>
 #include <yave/lib/vulkan/staging.hpp>
 
-namespace yave::wm::render {
+namespace yave::wm {
 
   // rendering
   namespace {
 
     using namespace yave::vulkan;
+
+    /// push constants
+    struct draw_pc
+    {
+      glm::vec2 translate;
+      glm::vec2 scale;
+    };
+
+    /// Draw data
+    struct draw_lists
+    {
+      /// set of draw list
+      std::vector<draw_list> lists;
+
+      /// calculate total vertex
+      auto total_vtx_count() const
+      {
+        size_t sum = 0;
+        for (auto dl : lists)
+          sum += dl.vtx_buffer.size();
+        return sum;
+      }
+
+      /// calculate total index
+      auto total_idx_count() const
+      {
+        size_t sum = 0;
+        for (auto dl : lists)
+          sum += dl.idx_buffer.size();
+        return sum;
+      }
+    };
 
     // vertex shader
     constexpr auto vert_shader = R"(
@@ -242,8 +274,8 @@ namespace yave::wm::render {
 
       /* dynamic state */
 
-      std::array dynamicStates = {vk::DynamicState::eViewport,
-                                  vk::DynamicState::eScissor};
+      std::array dynamicStates = {
+        vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 
       vk::PipelineDynamicStateCreateInfo dynamicStateInfo;
       dynamicStateInfo.dynamicStateCount = dynamicStates.size();
@@ -369,11 +401,11 @@ namespace yave::wm::render {
           &pc);
       }
 
+      uint32_t vtxOffset = 0;
+      uint32_t idxOffset = 0;
+
       // indexed render
       for (auto&& dl : draw_data.lists) {
-
-        uint32_t vtxOffset = 0;
-        uint32_t idxOffset = 0;
 
         for (auto&& dc : dl.cmd_buffer) {
 
@@ -443,8 +475,8 @@ namespace yave::wm::render {
 
     auto create_descriptor_pool(const vk::Device& device)
     {
-      std::array poolSizes = {
-        vk::DescriptorPoolSize {vk::DescriptorType::eCombinedImageSampler, 1000}};
+      std::array poolSizes = {vk::DescriptorPoolSize {
+        vk::DescriptorType::eCombinedImageSampler, 1000}};
 
       vk::DescriptorPoolCreateInfo info;
       info.flags         = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
@@ -600,7 +632,6 @@ namespace yave::wm::render {
     void render()
     {
       assert(!in_frame);
-      window_ctx.set_clear_color(0.f, 0.5f, 0.f, 1.f);
       window_ctx.begin_frame();
       {
         auto cmd_buff = window_ctx.begin_record();
@@ -707,4 +738,4 @@ namespace yave::wm::render {
     return to_draw_tex(m_pimpl->default_texture_dsc.get());
   }
 
-} // namespace yave::wm::render
+} // namespace yave::wm

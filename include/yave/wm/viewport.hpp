@@ -39,7 +39,7 @@ namespace yave::wm {
 
     void _emit_viewport_events(editor::data_context&, editor::view_context&);
     void _emit_io_events(editor::data_context&, editor::view_context&);
-    void _emit_draw_events(editor::data_context&, editor::view_context&);
+    void _emit_draw_events(render_context&, editor::data_context&, editor::view_context&);
 
   public:
     viewport(

@@ -7,6 +7,7 @@
 #include <yave/wm/window_traverser.hpp>
 #include <yave/wm/viewport_events.hpp>
 #include <yave/wm/draw_event.hpp>
+#include <yave/wm/draw.hpp>
 
 #include <yave/editor/data_context.hpp>
 #include <yave/editor/view_context.hpp>
@@ -58,17 +59,17 @@ namespace yave::wm {
   }
 
   void viewport::_emit_draw_events(
+    /* */ render_context& rctx,
     editor::data_context& dctx,
     editor::view_context& vctx)
   {
-    auto& ctx = m_graphics.render_context();
-    ctx.begin_frame();
+    rctx.begin_frame();
     {
-      auto d = draw_event_dispatcher(dctx, vctx);
+      auto d = draw_event_dispatcher(rctx, dctx, vctx);
       d.dispatch(this);
     }
-    ctx.end_frame();
-    ctx.render();
+    rctx.end_frame();
+    rctx.render();
   }
 
   viewport::viewport(
@@ -192,8 +193,9 @@ namespace yave::wm {
 
   void viewport::exec(editor::data_context& dctx, editor::view_context& vctx)
   {
+    auto& rctx = m_graphics.render_context();
     update(dctx, vctx);
-    _emit_draw_events(dctx, vctx);
+    _emit_draw_events(rctx, dctx, vctx);
     _emit_viewport_events(dctx, vctx);
     _emit_io_events(dctx, vctx);
   }
@@ -244,7 +246,19 @@ namespace yave::wm {
     const editor::data_context& data_ctx,
     const editor::view_context& view_ctx) const
   {
-   // Info(g_logger, "{}, {}", to_string(e.clip_pos()), to_string(e.clip_ext()));
+    auto& ctx = e.render_context();
+
+    draw_list dl;
+
+    dl_fill_rect(
+      dl,
+      glm::vec2(0, 0),
+      size(),
+      {.1f, .1f, .1f, 1.f},
+      {{0, 0}, size()},
+      ctx.default_tex());
+
+    ctx.add_draw_list(std::move(dl));
   }
 
   void viewport::on_mouse_click(

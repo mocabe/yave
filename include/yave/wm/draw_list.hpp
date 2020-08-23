@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace yave::wm::render {
+namespace yave::wm {
 
   /// index
   struct draw_idx
@@ -26,7 +26,7 @@ namespace yave::wm::render {
     /// uv
     glm::vec2 uv;
     /// color
-    glm::vec4 col;
+    glm::u8vec4 col;
   };
 
   /// texture
@@ -34,13 +34,6 @@ namespace yave::wm::render {
   {
     /// texture handle
     uint64_t handle;
-  };
-
-  /// push constants
-  struct draw_pc
-  {
-    glm::vec2 translate;
-    glm::vec2 scale;
   };
 
   /// scissor rect
@@ -78,29 +71,4 @@ namespace yave::wm::render {
     std::vector<draw_cmd> cmd_buffer;
   };
 
-  /// Draw data
-  struct draw_lists
-  {
-    /// set of draw list
-    std::vector<draw_list> lists;
-
-    /// calculate total vertex
-    auto total_vtx_count() const
-    {
-      size_t sum = 0;
-      for (auto dl : lists)
-        sum += dl.vtx_buffer.size();
-      return sum;
-    }
-
-    /// calculate total index
-    auto total_idx_count() const
-    {
-      size_t sum = 0;
-      for (auto dl : lists)
-        sum += dl.idx_buffer.size();
-      return sum;
-    }
-  };
-
-} // namespace yave::wm::render
+} // namespace yave::wm

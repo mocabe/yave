@@ -8,6 +8,7 @@
 #include <yave/wm/event.hpp>
 #include <yave/wm/event_dispatcher.hpp>
 #include <yave/wm/window_traverser.hpp>
+#include <yave/wm/render_context.hpp>
 
 namespace yave::wm {
 
@@ -16,14 +17,16 @@ namespace yave::wm {
     /// draw event
     class draw final : public event
     {
+      wm::render_context& m_render_ctx;
       glm::vec2 m_clip_pos, m_clip_ext;
 
       using event::accept;
       using event::accepted;
 
     public:
-      draw(glm::vec2 clip_pos, glm::vec2 clip_ext)
+      draw(wm::render_context& rctx, glm::vec2 clip_pos, glm::vec2 clip_ext)
         : event::event()
+        , m_render_ctx {rctx}
         , m_clip_pos {clip_pos}
         , m_clip_ext {clip_ext}
       {
@@ -40,6 +43,11 @@ namespace yave::wm {
       {
         return m_clip_ext;
       }
+
+      auto& render_context()
+      {
+        return m_render_ctx;
+      }
     };
 
   } // namespace events
@@ -51,6 +59,7 @@ namespace yave::wm {
 
   public:
     draw_event_dispatcher(
+      /*       */ render_context& rctx,
       const editor::data_context& dctx,
       const editor::view_context& vctx);
 
