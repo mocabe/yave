@@ -32,6 +32,18 @@ namespace yave::wm {
     const editor::view_context& m_view_ctx;
   };
 
+  template <class Tag>
+  struct event_visitor_wrapper : event_visitor
+  {
+    event_visitor_wrapper(
+      std::unique_ptr<event>&& e,
+      const editor::data_context& dctx,
+      const editor::view_context& vctx)
+      : event_visitor {std::move(e), dctx, vctx}
+    {
+    }
+  };
+
   /// Event dispatcher
   struct event_dispatcher
   {

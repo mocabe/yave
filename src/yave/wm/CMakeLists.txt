@@ -5,6 +5,7 @@ add_library(yave-wm
   window_manager.cpp
   window.cpp
   window_traverser.cpp
+  event.cpp
   event_dispatcher.cpp
   key_events.cpp
   mouse_events.cpp

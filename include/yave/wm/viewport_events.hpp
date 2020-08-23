@@ -22,6 +22,7 @@ namespace yave::wm {
     /// resize event
     ///
     /// this event will be sent when size of window changed
+    /// \note propagate = no
     class resize final : public event
     {
       // new size
@@ -29,6 +30,8 @@ namespace yave::wm {
 
       using event::accept;
       using event::accepted;
+      using event::ignore;
+      using event::ignored;
 
     public:
       resize(const glm::vec2& size)
@@ -46,6 +49,7 @@ namespace yave::wm {
     /// move event
     ///
     /// this event will be sent when position of window changed
+    /// \note propagate = no
     class move final : public event
     {
       // new relative pos
@@ -53,6 +57,8 @@ namespace yave::wm {
 
       using event::accept;
       using event::accepted;
+      using event::ignore;
+      using event::ignored;
 
     public:
       move(const glm::vec2& pos)

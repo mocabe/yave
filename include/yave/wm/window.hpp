@@ -29,7 +29,11 @@ namespace yave::wm::events {
   class mouse_double_click;
   class mouse_press;
   class mouse_release;
-  class mouse_hover;
+  class mouse_move;
+  class mouse_over;
+  class mouse_out;
+  class mouse_enter;
+  class mouse_leave;
   class key_press;
   class key_release;
   class key_char;
@@ -84,6 +88,14 @@ namespace yave::wm {
     virtual void draw(
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const = 0;
+
+  public:
+    /// set new name of window
+    virtual void set_name(std::string name);
+    /// set new position of window
+    virtual void set_pos(glm::vec2 pos);
+    /// set new size of window
+    virtual void set_size(glm::vec2 size);
 
   public:
     auto parent() const -> const window*
@@ -142,21 +154,6 @@ namespace yave::wm {
       return nullptr;
     }
 
-    void set_name(std::string name)
-    {
-      m_name = std::move(name);
-    }
-
-    void set_pos(glm::vec2 pos)
-    {
-      m_pos = pos;
-    }
-
-    void set_size(glm::vec2 size)
-    {
-      m_size = size;
-    }
-
   public:
     /// dynamic casting
     template <class Derived>
@@ -201,13 +198,13 @@ namespace yave::wm {
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const;
 
-    /// button press
+    /// button click
     virtual void on_mouse_click(
       wm::events::mouse_click& e,
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const;
 
-    /// button double press
+    /// button double click
     virtual void on_mouse_double_click(
       wm::events::mouse_double_click& e,
       const editor::data_context& data_ctx,
@@ -226,8 +223,32 @@ namespace yave::wm {
       const editor::view_context& view_ctx) const;
 
     /// hover
-    virtual void on_mouse_hover(
-      wm::events::mouse_hover& e,
+    virtual void on_mouse_move(
+      wm::events::mouse_move& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// over
+    virtual void on_mouse_over(
+      wm::events::mouse_over& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// out
+    virtual void on_mouse_out(
+      wm::events::mouse_out& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// enter
+    virtual void on_mouse_enter(
+      wm::events::mouse_enter& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const;
+
+    /// leave
+    virtual void on_mouse_leave(
+      wm::events::mouse_leave& e,
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const;
 

@@ -15,32 +15,33 @@ namespace yave::wm {
   /// base class of window events.
   class event
   {
+    // internal state
+    int m_status = 0;
+
   public:
+    /// ctor
+    event() noexcept;
     /// dtor
-    virtual ~event() noexcept = default;
+    virtual ~event() noexcept;
 
   public:
     /// accepted?
-    [[nodiscard]] bool accepted() const
-    {
-      return m_accepted;
-    }
+    [[nodiscard]] bool accepted() const;
+    /// ignored?
+    [[nodiscard]] bool ignored() const;
 
     /// accept event
-    void accept()
-    {
-      m_accepted = true;
-    }
-
-  private:
-    bool m_accepted = false;
+    void accept();
+    /// ignore event
+    void ignore();
   };
 
   /// Cast events
+  /// \param e non-null pointer to event object
   template <class E>
   [[nodiscard]] auto event_cast_if(event* e) -> E*
   {
-    if (typeid(E) == typeid(*e))
+    if (event& ref = *e; typeid(ref) == typeid(E))
       return static_cast<E*>(e);
 
     return nullptr;

@@ -6,9 +6,15 @@
 #include <yave/wm/mouse_event_emitter.hpp>
 #include <yave/wm/viewport_io.hpp>
 #include <yave/wm/viewport_window.hpp>
+#include <yave/wm/root_window.hpp>
 #include <yave/editor/view_context.hpp>
 
 #include <chrono>
+
+#include <glm/gtx/string_cast.hpp>
+#include <yave/support/log.hpp>
+
+YAVE_DECL_G_LOGGER(mouse_event_emitter);
 
 namespace yave::wm {
 
@@ -30,7 +36,7 @@ namespace yave::wm {
       /// clicks: last pressed time
       std::chrono::steady_clock::time_point last_pressed_time = {};
       /// clicks: current click state
-      click_state click_state = click_state::idle;
+      wm::click_state click_state = wm::click_state::idle;
     };
   } // namespace
 
@@ -39,16 +45,153 @@ namespace yave::wm {
     viewport_io& io;
     window_manager& wm;
 
-    std::array<state_data, GLFW_MOUSE_BUTTON_LAST> states;
-
   public:
     impl(viewport_io& io, window_manager& wm)
       : io {io}
       , wm {wm}
     {
+      init_logger();
     }
 
-    void do_dispatch(
+  private:
+    /// last leaf window id
+    uid last_region = {};
+
+    void dispatch_cursor_events(
+      viewport_window* vp,
+      const editor::data_context& dctx,
+      const editor::view_context& vctx)
+    {
+      auto prev_region = wm.get_window(last_region);
+      auto root        = wm.root();
+
+      // window no longer exists!
+      if (!prev_region) {
+        last_region = root->id();
+        prev_region = root;
+      }
+
+      window* next_region;
+
+      // mouse hover
+      {
+        auto e = std::make_unique<wm::events::mouse_move>(
+          io.mouse_pos(), io.mouse_delta());
+        auto d = wm::mouse_move_dispatcher(
+          std::forward_as_tuple(std::move(e), dctx, vctx), std::tuple());
+        // dispatch from root
+        d.dispatch(root);
+        // get new region
+        next_region = d.visitor().region();
+      }
+
+      assert(prev_region && next_region);
+      assert(wm.exists(prev_region->id()) && wm.exists(next_region->id()));
+
+      if (prev_region != next_region) {
+        // parent -> child
+        if (wm.is_child(next_region, prev_region)) {
+
+          // child: enter
+          {
+            auto e = std::make_unique<wm::events::mouse_enter>(io.mouse_pos());
+            auto d = wm::mouse_enter_dispatcher(
+              std::forward_as_tuple(std::move(e), dctx, vctx),
+              std::forward_as_tuple(false));
+            d.dispatch(next_region);
+          }
+          // child: over
+          {
+            auto e = std::make_unique<wm::events::mouse_over>(io.mouse_pos());
+            auto d = wm::mouse_over_dispatcher(
+              std::forward_as_tuple(std::move(e), dctx, vctx),
+              std::forward_as_tuple(true));
+            d.dispatch(next_region);
+          }
+          // parent: out
+          {
+            auto e = std::make_unique<wm::events::mouse_out>(io.mouse_pos());
+            auto d = wm::mouse_out_dispatcher(
+              std::forward_as_tuple(std::move(e), dctx, vctx),
+              std::forward_as_tuple(true));
+            d.dispatch(prev_region);
+          }
+        }
+        // child -> parent
+        else if (wm.is_parent(next_region, prev_region)) {
+
+          // child: leave
+          {
+            auto e = std::make_unique<wm::events::mouse_leave>(io.mouse_pos());
+            auto d = wm::mouse_leave_dispatcher(
+              std::forward_as_tuple(std::move(e), dctx, vctx),
+              std::forward_as_tuple(false));
+            d.dispatch(prev_region);
+          }
+          // child: out
+          {
+            auto e = std::make_unique<wm::events::mouse_out>(io.mouse_pos());
+            auto d = wm::mouse_out_dispatcher(
+              std::forward_as_tuple(std::move(e), dctx, vctx),
+              std::forward_as_tuple(true));
+            d.dispatch(prev_region);
+          }
+          // parent: over
+          {
+            auto e = std::make_unique<wm::events::mouse_over>(io.mouse_pos());
+            auto d = wm::mouse_over_dispatcher(
+              std::forward_as_tuple(std::move(e), dctx, vctx),
+              std::forward_as_tuple(true));
+            d.dispatch(next_region);
+          }
+        }
+        // other cases
+        else {
+          // prev: leave
+          {
+            auto e = std::make_unique<wm::events::mouse_leave>(io.mouse_pos());
+            auto d = wm::mouse_leave_dispatcher(
+              std::forward_as_tuple(std::move(e), dctx, vctx),
+              std::forward_as_tuple(false));
+            d.dispatch(prev_region);
+          }
+          // prev: out
+          {
+            auto e = std::make_unique<wm::events::mouse_out>(io.mouse_pos());
+            auto d = wm::mouse_out_dispatcher(
+              std::forward_as_tuple(std::move(e), dctx, vctx),
+              std::forward_as_tuple(true));
+            d.dispatch(prev_region);
+          }
+
+          // next: enter
+          {
+            auto e = std::make_unique<wm::events::mouse_enter>(io.mouse_pos());
+            auto d = wm::mouse_enter_dispatcher(
+              std::forward_as_tuple(std::move(e), dctx, vctx),
+              std::forward_as_tuple(false));
+            d.dispatch(next_region);
+          }
+          // next: over
+          {
+            auto e = std::make_unique<wm::events::mouse_over>(io.mouse_pos());
+            auto d = wm::mouse_over_dispatcher(
+              std::forward_as_tuple(std::move(e), dctx, vctx),
+              std::forward_as_tuple(true));
+            d.dispatch(next_region);
+          }
+        }
+
+        // update
+        last_region = next_region->id();
+      }
+    }
+
+  private:
+    // button states
+    std::array<state_data, GLFW_MOUSE_BUTTON_LAST> states;
+
+    void dispatch_button_events(
       viewport_window* vp,
       const editor::data_context& dctx,
       const editor::view_context& vctx)
@@ -171,23 +314,16 @@ namespace yave::wm {
           }
         }
       }
-
-      // mouse hover
-      if (io.window().hovered()) {
-        auto e_hov = std::make_unique<wm::events::mouse_hover>(
-          io.mouse_pos(), io.mouse_delta());
-        auto d_hov = wm::mouse_hover_dispatcher(
-          std::forward_as_tuple(std::move(e_hov), dctx, vctx), std::tuple());
-        d_hov.dispatch(vp);
-      }
     }
 
+  public:
     void dispatch_events(
       viewport_window* vp,
       const editor::data_context& dctx,
       const editor::view_context& vctx)
     {
-      do_dispatch(vp, dctx, vctx);
+      dispatch_cursor_events(vp, dctx, vctx);
+      dispatch_button_events(vp, dctx, vctx);
     }
   };
 

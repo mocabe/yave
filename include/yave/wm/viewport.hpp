@@ -113,8 +113,24 @@ namespace yave::wm {
       wm::events::mouse_release& e,
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const override;
-    void on_mouse_hover(
-      wm::events::mouse_hover& e,
+    void on_mouse_move(
+      wm::events::mouse_move& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const override;
+    void on_mouse_over(
+      wm::events::mouse_over& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const override;
+    void on_mouse_out(
+      wm::events::mouse_out& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const override;
+    void on_mouse_enter(
+      wm::events::mouse_enter& e,
+      const editor::data_context& data_ctx,
+      const editor::view_context& view_ctx) const override;
+    void on_mouse_leave(
+      wm::events::mouse_leave& e,
       const editor::data_context& data_ctx,
       const editor::view_context& view_ctx) const override;
     void on_key_press(

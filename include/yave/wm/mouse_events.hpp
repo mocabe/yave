@@ -74,6 +74,8 @@ namespace yave::wm {
       glm::vec2 m_pos;
     };
 
+    /// click event
+    /// \note propagate = yes
     class mouse_click final : public mouse_event
     {
     public:
@@ -83,6 +85,8 @@ namespace yave::wm {
       }
     };
 
+    /// double click event
+    /// \note propagate = yes
     class mouse_double_click final : public mouse_event
     {
     public:
@@ -92,6 +96,8 @@ namespace yave::wm {
       }
     };
 
+    /// mouse press event
+    /// \note propagate = yes
     class mouse_press final : public mouse_event
     {
     public:
@@ -101,6 +107,8 @@ namespace yave::wm {
       }
     };
 
+    /// mouse release event
+    /// \note propagate = yes
     class mouse_release final : public mouse_event
     {
     public:
@@ -110,6 +118,8 @@ namespace yave::wm {
       }
     };
 
+    /// mouse repeat event
+    /// \note propagate = yes
     class mouse_repeat final : public mouse_event
     {
     public:
@@ -119,12 +129,14 @@ namespace yave::wm {
       }
     };
 
-    class mouse_hover final : public mouse_event
+    /// mouse moves over viewport
+    /// \note propagate: yes
+    class mouse_move final : public mouse_event
     {
       glm::vec2 m_delta;
 
     public:
-      mouse_hover(glm::vec2 pos, glm::vec2 delta)
+      mouse_move(glm::vec2 pos, glm::vec2 delta)
         : mouse_event {{}, pos}
         , m_delta {delta}
       {
@@ -136,6 +148,60 @@ namespace yave::wm {
       }
     };
 
+    /// mouse move into window or its child
+    /// \note propagate: yes
+    class mouse_over final : public mouse_event
+    {
+    public:
+      mouse_over(glm::vec2 pos)
+        : mouse_event {{}, pos}
+      {
+      }
+    };
+
+    /// mouse move out from window or its child
+    /// \note propagate: yes
+    class mouse_out final : public mouse_event
+    {
+    public:
+      mouse_out(glm::vec2 pos)
+        : mouse_event {{}, pos}
+      {
+      }
+    };
+
+    /// mosue move into region of window
+    /// \note propagate: no
+    class mouse_enter final : public mouse_event
+    {
+      using mouse_event::accept;
+      using mouse_event::accepted;
+      using mouse_event::ignore;
+      using mouse_event::ignored;
+
+    public:
+      mouse_enter(glm::vec2 pos)
+        : mouse_event {{}, pos}
+      {
+      }
+    };
+
+    /// mosue move out from region of window
+    /// \note propagate: no
+    class mouse_leave final : public mouse_event
+    {
+      using mouse_event::accept;
+      using mouse_event::accepted;
+      using mouse_event::ignore;
+      using mouse_event::ignored;
+
+    public:
+      mouse_leave(glm::vec2 pos)
+        : mouse_event {{}, pos}
+      {
+      }
+    };
+
   } // namespace events
 
   /// mouse event dispatcher base
@@ -144,6 +210,8 @@ namespace yave::wm {
   protected:
     /// last window accepted mouse event
     window* m_accepted = nullptr;
+    /// leaf window which contains current mouse position
+    window* m_region = nullptr;
 
   public:
     mouse_event_visitor(
@@ -175,6 +243,13 @@ namespace yave::wm {
       assert(accepted());
       return m_accepted;
     }
+
+    /// get leaf window containing mouse pointer
+    auto region() const -> window*
+    {
+      assert(m_region);
+      return m_region;
+    }
   };
 
   /// tagged for specific mouse event
@@ -202,9 +277,25 @@ namespace yave::wm {
     mouse_event_visitor_wrapper<events::mouse_repeat>,
     dfs_traverser_reverse_pre>;
 
-  using mouse_hover_dispatcher = composed_event_dispatcher<
-    mouse_event_visitor_wrapper<events::mouse_hover>,
+  using mouse_move_dispatcher = composed_event_dispatcher<
+    mouse_event_visitor_wrapper<events::mouse_move>,
     dfs_traverser_reverse_pre>;
+
+  using mouse_over_dispatcher = composed_event_dispatcher<
+    event_visitor_wrapper<events::mouse_over>,
+    single_window_traverser>;
+
+  using mouse_out_dispatcher = composed_event_dispatcher<
+    event_visitor_wrapper<events::mouse_out>,
+    single_window_traverser>;
+
+  using mouse_enter_dispatcher = composed_event_dispatcher<
+    event_visitor_wrapper<events::mouse_enter>,
+    single_window_traverser>;
+
+  using mouse_leave_dispatcher = composed_event_dispatcher<
+    event_visitor_wrapper<events::mouse_leave>,
+    single_window_traverser>;
 
   using mouse_click_dispatcher = composed_event_dispatcher<
     mouse_event_visitor_wrapper<events::mouse_click>,

@@ -50,23 +50,17 @@ namespace yave::wm {
     }
   } // namespace
 
-  void single_window_traverser::traverse(window* root, window_visitor& v)
+  void single_window_traverser::traverse(window* w, window_visitor& v)
   {
-    auto search =
-      [id = m_target](auto&& self, window* w, window_visitor& v) -> bool {
-      if (w->id() == id) {
-        v.visit(w);
-        return true;
-      }
+    if (!m_propagate) {
+      v.visit(w);
+      return;
+    }
 
-      for (auto&& c : w->children())
-        if (self(c, v))
-          return true;
-
-      return false;
-    };
-
-    (void)fix_lambda(search)(root, v);
+    auto tmp = w;
+    while (tmp && !v.visit(tmp)) {
+      tmp = tmp->parent();
+    }
   }
 
   void dfs_traverser_pre::traverse(window* root, window_visitor& v)

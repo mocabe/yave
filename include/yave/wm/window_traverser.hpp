@@ -25,16 +25,16 @@ namespace yave::wm {
   /// single window traverser
   class single_window_traverser final : window_traverser
   {
-    uid m_target;
+    bool m_propagate;
 
   public:
-    single_window_traverser(uid target)
+    single_window_traverser(bool propagate)
       : window_traverser()
-      , m_target {target}
+      , m_propagate {propagate}
     {
     }
 
-    void traverse(window* root, window_visitor& visitor) override;
+    void traverse(window* w, window_visitor& visitor) override;
   };
 
   /// dfs with preordering

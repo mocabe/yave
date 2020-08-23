@@ -45,6 +45,14 @@ namespace yave::wm {
     [[nodiscard]] auto get_viewport(uid id) -> viewport_window*;
 
   public:
+    /// child?
+    /// \requires exists(c->id()) && exists(p->id())
+    [[nodiscard]] bool is_child(const window* c, const window* p) const;
+    /// parent?
+    /// \requires exists(p->id()) && exists(c->id())
+    [[nodiscard]] bool is_parent(const window* p, const window* c) const;
+
+  public:
     /// calc screen pos of window
     /// \param win target window
     /// \return position of window in virtual screen coordinate

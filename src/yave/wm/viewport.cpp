@@ -31,7 +31,7 @@ namespace yave::wm {
         auto e = std::make_unique<events::resize>(new_size);
         auto d = resize_event_dispatcher(
           std::forward_as_tuple(std::move(e), dctx, vctx),
-          std::forward_as_tuple(id()));
+          std::forward_as_tuple(false));
         d.dispatch(this);
       }
     }
@@ -43,7 +43,7 @@ namespace yave::wm {
         auto e = std::make_unique<events::move>(new_pos);
         auto d = move_event_dispatcher(
           std::forward_as_tuple(std::move(e), dctx, vctx),
-          std::forward_as_tuple(id()));
+          std::forward_as_tuple(false));
         d.dispatch(this);
       }
     }
@@ -101,6 +101,8 @@ namespace yave::wm {
     assert(!m_layout);
     m_layout = layout.get();
     add_any_window(0, std::move(layout));
+    m_layout->set_pos({0, 0});
+    m_layout->set_size(size());
     return m_layout;
   }
 
@@ -297,12 +299,42 @@ namespace yave::wm {
     Info(g_logger, "[release] {},{}", e.pos().x, e.pos().y);
   }
 
-  void viewport::on_mouse_hover(
-    wm::events::mouse_hover& e,
+  void viewport::on_mouse_move(
+    wm::events::mouse_move& e,
     const editor::data_context& data_ctx,
     const editor::view_context& view_ctx) const
   {
     e.accept();
+  }
+
+  void viewport::on_mouse_over(
+    wm::events::mouse_over& e,
+    const editor::data_context& data_ctx,
+    const editor::view_context& view_ctx) const
+  {
+    e.accept();
+  }
+
+  void viewport::on_mouse_out(
+    wm::events::mouse_out& e,
+    const editor::data_context& data_ctx,
+    const editor::view_context& view_ctx) const
+  {
+    e.accept();
+  }
+
+  void viewport::on_mouse_enter(
+    wm::events::mouse_enter& e,
+    const editor::data_context& data_ctx,
+    const editor::view_context& view_ctx) const
+  {
+  }
+
+  void viewport::on_mouse_leave(
+    wm::events::mouse_leave& e,
+    const editor::data_context& data_ctx,
+    const editor::view_context& view_ctx) const
+  {
   }
 
   void viewport::on_key_press(

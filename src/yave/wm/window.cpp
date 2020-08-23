@@ -52,21 +52,35 @@ namespace yave::wm {
 
     std::unique_ptr<window> ret;
 
-    auto it = std::remove_if(
-      ws.begin(), ws.end(), [&](auto& p) { return p->id() == id; });
+    auto it = std::find_if(
+      ws.begin(), ws.end(), [id](auto p) { return p->id() == id; });
 
     if (it != ws.end()) {
       ret.reset(*it);
       ret->m_parent = nullptr;
+      ws.erase(it);
     }
-
-    ws.erase(it, ws.end());
     return ret;
   }
 
   void window::remove_any_window(uid id)
   {
     (void)detach_any_window(id);
+  }
+
+  void window::set_name(std::string name)
+  {
+    m_name = std::move(name);
+  }
+
+  void window::set_pos(glm::vec2 pos)
+  {
+    m_pos = pos;
+  }
+
+  void window::set_size(glm::vec2 size)
+  {
+    m_size = size;
   }
 
 #define YAVE_WM_DISPATCH_EVENT(E, ...)         \
@@ -86,7 +100,11 @@ namespace yave::wm {
     YAVE_WM_DISPATCH_EVENT(mouse_double_click, data_ctx, view_ctx);
     YAVE_WM_DISPATCH_EVENT(mouse_press, data_ctx, view_ctx);
     YAVE_WM_DISPATCH_EVENT(mouse_release, data_ctx, view_ctx);
-    YAVE_WM_DISPATCH_EVENT(mouse_hover, data_ctx, view_ctx);
+    YAVE_WM_DISPATCH_EVENT(mouse_move, data_ctx, view_ctx);
+    YAVE_WM_DISPATCH_EVENT(mouse_over, data_ctx, view_ctx);
+    YAVE_WM_DISPATCH_EVENT(mouse_out, data_ctx, view_ctx);
+    YAVE_WM_DISPATCH_EVENT(mouse_enter, data_ctx, view_ctx);
+    YAVE_WM_DISPATCH_EVENT(mouse_leave, data_ctx, view_ctx);
 
     YAVE_WM_DISPATCH_EVENT(key_press, data_ctx, view_ctx);
     YAVE_WM_DISPATCH_EVENT(key_release, data_ctx, view_ctx);
@@ -111,72 +129,112 @@ namespace yave::wm {
 
   void window::on_draw(
     wm::events::draw& e,
-    const editor::data_context& data_ctx,
-    const editor::view_context& view_ctx) const
+    const editor::data_context&,
+    const editor::view_context&) const
   {
+    e.ignore();
   }
 
   void window::on_mouse_click(
-    events::mouse_click&,
+    events::mouse_click& e,
     const editor::data_context&,
     const editor::view_context&) const
   {
+    e.ignore();
   }
 
   void window::on_mouse_double_click(
-    events::mouse_double_click&,
+    events::mouse_double_click& e,
     const editor::data_context&,
     const editor::view_context&) const
   {
+    e.ignore();
   }
 
   void window::on_mouse_press(
-    events::mouse_press&,
+    events::mouse_press& e,
     const editor::data_context&,
     const editor::view_context&) const
   {
+    e.ignore();
   }
 
   void window::on_mouse_release(
-    events::mouse_release&,
+    events::mouse_release& e,
+    const editor::data_context&,
+    const editor::view_context&) const
+  {
+    e.ignore();
+  }
+
+  void window::on_mouse_move(
+    events::mouse_move& e,
+    const editor::data_context&,
+    const editor::view_context&) const
+  {
+    e.ignore();
+  }
+
+  void window::on_mouse_over(
+    wm::events::mouse_over& e,
+    const editor::data_context&,
+    const editor::view_context&) const
+  {
+    e.ignore();
+  }
+
+  void window::on_mouse_out(
+    wm::events::mouse_out& e,
+    const editor::data_context&,
+    const editor::view_context&) const
+  {
+    e.ignore();
+  }
+
+  void window::on_mouse_enter(
+    wm::events::mouse_enter&,
     const editor::data_context&,
     const editor::view_context&) const
   {
   }
 
-  void window::on_mouse_hover(
-    events::mouse_hover&,
+  void window::on_mouse_leave(
+    wm::events::mouse_leave&,
     const editor::data_context&,
     const editor::view_context&) const
   {
   }
 
   void window::on_key_press(
-    events::key_press&,
+    events::key_press& e,
     const editor::data_context&,
     const editor::view_context&) const
   {
+    e.ignore();
   }
 
   void window::on_key_release(
-    events::key_release&,
+    events::key_release& e,
     const editor::data_context&,
     const editor::view_context&) const
   {
+    e.ignore();
   }
 
   void window::on_key_char(
     wm::events::key_char& e,
-    const editor::data_context& data_ctx,
-    const editor::view_context& view_ctx) const
-  {
-  }
-
-  void window::on_custom_event(
-    wm::event&,
     const editor::data_context&,
     const editor::view_context&) const
   {
+    e.ignore();
+  }
+
+  void window::on_custom_event(
+    wm::event& e,
+    const editor::data_context&,
+    const editor::view_context&) const
+  {
+    e.ignore();
   }
 
 } // namespace yave::wm

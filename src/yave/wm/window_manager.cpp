@@ -85,6 +85,26 @@ namespace yave::wm {
     }
 
   public:
+    bool is_child(const window* c, const window* p) const
+    {
+      const window* w = c;
+
+      if (!w || !w->parent())
+        return false;
+
+      while ((w = w->parent()))
+        if (w == p)
+          return true;
+
+      return false;
+    }
+
+    bool is_parent(const window* p, const window* c) const
+    {
+      return is_child(c, p);
+    }
+
+  public:
     auto screen_pos(const window* win) -> glm::vec2
     {
       assert(exists(win->id()));
@@ -93,8 +113,9 @@ namespace yave::wm {
 
       glm::vec2 p = w->pos();
 
-      while ((w = w->parent()))
+      while ((w = w->parent()) && w->parent() != root()) {
         p += w->pos();
+      }
 
       return p;
     }
@@ -195,6 +216,16 @@ namespace yave::wm {
   auto window_manager::get_viewport(uid id) -> viewport_window*
   {
     return m_pimpl->get_viewport(id);
+  }
+
+  bool window_manager::is_child(const window* c, const window* p) const
+  {
+    return m_pimpl->is_child(c, p);
+  }
+
+  bool window_manager::is_parent(const window* p, const window* c) const
+  {
+    return m_pimpl->is_parent(p, c);
   }
 
   auto window_manager::screen_pos(const window* win) const -> glm::vec2
