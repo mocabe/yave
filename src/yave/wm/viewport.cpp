@@ -53,7 +53,6 @@ namespace yave::wm {
     editor::data_context& dctx,
     editor::view_context& vctx)
   {
-    m_io.update();
     m_key_event_emitter.dispatch_events(this, dctx, vctx);
     m_mouse_event_emitter.dispatch_events(this, dctx, vctx);
   }
@@ -204,6 +203,11 @@ namespace yave::wm {
 
   void viewport::update(editor::data_context& dctx, editor::view_context& vctx)
   {
+    // update io state here so other windows can catch io changes in update
+    // stage.
+    m_io.update();
+
+    // update children
     for (auto&& c : children()) {
       c->update(dctx, vctx);
     }
