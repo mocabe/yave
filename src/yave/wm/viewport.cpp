@@ -99,7 +99,7 @@ namespace yave::wm {
   {
     assert(!m_layout);
     m_layout = layout.get();
-    add_any_window(0, std::move(layout));
+    add_child_window(0, std::move(layout));
     m_layout->set_pos({0, 0});
     m_layout->set_size(size());
     return m_layout;
@@ -111,7 +111,7 @@ namespace yave::wm {
       return nullptr;
 
     assert(m_layout->id() == children().front()->id());
-    auto tmp = detach_any_window(children().front()->id()).release();
+    auto tmp = detach_child_window(children().front()->id()).release();
     return std::unique_ptr<layout_window>(tmp->as<layout_window>());
   }
 
@@ -133,13 +133,13 @@ namespace yave::wm {
   auto viewport::add_modal(std::unique_ptr<window>&& modal) -> window*
   {
     auto ret = modal.get();
-    add_any_window(-1, std::move(modal));
+    add_child_window(-1, std::move(modal));
     return ret;
   }
 
   auto viewport::detach_modal(uid id) -> std::unique_ptr<window>
   {
-    return detach_any_window(id);
+    return detach_child_window(id);
   }
 
   auto viewport::modals() -> std::span<window* const>
@@ -180,6 +180,11 @@ namespace yave::wm {
       return w;
 
     return nullptr;
+  }
+
+  auto viewport::io() const -> const viewport_io&
+  {
+    return m_io;
   }
 
   bool viewport::should_close() const

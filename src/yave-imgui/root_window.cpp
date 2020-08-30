@@ -25,13 +25,13 @@ namespace yave::editor::imgui {
     { // node canvas
       auto w      = std::make_unique<node_window>(im);
       node_canvas = w.get();
-      add_any_window(children().size(), std::move(w));
+      add_child_window(children().size(), std::move(w));
     }
 
     { // render view
       auto w      = std::make_unique<render_view_window>(im);
       render_view = w.get();
-      add_any_window(children().size(), std::move(w));
+      add_child_window(children().size(), std::move(w));
     }
   }
 

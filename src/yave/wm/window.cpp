@@ -35,7 +35,7 @@ namespace yave::wm {
       delete c;
   }
 
-  void window::add_any_window(size_t idx, std::unique_ptr<window>&& win)
+  void window::add_child_window(size_t idx, std::unique_ptr<window>&& win)
   {
     assert(!win->m_parent);
     win->m_parent = this;
@@ -46,7 +46,7 @@ namespace yave::wm {
     ws.emplace(it, win.release());
   }
 
-  auto window::detach_any_window(uid id) -> std::unique_ptr<window>
+  auto window::detach_child_window(uid id) -> std::unique_ptr<window>
   {
     auto& ws = m_children;
 
@@ -63,9 +63,23 @@ namespace yave::wm {
     return ret;
   }
 
-  void window::remove_any_window(uid id)
+  void window::remove_child_window(uid id)
   {
-    (void)detach_any_window(id);
+    (void)detach_child_window(id);
+  }
+
+  void window::move_child_window_front(uid id)
+  {
+    auto& ws = m_children;
+    std::stable_partition(
+      ws.begin(), ws.end(), [id](auto p) { return p->id() == id; });
+  }
+
+  void window::move_child_window_back(uid id)
+  {
+    auto& ws = m_children;
+    std::stable_partition(
+      ws.begin(), ws.end(), [id](auto p) { return p->id() != id; });
   }
 
   void window::set_name(std::string name)

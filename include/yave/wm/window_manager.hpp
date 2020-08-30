@@ -45,18 +45,32 @@ namespace yave::wm {
     [[nodiscard]] auto get_viewport(uid id) -> viewport_window*;
 
   public:
+    /// exists?
+    [[nodiscard]] bool exists(const window* w) const;
+    /// get parent viewport
+    /// \note returns false on !exists(w)
+    [[nodiscard]] auto get_viewport(const window* w) const
+      -> const viewport_window*;
+    /// get parent viewport
+    /// \note returns false on !exists(w)
+    [[nodiscard]] auto get_viewport(const window* w) //
+      -> viewport_window*;
+
+  public:
     /// child?
-    /// \requires exists(c->id()) && exists(p->id())
+    /// \note returns false on !exists(c) || !exists(p)
     [[nodiscard]] bool is_child(const window* c, const window* p) const;
     /// parent?
-    /// \requires exists(p->id()) && exists(c->id())
+    /// \note returns false on !exists(p) || !exists(c)
     [[nodiscard]] bool is_parent(const window* p, const window* c) const;
 
   public:
     /// calc screen pos of window
     /// \param win target window
     /// \return position of window in virtual screen coordinate
-    [[nodiscard]] auto screen_pos(const window* win) const -> glm::vec2;
+    /// \note returns std::nullopt when !exists(win)
+    [[nodiscard]] auto screen_pos(const window* win) const
+      -> std::optional<glm::vec2>;
 
     /// check hit on window
     /// \param win target window

@@ -75,6 +75,10 @@ namespace yave::wm {
     auto modal(uid id) const -> const window*;
 
   public:
+    /// get IO
+    auto io() const -> const viewport_io&;
+
+  public:
     bool should_close() const override;
     auto refresh_rate() const -> uint32_t override;
     void exec(editor::data_context&, editor::view_context&) override;

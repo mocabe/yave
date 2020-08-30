@@ -71,13 +71,19 @@ namespace yave::wm {
     /// utility function to add new window
     /// \param idx position of insertion
     /// \param win window to insert
-    void add_any_window(size_t idx, std::unique_ptr<window>&& win);
+    void add_child_window(size_t idx, std::unique_ptr<window>&& win);
 
     /// utility function to detach child window
-    auto detach_any_window(uid id) -> std::unique_ptr<window>;
+    auto detach_child_window(uid id) -> std::unique_ptr<window>;
 
     /// utility function to remove child window
-    void remove_any_window(uid id);
+    void remove_child_window(uid id);
+
+    /// utility function to move child window
+    void move_child_window_front(uid id);
+
+    /// utility function to move child window
+    void move_child_window_back(uid id);
 
   public:
     /// update view model
@@ -160,7 +166,8 @@ namespace yave::wm {
     auto as()
     {
       static_assert(std::is_base_of_v<window, Derived>);
-      assert(typeid(*this) == typeid(Derived));
+      if (typeid(*this) != typeid(Derived))
+        throw std::logic_error("invalid cast");
       return static_cast<Derived*>(this);
     }
 
@@ -169,7 +176,8 @@ namespace yave::wm {
     auto as() const
     {
       static_assert(std::is_base_of_v<window, Derived>);
-      assert(typeid(*this) == typeid(Derived));
+      if (typeid(*this) != typeid(Derived))
+        throw std::logic_error("invalid cast");
       return static_cast<const Derived*>(this);
     }
 

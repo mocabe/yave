@@ -58,7 +58,7 @@ namespace yave::wm {
     uid last_region = {};
 
     void dispatch_cursor_events(
-      viewport_window* vp,
+      viewport_window* /*vp*/,
       const editor::data_context& dctx,
       const editor::view_context& vctx)
     {

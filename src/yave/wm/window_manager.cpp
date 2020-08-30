@@ -36,13 +36,13 @@ namespace yave::wm {
     }
 
   public:
-    auto root() -> root_window*
+    auto root() const -> root_window*
     {
       return root_win.get();
     }
 
   public:
-    auto get_window(uid id) -> window*
+    auto get_window(uid id) const -> window*
     {
       auto rec = [id](auto&& self, window* w) -> window* {
         if (w->id() == id)
@@ -56,7 +56,7 @@ namespace yave::wm {
         return nullptr;
       };
 
-      return fix_lambda(rec)(root_win.get());
+      return fix_lambda(rec)(root());
     }
 
     auto get_viewport(uid id) -> viewport_window*
@@ -72,21 +72,53 @@ namespace yave::wm {
         return false;
       };
 
-      for (auto&& vp : root_win->viewports()) {
+      for (auto&& vp : root()->viewports()) {
         if (fix_lambda(rec)(vp))
           return vp;
       }
       return nullptr;
     }
 
-    bool exists(uid id)
+    auto get_viewport(const window* w) -> viewport_window*
+    {
+      if (!w || !w->parent())
+        return nullptr;
+
+      while (w->parent()->parent())
+        w = w->parent();
+
+      if (w->parent() == root()) {
+        for (auto&& vp : root()->children())
+          if (w == vp)
+            return static_cast<viewport_window*>(vp);
+      }
+      return nullptr;
+    }
+
+    // form ID
+    bool exists(uid id) const
     {
       return get_window(id);
+    }
+
+    // from valid pointer
+    bool exists(const window* w) const
+    {
+      if (!w)
+        return false;
+
+      while (w->parent())
+        w = w->parent();
+
+      return w == root();
     }
 
   public:
     bool is_child(const window* c, const window* p) const
     {
+      if (!exists(c) || !exists(p))
+        return false;
+
       const window* w = c;
 
       if (!w || !w->parent())
@@ -105,9 +137,10 @@ namespace yave::wm {
     }
 
   public:
-    auto screen_pos(const window* win) -> glm::vec2
+    auto screen_pos(const window* win) -> std::optional<glm::vec2>
     {
-      assert(exists(win->id()));
+      if (!exists(win))
+        return std::nullopt;
 
       const window* w = win;
 
@@ -218,6 +251,22 @@ namespace yave::wm {
     return m_pimpl->get_viewport(id);
   }
 
+  bool window_manager::exists(const window* w) const
+  {
+    return m_pimpl->exists(w);
+  }
+
+  auto window_manager::get_viewport(const window* w) const
+    -> const viewport_window*
+  {
+    return m_pimpl->get_viewport(w);
+  }
+
+  auto window_manager::get_viewport(const window* w) -> viewport_window*
+  {
+    return m_pimpl->get_viewport(w);
+  }
+
   bool window_manager::is_child(const window* c, const window* p) const
   {
     return m_pimpl->is_child(c, p);
@@ -228,7 +277,8 @@ namespace yave::wm {
     return m_pimpl->is_parent(p, c);
   }
 
-  auto window_manager::screen_pos(const window* win) const -> glm::vec2
+  auto window_manager::screen_pos(const window* win) const
+    -> std::optional<glm::vec2>
   {
     return m_pimpl->screen_pos(win);
   }

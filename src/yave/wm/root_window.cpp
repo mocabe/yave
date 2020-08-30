@@ -57,7 +57,7 @@ namespace yave::wm {
       if (it == vps.end())
         break;
 
-      remove_any_window((*it)->id());
+      remove_child_window((*it)->id());
     }
 
     if (viewports().empty())
@@ -110,12 +110,12 @@ namespace yave::wm {
     -> viewport_window*
   {
     auto ret = win.get();
-    add_any_window(children().size(), std::move(win));
+    add_child_window(children().size(), std::move(win));
     return ret;
   }
 
   void root_window::remove_viewport(uid id)
   {
-    remove_any_window(id);
+    remove_child_window(id);
   }
 } // namespace yave::wm
