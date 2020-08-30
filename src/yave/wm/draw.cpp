@@ -20,6 +20,20 @@ namespace yave::wm {
       return glm::u8vec4(col * 255.f + 0.5f);
     }
 
+    /// clip scissor to positive quadrant (required for Vulkan API)
+    auto clip_scissor(const draw_scissor& scissor)
+    {
+      assert(0 <= scissor.extent.x && 0 <= scissor.extent.y);
+
+      // clip offset
+      auto off = glm::max(glm::vec2(0, 0), scissor.offset);
+
+      return draw_scissor {
+        .offset = off,
+        .extent = scissor.offset + scissor.extent - off,
+      };
+    }
+
     /// calculate offset of line segment
     auto line_offset(const glm::vec2& p1, const glm::vec2& p2, float d)
       -> std::pair<glm::vec2, glm::vec2>
@@ -92,7 +106,7 @@ namespace yave::wm {
          .idx_offset = idx_off,
          .vtx_offset = vtx_off,
          .tex        = tex,
-         .scissor    = scissor});
+         .scissor    = clip_scissor(scissor)});
 
       reserve_increase(vtx_buff, vtx_size);
       reserve_increase(idx_buff, idx_size);
@@ -225,7 +239,7 @@ namespace yave::wm {
          .idx_offset = idx_off,
          .vtx_offset = vtx_off,
          .tex        = tex,
-         .scissor    = scissor});
+         .scissor    = clip_scissor(scissor)});
 
       reserve_increase(vtx_buff, vtx_size);
       reserve_increase(idx_buff, idx_size);
