@@ -100,16 +100,11 @@ namespace yave {
   {
     constexpr auto fst = [=](auto s) { return s.t1(); };
 
-    // GCC 9.2 bug: s1 is not constant expression.
-    // constexpr auto agree = [=](auto v) {
-    //   return apply_subst(s1, v) == apply_subst(s2, v);
-    // };
+    constexpr auto agree = [=](auto v) {
+      return apply_subst(s1, v) == apply_subst(s2, v);
+    };
 
-    if constexpr (all(
-                    intersect(map(s1, fst), map(s2, fst)),
-                    /* agree */ [=](auto v) {
-                      return apply_subst(s1, v) == apply_subst(s2, v);
-                    }))
+    if constexpr (all(intersect(map(s1, fst), map(s2, fst)), agree))
       return make_succ(concat(s1, s2));
     else
       return make_error(make_unknown_error());
