@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/node/core/node_info.hpp>
-#include <yave/lib/vec/tvec2.hpp>
+#include <yave/lib/vec/tvec.hpp>
 
 namespace yave {
 

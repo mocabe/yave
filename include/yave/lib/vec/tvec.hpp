@@ -5,7 +5,20 @@
 
 #pragma once
 
-#include <yave/lib/vec/tvec1.hpp>
-#include <yave/lib/vec/tvec2.hpp>
-#include <yave/lib/vec/tvec3.hpp>
-#include <yave/lib/vec/tvec4.hpp>
+#include <yave/config/config.hpp>
+#include <glm/glm.hpp>
+
+namespace yave {
+
+  template <class T>
+  using tvec1 = glm::tvec1<T>;
+
+  template <class T>
+  using tvec2 = glm::tvec2<T>;
+
+  template <class T>
+  using tvec3 = glm::tvec3<T>;
+
+  template <class T>
+  using tvec4 = glm::tvec4<T>;
+}

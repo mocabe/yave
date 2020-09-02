@@ -66,13 +66,13 @@ TEST_CASE("init", "[obj][vec]")
   TestInitObject(UVec3);
   TestInitObject(UVec4);
 
-  TestInitObject(FVec1);
-  TestInitObject(FVec2);
-  TestInitObject(FVec3);
-  TestInitObject(FVec4);
+  TestInitObject(F32Vec1);
+  TestInitObject(F32Vec2);
+  TestInitObject(F32Vec3);
+  TestInitObject(F32Vec4);
 
-  TestInitObject(DVec1);
-  TestInitObject(DVec2);
-  TestInitObject(DVec3);
-  TestInitObject(DVec4);
+  TestInitObject(F64Vec1);
+  TestInitObject(F64Vec2);
+  TestInitObject(F64Vec3);
+  TestInitObject(F64Vec4);
 }

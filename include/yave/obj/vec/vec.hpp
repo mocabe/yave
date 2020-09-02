@@ -66,18 +66,25 @@ namespace yave {
 
   // Float
 
-  using FVec1 = Box<fvec1>;
-  using FVec2 = Box<fvec2>;
-  using FVec3 = Box<fvec3>;
-  using FVec4 = Box<fvec4>;
+  using F32Vec1 = Box<fvec1>;
+  using F32Vec2 = Box<fvec2>;
+  using F32Vec3 = Box<fvec3>;
+  using F32Vec4 = Box<fvec4>;
 
   // Double
 
-  using DVec1 = Box<dvec1>;
-  using DVec2 = Box<dvec2>;
-  using DVec3 = Box<dvec3>;
-  using DVec4 = Box<dvec4>;
-}
+  using F64Vec1 = Box<dvec1>;
+  using F64Vec2 = Box<dvec2>;
+  using F64Vec3 = Box<dvec3>;
+  using F64Vec4 = Box<dvec4>;
+
+  // convinience
+  using Vec1 = F64Vec1;
+  using Vec2 = F64Vec2;
+  using Vec3 = F64Vec3;
+  using Vec4 = F64Vec4;
+
+} // namespace yave
 
 // clang-format off
 
@@ -127,16 +134,16 @@ YAVE_DECL_TYPE(yave::U64Vec4, "b5e36180-f253-441c-a5df-79fc4154fae4");
 
 // Float
 
-YAVE_DECL_TYPE(yave::FVec1,   "12a07dcc-323c-4679-a3d1-9b60b267d15d");
-YAVE_DECL_TYPE(yave::FVec2,   "d67a2002-9ab3-4539-950f-ea5051577e80");
-YAVE_DECL_TYPE(yave::FVec3,   "109457af-8055-43b4-b666-31e5952fb1ff");
-YAVE_DECL_TYPE(yave::FVec4,   "563e45dd-1ba6-4e5f-9d66-131177de4f34");
+YAVE_DECL_TYPE(yave::F32Vec1,   "12a07dcc-323c-4679-a3d1-9b60b267d15d");
+YAVE_DECL_TYPE(yave::F32Vec2,   "d67a2002-9ab3-4539-950f-ea5051577e80");
+YAVE_DECL_TYPE(yave::F32Vec3,   "109457af-8055-43b4-b666-31e5952fb1ff");
+YAVE_DECL_TYPE(yave::F32Vec4,   "563e45dd-1ba6-4e5f-9d66-131177de4f34");
 
 // Double
 
-YAVE_DECL_TYPE(yave::DVec1,   "9249315c-a062-4545-9063-6ed80df95d5e");
-YAVE_DECL_TYPE(yave::DVec2,   "a3b74ed6-ae4f-437a-ad58-d6ff679cc25c");
-YAVE_DECL_TYPE(yave::DVec3,   "d0a25c41-e9b8-4ff8-a1dd-ca9687087213");
-YAVE_DECL_TYPE(yave::DVec4,   "90e4a48f-4d22-449e-911f-ec0627aa2009");
+YAVE_DECL_TYPE(yave::F64Vec1,   "9249315c-a062-4545-9063-6ed80df95d5e");
+YAVE_DECL_TYPE(yave::F64Vec2,   "a3b74ed6-ae4f-437a-ad58-d6ff679cc25c");
+YAVE_DECL_TYPE(yave::F64Vec3,   "d0a25c41-e9b8-4ff8-a1dd-ca9687087213");
+YAVE_DECL_TYPE(yave::F64Vec4,   "90e4a48f-4d22-449e-911f-ec0627aa2009");
 
 // clang-format on

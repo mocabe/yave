@@ -12,6 +12,9 @@ using namespace yave;
 
 TEST_CASE("NodeFunction")
 {
+  using Float  = Float32;
+  using Double = Float64;
+
   SECTION("simple")
   {
     struct F : NodeFunction<F, Int, Float, Double>

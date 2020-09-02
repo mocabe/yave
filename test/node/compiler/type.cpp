@@ -13,6 +13,9 @@ using namespace yave;
 
 TEST_CASE("overloading")
 {
+  using Float  = Float32;
+  using Double = Float64;
+
   // empty loc map
   location_map loc;
 

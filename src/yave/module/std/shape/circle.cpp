@@ -22,13 +22,13 @@ namespace yave {
       "Create circle shape",
       {"pos", "radius"},
       {"shape"},
-      {{0, make_data_type_holder<FVec2>()},
+      {{0, make_data_type_holder<Vec2>()},
        {1, make_data_type_holder<Float>(128.f)}});
   }
 
   namespace modules::_std::shape {
 
-    struct CircleShapeCtor : NodeFunction<CircleShapeCtor, FVec2, Float, Shape>
+    struct CircleShapeCtor : NodeFunction<CircleShapeCtor, Vec2, Float, Shape>
     {
       auto code() const -> return_type
       {

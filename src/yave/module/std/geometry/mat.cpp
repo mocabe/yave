@@ -79,16 +79,16 @@ namespace yave {
   namespace modules::_std::geometry {
 
     // Mat4 constructor
-    struct Mat4Ctor : NodeFunction<Mat4Ctor, FMat4>
+    struct Mat4Ctor : NodeFunction<Mat4Ctor, Mat4>
     {
       return_type code() const
       {
-        return make_object<FMat4>(1);
+        return make_object<Mat4>(1);
       }
     };
 
     // Mat4 Rotate
-    struct Mat4Rotate : NodeFunction<Mat4Rotate, FMat4, Float, FVec3, FMat4>
+    struct Mat4Rotate : NodeFunction<Mat4Rotate, Mat4, Float, Vec3, Mat4>
     {
       auto code() const -> return_type
       {
@@ -96,63 +96,65 @@ namespace yave {
         auto angle     = eval_arg<1>();
         auto axis      = eval_arg<2>();
 
-        if (*axis == fvec3(0, 0, 0))
+        if (*axis == dvec3(0, 0, 0))
           return arg<0>();
 
         auto m = glm::rotate(
-          glm::mat4(1), glm::radians(*angle), glm::normalize(glm::vec3(*axis)));
-        return make_object<FMat4>(m * *transform);
+          glm::dmat4(1),
+          glm::radians(*angle),
+          glm::normalize(glm::dvec3(*axis)));
+        return make_object<Mat4>(m * *transform);
       }
     };
 
     // Mat4 RotateX
-    struct Mat4RotateX : NodeFunction<Mat4RotateX, FMat4, Float, FMat4>
+    struct Mat4RotateX : NodeFunction<Mat4RotateX, Mat4, Float, Mat4>
     {
       auto code() const -> return_type
       {
         auto transform = eval_arg<0>();
         auto angle     = eval_arg<1>();
         auto m =
-          glm::rotate(glm::mat4(1), glm::radians(*angle), glm::vec3(1, 0, 0));
-        return make_object<FMat4>(m * *transform);
+          glm::rotate(glm::dmat4(1), glm::radians(*angle), glm::dvec3(1, 0, 0));
+        return make_object<Mat4>(m * *transform);
       }
     };
 
     // Mat4 RotateY
-    struct Mat4RotateY : NodeFunction<Mat4RotateY, FMat4, Float, FMat4>
+    struct Mat4RotateY : NodeFunction<Mat4RotateY, Mat4, Float, Mat4>
     {
       auto code() const -> return_type
       {
         auto transform = eval_arg<0>();
         auto angle     = eval_arg<1>();
         auto m =
-          glm::rotate(glm::mat4(1), glm::radians(*angle), glm::vec3(0, 1, 0));
-        return make_object<FMat4>(*transform * m);
+          glm::rotate(glm::dmat4(1), glm::radians(*angle), glm::dvec3(0, 1, 0));
+        return make_object<Mat4>(*transform * m);
       }
     };
 
     // Mat4 RotateZ
-    struct Mat4RotateZ : NodeFunction<Mat4RotateZ, FMat4, Float, FMat4>
+    struct Mat4RotateZ : NodeFunction<Mat4RotateZ, Mat4, Float, Mat4>
     {
       auto code() const -> return_type
       {
         auto transform = eval_arg<0>();
         auto angle     = eval_arg<1>();
         auto m =
-          glm::rotate(glm::mat4(1), glm::radians(*angle), glm::vec3(0, 0, 1));
-        return make_object<FMat4>(m * *transform);
+          glm::rotate(glm::dmat4(1), glm::radians(*angle), glm::dvec3(0, 0, 1));
+        return make_object<Mat4>(m * *transform);
       }
     };
 
     // Mat4 Transform
-    struct Mat4Translate : NodeFunction<Mat4Translate, FMat4, FVec3, FMat4>
+    struct Mat4Translate : NodeFunction<Mat4Translate, Mat4, Vec3, Mat4>
     {
       auto code() const -> return_type
       {
         auto t = eval_arg<0>();
         auto v = eval_arg<1>();
-        auto m = glm::translate(glm::mat4(1), glm::vec3(v->x, v->y, v->z));
-        return make_object<FMat4>(m * *t);
+        auto m = glm::translate(glm::dmat4(1), glm::dvec3(v->x, v->y, v->z));
+        return make_object<Mat4>(m * *t);
       }
     };
 

@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/lib/vec/tvec2.hpp>
+#include <yave/lib/vec/tvec.hpp>
 #include <imgui.h>
 
 namespace yave::imgui {

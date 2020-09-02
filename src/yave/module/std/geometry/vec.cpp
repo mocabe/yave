@@ -19,8 +19,8 @@ namespace yave {
       "Vec2 constructor",
       {"x", "y"},
       {"value"},
-      {{0, make_data_type_holder<Float>()},
-       {1, make_data_type_holder<Float>()}});
+      {{0, make_data_type_holder<Float64>()},
+       {1, make_data_type_holder<Float64>()}});
   }
 
   auto node_declaration_traits<node::Vec3>::get_node_declaration()
@@ -54,30 +54,30 @@ namespace yave {
 
   namespace modules::_std::geometry {
 
-    struct Vec2Constructor : NodeFunction<Vec2Constructor, Float, Float, FVec2>
+    struct Vec2Constructor : NodeFunction<Vec2Constructor, Float, Float, Vec2>
     {
       return_type code() const
       {
-        return make_object<FVec2>(*eval_arg<0>(), *eval_arg<1>());
+        return make_object<Vec2>(*eval_arg<0>(), *eval_arg<1>());
       }
     };
 
     struct Vec3Constructor
-      : NodeFunction<Vec3Constructor, Float, Float, Float, FVec3>
+      : NodeFunction<Vec3Constructor, Float, Float, Float, Vec3>
     {
       return_type code() const
       {
-        return make_object<FVec3>(
+        return make_object<Vec3>(
           *eval_arg<0>(), *eval_arg<1>(), *eval_arg<2>());
       }
     };
 
     struct Vec4Constructor
-      : NodeFunction<Vec4Constructor, Float, Float, Float, Float, FVec4>
+      : NodeFunction<Vec4Constructor, Float, Float, Float, Float, Vec4>
     {
       return_type code() const
       {
-        return make_object<FVec4>(
+        return make_object<Vec4>(
           *eval_arg<0>(), *eval_arg<1>(), *eval_arg<2>(), *eval_arg<3>());
       }
     };

@@ -46,15 +46,20 @@ namespace yave {
 
   // Float
 
-  using FMat2 = Box<fmat2>;
-  using FMat3 = Box<fmat3>;
-  using FMat4 = Box<fmat4>;
+  using F32Mat2 = Box<fmat2>;
+  using F32Mat3 = Box<fmat3>;
+  using F32Mat4 = Box<fmat4>;
 
   // Double
 
-  using DMat2 = Box<dmat2>;
-  using DMat3 = Box<dmat3>;
-  using DMat4 = Box<dmat4>;
+  using F64Mat2 = Box<dmat2>;
+  using F64Mat3 = Box<dmat3>;
+  using F64Mat4 = Box<dmat4>;
+
+  // convinience
+  using Mat2 = F64Mat2;
+  using Mat3 = F64Mat3;
+  using Mat4 = F64Mat4;
 
 } // namespace yave
 
@@ -88,10 +93,10 @@ YAVE_DECL_TYPE(yave::U16Mat4, "f7c7902e-b75c-4965-ae2b-a24d98089b60");
 YAVE_DECL_TYPE(yave::U32Mat4, "5412c574-2409-4da7-872f-37ea4e304b5c");
 YAVE_DECL_TYPE(yave::U64Mat4, "0f3a5622-55f3-4969-90e8-4dfd15d8e749");
 
-YAVE_DECL_TYPE(yave::FMat2, "b135634c-dc9f-45dc-bc68-49f8fa07c0ab");
-YAVE_DECL_TYPE(yave::FMat3, "e2c21995-8cc2-4f37-81c9-e46f8f5fc569");
-YAVE_DECL_TYPE(yave::FMat4, "a48f39d2-6f06-44d9-bd9f-63a1af570205");
+YAVE_DECL_TYPE(yave::F32Mat2, "b135634c-dc9f-45dc-bc68-49f8fa07c0ab");
+YAVE_DECL_TYPE(yave::F32Mat3, "e2c21995-8cc2-4f37-81c9-e46f8f5fc569");
+YAVE_DECL_TYPE(yave::F32Mat4, "a48f39d2-6f06-44d9-bd9f-63a1af570205");
 
-YAVE_DECL_TYPE(yave::DMat2, "035f8b34-8f2b-4e79-9ebf-319c4a029cb6");
-YAVE_DECL_TYPE(yave::DMat3, "f66a0e02-e3b8-4835-969b-e64ce4c18640");
-YAVE_DECL_TYPE(yave::DMat4, "fda0796a-473c-4f4d-bba8-535011a934de");
+YAVE_DECL_TYPE(yave::F64Mat2, "035f8b34-8f2b-4e79-9ebf-319c4a029cb6");
+YAVE_DECL_TYPE(yave::F64Mat3, "f66a0e02-e3b8-4835-969b-e64ce4c18640");
+YAVE_DECL_TYPE(yave::F64Mat4, "fda0796a-473c-4f4d-bba8-535011a934de");

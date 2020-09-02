@@ -142,17 +142,17 @@ namespace yave::editor::imgui {
       ImVec2 size) const override;
   };
 
-  /// FVec2
+  /// Vec2
   template <>
-  class data_type_socket<FVec2> : public basic_socket_drawer
+  class data_type_socket<Vec2> : public basic_socket_drawer
   {
     object_ptr<DataTypeHolder> m_holder;
-    object_ptr<const FVec2DataProperty> m_property;
+    object_ptr<const Vec2DataProperty> m_property;
 
   public:
     data_type_socket(
       const object_ptr<DataTypeHolder>& holder,
-      const object_ptr<const FVec2DataProperty>& property,
+      const object_ptr<const Vec2DataProperty>& property,
       const socket_handle& s,
       const structured_node_graph& g,
       const node_window& nw);

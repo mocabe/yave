@@ -22,13 +22,12 @@ namespace yave {
       "Create rect shape",
       {"pos", "size"},
       {"shape"},
-      {{0, make_data_type_holder<FVec2>()},
-       {1, make_data_type_holder<FVec2>()}});
+      {{0, make_data_type_holder<Vec2>()}, {1, make_data_type_holder<Vec2>()}});
   }
 
   namespace modules::_std::shape {
 
-    struct RectShapeCtor : NodeFunction<RectShapeCtor, FVec2, FVec2, Shape>
+    struct RectShapeCtor : NodeFunction<RectShapeCtor, Vec2, Vec2, Shape>
     {
       auto code() const -> return_type
       {

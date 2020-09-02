@@ -49,7 +49,7 @@ namespace yave {
 
   namespace modules::_std::shape {
 
-    struct Translate : NodeFunction<Translate, Shape, FVec2, Shape>
+    struct Translate : NodeFunction<Translate, Shape, Vec2, Shape>
     {
       auto code() const -> return_type
       {
@@ -63,7 +63,7 @@ namespace yave {
       }
     };
 
-    struct Rotate : NodeFunction<Rotate, Shape, Float, FVec2, Shape>
+    struct Rotate : NodeFunction<Rotate, Shape, Float, Vec2, Shape>
     {
       auto code() const -> return_type
       {
@@ -78,7 +78,7 @@ namespace yave {
       }
     };
 
-    struct Scale : NodeFunction<Scale, Shape, Float, FVec2, Shape>
+    struct Scale : NodeFunction<Scale, Shape, Float, Vec2, Shape>
     {
       auto code() const -> return_type
       {

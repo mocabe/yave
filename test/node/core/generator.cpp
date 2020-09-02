@@ -12,6 +12,9 @@ using namespace yave;
 
 TEST_CASE("generators")
 {
+  using Float  = Float32;
+  using Double = Float64;
+
   SECTION("Unary")
   {
     {
