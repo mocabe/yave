@@ -58,7 +58,7 @@ namespace yave {
       {
         auto fd = eval_arg<2>();
         auto t  = eval(arg<1>() << fd);
-        return arg<0>() << make_object<FrameDemand>(*t);
+        return arg<0>() << make_object<FrameDemand>(std::move(t));
       }
     };
 
@@ -75,9 +75,10 @@ namespace yave {
         auto delay = eval(arg<1>() << fd);
 
         // t - delay
-        auto delayed = fd->time - *delay;
+        auto delayed = *fd->time - *delay;
 
-        return arg<0>() << make_object<FrameDemand>(delayed);
+        auto t = make_object<FrameTime>(delayed);
+        return arg<0>() << make_object<FrameDemand>(std::move(t));
       }
     };
 
@@ -92,7 +93,9 @@ namespace yave {
       {
         auto fd    = eval_arg<2>();
         auto scale = eval(arg<1>() << fd);
-        return arg<0>() << make_object<FrameDemand>(fd->time * *scale);
+
+        auto t = make_object<FrameTime>(*fd->time * *scale);
+        return arg<0>() << make_object<FrameDemand>(std::move(t));
       }
     };
 

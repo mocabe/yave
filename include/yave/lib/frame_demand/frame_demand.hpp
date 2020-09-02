@@ -5,15 +5,14 @@
 
 #pragma once
 
-#include <yave/lib/frame_time/frame_time.hpp>
+#include <yave/obj/frame_time/frame_time.hpp>
 
 namespace yave {
 
   /// frame demand
   struct frame_demand
   {
-    /// Current time.
-    /// Initial value will be given as current render time.
-    frame_time time;
+    /// time
+    object_ptr<const FrameTime> time;
   };
 }

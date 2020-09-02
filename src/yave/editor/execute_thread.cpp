@@ -82,8 +82,7 @@ namespace yave::editor {
               // execute app tree.
               auto result = [&]() -> std::optional<image> {
                 try {
-                  auto r =
-                    value_cast<FrameBuffer>(exe->execute(frame_demand {time}));
+                  auto r = value_cast<FrameBuffer>(exe->execute(time));
                   // load to host memory
                   auto img = image(r->width(), r->height(), r->format());
                   r->read_data(0, 0, r->width(), r->height(), img.data());

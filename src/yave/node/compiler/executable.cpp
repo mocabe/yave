@@ -41,10 +41,10 @@ namespace yave {
     return m_type;
   }
 
-  auto executable::execute(const frame_demand& demand)
-    -> object_ptr<const Object>
+  auto executable::execute(const frame_time& time) -> object_ptr<const Object>
   {
-    return eval(m_obj << make_object<FrameDemand>(demand));
+    return eval(
+      m_obj << make_object<FrameDemand>(make_object<FrameTime>(time)));
   }
 
   auto executable::clone() const -> executable

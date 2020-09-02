@@ -34,7 +34,7 @@ namespace yave {
     [[nodiscard]] auto type() const -> const object_ptr<const Type>&;
 
     /// Execute.
-    [[nodiscard]] auto execute(const frame_demand& frame)
+    [[nodiscard]] auto execute(const frame_time& time)
       -> object_ptr<const Object>;
 
     /// Clone.
