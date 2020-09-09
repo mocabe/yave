@@ -206,7 +206,7 @@ namespace yave {
       /// output bits
       std::vector<node_handle> output_bits;
       /// pos
-      fvec2 pos = {};
+      dvec2 pos = {};
 
       bool is_global() const
       {
@@ -224,7 +224,7 @@ namespace yave {
       /// type
       structured_node_type type;
       /// pos
-      fvec2 pos = {};
+      dvec2 pos = {};
 
       void refresh(const node_graph& ng);
     };
@@ -1357,7 +1357,7 @@ namespace yave {
     }
 
   public:
-    auto get_pos(const node_handle& node) const -> fvec2
+    auto get_pos(const node_handle& node) const -> dvec2
     {
       assert(is_valid(node));
 
@@ -1370,7 +1370,7 @@ namespace yave {
       unreachable();
     }
 
-    void set_pos(const node_handle& node, const fvec2& newpos)
+    void set_pos(const node_handle& node, const dvec2& newpos)
     {
       assert(is_valid(node));
 
@@ -2165,7 +2165,7 @@ namespace yave {
   }
 
   auto structured_node_graph::get_pos(const node_handle& node) const
-    -> std::optional<fvec2>
+    -> std::optional<dvec2>
   {
     if (!exists(node))
       return std::nullopt;
@@ -2175,7 +2175,7 @@ namespace yave {
 
   void structured_node_graph::set_pos(
     const node_handle& node,
-    const fvec2& newpos)
+    const dvec2& newpos)
   {
     if (!exists(node))
       return;
