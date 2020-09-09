@@ -8,6 +8,7 @@
 #include <yave/rts/rts.hpp>
 #include <yave/node/core/get_info.hpp>
 #include <yave/obj/frame_demand/frame_demand.hpp>
+#include <yave/obj/frame_time/frame_time.hpp>
 
 namespace yave {
 
@@ -41,6 +42,12 @@ namespace yave {
       [[nodiscard]] auto eval_arg() const
       {
         return eval(this->template arg<N>());
+      }
+
+      /// Get current time applied to this function
+      [[nodiscard]] auto arg_time() const -> object_ptr<const FrameTime>
+      {
+        return base::template eval_arg<sizeof...(Ts)>()->time;
       }
     };
 

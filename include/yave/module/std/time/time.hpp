@@ -36,7 +36,7 @@ namespace yave {
     {
       return_type code() const
       {
-        return make_object<FrameTime>(eval_arg<0>()->time);
+        return eval_arg<0>()->time;
       }
     };
   } // namespace modules::_std::core
