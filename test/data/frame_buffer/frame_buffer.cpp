@@ -5,10 +5,11 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
-#include <yave/lib/frame_buffer/frame_buffer.hpp>
+#include <yave/data/frame_buffer/frame_buffer_manager.hpp>
+#include <yave/data/frame_buffer/frame_buffer.hpp>
 
 using namespace yave;
+using namespace yave::data;
 
 TEST_CASE("")
 {

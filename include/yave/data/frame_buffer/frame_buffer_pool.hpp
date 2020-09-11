@@ -9,7 +9,7 @@
 #include <yave/lib/image/image_format.hpp>
 #include <yave/support/uuid.hpp>
 
-namespace yave {
+namespace yave::data {
 
   /// Frame buffer pool interface
   struct frame_buffer_pool

@@ -20,7 +20,7 @@ namespace yave {
   template <>
   struct node_declaration_traits<node::DrawShape>
   {
-    static auto get_node_declaration(frame_buffer_manager& fbm)
+    static auto get_node_declaration(data::frame_buffer_manager& fbm)
       -> node_declaration;
   };
 
@@ -28,7 +28,7 @@ namespace yave {
   struct node_definition_traits<node::DrawShape, modules::_std::tag>
   {
     static auto get_node_definitions(
-      frame_buffer_manager& fbm,
+      data::frame_buffer_manager& fbm,
       vulkan::rgba32f_offscreen_compositor& compositor)
       -> std::vector<node_definition>;
   };

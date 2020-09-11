@@ -10,7 +10,7 @@
 #include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
 #include <yave/support/id.hpp>
 
-namespace yave {
+namespace yave::data {
 
   /// Frame buffer object value.
   struct frame_buffer

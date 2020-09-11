@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
+#include <yave/data/frame_buffer/frame_buffer_manager.hpp>
 #include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
 #include <yave/lib/vulkan/offscreen_context.hpp>
 
@@ -14,7 +14,7 @@
 #include <map>
 #include <shared_mutex>
 
-namespace yave {
+namespace yave::data {
 
   namespace {
 

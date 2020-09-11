@@ -48,7 +48,7 @@ namespace yave::modules::_std {
       }
 
       vulkan::offscreen_context offscreen_ctx;
-      frame_buffer_manager frame_buff;
+      data::frame_buffer_manager frame_buff;
       vulkan::rgba32f_offscreen_compositor compositor;
     };
   } // namespace

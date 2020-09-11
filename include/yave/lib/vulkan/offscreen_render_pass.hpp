@@ -8,7 +8,7 @@
 #include <yave/lib/vulkan/vulkan_context.hpp>
 #include <yave/lib/vulkan/texture.hpp>
 #include <yave/lib/vulkan/offscreen_context.hpp>
-#include <yave/lib/frame_buffer/frame_buffer.hpp>
+#include <yave/data/frame_buffer/frame_buffer.hpp>
 
 namespace yave::vulkan {
 

@@ -19,7 +19,7 @@
 #include <vector>
 #include <mutex>
 
-namespace yave {
+namespace yave::data {
 
   /// Simple frame buffer factory base on buffer_manager
   class frame_buffer_manager

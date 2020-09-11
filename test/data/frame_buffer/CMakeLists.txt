@@ -1,0 +1,1 @@
+YAVE_Test(frame_buffer frame_buffer yave::data::frame_buffer yave::lib::vulkan)

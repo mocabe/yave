@@ -6,7 +6,6 @@
 #include <yave/module/std/frame/mix.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
-#include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
 #include <yave/lib/image/image_blend.hpp>
 #include <yave/lib/vulkan/offscreen_compositor.hpp>
 
@@ -24,12 +23,12 @@ namespace yave {
     struct MixFrame
       : NodeFunction<MixFrame, FrameBuffer, FrameBuffer, FrameBuffer>
     {
-      frame_buffer_manager& m_fbm;
+      data::frame_buffer_manager& m_fbm;
       vulkan::rgba32f_offscreen_compositor& m_compositor;
       vulkan::rgba32f_offscreen_render_pass& m_render_pass;
 
       MixFrame(
-        frame_buffer_manager& fbm,
+        data::frame_buffer_manager& fbm,
         vulkan::rgba32f_offscreen_compositor& compositor)
         : m_fbm {fbm}
         , m_compositor {compositor}
@@ -60,7 +59,7 @@ namespace yave {
 
   auto node_definition_traits<node::MixFrame, modules::_std::tag>::
     get_node_definitions(
-      frame_buffer_manager& fbm,
+      data::frame_buffer_manager& fbm,
       vulkan::rgba32f_offscreen_compositor& compositor)
       -> std::vector<node_definition>
   {

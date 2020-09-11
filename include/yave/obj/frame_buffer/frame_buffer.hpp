@@ -6,12 +6,12 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/lib/frame_buffer/frame_buffer.hpp>
+#include <yave/data/frame_buffer/frame_buffer.hpp>
 
 namespace yave {
 
   /// Frame buffer object
-  using FrameBuffer = Box<frame_buffer>;
+  using FrameBuffer = Box<data::frame_buffer>;
 
 } // namespace yave
 

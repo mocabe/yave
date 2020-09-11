@@ -7,7 +7,6 @@
 #include <yave/module/std/color/color.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
-#include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
 
 namespace yave {
 
@@ -28,11 +27,11 @@ namespace yave {
     struct FrameBufferColored
       : NodeFunction<FrameBufferColored, Color, FrameBuffer>
     {
-      frame_buffer_manager& m_fbm;
+      data::frame_buffer_manager& m_fbm;
       vulkan::rgba32f_offscreen_render_pass& m_render_pass;
 
       FrameBufferColored(
-        frame_buffer_manager& fbm,
+        data::frame_buffer_manager& fbm,
         vulkan::rgba32f_offscreen_compositor& comp)
         : m_fbm {fbm}
         , m_render_pass {comp.render_pass()}
@@ -60,7 +59,7 @@ namespace yave {
 
   auto node_definition_traits<node::Frame, modules::_std::tag>::
     get_node_definitions(
-      frame_buffer_manager& mngr,
+      data::frame_buffer_manager& mngr,
       vulkan::rgba32f_offscreen_compositor& comp)
       -> std::vector<node_definition>
   {

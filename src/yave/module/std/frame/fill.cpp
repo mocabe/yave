@@ -8,12 +8,11 @@
 #include <yave/module/std/color/color.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
-#include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
 
 namespace yave {
 
   auto node_declaration_traits<node::FillFrame>::get_node_declaration(
-    frame_buffer_manager& fbm) -> node_declaration
+    data::frame_buffer_manager& fbm) -> node_declaration
   {
     return node_declaration(
       "Fill",
@@ -31,11 +30,11 @@ namespace yave {
 
     struct FillFrame : NodeFunction<FillFrame, Color, FrameBuffer, FrameBuffer>
     {
-      frame_buffer_manager& m_fbm;
+      data::frame_buffer_manager& m_fbm;
       vulkan::rgba32f_offscreen_render_pass& m_render_pass;
 
       FillFrame(
-        frame_buffer_manager& fbm,
+        data::frame_buffer_manager& fbm,
         vulkan::rgba32f_offscreen_compositor& compositor)
         : m_fbm {fbm}
         , m_render_pass {compositor.render_pass()}
@@ -65,7 +64,7 @@ namespace yave {
 
   auto node_definition_traits<node::FillFrame, modules::_std::tag>::
     get_node_definitions(
-      frame_buffer_manager& fbm,
+      data::frame_buffer_manager& fbm,
       vulkan::rgba32f_offscreen_compositor& compositor)
       -> std::vector<node_definition>
   {

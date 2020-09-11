@@ -17,7 +17,7 @@
 namespace yave {
 
   auto node_declaration_traits<node::DrawShape>::get_node_declaration(
-    frame_buffer_manager& fbm) -> node_declaration
+    data::frame_buffer_manager& fbm) -> node_declaration
   {
     return node_declaration(
       "Draw",
@@ -25,9 +25,9 @@ namespace yave {
       "Render shape to frame buffer",
       {"shape", "fill color", "stroke color", "stroke width", "frame"},
       {"result"},
-      {{1, make_data_type_holder<Color>(color {0.f, 0.f, 0.f, 1.f})},
-       {2, make_data_type_holder<Color>(color {0.f, 0.f, 0.f, 1.f})},
-       {3, make_data_type_holder<Float>(10.f)},
+      {{1, make_data_type_holder<Color>(data::color {0.f, 0.f, 0.f, 1.f})},
+       {2, make_data_type_holder<Color>(data::color {0.f, 0.f, 0.f, 1.f})},
+       {3, make_data_type_holder<Float>(0.f)},
        {4,
         make_object<modules::_std::frame::FrameBufferConstructor>(
           fbm.get_pool_object())}});
@@ -44,11 +44,11 @@ namespace yave {
                          FrameBuffer,
                          FrameBuffer>
     {
-      frame_buffer_manager& m_fbm;
+      data::frame_buffer_manager& m_fbm;
       vulkan::rgba32f_offscreen_compositor& m_compositor;
 
       DrawShape(
-        frame_buffer_manager& fbm,
+        data::frame_buffer_manager& fbm,
         vulkan::rgba32f_offscreen_compositor& compos)
         : m_fbm {fbm}
         , m_compositor {compos}
@@ -95,7 +95,7 @@ namespace yave {
 
   auto node_definition_traits<node::DrawShape, modules::_std::tag>::
     get_node_definitions(
-      frame_buffer_manager& fbm,
+      data::frame_buffer_manager& fbm,
       vulkan::rgba32f_offscreen_compositor& compositor)
       -> std::vector<node_definition>
   {

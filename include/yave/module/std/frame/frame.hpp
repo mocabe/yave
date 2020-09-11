@@ -8,8 +8,8 @@
 #include <yave/node/core/get_info.hpp>
 #include <yave/module/std/config.hpp>
 #include <yave/node/core/function.hpp>
-#include <yave/lib/frame_buffer/frame_buffer_manager.hpp>
 #include <yave/lib/vulkan/offscreen_compositor.hpp>
+#include <yave/data/frame_buffer/frame_buffer_manager.hpp>
 
 namespace yave {
 
@@ -24,7 +24,7 @@ namespace yave {
   struct node_definition_traits<node::Frame, modules::_std::tag>
   {
     static auto get_node_definitions(
-      frame_buffer_manager& mngr,
+      data::frame_buffer_manager& mngr,
       vulkan::rgba32f_offscreen_compositor& comp)
       -> std::vector<node_definition>;
   };
