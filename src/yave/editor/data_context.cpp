@@ -15,6 +15,10 @@
 #include <queue>
 #include <stack>
 #include <variant>
+#include <list>
+#include <algorithm>
+#include <typeinfo>
+#include <typeindex>
 
 YAVE_DECL_G_LOGGER(data_context)
 
@@ -71,7 +75,7 @@ namespace yave::editor {
 
   public:
     /// editor data
-    editor::editor_data editor_data;
+    std::list<unique_context_data> data_list;
 
   private:
     /// data processing thread
@@ -135,6 +139,53 @@ namespace yave::editor {
     auto lock()
     {
       return lock_data();
+    }
+
+  public:
+    void add_data(unique_context_data new_data)
+    {
+      assert(!new_data.empty());
+
+      auto lb = std::lower_bound(
+        data_list.begin(),
+        data_list.end(),
+        new_data.type(),
+        [](auto& l, auto& r) {
+          return std::type_index(l.type()) < std::type_index(r);
+        });
+
+      if (lb == data_list.end() || lb->type() != new_data.type()) {
+        data_list.insert(lb, std::move(new_data));
+        return;
+      }
+
+      throw std::runtime_error("data_context: data type already exists");
+    }
+
+    void remove_data(const std::type_info& id)
+    {
+      auto lb = std::lower_bound(
+        data_list.begin(), data_list.end(), id, [](auto& l, auto& r) {
+          return std::type_index(l.type()) < std::type_index(r);
+        });
+
+      if (lb == data_list.end() || lb->type() != id)
+        return;
+
+      data_list.erase(lb);
+    }
+
+    auto find_data(const std::type_info& id) -> void*
+    {
+      auto lb = std::lower_bound(
+        data_list.begin(), data_list.end(), id, [](auto& l, auto& r) {
+          return std::type_index(l.type()) < std::type_index(r);
+        });
+
+      if (lb == data_list.end() || lb->type() != id)
+        return nullptr;
+
+      return lb->data();
     }
 
   public:
@@ -290,16 +341,28 @@ namespace yave::editor {
     return const_data_context_access(*this, m_pimpl->lock());
   }
 
-  auto data_context::data() const -> const editor_data&
+  void data_context::add_data(unique_context_data new_data)
   {
     m_pimpl->check_exception();
-    return m_pimpl->editor_data;
+    m_pimpl->add_data(std::move(new_data));
   }
 
-  auto data_context::data() -> editor_data&
+  void data_context::remove_data(const std::type_info& ti)
   {
     m_pimpl->check_exception();
-    return m_pimpl->editor_data;
+    m_pimpl->remove_data(ti);
+  }
+
+  auto data_context::get_data(const std::type_info& id) const -> const void*
+  {
+    m_pimpl->check_exception();
+    return m_pimpl->find_data(id);
+  }
+
+  auto data_context::get_data(const std::type_info& id) -> void*
+  {
+    m_pimpl->check_exception();
+    return m_pimpl->find_data(id);
   }
 
 } // namespace yave::editor

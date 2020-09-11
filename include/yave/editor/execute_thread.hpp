@@ -50,6 +50,7 @@ namespace yave::editor {
   public:
     execute_thread_interface()                                = default;
     execute_thread_interface(const execute_thread_interface&) = delete;
+    execute_thread_interface(execute_thread_interface&&)      = default;
 
     void init(execute_thread& th)
     {

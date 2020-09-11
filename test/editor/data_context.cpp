@@ -4,40 +4,69 @@
 //
 
 #include <yave/editor/data_context.hpp>
+#include <yave/editor/data_command.hpp>
 #include <catch2/catch.hpp>
 
 #include <iostream>
 
 using namespace yave;
+using namespace yave::editor;
+
+TEST_CASE("unique_context_data")
+{
+  unique_context_data data(42);
+
+  REQUIRE(!data.empty());
+  REQUIRE(data.type() == typeid(int));
+  REQUIRE(*static_cast<int*>(data.data()) == 42);
+
+  unique_context_data data2 = std::move(data);
+  REQUIRE(data.empty());
+  REQUIRE(data2.type() == typeid(int));
+  REQUIRE(*static_cast<int*>(data2.data()) == 42);
+}
 
 TEST_CASE("data_context")
 {
   SECTION("empty")
   {
-    editor::data_context ctx;
+    data_context ctx;
     ctx.undo();
     ctx.redo();
   }
 
   SECTION("null")
   {
-    editor::data_context ctx;
+    data_context ctx;
     ctx.exec(nullptr);
     ctx.undo();
     ctx.redo();
+  }
+
+  SECTION("data")
+  {
+    data_context ctx;
+    auto lck = ctx.lock();
+    lck.add_data(42);
+
+    REQUIRE_NOTHROW(lck.get_data<int>());
+    REQUIRE_NOTHROW(lck.add_data(3.14));
+    REQUIRE_THROWS(lck.add_data(24));
+    REQUIRE_THROWS(lck.add_data(4.13));
+    REQUIRE(lck.get_data<int>() == 42);
+
+    lck.remove_data<int>();
+    REQUIRE_THROWS(lck.get_data<int>());
   }
 
   SECTION("exec")
   {
     int c = 0;
     {
-      editor::data_context ctx;
-      ctx.exec(
-        editor::make_data_command([&c](auto&) { c += 1; }, [](auto&) {}));
-      ctx.exec(
-        editor::make_data_command([&c](auto&) { c *= 2; }, [](auto&) {}));
-      ctx.exec(
-        editor::make_data_command([&c](auto&) { c -= 3; }, [](auto&) {}));
+      data_context ctx;
+      ctx.exec(make_data_command([&c](auto&) { c += 1; }, [](auto&) {}));
+      ctx.exec(make_data_command([&c](auto&) { c *= 2; }, [](auto&) {}));
+      ctx.exec(make_data_command([&c](auto&) { c -= 3; }, [](auto&) {}));
     }
     REQUIRE(c == -1);
   }
@@ -46,14 +75,14 @@ TEST_CASE("data_context")
   {
     int c = 0;
     {
-      editor::data_context ctx;
+      data_context ctx;
 
-      ctx.exec(editor::make_data_command(
-        [&c](auto&) { c += 1; }, [&c](auto&) { c -= 1; }));
-      ctx.exec(editor::make_data_command(
-        [&c](auto&) { c += 2; }, [&c](auto&) { c -= 2; }));
-      ctx.exec(editor::make_data_command(
-        [&c](auto&) { c += 3; }, [&c](auto&) { c -= 3; }));
+      ctx.exec(
+        make_data_command([&c](auto&) { c += 1; }, [&c](auto&) { c -= 1; }));
+      ctx.exec(
+        make_data_command([&c](auto&) { c += 2; }, [&c](auto&) { c -= 2; }));
+      ctx.exec(
+        make_data_command([&c](auto&) { c += 3; }, [&c](auto&) { c -= 3; }));
 
       // c == 6
 
@@ -85,8 +114,8 @@ TEST_CASE("data_context")
 
   SECTION("exception")
   {
-    editor::data_context ctx;
-    ctx.exec(editor::make_data_command([](auto&) { throw 42; }, [](auto&) {}));
+    data_context ctx;
+    ctx.exec(make_data_command([](auto&) { throw 42; }, [](auto&) {}));
 
     try {
       ctx.undo();
@@ -99,14 +128,14 @@ TEST_CASE("data_context")
   {
     int i = 0;
     {
-      editor::data_context ctx;
-      ctx.exec(editor::make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
-      ctx.exec(editor::make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+      data_context ctx;
+      ctx.exec(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+      ctx.exec(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
       {
         auto lck = ctx.lock();
         auto tmp = i;
-        ctx.exec(editor::make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
-        ctx.exec(editor::make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+        ctx.exec(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+        ctx.exec(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
         REQUIRE(i == tmp);
       }
     }

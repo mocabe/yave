@@ -5,7 +5,7 @@
 
 #include <yave-imgui/data_type_socket.hpp>
 #include <yave/editor/editor_data.hpp>
-
+#include <yave/editor/data_command.hpp>
 #include <imgui_stdlib.h>
 
 namespace yave::editor::imgui {
@@ -75,8 +75,9 @@ namespace yave::editor::imgui {
 
       if (*f != val) {
         m_holder->set_data(make_object<Float>(val));
-        dctx.exec(make_data_command(
-          [](auto& ctx) { ctx.data().executor.notify_execute(); }));
+        dctx.exec(make_data_command([](auto& ctx) {
+          ctx.template get_data<editor_data>().executor.notify_execute();
+        }));
       }
     }
     ImGui::PopStyleColor(4);
@@ -149,8 +150,9 @@ namespace yave::editor::imgui {
 
       if (*i != val) {
         m_holder->set_data(make_object<Int>(val));
-        dctx.exec(make_data_command(
-          [](auto& ctx) { ctx.data().executor.notify_execute(); }));
+        dctx.exec(make_data_command([](auto& ctx) {
+          ctx.template get_data<editor_data>().executor.notify_execute();
+        }));
       }
     }
     ImGui::PopStyleColor(4);
@@ -208,8 +210,9 @@ namespace yave::editor::imgui {
 
       if (*b != val) {
         m_holder->set_data(make_object<Bool>(val));
-        dctx.exec(make_data_command(
-          [](auto& ctx) { ctx.data().executor.notify_execute(); }));
+        dctx.exec(make_data_command([](auto& ctx) {
+          ctx.template get_data<editor_data>().executor.notify_execute();
+        }));
       }
     }
     ImGui::PopStyleColor(4);
@@ -267,8 +270,9 @@ namespace yave::editor::imgui {
 
       if (std::string(*str) != val) {
         m_holder->set_data(make_object<String>(val));
-        dctx.exec(make_data_command(
-          [](auto& ctx) { ctx.data().executor.notify_execute(); }));
+        dctx.exec(make_data_command([](auto& ctx) {
+          ctx.template get_data<editor_data>().executor.notify_execute();
+        }));
       }
     }
     ImGui::PopStyleColor(4);
@@ -335,8 +339,9 @@ namespace yave::editor::imgui {
 
       if (*c != val) {
         m_holder->set_data(make_object<Color>(val));
-        dctx.exec(make_data_command(
-          [](auto& ctx) { ctx.data().executor.notify_execute(); }));
+        dctx.exec(make_data_command([](auto& ctx) {
+          ctx.template get_data<editor_data>().executor.notify_execute();
+        }));
       }
     }
     ImGui::PopStyleColor(4);
@@ -411,10 +416,11 @@ namespace yave::editor::imgui {
       ImGui::SameLine(0, style.ItemInnerSpacing.x);
       ImGui::DragFloat("##y", &val.y, step, lo, hi, "y:%.1f");
 
-      if (*vec != val) {
-        m_holder->set_data(make_object<FVec2>(val));
-        dctx.exec(make_data_command(
-          [](auto& ctx) { ctx.data().executor.notify_execute(); }));
+      if (fvec2(*vec) != val) {
+        m_holder->set_data(make_object<Vec2>(val));
+        dctx.exec(make_data_command([](auto& ctx) {
+          ctx.template get_data<editor_data>().executor.notify_execute();
+        }));
       }
     }
     ImGui::PopStyleColor(4);

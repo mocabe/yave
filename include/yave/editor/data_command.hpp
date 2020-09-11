@@ -6,14 +6,12 @@
 #pragma once
 
 #include <yave/config/config.hpp>
+#include <yave/editor/data_context.hpp>
 
 #include <memory>
 #include <memory_resource>
 
 namespace yave::editor {
-
-  // fwd
-  class data_context_access;
 
   /// Get memory resource for data commands
   [[nodiscard]] auto get_data_command_memory_resource() noexcept
@@ -35,9 +33,9 @@ namespace yave::editor {
   {
   public:
     /// Exec command
-    virtual void exec(data_context_access& data_ctx) = 0;
+    virtual void exec(data_context::accessor& data_ctx) = 0;
     /// Undo command
-    virtual void undo(data_context_access& data_ctx) = 0;
+    virtual void undo(data_context::accessor& data_ctx) = 0;
     /// Undoable command?
     virtual auto type() const -> data_command_type = 0;
 
@@ -70,11 +68,11 @@ namespace yave::editor {
         : ExecFunc(std::forward<ExecFunc>(exec))
       {
       }
-      void exec(data_context_access& data_ctx) override
+      void exec(data_context::accessor& data_ctx) override
       {
         ExecFunc::operator()(data_ctx);
       }
-      void undo(data_context_access&) override
+      void undo(data_context::accessor&) override
       {
         // no undo
       }
@@ -93,11 +91,11 @@ namespace yave::editor {
         , UndoFunc(std::forward<UndoFunc>(undo))
       {
       }
-      void exec(data_context_access& data_ctx) override
+      void exec(data_context::accessor& data_ctx) override
       {
         ExecFunc::operator()(data_ctx);
       }
-      void undo(data_context_access& data_ctx) override
+      void undo(data_context::accessor& data_ctx) override
       {
         UndoFunc::operator()(data_ctx);
       }

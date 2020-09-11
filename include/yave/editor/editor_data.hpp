@@ -17,12 +17,18 @@
 
 #include <string>
 #include <filesystem>
+#include <any>
 
 namespace yave::editor {
 
   /// editor data
   struct editor_data
   {
+  public:
+    editor_data()                       = default;
+    editor_data(editor_data&&) noexcept = default;
+    editor_data(const editor_data&)     = delete;
+
   public: /* main */
     /// name
     std::string name;

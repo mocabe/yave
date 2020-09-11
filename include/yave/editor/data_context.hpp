@@ -5,14 +5,16 @@
 
 #pragma once
 
-#include <yave/editor/data_command.hpp>
+#include <yave/config/config.hpp>
+#include <yave/editor/unique_context_data.hpp>
 
-#include <memory>
+#include <mutex>
 
 namespace yave::editor {
 
   struct editor_data;
   class data_context;
+  class data_command;
 
   /// Access proxy for data_context with unique lock
   class data_context_access
@@ -33,8 +35,17 @@ namespace yave::editor {
   public:
     // move
     data_context_access(data_context_access&&) noexcept = default;
-    // get data ref
-    auto data() -> editor_data&;
+
+    // new data
+    void add_data(unique_context_data new_data);
+
+    // remove data
+    template <class T>
+    void remove_data();
+
+    // get data by casting
+    template <class T>
+    auto get_data() -> T&;
   };
 
   /// Access proxy for data_context with unique lock
@@ -58,8 +69,10 @@ namespace yave::editor {
   public:
     // move
     const_data_context_access(const_data_context_access&&) noexcept = default;
-    // get data ref
-    auto data() const -> const editor_data&;
+
+    // get data by casting
+    template <class T>
+    auto get_data() -> const T&;
   };
 
   /// Application data context
@@ -70,6 +83,11 @@ namespace yave::editor {
 
     friend class data_context_access;
     friend class const_data_context_access;
+
+  public:
+    /// access types
+    using accessor       = data_context_access;
+    using const_accessor = const_data_context_access;
 
   public:
     // ctor
@@ -86,10 +104,19 @@ namespace yave::editor {
     void redo();
 
   private:
+    /// add new data.
+    /// \param new data to be added
+    /// \requires data.type() should be unique in context
+    void add_data(unique_context_data data);
+
+    /// remove data.
+    /// \param id typeid of data to be removed
+    void remove_data(const std::type_info& id);
+
     /// data access
-    auto data() const -> const editor_data&;
+    auto get_data(const std::type_info& id) const -> const void*;
     /// data access
-    auto data() -> editor_data&;
+    auto get_data(const std::type_info& id) -> void*;
 
   public:
     /// aquire data lock
@@ -98,13 +125,33 @@ namespace yave::editor {
     [[nodiscard]] auto lock() -> data_context_access;
   };
 
-  inline auto const_data_context_access::data() const -> const editor_data&
+  inline void data_context_access::add_data(unique_context_data new_data)
   {
-    return m_ctx.data();
+    m_ctx.add_data(std::move(new_data));
   }
 
-  inline auto data_context_access::data() -> editor_data&
+  template <class T>
+  void data_context_access::remove_data()
   {
-    return m_ctx.data();
+    m_ctx.remove_data(typeid(std::decay_t<T>));
   }
+
+  template <class T>
+  auto data_context_access::get_data() -> T&
+  {
+    if (auto p = m_ctx.get_data(typeid(std::decay_t<T>)))
+      return *static_cast<T*>(p);
+
+    throw std::range_error("requested data type does not exist");
+  }
+
+  template <class T>
+  auto const_data_context_access::get_data() -> const T&
+  {
+    if (auto p = m_ctx.get_data(typeid(std::decay_t<T>)))
+      return *static_cast<const T*>(p);
+
+    throw std::range_error("requested data type does not exist");
+  }
+
 } // namespace yave::editor

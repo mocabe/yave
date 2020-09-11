@@ -55,7 +55,10 @@ namespace yave::editor::imgui {
   void application::impl::init_data()
   {
     auto data_lck = data_ctx.lock();
-    auto& data    = data_lck.data();
+
+    data_lck.add_data(editor_data());
+
+    auto& data = data_lck.get_data<editor_data>();
 
     data.name         = "New Project";
     data.path         = "";
@@ -100,7 +103,7 @@ namespace yave::editor::imgui {
   void application::impl::deinit_data()
   {
     auto data_lck = data_ctx.lock();
-    auto& data    = data_lck.data();
+    auto& data    = data_lck.get_data<editor_data>();
 
     data.compiler.deinit();
     data.executor.deinit();

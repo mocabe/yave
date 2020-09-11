@@ -98,7 +98,7 @@ namespace yave::editor::imgui {
     editor::view_context& view_ctx)
   {
     auto data_lck = data_ctx.lock();
-    auto& data    = data_lck.data();
+    auto& data    = data_lck.get_data<editor_data>();
     auto& g       = data.node_graph;
 
     if (!g.exists(current_group) || !g.is_group(current_group)) {
@@ -175,7 +175,7 @@ namespace yave::editor::imgui {
     // show compile result for debug
     {
       auto data_lck = dctx.lock();
-      auto& data    = data_lck.data();
+      auto& data    = data_lck.template get_data<editor_data>();
 
       for (auto&& e : data.compiler.parse_errors())
         ImGui::TextColored({255, 0, 0, 255}, "%s", e.message().c_str());
@@ -247,7 +247,7 @@ namespace yave::editor::imgui {
 
           // TODO: store tree info in update stage
           auto data_lck = dctx.lock();
-          auto& data    = data_lck.data();
+          auto& data    = data_lck.get_data<editor_data>();
           auto& ng      = data.node_graph;
 
           auto build_menu_impl = [&](auto&& self, auto&& n) -> void {
@@ -429,7 +429,8 @@ namespace yave::editor::imgui {
         // FIXME: supoprt undo
         dctx.exec(
           make_data_command([g = current_group, ns = n_selected](auto& ctx) {
-            auto& ng = ctx.data().node_graph;
+            auto& data = ctx.template get_data<editor_data>();
+            auto& ng   = data.node_graph;
 
             auto newg = ng.create_group(g, {ns});
 
@@ -440,7 +441,7 @@ namespace yave::editor::imgui {
             newpos /= ns.size();
             ng.set_pos(newg, newpos);
 
-            ctx.data().compiler.notify_recompile();
+            data.compiler.notify_recompile();
           }));
 
         vctx.push(
@@ -452,11 +453,12 @@ namespace yave::editor::imgui {
 
         // FIXME support undo
         dctx.exec(make_data_command([ns = n_selected](auto& ctx) {
-          auto& ng = ctx.data().node_graph;
+          auto& data = ctx.template get_data<editor_data>();
+          auto& ng   = data.node_graph;
           for (auto&& n : ns)
             ng.destroy(n);
 
-          ctx.data().compiler.notify_recompile();
+          data.compiler.notify_recompile();
         }));
 
         vctx.push(
@@ -471,8 +473,9 @@ namespace yave::editor::imgui {
         vctx.push(
           make_window_view_command(*this, [&dctx, g = current_group](auto& w) {
             auto data_lck = dctx.lock();
-            auto& ng      = data_lck.data().node_graph;
-            auto& root    = data_lck.data().root_group;
+            auto& data    = data_lck.template get_data<editor_data>();
+            auto& ng      = data.node_graph;
+            auto& root    = data.root_group;
 
             assert(ng.exists(root));
             if (g == root)

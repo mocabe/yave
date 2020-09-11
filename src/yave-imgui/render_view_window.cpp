@@ -8,7 +8,7 @@
 #include <yave/lib/image/image.hpp>
 #include <yave/lib/image/image_view.hpp>
 #include <yave/editor/editor_data.hpp>
-#include <yave/editor/data_context.hpp>
+#include <yave/editor/data_command.hpp>
 
 namespace yave::editor {
 
@@ -41,7 +41,7 @@ namespace yave::editor {
     (void)view_ctx;
 
     auto data_lck = data_ctx.lock();
-    auto& data    = data_lck.data();
+    auto& data    = data_lck.template get_data<editor_data>();
 
     width        = data.scene_config.width();
     height       = data.scene_config.height();
@@ -141,7 +141,7 @@ namespace yave::editor {
 
       data_ctx.exec(
         make_data_command([t = yave::time::seconds(sec)](auto& ctx) {
-          auto& data = ctx.data();
+          auto& data = ctx.template get_data<editor_data>();
           if (data.executor.time() != t) {
             data.executor.set_time(t);
             data.executor.notify_execute();

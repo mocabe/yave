@@ -45,8 +45,9 @@ namespace yave::editor {
     std::optional<executable> m_result;
 
   public:
-    compile_thread_interface()                                = default;
-    compile_thread_interface(const compile_thread_interface&) = delete;
+    compile_thread_interface()                                    = default;
+    compile_thread_interface(const compile_thread_interface&)     = delete;
+    compile_thread_interface(compile_thread_interface&&) noexcept = default;
 
     void init(compile_thread& th)
     {
