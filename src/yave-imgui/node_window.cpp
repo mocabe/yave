@@ -5,6 +5,7 @@
 
 #include <yave-imgui/node_window.hpp>
 #include <yave/editor/editor_data.hpp>
+#include <yave/editor/data_command.hpp>
 #include <yave/support/log.hpp>
 
 #include <imgui_internal.h>
@@ -275,9 +276,9 @@ namespace yave::editor::imgui {
                     // created node
                     node_handle node = {};
 
-                    void exec(data_context& ctx) override
+                    void exec(data_context::accessor& ctx) override
                     {
-                      auto& g = ctx.data().node_graph;
+                      auto& g = ctx.get_data<editor_data>().node_graph;
                       auto n  = g.search_path(npath);
 
                       if (n.size() == 1) {
@@ -287,14 +288,19 @@ namespace yave::editor::imgui {
                       }
                     }
 
-                    void undo(data_context& ctx) override
+                    void undo(data_context::accessor& ctx) override
                     {
-                      auto& g = ctx.data().node_graph;
+                      auto& g = ctx.get_data<editor_data>().node_graph;
 
                       if (g.exists(node)) {
                         g.destroy(node);
                         node = {};
                       }
+                    }
+
+                    auto type() const -> data_command_type override
+                    {
+                      return data_command_type::undo_redo;
                     }
                   };
 
@@ -328,9 +334,9 @@ namespace yave::editor::imgui {
             // created node
             node_handle node = {};
 
-            void exec(data_context& ctx) override
+            void exec(data_context::accessor& ctx) override
             {
-              auto& g = ctx.data().node_graph;
+              auto& g = ctx.get_data<editor_data>().node_graph;
 
               if (g.exists(group)) {
                 node = g.create_group(group, {});
@@ -338,14 +344,19 @@ namespace yave::editor::imgui {
               }
             }
 
-            void undo(data_context& ctx) override
+            void undo(data_context::accessor& ctx) override
             {
-              auto& g = ctx.data().node_graph;
+              auto& g = ctx.get_data<editor_data>().node_graph;
 
               if (g.exists(node)) {
                 g.destroy(node);
                 node = {};
               }
+            }
+
+            auto type() const -> data_command_type override
+            {
+              return data_command_type::undo_redo;
             }
           };
 

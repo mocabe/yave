@@ -7,6 +7,7 @@
 #include <yave-imgui/node_window.hpp>
 
 #include <yave/editor/editor_data.hpp>
+#include <yave/editor/data_command.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
 #include <imgui_stdlib.h>
 #include <iostream>
@@ -96,14 +97,16 @@ namespace yave::editor::imgui {
 
               dctx.exec(make_data_command(
                 [c](auto& ctx) {
-                  auto& g = ctx.data().node_graph;
+                  auto& data = ctx.template get_data<editor_data>();
+                  auto& g    = data.node_graph;
                   g.disconnect(c);
-                  ctx.data().compiler.notify_recompile();
+                  data.compiler.notify_recompile();
                 },
                 [srcs, dsts](auto& ctx) {
-                  auto& g = ctx.data().node_graph;
+                  auto& data = ctx.template get_data<editor_data>();
+                  auto& g    = data.node_graph;
                   (void)g.connect(srcs, dsts);
-                  ctx.data().compiler.notify_recompile();
+                  data.compiler.notify_recompile();
                 }));
 
               socket_to_select = srcs;
@@ -137,16 +140,21 @@ namespace yave::editor::imgui {
               , m_s2 {s2}
             {
             }
-            void exec(data_context& dctx) override
+            void exec(data_context::accessor& dctx) override
             {
-              auto& g = dctx.data().node_graph;
-              m_c     = g.connect(m_s1, m_s2);
-              dctx.data().compiler.notify_recompile();
+              auto& data = dctx.get_data<editor_data>();
+              auto& g    = data.node_graph;
+              m_c        = g.connect(m_s1, m_s2);
+              data.compiler.notify_recompile();
             }
-            void undo(data_context& dctx) override
+            void undo(data_context::accessor& dctx) override
             {
-              auto& g = dctx.data().node_graph;
+              auto& g = dctx.get_data<editor_data>().node_graph;
               g.disconnect(m_c);
+            }
+            auto type() const -> data_command_type override
+            {
+              return data_command_type::undo_redo;
             }
           };
 
@@ -173,11 +181,11 @@ namespace yave::editor::imgui {
                 // disconnect existing connection
                 dctx.exec(make_data_command(
                   [c](auto& ctx) {
-                    auto& g = ctx.data().node_graph;
+                    auto& g = ctx.template get_data<editor_data>().node_graph;
                     g.disconnect(c);
                   },
                   [srcs, dsts](auto& ctx) {
-                    auto& g = ctx.data().node_graph;
+                    auto& g = ctx.template get_data<editor_data>().node_graph;
                     (void)g.connect(srcs, dsts);
                   }));
                 // connect sockets
