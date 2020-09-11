@@ -55,7 +55,7 @@ namespace yave::editor::imgui {
     const node_window& nw) -> std::unique_ptr<socket_drawable>
   {
     // list of supported socket data types
-    constexpr auto data_types = tuple_c<Int, Float, Bool, String, Color, FVec2>;
+    constexpr auto data_types = tuple_c<Int, Float, Bool, String, Color, Vec2>;
 
     // check data types
     if (auto data = g.get_data(s))

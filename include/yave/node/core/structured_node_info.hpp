@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/node/core/node_info.hpp>
-#include <yave/lib/vec/tvec.hpp>
+#include <yave/lib/vec/vec.hpp>
 
 namespace yave {
 
@@ -42,7 +42,7 @@ namespace yave {
       std::vector<socket_handle> output_sockets,
       structured_node_type type,
       structured_call_type call_type,
-      tvec2<float> pos)
+      dvec2 pos)
       : m_name {name}
       , m_input_sockets {input_sockets}
       , m_output_sockets {output_sockets}
@@ -136,6 +136,6 @@ namespace yave {
     /// definition
     structured_call_type m_call_type;
     /// pos
-    tvec2<float> m_pos;
+    dvec2 m_pos;
   };
 } // namespace yave

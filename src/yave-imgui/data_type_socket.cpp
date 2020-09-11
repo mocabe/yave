@@ -64,7 +64,7 @@ namespace yave::editor::imgui {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
       auto f   = value_cast<Float>(m_holder->data());
-      auto val = *f;
+      auto val = static_cast<float>(*f);
       ImGui::DragFloat(
         "",
         &val,
@@ -139,7 +139,7 @@ namespace yave::editor::imgui {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
       auto i   = value_cast<Int>(m_holder->data());
-      auto val = *i;
+      auto val = static_cast<int>(*i);
       ImGui::DragInt(
         "",
         &val,
@@ -350,9 +350,9 @@ namespace yave::editor::imgui {
     ImGui::PopID();
   }
 
-  data_type_socket<FVec2>::data_type_socket(
+  data_type_socket<Vec2>::data_type_socket(
     const object_ptr<DataTypeHolder>& holder,
-    const object_ptr<const FVec2DataProperty>& property,
+    const object_ptr<const Vec2DataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -362,7 +362,7 @@ namespace yave::editor::imgui {
   {
   }
 
-  auto data_type_socket<FVec2>::min_size(node_window_draw_info&) const -> ImVec2
+  auto data_type_socket<Vec2>::min_size(node_window_draw_info&) const -> ImVec2
   {
     auto label_size = calc_text_size("v:1234.5", font_size_level::e15);
     auto padding    = get_socket_padding();
@@ -370,7 +370,7 @@ namespace yave::editor::imgui {
     return {label_size.x * 2 + 2 * padding.x, height + 2 * padding.y};
   }
 
-  void data_type_socket<FVec2>::_draw_content(
+  void data_type_socket<Vec2>::_draw_content(
     const node_window& nw,
     const data_context& dctx,
     const view_context& vctx,
@@ -403,8 +403,8 @@ namespace yave::editor::imgui {
     {
       auto& style = ImGui::GetStyle();
 
-      auto vec = value_cast<FVec2>(m_holder->data());
-      auto val = *vec;
+      auto vec = value_cast<Vec2>(m_holder->data());
+      auto val = fvec2(*vec);
 
       auto step = 1.f;
       auto lo   = std::numeric_limits<float>::lowest();

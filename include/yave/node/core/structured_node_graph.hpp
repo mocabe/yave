@@ -70,9 +70,9 @@ namespace yave {
 
     /// get node pos
     [[nodiscard]] auto get_pos(const node_handle& node) const
-      -> std::optional<fvec2>;
+      -> std::optional<dvec2>;
     /// set node pos
-    void set_pos(const node_handle& node, const fvec2& newpos);
+    void set_pos(const node_handle& node, const dvec2& newpos);
 
     /// get socket data
     [[nodiscard]] auto get_data(const socket_handle& socke) const
