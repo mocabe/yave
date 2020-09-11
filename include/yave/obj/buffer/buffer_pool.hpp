@@ -6,12 +6,12 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/lib/buffer/buffer_pool.hpp>
+#include <yave/data/buffer/buffer_pool.hpp>
 
 namespace yave {
 
   /// General buffer object
-  using BufferPool = Box<buffer_pool>;
+  using BufferPool = Box<data::buffer_pool>;
 
 } // namespace yave
 

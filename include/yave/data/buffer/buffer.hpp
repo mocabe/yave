@@ -9,7 +9,7 @@
 #include <yave/obj/buffer/buffer_pool.hpp>
 #include <yave/support/id.hpp>
 
-namespace yave {
+namespace yave::data {
 
   /// buffer handler
   struct buffer

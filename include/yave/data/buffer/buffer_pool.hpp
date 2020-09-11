@@ -9,7 +9,7 @@
 #include <yave/support/id.hpp>
 #include <yave/support/uuid.hpp>
 
-namespace yave {
+namespace yave::data {
 
   /// General buffer pool object value.
   /// Backends can have its own implementation of buffer manager.

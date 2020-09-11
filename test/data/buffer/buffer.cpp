@@ -3,12 +3,13 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/buffer/buffer.hpp>
-#include <yave/lib/buffer/buffer_manager.hpp>
+#include <yave/data/buffer/buffer.hpp>
+#include <yave/data/buffer/buffer_manager.hpp>
 
 #include <catch2/catch.hpp>
 
 using namespace yave;
+using namespace yave::data;
 
 TEST_CASE("", "[lib][buffer]")
 {

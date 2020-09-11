@@ -1,6 +1,7 @@
 add_subdirectory(node)
 add_subdirectory(support)
 add_subdirectory(lib)
+add_subdirectory(data)
 add_subdirectory(module)
 add_subdirectory(editor)
 add_subdirectory(wm)

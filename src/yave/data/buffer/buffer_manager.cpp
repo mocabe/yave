@@ -3,14 +3,14 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/buffer/buffer_manager.hpp>
+#include <yave/data/buffer/buffer_manager.hpp>
 #include <yave/obj/buffer/buffer_pool.hpp>
 
 #include <yave/support/log.hpp>
 
 YAVE_DECL_G_LOGGER(buffer_manager)
 
-namespace yave {
+namespace yave::data {
 
   namespace {
 

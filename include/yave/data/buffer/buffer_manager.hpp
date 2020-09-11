@@ -9,7 +9,7 @@
 #include <yave/obj/buffer/buffer_pool.hpp>
 #include <yave/obj/buffer/buffer.hpp>
 
-namespace yave {
+namespace yave::data {
 
   /// Simple implementation of buffer pool interface.
   /// Does NO memory pooling or any kind of optimization.
