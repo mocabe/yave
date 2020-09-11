@@ -15,6 +15,6 @@ TEST_CASE("frame")
   {
     [[maybe_unused]] auto v0 = make_object<const FrameTime>();
     [[maybe_unused]] auto v1 = make_object<const FrameTime>(time::zero());
-    [[maybe_unused]] auto v2 = make_object<const FrameTime>(frame_time());
+    [[maybe_unused]] auto v2 = make_object<const FrameTime>(data::frame_time());
   }
 }

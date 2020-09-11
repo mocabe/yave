@@ -7,7 +7,7 @@
 
 #include <yave/obj/frame_time/frame_time.hpp>
 
-namespace yave {
+namespace yave::data {
 
   /// frame demand
   struct frame_demand

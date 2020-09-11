@@ -7,7 +7,7 @@
 
 #include <yave/lib/time/time.hpp>
 
-namespace yave {
+namespace yave::data {
 
   /// Data type to represent frame time to render.
   using frame_time = yave::time;

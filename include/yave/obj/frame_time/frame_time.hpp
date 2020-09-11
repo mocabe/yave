@@ -6,12 +6,12 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/lib/frame_time/frame_time.hpp>
+#include <yave/data/frame_time/frame_time.hpp>
 
 namespace yave {
 
   /// FrameTime object
-  using FrameTime = Box<frame_time>;
+  using FrameTime = Box<data::frame_time>;
 
 } // namespace yave
 

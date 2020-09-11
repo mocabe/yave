@@ -6,13 +6,13 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/lib/frame_demand/frame_demand.hpp>
+#include <yave/data/frame_demand/frame_demand.hpp>
 
 namespace yave {
 
   /// FrameDemand object
   /// TODO: Use unboxed tuple
-  using FrameDemand = Box<frame_demand>;
+  using FrameDemand = Box<data::frame_demand>;
 
 } // namespace yave
 
