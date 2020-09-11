@@ -334,10 +334,10 @@ namespace yave::editor::imgui {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
     {
       auto c   = value_cast<Color>(m_holder->data());
-      auto val = *c;
+      auto val = fvec4(*c);
       ImGui::ColorEdit4("", &(val.r), ImGuiColorEditFlags_Float);
 
-      if (*c != val) {
+      if (fvec4(*c) != val) {
         m_holder->set_data(make_object<Color>(val));
         dctx.exec(make_data_command([](auto& ctx) {
           ctx.template get_data<editor_data>().executor.notify_execute();

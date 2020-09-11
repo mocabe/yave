@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include <yave/lib/color/color.hpp>
+#include <yave/data/color/color.hpp>
 #include <yave/rts/box.hpp>
 
 namespace yave {
   /// Color vlaue object
-  using Color = Box<color>;
+  using Color = Box<data::color>;
 } // namespace yave
 
 YAVE_DECL_TYPE(yave::Color, "3713e9f5-05c2-4022-8f62-16ca0f14518f");

@@ -52,7 +52,11 @@ namespace yave {
 
         m_render_pass.clear_texture(
           m_fbm.get_texture_data(dst->id()),
-          std::array {col->r, col->g, col->b, col->a});
+          std::array {
+            static_cast<float>(col->r),
+            static_cast<float>(col->g),
+            static_cast<float>(col->b),
+            static_cast<float>(col->a)});
 
         return dst;
       }

@@ -14,9 +14,9 @@ namespace yave {
   struct shape_draw_style
   {
     /// fill color
-    color fill_color;
+    data::color fill_color;
     /// stroke color
-    color stroke_color;
+    data::color stroke_color;
     /// stroke width
     float stroke_width;
   };

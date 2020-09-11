@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/lib/vec/vec.hpp>
-#include <yave/lib/color/color.hpp>
+#include <yave/data/color/color.hpp>
 #include <yave/lib/vector/vector.hpp>
 #include <yave/lib/mat/mat.hpp>
 
