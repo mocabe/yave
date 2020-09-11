@@ -5,10 +5,11 @@
 
 #pragma once
 
-#include <yave/lib/string/string.hpp>
-#include <yave/lib/filesystem/filesystem.hpp>
+#include <yave/data/string/string.hpp>
 
-namespace yave::filesystem {
+#include <filesystem>
+
+namespace yave::data::filesystem {
 
   /// Platform agnostic UTF-8 path string.
   /// Has minimum interface to get string representation, conversion to
@@ -60,7 +61,7 @@ namespace yave::filesystem {
     }
 
     /// Get string
-    [[nodiscard]] auto string() const -> yave::string
+    [[nodiscard]] auto string() const -> string
     {
       return m_string;
     }
@@ -76,7 +77,7 @@ namespace yave::filesystem {
     }
 
   private:
-    yave::string m_string;
+    data::string m_string;
   };
 
 } // namespace yave

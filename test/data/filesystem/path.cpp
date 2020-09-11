@@ -3,10 +3,10 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/filesystem/path.hpp>
+#include <yave/data/filesystem/path.hpp>
 #include <catch2/catch.hpp>
 
-using namespace yave::filesystem;
+using namespace yave::data::filesystem;
 
 TEST_CASE("yave::filesystem::path")
 {

@@ -6,30 +6,31 @@
 #pragma once
 
 #include <yave/lib/image/image.hpp>
-#include <yave/lib/filesystem/path.hpp>
+
+#include <filesystem>
 
 namespace yave {
 
   /// Load supported image from file.
   /// Uses file extension to detect file format.
   image load_image_auto(
-    const filesystem::path& file,
+    const std::filesystem::path& file,
     const std::pmr::polymorphic_allocator<std::byte>& alloc = {});
 
   /// Load PNG image from file
   image load_image_png(
-    const filesystem::path& file,
+    const std::filesystem::path& file,
     const std::pmr::polymorphic_allocator<std::byte>& alloc = {});
 
   /// Load JPEG image from file
   /// Supported: RGB8
   image load_image_jpeg(
-    const filesystem::path& file,
+    const std::filesystem::path& file,
     const std::pmr::polymorphic_allocator<std::byte>& alloc = {});
 
   /// Load TIFF image from file
   image load_image_tiff(
-    const filesystem::path& file,
+    const std::filesystem::path& file,
     const std::pmr::polymorphic_allocator<std::byte>& alloc = {});
 
 } // namespace yave

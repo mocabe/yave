@@ -12,7 +12,7 @@
 #include <vector>
 #include <iterator>
 
-namespace yave {
+namespace yave::data {
 
   /// Simple vector class.
   /// Just like yave::string, this class is mainly for data transfer as heap

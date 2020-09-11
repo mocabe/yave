@@ -6,12 +6,12 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/lib/filesystem/path.hpp>
+#include <yave/data/filesystem/path.hpp>
 
 namespace yave {
 
   /// Frame buffer object
-  using FilesystemPath = Box<filesystem::path>;
+  using FilesystemPath = Box<data::filesystem::path>;
 
 } // namespace yave
 

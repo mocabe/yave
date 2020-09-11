@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/lib/string/string.hpp>
+#include <yave/data/string/string.hpp>
 
 #include <string>
 #include <cstring>
@@ -17,7 +17,7 @@ namespace yave {
   /// UTF-8 String object.
   /// Does not handle anything about other encodings. User must ensure
   /// input byte sequence is null(`0x00`)-terminated UTF-8 string.
-  using String = Box<yave::string>;
+  using String = Box<data::string>;
 
   namespace literals {
 

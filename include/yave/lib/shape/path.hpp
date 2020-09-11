@@ -7,7 +7,7 @@
 
 #include <yave/lib/vec/vec.hpp>
 #include <yave/data/color/color.hpp>
-#include <yave/lib/vector/vector.hpp>
+#include <yave/data/vector/vector.hpp>
 #include <yave/lib/mat/mat.hpp>
 
 namespace yave {

@@ -3,12 +3,13 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/vector/vector.hpp>
+#include <yave/data/vector/vector.hpp>
 #include <catch2/catch.hpp>
 
-#include <yave/lib/string/string.hpp>
+#include <yave/data/string/string.hpp>
 
 using namespace yave;
+using namespace yave::data;
 
 TEST_CASE("init", "[lib][vector]")
 {

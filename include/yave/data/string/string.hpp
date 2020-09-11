@@ -12,7 +12,7 @@
 #include <cstring>
 #include <stdexcept>
 
-namespace yave {
+namespace yave::data {
 
   /// (loose) UTF-8 string.
   /// \notes Currently string still allows to construct from char* string
@@ -282,4 +282,4 @@ namespace yave {
     return !(lhs == rhs);
   }
 
-} // namespace yave
+} // namespace yave::data

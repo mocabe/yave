@@ -3,10 +3,11 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/string/string.hpp>
+#include <yave/data/string/string.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
+using namespace yave::data;
 
 TEST_CASE("yave::string constructors")
 {

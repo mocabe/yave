@@ -159,7 +159,7 @@ namespace yave {
   } // namespace
 
   image load_image_auto(
-    const filesystem::path& file,
+    const std::filesystem::path& file,
     const std::pmr::polymorphic_allocator<std::byte>& alloc)
   {
     init_logger();
@@ -196,7 +196,7 @@ namespace yave {
   }
 
   image load_image_png(
-    const filesystem::path& file,
+    const std::filesystem::path& file,
     const std::pmr::polymorphic_allocator<std::byte>& alloc)
   {
     init_logger();
@@ -214,7 +214,7 @@ namespace yave {
   }
 
   image load_image_jpeg(
-    const filesystem::path& file,
+    const std::filesystem::path& file,
     const std::pmr::polymorphic_allocator<std::byte>& alloc)
   {
     init_logger();
@@ -232,7 +232,7 @@ namespace yave {
   }
 
   image load_image_tiff(
-    const filesystem::path& file,
+    const std::filesystem::path& file,
     const std::pmr::polymorphic_allocator<std::byte>& alloc)
   {
     init_logger();
