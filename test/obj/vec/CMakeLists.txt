@@ -1,1 +1,0 @@
-YAVE_Test(vec obj yave::lib::vec)

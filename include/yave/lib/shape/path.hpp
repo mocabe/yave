@@ -7,7 +7,6 @@
 
 #include <yave/data/color/color.hpp>
 #include <yave/data/vector/vector.hpp>
-#include <yave/lib/mat/mat.hpp>
 
 #include <glm/glm.hpp>
 

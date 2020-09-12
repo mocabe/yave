@@ -5,6 +5,12 @@
 
 #pragma once
 
-#include <yave/lib/mat/tmat2.hpp>
-#include <yave/lib/mat/tmat3.hpp>
-#include <yave/lib/mat/tmat4.hpp>
+#include <glm/glm.hpp>
+
+namespace yave::data {
+
+  using mat2 = glm::dmat2;
+  using mat3 = glm::dmat3;
+  using mat4 = glm::dmat4;
+
+}

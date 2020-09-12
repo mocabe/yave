@@ -1,6 +1,5 @@
 add_subdirectory(frame)
 add_subdirectory(time)
 add_subdirectory(keyframe)
-add_subdirectory(vec)
 add_subdirectory(scene)
 add_subdirectory(filesystem)

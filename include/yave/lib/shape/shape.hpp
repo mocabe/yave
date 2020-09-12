@@ -15,7 +15,7 @@ namespace yave {
     /// list of paths in composition order
     std::vector<path> m_paths = {};
     /// transform
-    fmat3 m_transform = fmat3(1.f);
+    glm::fmat3 m_transform = glm::fmat3(1.f);
 
   public:
     shape()                 = default;

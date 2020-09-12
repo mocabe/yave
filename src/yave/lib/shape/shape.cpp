@@ -31,34 +31,34 @@ namespace yave {
       for (auto&& p : path.points())
         transform_point(p);
 
-    m_transform = fmat3(1.f);
+    m_transform = glm::fmat3(1.f);
   }
 
-  void shape::transform(const fmat3& mat)
+  void shape::transform(const glm::fmat3& mat)
   {
     m_transform = mat * m_transform;
   }
 
   void shape::translate(float x, float y)
   {
-    transform(fmat3(glm::translate(glm::mat3x3(1.f), glm::vec2(x, y))));
+    transform(glm::fmat3(glm::translate(glm::fmat3(1.f), glm::vec2(x, y))));
   }
 
   void shape::rotate(float degree, const glm::fvec2& center)
   {
-    auto e   = glm::mat3x3(1.f);
-    auto t1  = fmat3(glm::translate(e, -center));
-    auto t2  = fmat3(glm::translate(e, +center));
-    auto rot = fmat3(glm::rotate(e, degree / 180 * glm::pi<float>()));
+    auto e   = glm::fmat3(1.f);
+    auto t1  = glm::fmat3(glm::translate(e, -center));
+    auto t2  = glm::fmat3(glm::translate(e, +center));
+    auto rot = glm::fmat3(glm::rotate(e, degree / 180 * glm::pi<float>()));
     transform(t2 * rot * t1);
   }
 
   void shape::scale(float sx, float sy, const glm::fvec2& center)
   {
-    auto e  = glm::mat3x3(1.f);
-    auto t1 = fmat3(glm::translate(e, -center));
-    auto t2 = fmat3(glm::translate(e, +center));
-    auto s  = fmat3(glm::scale(glm::mat3x3(1.f), glm::vec2(sx, sy)));
+    auto e  = glm::fmat3(1.f);
+    auto t1 = glm::fmat3(glm::translate(e, -center));
+    auto t2 = glm::fmat3(glm::translate(e, +center));
+    auto s  = glm::fmat3(glm::scale(glm::fmat3(1.f), glm::vec2(sx, sy)));
     transform(t2 * s * t1);
   }
 
