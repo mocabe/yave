@@ -23,8 +23,8 @@ namespace yave {
   void shape::apply_transform()
   {
     auto transform_point = [&](auto& p) {
-      auto v = m_transform * fvec3(p, 1.f);
-      return fvec2(v.x, v.y);
+      auto v = m_transform * glm::fvec3(p, 1.f);
+      return glm::fvec2(v.x, v.y);
     };
 
     for (auto&& path : m_paths)
@@ -44,7 +44,7 @@ namespace yave {
     transform(fmat3(glm::translate(glm::mat3x3(1.f), glm::vec2(x, y))));
   }
 
-  void shape::rotate(float degree, const fvec2& center)
+  void shape::rotate(float degree, const glm::fvec2& center)
   {
     auto e   = glm::mat3x3(1.f);
     auto t1  = fmat3(glm::translate(e, -center));
@@ -53,7 +53,7 @@ namespace yave {
     transform(t2 * rot * t1);
   }
 
-  void shape::scale(float sx, float sy, const fvec2& center)
+  void shape::scale(float sx, float sy, const glm::fvec2& center)
   {
     auto e  = glm::mat3x3(1.f);
     auto t1 = fmat3(glm::translate(e, -center));

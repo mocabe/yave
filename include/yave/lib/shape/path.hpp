@@ -5,10 +5,11 @@
 
 #pragma once
 
-#include <yave/lib/vec/vec.hpp>
 #include <yave/data/color/color.hpp>
 #include <yave/data/vector/vector.hpp>
 #include <yave/lib/mat/mat.hpp>
+
+#include <glm/glm.hpp>
 
 namespace yave {
 
@@ -26,7 +27,7 @@ namespace yave {
   class path
   {
     /// vertex list
-    std::vector<fvec2> m_points;
+    std::vector<glm::fvec2> m_points;
     /// command list.
     /// points.size() == commands.size()
     std::vector<path_cmd> m_commands;
@@ -40,7 +41,7 @@ namespace yave {
 
   public:
     /// construct path from unchecked points/commands pair
-    path(std::vector<fvec2> ps, std::vector<path_cmd> cmds);
+    path(std::vector<glm::fvec2> ps, std::vector<path_cmd> cmds);
 
   public:
     auto& points() const
@@ -68,13 +69,16 @@ namespace yave {
 
   public:
     /// Move
-    void move(const fvec2& p);
+    void move(const glm::fvec2& p);
     /// Line
-    void line(const fvec2& p);
+    void line(const glm::fvec2& p);
     /// Quad bezier path
-    void quad(const fvec2& cp, const fvec2& p);
+    void quad(const glm::fvec2& cp, const glm::fvec2& p);
     /// Cubic bezier path
-    void cubic(const fvec2& cp1, const fvec2& cp2, const fvec2& p);
+    void cubic(
+      const glm::fvec2& cp1,
+      const glm::fvec2& cp2,
+      const glm::fvec2& p);
     /// Close path
     void close();
   };

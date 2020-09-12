@@ -445,7 +445,7 @@ namespace yave::editor::imgui {
 
             auto newg = ng.create_group(g, {ns});
 
-            fvec2 newpos = {};
+            glm::fvec2 newpos = {};
             for (auto&& n : ns)
               if (auto np = ng.get_pos(n))
                 newpos += *np;
@@ -589,7 +589,7 @@ namespace yave::editor::imgui {
 
   auto node_window::state() const -> enum state { return current_state; }
 
-  void node_window::begin_background_drag(const fvec2& drag_src_pos)
+  void node_window::begin_background_drag(const glm::fvec2& drag_src_pos)
   {
     if (current_state != state::neutral) {
       Warning("current_state != state::neutral");
@@ -611,7 +611,7 @@ namespace yave::editor::imgui {
     drag_source_pos = {};
   }
 
-  void node_window::begin_node_drag(const fvec2& drag_src_pos)
+  void node_window::begin_node_drag(const glm::fvec2& drag_src_pos)
   {
     if (current_state != state::neutral) {
       Warning("current_state != state::neutral");
@@ -633,7 +633,7 @@ namespace yave::editor::imgui {
     drag_source_pos = {};
   }
 
-  void node_window::begin_socket_drag(const fvec2& drag_src_pos)
+  void node_window::begin_socket_drag(const glm::fvec2& drag_src_pos)
   {
     if (current_state != state::neutral) {
       Warning("current_state != state::neutral");

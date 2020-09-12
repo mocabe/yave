@@ -334,10 +334,10 @@ namespace yave::editor::imgui {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
     {
       auto c   = value_cast<Color>(m_holder->data());
-      auto val = fvec4(*c);
+      auto val = glm::fvec4(*c);
       ImGui::ColorEdit4("", &(val.r), ImGuiColorEditFlags_Float);
 
-      if (fvec4(*c) != val) {
+      if (glm::fvec4(*c) != val) {
         m_holder->set_data(make_object<Color>(val));
         dctx.exec(make_data_command([](auto& ctx) {
           ctx.template get_data<editor_data>().executor.notify_execute();
@@ -404,7 +404,7 @@ namespace yave::editor::imgui {
       auto& style = ImGui::GetStyle();
 
       auto vec = value_cast<Vec2>(m_holder->data());
-      auto val = fvec2(*vec);
+      auto val = glm::fvec2(*vec);
 
       auto step = 1.f;
       auto lo   = std::numeric_limits<float>::lowest();
@@ -416,7 +416,7 @@ namespace yave::editor::imgui {
       ImGui::SameLine(0, style.ItemInnerSpacing.x);
       ImGui::DragFloat("##y", &val.y, step, lo, hi, "y:%.1f");
 
-      if (fvec2(*vec) != val) {
+      if (glm::fvec2(*vec) != val) {
         m_holder->set_data(make_object<Vec2>(val));
         dctx.exec(make_data_command([](auto& ctx) {
           ctx.template get_data<editor_data>().executor.notify_execute();

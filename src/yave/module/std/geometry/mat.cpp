@@ -96,7 +96,7 @@ namespace yave {
         auto angle     = eval_arg<1>();
         auto axis      = eval_arg<2>();
 
-        if (*axis == dvec3(0, 0, 0))
+        if (*axis == glm::dvec3(0, 0, 0))
           return arg<0>();
 
         auto m = glm::rotate(

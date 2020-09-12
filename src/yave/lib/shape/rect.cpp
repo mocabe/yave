@@ -8,7 +8,7 @@
 
 namespace yave {
 
-  auto create_rect_shape(const fvec2& pos, const fvec2& size) -> shape
+  auto create_rect_shape(const glm::fvec2& pos, const glm::fvec2& size) -> shape
   {
     path p;
     p.move({1, -1});

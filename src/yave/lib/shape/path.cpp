@@ -23,7 +23,7 @@ namespace yave {
     };
   } // namespace
 
-  path::path(std::vector<fvec2> ps, std::vector<path_cmd> cmds)
+  path::path(std::vector<glm::fvec2> ps, std::vector<path_cmd> cmds)
   {
     assert(ps.size() == cmds.size());
     m_points   = std::move(ps);
@@ -48,24 +48,27 @@ namespace yave {
     return m_points.size();
   }
 
-  void path::move(const fvec2& p)
+  void path::move(const glm::fvec2& p)
   {
     add_path_point(m_points, m_commands, p, path_cmd::move);
   }
 
-  void path::line(const fvec2& p)
+  void path::line(const glm::fvec2& p)
   {
     add_path_point(m_points, m_commands, p, path_cmd::line);
   }
 
-  void path::quad(const fvec2& cp, const fvec2& p)
+  void path::quad(const glm::fvec2& cp, const glm::fvec2& p)
   {
     next_path_points(m_points, m_commands, 2);
     add_path_point(m_points, m_commands, cp, path_cmd::quad);
     add_path_point(m_points, m_commands, p, path_cmd::line);
   }
 
-  void path::cubic(const fvec2& cp1, const fvec2& cp2, const fvec2& p)
+  void path::cubic(
+    const glm::fvec2& cp1,
+    const glm::fvec2& cp2,
+    const glm::fvec2& p)
   {
     next_path_points(m_points, m_commands, 3);
     add_path_point(m_points, m_commands, cp1, path_cmd::cubic);
@@ -78,7 +81,7 @@ namespace yave {
     if (empty() || closed())
       return;
 
-    add_path_point(m_points, m_commands, fvec2(), path_cmd::close);
+    add_path_point(m_points, m_commands, glm::fvec2(), path_cmd::close);
   }
 
 } // namespace yave

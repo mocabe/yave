@@ -103,9 +103,9 @@ namespace yave::editor::imgui {
 
   private:
     // current scroll position
-    fvec2 scroll_pos;
+    glm::fvec2 scroll_pos;
     // last drag source position
-    fvec2 drag_source_pos;
+    glm::fvec2 drag_source_pos;
 
   private:
     /// canvas draw info (will be updated every frame)
@@ -132,17 +132,17 @@ namespace yave::editor::imgui {
     auto state() const -> node_window::state;
 
     /// store pos and handle, transition to background state
-    void begin_background_drag(const fvec2& drag_src_pos);
+    void begin_background_drag(const glm::fvec2& drag_src_pos);
     /// transition to neutral state
     void end_background_drag();
 
     /// store pos and handle, transition to node state
-    void begin_node_drag(const fvec2& drag_src_pos);
+    void begin_node_drag(const glm::fvec2& drag_src_pos);
     /// transition to neutral state
     void end_node_drag();
 
     /// store pos and handle, transition to socket state
-    void begin_socket_drag(const fvec2& drag_src_pos);
+    void begin_socket_drag(const glm::fvec2& drag_src_pos);
     /// transition to neutral state
     void end_socket_drag();
 

@@ -5,13 +5,12 @@
 
 #pragma once
 
-#include <yave/lib/vec/vec.hpp>
 #include <yave/support/id.hpp>
 
+#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 #include <typeinfo>
-
 namespace yave::editor {
   // fwd
   class data_context;

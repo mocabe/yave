@@ -31,12 +31,10 @@ namespace yave {
 
     BLContext ctx(img);
 
-    ctx.setCompOp(BL_COMP_OP_SRC_COPY);
-
     BLPath p;
 
-    auto apply_transform = [&](const fvec2& v) {
-      return fvec2(s.transform() * fvec3(v, 1.f));
+    auto apply_transform = [&](const glm::fvec2& v) {
+      return glm::fvec2(s.transform() * glm::fvec3(v, 1.f));
     };
 
     // build path
@@ -71,7 +69,6 @@ namespace yave {
     }
 
     // fill
-    ctx.setCompOp(BL_COMP_OP_SRC_OVER);
     ctx.setFillStyle(BLRgba(
       style.fill_color.r,
       style.fill_color.g,
@@ -80,7 +77,6 @@ namespace yave {
     ctx.fillPath(p);
 
     // stroke
-    ctx.setCompOp(BL_COMP_OP_SRC_OVER);
     ctx.setStrokeWidth(style.stroke_width);
     ctx.setStrokeStyle(BLRgba(
       style.stroke_color.r,

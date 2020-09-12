@@ -6,7 +6,8 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/lib/vec/tvec.hpp>
+
+#include <glm/glm.hpp>
 #include <imgui.h>
 
 namespace yave::imgui {
@@ -44,12 +45,12 @@ namespace yave::imgui {
     return !(lhs == rhs);
   }
 
-  inline ImVec2 to_ImVec2(const tvec2<float>& v)
+  inline ImVec2 to_ImVec2(const glm::tvec2<float>& v)
   {
     return {v[0], v[1]};
   }
 
-  inline tvec2<float> to_tvec2(const ImVec2& v)
+  inline glm::tvec2<float> to_tvec2(const ImVec2& v)
   {
     return {v.x, v.y};
   }

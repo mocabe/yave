@@ -12,7 +12,8 @@ namespace yave {
   /// Create path of circle.
   /// \param center center of circle
   /// \param radius radius of circle
-  [[nodiscard]] auto create_rect_shape(const fvec2& pos, const fvec2& size)
-    -> shape;
+  [[nodiscard]] auto create_rect_shape(
+    const glm::fvec2& pos,
+    const glm::fvec2& size) -> shape;
 
 } // namespace yave

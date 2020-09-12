@@ -6,7 +6,8 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/lib/vec/vec.hpp>
+
+#include <glm/glm.hpp>
 
 namespace yave::data {
 
@@ -28,22 +29,22 @@ namespace yave::data {
     {
     }
 
-    color(const dvec4& vec)
+    color(const glm::dvec4& vec)
       : color(vec.x, vec.y, vec.z, vec.w)
     {
     }
 
-    color(const fvec4& vec)
+    color(const glm::fvec4& vec)
       : color(vec.x, vec.y, vec.z, vec.w)
     {
     }
 
-    operator dvec4() const
+    operator glm::dvec4() const
     {
       return {r, g, b, a};
     }
 
-    operator fvec4() const
+    operator glm::fvec4() const
     {
       return {r, g, b, a};
     }
@@ -51,7 +52,7 @@ namespace yave::data {
 
   [[nodiscard]] inline bool operator==(const color& lhs, const color& rhs)
   {
-    return dvec4(lhs) == dvec4(rhs);
+    return glm::dvec4(lhs) == glm::dvec4(rhs);
   }
 
   [[nodiscard]] inline bool operator!=(const color& lhs, const color& rhs)

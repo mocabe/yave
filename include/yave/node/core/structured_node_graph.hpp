@@ -11,7 +11,7 @@
 #include <yave/node/core/structured_connection_info.hpp>
 #include <yave/node/core/node_declaration.hpp>
 
-#include <yave/lib/vec/vec.hpp>
+#include <glm/glm.hpp>
 
 namespace yave {
 
@@ -70,9 +70,10 @@ namespace yave {
 
     /// get node pos
     [[nodiscard]] auto get_pos(const node_handle& node) const
-      -> std::optional<dvec2>;
+      -> std::optional<glm::dvec2>;
+
     /// set node pos
-    void set_pos(const node_handle& node, const dvec2& newpos);
+    void set_pos(const node_handle& node, const glm::dvec2& newpos);
 
     /// get socket data
     [[nodiscard]] auto get_data(const socket_handle& socke) const

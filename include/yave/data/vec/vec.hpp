@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <yave/lib/vec/tvec.hpp>
+#include <yave/data/vec/tvec.hpp>
 
-namespace yave {
+namespace yave::data {
 
   // int
 
@@ -66,5 +66,11 @@ namespace yave {
   using dvec2 = tvec2<double>;
   using dvec3 = tvec3<double>;
   using dvec4 = tvec4<double>;
+
+  // convenience
+  using vec1 = dvec1;
+  using vec2 = dvec2;
+  using vec3 = dvec3;
+  using vec4 = dvec4;
 
 } // namespace yave

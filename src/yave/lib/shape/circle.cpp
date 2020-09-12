@@ -8,7 +8,7 @@
 
 namespace yave {
 
-  auto create_circle_shape(const fvec2& center, float radius) -> shape
+  auto create_circle_shape(const glm::fvec2& center, float radius) -> shape
   {
     const auto k = 4.f * (std::sqrt(2.f) - 1.f) / 3.f;
 
