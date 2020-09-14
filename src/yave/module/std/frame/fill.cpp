@@ -49,13 +49,11 @@ namespace yave {
         if (!m_fbm.exists(dst->id()))
           assert(!"TODO");
 
+        // to floats
+        auto c = static_cast<glm::fvec4>(*col);
+
         m_render_pass.clear_texture(
-          m_fbm.get_texture_data(dst->id()),
-          std::array {
-            static_cast<float>(col->r),
-            static_cast<float>(col->g),
-            static_cast<float>(col->b),
-            static_cast<float>(col->a)});
+          m_fbm.get_texture_data(dst->id()), std::array {c.r, c.g, c.b, c.a});
 
         return dst;
       }
