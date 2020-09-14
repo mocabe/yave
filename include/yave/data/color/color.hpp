@@ -11,17 +11,17 @@
 
 namespace yave::data {
 
-  /// for Color
+  /// color data
   struct color
   {
-    double r = 0;
-    double g = 0;
-    double b = 0;
-    double a = 0;
+    float r = 0;
+    float g = 0;
+    float b = 0;
+    float a = 0;
 
     color() = default;
 
-    color(double r, double g, double b, double a)
+    color(float r, float g, float b, float a)
       : r {r}
       , g {g}
       , b {b}
@@ -29,8 +29,11 @@ namespace yave::data {
     {
     }
 
-    color(const glm::dvec4& vec)
-      : color(vec.x, vec.y, vec.z, vec.w)
+    color(double r, double g, double b, double a)
+      : r {static_cast<float>(r)}
+      , g {static_cast<float>(g)}
+      , b {static_cast<float>(b)}
+      , a {static_cast<float>(a)}
     {
     }
 
@@ -39,12 +42,17 @@ namespace yave::data {
     {
     }
 
-    operator glm::dvec4() const
+    color(const glm::dvec4& vec)
+      : color(vec.x, vec.y, vec.z, vec.w)
+    {
+    }
+
+    operator glm::fvec4() const
     {
       return {r, g, b, a};
     }
 
-    operator glm::fvec4() const
+    operator glm::dvec4() const
     {
       return {r, g, b, a};
     }
@@ -52,7 +60,7 @@ namespace yave::data {
 
   [[nodiscard]] inline bool operator==(const color& lhs, const color& rhs)
   {
-    return glm::dvec4(lhs) == glm::dvec4(rhs);
+    return glm::fvec4(lhs) == glm::fvec4(rhs);
   }
 
   [[nodiscard]] inline bool operator!=(const color& lhs, const color& rhs)

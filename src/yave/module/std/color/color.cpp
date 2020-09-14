@@ -52,10 +52,7 @@ namespace yave {
       auto code() const -> return_type
       {
         return make_object<Color>(
-          static_cast<float>(*eval_arg<0>()),
-          static_cast<float>(*eval_arg<1>()),
-          static_cast<float>(*eval_arg<2>()),
-          static_cast<float>(*eval_arg<3>()));
+          *eval_arg<0>(), *eval_arg<1>(), *eval_arg<2>(), *eval_arg<3>());
       }
     };
   } // namespace modules::_std::color
