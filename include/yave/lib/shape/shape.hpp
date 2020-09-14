@@ -7,15 +7,45 @@
 
 #include <yave/lib/shape/path.hpp>
 
+#include <variant>
+
 namespace yave {
 
-  /// path shape
+  /// path fill
+  struct shape_op_fill
+  {
+    /// fill color of path
+    glm::fvec4 color;
+  };
+
+  /// path stroke
+  struct shape_op_stroke
+  {
+    /// stroke color of path
+    glm::fvec4 color;
+    /// stroke width
+    float width = 0.f;
+  };
+
+  /// shape operation
+  using shape_op = std::variant<shape_op_fill, shape_op_stroke>;
+
+  /// shape command
+  struct shape_cmd
+  {
+    /// index of target path
+    size_t path_idx;
+    /// shape op
+    shape_op op;
+  };
+
+  /// path collection
   class shape
   {
-    /// list of paths in composition order
-    std::vector<path> m_paths = {};
-    /// transform
-    glm::fmat3 m_transform = glm::fmat3(1.f);
+    /// list of paths
+    std::vector<path> m_paths;
+    /// list of shape commands
+    std::vector<shape_cmd> m_commands;
 
   public:
     shape()                 = default;
@@ -25,8 +55,7 @@ namespace yave {
     shape& operator=(shape&&) noexcept = default;
 
   public:
-    /// construct shape from path list
-    shape(std::vector<path> paths);
+    shape(std::vector<path> pths, std::vector<shape_cmd> cmds);
 
   public:
     auto& paths() const
@@ -34,46 +63,42 @@ namespace yave {
       return m_paths;
     }
 
-    auto& paths()
+    auto& commands() const
     {
-      return m_paths;
+      return m_commands;
     }
 
-    auto& transform() const
-    {
-      return m_transform;
-    }
-
-  public:
     [[nodiscard]] bool empty() const
     {
       return m_paths.empty();
     }
 
-    [[nodiscard]] auto size() const -> size_t
-    {
-      return m_paths.size();
-    }
-
   public:
     /// Add new path
-    void add(path p);
-    /// Apply current transform to all paths
-    void apply_transform();
+    /// \returns index of inserted path
+    auto add_path(path p) -> size_t;
 
   public:
-    /// transform
+    /// Fill all paths
+    void fill(const glm::fvec4& color);
+    /// Fill path
+    void fill(size_t idx, const glm::fvec4& color);
+
+    /// Stroke all paths
+    void stroke(const glm::fvec4& color, float thickness);
+    /// Stroke path
+    void stroke(size_t idx, const glm::fvec4& color, float thickness);
+
+  public:
+    /// transform all paths
     /// \requires `mat` is valid transformation matrix
     void transform(const glm::fmat3& mat);
-    /// translate
+    /// translate all paths
     void translate(float x, float y);
-    /// rotate around some point
+    /// rotate all paths around some point
     void rotate(float degree, const glm::fvec2& center = {0, 0});
-    /// scale
+    /// scale all paths
     void scale(float sx, float sy, const glm::fvec2& center = {0, 0});
   };
-
-  /// Merge two shapes
-  [[nodiscard]] auto merge(const shape& s1, const shape& s2) -> shape;
 
 } // namespace yave

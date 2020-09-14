@@ -4,16 +4,14 @@
 //
 
 #include <yave/lib/shape/draw.hpp>
+#include <yave/support/overloaded.hpp>
 
 #include <blend2d.h>
 
 namespace yave {
 
-  auto draw_shape_bgra8(
-    const shape& s,
-    const shape_draw_style& style,
-    uint32_t width,
-    uint32_t height) -> image
+  auto draw_shape_bgra8(const shape& s, uint32_t width, uint32_t height)
+    -> image
   {
     // image data
     auto ret = image(width, height, image_format::rgba8);
@@ -31,16 +29,15 @@ namespace yave {
 
     BLContext ctx(img);
 
-    BLPath p;
-
-    auto apply_transform = [&](const glm::fvec2& v) {
-      return glm::fvec2(s.transform() * glm::fvec3(v, 1.f));
-    };
+    std::vector<BLPath> ps;
 
     // build path
     for (auto&& path : s.paths()) {
+
+      auto& p = ps.emplace_back();
+
       for (size_t i = 0; i < path.size(); ++i) {
-        auto vec = apply_transform(path.points()[i]);
+        auto vec = path.points()[i];
         auto cmd = path.commands()[i];
 
         if (cmd == path_cmd::move)
@@ -54,36 +51,46 @@ namespace yave {
 
         if (cmd == path_cmd::quad) {
           assert(path.commands().at(i + 1) == path_cmd::line);
-          auto end = apply_transform(path.points()[++i]);
+          auto end = path.points()[++i];
           p.quadTo(vec.x, vec.y, end.x, end.y);
         }
 
         if (cmd == path_cmd::cubic) {
           assert(path.commands().at(i + 1) == path_cmd::cubic);
           assert(path.commands().at(i + 2) == path_cmd::line);
-          auto cp2 = apply_transform(path.points()[++i]);
-          auto end = apply_transform(path.points()[++i]);
+          auto cp2 = path.points()[++i];
+          auto end = path.points()[++i];
           p.cubicTo(vec.x, vec.y, cp2.x, cp2.y, end.x, end.y);
         }
       }
     }
 
-    // fill
-    ctx.setFillStyle(BLRgba(
-      style.fill_color.r,
-      style.fill_color.g,
-      style.fill_color.b,
-      style.fill_color.a));
-    ctx.fillPath(p);
+    // draw paths
+    for (auto&& cmd : s.commands()) {
 
-    // stroke
-    ctx.setStrokeWidth(style.stroke_width);
-    ctx.setStrokeStyle(BLRgba(
-      style.stroke_color.r,
-      style.stroke_color.g,
-      style.stroke_color.b,
-      style.stroke_color.a));
-    ctx.strokePath(p);
+      auto& p = ps[cmd.path_idx];
+
+      ctx.save();
+
+      std::visit(
+        overloaded {
+          // fill
+          [&](const shape_op_fill& fill) {
+            ctx.setFillStyle(
+              BLRgba(fill.color.r, fill.color.g, fill.color.b, fill.color.a));
+            ctx.fillPath(p);
+          },
+          // stroke
+          [&](const shape_op_stroke& stroke) {
+            ctx.setStrokeStyle(BLRgba(
+              stroke.color.r, stroke.color.g, stroke.color.b, stroke.color.a));
+            ctx.setStrokeWidth(stroke.width);
+            ctx.strokePath(p);
+          }},
+        cmd.op);
+
+      ctx.restore();
+    }
 
     ctx.end();
 

@@ -16,6 +16,33 @@
 
 namespace yave {
 
+  auto node_declaration_traits<node::FillShape>::get_node_declaration()
+    -> node_declaration
+  {
+    return node_declaration(
+      "Fill",
+      "/std/shape",
+      "Fill shape",
+      {"shape", "color"},
+      {"shape"},
+      {{1, make_data_type_holder<Color>(glm::fvec4(0.f))}});
+  }
+
+  auto node_declaration_traits<node::StrokeShape>::get_node_declaration()
+    -> node_declaration
+  {
+    return node_declaration(
+      "Stroke",
+      "/std/shape",
+      "Stroke shape",
+      {"shape", "color", "width"},
+      {"shape"},
+      {{1, make_data_type_holder<Color>(glm::fvec4(0.f))},
+       {2,
+        make_data_type_holder<Float>(
+          0.f, 0.f, std::numeric_limits<float>::max(), 0.1f)}});
+  }
+
   auto node_declaration_traits<node::DrawShape>::get_node_declaration(
     data::frame_buffer_manager& fbm) -> node_declaration
   {
@@ -23,26 +50,47 @@ namespace yave {
       "Draw",
       "/std/shape",
       "Render shape to frame buffer",
-      {"shape", "fill color", "stroke color", "stroke width", "frame"},
-      {"result"},
-      {{1, make_data_type_holder<Color>(data::color {0.f, 0.f, 0.f, 1.f})},
-       {2, make_data_type_holder<Color>(data::color {0.f, 0.f, 0.f, 1.f})},
-       {3, make_data_type_holder<Float>(0.f)},
-       {4,
+      {"shape", "frame"},
+      {"frame"},
+      {{1,
         make_object<modules::_std::frame::FrameBufferConstructor>(
           fbm.get_pool_object())}});
   }
 
   namespace modules::_std::shape {
 
-    struct DrawShape : NodeFunction<
-                         DrawShape,
-                         Shape,
-                         Color,
-                         Color,
-                         Float,
-                         FrameBuffer,
-                         FrameBuffer>
+    struct FillShape : NodeFunction<FillShape, Shape, Color, Shape>
+    {
+      auto code() const -> return_type
+      {
+        auto shape = eval_arg<0>();
+        auto col   = eval_arg<1>();
+
+        auto s = yave::shape(*shape);
+
+        s.fill(glm::fvec4(*col));
+
+        return make_object<Shape>(std::move(s));
+      }
+    };
+
+    struct StrokeShape : NodeFunction<StrokeShape, Shape, Color, Float, Shape>
+    {
+      auto code() const -> return_type
+      {
+        auto shape = eval_arg<0>();
+        auto col   = eval_arg<1>();
+        auto width = eval_arg<2>();
+
+        auto s = yave::shape(*shape);
+
+        s.stroke(glm::fvec4(*col), *width);
+
+        return make_object<Shape>(std::move(s));
+      }
+    };
+
+    struct DrawShape : NodeFunction<DrawShape, Shape, FrameBuffer, FrameBuffer>
     {
       data::frame_buffer_manager& m_fbm;
       vulkan::rgba32f_offscreen_compositor& m_compositor;
@@ -57,21 +105,14 @@ namespace yave {
 
       auto code() const -> return_type
       {
-        auto shape  = eval_arg<0>();
-        auto fill   = eval_arg<1>();
-        auto stroke = eval_arg<2>();
-        auto width  = eval_arg<3>();
-        auto fb     = eval_arg<4>().clone();
+        auto shape = eval_arg<0>();
+        auto fb    = eval_arg<1>().clone();
 
         if (!m_fbm.exists(fb->id()))
           assert(!"TODO");
 
-        auto style         = shape_draw_style();
-        style.fill_color   = *fill;
-        style.stroke_color = *stroke;
-        style.stroke_width = *width;
-
-        auto img = draw_shape_bgra8(*shape, style, fb->width(), fb->height());
+        auto img =
+          draw_shape_bgra8(yave::shape(*shape), fb->width(), fb->height());
 
         auto tex = m_compositor.render_pass().create_texture(
           {fb->width(), fb->height()}, vk::Format::eB8G8R8A8Unorm);
@@ -92,6 +133,28 @@ namespace yave {
       }
     };
   } // namespace modules::_std::shape
+
+  auto node_definition_traits<node::FillShape, modules::_std::tag>::
+    get_node_definitions() -> std::vector<node_definition>
+  {
+    auto info = get_node_declaration<node::FillShape>();
+    return {node_definition(
+      info.qualified_name(),
+      0,
+      make_object<modules::_std::shape::FillShape>(),
+      info.description())};
+  }
+
+  auto node_definition_traits<node::StrokeShape, modules::_std::tag>::
+    get_node_definitions() -> std::vector<node_definition>
+  {
+    auto info = get_node_declaration<node::StrokeShape>();
+    return {node_definition(
+      info.qualified_name(),
+      0,
+      make_object<modules::_std::shape::StrokeShape>(),
+      info.description())};
+  }
 
   auto node_definition_traits<node::DrawShape, modules::_std::tag>::
     get_node_definitions(

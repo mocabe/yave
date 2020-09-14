@@ -56,7 +56,7 @@ namespace yave {
         auto s = eval_arg<0>();
         auto v = eval_arg<1>();
 
-        auto ss = *s;
+        auto ss = yave::shape(*s);
         ss.translate(v->x, v->y);
 
         return make_object<Shape>(std::move(ss));
@@ -71,7 +71,7 @@ namespace yave {
         auto d = eval_arg<1>();
         auto v = eval_arg<2>();
 
-        auto ss = *s;
+        auto ss = yave::shape(*s);
         ss.rotate(*d, *v);
 
         return make_object<Shape>(std::move(ss));
@@ -86,7 +86,7 @@ namespace yave {
         auto d = eval_arg<1>();
         auto v = eval_arg<2>();
 
-        auto ss = *s;
+        auto ss = yave::shape(*s);
         ss.scale(*d, *d, *v);
 
         return make_object<Shape>(std::move(ss));

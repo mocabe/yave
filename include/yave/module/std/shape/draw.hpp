@@ -13,9 +13,19 @@
 namespace yave {
 
   namespace node {
+    /// Fill shape
+    class FillShape;
+    /// Stroke shape
+    class StrokeShape;
     // Draw shape to framebuffer
     class DrawShape;
   } // namespace node
+
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::FillShape);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::StrokeShape);
+
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::FillShape, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::StrokeShape, modules::_std::tag);
 
   template <>
   struct node_declaration_traits<node::DrawShape>

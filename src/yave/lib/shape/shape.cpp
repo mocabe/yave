@@ -9,34 +9,58 @@
 
 namespace yave {
 
-  shape::shape(std::vector<path> paths)
-    : m_paths {std::move(paths)}
-    , m_transform {1.f}
+  shape::shape(std::vector<path> pths, std::vector<shape_cmd> cmds)
+    : m_paths {std::move(pths)}
+    , m_commands {std::move(cmds)}
   {
   }
 
-  void shape::add(path p)
+  auto shape::add_path(path p) -> size_t
   {
     m_paths.push_back(p);
+    return m_paths.size() - 1;
   }
 
-  void shape::apply_transform()
+  void shape::fill(const glm::fvec4& color)
   {
-    auto transform_point = [&](auto& p) {
-      auto v = m_transform * glm::fvec3(p, 1.f);
+    for (size_t i = 0; i < m_paths.size(); ++i)
+      m_commands.push_back({i, {shape_op_fill {.color = color}}});
+  }
+
+  void shape::fill(size_t idx, const glm::fvec4& color)
+  {
+    if (m_paths.size() <= idx)
+      throw std::invalid_argument("invalid path index ");
+
+    m_commands.push_back({idx, {shape_op_fill {.color = color}}});
+  }
+
+  void shape::stroke(const glm::fvec4& color, float width)
+  {
+    for (size_t i = 0; i < m_paths.size(); ++i)
+      m_commands.push_back(
+        {i, {shape_op_stroke {.color = color, .width = width}}});
+  }
+
+  void shape::stroke(size_t idx, const glm::fvec4& color, float width)
+  {
+    if (m_paths.size() <= idx)
+      throw std::invalid_argument("invalid path index ");
+
+    m_commands.push_back(
+      {idx, {shape_op_stroke {.color = color, .width = width}}});
+  }
+
+  void shape::transform(const glm::fmat3& mat)
+  {
+    auto transform_point = [&mat](const auto& p) {
+      auto v = mat * glm::fvec3(glm::fvec2(p.x, p.y), 1.f);
       return glm::fvec2(v.x, v.y);
     };
 
     for (auto&& path : m_paths)
       for (auto&& p : path.points())
-        transform_point(p);
-
-    m_transform = glm::fmat3(1.f);
-  }
-
-  void shape::transform(const glm::fmat3& mat)
-  {
-    m_transform = mat * m_transform;
+        p = transform_point(p);
   }
 
   void shape::translate(float x, float y)
@@ -60,21 +84,5 @@ namespace yave {
     auto t2 = glm::fmat3(glm::translate(e, +center));
     auto s  = glm::fmat3(glm::scale(glm::fmat3(1.f), glm::vec2(sx, sy)));
     transform(t2 * s * t1);
-  }
-
-  auto merge(const shape& s1, const shape& s2) -> shape
-  {
-    auto s1t = s1;
-    auto s2t = s2;
-    s1t.apply_transform();
-    s2t.apply_transform();
-
-    shape ret;
-
-    for (auto&& path : s1t.paths())
-      ret.add(path);
-    for (auto&& path : s2t.paths())
-      ret.add(path);
-    return ret;
   }
 }

@@ -160,6 +160,8 @@ namespace yave::modules::_std {
             get_node_declaration<node::TimeFromSeconds>(),
             get_node_declaration<node::CircleShape>(),
             get_node_declaration<node::RectShape>(),
+            get_node_declaration<node::FillShape>(),
+            get_node_declaration<node::StrokeShape>(),
             get_node_declaration<node::DrawShape>(fmngr),
             get_node_declaration<node::ShapeTranslate>(),
             get_node_declaration<node::ShapeRotate>(),
@@ -220,6 +222,8 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::ScaleTime, _std::tag>());
     add(yave::get_node_definitions<node::CircleShape, _std::tag>());
     add(yave::get_node_definitions<node::RectShape, _std::tag>());
+    add(yave::get_node_definitions<node::FillShape, _std::tag>());
+    add(yave::get_node_definitions<node::StrokeShape, _std::tag>());
     add(yave::get_node_definitions<node::DrawShape, _std::tag>(fmngr, compositor));
     add(yave::get_node_definitions<node::ShapeTranslate, _std::tag>());
     add(yave::get_node_definitions<node::ShapeRotate, _std::tag>());

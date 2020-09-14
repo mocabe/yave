@@ -22,7 +22,7 @@ namespace yave {
     p.close();
 
     shape ret;
-    ret.add(std::move(p));
+    ret.add_path(std::move(p));
     ret.scale(radius, radius);
     ret.translate(center.x, center.y);
     return ret;

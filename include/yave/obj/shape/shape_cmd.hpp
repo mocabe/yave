@@ -6,11 +6,11 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/data/shape/shape.hpp>
+#include <yave/data/shape/shape_cmd.hpp>
 
 namespace yave {
-  /// Shape
-  using Shape = Box<data::shape>;
+  /// shape command object
+  using ShapeCmd = Box<data::shape_cmd>;
 } // namespace yave
 
-YAVE_DECL_TYPE(yave::Shape, "4aeb6c88-2315-4eba-a45f-fcd54982588d");
+YAVE_DECL_TYPE(yave::ShapeCmd, "f53939fa-d233-4844-8e26-4130bdadfd2f");

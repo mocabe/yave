@@ -7,24 +7,13 @@
 
 #include <yave/lib/shape/shape.hpp>
 #include <yave/lib/image/image.hpp>
+#include <yave/data/color/color.hpp>
 
 namespace yave {
-
-  /// Shape drawing style
-  struct shape_draw_style
-  {
-    /// fill color
-    data::color fill_color;
-    /// stroke color
-    data::color stroke_color;
-    /// stroke width
-    float stroke_width;
-  };
 
   /// Draw shape onto RGBA32 (BGRA8888/le) image
   [[nodiscard]] auto draw_shape_bgra8(
     const shape& s,
-    const shape_draw_style& style,
     uint32_t width,
     uint32_t height) -> image;
 }

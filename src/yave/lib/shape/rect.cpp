@@ -18,7 +18,7 @@ namespace yave {
     p.close();
 
     shape ret;
-    ret.add(std::move(p));
+    ret.add_path(std::move(p));
     ret.scale(size.x / 2, size.y / 2);
     ret.translate(pos.x, pos.y);
     return ret;
