@@ -5,7 +5,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/module/std/primitive/primitive.hpp>
+#include <yave/obj/primitive/property.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/rts/rts.hpp>
 
@@ -15,13 +15,17 @@ TEST_CASE("Constructor")
 {
   SECTION("make_object")
   {
-    auto v = make_data_type_holder<Int>();
+    auto v = make_node_argument<Int>();
     REQUIRE(has_type<Int>(v->data()));
   }
 
   SECTION("eval")
   {
-    auto v = make_data_type_holder<Int>();
+    auto v = make_node_argument<Int>();
+    check_type_dynamic<NodeArgument>(v);
+    check_type_dynamic<closure<NodeArgument, FrameDemand, Int>>(v->ctor());
+    check_type_dynamic<Int>(v->data());
+    check_type_dynamic<IntDataProperty>(v->property());
     v->set_data(make_object<Int>(42));
     auto app = (v->get_data_constructor(v)) << make_object<FrameDemand>();
     check_type_dynamic<Int>(app);

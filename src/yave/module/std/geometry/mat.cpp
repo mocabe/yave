@@ -4,10 +4,10 @@
 //
 
 #include <yave/module/std/geometry/mat.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/mat/mat.hpp>
 #include <yave/obj/vec/vec.hpp>
+#include <yave/obj/primitive/property.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -30,7 +30,7 @@ namespace yave {
       "Rotate object around axis",
       {"mat4", "deg", "axis"},
       {"mat4"},
-      {{1, make_data_type_holder<Float>()}});
+      {{1, make_node_argument<Float>()}});
   }
 
   auto node_declaration_traits<node::Mat4RotateX>::get_node_declaration()
@@ -42,7 +42,7 @@ namespace yave {
       "Rotate object around X axis",
       {"mat4", "deg"},
       {"mat4"},
-      {{1, make_data_type_holder<Float>()}});
+      {{1, make_node_argument<Float>()}});
   }
 
   auto node_declaration_traits<node::Mat4RotateY>::get_node_declaration()
@@ -54,7 +54,7 @@ namespace yave {
       "Rotate object around Y axis",
       {"mat4", "deg"},
       {"mat4"},
-      {{1, make_data_type_holder<Float>()}});
+      {{1, make_node_argument<Float>()}});
   }
 
   auto node_declaration_traits<node::Mat4RotateZ>::get_node_declaration()
@@ -66,7 +66,7 @@ namespace yave {
       "Rotate object around Z axis",
       {"mat4", "deg"},
       {"mat4"},
-      {{1, make_data_type_holder<Float>()}});
+      {{1, make_node_argument<Float>()}});
   }
 
   auto node_declaration_traits<node::Mat4Translate>::get_node_declaration()

@@ -4,15 +4,13 @@
 //
 
 #include <yave/module/std/shape/draw.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
-#include <yave/module/std/frame/frame.hpp>
-#include <yave/module/std/color/color.hpp>
+#include <yave/lib/shape/draw.hpp>
+#include <yave/lib/image/image_blend.hpp>
 #include <yave/obj/shape/shape.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
-#include <yave/lib/shape/draw.hpp>
-#include <yave/obj/color/color.hpp>
+#include <yave/obj/color/property.hpp>
+#include <yave/obj/primitive/property.hpp>
 #include <yave/obj/vec/vec.hpp>
-#include <yave/lib/image/image_blend.hpp>
 
 namespace yave {
 
@@ -25,7 +23,7 @@ namespace yave {
       "Fill shape",
       {"shape", "color"},
       {"shape"},
-      {{1, make_data_type_holder<Color>(glm::fvec4(0.f))}});
+      {{1, make_node_argument<Color>(glm::fvec4(0.f))}});
   }
 
   auto node_declaration_traits<node::StrokeShape>::get_node_declaration()
@@ -37,9 +35,9 @@ namespace yave {
       "Stroke shape",
       {"shape", "color", "width"},
       {"shape"},
-      {{1, make_data_type_holder<Color>(glm::fvec4(0.f))},
+      {{1, make_node_argument<Color>(glm::fvec4(0.f))},
        {2,
-        make_data_type_holder<Float>(
+        make_node_argument<Float>(
           0.f, 0.f, std::numeric_limits<float>::max(), 0.1f)}});
   }
 

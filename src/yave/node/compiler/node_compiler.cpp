@@ -13,7 +13,7 @@
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/value_cast.hpp>
 #include <yave/rts/unit.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
+#include <yave/obj/node/argument.hpp>
 
 #include <functional>
 
@@ -342,12 +342,12 @@ namespace yave {
 
       for (auto&& s : ng.input_sockets(f)) {
 
-        // default value
+        // default arg value
         if (auto data = ng.get_data(s)) {
 
-          // FIXME: Remove this branch
-          if (auto holder = value_cast_if<DataTypeHolder>(data))
-            body = body << holder->get_data_constructor(holder);
+          // TODO: remove this branch
+          if (auto arg = value_cast_if<NodeArgument>(data))
+            body = body << arg->get_data_constructor(arg);
           else
             body = body << data;
 

@@ -4,12 +4,10 @@
 //
 
 #include <yave/module/std/shape/rect.hpp>
-#include <yave/module/std/primitive/data_holder.hpp>
-#include <yave/module/std/geometry/vec.hpp>
-#include <yave/obj/shape/shape.hpp>
 #include <yave/lib/shape/rect.hpp>
+#include <yave/obj/shape/shape.hpp>
 #include <yave/obj/color/color.hpp>
-#include <yave/obj/vec/vec.hpp>
+#include <yave/obj/vec/property.hpp>
 
 namespace yave {
 
@@ -22,7 +20,7 @@ namespace yave {
       "Create rect shape",
       {"pos", "size"},
       {"shape"},
-      {{0, make_data_type_holder<Vec2>()}, {1, make_data_type_holder<Vec2>()}});
+      {{0, make_node_argument<Vec2>()}, {1, make_node_argument<Vec2>()}});
   }
 
   namespace modules::_std::shape {

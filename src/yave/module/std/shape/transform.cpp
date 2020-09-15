@@ -4,11 +4,11 @@
 //
 
 #include <yave/module/std/shape/transform.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
+#include <yave/node/core/function.hpp>
 #include <yave/obj/shape/shape.hpp>
 #include <yave/obj/vec/vec.hpp>
 #include <yave/obj/mat/mat.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/obj/primitive/property.hpp>
 
 namespace yave {
 
@@ -32,7 +32,7 @@ namespace yave {
       "Rotate shape",
       {"shape", "degree", "center"},
       {"shape"},
-      {{1, make_data_type_holder<Float>(0.f)}});
+      {{1, make_node_argument<Float>(0.f)}});
   }
 
   auto node_declaration_traits<node::ShapeScale>::get_node_declaration()
@@ -44,7 +44,7 @@ namespace yave {
       "Scale shape",
       {"shape", "ratio", "center"},
       {"shape"},
-      {{1, make_data_type_holder<Float>(1.f)}});
+      {{1, make_node_argument<Float>(1.f)}});
   }
 
   namespace modules::_std::shape {

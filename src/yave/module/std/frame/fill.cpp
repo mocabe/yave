@@ -5,9 +5,9 @@
 
 #include <yave/module/std/frame/fill.hpp>
 #include <yave/module/std/frame/frame.hpp>
-#include <yave/module/std/color/color.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
+#include <yave/obj/color/property.hpp>
 
 namespace yave {
 
@@ -20,7 +20,7 @@ namespace yave {
       "Fill frame buffer with specified color",
       {"color", "frame"},
       {"frame"},
-      {{0, make_data_type_holder<Color>()},
+      {{0, make_node_argument<Color>()},
        {1,
         make_object<modules::_std::frame::FrameBufferConstructor>(
           fbm.get_pool_object())}});

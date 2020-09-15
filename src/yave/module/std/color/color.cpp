@@ -4,8 +4,8 @@
 //
 
 #include <yave/module/std/color/color.hpp>
-#include <yave/obj/color/color.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
+#include <yave/obj/color/property.hpp>
+#include <yave/obj/primitive/property.hpp>
 
 namespace yave {
 
@@ -18,7 +18,7 @@ namespace yave {
       "Color",
       {"color"},
       {"color"},
-      {{0, make_data_type_holder<Color>()}});
+      {{0, make_node_argument<Color>()}});
   }
 
   auto node_declaration_traits<node::ColorFloat>::get_node_declaration()
@@ -30,10 +30,10 @@ namespace yave {
       "Color",
       {"R", "G", "B", "A"},
       {"color"},
-      {{0, make_data_type_holder<Float>(0.f, 0.f, 1.f, 0.001f)},
-       {1, make_data_type_holder<Float>(0.f, 0.f, 1.f, 0.001f)},
-       {2, make_data_type_holder<Float>(0.f, 0.f, 1.f, 0.001f)},
-       {3, make_data_type_holder<Float>(0.f, 0.f, 1.f, 0.001f)}});
+      {{0, make_node_argument<Float>(0.f, 0.f, 1.f, 0.001f)},
+       {1, make_node_argument<Float>(0.f, 0.f, 1.f, 0.001f)},
+       {2, make_node_argument<Float>(0.f, 0.f, 1.f, 0.001f)},
+       {3, make_node_argument<Float>(0.f, 0.f, 1.f, 0.001f)}});
   }
 
   namespace modules::_std::color {

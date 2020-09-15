@@ -5,8 +5,8 @@
 
 #include <yave/module/std/geometry/vec.hpp>
 #include <yave/node/core/function.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
-#include <yave/obj/vec/vec.hpp>
+#include <yave/obj/vec/property.hpp>
+#include <yave/obj/primitive/property.hpp>
 
 namespace yave {
 
@@ -19,8 +19,7 @@ namespace yave {
       "Vec2 constructor",
       {"x", "y"},
       {"value"},
-      {{0, make_data_type_holder<Float64>()},
-       {1, make_data_type_holder<Float64>()}});
+      {{0, make_node_argument<Float64>()}, {1, make_node_argument<Float64>()}});
   }
 
   auto node_declaration_traits<node::Vec3>::get_node_declaration()
@@ -32,9 +31,9 @@ namespace yave {
       "Vec3 constructor",
       {"x", "y", "z"},
       {"value"},
-      {{0, make_data_type_holder<Float>()},
-       {1, make_data_type_holder<Float>()},
-       {2, make_data_type_holder<Float>()}});
+      {{0, make_node_argument<Float>()},
+       {1, make_node_argument<Float>()},
+       {2, make_node_argument<Float>()}});
   }
 
   auto node_declaration_traits<node::Vec4>::get_node_declaration()
@@ -46,10 +45,10 @@ namespace yave {
       "Vec3 constructor",
       {"x", "y", "z", "w"},
       {"value"},
-      {{0, make_data_type_holder<Float>()},
-       {1, make_data_type_holder<Float>()},
-       {2, make_data_type_holder<Float>()},
-       {3, make_data_type_holder<Float>()}});
+      {{0, make_node_argument<Float>()},
+       {1, make_node_argument<Float>()},
+       {2, make_node_argument<Float>()},
+       {3, make_node_argument<Float>()}});
   }
 
   namespace modules::_std::geometry {

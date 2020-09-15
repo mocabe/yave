@@ -11,7 +11,7 @@
 namespace yave::editor::imgui {
 
   data_type_socket<Float>::data_type_socket(
-    const object_ptr<DataTypeHolder>& holder,
+    const object_ptr<NodeArgument>& holder,
     const object_ptr<const FloatDataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
@@ -87,7 +87,7 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Int>::data_type_socket(
-    const object_ptr<DataTypeHolder>& holder,
+    const object_ptr<NodeArgument>& holder,
     const object_ptr<const IntDataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
@@ -162,7 +162,7 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Bool>::data_type_socket(
-    const object_ptr<DataTypeHolder>& holder,
+    const object_ptr<NodeArgument>& holder,
     const object_ptr<const BoolDataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
@@ -222,7 +222,7 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<String>::data_type_socket(
-    const object_ptr<DataTypeHolder>& holder,
+    const object_ptr<NodeArgument>& holder,
     const object_ptr<const StringDataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
@@ -282,7 +282,7 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Color>::data_type_socket(
-    const object_ptr<DataTypeHolder>& holder,
+    const object_ptr<NodeArgument>& holder,
     const object_ptr<const ColorDataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,
@@ -351,7 +351,7 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Vec2>::data_type_socket(
-    const object_ptr<DataTypeHolder>& holder,
+    const object_ptr<NodeArgument>& holder,
     const object_ptr<const Vec2DataProperty>& property,
     const socket_handle& s,
     const structured_node_graph& g,

@@ -7,7 +7,6 @@
 
 #include <yave/node/core/get_info.hpp>
 #include <yave/module/std/config.hpp>
-#include <yave/module/std/primitive/data_holder.hpp>
 
 namespace yave {
 

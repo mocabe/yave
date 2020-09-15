@@ -4,10 +4,10 @@
 //
 
 #include <yave/module/std/time/retime.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_demand/frame_demand.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
+#include <yave/obj/primitive/property.hpp>
 
 namespace yave {
 
@@ -38,7 +38,7 @@ namespace yave {
       "Scale time",
       {"any", "scaling"},
       {"any"},
-      {{1, make_data_type_holder<Float>(1.f)}});
+      {{1, make_node_argument<Float>(1.f)}});
   }
 
   namespace modules::_std::time {

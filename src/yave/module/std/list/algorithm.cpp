@@ -4,9 +4,9 @@
 //
 
 #include <yave/module/std/list/algorithm.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
-#include <yave/node/core/function.hpp>
 #include <yave/rts/list.hpp>
+#include <yave/node/core/function.hpp>
+#include <yave/obj/primitive/property.hpp>
 
 namespace yave {
 
@@ -26,7 +26,7 @@ namespace yave {
       "repeat",
       {"value", "n"},
       {"list"},
-      {{1, make_data_type_holder<Int>(1)}});
+      {{1, make_node_argument<Int>(1)}});
   }
 
   auto node_declaration_traits<node::ListEnumerate>::get_node_declaration()

@@ -5,13 +5,17 @@
 
 #include <yave/module/std/primitive/primitive.hpp>
 #include <yave/node/core/function.hpp>
-#include <yave/obj/frame_demand/frame_demand.hpp>
+#include <yave/obj/primitive/property.hpp>
+
+#define YAVE_DEF_PRIM_NODE(TYPE)                       \
+  template struct node_declaration_traits<node::TYPE>; \
+  template struct node_definition_traits<node::TYPE, modules::_std::tag>
 
 namespace yave {
 
   template <class T>
-  auto node_declaration_traits<
-    node::DataTypeConstructor<T>>::get_node_declaration() -> node_declaration
+  auto node_declaration_traits<node::PrimitiveCtor<T>>::get_node_declaration()
+    -> node_declaration
   {
     return node_declaration(
       node_name,
@@ -19,33 +23,32 @@ namespace yave {
       "Data type constructor",
       {"value"},
       {"value"},
-      {{0, make_data_type_holder<T>()}});
+      {{0, make_node_argument<T>()}});
   }
 
   namespace modules::_std::prim {
 
     template <class T>
-    struct DataTypeConstructor : NodeFunction<DataTypeConstructor<T>, T, T>
+    struct PrimitiveCtor : NodeFunction<PrimitiveCtor<T>, T, T>
     {
-      auto code() const -> typename DataTypeConstructor::return_type
+      auto code() const -> typename PrimitiveCtor::return_type
       {
-        return DataTypeConstructor::template eval_arg<0>();
+        return PrimitiveCtor::template eval_arg<0>();
       }
     };
 
   } // namespace modules::_std::prim
 
   template <class T>
-  auto node_definition_traits<
-    node::DataTypeConstructor<T>,
-    modules::_std::tag>::get_node_definitions() -> std::vector<node_definition>
+  auto node_definition_traits<node::PrimitiveCtor<T>, modules::_std::tag>::
+    get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::DataTypeConstructor<T>>();
+    auto info = get_node_declaration<node::PrimitiveCtor<T>>();
 
     return {node_definition(
       info.qualified_name(),
       0,
-      make_object<modules::_std::prim::DataTypeConstructor<T>>(),
+      make_object<modules::_std::prim::PrimitiveCtor<T>>(),
       info.name())};
   }
 
