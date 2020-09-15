@@ -6,12 +6,12 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/lib/image/image.hpp>
+#include <yave/data/image/image.hpp>
 
 namespace yave {
 
   /// Image object
-  using Image = Box<image>;
+  using Image = Box<data::image>;
 
 } // namespace yave
 
