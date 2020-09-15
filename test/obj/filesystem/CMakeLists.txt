@@ -1,1 +1,0 @@
-YAVE_Test(path obj yave::lib::filesystem)

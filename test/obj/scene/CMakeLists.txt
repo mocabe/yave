@@ -1,1 +1,0 @@
-YAVE_Test(scene_config scene yave::lib::scene)
