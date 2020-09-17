@@ -308,7 +308,7 @@ namespace yave::editor::imgui {
                   cmd->npos  = npos;
                   cmd->group = current_group;
                   cmd->npath = *ng.get_path(n);
-                  dctx.exec(std::move(cmd));
+                  dctx.cmd(std::move(cmd));
                 }
               }
             }
