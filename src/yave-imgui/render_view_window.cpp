@@ -139,16 +139,15 @@ namespace yave::editor {
       ImGui::SliderFloat("s", &sec, 0, 100);
       ImGui::PopItemWidth();
 
-      data_ctx.exec(
-        make_data_command([t = yave::time::seconds(sec)](auto& ctx) {
-          auto& data = ctx.template get_data<editor_data>();
-          if (data.executor.time() != t) {
-            data.executor.set_time(t);
-            data.executor.notify_execute();
-          }
-        }));
+      data_ctx.cmd(make_data_command([t = yave::time::seconds(sec)](auto& ctx) {
+        auto& data = ctx.template get_data<editor_data>();
+        if (data.executor.time() != t) {
+          data.executor.set_time(t);
+          data.executor.notify_execute();
+        }
+      }));
 
-      view_ctx.push(make_window_view_command(*this, [=](auto& w) {
+      view_ctx.cmd(make_window_view_command(*this, [=](auto& w) {
         w.tex_scroll = scroll;
         w.tex_scale  = scale;
       }));

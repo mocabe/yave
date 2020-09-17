@@ -61,7 +61,7 @@ namespace yave::editor {
     }
 
   public:
-    void push(cmd_ptr&& cmd)
+    void cmd(cmd_ptr&& cmd)
     {
       if (cmd)
         cmd_queue.push(std::move(cmd));
@@ -120,9 +120,9 @@ namespace yave::editor {
 
   view_context::~view_context() noexcept = default;
 
-  void view_context::push(cmd_ptr&& cmd) const
+  void view_context::cmd(cmd_ptr&& cmd) const
   {
-    m_pimpl->push(std::move(cmd));
+    m_pimpl->cmd(std::move(cmd));
   }
 
   void view_context::exec_all()

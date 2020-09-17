@@ -95,7 +95,7 @@ namespace yave::editor::imgui {
               auto dsts = cd->info.dst_socket();
               auto srcs = cd->info.src_socket();
 
-              dctx.exec(make_data_command(
+              dctx.cmd(make_data_command(
                 [c](auto& ctx) {
                   auto& data = ctx.template get_data<editor_data>();
                   auto& g    = data.node_graph;
@@ -114,7 +114,7 @@ namespace yave::editor::imgui {
           }
 
           // start dragging
-          vctx.push(make_window_view_command(
+          vctx.cmd(make_window_view_command(
             nw, [s = socket_to_select, mpos = ImGui::GetMousePos()](auto& w) {
               w.clear_selected();
               w.clear_hovered();
@@ -179,7 +179,7 @@ namespace yave::editor::imgui {
               // ignore when connection already exist
               if (srcs != s1 || dsts != s2) {
                 // disconnect existing connection
-                dctx.exec(make_data_command(
+                dctx.cmd(make_data_command(
                   [c](auto& ctx) {
                     auto& g = ctx.template get_data<editor_data>().node_graph;
                     g.disconnect(c);
@@ -189,11 +189,11 @@ namespace yave::editor::imgui {
                     (void)g.connect(srcs, dsts);
                   }));
                 // connect sockets
-                dctx.exec(std::make_unique<dcmd_connect>(s1, s2));
+                dctx.cmd(std::make_unique<dcmd_connect>(s1, s2));
               }
             } else
               // connect sockets
-              dctx.exec(std::make_unique<dcmd_connect>(s1, s2));
+              dctx.cmd(std::make_unique<dcmd_connect>(s1, s2));
           }
         }
         ImGui::EndDragDropTarget();
@@ -203,7 +203,7 @@ namespace yave::editor::imgui {
         if (ImGui::IsMouseReleased(0)) {
           // only once
           if (draw_info.sockets.front().get() == this)
-            vctx.push(make_window_view_command(
+            vctx.cmd(make_window_view_command(
               nw, [](auto& w) { w.end_socket_drag(); }));
         }
       }

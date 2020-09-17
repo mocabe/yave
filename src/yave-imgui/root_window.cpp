@@ -90,7 +90,7 @@ namespace yave::editor::imgui {
 
     ImGui::DockSpace(dockid);
 
-    vctx.push(make_window_view_command(*this, [dockid](auto& w) {
+    vctx.cmd(make_window_view_command(*this, [dockid](auto& w) {
       w.layout_init  = true;
       w.dockspace_id = dockid;
     }));

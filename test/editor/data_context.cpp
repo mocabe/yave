@@ -38,7 +38,7 @@ TEST_CASE("data_context")
   SECTION("null")
   {
     data_context ctx;
-    ctx.exec(nullptr);
+    ctx.cmd(nullptr);
     ctx.undo();
     ctx.redo();
   }
@@ -59,14 +59,14 @@ TEST_CASE("data_context")
     REQUIRE_THROWS(lck.get_data<int>());
   }
 
-  SECTION("exec")
+  SECTION("cmd")
   {
     int c = 0;
     {
       data_context ctx;
-      ctx.exec(make_data_command([&c](auto&) { c += 1; }, [](auto&) {}));
-      ctx.exec(make_data_command([&c](auto&) { c *= 2; }, [](auto&) {}));
-      ctx.exec(make_data_command([&c](auto&) { c -= 3; }, [](auto&) {}));
+      ctx.cmd(make_data_command([&c](auto&) { c += 1; }, [](auto&) {}));
+      ctx.cmd(make_data_command([&c](auto&) { c *= 2; }, [](auto&) {}));
+      ctx.cmd(make_data_command([&c](auto&) { c -= 3; }, [](auto&) {}));
     }
     REQUIRE(c == -1);
   }
@@ -77,11 +77,11 @@ TEST_CASE("data_context")
     {
       data_context ctx;
 
-      ctx.exec(
+      ctx.cmd(
         make_data_command([&c](auto&) { c += 1; }, [&c](auto&) { c -= 1; }));
-      ctx.exec(
+      ctx.cmd(
         make_data_command([&c](auto&) { c += 2; }, [&c](auto&) { c -= 2; }));
-      ctx.exec(
+      ctx.cmd(
         make_data_command([&c](auto&) { c += 3; }, [&c](auto&) { c -= 3; }));
 
       // c == 6
@@ -115,7 +115,7 @@ TEST_CASE("data_context")
   SECTION("exception")
   {
     data_context ctx;
-    ctx.exec(make_data_command([](auto&) { throw 42; }, [](auto&) {}));
+    ctx.cmd(make_data_command([](auto&) { throw 42; }, [](auto&) {}));
 
     try {
       ctx.undo();
@@ -129,13 +129,13 @@ TEST_CASE("data_context")
     int i = 0;
     {
       data_context ctx;
-      ctx.exec(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
-      ctx.exec(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+      ctx.cmd(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+      ctx.cmd(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
       {
         auto lck = ctx.lock();
         auto tmp = i;
-        ctx.exec(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
-        ctx.exec(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+        ctx.cmd(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+        ctx.cmd(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
         REQUIRE(i == tmp);
       }
     }

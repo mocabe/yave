@@ -192,7 +192,7 @@ namespace yave::editor::imgui {
 
       auto delta = ImGui::GetIO().MouseDelta;
 
-      vctx.push(make_view_command([scroll, delta, id = id()](auto& ctx) {
+      vctx.cmd(make_view_command([scroll, delta, id = id()](auto& ctx) {
         if (auto w = ctx.window_manager().get_window(id)) {
           auto _this        = w->template as<node_window>();
           _this->scroll_pos = to_tvec2(scroll + delta);
@@ -210,21 +210,21 @@ namespace yave::editor::imgui {
       if (!wrect.Contains(ImGui::GetMousePos())) {
 
         if (ImGui::IsMouseClicked(0))
-          vctx.push(make_window_view_command(
+          vctx.cmd(make_window_view_command(
             *this, [](auto& w) { w.clear_selected(); }));
 
-        vctx.push(
+        vctx.cmd(
           make_window_view_command(*this, [](auto& w) { w.clear_hovered(); }));
       }
 
       if (hov) {
         // clear hover
-        vctx.push(
+        vctx.cmd(
           make_window_view_command(*this, [](auto& w) { w.clear_hovered(); }));
 
         // left: clear selected items
         if (ImGui::IsMouseClicked(0))
-          vctx.push(make_window_view_command(*this, [](auto& w) {
+          vctx.cmd(make_window_view_command(*this, [](auto& w) {
             w.clear_selected();
             w.begin_background_drag(to_tvec2(ImGui::GetMousePos()));
           }));
@@ -308,7 +308,7 @@ namespace yave::editor::imgui {
                   cmd->npos  = npos;
                   cmd->group = current_group;
                   cmd->npath = *ng.get_path(n);
-                  dctx.exec(std::move(cmd));
+                  dctx.cmd(std::move(cmd));
                 }
               }
             }
@@ -363,7 +363,7 @@ namespace yave::editor::imgui {
           auto cmd   = std::make_unique<dcmd_gcreate>();
           cmd->npos  = npos;
           cmd->group = current_group;
-          dctx.exec(std::move(cmd));
+          dctx.cmd(std::move(cmd));
         }
         ImGui::EndPopup();
       }
@@ -391,11 +391,11 @@ namespace yave::editor::imgui {
             std::swap(rect.Min.y, rect.Max.y);
 
           if (rect.Overlaps(nrect))
-            vctx.push(make_window_view_command(
+            vctx.cmd(make_window_view_command(
               *this, [n = nd->handle](auto& w) { w.add_selected(n); }));
         }
 
-        vctx.push(make_window_view_command(
+        vctx.cmd(make_window_view_command(
           *this, [](auto& w) { w.end_background_drag(); }));
       }
     }
@@ -438,7 +438,7 @@ namespace yave::editor::imgui {
         ImGui::IsKeyPressed(GLFW_KEY_G)) {
 
         // FIXME: supoprt undo
-        dctx.exec(
+        dctx.cmd(
           make_data_command([g = current_group, ns = n_selected](auto& ctx) {
             auto& data = ctx.template get_data<editor_data>();
             auto& ng   = data.node_graph;
@@ -455,7 +455,7 @@ namespace yave::editor::imgui {
             data.compiler.notify_recompile();
           }));
 
-        vctx.push(
+        vctx.cmd(
           make_window_view_command(*this, [](auto& w) { w.clear_selected(); }));
       }
 
@@ -463,7 +463,7 @@ namespace yave::editor::imgui {
       if (!n_selected.empty() && ImGui::IsKeyPressed(GLFW_KEY_DELETE)) {
 
         // FIXME support undo
-        dctx.exec(make_data_command([ns = n_selected](auto& ctx) {
+        dctx.cmd(make_data_command([ns = n_selected](auto& ctx) {
           auto& data = ctx.template get_data<editor_data>();
           auto& ng   = data.node_graph;
           for (auto&& n : ns)
@@ -472,7 +472,7 @@ namespace yave::editor::imgui {
           data.compiler.notify_recompile();
         }));
 
-        vctx.push(
+        vctx.cmd(
           make_window_view_command(*this, [](auto& w) { w.clear_selected(); }));
       }
 
@@ -481,7 +481,7 @@ namespace yave::editor::imgui {
         ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) && //
         ImGui::IsKeyPressed(GLFW_KEY_U)) {
 
-        vctx.push(
+        vctx.cmd(
           make_window_view_command(*this, [&dctx, g = current_group](auto& w) {
             auto data_lck = dctx.lock();
             auto& data    = data_lck.template get_data<editor_data>();

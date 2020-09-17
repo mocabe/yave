@@ -36,7 +36,7 @@ namespace yave::editor {
 
     using cmd_ptr = std::unique_ptr<data_command>;
 
-    using cmd = std::variant<cmd_ptr, cmd_undo, cmd_redo>;
+    using cmd_t = std::variant<cmd_ptr, cmd_undo, cmd_redo>;
 
   } // namespace
 
@@ -56,7 +56,7 @@ namespace yave::editor {
     {
       if (thread.joinable()) {
         terminate_flag = true;
-        exec(make_data_command([](auto&) {}, [](auto&) {}));
+        cmd(make_data_command([](auto&) {}, [](auto&) {}));
         thread.join();
       }
     }
@@ -67,7 +67,7 @@ namespace yave::editor {
     /// operator cond
     std::condition_variable cmd_cond;
     /// command queue
-    std::queue<cmd> cmd_queue;
+    std::queue<cmd_t> cmd_queue;
     /// undo stack
     std::stack<cmd_ptr> cmd_undo_stack;
     /// exec stack
@@ -110,8 +110,8 @@ namespace yave::editor {
         std::rethrow_exception(exception);
     }
 
-    /// push exec
-    void exec(cmd_ptr&& op)
+    /// push command
+    void cmd(cmd_ptr&& op)
     {
       auto lck = lock_queue();
       if (op)
@@ -192,7 +192,7 @@ namespace yave::editor {
     // execute single command
     void exec_one()
     {
-      cmd top;
+      cmd_t top;
       {
         auto lck = lock_queue();
         top      = std::move(cmd_queue.front());
@@ -311,10 +311,10 @@ namespace yave::editor {
 
   data_context::~data_context() noexcept = default;
 
-  void data_context::exec(cmd_ptr&& op) const
+  void data_context::cmd(cmd_ptr&& op) const
   {
     m_pimpl->check_exception();
-    m_pimpl->exec(std::move(op));
+    m_pimpl->cmd(std::move(op));
   }
 
   void data_context::undo()
