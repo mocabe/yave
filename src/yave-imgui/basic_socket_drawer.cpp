@@ -114,7 +114,7 @@ namespace yave::editor::imgui {
           }
 
           // start dragging
-          vctx.push(make_window_view_command(
+          vctx.cmd(make_window_view_command(
             nw, [s = socket_to_select, mpos = ImGui::GetMousePos()](auto& w) {
               w.clear_selected();
               w.clear_hovered();
@@ -203,7 +203,7 @@ namespace yave::editor::imgui {
         if (ImGui::IsMouseReleased(0)) {
           // only once
           if (draw_info.sockets.front().get() == this)
-            vctx.push(make_window_view_command(
+            vctx.cmd(make_window_view_command(
               nw, [](auto& w) { w.end_socket_drag(); }));
         }
       }

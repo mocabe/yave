@@ -75,7 +75,7 @@ namespace yave::editor::imgui {
 
       if (*f != val) {
         m_holder->set_data(make_object<Float>(val));
-        dctx.exec(make_data_command([](auto& ctx) {
+        dctx.cmd(make_data_command([](auto& ctx) {
           ctx.template get_data<editor_data>().executor.notify_execute();
         }));
       }
@@ -150,7 +150,7 @@ namespace yave::editor::imgui {
 
       if (*i != val) {
         m_holder->set_data(make_object<Int>(val));
-        dctx.exec(make_data_command([](auto& ctx) {
+        dctx.cmd(make_data_command([](auto& ctx) {
           ctx.template get_data<editor_data>().executor.notify_execute();
         }));
       }
@@ -210,7 +210,7 @@ namespace yave::editor::imgui {
 
       if (*b != val) {
         m_holder->set_data(make_object<Bool>(val));
-        dctx.exec(make_data_command([](auto& ctx) {
+        dctx.cmd(make_data_command([](auto& ctx) {
           ctx.template get_data<editor_data>().executor.notify_execute();
         }));
       }
@@ -270,7 +270,7 @@ namespace yave::editor::imgui {
 
       if (std::string(*str) != val) {
         m_holder->set_data(make_object<String>(val));
-        dctx.exec(make_data_command([](auto& ctx) {
+        dctx.cmd(make_data_command([](auto& ctx) {
           ctx.template get_data<editor_data>().executor.notify_execute();
         }));
       }
@@ -339,7 +339,7 @@ namespace yave::editor::imgui {
 
       if (glm::fvec4(*c) != val) {
         m_holder->set_data(make_object<Color>(val));
-        dctx.exec(make_data_command([](auto& ctx) {
+        dctx.cmd(make_data_command([](auto& ctx) {
           ctx.template get_data<editor_data>().executor.notify_execute();
         }));
       }
@@ -418,7 +418,7 @@ namespace yave::editor::imgui {
 
       if (glm::fvec2(*vec) != val) {
         m_holder->set_data(make_object<Vec2>(val));
-        dctx.exec(make_data_command([](auto& ctx) {
+        dctx.cmd(make_data_command([](auto& ctx) {
           ctx.template get_data<editor_data>().executor.notify_execute();
         }));
       }
