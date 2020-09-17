@@ -96,8 +96,8 @@ namespace yave::editor {
     ~data_context() noexcept;
 
   public:
-    /// exec
-    void exec(std::unique_ptr<data_command>&& op) const;
+    /// post command
+    void cmd(std::unique_ptr<data_command>&& op) const;
     /// undo
     void undo();
     /// redo

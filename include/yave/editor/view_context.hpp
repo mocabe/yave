@@ -45,7 +45,7 @@ namespace yave::editor {
 
   public:
     /// push view command
-    void push(std::unique_ptr<view_command>&& op) const;
+    void cmd(std::unique_ptr<view_command>&& op) const;
     /// execute all view commands in queue
     void exec_all();
 
