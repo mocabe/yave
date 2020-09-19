@@ -12,7 +12,7 @@
 
 namespace yave {
 
-  class managed_node_graph;
+  class structured_node_graph;
 
   /// Node declaration
   class node_declaration
@@ -38,30 +38,35 @@ namespace yave {
       , m_iss {std::move(iss)}
       , m_oss {std::move(oss)}
       , m_default_values {std::move(default_arg)}
+      , m_initializer {}
     {
-      std::sort(
-        m_default_values.begin(),
-        m_default_values.end(),
-        [](auto&& lhs, auto&& rhs) { return lhs.first < rhs.first; });
+      _validate();
+    }
 
-      auto it = std::unique(
-        m_default_values.begin(),
-        m_default_values.end(),
-        [](auto&& lhs, auto&& rhs) { return lhs.first == rhs.first; });
-
-      if (it != m_default_values.end())
-        throw std::runtime_error("Default value should be unique");
-
-      for (auto&& [idx, defval] : m_default_values) {
-        if (idx >= m_iss.size())
-          throw std::invalid_argument("Invalid index for default value");
-        if (!defval)
-          throw std::invalid_argument("Null default value");
-      }
-
-      if (
-        m_namespace == "" || m_namespace[0] != '/' || m_namespace.back() == '/')
-        throw std::invalid_argument("Invalid namespace");
+    /// generated function
+    /// \param name Name of this node
+    /// \param _namespace namespace of this node
+    /// \param description description of this node declaration
+    /// \param iss input socket names
+    /// \param oss output socket names
+    /// \param initializer initializer function
+    node_declaration(
+      std::string name,
+      std::string _namespace,
+      std::string description,
+      std::vector<std::string> iss,
+      std::vector<std::string> oss,
+      std::function<node_handle(structured_node_graph&, const node_handle&)>
+        initializer)
+      : m_name {std::move(name)}
+      , m_description {std::move(description)}
+      , m_namespace {std::move(_namespace)}
+      , m_iss {std::move(iss)}
+      , m_oss {std::move(oss)}
+      , m_default_values {}
+      , m_initializer {std::move(initializer)}
+    {
+      _validate();
     }
 
     [[nodiscard]] auto& name() const
@@ -99,6 +104,42 @@ namespace yave {
       return m_default_values;
     }
 
+    [[nodiscard]] auto& initializer() const
+    {
+      return m_initializer;
+    }
+
+  private:
+    void _validate()
+    {
+      std::sort(
+        m_default_values.begin(),
+        m_default_values.end(),
+        [](auto&& lhs, auto&& rhs) { return lhs.first < rhs.first; });
+
+      auto it = std::unique(
+        m_default_values.begin(),
+        m_default_values.end(),
+        [](auto&& lhs, auto&& rhs) { return lhs.first == rhs.first; });
+
+      if (it != m_default_values.end())
+        throw std::runtime_error("Default value should be unique");
+
+      for (auto&& [idx, defval] : m_default_values) {
+        if (idx >= m_iss.size())
+          throw std::invalid_argument("Invalid index for default value");
+        if (!defval)
+          throw std::invalid_argument("Null default value");
+      }
+
+      if (
+        m_namespace == "" || m_namespace[0] != '/' || m_namespace.back() == '/')
+        throw std::invalid_argument("Invalid namespace");
+
+      if (m_initializer)
+        assert(m_default_values.empty());
+    }
+
   private:
     std::string m_name;
     std::string m_description;
@@ -106,5 +147,8 @@ namespace yave {
     std::vector<std::string> m_iss;
     std::vector<std::string> m_oss;
     std::vector<std::pair<size_t, object_ptr<Object>>> m_default_values;
+    std::function<node_handle(structured_node_graph&, const node_handle&)>
+      m_initializer;
   };
-}
+
+} // namespace yave
