@@ -247,79 +247,41 @@ namespace yave::editor::imgui {
         if (ImGui::BeginMenu("New Node")) {
 
           // TODO: store tree info in update stage
-          auto data_lck = dctx.lock();
-          auto& data    = data_lck.get_data<editor_data>();
-          auto& ng      = data.node_graph;
+          auto data_lck   = dctx.lock();
+          auto& data      = data_lck.get_data<editor_data>();
+          auto& ng        = data.node_graph;
+          auto& decl_tree = data.node_decls.get_tree();
 
-          auto build_menu_impl = [&](auto&& self, auto&& n) -> void {
-            ImGui::PushID(n.id().data);
-            {
-              auto name = *ng.get_name(n);
-              // group
-              if (ng.is_group(n)) {
-                if (ImGui::BeginMenu(name.c_str())) {
-                  for (auto&& member : ng.get_group_members(n))
-                    self(member);
-                  ImGui::EndMenu();
+          auto build_menu_impl = [&](auto&& self, auto n) -> void {
+            auto name = decl_tree.name(n);
+
+            // leaf
+            if (auto decl = decl_tree.decl(n)) {
+              if (ImGui::Selectable(name.c_str())) {
+
+                auto ns = ng.search_path(decl->qualified_name());
+
+                if (!ns.empty()) {
+                  dctx.cmd(
+                    std::make_unique<dcmd_ncreate>(npos, current_group, ns[0]));
                 }
               }
-              // function
-              if (ng.is_function(n)) {
-                if (ImGui::Selectable(name.c_str())) {
-
-                  struct dcmd_ncreate : data_command
-                  {
-                    ImVec2 npos;
-                    node_handle group;
-                    std::string npath;
-
-                    // created node
-                    node_handle node = {};
-
-                    void exec(data_context::accessor& ctx) override
-                    {
-                      auto& g = ctx.get_data<editor_data>().node_graph;
-                      auto n  = g.search_path(npath);
-
-                      if (n.size() == 1) {
-                        node = g.create_copy(group, n[0]);
-                        g.set_pos(node, {npos.x, npos.y});
-                        assert(node);
-                      }
-                    }
-
-                    void undo(data_context::accessor& ctx) override
-                    {
-                      auto& g = ctx.get_data<editor_data>().node_graph;
-
-                      if (g.exists(node)) {
-                        g.destroy(node);
-                        node = {};
-                      }
-                    }
-
-                    auto type() const -> data_command_type override
-                    {
-                      return data_command_type::undo_redo;
-                    }
-                  };
-
-                  auto cmd   = std::make_unique<dcmd_ncreate>();
-                  cmd->npos  = npos;
-                  cmd->group = current_group;
-                  cmd->npath = *ng.get_path(n);
-                  dctx.cmd(std::move(cmd));
-                }
-              }
+              return;
             }
-            ImGui::PopID();
+
+            if (ImGui::BeginMenu(name.c_str())) {
+              for (auto&& c : decl_tree.children(n)) {
+                self(c);
+              }
+              ImGui::EndMenu();
+            }
           };
+
           auto build_menu = fix_lambda(build_menu_impl);
 
-          auto ns = ng.search_path("/");
-          for (auto&& n : ns)
-            if (n != data.root_group)
-              build_menu(n);
+          // skip root dir '/'
+          for (auto c : decl_tree.children(decl_tree.root()))
+            build_menu(c);
 
           ImGui::EndMenu();
         }
