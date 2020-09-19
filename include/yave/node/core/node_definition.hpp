@@ -20,7 +20,7 @@ namespace yave {
     /// target node_info::qualified_name())
     /// \param output_socket name of output socket
     /// \param description Description of this bind.
-    /// \param inst_getter A non-null managed pointer to a closure object
+    /// \param instance A non-null managed pointer to a closure object
     /// \throws std::invalid_argument when arguments are invalid.
     node_definition(
       std::string qualified_name,
@@ -32,7 +32,6 @@ namespace yave {
       , m_instance {std::move(instance)}
       , m_description {std::move(description)}
     {
-      // null
       if (!m_instance)
         throw std::invalid_argument("instance is null");
     }
@@ -67,4 +66,4 @@ namespace yave {
     /// instance description
     std::string m_description;
   };
-}
+} // namespace yave
