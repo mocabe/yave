@@ -130,7 +130,7 @@ namespace yave {
       assert(pdecl);
 
       /// find from path
-      auto n = find(pdecl->qualified_name());
+      auto n = find(pdecl);
 
       if (!n)
         return;
@@ -143,9 +143,10 @@ namespace yave {
       n->parent->children.erase(it);
     }
 
-    auto find(const std::string& path) -> node*
+    auto find(const std::shared_ptr<node_declaration>& pdecl) -> node*
     {
-      auto names = split_module_path_to_names(path);
+      assert(pdecl);
+      auto names = split_module_path_to_names(pdecl->qualified_name());
 
       node* n = &tree;
 
@@ -208,9 +209,10 @@ namespace yave {
     m_pimpl->remove(pdecl);
   }
 
-  auto node_declaration_tree::find(const std::string& path) -> node*
+  auto node_declaration_tree::find(
+    const std::shared_ptr<node_declaration>& pdecl) -> node*
   {
-    return m_pimpl->find(path);
+    return m_pimpl->find(pdecl);
   }
 
   class node_declaration_store::impl

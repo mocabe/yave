@@ -44,7 +44,7 @@ namespace yave {
     /// remove node
     void remove(const std::shared_ptr<node_declaration>& pdecl);
     /// find node
-    auto find(const std::string& path) -> node*;
+    auto find(const std::shared_ptr<node_declaration>& pdecl) -> node*;
   };
 
   class node_declaration_store
