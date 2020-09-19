@@ -9,27 +9,65 @@
 
 #include <map>
 #include <memory>
+#include <list>
+#include <variant>
 
 namespace yave {
 
+  /// tree of declarations.
+  class node_declaration_tree
+  {
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+
+  public:
+    /// opaque node type
+    struct node;
+
+  public:
+    node_declaration_tree();
+    ~node_declaration_tree() noexcept;
+
+  public:
+    /// get root node
+    auto root() const -> const node*;
+    /// get children
+    auto children(const node* n) const -> std::vector<const node*>;
+    /// get name
+    auto name(const node* n) const -> std::string;
+    /// get decl (if node is leaf)
+    auto decl(const node* n) const -> std::shared_ptr<node_declaration>;
+
+  public:
+    /// insert new node
+    auto insert(const std::shared_ptr<node_declaration>& pdecl) -> node*;
+    /// remove node
+    void remove(const std::shared_ptr<node_declaration>& pdecl);
+    /// find node
+    auto find(const std::string& path) -> node*;
+  };
+
   class node_declaration_store
   {
-    /// map type
-    using map_type = std::map<std::string, std::shared_ptr<node_declaration>>;
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
 
   public:
     /// Constructor
     node_declaration_store();
+    /// Destructor
+    ~node_declaration_store() noexcept;
 
     /// Copy ctor
-    node_declaration_store(const node_declaration_store&);
+    node_declaration_store(const node_declaration_store&) = delete;
+    /// Copy assign op
+    node_declaration_store& operator=(const node_declaration_store&) = delete;
+
     /// Move ctor
     node_declaration_store(node_declaration_store&&) noexcept;
-
-    /// Copy assign op
-    node_declaration_store& operator=(const node_declaration_store&);
     /// Move assign op
     node_declaration_store& operator=(node_declaration_store&&) noexcept;
+
 
     /// Add declaration
     /// \requires `decl` should not be interface node
@@ -53,6 +91,9 @@ namespace yave {
     [[nodiscard]] auto enumerate() const
       -> std::vector<std::shared_ptr<node_declaration>>;
 
+    /// get tree
+    [[nodiscard]] auto get_tree() const -> const node_declaration_tree&;
+
     /// Remove declaration
     void remove(const std::string& name);
 
@@ -64,9 +105,5 @@ namespace yave {
 
     /// empty?
     bool empty() const;
-
-  private:
-    /// map
-    map_type m_map;
   };
-}
+} // namespace yave
