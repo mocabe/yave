@@ -486,6 +486,7 @@ namespace {
     -> std::vector<vk::UniqueSemaphore>
   {
     std::vector<vk::UniqueSemaphore> ret;
+    ret.reserve(size);
     for (uint32_t i = 0; i < size; ++i) {
       ret.push_back(createSemaphore(device));
     }
@@ -506,6 +507,7 @@ namespace {
     const vk::FenceCreateFlags& flags) -> std::vector<vk::UniqueFence>
   {
     std::vector<vk::UniqueFence> ret;
+    ret.reserve(size);
     for (uint32_t i = 0; i < size; ++i) {
       ret.push_back(createFence(device, flags));
     }
