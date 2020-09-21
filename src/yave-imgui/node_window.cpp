@@ -178,8 +178,8 @@ namespace yave::editor::imgui {
       auto data_lck = dctx.lock();
       auto& data    = data_lck.template get_data<editor_data>();
 
-      for (auto&& e : data.compiler.parse_errors())
-        ImGui::TextColored({255, 0, 0, 255}, "%s", e.message().c_str());
+      for (auto&& e : data.compiler.parse_result().get_errors())
+        ImGui::TextColored({255, 0, 0, 255}, "%s", message(e).c_str());
 
       for (auto&& e : data.compiler.compile_errors())
         ImGui::TextColored({255, 0, 0, 255}, "%s", e.message().c_str());
