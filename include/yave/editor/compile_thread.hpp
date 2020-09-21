@@ -37,8 +37,8 @@ namespace yave::editor {
 
     /// compile thread ref
     compile_thread* m_thread_ptr = nullptr;
-    /// parse errors
-    error_list m_parse_errors = {};
+    /// parse result
+    node_parser_result m_parse_result = {};
     /// compile errors
     error_list m_compile_errors = {};
     /// result
@@ -58,7 +58,7 @@ namespace yave::editor {
     void deinit()
     {
       m_thread_ptr     = nullptr;
-      m_parse_errors   = {};
+      m_parse_result   = {};
       m_compile_errors = {};
       m_result         = std::nullopt;
     }
@@ -69,10 +69,10 @@ namespace yave::editor {
       m_thread_ptr->notify_recompile();
     }
 
-    auto& parse_errors() const
+    auto& parse_result() const
     {
       assert(m_thread_ptr);
-      return m_parse_errors;
+      return m_parse_result;
     }
 
     auto& compile_errors() const
