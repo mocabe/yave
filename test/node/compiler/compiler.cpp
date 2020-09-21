@@ -132,7 +132,7 @@ TEST_CASE("node_compiler V2")
 
   auto compile_ng = [&] {
     return compiler.compile(
-      parser.parse(std::move(ng), out).node_graph.value(), defs);
+      parser.parse(std::move(ng), out).take_node_graph().value(), defs);
   };
 
   auto os = ng.input_sockets(ng.get_group_output(root))[0];
