@@ -100,6 +100,17 @@ namespace yave {
       -> std::vector<node_handle>;
 
   public:
+    /// check relation
+    [[nodiscard]] bool is_parent_of(
+      const node_handle& parent,
+      const node_handle& child) const;
+
+    /// check relation
+    [[nodiscard]] bool is_child_of(
+      const node_handle& child,
+      const node_handle& parent) const;
+
+  public:
     /// Get input sockets
     [[nodiscard]] auto input_sockets(const node_handle& node) const
       -> std::vector<socket_handle>;

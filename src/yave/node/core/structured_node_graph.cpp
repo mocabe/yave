@@ -192,6 +192,9 @@ namespace yave {
       void refresh(const node_graph& ng);
     };
 
+    /// callee type
+    using node_callee = std::variant<node_function*, node_group*>;
+
     /// node call
     struct node_call
     {
@@ -203,7 +206,7 @@ namespace yave {
       node_group* parent;
       /// handle of callee.
       /// either group or function.
-      std::variant<node_function*, node_group*> callee;
+      node_callee callee;
       /// input bits
       std::vector<node_handle> input_bits;
       /// output bits
@@ -313,9 +316,9 @@ namespace yave {
 
       std::visit(
         [&](auto*& p) {
-          using tp = std::remove_pointer_t<std::decay_t<decltype(p)>>;
-          p        = check(std::get_if<tp>(
-            value_cast_if<NodeData>(ng.get_data(map(p->node))).value()));
+          p =
+            check(std::get_if<std::remove_pointer_t<std::decay_t<decltype(p)>>>(
+              value_cast_if<NodeData>(ng.get_data(map(p->node))).value()));
         },
         callee);
     }
@@ -521,6 +524,22 @@ namespace yave {
       return {};
     }
 
+  public:
+    bool is_parent_of(const node_handle& parent, const node_handle& child) const
+    {
+      auto g = child;
+      while ((g = get_parent_group(g))) {
+        if (g == parent)
+          return true;
+      }
+      return false;
+    }
+
+    bool is_child_of(const node_handle& child, const node_handle& parent) const
+    {
+      return is_parent_of(parent, child);
+    }
+
   private:
     /// create new group with empty I/O setting
     auto add_new_group() -> node_group*
@@ -670,7 +689,7 @@ namespace yave {
     /// \param callee callee node function or group
     auto add_new_call(
       node_group* parent,
-      std::variant<node_function*, node_group*> callee,
+      node_callee callee,
       uid id = uid::random_generate()) -> node_call*
     {
       assert(parent);
@@ -2228,6 +2247,26 @@ namespace yave {
     -> std::vector<node_handle>
   {
     return m_pimpl->search_path(path);
+  }
+
+  bool structured_node_graph::is_parent_of(
+    const node_handle& parent,
+    const node_handle& child) const
+  {
+    if (!exists(parent) || !exists(child))
+      return false;
+
+    return m_pimpl->is_parent_of(parent, child);
+  }
+
+  bool structured_node_graph::is_child_of(
+    const node_handle& child,
+    const node_handle& parent) const
+  {
+    if (!exists(child) || !exists(parent))
+      return false;
+
+    return m_pimpl->is_child_of(child, parent);
   }
 
   auto structured_node_graph::node(const socket_handle& socket) const
