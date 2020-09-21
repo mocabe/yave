@@ -3,12 +3,12 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/parser/errors.hpp>
+#include <yave/node/parser/parse_result.hpp>
 #include <fmt/format.h>
 
 namespace yave {
 
-  std::string parse_error::missing_input::message() const
+  std::string parse_results::missing_input::message() const
   {
     return fmt::format(
       "Missing input connections: n={}, s={}",
@@ -16,7 +16,7 @@ namespace yave {
       to_string(m_socket_id));
   }
 
-  std::string parse_error::missing_output::message() const
+  std::string parse_results::missing_output::message() const
   {
     return fmt::format(
       "Missing output connections: n={}, s={}",
@@ -24,7 +24,7 @@ namespace yave {
       to_string(m_socket_id));
   }
 
-  std::string parse_error::unexpected_error::message() const
+  std::string parse_results::unexpected_error::message() const
   {
     return fmt::format("Unexpected parse error occured: msg={}", m_msg);
   }
