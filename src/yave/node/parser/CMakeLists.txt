@@ -2,7 +2,7 @@
 
 add_library(yave-node-parser
   node_parser.cpp
-  errors.cpp)
+  parse_result.cpp)
 
 add_library(yave::node::parser ALIAS yave-node-parser)
 
