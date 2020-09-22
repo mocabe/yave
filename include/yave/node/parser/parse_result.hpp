@@ -231,6 +231,12 @@ namespace yave {
   /// parser result
   using parse_results::parse_result;
 
+  /// get type of parse result
+  [[nodiscard]] inline auto type(const parse_result& r)
+  {
+    return std::visit([](auto&& x) { return x.type(); }, r);
+  }
+
   /// get message from parse result
   [[nodiscard]] inline auto message(const parse_result& r)
   {
@@ -240,6 +246,32 @@ namespace yave {
           return x.message();
         }
         return std::string();
+      },
+      r);
+  }
+
+  /// get node id of parse result
+  [[nodiscard]] inline auto node_id(const parse_result& r)
+  {
+    return std::visit(
+      [](auto&& x) {
+        if constexpr (requires { x.node_id(); }) {
+          return x.node_id();
+        }
+        return uid();
+      },
+      r);
+  }
+
+  /// get socket id of parse result
+  [[nodiscard]] inline auto socket_id(const parse_result& r)
+  {
+    return std::visit(
+      [](auto&& x) {
+        if constexpr (requires { x.socket_id(); }) {
+          return x.socket_id();
+        }
+        return uid();
       },
       r);
   }
