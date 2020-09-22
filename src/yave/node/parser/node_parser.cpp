@@ -60,25 +60,18 @@ namespace yave {
       return std::find_if(
                m_results.begin(),
                m_results.end(),
-               [](auto&& r) {
-                 return std::visit(
-                   [](auto&& x) {
-                     return x.type() == parse_result_type::error;
-                   },
-                   r);
-               })
+               [](auto&& r) { return type(r) == parse_result_type::error; })
              != m_results.end();
     }
 
     auto get_filtered_result(parse_result_type ty)
     {
       std::vector<parse_result> ret;
+
       for (auto&& r : m_results) {
-
-        bool match = std::visit([&](auto&& x) { return x.type() == ty; }, r);
-
-        if (match)
+        if (type(r) == ty) {
           ret.push_back(r);
+        }
       }
       return ret;
     }
@@ -88,21 +81,14 @@ namespace yave {
     {
       std::vector<parse_result> ret;
 
-      // need to check gruop relation
       for (auto&& r : m_results) {
 
-        bool match = std::visit(
-          [&](auto&& x) {
-            if constexpr (requires { x.node_id(); }) {
-              auto h = ng.node(x.node_id());
-              return h == n || ng.is_parent_of(n, h);
-            }
-            return false;
-          },
-          r);
+        auto h = ng.node(node_id(r));
 
-        if (match)
+        // need to check gruop relation
+        if (h == n || ng.is_parent_of(n, h)) {
           ret.push_back(r);
+        }
       }
       return ret;
     }
@@ -111,20 +97,13 @@ namespace yave {
     {
       std::vector<parse_result> ret;
 
-      // socket can be linear searched
       for (auto&& r : m_results) {
 
-        bool match = std::visit(
-          [&](auto&& x) {
-            if constexpr (requires { x.socket_id(); }) {
-              return x.socket_id() == s.id();
-            }
-            return false;
-          },
-          r);
+        auto h = ng.socket(socket_id(r));
 
-        if (match)
+        if (h == s) {
           ret.push_back(r);
+        }
       }
       return ret;
     }
