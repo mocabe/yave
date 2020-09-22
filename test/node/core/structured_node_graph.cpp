@@ -71,6 +71,8 @@ TEST_CASE("root")
   REQUIRE(ng.exists(ng.get_group_output(root)));
   REQUIRE(ng.get_parent_group(ng.get_group_input(root)) == root);
   REQUIRE(ng.get_parent_group(ng.get_group_output(root)) == root);
+  REQUIRE(!ng.is_parent_of(root, root));
+  REQUIRE(!ng.is_child_of(root, root));
 
   auto null = node_handle();
   REQUIRE(!ng.exists(null));
@@ -83,6 +85,8 @@ TEST_CASE("root")
   REQUIRE(!ng.is_definition(null));
   REQUIRE(!ng.is_group_member(null));
   REQUIRE(!ng.get_path(null));
+  REQUIRE(!ng.is_parent_of(root, null));
+  REQUIRE(!ng.is_child_of(root, null));
 
   REQUIRE(!ng.is_definition(ng.get_group_input(root)));
   REQUIRE(!ng.is_definition(ng.get_group_output(root)));
@@ -365,6 +369,8 @@ TEST_CASE("root add func")
   REQUIRE(!ng.is_group_output(func));
   REQUIRE(ng.is_function(func));
   REQUIRE(ng.is_group_member(func));
+  REQUIRE(!ng.is_parent_of(func, root));
+  REQUIRE(!ng.is_child_of(func, root));
 
   REQUIRE(*ng.get_path(func) == decl.qualified_name());
 
@@ -529,6 +535,7 @@ TEST_CASE("group")
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
 
+
   SECTION("")
   {
     auto g = ng.create_group(root, {});
@@ -538,9 +545,18 @@ TEST_CASE("group")
     REQUIRE(ng.input_sockets(g).empty());
     REQUIRE(ng.output_sockets(g).empty());
     REQUIRE(ng.get_group_members(root).size() == 1);
+    REQUIRE(ng.is_child_of(ng.get_group_input(g), g));
+    REQUIRE(ng.is_child_of(ng.get_group_output(g), g));
+    REQUIRE(ng.is_child_of(g, root));
+    REQUIRE(!ng.is_parent_of(g, root));
+    REQUIRE(!ng.is_child_of(g, g));
+    REQUIRE(!ng.is_parent_of(g, g));
+
     ng.destroy(g);
     REQUIRE(!ng.exists(g));
     REQUIRE(ng.get_group_members(root).empty());
+    REQUIRE(!ng.is_child_of(g, root));
+    REQUIRE(!ng.is_parent_of(g, root));
   }
 
   SECTION("")
@@ -554,6 +570,12 @@ TEST_CASE("group")
     REQUIRE(ng.exists(root));
     REQUIRE(ng.get_group_members(root)[0] == g);
     REQUIRE(ng.get_group_members(g)[0] == f1);
+    REQUIRE(ng.is_child_of(f1, root));
+    REQUIRE(ng.is_child_of(f1, g));
+    REQUIRE(ng.is_parent_of(g, f1));
+    REQUIRE(ng.is_parent_of(root, f1));
+    REQUIRE(!ng.is_parent_of(f1, root));
+    REQUIRE(!ng.is_parent_of(f1, g));
   }
 
   SECTION("")
