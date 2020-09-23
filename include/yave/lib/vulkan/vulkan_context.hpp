@@ -6,28 +6,35 @@
 #pragma once
 
 #include <yave/lib/vulkan/vulkan_util.hpp>
-#include <yave/support/enum_flag.hpp>
 
 namespace yave::vulkan {
 
   /// Vulkan API context.
   class vulkan_context
   {
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+
   public:
-    enum class init_flags
+    struct create_info
     {
-      enable_validation = 1 << 0,
-      enable_logging    = 1 << 1,
+      /// validation layer
+      bool enable_validation = true;
     };
 
   private:
-    static auto _init_flags() noexcept -> init_flags;
+    static auto _init_create_info() -> create_info
+    {
+      return create_info();
+    }
 
   public:
     /// Ctor.
-    vulkan_context(init_flags flags = _init_flags());
+    vulkan_context(create_info info = _init_create_info());
     /// Dtor.
     ~vulkan_context() noexcept;
+    /// Deleted
+    vulkan_context(const vulkan_context&) = delete;
 
   public: /* instance, devices */
     /// Get instance.
@@ -53,12 +60,6 @@ namespace yave::vulkan {
       const std::vector<uint32_t> queue_indicies,
       const std::vector<std::string>& extensions,
       const std::vector<std::string>& layers) -> vk::UniqueDevice;
-
-  private:
-    class impl;
-    std::unique_ptr<impl> m_pimpl;
   };
 
 } // namespace yave::vulkan
-
-YAVE_DECL_ENUM_FLAG(yave::vulkan::vulkan_context::init_flags)

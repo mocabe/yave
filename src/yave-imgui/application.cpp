@@ -49,8 +49,6 @@ namespace yave::editor::imgui {
     void deinit_data();
   };
 
-  using vkflags = vulkan::vulkan_context::init_flags;
-
   /// initialize internal data structure
   void application::impl::init_data()
   {
@@ -114,8 +112,8 @@ namespace yave::editor::imgui {
   }
 
   application::impl::impl()
-    : vulkan_ctx {vkflags::enable_logging | vkflags::enable_validation}
-    , imgui_ctx {vulkan_ctx}
+    : vulkan_ctx {{}}
+    , imgui_ctx {vulkan_ctx, {.width = 1280, .height = 720, .name = "yave"}}
     , data_ctx {}
     , view_ctx {data_ctx}
     , compiler {data_ctx}

@@ -505,16 +505,13 @@ namespace yave::vulkan {
     std::vector<vk::QueueFamilyProperties> physicalDeviceQueueFamilyProperties;
 
   public:
-    impl(init_flags flags)
+    impl(create_info info)
     {
       init_logger();
 
-      if (!(flags & init_flags::enable_logging))
-        g_logger->set_level(spdlog::level::off);
-
       /* instance */
 
-      bool enableValidationLayer = !!(flags & init_flags::enable_validation);
+      bool enableValidationLayer = info.enable_validation;
 
       instance = createInstance(enableValidationLayer);
       debugCallback =
@@ -619,14 +616,9 @@ namespace yave::vulkan {
     }
   };
 
-  auto vulkan_context::_init_flags() noexcept -> init_flags
+  vulkan_context::vulkan_context(create_info info)
+    : m_pimpl {std::make_unique<impl>(info)}
   {
-    return init_flags::enable_validation | init_flags::enable_logging;
-  }
-
-  vulkan_context::vulkan_context(init_flags flags)
-  {
-    m_pimpl = std::make_unique<impl>(flags);
   }
 
   vulkan_context::~vulkan_context() noexcept

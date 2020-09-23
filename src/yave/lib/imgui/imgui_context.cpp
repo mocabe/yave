@@ -891,12 +891,7 @@ namespace yave::imgui {
     std::array<float, 4> clearColor;
 
   public:
-    impl(
-      vulkan::vulkan_context& vulkan_ctx,
-      glfw::glfw_context::init_flags glfw_flags,
-      uint32_t width,
-      uint32_t height,
-      const char* windowName);
+    impl(vulkan::vulkan_context& vulkan_ctx, create_info info);
     ~impl() noexcept;
 
   public:
@@ -928,16 +923,15 @@ namespace yave::imgui {
 
   imgui_context::impl::impl(
     vulkan::vulkan_context& vulkan_ctx,
-    glfw::glfw_context::init_flags glfw_flags,
-    uint32_t widt,
-    uint32_t height,
-    const char* windowName)
+    create_info info)
     : vulkanCtx {vulkan_ctx}
-    , glfwCtx {glfw_flags}
-    , glfwWindow {glfwCtx.create_window(widt, height, windowName)}
+    , glfwCtx {}
+    , glfwWindow {glfwCtx.create_window(info.width, info.height, info.name)}
     , windowCtx {vulkanCtx, glfwWindow}
     , imCtx {ImGui::CreateContext()}
   {
+    init_logger();
+
     /* init ImGui */
     {
       IMGUI_CHECKVERSION();
@@ -1285,31 +1279,11 @@ namespace yave::imgui {
     texture_bindings.erase(tex.image.get());
   }
 
-  auto imgui_context::_init_flags() noexcept -> init_flags
-  {
-    return init_flags::enable_logging;
-  }
-
   imgui_context::imgui_context(
     vulkan::vulkan_context& vulkan_ctx,
-    init_flags flags)
+    create_info info)
+    : m_pimpl {std::make_unique<impl>(vulkan_ctx, info)}
   {
-    using namespace yave;
-    init_logger();
-
-    glfw::glfw_context::init_flags glfw_flags {0};
-
-    if (!(flags & init_flags::enable_logging)) {
-      g_logger->set_level(spdlog::level::off);
-    }
-
-    if (!!(flags & init_flags::enable_logging)) {
-      glfw_flags |= glfw::glfw_context::init_flags::enable_logging;
-    }
-
-    // create context
-    m_pimpl = std::make_unique<impl>(
-      vulkan_ctx, glfw_flags, 1280, 720, "imgui_context");
   }
 
   imgui_context::~imgui_context() noexcept = default;

@@ -18,22 +18,36 @@ namespace yave::imgui {
   /// imgui application
   class imgui_context
   {
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+
   public:
-    enum class init_flags : uint32_t
+    /// init options
+    struct create_info
     {
-      enable_logging = 1 << 0,
+      /// initial width
+      uint32_t width = 1280;
+      /// initial height
+      uint32_t height = 720;
+      /// window name
+      const char* name = "imgui_context";
     };
 
   private:
-    static auto _init_flags() noexcept -> init_flags;
+    static auto _init_create_info() -> create_info
+    {
+      return create_info();
+    }
 
   public:
     /// Ctor
     imgui_context(
       vulkan::vulkan_context& vulkan_ctx,
-      init_flags flags = _init_flags());
+      create_info info = _init_create_info());
     /// Dtor
     ~imgui_context() noexcept;
+    /// no copy
+    imgui_context(const imgui_context&) = delete;
 
   public:
     /// Set current context
@@ -55,25 +69,25 @@ namespace yave::imgui {
 
     // clang-format off
   public:
-    [[nodiscard]] auto glfw_context() const   -> const glfw::glfw_context&;
-    [[nodiscard]] auto glfw_context()         -> glfw::glfw_context&;
+    [[nodiscard]] auto glfw_context()   const -> const glfw::glfw_context&;
     [[nodiscard]] auto vulkan_context() const -> const vulkan::vulkan_context&;
-    [[nodiscard]] auto vulkan_context()       -> vulkan::vulkan_context&;
     [[nodiscard]] auto window_context() const -> const vulkan::window_context&;
-    [[nodiscard]] auto window_context()       ->  vulkan::window_context&;
-    // clang-format on
+    [[nodiscard]] auto glfw_context()   -> glfw::glfw_context&;
+    [[nodiscard]] auto vulkan_context() -> vulkan::vulkan_context&;
+    [[nodiscard]] auto window_context() -> vulkan::window_context&;
 
   public:
-    [[nodiscard]] auto font_sampler() const -> vk::Sampler;
-    [[nodiscard]] auto descriptor_pool() const -> vk::DescriptorPool;
+    [[nodiscard]] auto font_sampler()          const -> vk::Sampler;
+    [[nodiscard]] auto descriptor_pool()       const -> vk::DescriptorPool;
     [[nodiscard]] auto descriptor_set_layout() const -> vk::DescriptorSetLayout;
-    [[nodiscard]] auto descriptor_set() const -> vk::DescriptorSet;
-    [[nodiscard]] auto pipeline_cache() const -> vk::PipelineCache;
-    [[nodiscard]] auto pipeline_layout() const -> vk::PipelineLayout;
-    [[nodiscard]] auto pipeline() const -> vk::Pipeline;
-    [[nodiscard]] auto font_image_memory() const -> vk::DeviceMemory;
-    [[nodiscard]] auto font_image() const -> vk::Image;
-    [[nodiscard]] auto font_image_view() const -> vk::ImageView;
+    [[nodiscard]] auto descriptor_set()        const -> vk::DescriptorSet;
+    [[nodiscard]] auto pipeline_cache()        const -> vk::PipelineCache;
+    [[nodiscard]] auto pipeline_layout()       const -> vk::PipelineLayout;
+    [[nodiscard]] auto pipeline()              const -> vk::Pipeline;
+    [[nodiscard]] auto font_image_memory()     const -> vk::DeviceMemory;
+    [[nodiscard]] auto font_image()            const -> vk::Image;
+    [[nodiscard]] auto font_image_view()       const -> vk::ImageView;
+    // clang-format on
 
   public: /* texture utility */
     /// Add texture data
@@ -111,23 +125,6 @@ namespace yave::imgui {
     auto get_fps() const -> uint32_t;
     /// Set FPS
     void set_fps(uint32_t fps);
-
-  private:
-    imgui_context(const imgui_context&) = delete;
-
-  private:
-    class impl;
-    std::unique_ptr<impl> m_pimpl;
   };
 
 } // namespace yave::imgui
-
-namespace yave {
-
-  // enable flags
-  template <>
-  struct is_enum_flag<imgui::imgui_context::init_flags> : std::true_type
-  {
-  };
-
-} // namespace yave

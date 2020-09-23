@@ -221,17 +221,11 @@ namespace yave::glfw {
     return glfwGetWindowAttrib(m_window, GLFW_HOVERED);
   }
 
-  auto glfw_context::_init_flags() noexcept -> init_flags
-  {
-    return init_flags::enable_logging;
-  }
-
-  glfw_context::glfw_context(init_flags flags)
+  glfw_context::glfw_context(create_info info)
   {
     init_logger();
 
-    if (!(flags & init_flags::enable_logging))
-      g_logger->set_level(spdlog::level::off);
+    g_logger->set_level(spdlog::level::off);
 
     glfwSetErrorCallback([](int error, const char* msg) {
       Error(g_logger, "{}: {}", error, msg);

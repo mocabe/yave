@@ -6,7 +6,6 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/support/enum_flag.hpp>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -98,19 +97,24 @@ namespace yave::glfw {
   class glfw_context
   {
   public:
-    enum class init_flags
+    struct create_info
     {
-      enable_logging = 1 << 0,
+      // currently no option
     };
 
   private:
-    static auto _init_flags() noexcept -> init_flags;
+    static auto _init_create_info() -> create_info
+    {
+      return create_info();
+    }
 
   public:
     /// Initialize GLFW
-    glfw_context(init_flags flags = _init_flags());
+    glfw_context(create_info info = _init_create_info());
     /// Terminate GLFW
     ~glfw_context() noexcept;
+    /// Deleted
+    glfw_context(const glfw_context&) = delete;
 
   public:
     /// Create window
@@ -127,11 +131,3 @@ namespace yave::glfw {
   };
 
 } // namespace yave::glfw
-
-namespace yave {
-
-  template <>
-  struct is_enum_flag<glfw::glfw_context::init_flags> : std::true_type
-  {
-  };
-} // namespace yave

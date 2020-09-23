@@ -11,20 +11,17 @@ using namespace yave;
 
 TEST_CASE("vulkan_context without validation")
 {
-  vulkan::vulkan_context vulkan_ctx();
+  vulkan::vulkan_context vulkan_ctx;
 }
 
 TEST_CASE("vulkan_context with validation")
 {
-  vulkan::vulkan_context vulkan_ctx(
-    vulkan::vulkan_context::init_flags::enable_validation);
+  vulkan::vulkan_context vulkan_ctx({.enable_validation = true});
 }
 
 TEST_CASE("unique context")
 {
-  using init_flags = vulkan::vulkan_context::init_flags;
-  auto flags       = init_flags::enable_validation | init_flags::enable_logging;
-  vulkan::vulkan_context vulkan_ctx(flags);
+  vulkan::vulkan_context vulkan_ctx;
 
   glfw::glfw_context glfw_ctx;
   auto window     = glfw_ctx.create_window(1280, 720, "test window");
