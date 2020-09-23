@@ -358,12 +358,9 @@ namespace yave {
 
   node_parser::~node_parser() noexcept = default;
 
-  auto node_parser::parse(
-    structured_node_graph&& ng,
-    const socket_handle& out_socket,
-    const node_handle& visible_group) -> node_parser_result
+  auto node_parser::parse(params p) -> node_parser_result
   {
-    return m_pimpl->parse(std::move(ng), out_socket, visible_group);
+    return m_pimpl->parse(std::move(p.node_graph), p.output_socket, p.current_group);
   }
 
 } // namespace yave
