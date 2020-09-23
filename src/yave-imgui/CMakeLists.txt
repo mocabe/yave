@@ -10,6 +10,7 @@ add_executable(yave-imgui
   basic_socket_drawer.cpp
   basic_connection_drawer.cpp
   data_type_socket.cpp
+  data_commands.cpp
   layout.cpp
   main.cpp
 )

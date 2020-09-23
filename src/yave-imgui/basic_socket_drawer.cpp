@@ -5,6 +5,7 @@
 
 #include <yave-imgui/basic_socket_drawer.hpp>
 #include <yave-imgui/node_window.hpp>
+#include <yave-imgui/data_commands.hpp>
 
 #include <yave/editor/editor_data.hpp>
 #include <yave/editor/data_command.hpp>
@@ -87,29 +88,10 @@ namespace yave::editor::imgui {
 
           // when input socket already has connections, disconnect.
           if (info.type() == socket_type::input) {
-
             if (!info.connections().empty()) {
-
-              auto c    = info.connections()[0];
-              auto& cd  = draw_info.find_drawable(c);
-              auto dsts = cd->info.dst_socket();
-              auto srcs = cd->info.src_socket();
-
-              dctx.cmd(make_data_command(
-                [c](auto& ctx) {
-                  auto& data = ctx.template get_data<editor_data>();
-                  auto& g    = data.node_graph;
-                  g.disconnect(c);
-                  data.compiler.notify_recompile();
-                },
-                [srcs, dsts](auto& ctx) {
-                  auto& data = ctx.template get_data<editor_data>();
-                  auto& g    = data.node_graph;
-                  (void)g.connect(srcs, dsts);
-                  data.compiler.notify_recompile();
-                }));
-
-              socket_to_select = srcs;
+              auto c = info.connections()[0];
+              dctx.cmd(std::make_unique<dcmd_disconnect>(c));
+              socket_to_select = draw_info.find_drawable(c)->info.src_socket();
             }
           }
 
@@ -129,71 +111,24 @@ namespace yave::editor::imgui {
       if (ImGui::BeginDragDropTarget()) {
         if (ImGui::AcceptDragDropPayload("socket_dd")) {
 
-          struct dcmd_connect : data_command
-          {
-            socket_handle m_s1;
-            socket_handle m_s2;
-            connection_handle m_c;
-
-            dcmd_connect(socket_handle s1, socket_handle s2)
-              : m_s1 {s1}
-              , m_s2 {s2}
-            {
-            }
-            void exec(data_context::accessor& dctx) override
-            {
-              auto& data = dctx.get_data<editor_data>();
-              auto& g    = data.node_graph;
-              m_c        = g.connect(m_s1, m_s2);
-              data.compiler.notify_recompile();
-            }
-            void undo(data_context::accessor& dctx) override
-            {
-              auto& g = dctx.get_data<editor_data>().node_graph;
-              g.disconnect(m_c);
-            }
-            auto type() const -> data_command_type override
-            {
-              return data_command_type::undo_redo;
-            }
-          };
-
           if (nw.state() == node_window::state::socket) {
-            // sockets to connect
-            auto s1 = nw.get_selected_socket().value();
-            auto s2 = s;
-            if (info.is_output())
-              std::swap(s1, s2);
+            // dragged connect
+            auto s1    = nw.get_selected_socket().value();
+            auto& s1d  = draw_info.find_drawable(s1);
+            auto s1n   = s1d->info.node();
+            auto s1idx = s1d->info.index();
 
-            // disconnect existing connection to target input
-            auto& sd2 = draw_info.find_drawable(s2);
-            if (!sd2->info.connections().empty()) {
+            // dropped socket
+            auto s2n   = info.node();
+            auto s2idx = info.index();
 
-              assert(sd2->info.connections().size() == 1);
-              auto c   = sd2->info.connections()[0];
-              auto& cd = draw_info.find_drawable(c);
-
-              auto srcs = cd->info.src_socket();
-              auto dsts = cd->info.dst_socket();
-
-              // ignore when connection already exist
-              if (srcs != s1 || dsts != s2) {
-                // disconnect existing connection
-                dctx.cmd(make_data_command(
-                  [c](auto& ctx) {
-                    auto& g = ctx.template get_data<editor_data>().node_graph;
-                    g.disconnect(c);
-                  },
-                  [srcs, dsts](auto& ctx) {
-                    auto& g = ctx.template get_data<editor_data>().node_graph;
-                    (void)g.connect(srcs, dsts);
-                  }));
-                // connect sockets
-                dctx.cmd(std::make_unique<dcmd_connect>(s1, s2));
-              }
-            } else
-              // connect sockets
-              dctx.cmd(std::make_unique<dcmd_connect>(s1, s2));
+            // src -> dst
+            if (info.is_output()) {
+              std::swap(s1n, s2n);
+              std::swap(s1idx, s2idx);
+            }
+            // connect sockets
+            dctx.cmd(std::make_unique<dcmd_connect>(s1n, s1idx, s2n, s2idx));
           }
         }
         ImGui::EndDragDropTarget();

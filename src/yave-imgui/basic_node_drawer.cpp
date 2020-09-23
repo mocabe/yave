@@ -5,6 +5,7 @@
 
 #include <yave-imgui/basic_node_drawer.hpp>
 #include <yave-imgui/node_window.hpp>
+#include <yave-imgui/data_commands.hpp>
 
 #include <yave/editor/editor_data.hpp>
 #include <yave/editor/data_command.hpp>
@@ -173,10 +174,7 @@ namespace yave::editor::imgui {
         auto flag = ImGuiInputTextFlags_EnterReturnsTrue;
         if (ImGui::InputText("", &tmp, flag)) {
           if (info.is_group() && tmp != info.name())
-            dctx.cmd(make_data_command([n, new_name = tmp](auto& ctx) {
-              auto& ng = ctx.template get_data<editor_data>().node_graph;
-              ng.set_name(n, new_name);
-            }));
+            dctx.cmd(std::make_unique<dcmd_nset_name>(n, tmp));
         }
       } else {
         std::string path = [&] {
@@ -215,28 +213,17 @@ namespace yave::editor::imgui {
           auto tmp  = si.name();
           auto flag = ImGuiInputTextFlags_EnterReturnsTrue;
           if (ImGui::InputText("", &tmp, flag))
-            dctx.cmd(make_data_command([s, new_name = tmp](auto& ctx) {
-              auto& ng = ctx.template get_data<editor_data>().node_graph;
-              ng.set_name(s, new_name);
-            }));
+            dctx.cmd(std::make_unique<dcmd_sset_name>(s, tmp));
 
           ImGui::SameLine(0, spacing);
           if (ImGui::Button("-", {button_size, button_size}))
-            dctx.cmd(make_data_command([s](auto& ctx) {
-              auto& data = ctx.template get_data<editor_data>();
-              data.node_graph.remove_socket(s);
-              data.compiler.notify_recompile();
-            }));
+            dctx.cmd(std::make_unique<dcmd_sremove>(s));
           ImGui::PopID();
         }
 
         if (ImGui::Selectable("add new output socket"))
-          dctx.cmd(make_data_command(
-            [n, idx = info.output_sockets().size()](auto& ctx) {
-              auto& data = ctx.template get_data<editor_data>();
-              if (data.node_graph.add_output_socket(n, fmt::format("{}", idx)))
-                data.compiler.notify_recompile();
-            }));
+          dctx.cmd(std::make_unique<dcmd_sadd>(
+            n, socket_type::output, info.output_sockets().size()));
       }
 
       if (info.is_group() || info.is_group_output()) {
@@ -261,28 +248,17 @@ namespace yave::editor::imgui {
           auto tmp  = si.name();
           auto flag = ImGuiInputTextFlags_EnterReturnsTrue;
           if (ImGui::InputText("", &tmp, flag))
-            dctx.cmd(make_data_command([s, new_name = tmp](auto& ctx) {
-              auto& ng = ctx.template get_data<editor_data>().node_graph;
-              ng.set_name(s, new_name);
-            }));
+            dctx.cmd(std::make_unique<dcmd_nset_name>(n, tmp));
 
           ImGui::SameLine(0, spacing);
           if (ImGui::Button("-", {button_size, button_size}))
-            dctx.cmd(make_data_command([s](auto& ctx) {
-              auto& data = ctx.template get_data<editor_data>();
-              data.node_graph.remove_socket(s);
-              data.compiler.notify_recompile();
-            }));
+            dctx.cmd(std::make_unique<dcmd_sremove>(s));
           ImGui::PopID();
         }
 
         if (ImGui::Selectable("add new input socket"))
-          dctx.cmd(make_data_command(
-            [n, idx = info.input_sockets().size()](auto& ctx) {
-              auto& data = ctx.template get_data<editor_data>();
-              if (data.node_graph.add_input_socket(n, fmt::format("{}", idx)))
-                data.compiler.notify_recompile();
-            }));
+          dctx.cmd(std::make_unique<dcmd_sadd>(
+            n, socket_type::input, info.input_sockets().size()));
       }
 
       ImGui::EndPopup();
@@ -328,10 +304,7 @@ namespace yave::editor::imgui {
           auto mpos = to_tvec2(ImGui::GetMousePos());
 
           if (nw.get_selected_nodes().size() <= 1)
-            dctx.cmd(make_data_command([n](auto& ctx) {
-              auto& g = ctx.template get_data<editor_data>().node_graph;
-              g.bring_front(n);
-            }));
+            dctx.cmd(std::make_unique<dcmd_nbring_front>(n));
 
           vctx.cmd(make_window_view_command(nw, [n, mpos](auto& w) {
             if (!w.is_selected(n))
@@ -356,14 +329,7 @@ namespace yave::editor::imgui {
           auto new_pos = to_tvec2(pos - nw.scroll() - ImGui::GetWindowPos());
 
           // set new position
-          dctx.cmd(make_data_command(
-            [n, new_pos](auto& ctx) {
-              ctx.template get_data<editor_data>().node_graph.set_pos(
-                n, new_pos);
-            },
-            [n, pos = info.pos()](auto& ctx) {
-              ctx.template get_data<editor_data>().node_graph.set_pos(n, pos);
-            }));
+          dctx.cmd(std::make_unique<dcmd_nset_pos>(n, new_pos));
 
           // back to neutral
           if (n == nw.get_selected_nodes()[0])

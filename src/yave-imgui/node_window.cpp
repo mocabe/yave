@@ -4,6 +4,7 @@
 //
 
 #include <yave-imgui/node_window.hpp>
+#include <yave-imgui/data_commands.hpp>
 #include <yave/editor/editor_data.hpp>
 #include <yave/editor/data_command.hpp>
 #include <yave/support/log.hpp>
@@ -287,45 +288,7 @@ namespace yave::editor::imgui {
         }
 
         if (ImGui::Selectable("New Group")) {
-
-          struct dcmd_gcreate : data_command
-          {
-            ImVec2 npos;
-            node_handle group;
-
-            // created node
-            node_handle node = {};
-
-            void exec(data_context::accessor& ctx) override
-            {
-              auto& g = ctx.get_data<editor_data>().node_graph;
-
-              if (g.exists(group)) {
-                node = g.create_group(group, {});
-                g.set_pos(node, {npos.x, npos.y});
-              }
-            }
-
-            void undo(data_context::accessor& ctx) override
-            {
-              auto& g = ctx.get_data<editor_data>().node_graph;
-
-              if (g.exists(node)) {
-                g.destroy(node);
-                node = {};
-              }
-            }
-
-            auto type() const -> data_command_type override
-            {
-              return data_command_type::undo_redo;
-            }
-          };
-
-          auto cmd   = std::make_unique<dcmd_gcreate>();
-          cmd->npos  = npos;
-          cmd->group = current_group;
-          dctx.cmd(std::move(cmd));
+          dctx.cmd(std::make_unique<dcmd_gcreate>(npos, current_group));
         }
         ImGui::EndPopup();
       }
@@ -399,23 +362,7 @@ namespace yave::editor::imgui {
         ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) && //
         ImGui::IsKeyPressed(GLFW_KEY_G)) {
 
-        // FIXME: supoprt undo
-        dctx.cmd(
-          make_data_command([g = current_group, ns = n_selected](auto& ctx) {
-            auto& data = ctx.template get_data<editor_data>();
-            auto& ng   = data.node_graph;
-
-            auto newg = ng.create_group(g, {ns});
-
-            glm::fvec2 newpos = {};
-            for (auto&& n : ns)
-              if (auto np = ng.get_pos(n))
-                newpos += *np;
-            newpos /= ns.size();
-            ng.set_pos(newg, newpos);
-
-            data.compiler.notify_recompile();
-          }));
+        dctx.cmd(std::make_unique<dcmd_ngroup>(current_group, n_selected));
 
         vctx.cmd(
           make_window_view_command(*this, [](auto& w) { w.clear_selected(); }));
@@ -424,15 +371,7 @@ namespace yave::editor::imgui {
       // Delete nodes
       if (!n_selected.empty() && ImGui::IsKeyPressed(GLFW_KEY_DELETE)) {
 
-        // FIXME support undo
-        dctx.cmd(make_data_command([ns = n_selected](auto& ctx) {
-          auto& data = ctx.template get_data<editor_data>();
-          auto& ng   = data.node_graph;
-          for (auto&& n : ns)
-            ng.destroy(n);
-
-          data.compiler.notify_recompile();
-        }));
+        dctx.cmd(std::make_unique<dcmd_ndestroy>(n_selected));
 
         vctx.cmd(
           make_window_view_command(*this, [](auto& w) { w.clear_selected(); }));
