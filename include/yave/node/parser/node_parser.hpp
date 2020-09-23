@@ -69,25 +69,37 @@ namespace yave {
   /// Parse node graph and generate data for compiler stage.
   class node_parser
   {
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+
+  public:
+    /// parser parameters
+    struct params
+    {
+      /// node graph
+      structured_node_graph node_graph;
+      /// output socket of node graph
+      socket_handle output_socket;
+      /// current group visible to user.
+      /// parser will provide additional info for nodes in the group.
+      node_handle current_group;
+    };
+
+  private:
+    static auto _init_params() -> params
+    {
+      return {};
+    }
+
   public:
     /// Default ctor.
     node_parser();
     /// Dtor
     ~node_parser() noexcept;
 
+  public:
     /// Parse node graph
-    /// \param ng node graph to parse
-    /// \param output_socket output socket of the node graph. must be output
-    /// socket of node group.
-    /// \param visible_group node group which is visible from user. parser will
-    /// provide extra informaton for nodes in the group.
-    [[nodiscard]] auto parse(
-      structured_node_graph&& ng,
-      const socket_handle& output_socket,
-      const node_handle& visible_group = {}) -> node_parser_result;
-
-  private:
-    class impl;
-    std::unique_ptr<impl> m_pimpl;
+    /// \param param parser parameters
+    [[nodiscard]] auto parse(params p = _init_params()) -> node_parser_result;
   };
 } // namespace yave
