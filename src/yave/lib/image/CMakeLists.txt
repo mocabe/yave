@@ -16,7 +16,7 @@ target_link_libraries(yave-lib-image PRIVATE selene::selene_img_io_png)
 target_link_libraries(yave-lib-image PRIVATE selene::selene_img_io_jpeg)
 target_link_libraries(yave-lib-image PRIVATE selene::selene_img_io_tiff)
 target_link_libraries(yave-lib-image PRIVATE Boost::filesystem)
-target_link_libraries(yave-lib-image PRIVATE fmt)
+target_link_libraries(yave-lib-image PRIVATE fmt::fmt)
 
 # for boost::dll
 if(UNIX)
