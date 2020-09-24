@@ -7,6 +7,9 @@
     "fmt",
     "glm",
     "glfw3",
-    "freetype"
+    "freetype",
+    "libpng",
+    "libjpeg-turbo",
+    "tiff"
   ]
 }
