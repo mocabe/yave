@@ -53,6 +53,50 @@ namespace yave::editor::imgui {
     unreachable();
   }
 
+  auto basic_socket_drawer::_choose_slot_color(
+    const node_window& /*nw*/,
+    const data_context& dctx,
+    const view_context& /*vctx*/) const -> ImColor
+  {
+    auto s = handle;
+
+    // defualt color
+    auto col = get_socket_slot_color_empty();
+
+    // choose color
+    {
+      auto lck    = dctx.lock();
+      auto& data  = lck.get_data<editor_data>();
+      auto& ng    = data.node_graph;
+      auto& parse = data.compiler.parse_result();
+
+      auto res = parse.get_results(ng, s);
+
+      for (auto&& r : res) {
+
+        if (yave::type(r) == parse_result_type::info) {
+          // has input
+          if (
+            std::get_if<parse_results::has_default_argument>(&r) || //
+            std::get_if<parse_results::has_input_connection>(&r) || //
+            std::get_if<parse_results::has_output_connection>(&r)) {
+            col = get_socket_slot_color_connected();
+          }
+        }
+
+        if (yave::type(r) == parse_result_type::warning) {
+          // TODO
+        }
+
+        if (yave::type(r) == parse_result_type::error) {
+          col = get_socket_slot_color_missing();
+          break;
+        }
+      }
+    }
+    return col;
+  }
+
   void basic_socket_drawer::_draw_slot(
     const node_window& nw,
     const data_context& dctx,
@@ -62,8 +106,7 @@ namespace yave::editor::imgui {
   {
     auto s              = handle;
     auto dl             = ImGui::GetWindowDrawList();
-    auto type           = info.type();
-    auto col            = get_socket_slot_color(type);
+    auto col            = _choose_slot_color(nw, dctx, vctx);
     auto slot_radius    = get_socket_slot_radius();
     auto slot_rect_size = slot_radius * 2;
 
