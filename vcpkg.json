@@ -13,6 +13,7 @@
     "tiff",
     "zlib",
     "range-v3",
-    "tl-optional"
+    "tl-optional",
+    "catch2"
   ]
 }

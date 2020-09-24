@@ -1,2 +1,2 @@
 # Cathc2
-init_add_submodule(Catch2)
+find_package(Catch2 CONFIG REQUIRED)
