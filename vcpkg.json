@@ -5,6 +5,7 @@
     "boost",
     "spdlog",
     "fmt",
-    "glm"
+    "glm",
+    "glfw3"
   ]
 }
