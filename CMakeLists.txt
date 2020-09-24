@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(yave CXX)
-
 # ------------------------------------------
 # Directories
 
@@ -11,6 +9,38 @@ set(YAVE_SOURCE_DIR ${YAVE_DIR}/src)
 set(YAVE_EXTERNAL_DIR ${YAVE_DIR}/external)
 set(YAVE_TEST_DIR ${YAVE_DIR}/test)
 set(YAVE_TOOL_DIR ${YAVE_DIR}/tools)
+
+# ------------------------------------------
+# Package manager
+
+# bootstrap vcpkg (internal)
+function(_bootstrap_vcpkg)
+  message(STATUS "bootstraping vcpkg")
+  if(WIN32)
+    execute_process(COMMAND ${VCPKG_SOURCE_DIR}/bootstrap-vcpkg.bat)
+  else()
+    execute_process(COMMAND ${VCPKG_SOURCE_DIR}/bootstrap-vcpkg.sh)
+  endif()
+endfunction()
+
+# configure vcpkg
+function(vcpkg_configure)
+  if(NOT VCPKG_EXECUTABLE)
+    _bootstrap_vcpkg()
+  endif()
+  find_program(VCPKG_EXECUTABLE vcpkg PATHS ${VCPKG_SOURCE_DIR} REQUIRED)
+  set(CMAKE_TOOLCHAIN_FILE ${VCPKG_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake CACHE STRING "")
+  message(STATUS "configured vcpkg toolchain")
+endfunction()
+
+# do configure
+set(VCPKG_SOURCE_DIR ${YAVE_EXTERNAL_DIR}/vcpkg)
+vcpkg_configure()
+
+# ------------------------------------------
+# Project
+
+project(yave CXX)
 
 # ------------------------------------------
 # Options
@@ -49,7 +79,7 @@ message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 # ------------------------------------------
 # Default C++ standard
 
-  set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20)
 
 # ------------------------------------------
 # External
