@@ -10,6 +10,9 @@
     "freetype",
     "libpng",
     "libjpeg-turbo",
-    "tiff"
+    "tiff",
+    "zlib",
+    "range-v3",
+    "tl-optional"
   ]
 }

@@ -1,3 +1,2 @@
 # range-v3 
-set(RANGES_CXX_STD 17)
-init_add_submodule(range-v3)
+find_package(range-v3 CONFIG REQUIRED)
