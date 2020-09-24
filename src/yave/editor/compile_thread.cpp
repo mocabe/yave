@@ -87,10 +87,8 @@ namespace yave::editor {
               }();
 
               // parse
-              auto parse_result = parser.parse(
-                {.node_graph    = std::move(g),
-                 .output_socket = os,
-                 .current_group = {}});
+              auto parse_result =
+                parser.parse({.node_graph = std::move(g), .output_socket = os});
 
               auto parsed_ng = parse_result.take_node_graph();
               auto defs_copy = std::optional<node_definition_store>();

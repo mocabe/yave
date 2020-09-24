@@ -132,11 +132,7 @@ TEST_CASE("node_compiler V2")
 
   auto compile_ng = [&] {
     return compiler.compile(
-      parser
-        .parse(
-          {.node_graph    = std::move(ng),
-           .output_socket = out,
-           .current_group = {}})
+      parser.parse({.node_graph = std::move(ng), .output_socket = out})
         .take_node_graph()
         .value(),
       defs);
