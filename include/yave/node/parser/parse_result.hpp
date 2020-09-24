@@ -145,6 +145,70 @@ namespace yave {
       uid m_socket_id;
     };
 
+    /// Socket has input connection
+    struct has_input_connection
+    {
+      has_input_connection(uid node_id, uid socket_id)
+        : m_node_id {node_id}
+        , m_socket_id {socket_id}
+      {
+      }
+
+      /// Reulst type
+      [[nodiscard]] auto type() const
+      {
+        return parse_result_type::info;
+      }
+
+      /// Get node ID
+      [[nodiscard]] auto node_id() const -> const auto&
+      {
+        return m_node_id;
+      }
+
+      /// Get socket ID
+      [[nodiscard]] auto socket_id() const -> const auto&
+      {
+        return m_socket_id;
+      }
+
+    private:
+      uid m_node_id;
+      uid m_socket_id;
+    };
+
+    /// Socket has output connection
+    struct has_output_connection
+    {
+      has_output_connection(uid node_id, uid socket_id)
+        : m_node_id {node_id}
+        , m_socket_id {socket_id}
+      {
+      }
+
+      /// Reulst type
+      [[nodiscard]] auto type() const
+      {
+        return parse_result_type::info;
+      }
+
+      /// Get node ID
+      [[nodiscard]] auto node_id() const -> const auto&
+      {
+        return m_node_id;
+      }
+
+      /// Get socket ID
+      [[nodiscard]] auto socket_id() const -> const auto&
+      {
+        return m_socket_id;
+      }
+
+    private:
+      uid m_node_id;
+      uid m_socket_id;
+    };
+
     /// Node is lambda mode
     struct is_lambda_node
     {
@@ -169,62 +233,14 @@ namespace yave {
       uid m_node_id;
     };
 
-    /// node call
-    struct is_node_call
-    {
-      is_node_call(uid node_id)
-        : m_node_id {node_id}
-      {
-      }
-
-      /// Reulst type
-      [[nodiscard]] auto type() const
-      {
-        return parse_result_type::info;
-      }
-
-      /// Get node ID
-      [[nodiscard]] auto node_id() const -> const auto&
-      {
-        return m_node_id;
-      }
-
-    private:
-      uid m_node_id;
-    };
-
-    /// node definition
-    struct is_node_definition
-    {
-      is_node_definition(uid node_id)
-        : m_node_id {node_id}
-      {
-      }
-
-      /// Reulst type
-      [[nodiscard]] auto type() const
-      {
-        return parse_result_type::info;
-      }
-
-      /// Get node ID
-      [[nodiscard]] auto node_id() const -> const auto&
-      {
-        return m_node_id;
-      }
-
-    private:
-      uid m_node_id;
-    };
-
-    using parse_result = std::variant<
+    using parse_result = std::variant< //
       unexpected_error,
       missing_input,
       missing_output,
       is_lambda_node,
       has_default_argument,
-      is_node_call,
-      is_node_definition>;
+      has_input_connection,
+      has_output_connection>;
 
   } // namespace parse_results
 

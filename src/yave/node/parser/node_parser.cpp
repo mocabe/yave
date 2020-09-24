@@ -179,7 +179,7 @@ namespace yave {
     auto validate(
       structured_node_graph&& ng,
       const socket_handle& out_socket,
-      const node_handle& visible_group,
+      const node_handle& current_group,
       node_parser_result& result) -> tl::optional<structured_node_graph>
     {
       if (!ng.exists(out_socket)) {
@@ -217,7 +217,7 @@ namespace yave {
       };
 
       // general node check
-      auto chk_n = [&](
+      auto check_n = [&](
                      const node_handle& n,
                      const socket_handle& os,
                      const structured_node_graph& ng,
@@ -231,19 +231,76 @@ namespace yave {
 
         auto ics = ng.input_connections(n);
         auto iss = ng.input_sockets(n);
+        auto oss = ng.output_sockets(n);
 
-        auto missing = [&](auto&& s) {
-          return !ng.get_data(s) && ng.connections(s).empty();
+        // socket has input connection
+        auto has_connection = [&](auto&& s) -> bool {
+          return !ng.connections(s).empty();
         };
 
-        size_t cnt = rn::count_if(iss, missing);
+        // socket has default argument
+        auto has_default = [&](auto&& s) -> bool {
+          return ng.get_data(s) != nullptr;
+        };
 
-        if (cnt != iss.size())
-          for (auto&& s : iss)
+        // missing socket connection
+        auto missing = [&](auto&& s) {
+          return !has_connection(s) && !has_default(s);
+        };
+
+        size_t n_missing = rn::count_if(iss, missing);
+
+        if (n_missing != iss.size()) {
+          for (auto&& s : iss) { 
+            if(has_default(s)) 
+              res.add_result(parse_results::has_default_argument(n.id(), s.id()));
+
+            if(has_connection(s)) 
+              res.add_result(parse_results::has_input_connection(n.id(), s.id()));
+
             if (missing(s))
               res.add_result(parse_results::missing_input(n.id(), s.id()));
+          }
+        } 
+
+        if (!iss.empty() && n_missing == iss.size()) {
+          res.add_result(parse_results::is_lambda_node(n.id()));
+        }
+
+        for (auto&& s : oss) {
+          if (has_connection(s))
+            res.add_result(parse_results::has_output_connection(n.id(), s.id()));
+        }
 
         mark(n, os, m);
+      };
+
+      // check io handler
+      auto check_io = [&](
+                        const node_handle& n, 
+                        const socket_handle& os, 
+                        const structured_node_graph& ng, 
+                        node_parser_result& res) -> void {
+
+        assert(!ng.is_group_member(n));
+
+        if (ng.is_group_input(n)) {
+          auto idx = *ng.get_index(os);
+          auto s   = ng.output_sockets(n)[idx];
+
+          if (!ng.connections(s).empty())
+            res.add_result(parse_results::has_input_connection(n.id(), s.id()));
+        }
+
+        if(ng.is_group_output(n)) {
+          auto idx = *ng.get_index(os);
+          auto s   = ng.input_sockets(n)[idx];
+
+          if (ng.connections(s).empty())
+            res.add_result(parse_results::missing_input(n.id(), s.id()));
+          else
+            res.add_result(parse_results::has_input_connection(n.id(), s.id()));
+        }
       };
 
       // check group and its inside
@@ -257,7 +314,7 @@ namespace yave {
         assert(ng.is_group(g));
 
         // check interface
-        chk_n(g, os, ng, res, m);
+        check_n(g, os, ng, res, m);
 
         // check input
         for (auto&& c : ng.input_connections(g)) {
@@ -271,8 +328,7 @@ namespace yave {
           auto idx = *ng.get_index(os);
           auto s   = ng.input_sockets(go)[idx];
 
-          if (ng.connections(s).empty())
-            res.add_result(parse_results::missing_input(go.id(), s.id()));
+          check_io(go, os, ng, res);
 
           for (auto&& c : ng.connections(s)) {
             auto ci = ng.get_info(c);
@@ -289,7 +345,7 @@ namespace yave {
                      const structured_node_graph& ng,
                      node_parser_result& res,
                      memo& m) -> void {
-        chk_n(f, s, ng, res, m);
+        check_n(f, s, ng, res, m);
 
         // check input
         for (auto&& c : ng.input_connections(f)) {
@@ -298,6 +354,7 @@ namespace yave {
         }
       };
 
+      // check node recursively
       auto rec_n = [&](
                      auto&& self,
                      const node_handle& n,
@@ -312,7 +369,7 @@ namespace yave {
           return rec_f(self, n, os, ng, res, m);
 
         if (ng.is_group_input(n))
-          return;
+          return check_io(n, os, ng, res);
 
         unreachable();
       };
