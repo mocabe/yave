@@ -6,6 +6,7 @@
     "spdlog",
     "fmt",
     "glm",
-    "glfw3"
+    "glfw3",
+    "freetype"
   ]
 }

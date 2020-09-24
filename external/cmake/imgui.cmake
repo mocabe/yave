@@ -16,7 +16,7 @@ target_include_directories(imgui PUBLIC
   ${YAVE_EXTERNAL_DIR}/imgui/misc/cpp
 )
 
-target_link_libraries(imgui PRIVATE Freetype::Freetype)
+target_link_libraries(imgui PRIVATE freetype)
 
 add_library(imgui-glfw-vulkan 
   ${YAVE_EXTERNAL_DIR}/imgui/examples/imgui_impl_vulkan.cpp
