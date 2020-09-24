@@ -9,9 +9,6 @@
 [submodule "external/glslang"]
 	path = external/glslang
 	url = https://github.com/KhronosGroup/glslang.git
-[submodule "external/blend2d"]
-	path = external/blend2d
-	url = https://github.com/blend2d/blend2d.git
 [submodule "external/vcpkg"]
 	path = external/vcpkg
 	url = https://github.com/microsoft/vcpkg.git
