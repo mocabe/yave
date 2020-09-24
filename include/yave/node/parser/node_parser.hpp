@@ -80,9 +80,6 @@ namespace yave {
       structured_node_graph node_graph;
       /// output socket of node graph
       socket_handle output_socket;
-      /// current group visible to user.
-      /// parser will provide additional info for nodes in the group.
-      node_handle current_group;
     };
 
   private:

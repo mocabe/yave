@@ -179,7 +179,6 @@ namespace yave {
     auto validate(
       structured_node_graph&& ng,
       const socket_handle& out_socket,
-      const node_handle& current_group,
       node_parser_result& result) -> tl::optional<structured_node_graph>
     {
       if (!ng.exists(out_socket)) {
@@ -393,14 +392,13 @@ namespace yave {
   public:
     auto parse(
       structured_node_graph&& ng,
-      const socket_handle& out,
-      const node_handle& group) -> node_parser_result
+      const socket_handle& out) -> node_parser_result
     {
       node_parser_result result;
 
       // pipeline
       tl::optional(std::move(ng))
-        .and_then(mem_fn(validate, out, group, result))
+        .and_then(mem_fn(validate, out, result))
         .and_then(mem_fn(set_result, result));
 
       return result;
@@ -417,7 +415,7 @@ namespace yave {
 
   auto node_parser::parse(params p) -> node_parser_result
   {
-    return m_pimpl->parse(std::move(p.node_graph), p.output_socket, p.current_group);
+    return m_pimpl->parse(std::move(p.node_graph), p.output_socket);
   }
 
 } // namespace yave
