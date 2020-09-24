@@ -161,6 +161,11 @@ namespace yave::editor::imgui {
     return {255, 150, 50, 230};
   }
 
+  [[nodiscard]] inline ImColor get_node_edge_color_error()
+  {
+    return {255, 10, 10, 230};
+  }
+
   [[nodiscard]] inline ImColor get_node_header_text_color()
   {
     return {250, 250, 250, 255};
@@ -181,25 +186,19 @@ namespace yave::editor::imgui {
     return {50, 50, 50, 255};
   }
 
-  [[nodiscard]] inline ImColor get_socket_slot_color(socket_type type)
+  [[nodiscard]] inline ImColor get_socket_slot_color_connected()
   {
-    switch (type) {
-      case socket_type::input:
-        return {170, 181, 196, 255};
-      case socket_type::output:
-        return {255, 143, 130, 255};
-    }
-    unreachable();
+    return IM_COL32(143, 188, 143, 255);
   }
 
-  [[nodiscard]] inline ImColor get_socket_slot_color_hovered(socket_type type)
+  [[nodiscard]] inline ImColor get_socket_slot_color_empty()
   {
-    return color_glow(get_socket_slot_color(type), 0.2);
+    return IM_COL32(170, 181, 196, 255);
   }
 
-  [[nodiscard]] inline ImColor get_socket_slot_color_selected(socket_type type)
+  [[nodiscard]] inline ImColor get_socket_slot_color_missing()
   {
-    return color_glow(get_socket_slot_color(type), 0.2);
+    return IM_COL32(205, 92, 92, 255);
   }
 
   [[nodiscard]] inline ImColor get_connection_color()

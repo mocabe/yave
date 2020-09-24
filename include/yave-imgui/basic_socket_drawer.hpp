@@ -51,5 +51,11 @@ namespace yave::editor::imgui {
       node_window_draw_info& draw_info,
       ImVec2 pos,
       ImVec2 size) const;
+
+  private:
+    auto _choose_slot_color(
+      const node_window& nw,
+      const data_context& dctx,
+      const view_context& vctx) const -> ImColor;
   };
 } // namespace yave::editor::imgui
