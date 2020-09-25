@@ -250,9 +250,6 @@ namespace yave::glfw {
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    // enable transparent framebuffer
-    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
-
     // create new window
     auto window = glfw_window(*this, title, width, height);
 

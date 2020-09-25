@@ -942,9 +942,6 @@ namespace yave::imgui {
       /* Enable docking */
       io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-      /* Enable viewport */
-      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
       /* setup vulkan binding */
       io.BackendRendererName = "yave::imgui_context";
 
