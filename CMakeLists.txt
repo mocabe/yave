@@ -11,6 +11,11 @@ set(YAVE_TEST_DIR ${YAVE_DIR}/test)
 set(YAVE_TOOL_DIR ${YAVE_DIR}/tools)
 
 # ------------------------------------------
+# Git
+
+find_package(Git REQUIRED)
+
+# ------------------------------------------
 # Package manager
 
 # bootstrap vcpkg (internal)
@@ -25,6 +30,7 @@ endfunction()
 
 # configure vcpkg
 function(vcpkg_configure)
+  execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init ${VCPKG_SOURCE_DIR})
   if(NOT VCPKG_EXECUTABLE)
     _bootstrap_vcpkg()
   endif()
