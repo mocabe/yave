@@ -124,7 +124,7 @@ namespace yave {
     }
 
     /// Copy ctor
-    constexpr object_ptr_storage(const object_ptr_storage& other) noexcept
+    object_ptr_storage(const object_ptr_storage& other) noexcept
       : m_ptr {nullptr}
     {
       m_ptr.store(other.m_ptr, std::memory_order_relaxed);

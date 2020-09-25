@@ -1,2 +1,2 @@
 # fmt
-init_add_submodule(fmt)
+find_package(fmt CONFIG REQUIRED)

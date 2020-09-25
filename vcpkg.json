@@ -1,0 +1,19 @@
+{
+  "name": "yave",
+  "version-string": "0.0.1",
+  "dependencies":  [
+    "boost",
+    "spdlog",
+    "fmt",
+    "glm",
+    "glfw3",
+    "freetype",
+    "libpng",
+    "libjpeg-turbo",
+    "tiff",
+    "range-v3",
+    "tl-optional",
+    "catch2",
+    "blend2d"
+  ]
+}

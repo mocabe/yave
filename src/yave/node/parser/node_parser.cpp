@@ -4,7 +4,6 @@
 //
 
 #include <yave/node/parser/node_parser.hpp>
-#include <yave/node/core/node_group.hpp>
 #include <yave/support/log.hpp>
 
 #include <range/v3/algorithm.hpp>
@@ -15,10 +14,6 @@
 #include <map>
 
 YAVE_DECL_G_LOGGER(node_parser)
-
-// cursed, but very useful
-#define mem_fn(FN, ...) \
-  [&](auto&& arg) { return FN(std::forward<decltype(arg)>(arg), __VA_ARGS__); }
 
 namespace yave {
 
@@ -118,7 +113,7 @@ namespace yave {
   node_parser_result::~node_parser_result() noexcept = default;
   node_parser_result::node_parser_result(node_parser_result&&) noexcept = default;
   node_parser_result& node_parser_result::operator=(node_parser_result&&) noexcept = default;
-  // clang-format no
+  // clang-format on
 
   auto node_parser_result::take_node_graph()
     -> std::optional<structured_node_graph>
@@ -176,7 +171,7 @@ namespace yave {
     impl()           = default;
     ~impl() noexcept = default;
 
-    auto validate(
+    auto check(
       structured_node_graph&& ng,
       const socket_handle& out_socket,
       node_parser_result& result) -> tl::optional<structured_node_graph>
@@ -217,11 +212,11 @@ namespace yave {
 
       // general node check
       auto check_n = [&](
-                     const node_handle& n,
-                     const socket_handle& os,
-                     const structured_node_graph& ng,
-                     node_parser_result& res,
-                     memo& m) -> void {
+                       const node_handle& n,
+                       const socket_handle& os,
+                       const structured_node_graph& ng,
+                       node_parser_result& res,
+                       memo& m) -> void {
         // IO will be checked by rec_g
         assert(ng.is_group_member(n));
 
@@ -250,17 +245,19 @@ namespace yave {
         size_t n_missing = rn::count_if(iss, missing);
 
         if (n_missing != iss.size()) {
-          for (auto&& s : iss) { 
-            if(has_default(s)) 
-              res.add_result(parse_results::has_default_argument(n.id(), s.id()));
+          for (auto&& s : iss) {
+            if (has_default(s))
+              res.add_result(
+                parse_results::has_default_argument(n.id(), s.id()));
 
-            if(has_connection(s)) 
-              res.add_result(parse_results::has_input_connection(n.id(), s.id()));
+            if (has_connection(s))
+              res.add_result(
+                parse_results::has_input_connection(n.id(), s.id()));
 
             if (missing(s))
               res.add_result(parse_results::missing_input(n.id(), s.id()));
           }
-        } 
+        }
 
         if (!iss.empty() && n_missing == iss.size()) {
           res.add_result(parse_results::is_lambda_node(n.id()));
@@ -268,7 +265,8 @@ namespace yave {
 
         for (auto&& s : oss) {
           if (has_connection(s))
-            res.add_result(parse_results::has_output_connection(n.id(), s.id()));
+            res.add_result(
+              parse_results::has_output_connection(n.id(), s.id()));
         }
 
         mark(n, os, m);
@@ -276,11 +274,10 @@ namespace yave {
 
       // check io handler
       auto check_io = [&](
-                        const node_handle& n, 
-                        const socket_handle& os, 
-                        const structured_node_graph& ng, 
+                        const node_handle& n,
+                        const socket_handle& os,
+                        const structured_node_graph& ng,
                         node_parser_result& res) -> void {
-
         assert(!ng.is_group_member(n));
 
         if (ng.is_group_input(n)) {
@@ -291,7 +288,7 @@ namespace yave {
             res.add_result(parse_results::has_input_connection(n.id(), s.id()));
         }
 
-        if(ng.is_group_output(n)) {
+        if (ng.is_group_output(n)) {
           auto idx = *ng.get_index(os);
           auto s   = ng.input_sockets(n)[idx];
 
@@ -386,20 +383,19 @@ namespace yave {
     auto set_result(structured_node_graph&& ng, node_parser_result& res)
     {
       res.set_node_graph(std::move(ng));
-      return tl::optional(nullptr);
+      return tl::make_optional(nullptr);
     }
 
   public:
-    auto parse(
-      structured_node_graph&& ng,
-      const socket_handle& out) -> node_parser_result
+    auto parse(structured_node_graph&& ng, const socket_handle& out)
+      -> node_parser_result
     {
       node_parser_result result;
 
       // pipeline
-      tl::optional(std::move(ng))
-        .and_then(mem_fn(validate, out, result))
-        .and_then(mem_fn(set_result, result));
+      tl::make_optional(std::move(ng))
+        .and_then([&](auto arg) { return check(std::move(arg), out, result); })
+        .and_then([&](auto arg) { return set_result(std::move(arg), result); });
 
       return result;
     }

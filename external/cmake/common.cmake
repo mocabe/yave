@@ -1,5 +1,3 @@
-find_package(Git REQUIRED)
-
 # Initialize submodule 
 function(init_submodule NAME)
   message(STATUS "Initializing submodule: ${NAME}")

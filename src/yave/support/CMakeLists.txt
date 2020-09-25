@@ -4,7 +4,7 @@ add_library(yave-support-log log.cpp)
 add_library(yave::support::log ALIAS yave-support-log)
 
 target_link_libraries(yave-support-log PRIVATE yave::config)
-target_link_libraries(yave-support-log PUBLIC spdlog)
+target_link_libraries(yave-support-log PUBLIC spdlog::spdlog)
 
 # yave::support::id
 

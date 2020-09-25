@@ -22,8 +22,26 @@ namespace yave {
 
   namespace parse_results {
 
+    struct base
+    {
+      auto message() const -> std::string
+      {
+        return {};
+      }
+
+      auto node_id() const -> uid
+      {
+        return {};
+      }
+
+      auto socket_id() const -> uid
+      {
+        return {};
+      }
+    };
+
     /// for unexpected errors
-    struct unexpected_error
+    struct unexpected_error : base
     {
       unexpected_error(const std::string& msg)
         : m_msg {msg}
@@ -44,7 +62,7 @@ namespace yave {
     };
 
     /// Missing input connection to socket
-    struct missing_input
+    struct missing_input : base
     {
       missing_input(const uid& node_id, const uid& socket_id)
         : m_node_id {node_id}
@@ -79,7 +97,7 @@ namespace yave {
     };
 
     /// Missing output connection for active node group output
-    struct missing_output
+    struct missing_output : base
     {
       missing_output(const uid& node_id, const uid& socket_id)
         : m_node_id {node_id}
@@ -114,7 +132,7 @@ namespace yave {
     };
 
     /// Socket has argument
-    struct has_default_argument
+    struct has_default_argument : base
     {
       has_default_argument(uid node_id, uid socket_id)
         : m_node_id {node_id}
@@ -146,7 +164,7 @@ namespace yave {
     };
 
     /// Socket has input connection
-    struct has_input_connection
+    struct has_input_connection : base
     {
       has_input_connection(uid node_id, uid socket_id)
         : m_node_id {node_id}
@@ -178,7 +196,7 @@ namespace yave {
     };
 
     /// Socket has output connection
-    struct has_output_connection
+    struct has_output_connection : base
     {
       has_output_connection(uid node_id, uid socket_id)
         : m_node_id {node_id}
@@ -210,7 +228,7 @@ namespace yave {
     };
 
     /// Node is lambda mode
-    struct is_lambda_node
+    struct is_lambda_node : base
     {
       is_lambda_node(uid node_id)
         : m_node_id {node_id}
@@ -256,40 +274,19 @@ namespace yave {
   /// get message from parse result
   [[nodiscard]] inline auto message(const parse_result& r)
   {
-    return std::visit(
-      [](auto&& x) {
-        if constexpr (requires { x.message(); }) {
-          return x.message();
-        }
-        return std::string();
-      },
-      r);
+    return std::visit([](auto&& x) { return x.message(); }, r);
   }
 
   /// get node id of parse result
   [[nodiscard]] inline auto node_id(const parse_result& r)
   {
-    return std::visit(
-      [](auto&& x) {
-        if constexpr (requires { x.node_id(); }) {
-          return x.node_id();
-        }
-        return uid();
-      },
-      r);
+    return std::visit([](auto&& x) { return x.node_id(); }, r);
   }
 
   /// get socket id of parse result
   [[nodiscard]] inline auto socket_id(const parse_result& r)
   {
-    return std::visit(
-      [](auto&& x) {
-        if constexpr (requires { x.socket_id(); }) {
-          return x.socket_id();
-        }
-        return uid();
-      },
-      r);
+    return std::visit([](auto&& x) { return x.socket_id(); }, r);
   }
 
 } // namespace yave
