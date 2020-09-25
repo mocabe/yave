@@ -26,10 +26,6 @@ YAVE_DECL_G_LOGGER(node_compiler)
 
 using namespace std::string_literals;
 
-// MACROS ARE (NOT) YOUR FRIEND.
-#define mem_fn(FN, ...) \
-  [&](auto&& arg) { return FN(std::forward<decltype(arg)>(arg), __VA_ARGS__); }
-
 namespace yave {
 
   namespace rs = ranges;
@@ -49,20 +45,23 @@ namespace yave {
   {
     error_list errors;
 
-    auto verbose_check(executable&& exe, int) -> tl::optional<executable>;
+    // clang-format off
 
-    auto desugar(structured_node_graph&& ng, int)
+    auto verbose_check(executable&& exe) 
+      -> tl::optional<executable>;
+
+    auto desugar(structured_node_graph&& ng) 
       -> tl::optional<structured_node_graph>;
 
-    auto gen(structured_node_graph&& ng, const node_definition_store& defs)
-      -> tl::optional<
-        std::tuple<object_ptr<const Object>, class_env, location_map>>;
+    auto gen(structured_node_graph&& ng, const node_definition_store& defs)  
+      -> tl::optional<std::tuple<object_ptr<const Object>, class_env, location_map>>;
 
-    auto type(
-      std::tuple<object_ptr<const Object>, class_env, location_map>&& p,
-      int) -> tl::optional<executable>;
+    auto type(std::tuple<object_ptr<const Object>, class_env, location_map>&& p)
+      -> tl::optional<executable>;
 
-    auto optimize(executable&& exe, int) -> tl::optional<executable>;
+    auto optimize(executable&& exe) -> tl::optional<executable>;
+
+    // clang-format on
 
   public:
     auto get_errors() const
@@ -79,11 +78,11 @@ namespace yave {
       Info(g_logger, "  Total {} node definitions", defs.size());
 
       return tl::make_optional(std::move(ng)) //
-        .and_then(mem_fn(desugar, 0))
-        .and_then(mem_fn(gen, defs))
-        .and_then(mem_fn(type, 0))
-        .and_then(mem_fn(optimize, 0))
-        .and_then(mem_fn(verbose_check, 0))
+        .and_then([&](auto arg) { return desugar(std::move(arg)); })
+        .and_then([&](auto arg) { return gen(std::move(arg), defs); })
+        .and_then([&](auto arg) { return type(std::move(arg)); })
+        .and_then([&](auto arg) { return optimize(std::move(arg)); })
+        .and_then([&](auto arg) { return verbose_check(std::move(arg)); })
         .or_else([&] {
           Error(g_logger, "Failed to compile node graph");
           for (auto&& e : errors)
@@ -112,7 +111,7 @@ namespace yave {
     return to_std(m_pimpl->compile(std::move(graph), defs));
   }
 
-  auto node_compiler::impl::verbose_check(executable&& exe, int)
+  auto node_compiler::impl::verbose_check(executable&& exe)
     -> tl::optional<executable>
   {
     try {
@@ -139,7 +138,7 @@ namespace yave {
     return tl::nullopt;
   }
 
-  auto node_compiler::impl::desugar(structured_node_graph&& ng, int)
+  auto node_compiler::impl::desugar(structured_node_graph&& ng)
     -> tl::optional<structured_node_graph>
   {
     auto roots = ng.search_path("/");
@@ -426,8 +425,8 @@ namespace yave {
     trap them to report to frontend.
    */
   auto node_compiler::impl::type(
-    std::tuple<object_ptr<const Object>, class_env, location_map>&& p,
-    int) -> tl::optional<executable>
+    std::tuple<object_ptr<const Object>, class_env, location_map>&& p)
+    -> tl::optional<executable>
   {
     try {
 
@@ -457,7 +456,7 @@ namespace yave {
     return tl::nullopt;
   }
 
-  auto node_compiler::impl::optimize(executable&& exe, int)
+  auto node_compiler::impl::optimize(executable&& exe)
     -> tl::optional<executable>
   {
     return std::move(exe);
