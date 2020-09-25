@@ -1,5 +1,4 @@
 include(${YAVE_EXTERNAL_DIR}/cmake/common.cmake)
-include(${YAVE_EXTERNAL_DIR}/cmake/zlib.cmake)
 include(${YAVE_EXTERNAL_DIR}/cmake/libpng.cmake)
 include(${YAVE_EXTERNAL_DIR}/cmake/libjpeg.cmake)
 include(${YAVE_EXTERNAL_DIR}/cmake/libtiff.cmake)
