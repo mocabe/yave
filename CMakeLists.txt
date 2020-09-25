@@ -28,6 +28,15 @@ function(_bootstrap_vcpkg)
   endif()
 endfunction()
 
+# select appropriate triplet and toolchain
+function(_select_vcpkg_triplet_and_toolchain) 
+  if(WIN32)
+    # dynamic CRT, static libs
+    set(VCPKG_TARGET_TRIPLET x64-windows-static-md CACHE STRING "")
+  endif()
+  set(CMAKE_TOOLCHAIN_FILE ${VCPKG_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake CACHE STRING "")
+endfunction()
+
 # configure vcpkg
 function(vcpkg_configure)
   execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init ${VCPKG_SOURCE_DIR})
@@ -35,7 +44,7 @@ function(vcpkg_configure)
     _bootstrap_vcpkg()
   endif()
   find_program(VCPKG_EXECUTABLE vcpkg PATHS ${VCPKG_SOURCE_DIR} REQUIRED)
-  set(CMAKE_TOOLCHAIN_FILE ${VCPKG_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake CACHE STRING "")
+  _select_vcpkg_triplet_and_toolchain()
   message(STATUS "configured vcpkg toolchain")
 endfunction()
 
