@@ -176,17 +176,18 @@ namespace yave {
       const socket_handle& out_socket,
       node_parser_result& result) -> tl::optional<structured_node_graph>
     {
+      using namespace parse_results;
+
       if (!ng.exists(out_socket)) {
-        result.add_result(
-          parse_results::unexpected_error("Out socket does not exists"));
+        result.add_result(unexpected_error("Out socket does not exists"));
         return tl::nullopt;
       }
 
       auto out_node = ng.node(out_socket);
 
       if (!ng.is_group(out_node) && !ng.is_function(out_node)) {
-        result.add_result(parse_results::unexpected_error(
-          "Out socket is not of a function or a group"));
+        result.add_result(
+          unexpected_error("Out socket is not of a function or a group"));
         return tl::nullopt;
       }
 
@@ -247,26 +248,23 @@ namespace yave {
         if (n_missing != iss.size()) {
           for (auto&& s : iss) {
             if (has_default(s))
-              res.add_result(
-                parse_results::has_default_argument(n.id(), s.id()));
+              res.add_result(has_default_argument(n, s));
 
             if (has_connection(s))
-              res.add_result(
-                parse_results::has_input_connection(n.id(), s.id()));
+              res.add_result(has_input_connection(n, s));
 
             if (missing(s))
-              res.add_result(parse_results::missing_input(n.id(), s.id()));
+              res.add_result(missing_input(n, s));
           }
         }
 
         if (!iss.empty() && n_missing == iss.size()) {
-          res.add_result(parse_results::is_lambda_node(n.id()));
+          res.add_result(is_lambda_node(n));
         }
 
         for (auto&& s : oss) {
           if (has_connection(s))
-            res.add_result(
-              parse_results::has_output_connection(n.id(), s.id()));
+            res.add_result(has_output_connection(n, s));
         }
 
         mark(n, os, m);
@@ -285,7 +283,7 @@ namespace yave {
           auto s   = ng.output_sockets(n)[idx];
 
           if (!ng.connections(s).empty())
-            res.add_result(parse_results::has_input_connection(n.id(), s.id()));
+            res.add_result(has_input_connection(n, s));
         }
 
         if (ng.is_group_output(n)) {
@@ -293,9 +291,9 @@ namespace yave {
           auto s   = ng.input_sockets(n)[idx];
 
           if (ng.connections(s).empty())
-            res.add_result(parse_results::missing_input(n.id(), s.id()));
+            res.add_result(missing_input(n, s));
           else
-            res.add_result(parse_results::has_input_connection(n.id(), s.id()));
+            res.add_result(has_input_connection(n, s));
         }
       };
 

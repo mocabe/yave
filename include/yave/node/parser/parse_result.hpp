@@ -7,6 +7,7 @@
 
 #include <yave/rts/rts.hpp>
 #include <yave/node/core/node_handle.hpp>
+#include <yave/node/core/socket_handle.hpp>
 
 #include <variant>
 
@@ -22,7 +23,7 @@ namespace yave {
 
   namespace parse_results {
 
-    struct base
+    struct result_base
     {
       auto message() const -> std::string
       {
@@ -41,7 +42,7 @@ namespace yave {
     };
 
     /// for unexpected errors
-    struct unexpected_error : base
+    struct unexpected_error : result_base
     {
       unexpected_error(const std::string& msg)
         : m_msg {msg}
@@ -62,11 +63,11 @@ namespace yave {
     };
 
     /// Missing input connection to socket
-    struct missing_input : base
+    struct missing_input : result_base
     {
-      missing_input(const uid& node_id, const uid& socket_id)
-        : m_node_id {node_id}
-        , m_socket_id {socket_id}
+      missing_input(const node_handle& node, const socket_handle& socket)
+        : m_node_id {node.id()}
+        , m_socket_id {socket.id()}
       {
       }
 
@@ -97,11 +98,11 @@ namespace yave {
     };
 
     /// Missing output connection for active node group output
-    struct missing_output : base
+    struct missing_output : result_base
     {
-      missing_output(const uid& node_id, const uid& socket_id)
-        : m_node_id {node_id}
-        , m_socket_id {socket_id}
+      missing_output(const node_handle& node, const socket_handle& socket)
+        : m_node_id {node.id()}
+        , m_socket_id {socket.id()}
       {
       }
 
@@ -132,11 +133,11 @@ namespace yave {
     };
 
     /// Socket has argument
-    struct has_default_argument : base
+    struct has_default_argument : result_base
     {
-      has_default_argument(uid node_id, uid socket_id)
-        : m_node_id {node_id}
-        , m_socket_id {socket_id}
+      has_default_argument(const node_handle& node, const socket_handle& socket)
+        : m_node_id {node.id()}
+        , m_socket_id {socket.id()}
       {
       }
 
@@ -164,11 +165,11 @@ namespace yave {
     };
 
     /// Socket has input connection
-    struct has_input_connection : base
+    struct has_input_connection : result_base
     {
-      has_input_connection(uid node_id, uid socket_id)
-        : m_node_id {node_id}
-        , m_socket_id {socket_id}
+      has_input_connection(const node_handle& node, const socket_handle& socket)
+        : m_node_id {node.id()}
+        , m_socket_id {socket.id()}
       {
       }
 
@@ -196,11 +197,13 @@ namespace yave {
     };
 
     /// Socket has output connection
-    struct has_output_connection : base
+    struct has_output_connection : result_base
     {
-      has_output_connection(uid node_id, uid socket_id)
-        : m_node_id {node_id}
-        , m_socket_id {socket_id}
+      has_output_connection(
+        const node_handle& node,
+        const socket_handle& socket)
+        : m_node_id {node.id()}
+        , m_socket_id {socket.id()}
       {
       }
 
@@ -228,10 +231,10 @@ namespace yave {
     };
 
     /// Node is lambda mode
-    struct is_lambda_node : base
+    struct is_lambda_node : result_base
     {
-      is_lambda_node(uid node_id)
-        : m_node_id {node_id}
+      is_lambda_node(const node_handle& node)
+        : m_node_id {node.id()}
       {
       }
 
