@@ -2,6 +2,7 @@
 
 add_library(yave-node-compiler
   node_compiler.cpp
+  compile_result.cpp
   executable.cpp
   errors.cpp
   type.cpp)
