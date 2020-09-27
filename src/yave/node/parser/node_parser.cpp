@@ -32,6 +32,11 @@ namespace yave {
     impl() = default;
 
   public:
+    bool success() const
+    {
+      return m_ng.has_value();
+    }
+
     auto take_node_graph()
     {
       return std::move(m_ng);
@@ -45,9 +50,7 @@ namespace yave {
   public:
     void add_result(parse_result r)
     {
-      std::visit(
-        [&](auto&& r) { m_results.push_back(std::forward<decltype(r)>(r)); },
-        std::move(r));
+      m_results.push_back(std::move(r));
     }
 
     bool has_error()
@@ -115,6 +118,11 @@ namespace yave {
   node_parser_result& node_parser_result::operator=(node_parser_result&&) noexcept = default;
   // clang-format on
 
+  bool node_parser_result::success() const
+  {
+    return m_pimpl->success();
+  }
+
   auto node_parser_result::take_node_graph()
     -> std::optional<structured_node_graph>
   {
@@ -157,7 +165,7 @@ namespace yave {
 
   void node_parser_result::add_result(parse_result r)
   {
-    m_pimpl->add_result(r);
+    m_pimpl->add_result(std::move(r));
   }
 
   void node_parser_result::set_node_graph(structured_node_graph&& ng)

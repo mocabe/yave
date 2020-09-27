@@ -40,7 +40,7 @@ namespace yave::editor {
     /// parse result
     node_parser_result m_parse_result = {};
     /// compile errors
-    error_list m_compile_errors = {};
+    node_compiler_result m_compile_result = {};
     /// result
     std::optional<executable> m_result;
 
@@ -59,7 +59,7 @@ namespace yave::editor {
     {
       m_thread_ptr     = nullptr;
       m_parse_result   = {};
-      m_compile_errors = {};
+      m_compile_result = {};
       m_result         = std::nullopt;
     }
 
@@ -75,18 +75,10 @@ namespace yave::editor {
       return m_parse_result;
     }
 
-    auto& compile_errors() const
+    auto& compile_result() const
     {
       assert(m_thread_ptr);
-      return m_compile_errors;
-    }
-
-    auto get_result() const -> std::optional<executable>
-    {
-      if (m_result)
-        return m_result->clone();
-      else
-        return std::nullopt;
+      return m_compile_result;
     }
   };
 } // namespace yave::editor

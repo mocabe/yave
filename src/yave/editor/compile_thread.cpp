@@ -98,7 +98,7 @@ namespace yave::editor {
                 auto& data    = data_lck.get_data<editor_data>();
                 // store parse results
                 data.compiler.m_parse_result   = std::move(parse_result);
-                data.compiler.m_compile_errors = {};
+                data.compiler.m_compile_result = {};
                 // build local copy of defs for compilation
                 if (parsed_ng)
                   defs_copy = data.node_defs;
@@ -113,42 +113,19 @@ namespace yave::editor {
               Info(g_logger, "Success to parse node graph");
 
               // compile
-              auto exe = compiler.compile(
-                std::move(parsed_ng.value()), defs_copy.value());
+              auto compile_result = compiler.compile(
+                {.node_graph = std::move(g),
+                 .node_defs  = std::move(defs_copy).value()});
 
-              if (!exe) {
-                auto data_lck = data_ctx.lock();
-                auto& data    = data_lck.get_data<editor_data>();
-                data.compiler.m_compile_errors = compiler.get_errors();
+              if (compile_result.success())
+                Info(g_logger, "Success to compile node graph");
+              else
                 Info(g_logger, "Failed to compile node graph");
-                continue;
-              }
-
-              // result is not framebuffer
-              // TODO: make proper error type
-              if (!same_type(
-                    exe->type(), object_type<node_closure<FrameBuffer>>())) {
-                auto data_lck = data_ctx.lock();
-                auto& data    = data_lck.get_data<editor_data>();
-
-                data.compiler.m_compile_errors = {};
-
-                auto n = data.root_group;
-                auto s = data.node_graph.output_sockets(n).at(0);
-                data.compiler.m_compile_errors.push_back(
-                  make_error<compile_error::unexpected_error>(
-                    s, "Output type is not FrameBuffer"));
-
-                Info(g_logger, "Failed to compiler node graph");
-                continue;
-              }
 
               {
-                Info(g_logger, "Success to compile node graph");
                 auto data_lck = data_ctx.lock();
                 auto& data    = data_lck.get_data<editor_data>();
-                data.compiler.m_compile_errors = {};
-                data.compiler.m_result         = std::move(exe);
+                data.compiler.m_compile_result = std::move(compile_result);
                 data.executor.notify_execute();
               }
             }
