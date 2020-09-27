@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <yave/node/compiler/compile_result.hpp>
 #include <yave/node/compiler/executable.hpp>
 #include <yave/node/compiler/errors.hpp>
 #include <yave/node/compiler/type.hpp>
@@ -15,8 +16,73 @@
 
 namespace yave {
 
+  class node_compiler;
+
+  class node_compiler_result
+  {
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+
+  public:
+    node_compiler_result();
+    ~node_compiler_result() noexcept;
+    node_compiler_result(node_compiler_result&&) noexcept;
+    node_compiler_result& operator=(node_compiler_result&&) noexcept;
+
+  public:
+    /// success?
+    bool success() const;
+
+    /// clone executable if exists
+    auto clone_executable() const -> std::optional<executable>;
+
+    /// filtering results
+    auto get_errors() const -> std::vector<compile_result>;
+    auto get_warnings() const -> std::vector<compile_result>;
+    auto get_infos() const -> std::vector<compile_result>;
+
+    /// get reuslts associated to node.
+    /// \param ng reference node graph
+    /// \param n  target node
+    auto get_results(const structured_node_graph& ng, const node_handle& n)
+      const -> std::vector<compile_result>;
+
+    /// get reuslt associated to socket.
+    /// \param ng referenec node graph
+    /// \param s target socket
+    auto get_results(const structured_node_graph& ng, const socket_handle& s)
+      const -> std::vector<compile_result>;
+
+  private:
+    friend class node_compiler;
+
+    // add result
+    void add_result(compile_result r);
+
+    // set executable
+    void set_executable(executable&& ng);
+  };
+
   class node_compiler
   {
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+
+  public:
+    struct params
+    {
+      /// node graph
+      structured_node_graph node_graph;
+      /// definitions
+      node_definition_store node_defs;
+    };
+
+  private:
+    static auto _init_params() -> params
+    {
+      return {};
+    }
+
   public:
     /// Ctor
     node_compiler();
@@ -24,16 +90,8 @@ namespace yave {
     ~node_compiler() noexcept;
 
     /// Compile parsed V2 node graph
-    [[nodiscard]] auto compile(
-      structured_node_graph&& graph,
-      const node_definition_store& defs) -> std::optional<executable>;
-
-    /// Get last errors
-    [[nodiscard]] auto get_errors() const -> error_list;
-
-  private:
-    class impl;
-    std::unique_ptr<impl> m_pimpl;
+    [[nodiscard]] auto compile(params p = _init_params())
+      -> node_compiler_result;
   };
 
 } // namespace yave

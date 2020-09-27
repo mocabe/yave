@@ -41,53 +41,188 @@ namespace yave {
       return std::nullopt;
   }
 
-  class node_compiler::impl
+  class node_compiler_result::impl
   {
-    error_list errors;
-
-    // clang-format off
-
-    auto verbose_check(executable&& exe) 
-      -> tl::optional<executable>;
-
-    auto desugar(structured_node_graph&& ng) 
-      -> tl::optional<structured_node_graph>;
-
-    auto gen(structured_node_graph&& ng, const node_definition_store& defs)  
-      -> tl::optional<std::tuple<object_ptr<const Object>, class_env, location_map>>;
-
-    auto type(std::tuple<object_ptr<const Object>, class_env, location_map>&& p)
-      -> tl::optional<executable>;
-
-    auto optimize(executable&& exe) -> tl::optional<executable>;
-
-    // clang-format on
+    /// executable
+    std::optional<executable> m_exe;
+    /// results
+    std::vector<compile_result> m_results;
 
   public:
-    auto get_errors() const
+    impl() = default;
+
+  public:
+    bool success() const
     {
-      return errors.clone();
+      return m_exe.has_value();
     }
 
-    auto compile(structured_node_graph&& ng, const node_definition_store& defs)
-      -> tl::optional<executable>
+    auto clone_executable() const
     {
-      errors.clear();
+      return m_exe ? m_exe->clone() : std::optional<executable>();
+    }
 
+    void set_executable(executable&& exe)
+    {
+      m_exe = std::move(exe);
+    }
+
+    void add_result(compile_result r)
+    {
+      m_results.push_back(std::move(r));
+    }
+
+    auto get_filtered_result(compile_result_type ty)
+    {
+      std::vector<compile_result> ret;
+
+      for (auto&& r : m_results) {
+        if (type(r) == ty) {
+          ret.push_back(r);
+        }
+      }
+      return ret;
+    }
+
+    auto get_results(const structured_node_graph& ng, const node_handle& n)
+      const
+    {
+      std::vector<compile_result> ret;
+
+      for (auto&& r : m_results) {
+
+        auto h = ng.node(node_id(r));
+
+        // need to check gruop relation
+        if (h == n || ng.is_parent_of(n, h)) {
+          ret.push_back(r);
+        }
+      }
+      return ret;
+    }
+
+    auto get_results(const structured_node_graph& ng, const socket_handle& s)
+    {
+      std::vector<compile_result> ret;
+
+      for (auto&& r : m_results) {
+
+        auto h = ng.socket(socket_id(r));
+
+        if (h == s) {
+          ret.push_back(r);
+        }
+      }
+      return ret;
+    }
+  };
+
+  node_compiler_result::node_compiler_result()
+    : m_pimpl {std::make_unique<impl>()}
+  {
+  }
+
+  // clang-format off
+  node_compiler_result::~node_compiler_result() noexcept = default;
+  node_compiler_result::node_compiler_result(node_compiler_result&&) noexcept = default;
+  node_compiler_result& node_compiler_result::operator=(node_compiler_result&&) noexcept = default;
+  // clang-format on
+
+  bool node_compiler_result::success() const
+  {
+    return m_pimpl->success();
+  }
+
+  auto node_compiler_result::clone_executable() const
+    -> std::optional<executable>
+  {
+    return m_pimpl->clone_executable();
+  }
+
+  auto node_compiler_result::get_errors() const -> std::vector<compile_result>
+  {
+    return m_pimpl->get_filtered_result(compile_result_type::error);
+  }
+
+  auto node_compiler_result::get_warnings() const -> std::vector<compile_result>
+  {
+    return m_pimpl->get_filtered_result(compile_result_type::warning);
+  }
+
+  auto node_compiler_result::get_infos() const -> std::vector<compile_result>
+  {
+    return m_pimpl->get_filtered_result(compile_result_type::info);
+  }
+
+  auto node_compiler_result::get_results(
+    const structured_node_graph& ng,
+    const node_handle& n) const -> std::vector<compile_result>
+  {
+    return m_pimpl->get_results(ng, n);
+  }
+
+  auto node_compiler_result::get_results(
+    const structured_node_graph& ng,
+    const socket_handle& s) const -> std::vector<compile_result>
+  {
+    return m_pimpl->get_results(ng, s);
+  }
+
+  void node_compiler_result::add_result(compile_result r)
+  {
+    m_pimpl->add_result(std::move(r));
+  }
+
+  void node_compiler_result::set_executable(executable&& exe)
+  {
+    m_pimpl->set_executable(std::move(exe));
+  }
+
+  class node_compiler::impl
+  {
+    auto verbose_check(executable&& exe, node_compiler_result& res)
+      -> tl::optional<executable>;
+
+    auto desugar(structured_node_graph&& ng, node_compiler_result& res)
+      -> tl::optional<structured_node_graph>;
+
+    auto gen(
+      structured_node_graph&& ng,
+      const node_definition_store& defs,
+      node_compiler_result& res)
+      -> tl::optional<
+        std::tuple<object_ptr<const Object>, class_env, location_map>>;
+
+    auto type(
+      std::tuple<object_ptr<const Object>, class_env, location_map>&& p,
+      node_compiler_result& res) -> tl::optional<executable>;
+
+    auto optimize(executable&& exe, node_compiler_result& res)
+      -> tl::optional<executable>;
+
+    auto set_result(executable&& exe, node_compiler_result& res)
+      -> tl::optional<nullptr_t>;
+
+  public:
+    auto compile(structured_node_graph&& ng, const node_definition_store& defs)
+      -> node_compiler_result
+    {
       Info(g_logger, "Start compiling node tree:");
-      Info(g_logger, "  Total {} node definitions", defs.size());
+      Info(g_logger, "  Total {} node definitions detected", defs.size());
 
-      return tl::make_optional(std::move(ng)) //
-        .and_then([&](auto arg) { return desugar(std::move(arg)); })
-        .and_then([&](auto arg) { return gen(std::move(arg), defs); })
-        .and_then([&](auto arg) { return type(std::move(arg)); })
-        .and_then([&](auto arg) { return optimize(std::move(arg)); })
-        .and_then([&](auto arg) { return verbose_check(std::move(arg)); })
-        .or_else([&] {
-          Error(g_logger, "Failed to compile node graph");
-          for (auto&& e : errors)
-            Error(g_logger, "  {}", e.message());
-        });
+      node_compiler_result result;
+
+      // clang-format off
+      tl::make_optional(std::move(ng)) //
+        .and_then([&](auto arg) { return desugar(std::move(arg) ,result); })
+        .and_then([&](auto arg) { return gen(std::move(arg), defs, result); })
+        .and_then([&](auto arg) { return type(std::move(arg), result); })
+        .and_then([&](auto arg) { return optimize(std::move(arg), result); })
+        .and_then([&](auto arg) { return verbose_check(std::move(arg), result); })
+        .and_then([&](auto arg) { return set_result(std::move(arg), result); });
+      // clang-format on
+
+      return result;
     }
   };
 
@@ -99,28 +234,23 @@ namespace yave {
 
   node_compiler::~node_compiler() noexcept = default;
 
-  auto node_compiler::get_errors() const -> error_list
+  auto node_compiler::compile(params p) -> node_compiler_result
   {
-    return m_pimpl->get_errors();
+    return m_pimpl->compile(std::move(p.node_graph), p.node_defs);
   }
 
-  auto node_compiler::compile(
-    structured_node_graph&& graph,
-    const node_definition_store& defs) -> std::optional<executable>
+  auto node_compiler::impl::verbose_check(
+    executable&& exe,
+    node_compiler_result& res) -> tl::optional<executable>
   {
-    return to_std(m_pimpl->compile(std::move(graph), defs));
-  }
+    using namespace compile_results;
 
-  auto node_compiler::impl::verbose_check(executable&& exe)
-    -> tl::optional<executable>
-  {
     try {
 
       auto tp = type_of(exe.object());
 
       if (!same_type(tp, exe.type())) {
-        errors.push_back(make_error<compile_error::unexpected_error>(
-          socket_handle(),
+        res.add_result(unexpected_error(
           "Verbose type check failed: result type does not match"));
         return tl::nullopt;
       }
@@ -128,18 +258,18 @@ namespace yave {
       return std::move(exe);
 
     } catch (const std::exception& e) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        socket_handle(),
+      res.add_result(unexpected_error(
         "Exception thrown while checking result: "s + e.what()));
     } catch (...) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        socket_handle(), "Exception thrown while checking result: "));
+      res.add_result(
+        unexpected_error("Exception thrown while checking result: "));
     }
     return tl::nullopt;
   }
 
-  auto node_compiler::impl::desugar(structured_node_graph&& ng)
-    -> tl::optional<structured_node_graph>
+  auto node_compiler::impl::desugar(
+    structured_node_graph&& ng,
+    node_compiler_result & /*res*/) -> tl::optional<structured_node_graph>
   {
     auto roots = ng.search_path("/");
 
@@ -227,10 +357,13 @@ namespace yave {
 
   auto node_compiler::impl::gen(
     structured_node_graph&& ng,
-    const node_definition_store& defs)
+    const node_definition_store& defs,
+    node_compiler_result& res)
     -> tl::optional<
       std::tuple<object_ptr<const Object>, class_env, location_map>>
   {
+    using namespace compile_results;
+
     auto roots = ng.search_path("/");
 
     auto root = [&] {
@@ -397,18 +530,17 @@ namespace yave {
       auto app = rec(root, rootos, std::vector<object_ptr<const Object>>());
       return std::make_tuple(std::move(app), std::move(env), std::move(loc));
 
+    } catch (const compile_result& r) {
       // forward
-    } catch (const error_info_base& e) {
-      errors.push_back(error(e.clone()));
+      res.add_result(r);
 
       // other
     } catch (const std::exception& e) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        socket_handle(),
+      res.add_result(unexpected_error(
         "Internal error: Unknown std::exception detected: "s + e.what()));
     } catch (...) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        socket_handle(), "Internal error: Unknown exception detected"));
+      res.add_result(
+        unexpected_error("Internal error: Unknown exception detected"));
     }
     return tl::nullopt;
   }
@@ -425,9 +557,11 @@ namespace yave {
     trap them to report to frontend.
    */
   auto node_compiler::impl::type(
-    std::tuple<object_ptr<const Object>, class_env, location_map>&& p)
-    -> tl::optional<executable>
+    std::tuple<object_ptr<const Object>, class_env, location_map>&& p,
+    node_compiler_result& res) -> tl::optional<executable>
   {
+    using namespace compile_results;
+
     try {
 
       auto [app, env, loc] = std::move(p);
@@ -436,29 +570,37 @@ namespace yave {
       return executable(app2, ty);
 
       // normal errors
-    } catch (const error_info_base& e) {
-      errors.push_back(error(e.clone()));
+    } catch (const compile_result& r) {
+      // forward
+      res.add_result(r);
 
       // internal type errors
     } catch (const type_error::type_error& e) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        socket_handle(), "Internal type error: "s + e.what()));
+      res.add_result(unexpected_error("Internal type error: "s + e.what()));
 
       // others
     } catch (const std::exception& e) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        socket_handle(),
+      res.add_result(unexpected_error(
         "Internal error: Unknown std::exception detected: "s + e.what()));
     } catch (...) {
-      errors.push_back(make_error<compile_error::unexpected_error>(
-        socket_handle(), "Internal error: Unknown exception detected"));
+      res.add_result(
+        unexpected_error("Internal error: Unknown exception detected"));
     }
     return tl::nullopt;
   }
 
-  auto node_compiler::impl::optimize(executable&& exe)
-    -> tl::optional<executable>
+  auto node_compiler::impl::optimize(
+    executable&& exe,
+    node_compiler_result & /*res*/) -> tl::optional<executable>
   {
     return std::move(exe);
+  }
+
+  auto node_compiler::impl::set_result(
+    executable&& exe,
+    node_compiler_result& res) -> tl::optional<nullptr_t>
+  {
+    res.set_executable(std::move(exe));
+    return {};
   }
 } // namespace yave
