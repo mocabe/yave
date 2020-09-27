@@ -176,8 +176,8 @@ namespace yave {
         const socket_handle& rhs_socket,
         object_ptr<const Type> rhs_type)
         : m_lhs_id {lhs_socket.id()}
-        , m_lhs_type {std::move(lhs_type)}
         , m_rhs_id {rhs_socket.id()}
+        , m_lhs_type {std::move(lhs_type)}
         , m_rhs_type {std::move(rhs_type)}
       {
       }
