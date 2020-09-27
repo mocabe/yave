@@ -24,49 +24,29 @@ namespace yave::graph {
   // TODO: Possibly replace internal representation using Boost.Graph library.
   // TODO: Use memory pool for allocation to improve data locality.
 
-  template <typename Traits>
-  class node;
-
-  template <typename Traits>
-  class edge;
-
-  template <typename Traits>
-  class socket;
-
-  template <
-    class NodeProperty,
-    class SocketProperty,
-    class EdgeProperty,
-    class Tag>
-  class graph;
-
-  /// empty class
-  struct empty_graph_property
+  struct graph_id_generator
   {
+    // id type
+    using id_type = uint64_t;
+
+    /// generate random ID for graph objects.
+    auto generate() -> id_type
+    {
+      static auto mt = std::mt19937_64(
+        std::chrono::high_resolution_clock::now().time_since_epoch().count());
+      return id_type(mt());
+    }
   };
 
-  /// default trait tag
-  struct default_graph_trait_tag;
-
-  /// container_traits tells Graph how to manage Nodes,Edges,Sockets.
-  /// Default implementation is specialized to std::vector as container, pointer
-  /// type as descriptor.
-  template <
-    template <class>
-    class ValueType,
-    class GraphTraits,
-    class Tag = default_graph_trait_tag>
-  struct graph_container_traits;
-
-  template <template <class> class ValueType, class GraphTraits>
-  struct graph_container_traits<ValueType, GraphTraits, default_graph_trait_tag>
+  template <template <class> class ValueType, class Graph>
+  struct graph_container
   {
     // value type
-    using value_type = ValueType<GraphTraits>;
+    using value_type = ValueType<Graph>;
     // descriptor type
     using descriptor_type = const value_type *;
     // id type
-    using id_type = typename GraphTraits::id_type;
+    using id_type = typename Graph::id_type;
 
     /// Internal container type for graph
     struct container_type
@@ -78,13 +58,11 @@ namespace yave::graph {
     };
 
     /// Check if a descriptor exists in a container.
-    /// \param c Container
     /// \param descriptor descriptor
     /// \param return true when descriptor is valid and exists in the container
-    static inline bool exists(
-      const container_type &c,
-      const descriptor_type &descriptor)
+    bool exists(const descriptor_type &descriptor) const noexcept
     {
+      auto &c   = m_container;
       auto &map = c.dsc_map;
 
       auto iter = map.find(descriptor);
@@ -96,11 +74,11 @@ namespace yave::graph {
     }
 
     /// Check if an Id exists in a container.
-    /// \param c Container
     /// \param id id
     /// \param return true when the id exists in the container
-    static inline bool exists(const container_type &c, const id_type &id)
+    bool exists(const id_type &id) const noexcept
     {
+      auto &c   = m_container;
       auto &map = c.id_map;
 
       auto iter = map.find(id);
@@ -110,15 +88,12 @@ namespace yave::graph {
 
       return false;
     }
-
     /// Find descriptor from ID value.
-    /// \param c Container
     /// \param id id
     /// \returns nullptr when not found
-    static inline descriptor_type find_descriptor(
-      const container_type &c,
-      const id_type &id)
+    auto find_descriptor(const id_type &id) const noexcept -> descriptor_type
     {
+      auto &c   = m_container;
       auto &map = c.id_map;
 
       auto iter = map.find(id);
@@ -132,14 +107,11 @@ namespace yave::graph {
     /// Destroy instance from a container.
     /// Descriptor will become invalid after calling this
     /// function.
-    /// \param c Container
     /// \param id Id
     /// \param descriptor Descriptor
-    static inline void destroy(
-      container_type &c,
-      const descriptor_type &descriptor,
-      const id_type &id) noexcept
+    void destroy(const descriptor_type &descriptor, const id_type &id) noexcept
     {
+      auto &c = m_container;
       // remove id
       {
         auto &map = c.id_map;
@@ -162,15 +134,13 @@ namespace yave::graph {
     }
 
     /// Instance in a container and return descriptor.
-    /// \param c Container
     /// \param id Id of new value
     /// \param args Args for initialize value type
     template <class... Args>
-    static inline descriptor_type create(
-      container_type &c,
-      const id_type &id,
-      Args &&... args)
+    auto create(const id_type &id, Args &&... args) -> descriptor_type
     {
+      auto &c = m_container;
+
       descriptor_type dsc;
       {
         // insert id
@@ -190,11 +160,12 @@ namespace yave::graph {
     }
 
     /// Get list of descriptors.
-    /// \param c Container
-    static inline std::vector<descriptor_type> descriptors(
-      const container_type &c)
+    auto descriptors() const
     {
+      auto &c = m_container;
+
       std::vector<descriptor_type> ret;
+      ret.reserve(c.dsc_map.size());
 
       for (auto &&pair : c.dsc_map) {
         ret.push_back(pair.first);
@@ -205,9 +176,12 @@ namespace yave::graph {
 
     /// Get list of IDs.
     /// \param c Container
-    static inline std::vector<id_type> ids(const container_type &c)
+    auto ids() const
     {
+      auto &c = m_container;
+
       std::vector<id_type> ret;
+      ret.reserve(c.id_map.size());
 
       for (auto &&pair : c.id_map) {
         ret.push_back(pair.first);
@@ -217,175 +191,77 @@ namespace yave::graph {
     }
 
     /// Get number of elements.
-    /// \param c Container
-    static inline size_t size(const container_type &c)
+    auto size() const noexcept
     {
+      auto &c = m_container;
       assert(c.dsc_map.size() == c.id_map.size());
       return c.dsc_map.size();
     }
 
     /// Access function.
-    /// \param c Container.
     /// \param descriptor A valid descriptor.
     /// \returns reference of value type in the container.
-    static inline value_type &access(
-      container_type &c,
-      const descriptor_type &descriptor) noexcept
+    auto &access(const descriptor_type &descriptor) noexcept
     {
-      (void)c;
       assert(descriptor);
       return *const_cast<value_type *>(descriptor);
     }
 
     /// Access function.
-    /// \param c Container.
     /// \param descriptor A valid descriptor.
     /// \returns reference of value type in the container.
-    static inline const value_type &access(
-      const container_type &c,
-      const descriptor_type &descriptor) noexcept
+    auto &access(const descriptor_type &descriptor) const noexcept
     {
-      (void)c;
       assert(descriptor);
       return *descriptor;
     }
 
     /// Access function.
-    /// \param c Container
     /// \param descriptor descriptor
     /// \throws std::out_of_range when given descriptor is invalid or nonexist
     /// in the container.
     /// \returns reference of value type.
-    static inline value_type &at(
-      container_type &c,
-      const descriptor_type &descriptor)
+    auto &at(const descriptor_type &descriptor)
     {
-      if (!exists(c, descriptor))
+      if (!exists(descriptor))
         throw std::out_of_range("descriptor does not exist.");
-      return access(c, descriptor);
+      return access(descriptor);
     }
 
     /// Access function.
     ///  reference of value type.
-    /// \param c Container
     /// \param descriptor Descriptor
     /// \throws std::out_of_range when given descriptor is invalid or nonexist
     /// in the container.
-    static inline const value_type &at(
-      const container_type &c,
-      const descriptor_type &descriptor)
+    auto &at(const descriptor_type &descriptor) const
     {
-      if (!exists(c, descriptor))
+      if (!exists(descriptor))
         throw std::out_of_range("descriptor does not exist.");
-      return access(c, descriptor);
+      return access(descriptor);
     }
-  };
 
-  /// \brief trait class for defining ID type for node/socket/edge.
-  template <class Node, class Edge, class Socket>
-  struct graph_id_traits
-  {
-    /// id type
-    using id_type = uint64_t;
-
-    /// generate random ID for graph objects.
-    static id_type random_generate()
-    {
-      static auto mt = std::mt19937_64(
-        std::chrono::high_resolution_clock::now().time_since_epoch().count());
-      return id_type(mt());
-    }
-  };
-
-  /// \brief graph_traits provides all of typedefs used in Graph class.
-  /// Property types can only be customized through this class.
-  template <
-    class NodeProperty,
-    class SocketProperty,
-    class EedgeProperty,
-    class Tag>
-  struct graph_traits;
-
-  template <class NodeProperty, class SocketProperty, class EdgeProperty>
-  struct graph_traits<
-    NodeProperty,
-    SocketProperty,
-    EdgeProperty,
-    default_graph_trait_tag>
-  {
-    /// type
-    using type = graph_traits<
-      NodeProperty,
-      SocketProperty,
-      EdgeProperty,
-      default_graph_trait_tag>;
-
-    /// graph type
-    using graph_type = graph<
-      NodeProperty,
-      SocketProperty,
-      EdgeProperty,
-      default_graph_trait_tag>;
-
-    /* primitive types */
-
-    using node_type   = node<type>;
-    using edge_type   = edge<type>;
-    using socket_type = socket<type>;
-
-    /* property types */
-
-    using node_property_type   = NodeProperty;
-    using edge_property_type   = EdgeProperty;
-    using socket_property_type = SocketProperty;
-
-    /* ID traits */
-
-    using id_traits = graph_id_traits<node_type, socket_type, edge_type>;
-    using id_type   = typename id_traits::id_type;
-
-    /* container traits */
-
-    using node_container_traits   = graph_container_traits<node, type>;
-    using edge_container_traits   = graph_container_traits<edge, type>;
-    using socket_container_traits = graph_container_traits<socket, type>;
-
-    /* container types */
-
-    using node_container_type =                         //
-      typename node_container_traits::container_type;   //
-    using edge_container_type =                         //
-      typename edge_container_traits::container_type;   //
-    using socket_container_type =                       //
-      typename socket_container_traits::container_type; //
-
-    /* descriptor types */
-
-    using node_descriptor_type =
-      typename node_container_traits::descriptor_type;
-    using edge_descriptor_type =
-      typename edge_container_traits::descriptor_type;
-    using socket_descriptor_type =
-      typename socket_container_traits::descriptor_type;
+  private:
+    // container
+    container_type m_container;
   };
 
   /// \brief Node class.
   /// This class repsesents Node object in Graph contains descriptors of sockets
   /// which have link to this object.
-  template <typename Traits>
+  template <class Graph>
   class node
   {
   public:
     /// Type of this class
-    using type = node<Traits>;
+    using type = node<Graph>;
     /// Property type
-    using property_type = typename Traits::node_property_type;
+    using property_type = typename Graph::node_property_type;
     /// Descriptor type
-    using descriptor_type = typename Traits::node_descriptor_type;
+    using descriptor_type = typename Graph::node_descriptor_type;
     /// Socket descriptor type
-    using socket_descriptor_type = typename Traits::socket_descriptor_type;
+    using socket_descriptor_type = typename Graph::socket_descriptor_type;
     /// ID type
-    using id_type = typename Traits::id_type;
+    using id_type = typename Graph::id_type;
 
     /// A Constructor.
     /// \param id Unique id for this node.
@@ -469,20 +345,20 @@ namespace yave::graph {
   /// src,dst descriptors of socket. src and dst can contain same descriptor.
   /// constructed by 2 descriptors and should automatically be deleted when they
   /// deleted from Graph.
-  template <typename Traits>
+  template <typename Graph>
   class edge
   {
   public:
     /// Type
-    using type = edge<Traits>;
+    using type = edge<Graph>;
     /// Property type
-    using property_type = typename Traits::edge_property_type;
+    using property_type = typename Graph::edge_property_type;
     /// Descriptor type
-    using descriptor_type = typename Traits::edge_descriptor_type;
+    using descriptor_type = typename Graph::edge_descriptor_type;
     /// Socket descriptor type
-    using socket_descriptor_type = typename Traits::socket_descriptor_type;
+    using socket_descriptor_type = typename Graph::socket_descriptor_type;
     /// ID type
-    using id_type = typename Traits::id_type;
+    using id_type = typename Graph::id_type;
 
     /// A constructor.
     /// \param id Unique id for this edge.
@@ -549,22 +425,22 @@ namespace yave::graph {
   /// \brief Socket class.
   /// This class represents socket object in Graph.
   /// contains list of Node descriptors and list of Edge descriptors.
-  template <typename Traits>
+  template <typename Graph>
   class socket
   {
   public:
     /// Type
-    using type = socket<Traits>;
+    using type = socket<Graph>;
     /// Property type
-    using property_type = typename Traits::socket_property_type;
+    using property_type = typename Graph::socket_property_type;
     /// Descriptor type
-    using descriptor_type = typename Traits::socket_descriptor_type;
+    using descriptor_type = typename Graph::socket_descriptor_type;
     /// Node descriptor type
-    using node_descriptor_type = typename Traits::node_descriptor_type;
+    using node_descriptor_type = typename Graph::node_descriptor_type;
     /// Edge descriptor type
-    using edge_descriptor_type = typename Traits::edge_descriptor_type;
+    using edge_descriptor_type = typename Graph::edge_descriptor_type;
     /// ID type
-    using id_type = typename Traits::id_type;
+    using id_type = typename Graph::id_type;
 
     /// A constructor.
     /// \param id Unique id for this socket.
@@ -714,30 +590,53 @@ namespace yave::graph {
     property_type m_property;
   };
 
+  struct empty_graph_property
+  {
+  };
+
   /// \brief Node Graph class.
   /// This class represents Node Graph Object.
   template <
     class NodeProperty   = empty_graph_property,
     class SocketProperty = empty_graph_property,
-    class EdgeProperty   = empty_graph_property,
-    class Tag            = default_graph_trait_tag>
+    class EdgeProperty   = empty_graph_property>
   class graph
   {
   public:
-    using traits =
-      graph_traits<NodeProperty, SocketProperty, EdgeProperty, Tag>;
+    // clang-format off
 
-    using node_type              = typename traits::node_type;
-    using edge_type              = typename traits::edge_type;
-    using socket_type            = typename traits::socket_type;
-    using node_descriptor_type   = typename traits::node_descriptor_type;
-    using edge_descriptor_type   = typename traits::edge_descriptor_type;
-    using socket_descriptor_type = typename traits::socket_descriptor_type;
-    using id_type                = typename traits::id_type;
+    using type    = graph<NodeProperty, SocketProperty, EdgeProperty>;
 
-    /// A constructor
+    using id_generator           = graph_id_generator;
+    using id_type                = typename id_generator::id_type;
+
+    using node_property_type     = NodeProperty;
+    using socket_property_type   = SocketProperty;
+    using edge_property_type     = EdgeProperty;
+
+    using node_type              = node<type>;
+    using socket_type            = socket<type>;
+    using edge_type              = edge<type>;
+
+    using node_container_type    = graph_container<node, type>;
+    using socket_container_type  = graph_container<socket, type>;
+    using edge_container_type    = graph_container<edge, type>;
+
+    using node_descriptor_type   = typename node_container_type::descriptor_type;   
+    using socket_descriptor_type = typename socket_container_type::descriptor_type; 
+    using edge_descriptor_type   = typename edge_container_type::descriptor_type;
+
+    // clang-format on
+
+    /// Constructor
     graph()
     {
+    }
+
+    /// Destructor
+    ~graph() noexcept
+    {
+      clear();
     }
 
     /// Use copy functions to copy instances of Graph
@@ -752,21 +651,13 @@ namespace yave::graph {
     /// Move assignment.
     graph &operator=(graph &&other) = default;
 
-    /// A destructor
-    ~graph()
-    {
-      clear();
-      assert(empty());
-    }
-
     /// Add node with id.
     /// \param id Unique ID of new node.
     /// \param args Args to initialize property.
     /// \returns descriptor of new node.
     template <class... Args>
-    [[nodiscard]] node_descriptor_type add_node_with_id(
-      const id_type &id,
-      Args &&... args)
+    [[nodiscard]] auto add_node_with_id(const id_type &id, Args &&... args)
+      -> node_descriptor_type
     {
       return _create_n(id, std::forward<Args>(args)...);
     }
@@ -775,9 +666,9 @@ namespace yave::graph {
     /// \param args Args to initialize property.
     /// \returns descriptor of new node.
     template <class... Args>
-    [[nodiscard]] node_descriptor_type add_node(Args &&... args)
+    [[nodiscard]] auto add_node(Args &&... args) -> node_descriptor_type
     {
-      return add_node_with_id(_random_id_gen(), std::forward<Args>(args)...);
+      return add_node_with_id(_unique_id_gen(), std::forward<Args>(args)...);
     }
 
     /// Add socket with id.
@@ -785,9 +676,8 @@ namespace yave::graph {
     /// \param args Args to initialize property.
     /// \returns descriptor of new socket.
     template <class... Args>
-    [[nodiscard]] socket_descriptor_type add_socket_with_id(
-      const id_type &id,
-      Args &&... args)
+    [[nodiscard]] auto add_socket_with_id(const id_type &id, Args &&... args)
+      -> socket_descriptor_type
     {
       return _create_s(id, std::forward<Args>(args)...);
     }
@@ -796,9 +686,9 @@ namespace yave::graph {
     /// \param args Args to initialize property
     /// \returns descriptor of new socket
     template <class... Args>
-    [[nodiscard]] socket_descriptor_type add_socket(Args &&... args)
+    [[nodiscard]] auto add_socket(Args &&... args) -> socket_descriptor_type
     {
-      return add_socket_with_id(_random_id_gen(), std::forward<Args>(args)...);
+      return add_socket_with_id(_unique_id_gen(), std::forward<Args>(args)...);
     }
 
     /// Add edge.
@@ -807,17 +697,13 @@ namespace yave::graph {
     /// \param Unique ID for new edge.
     /// \param args Args to initialize property class.
     template <class... Args>
-    [[nodiscard]] edge_descriptor_type add_edge_with_id(
+    [[nodiscard]] auto add_edge_with_id(
       const socket_descriptor_type &src,
       const socket_descriptor_type &dst,
       const id_type &id,
-      Args &&... args)
+      Args &&... args) -> edge_descriptor_type
     {
-      if (!exists(src))
-        return nullptr;
-
-      if (!exists(dst))
-        return nullptr;
+      assert(exists(src) && exists(dst));
 
       for (auto &&e : _access(src).src_edges())
         if (_access(e).dst() == dst)
@@ -844,21 +730,20 @@ namespace yave::graph {
     /// \param dst destination socket.
     /// \param args Args to initialize property class.
     template <class... Args>
-    [[nodiscard]] edge_descriptor_type add_edge(
+    [[nodiscard]] auto add_edge(
       const socket_descriptor_type &src,
       const socket_descriptor_type &dst,
-      Args &&... args)
+      Args &&... args) -> edge_descriptor_type
     {
       return add_edge_with_id(
-        src, dst, _random_id_gen(), std::forward<Args>(args)...);
+        src, dst, _unique_id_gen(), std::forward<Args>(args)...);
     }
 
     /// Remove node.
-    /// \param descriptor descriptor of node
+    /// \param descriptor valid descriptor of node
     void remove_node(const node_descriptor_type &descriptor)
     {
-      if (!exists(descriptor))
-        return; // invalid descriptor
+      assert(exists(descriptor));
 
       // delete links from sockets
       for (auto &&s : _access(descriptor).sockets())
@@ -869,11 +754,10 @@ namespace yave::graph {
     }
 
     /// \brief Remove edge.
-    /// \param descriptor descriptor of edge
+    /// \param descriptor valid descriptor of edge
     void remove_edge(const edge_descriptor_type &descriptor)
     {
-      if (!exists(descriptor))
-        return; // invalid descriptor
+      assert(exists(descriptor));
 
       auto src = _access(descriptor).src();
       auto dst = _access(descriptor).dst();
@@ -888,11 +772,10 @@ namespace yave::graph {
 
     /// Remove socket
     /// Removes all of edges connected from the socket.
-    /// \param descriptor descriptor of socket
+    /// \param descriptor valid descriptor of socket
     void remove_socket(const socket_descriptor_type &descriptor)
     {
-      if (!exists(descriptor))
-        return; // nonexist descriptor
+      assert(exists(descriptor));
 
       for (auto &&e : _access(descriptor).src_edges()) {
         auto dst = _access(e).dst();
@@ -917,7 +800,7 @@ namespace yave::graph {
     /// \returns true if success
     [[nodiscard]] bool exists(const node_descriptor_type &descriptor) const
     {
-      return traits::node_container_traits::exists(m_nodes, descriptor);
+      return m_nodes.exists(descriptor);
     }
 
     /// Check if edge descriptor exists
@@ -925,7 +808,7 @@ namespace yave::graph {
     /// \returns true if success
     [[nodiscard]] bool exists(const edge_descriptor_type &descriptor) const
     {
-      return traits::edge_container_traits::exists(m_edges, descriptor);
+      return m_edges.exists(descriptor);
     }
 
     /// Check if socket descriptor exists
@@ -933,22 +816,22 @@ namespace yave::graph {
     /// \returns true if success
     [[nodiscard]] bool exists(const socket_descriptor_type &descriptor) const
     {
-      return traits::socket_container_traits::exists(m_sockets, descriptor);
+      return m_sockets.exists(descriptor);
     }
 
     /// Descriptor access operator.
     /// \param descriptor descriptor of node
     /// \returns if success
-    [[nodiscard]] NodeProperty &operator[](
-      const node_descriptor_type &descriptor)
+    [[nodiscard]] auto operator[](const node_descriptor_type &descriptor)
+      -> node_property_type &
     {
       return _access(descriptor).property();
     }
     /// Descriptor access operator
     /// \param descriptor descriptor of node
     /// \returns if descriptor is invalid, return value is undefined.
-    [[nodiscard]] const NodeProperty &operator[](
-      const node_descriptor_type &descriptor) const
+    [[nodiscard]] auto operator[](const node_descriptor_type &descriptor) const
+      -> const node_property_type &
     {
       return _access(descriptor).property();
     }
@@ -956,16 +839,16 @@ namespace yave::graph {
     /// Descriptor access operator.
     /// \param descriptor descriptor of edge
     /// \returns if success
-    [[nodiscard]] EdgeProperty &operator[](
-      const edge_descriptor_type &descriptor)
+    [[nodiscard]] auto operator[](const edge_descriptor_type &descriptor)
+      -> edge_property_type &
     {
       return _access(descriptor).property();
     }
     /// Descriptor access operator.
     /// \param descriptor descriptor of edge
     /// \returns if success
-    [[nodiscard]] const EdgeProperty &operator[](
-      const edge_descriptor_type &descriptor) const
+    [[nodiscard]] auto operator[](const edge_descriptor_type &descriptor) const
+      -> const edge_property_type &
     {
       return _access(descriptor).property();
     }
@@ -973,8 +856,8 @@ namespace yave::graph {
     /// Descriptor access operator.
     /// \param descriptor descriptor of socket
     /// \returns if success
-    [[nodiscard]] SocketProperty &operator[](
-      const socket_descriptor_type &descriptor)
+    [[nodiscard]] auto operator[](const socket_descriptor_type &descriptor)
+      -> socket_property_type &
     {
       return _access(descriptor).property();
     }
@@ -982,8 +865,8 @@ namespace yave::graph {
     /// Descriptor access operator.
     /// \param descriptor descriptor of socket
     /// \returns if success
-    [[nodiscard]] const SocketProperty &operator[](
-      const socket_descriptor_type &descriptor) const
+    [[nodiscard]] auto operator[](const socket_descriptor_type &descriptor)
+      const -> const socket_property_type &
     {
       return _access(descriptor).property();
     }
@@ -991,7 +874,8 @@ namespace yave::graph {
     /// Descriptor access operator.
     /// \param descriptor descriptor of node
     /// \returns if success
-    [[nodiscard]] NodeProperty &at(const node_descriptor_type &descriptor)
+    [[nodiscard]] auto at(const node_descriptor_type &descriptor)
+      -> node_property_type &
     {
       return _at(descriptor).property();
     }
@@ -999,8 +883,8 @@ namespace yave::graph {
     /// Descriptor access operator.
     /// \param descriptor descriptor of node
     /// \returns if descriptor is invalid, return value is undefined.
-    [[nodiscard]] const NodeProperty &at(
-      const node_descriptor_type &descriptor) const
+    [[nodiscard]] auto at(const node_descriptor_type &descriptor) const
+      -> const node_property_type &
     {
       return _at(descriptor).property();
     }
@@ -1008,7 +892,8 @@ namespace yave::graph {
     /// Descriptor access operator
     /// \param descriptor descriptor of edge
     /// \returns if success
-    [[nodiscard]] EdgeProperty &at(const edge_descriptor_type &descriptor)
+    [[nodiscard]] auto at(const edge_descriptor_type &descriptor)
+      -> edge_property_type &
     {
       return _at(descriptor).property();
     }
@@ -1016,8 +901,8 @@ namespace yave::graph {
     /// Descriptor access operator.
     /// \param descriptor descriptor of edge
     /// \returns if success
-    [[nodiscard]] const EdgeProperty &at(
-      const edge_descriptor_type &descriptor) const
+    [[nodiscard]] auto at(const edge_descriptor_type &descriptor) const
+      -> const edge_property_type &
     {
       return _at(descriptor).property();
     }
@@ -1025,7 +910,8 @@ namespace yave::graph {
     /// Descriptor access operator.
     /// \param descriptor descriptor of socket
     /// \returns if success
-    [[nodiscard]] SocketProperty &at(const socket_descriptor_type &descriptor)
+    [[nodiscard]] auto at(const socket_descriptor_type &descriptor)
+      -> socket_property_type &
     {
       return _at(descriptor).property();
     }
@@ -1033,21 +919,20 @@ namespace yave::graph {
     /// Descriptor access operator.
     /// \param descriptor descriptor of socket
     /// \returns if success
-    [[nodiscard]] const SocketProperty &at(
-      const socket_descriptor_type &descriptor) const
+    [[nodiscard]] auto at(const socket_descriptor_type &descriptor) const
+      -> const socket_property_type &
     {
       return _at(descriptor).property();
     }
 
     /// Attach socket.
-    /// \param node node descriptor
-    /// \param socket socket descriptor
+    /// \param node valid node descriptor
+    /// \param socket valid socket descriptor
     [[nodiscard]] bool attach_socket(
       const node_descriptor_type &node,
       const socket_descriptor_type &socket)
     {
-      if (!exists(node) || !exists(socket))
-        return false;
+      assert(exists(node) && exists(socket));
 
       _access(socket).set_node(node);
       _access(node).set_socket(socket);
@@ -1056,14 +941,13 @@ namespace yave::graph {
     }
 
     /// Detach socket.
-    /// \param node node descriptor
-    /// \param socket socket descriptor
+    /// \param node valid node descriptor
+    /// \param socket valid socket descriptor
     void detach_socket(
       const node_descriptor_type &node,
       const socket_descriptor_type &socket)
     {
-      if (!exists(node) || !exists(socket))
-        return;
+      assert(exists(node) && exists(socket));
 
       for (auto &&n : _access(socket).nodes()) {
         if (n == node) {
@@ -1076,151 +960,156 @@ namespace yave::graph {
     }
 
     /// Get nodes.
-    [[nodiscard]] std::vector<node_descriptor_type> nodes() const
+    [[nodiscard]] auto nodes() const -> std::vector<node_descriptor_type>
     {
       return _nodes();
     }
 
     /// Get node count.
-    [[nodiscard]] size_t n_nodes() const
+    [[nodiscard]] auto n_nodes() const -> size_t
     {
       return _n_nodes();
     }
 
     /// Get nodes connected to the socket.
-    [[nodiscard]] std::vector<node_descriptor_type> nodes(
-      const socket_descriptor_type &descriptor) const
+    [[nodiscard]] auto nodes(const socket_descriptor_type &descriptor) const
+      -> std::vector<node_descriptor_type>
     {
       auto &ns = _at(descriptor).nodes();
       return {ns.begin(), ns.end()};
     }
 
     /// Get number of connected nodes to the socket.
-    [[nodiscard]] size_t n_nodes(const socket_descriptor_type &descriptor) const
+    [[nodiscard]] auto n_nodes(const socket_descriptor_type &descriptor) const
+      -> size_t
     {
       return _at(descriptor).n_nodes();
     }
 
     /// Get sockets.
-    [[nodiscard]] std::vector<socket_descriptor_type> sockets() const
+    [[nodiscard]] auto sockets() const -> std::vector<socket_descriptor_type>
     {
       return _sockets();
     }
 
     /// Get socket count.
-    [[nodiscard]] size_t n_sockets() const
+    [[nodiscard]] auto n_sockets() const -> size_t
     {
       return _n_sockets();
     }
 
     /// Get sockets connected to the node.
-    [[nodiscard]] std::vector<socket_descriptor_type> sockets(
-      const node_descriptor_type &descriptor) const
+    [[nodiscard]] auto sockets(const node_descriptor_type &descriptor) const
+      -> std::vector<socket_descriptor_type>
     {
       auto &ss = _at(descriptor).sockets();
       return {ss.begin(), ss.end()};
     }
 
     /// Get number of connected sockets to the node.
-    [[nodiscard]] size_t n_sockets(const node_descriptor_type &descriptor) const
+    [[nodiscard]] auto n_sockets(const node_descriptor_type &descriptor) const
+      -> size_t
     {
       return _at(descriptor).n_sockets();
     }
 
     /// Get edges.
-    [[nodiscard]] std::vector<edge_descriptor_type> edges() const
+    [[nodiscard]] auto edges() const -> std::vector<edge_descriptor_type>
     {
       return _edges();
     }
 
     /// Get edge count.
-    [[nodiscard]] size_t n_edges() const
+    [[nodiscard]] auto n_edges() const -> size_t
     {
       return _n_edges();
     }
 
     /// Get src edges.
-    [[nodiscard]] std::vector<edge_descriptor_type> src_edges(
-      const socket_descriptor_type &descriptor) const
+    [[nodiscard]] auto src_edges(const socket_descriptor_type &descriptor) const
+      -> std::vector<edge_descriptor_type>
     {
       auto &es = _at(descriptor).src_edges();
       return {es.begin(), es.end()};
     }
 
     /// Get number of src edges.
-    [[nodiscard]] size_t n_src_edges(
-      const socket_descriptor_type &descriptor) const
+    [[nodiscard]] auto n_src_edges(
+      const socket_descriptor_type &descriptor) const -> size_t
     {
       return _at(descriptor).n_src_edges();
     }
 
     /// Get dst edges.
-    [[nodiscard]] std::vector<edge_descriptor_type> dst_edges(
-      const socket_descriptor_type &descriptor) const
+    [[nodiscard]] auto dst_edges(const socket_descriptor_type &descriptor) const
+      -> std::vector<edge_descriptor_type>
     {
       auto &es = _at(descriptor).dst_edges();
       return {es.begin(), es.end()};
     }
 
     /// Get number of dst edges.
-    [[nodiscard]] size_t n_dst_edges(
-      const socket_descriptor_type &descriptor) const
+    [[nodiscard]] auto n_dst_edges(
+      const socket_descriptor_type &descriptor) const -> size_t
     {
       return _at(descriptor).n_dst_edges();
     }
 
     /// Get src socket.
-    [[nodiscard]] socket_descriptor_type src(
-      const edge_descriptor_type &descriptor) const
+    [[nodiscard]] auto src(const edge_descriptor_type &descriptor) const
+      -> socket_descriptor_type
     {
       return _at(descriptor).src();
     }
 
     /// Get dst socket.
-    [[nodiscard]] socket_descriptor_type dst(
-      const edge_descriptor_type &descriptor) const
+    [[nodiscard]] auto dst(const edge_descriptor_type &descriptor) const
+      -> socket_descriptor_type
     {
       return _at(descriptor).dst();
     }
 
     /// Get id of node.
-    [[nodiscard]] id_type id(const node_descriptor_type &descriptor) const
+    [[nodiscard]] auto id(const node_descriptor_type &descriptor) const
+      -> id_type
     {
       return _at(descriptor).id();
     }
 
     /// Get id of socket.
-    [[nodiscard]] id_type id(const socket_descriptor_type &descriptor) const
+    [[nodiscard]] auto id(const socket_descriptor_type &descriptor) const
+      -> id_type
     {
       return _at(descriptor).id();
     }
 
     /// Get id of edge.
-    [[nodiscard]] id_type id(const edge_descriptor_type &descriptor) const
+    [[nodiscard]] auto id(const edge_descriptor_type &descriptor) const
+      -> id_type
     {
       return _at(descriptor).id();
     }
 
     /// Find node from id.
-    [[nodiscard]] node_descriptor_type node(const id_type &id) const
+    [[nodiscard]] auto node(const id_type &id) const -> node_descriptor_type
     {
-      return traits::node_container_traits::find_descriptor(m_nodes, id);
+      return m_nodes.find_descriptor(id);
     }
 
     /// Get socket from id.
-    [[nodiscard]] socket_descriptor_type socket(const id_type &id) const
+    [[nodiscard]] auto socket(const id_type &id) const -> socket_descriptor_type
     {
-      return traits::socket_container_traits::find_descriptor(m_sockets, id);
+      return m_sockets.find_descriptor(id);
     }
 
     /// Get edge from id.
-    [[nodiscard]] edge_descriptor_type edge(const id_type &id) const
+    [[nodiscard]] auto edge(const id_type &id) const -> edge_descriptor_type
     {
-      return traits::edge_container_traits::find_descriptor(m_edges, id);
+      return m_edges.find_descriptor(id);
     }
 
     /// Clone graph
-    [[nodiscard]] graph clone() const
+    [[nodiscard]] auto clone() const -> graph
     {
       // ret
       graph g;
@@ -1323,151 +1212,144 @@ namespace yave::graph {
     /// \param id id for new node
     /// \param args arguments to construct node property
     template <class... Args>
-    inline node_descriptor_type _create_n(const id_type &id, Args &&... args)
+    inline auto _create_n(const id_type &id, Args &&... args)
     {
-      return traits::node_container_traits::create(
-        m_nodes, id, std::forward<Args>(args)...);
+      return m_nodes.create(id, std::forward<Args>(args)...);
     }
 
     /// Create new edge.
     /// \param id id for new edge.
     /// \param args arguments to construct node property.
     template <class... Args>
-    inline edge_descriptor_type _create_e(const id_type &id, Args &&... args)
+    inline auto _create_e(const id_type &id, Args &&... args)
     {
-      return traits::edge_container_traits::create(
-        m_edges, id, std::forward<Args>(args)...);
+      return m_edges.create(id, std::forward<Args>(args)...);
     }
 
     /// Create new socket.
     /// \param id id for new socket.
     /// \param args arguments to construct node property
     template <class... Args>
-    inline socket_descriptor_type _create_s(const id_type &id, Args &&... args)
+    inline auto _create_s(const id_type &id, Args &&... args)
     {
-      return traits::socket_container_traits::create(
-        m_sockets, id, std::forward<Args>(args)...);
+      return m_sockets.create(id, std::forward<Args>(args)...);
     }
 
     /// Create random id for node/socket/edge.
-    id_type _random_id_gen()
+    auto _unique_id_gen()
     {
-      return traits::id_traits::random_generate();
+      return m_idgen.generate();
     }
 
     /// Get list of node descriptors.
-    inline std::vector<node_descriptor_type> _nodes() const
+    inline auto _nodes() const
     {
-      return traits::node_container_traits::descriptors(m_nodes);
+      return m_nodes.descriptors();
     }
 
     /// Get size of nodes.
-    inline size_t _n_nodes() const
+    inline auto _n_nodes() const
     {
-      return traits::node_container_traits::size(m_nodes);
+      return m_nodes.size();
     }
 
     /// Get list of socket descriptors.
-    inline std::vector<socket_descriptor_type> _sockets() const
+    inline auto _sockets() const
     {
-      return traits::socket_container_traits::descriptors(m_sockets);
+      return m_sockets.descriptors();
     }
 
     /// Get size of sockets.
-    inline size_t _n_sockets() const
+    inline auto _n_sockets() const
     {
-      return traits::socket_container_traits::size(m_sockets);
+      return m_sockets.size();
     }
 
     /// Get list of edges descriptors.
-    inline std::vector<edge_descriptor_type> _edges() const
+    inline auto _edges() const
     {
-      return traits::edge_container_traits::descriptors(m_edges);
+      return m_edges.descriptors();
     }
 
     /// Get size of edges.
-    inline size_t _n_edges() const
+    inline auto _n_edges() const
     {
-      return traits::edge_container_traits::size(m_edges);
+      return m_edges.size();
     }
 
     /// Node access.
     /// \param n if nonexist or invalid, behaviour of this function is undefined
-    inline node_type &_access(const node_descriptor_type &n) noexcept
+    inline auto &_access(const node_descriptor_type &n) noexcept
     {
-      return traits::node_container_traits::access(m_nodes, n);
+      return m_nodes.access(n);
     }
 
-    inline const node_type &_access(const node_descriptor_type &n) const
-      noexcept
+    inline auto &_access(const node_descriptor_type &n) const noexcept
     {
-      return traits::node_container_traits::access(m_nodes, n);
+      return m_nodes.access(n);
     }
 
     /// Edge access.
     /// \param n if nonexist or invalid, behaviour of this function is undefined
-    inline edge_type &_access(const edge_descriptor_type &e) noexcept
+    inline auto &_access(const edge_descriptor_type &e) noexcept
     {
-      return traits::edge_container_traits::access(m_edges, e);
+      return m_edges.access(e);
     }
 
-    inline const edge_type &_access(const edge_descriptor_type &e) const
-      noexcept
+    inline auto &_access(const edge_descriptor_type &e) const noexcept
     {
-      return traits::edge_container_traits::access(m_edges, e);
+      return m_edges.access(e);
     }
 
     /// Socket access.
     /// \param n if nonexist or invalid, behaviour of this function is undefined
-    inline socket_type &_access(const socket_descriptor_type &s) noexcept
+    inline auto &_access(const socket_descriptor_type &s) noexcept
     {
-      return traits::socket_container_traits::access(m_sockets, s);
+      return m_sockets.access(s);
     }
 
-    inline const socket_type &_access(const socket_descriptor_type &s) const
-      noexcept
+    inline auto &_access(const socket_descriptor_type &s) const noexcept
     {
-      return traits::socket_container_traits::access(m_sockets, s);
+      return m_sockets.access(s);
     }
 
     /// Range checked node access.
     /// \param descriptor descriptor
     /// \returns reference
-    inline node_type &_at(const node_descriptor_type &descriptor)
+    inline auto &_at(const node_descriptor_type &descriptor)
     {
-      return traits::node_container_traits::at(m_nodes, descriptor);
+      return m_nodes.at(descriptor);
     }
 
-    inline const node_type &_at(const node_descriptor_type &descriptor) const
+    inline auto &_at(const node_descriptor_type &descriptor) const
     {
-      return traits::node_container_traits::at(m_nodes, descriptor);
+      return m_nodes.at(descriptor);
     }
 
     /// Range checked Edge access
     /// \param descriptor descriptor
     /// \returns reference
-    inline edge_type &_at(const edge_descriptor_type &descriptor)
+    inline auto &_at(const edge_descriptor_type &descriptor)
     {
-      return traits::edge_container_traits::at(m_edges, descriptor);
+      return m_edges.at(descriptor);
     }
 
-    inline const edge_type &_at(const edge_descriptor_type &descriptor) const
+    inline auto &_at(const edge_descriptor_type &descriptor) const
     {
-      return traits::edge_container_traits::at(m_edges, descriptor);
+      return m_edges.at(descriptor);
     }
 
     /// Range checked Socket access.
     /// \param descriptor descriptor
     /// \returns reference
-    inline socket_type &_at(const socket_descriptor_type &descriptor)
+    inline auto &_at(const socket_descriptor_type &descriptor)
     {
-      return traits::socket_container_traits::at(m_sockets, descriptor);
+      return m_sockets.at(descriptor);
     }
 
-    inline const socket_type &_at(
-      const socket_descriptor_type &descriptor) const
+    inline auto &_at(const socket_descriptor_type &descriptor) const
     {
-      return traits::socket_container_traits::at(m_sockets, descriptor);
+      return m_sockets.at(descriptor);
     }
 
     /// Destroy node.
@@ -1475,8 +1357,7 @@ namespace yave::graph {
     /// \returns true if success
     void _destroy(const node_descriptor_type &descriptor) noexcept
     {
-      traits::node_container_traits::destroy(
-        m_nodes, descriptor, _access(descriptor).id());
+      m_nodes.destroy(descriptor, _access(descriptor).id());
     }
 
     /// Destroy edge.
@@ -1484,8 +1365,7 @@ namespace yave::graph {
     /// \returns true if success
     void _destroy(const edge_descriptor_type &descriptor) noexcept
     {
-      traits::edge_container_traits::destroy(
-        m_edges, descriptor, _access(descriptor).id());
+      m_edges.destroy(descriptor, _access(descriptor).id());
     }
 
     /// Destroy edge.
@@ -1493,18 +1373,18 @@ namespace yave::graph {
     /// \returns true if success
     void _destroy(const socket_descriptor_type &descriptor) noexcept
     {
-      traits::socket_container_traits::destroy(
-        m_sockets, descriptor, _access(descriptor).id());
+      m_sockets.destroy(descriptor, _access(descriptor).id());
     }
 
+    /// id generator
+    [[no_unique_address]] //
+    id_generator m_idgen;
     /// list of node descriptors
-    typename traits::node_container_type m_nodes;
-
+    node_container_type m_nodes;
     /// list of edge descriptors
-    typename traits::edge_container_type m_edges;
-
+    edge_container_type m_edges;
     /// list of socket descriptors
-    typename traits::socket_container_type m_sockets;
+    socket_container_type m_sockets;
   };
 
 } // namespace yave::graph
