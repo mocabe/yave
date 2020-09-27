@@ -6,7 +6,7 @@
 #include <catch2/catch.hpp>
 
 #include <yave/node/compiler/type.hpp>
-#include <yave/node/compiler/errors.hpp>
+#include <yave/node/compiler/compile_result.hpp>
 #include <yave/rts/rts.hpp>
 
 using namespace yave;
@@ -120,7 +120,7 @@ TEST_CASE("overloading")
       auto app = o << b;
       REQUIRE_THROWS_AS(
         type_of_overloaded(app, std::move(env), std::move(loc)),
-        compile_error::no_valid_overloading);
+        compile_results::no_valid_overloading);
     }
 
     SECTION("(id f) (f 42)")
