@@ -7,7 +7,6 @@
 
 #include <yave/node/compiler/compile_result.hpp>
 #include <yave/node/compiler/executable.hpp>
-#include <yave/node/compiler/errors.hpp>
 #include <yave/node/compiler/type.hpp>
 #include <yave/node/parser/node_parser.hpp>
 #include <yave/node/core/socket_instance_manager.hpp>

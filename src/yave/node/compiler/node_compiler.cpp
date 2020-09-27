@@ -397,7 +397,7 @@ namespace yave {
       auto ds = defs.get_binds(*ng.get_path(defcall), *ng.get_index(os));
 
       if (ds.empty())
-        throw compile_error::no_valid_overloading(os);
+        throw no_valid_overloading(os);
 
       auto insts = ds //
                    | rv::transform([](auto& d) { return d->instance(); })

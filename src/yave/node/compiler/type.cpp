@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/compiler/type.hpp>
-#include <yave/node/compiler/errors.hpp>
+#include <yave/node/compiler/compile_result.hpp>
 #include <yave/rts/value_cast.hpp>
 
 namespace yave {
@@ -81,6 +81,8 @@ namespace yave {
   }
 
   namespace {
+
+    using namespace compile_results;
 
     /// typing environment for overloaded extension
     struct overloading_env
@@ -161,9 +163,10 @@ namespace yave {
         auto overload = classes.find_overloading(src->id_var);
 
         if (!overload)
-          throw compile_error::unexpected_error(
-            locations.locate(src),
-            "Could not instantiate overloading: Invalid class ID");
+          throw unexpected_error(
+            "Could not instantiate overloading: Invalid class ID",
+            node_handle(),
+            locations.locate(src));
 
         auto var = this->genvar(src);
         auto tp  = this->genpoly(overload->type);
@@ -220,7 +223,7 @@ namespace yave {
 
         // could not match overloading
         if (!result_type)
-          throw compile_error::no_valid_overloading(env.locations.locate(tv));
+          throw no_valid_overloading(env.locations.locate(tv));
 
         // get substitition to fix
         // use empty set if it's not specializable
@@ -287,16 +290,16 @@ namespace yave {
           return ty;
 
         } catch (type_error::type_missmatch& e) {
-          throw compile_error::type_missmatch(
+          throw type_missmatch(
             env.locations.locate(e.expected()),
-            env.locations.locate(e.provided()),
             e.expected(),
+            env.locations.locate(e.provided()),
             e.provided());
         } catch (type_error::unsolvable_constraints& e) {
-          throw compile_error::unsolvable_constraints(
+          throw unsolvable_constraints(
             env.locations.locate(e.t1()),
-            env.locations.locate(e.t2()),
             e.t1(),
+            env.locations.locate(e.t2()),
             e.t2());
         } catch (type_error::type_error& e) {
           throw; // TODO catch other type errors
@@ -386,8 +389,7 @@ namespace yave {
         if (it != env.results.end())
           return it->second;
 
-        throw compile_error::no_valid_overloading(
-          env.locations.locate(overloaded));
+        throw no_valid_overloading(env.locations.locate(overloaded));
       }
 
       return obj;
