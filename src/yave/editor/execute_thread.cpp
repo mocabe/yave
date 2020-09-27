@@ -65,7 +65,9 @@ namespace yave::editor {
                 auto& data     = data_lck.get_data<editor_data>();
                 auto& executor = data.executor;
                 auto& compiler = data.compiler;
-                return std::make_tuple(compiler.get_result(), executor.time());
+                return std::make_tuple(
+                  compiler.compile_result().clone_executable(),
+                  executor.time());
               }();
 
               auto& exe  = std::get<0>(data);

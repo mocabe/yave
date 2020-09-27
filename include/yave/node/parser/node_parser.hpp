@@ -33,6 +33,9 @@ namespace yave {
     node_parser_result& operator=(node_parser_result&&) noexcept;
 
   public:
+    /// success?
+    bool success() const;
+
     /// move out node graph
     auto take_node_graph() -> std::optional<structured_node_graph>;
 
