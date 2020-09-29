@@ -23,5 +23,5 @@ script:
   - mkdir build
   - cd build
   - cmake --version
-  - cmake -GNinja .. 
+  - travis_wait cmake -GNinja .. 
   - cmake --build .
