@@ -28,6 +28,8 @@ namespace yave::editor {
   public:
     /// recompile graph
     void notify_recompile();
+    /// wait current task finish and block next task
+    auto wait_task() -> std::unique_lock<std::mutex>;
   };
 
   /// Compiler thread operation interface for editor_data
@@ -55,12 +57,20 @@ namespace yave::editor {
       m_thread_ptr = &th;
     }
 
+    bool initialized() const
+    {
+      return m_thread_ptr;
+    }
+
     void deinit()
     {
-      m_thread_ptr     = nullptr;
-      m_parse_result   = {};
-      m_compile_result = {};
-      m_result         = std::nullopt;
+      if (m_thread_ptr) {
+        auto lck         = m_thread_ptr->wait_task();
+        m_thread_ptr     = nullptr;
+        m_parse_result   = {};
+        m_compile_result = {};
+        m_result         = std::nullopt;
+      }
     }
 
     void notify_recompile()

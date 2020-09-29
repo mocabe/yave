@@ -178,8 +178,8 @@ namespace yave::editor::imgui {
         }
       } else {
         std::string path = [&] {
-          auto data_lck = dctx.lock();
-          auto& ng      = data_lck.get_data<editor_data>().node_graph;
+          auto lck = dctx.lock();
+          auto& ng = lck.get_data<editor_data>().node_graph();
           if (auto p = ng.get_path(ng.get_definition(n)))
             return *p;
           else

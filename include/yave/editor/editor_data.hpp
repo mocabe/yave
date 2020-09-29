@@ -24,35 +24,60 @@ namespace yave::editor {
   /// editor data
   struct editor_data
   {
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+
   public:
-    editor_data()                       = default;
-    editor_data(editor_data&&) noexcept = default;
-    editor_data(const editor_data&)     = delete;
+    editor_data();
+    ~editor_data() noexcept;
+    editor_data(editor_data &&) noexcept;
+    editor_data(const editor_data &) = delete;
+
+  public:
+    /// add module loader
+    void add_module_loader(std::unique_ptr<yave::module_loader> loader);
+    /// load current modules
+    void load_modules(std::vector<std::string> moudle_names);
+    /// unload modules
+    void unload_modules();
+    /// init modules
+    void init_modules(const yave::scene_config &cfg);
+    /// update modules
+    void update_modules(const yave::scene_config &sfg);
+    /// deinit moudles
+    void deinit_modules();
+    /// init task threads
+    void init_threads(
+      editor::compile_thread &tcompiler,
+      editor::execute_thread &texecutor);
+    /// deinit task threads
+    void deinit_threads();
 
   public: /* main */
     /// name
-    std::string name;
+    auto name() const -> const std::string &;
     /// file path
-    std::filesystem::path path;
+    auto path() const -> const std::filesystem::path &;
 
   public: /* node */
     /// scene config
-    yave::scene_config scene_config;
-    /// module loader
-    std::unique_ptr<yave::module_loader> module_loader;
+    auto scene_config() const -> const yave::scene_config &;
     /// node decl list
-    node_declaration_store node_decls;
+    auto node_declarations() const -> const node_declaration_store &;
     /// node def list
-    node_definition_store node_defs;
+    auto node_definitions() const -> const node_definition_store &;
     /// node graph
-    structured_node_graph node_graph;
+    auto node_graph() const -> const structured_node_graph &;
+    auto node_graph() -> structured_node_graph &;
     /// node group
-    node_handle root_group;
+    auto root_group() const -> node_handle;
 
   public:
     /// compiler interface
-    compile_thread_interface compiler;
+    auto compile_thread() -> compile_thread_interface &;
+    auto compile_thread() const -> const compile_thread_interface &;
     /// executor interface
-    execute_thread_interface executor;
+    auto execute_thread() -> execute_thread_interface &;
+    auto execute_thread() const -> const execute_thread_interface &;
   };
 } // namespace yave::editor

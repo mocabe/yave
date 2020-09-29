@@ -99,18 +99,18 @@ namespace yave::editor::imgui {
     editor::data_context& data_ctx,
     editor::view_context& view_ctx)
   {
-    auto data_lck = data_ctx.lock();
-    auto& data    = data_lck.get_data<editor_data>();
-    auto& g       = data.node_graph;
+    auto lck   = data_ctx.lock();
+    auto& data = lck.get_data<editor_data>();
+    auto& g    = data.node_graph();
 
     if (!g.exists(current_group) || !g.is_group(current_group)) {
       Info(g_logger, "Current group is no longer valid, reset to root group");
-      current_group = data.root_group;
+      current_group = data.root_group();
     }
     current_group_path = *g.get_path(current_group);
 
     draw_info = std::make_unique<node_window_draw_info>(_create_draw_info(g));
-    decls     = data.node_decls.enumerate();
+    decls     = data.node_declarations().enumerate();
   }
 
   void node_window::_draw_background(
@@ -177,12 +177,12 @@ namespace yave::editor::imgui {
     // show compile result for debug
     {
       auto data_lck = dctx.lock();
-      auto& data    = data_lck.template get_data<editor_data>();
+      auto& data    = data_lck.get_data<editor_data>();
 
-      for (auto&& e : data.compiler.parse_result().get_errors())
+      for (auto&& e : data.compile_thread().parse_result().get_errors())
         ImGui::TextColored({255, 0, 0, 255}, "%s", message(e).c_str());
 
-      for (auto&& e : data.compiler.compile_result().get_errors())
+      for (auto&& e : data.compile_thread().compile_result().get_errors())
         ImGui::TextColored({255, 0, 0, 255}, "%s", message(e).c_str());
     }
 
@@ -248,10 +248,10 @@ namespace yave::editor::imgui {
         if (ImGui::BeginMenu("New Node")) {
 
           // TODO: store tree info in update stage
-          auto data_lck   = dctx.lock();
-          auto& data      = data_lck.get_data<editor_data>();
-          auto& ng        = data.node_graph;
-          auto& decl_tree = data.node_decls.get_tree();
+          auto lck        = dctx.lock();
+          auto& data      = lck.get_data<editor_data>();
+          auto& ng        = data.node_graph();
+          auto& decl_tree = data.node_declarations().get_tree();
 
           auto build_menu_impl = [&](auto&& self, auto n) -> void {
             auto name = decl_tree.name(n);
@@ -384,10 +384,11 @@ namespace yave::editor::imgui {
 
         vctx.cmd(
           make_window_view_command(*this, [&dctx, g = current_group](auto& w) {
-            auto data_lck = dctx.lock();
-            auto& data    = data_lck.template get_data<editor_data>();
-            auto& ng      = data.node_graph;
-            auto& root    = data.root_group;
+            auto lck   = dctx.lock();
+            auto& data = lck.template get_data<editor_data>();
+            auto& ng   = data.node_graph();
+
+            auto root = data.root_group();
 
             assert(ng.exists(root));
             if (g == root)

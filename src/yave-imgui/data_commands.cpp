@@ -14,7 +14,7 @@ namespace yave::editor::imgui {
 
   void dcmd_notify_execute::exec(data_context::accessor& ctx)
   {
-    ctx.get_data<editor_data>().executor.notify_execute();
+    ctx.get_data<editor_data>().execute_thread().notify_execute();
   }
 
   void dcmd_notify_execute::undo(data_context::accessor& ctx)
@@ -42,7 +42,7 @@ namespace yave::editor::imgui {
 
   void dcmd_ncreate::exec(data_context::accessor& ctx)
   {
-    auto& ng = ctx.get_data<editor_data>().node_graph;
+    auto& ng = ctx.get_data<editor_data>().node_graph();
 
     if (!ng.exists(source) || !ng.exists(group))
       return;
@@ -56,7 +56,7 @@ namespace yave::editor::imgui {
 
   void dcmd_ncreate::undo(data_context::accessor& ctx)
   {
-    ctx.get_data<editor_data>().node_graph.destroy(node);
+    ctx.get_data<editor_data>().node_graph().destroy(node);
     node = {};
   }
 
@@ -78,7 +78,7 @@ namespace yave::editor::imgui {
 
   void dcmd_gcreate::exec(data_context::accessor& ctx)
   {
-    auto& ng = ctx.get_data<editor_data>().node_graph;
+    auto& ng = ctx.get_data<editor_data>().node_graph();
 
     if (!ng.exists(parent))
       return;
@@ -92,7 +92,7 @@ namespace yave::editor::imgui {
 
   void dcmd_gcreate::undo(data_context::accessor& ctx)
   {
-    ctx.get_data<editor_data>().node_graph.destroy(group);
+    ctx.get_data<editor_data>().node_graph().destroy(group);
     group = {};
   }
 
@@ -114,12 +114,12 @@ namespace yave::editor::imgui {
   void dcmd_ndestroy::exec(data_context::accessor& ctx)
   {
     auto& data = ctx.get_data<editor_data>();
-    auto& ng   = data.node_graph;
+    auto& ng   = data.node_graph();
 
     for (auto&& n : nodes)
       ng.destroy(n);
 
-    data.compiler.notify_recompile();
+    data.compile_thread().notify_recompile();
   }
 
   void dcmd_ndestroy::undo(data_context::accessor& ctx)
@@ -145,7 +145,7 @@ namespace yave::editor::imgui {
   void dcmd_ngroup::exec(data_context::accessor& ctx)
   {
     auto& data = ctx.get_data<editor_data>();
-    auto& ng   = data.node_graph;
+    auto& ng   = data.node_graph();
 
     auto newg = ng.create_group(parent, {nodes});
 
@@ -158,7 +158,7 @@ namespace yave::editor::imgui {
     avg_pos /= nodes.size();
     ng.set_pos(newg, avg_pos);
 
-    data.compiler.notify_recompile();
+    data.compile_thread().notify_recompile();
   }
 
   void dcmd_ngroup::undo(data_context::accessor& ctx)
@@ -190,7 +190,7 @@ namespace yave::editor::imgui {
   void dcmd_connect::exec(data_context::accessor& ctx)
   {
     auto& data = ctx.get_data<editor_data>();
-    auto& ng   = data.node_graph;
+    auto& ng   = data.node_graph();
 
     if (!ng.exists(src_node) || !ng.exists(dst_node))
       return;
@@ -218,13 +218,13 @@ namespace yave::editor::imgui {
 
     connection = ng.connect(src, dst, id);
 
-    data.compiler.notify_recompile();
+    data.compile_thread().notify_recompile();
   }
 
   void dcmd_connect::undo(data_context::accessor& ctx)
   {
     auto& data = ctx.get_data<editor_data>();
-    auto& ng   = data.node_graph;
+    auto& ng   = data.node_graph();
 
     ng.disconnect(connection);
     connection = {};
@@ -240,7 +240,7 @@ namespace yave::editor::imgui {
       (void)ng.connect(src, dst, old_id);
     }
 
-    data.compiler.notify_recompile();
+    data.compile_thread().notify_recompile();
   }
 
   auto dcmd_connect::type() const -> data_command_type
@@ -262,7 +262,7 @@ namespace yave::editor::imgui {
   void dcmd_disconnect::exec(data_context::accessor& ctx)
   {
     auto& data = ctx.get_data<editor_data>();
-    auto& ng   = data.node_graph;
+    auto& ng   = data.node_graph();
 
     if (!ng.exists(connection))
       return;
@@ -277,13 +277,13 @@ namespace yave::editor::imgui {
     ng.disconnect(connection);
     connection = {};
 
-    data.compiler.notify_recompile();
+    data.compile_thread().notify_recompile();
   }
 
   void dcmd_disconnect::undo(data_context::accessor& ctx)
   {
     auto& data = ctx.get_data<editor_data>();
-    auto& ng   = data.node_graph;
+    auto& ng   = data.node_graph();
 
     if (!ng.exists(src_node) || !ng.exists(dst_node))
       return;
@@ -298,7 +298,7 @@ namespace yave::editor::imgui {
     auto dst   = ng.input_sockets(dst_node)[dst_idx];
     connection = ng.connect(src, dst, id);
 
-    data.compiler.notify_recompile();
+    data.compile_thread().notify_recompile();
   }
 
   auto dcmd_disconnect::type() const -> data_command_type
@@ -319,7 +319,7 @@ namespace yave::editor::imgui {
 
   void dcmd_nset_name::exec(data_context::accessor& ctx)
   {
-    auto& ng = ctx.get_data<editor_data>().node_graph;
+    auto& ng = ctx.get_data<editor_data>().node_graph();
 
     if (!ng.exists(node))
       return;
@@ -330,7 +330,7 @@ namespace yave::editor::imgui {
 
   void dcmd_nset_name::undo(data_context::accessor& ctx)
   {
-    auto& ng = ctx.get_data<editor_data>().node_graph;
+    auto& ng = ctx.get_data<editor_data>().node_graph();
 
     if (ng.exists(node))
       ng.set_name(node, old_name);
@@ -354,7 +354,7 @@ namespace yave::editor::imgui {
 
   void dcmd_sset_name::exec(data_context::accessor& ctx)
   {
-    auto& ng = ctx.get_data<editor_data>().node_graph;
+    auto& ng = ctx.get_data<editor_data>().node_graph();
 
     if (!ng.exists(socket))
       return;
@@ -365,7 +365,7 @@ namespace yave::editor::imgui {
 
   void dcmd_sset_name::undo(data_context::accessor& ctx)
   {
-    auto& ng = ctx.get_data<editor_data>().node_graph;
+    auto& ng = ctx.get_data<editor_data>().node_graph();
 
     if (ng.exists(socket))
       ng.set_name(socket, old_name);
@@ -389,7 +389,7 @@ namespace yave::editor::imgui {
 
   void dcmd_nset_pos::exec(data_context::accessor& ctx)
   {
-    auto& ng = ctx.get_data<editor_data>().node_graph;
+    auto& ng = ctx.get_data<editor_data>().node_graph();
 
     if (!ng.exists(node))
       return;
@@ -400,7 +400,7 @@ namespace yave::editor::imgui {
 
   void dcmd_nset_pos::undo(data_context::accessor& ctx)
   {
-    auto& ng = ctx.get_data<editor_data>().node_graph;
+    auto& ng = ctx.get_data<editor_data>().node_graph();
 
     if (ng.exists(node))
       ng.set_pos(node, old_pos);
@@ -423,7 +423,7 @@ namespace yave::editor::imgui {
 
   void dcmd_nbring_front::exec(data_context::accessor& ctx)
   {
-    auto& ng = ctx.get_data<editor_data>().node_graph;
+    auto& ng = ctx.get_data<editor_data>().node_graph();
 
     if (!ng.exists(node))
       return;
@@ -453,8 +453,8 @@ namespace yave::editor::imgui {
   void dcmd_sremove::exec(data_context::accessor& ctx)
   {
     auto& data = ctx.get_data<editor_data>();
-    data.node_graph.remove_socket(socket);
-    data.compiler.notify_recompile();
+    data.node_graph().remove_socket(socket);
+    data.compile_thread().notify_recompile();
   }
 
   void dcmd_sremove::undo(data_context::accessor& ctx)
@@ -481,7 +481,7 @@ namespace yave::editor::imgui {
   void dcmd_sadd::exec(data_context::accessor& ctx)
   {
     auto& data = ctx.get_data<editor_data>();
-    auto& ng   = data.node_graph;
+    auto& ng   = data.node_graph();
 
     auto new_s = [&] {
       if (stype == socket_type::input)
@@ -493,7 +493,7 @@ namespace yave::editor::imgui {
     }();
 
     if (new_s)
-      data.compiler.notify_recompile();
+      data.compile_thread().notify_recompile();
   }
 
   void dcmd_sadd::undo(data_context::accessor& ctx)

@@ -43,17 +43,20 @@ namespace yave::editor {
     auto data_lck = data_ctx.lock();
     auto& data    = data_lck.template get_data<editor_data>();
 
-    width        = data.scene_config.width();
-    height       = data.scene_config.height();
-    frame_format = data.scene_config.frame_format();
-    current_time = data.executor.time();
+    auto& executor     = data.execute_thread();
+    auto& scene_config = data.scene_config();
+
+    width        = scene_config.width();
+    height       = scene_config.height();
+    frame_format = scene_config.frame_format();
+    current_time = executor.time();
 
     // no update
-    if (data.executor.timestamp() <= last_timestamp)
+    if (executor.timestamp() <= last_timestamp)
       return;
 
     // take execution result
-    if (auto& fb = data.executor.get_result()) {
+    if (auto& fb = executor.get_result()) {
 
       if (!res_tex_id) {
         res_tex_data = imgui_ctx.create_texture(
@@ -64,8 +67,8 @@ namespace yave::editor {
       imgui_ctx.write_texture(
         res_tex_data, {0, 0}, res_tex_data.extent, fb->data());
 
-      last_timestamp = data.executor.timestamp();
-      exec_time      = data.executor.exec_time();
+      last_timestamp = executor.timestamp();
+      exec_time      = executor.exec_time();
     }
   }
 
@@ -140,10 +143,11 @@ namespace yave::editor {
       ImGui::PopItemWidth();
 
       data_ctx.cmd(make_data_command([t = yave::time::seconds(sec)](auto& ctx) {
-        auto& data = ctx.template get_data<editor_data>();
-        if (data.executor.time() != t) {
-          data.executor.set_time(t);
-          data.executor.notify_execute();
+        auto& data     = ctx.template get_data<editor_data>();
+        auto& executor = data.execute_thread();
+        if (executor.time() != t) {
+          executor.set_time(t);
+          executor.notify_execute();
         }
       }));
 

@@ -59,23 +59,26 @@ namespace yave::editor {
 
               execute_flag = false;
 
-              // get compiled result
-              auto data = [&] {
-                auto data_lck  = data_ctx.lock();
-                auto& data     = data_lck.get_data<editor_data>();
-                auto& executor = data.executor;
-                auto& compiler = data.compiler;
-                return std::make_tuple(
-                  compiler.compile_result().clone_executable(),
-                  executor.time());
-              }();
+              std::optional<executable> exe;
+              std::optional<time> time;
+              {
+                auto lck       = data_ctx.lock();
+                auto& data     = lck.get_data<editor_data>();
+                auto& executor = data.execute_thread();
+                auto& compiler = data.compile_thread();
 
-              auto& exe  = std::get<0>(data);
-              auto& time = std::get<1>(data);
+                if (!executor.initialized())
+                  continue;
 
+                // get compiled result
+                exe  = compiler.compile_result().clone_executable();
+                time = executor.time();
+              }
               // no compile result
               if (!exe)
                 continue;
+
+              assert(exe && time);
 
               assert(same_type(
                 exe->type(), object_type<node_closure<FrameBuffer>>()));
@@ -85,7 +88,7 @@ namespace yave::editor {
               // execute app tree.
               auto result = [&]() -> std::optional<image> {
                 try {
-                  auto r = value_cast<FrameBuffer>(exe->execute(time));
+                  auto r = value_cast<FrameBuffer>(exe->execute(*time));
                   // load to host memory
                   auto img = image(r->width(), r->height(), r->format());
                   r->read_data(0, 0, r->width(), r->height(), img.data());
@@ -99,8 +102,9 @@ namespace yave::editor {
               auto end = std::chrono::high_resolution_clock::now();
 
               {
-                auto data_lck  = data_ctx.lock();
-                auto& executor = data_lck.get_data<editor_data>().executor;
+                auto lck             = data_ctx.lock();
+                auto& data           = lck.get_data<editor_data>();
+                auto& executor       = data.execute_thread();
                 executor.m_result    = std::move(result);
                 executor.m_exec_time = end - bgn;
                 executor.m_timestamp = std::chrono::steady_clock::now();
@@ -111,6 +115,11 @@ namespace yave::editor {
           exception = std::current_exception();
         }
       });
+    }
+
+    auto wait_task()
+    {
+      return std::unique_lock {mtx};
     }
 
     void stop()
@@ -142,5 +151,10 @@ namespace yave::editor {
   {
     m_pimpl->check_exception();
     m_pimpl->notify_execute();
+  }
+
+  auto execute_thread::wait_task() -> std::unique_lock<std::mutex>
+  {
+    return m_pimpl->wait_task();
   }
 } // namespace yave::editor
