@@ -7,6 +7,8 @@
     "boost-hof",
     "boost-program-options",
     "boost-filesystem",
+    "boost-dll",
+    "boost-gil",
     "spdlog",
     "fmt",
     "glm",
