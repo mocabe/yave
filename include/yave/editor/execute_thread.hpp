@@ -28,6 +28,8 @@ namespace yave::editor {
   public:
     /// notify execution
     void notify_execute();
+    /// wait current task and block next one
+    auto wait_task() -> std::unique_lock<std::mutex>;
   };
 
   /// Execute thread interface
@@ -57,10 +59,18 @@ namespace yave::editor {
       m_thread_ptr = &th;
     }
 
+    bool initialized() const
+    {
+      return m_thread_ptr;
+    }
+
     void deinit()
     {
-      m_thread_ptr = nullptr;
-      m_result     = std::nullopt;
+      if (m_thread_ptr) {
+        auto lck     = m_thread_ptr->wait_task();
+        m_thread_ptr = nullptr;
+        m_result     = std::nullopt;
+      }
     }
 
     void notify_execute()

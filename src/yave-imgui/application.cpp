@@ -58,44 +58,14 @@ namespace yave::editor::imgui {
 
     auto& data = data_lck.get_data<editor_data>();
 
-    data.name         = "New Project";
-    data.path         = "";
-    data.scene_config = scene_config();
+    data.add_module_loader(
+      std::make_unique<modules::_std::module_loader>(vulkan_ctx));
 
-    data.module_loader =
-      std::make_unique<modules::_std::module_loader>(vulkan_ctx);
+    data.load_modules({{modules::_std::module_name}});
+    data.init_modules(data.scene_config());
+    data.init_threads(compiler, executor);
 
-    // load std module
-    if (!data.module_loader->load({modules::_std::module_name}))
-      throw std::runtime_error("failed load moudle");
-
-    // init module
-    for (auto&& m : data.module_loader->get())
-      m->init(data.scene_config);
-
-    // load decl/def
-    for (auto&& m : data.module_loader->get()) {
-      if (!data.node_decls.add(m->get_node_declarations()))
-        throw std::runtime_error("Failed to add node decl");
-      if (!data.node_defs.add(m->get_node_definitions()))
-        throw std::runtime_error("Failed to add node def");
-    }
-
-    // register functions
-    for (auto&& decl : data.node_decls.enumerate())
-      if (!data.node_graph.create_function(*decl))
-        throw std::runtime_error("failed to create builtin function");
-
-    // create root group
-    data.root_group = data.node_graph.create_group({}, {});
-    data.node_graph.set_name(data.root_group, "root");
-    data.node_graph.add_output_socket(data.root_group, "out");
-
-    // init compiler
-    data.compiler.init(compiler);
-    data.executor.init(executor);
-
-    data.compiler.notify_recompile();
+    data.compile_thread().notify_recompile();
   }
 
   void application::impl::deinit_data()
@@ -103,12 +73,9 @@ namespace yave::editor::imgui {
     auto data_lck = data_ctx.lock();
     auto& data    = data_lck.get_data<editor_data>();
 
-    data.compiler.deinit();
-    data.executor.deinit();
-
-    // deinit modules
-    for (auto&& m : data.module_loader->get())
-      m->deinit();
+    data.deinit_threads();
+    data.deinit_modules();
+    data.unload_modules();
   }
 
   application::impl::impl()

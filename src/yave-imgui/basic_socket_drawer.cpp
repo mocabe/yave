@@ -67,8 +67,8 @@ namespace yave::editor::imgui {
     {
       auto lck    = dctx.lock();
       auto& data  = lck.get_data<editor_data>();
-      auto& ng    = data.node_graph;
-      auto& parse = data.compiler.parse_result();
+      auto& ng    = data.node_graph();
+      auto& parse = data.compile_thread().parse_result();
 
       auto res = parse.get_results(ng, s);
 
