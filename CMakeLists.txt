@@ -18,16 +18,6 @@ find_package(Git REQUIRED)
 # ------------------------------------------
 # Package manager
 
-# bootstrap vcpkg (internal)
-function(_bootstrap_vcpkg)
-  message(STATUS "bootstraping vcpkg")
-  if(WIN32)
-    execute_process(COMMAND ${VCPKG_SOURCE_DIR}/bootstrap-vcpkg.bat)
-  else()
-    execute_process(COMMAND ${VCPKG_SOURCE_DIR}/bootstrap-vcpkg.sh)
-  endif()
-endfunction()
-
 # select appropriate triplet and toolchain
 function(_select_vcpkg_triplet_and_toolchain) 
   if(WIN32)
@@ -40,12 +30,7 @@ endfunction()
 # configure vcpkg
 function(vcpkg_configure)
   execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init ${VCPKG_SOURCE_DIR})
-  if(NOT VCPKG_EXECUTABLE)
-    _bootstrap_vcpkg()
-  endif()
-  find_program(VCPKG_EXECUTABLE vcpkg PATHS ${VCPKG_SOURCE_DIR} REQUIRED)
   _select_vcpkg_triplet_and_toolchain()
-  message(STATUS "configured vcpkg toolchain")
 endfunction()
 
 # do configure
