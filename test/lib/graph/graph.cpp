@@ -131,9 +131,6 @@ TEST_CASE("Graph control", "[lib][graph]")
       REQUIRE(g.dst_edges(s0).empty());
       REQUIRE(g.src_edges(s1).empty());
       REQUIRE(g.dst_edges(s1).empty());
-      // neve fail
-      g.remove_edge(e);
-      g.remove_edge(loop);
     }
 
     SECTION("remove_socket")
@@ -150,8 +147,6 @@ TEST_CASE("Graph control", "[lib][graph]")
       REQUIRE(g.sockets(n1).size() == 1);
       REQUIRE(g.src_edges(g.sockets(n1)[0]).empty());
       REQUIRE(g.dst_edges(g.sockets(n1)[0]).empty());
-      // never fail
-      g.remove_socket(s0);
     }
   }
   SECTION("clear")
