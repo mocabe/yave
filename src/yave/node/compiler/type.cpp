@@ -163,10 +163,10 @@ namespace yave {
         auto overload = classes.find_overloading(src->id_var);
 
         if (!overload)
-          throw unexpected_error(
+          throw compile_result(unexpected_error(
             "Could not instantiate overloading: Invalid class ID",
             node_handle(),
-            locations.locate(src));
+            locations.locate(src)));
 
         auto var = this->genvar(src);
         auto tp  = this->genpoly(overload->type);
@@ -223,7 +223,7 @@ namespace yave {
 
         // could not match overloading
         if (!result_type)
-          throw no_valid_overloading(env.locations.locate(tv));
+          throw compile_result(no_valid_overloading(env.locations.locate(tv)));
 
         // get substitition to fix
         // use empty set if it's not specializable
@@ -290,19 +290,20 @@ namespace yave {
           return ty;
 
         } catch (type_error::type_missmatch& e) {
-          throw type_missmatch(
+          throw compile_result(type_missmatch(
             env.locations.locate(e.expected()),
             e.expected(),
             env.locations.locate(e.provided()),
-            e.provided());
+            e.provided()));
         } catch (type_error::unsolvable_constraints& e) {
-          throw unsolvable_constraints(
+          throw compile_result(unsolvable_constraints(
             env.locations.locate(e.t1()),
             e.t1(),
             env.locations.locate(e.t2()),
-            e.t2());
+            e.t2()));
         } catch (type_error::type_error& e) {
-          throw; // TODO catch other type errors
+          // TODO catch other type errors
+          throw compile_result(unexpected_error("Internal type error"));
         }
       }
 
@@ -334,7 +335,7 @@ namespace yave {
         if (auto s = env.envA.find(var))
           return s->t2;
 
-        throw type_error::unbounded_variable(var, obj);
+        throw compile_result(unexpected_error("Unbounded variable"));
       }
 
       // Overloaded
@@ -389,7 +390,8 @@ namespace yave {
         if (it != env.results.end())
           return it->second;
 
-        throw no_valid_overloading(env.locations.locate(overloaded));
+        throw compile_result(
+          no_valid_overloading(env.locations.locate(overloaded)));
       }
 
       return obj;
