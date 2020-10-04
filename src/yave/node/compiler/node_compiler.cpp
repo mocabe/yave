@@ -14,6 +14,8 @@
 #include <yave/rts/value_cast.hpp>
 #include <yave/rts/unit.hpp>
 #include <yave/obj/node/argument.hpp>
+#include <yave/obj/frame_buffer/frame_buffer.hpp>
+#include <yave/node/core/function.hpp>
 
 #include <functional>
 
@@ -28,18 +30,45 @@ using namespace std::string_literals;
 
 namespace yave {
 
-  namespace rs = ranges;
-  namespace rv = ranges::views;
+  namespace {
 
-  // tl::optional -> std::optional
-  template <class T>
-  constexpr auto to_std(tl::optional<T>&& opt) -> std::optional<T>
-  {
-    if (opt)
-      return std::move(*opt);
-    else
-      return std::nullopt;
-  }
+    namespace rs = ranges;
+    namespace rv = ranges::views;
+
+    // tl::optional -> std::optional
+    template <class T>
+    constexpr auto to_std(tl::optional<T>&& opt) -> std::optional<T>
+    {
+      if (opt)
+        return std::move(*opt);
+      else
+        return std::nullopt;
+    }
+
+    struct FrameBufferOutput
+      : NodeFunction<FrameBufferOutput, FrameBuffer, FrameBuffer>
+    {
+      auto code() const -> return_type
+      {
+        return arg<0>();
+      }
+
+      static auto declaration()
+      {
+        return node_declaration(
+          "FrameBufferOutput", "/_", "internal", {""}, {""});
+      }
+
+      static auto definition()
+      {
+        auto decl = declaration();
+
+        return node_definition(
+          decl.qualified_name(), 0, make_object<FrameBufferOutput>(), "");
+      }
+    };
+
+  } // namespace
 
   class node_compiler_result::impl
   {
@@ -183,8 +212,10 @@ namespace yave {
     auto verbose_check(executable&& exe, node_compiler_result& res)
       -> tl::optional<executable>;
 
-    auto desugar(structured_node_graph&& ng, node_compiler_result& res)
-      -> tl::optional<structured_node_graph>;
+    auto desugar(
+      structured_node_graph&& ng,
+      node_definition_store& defs,
+      node_compiler_result& res) -> tl::optional<structured_node_graph>;
 
     auto gen(
       structured_node_graph&& ng,
@@ -204,7 +235,7 @@ namespace yave {
       -> tl::optional<nullptr_t>;
 
   public:
-    auto compile(structured_node_graph&& ng, const node_definition_store& defs)
+    auto compile(structured_node_graph&& ng, node_definition_store&& defs)
       -> node_compiler_result
     {
       Info(g_logger, "Start compiling node tree:");
@@ -214,7 +245,7 @@ namespace yave {
 
       // clang-format off
       tl::make_optional(std::move(ng)) //
-        .and_then([&](auto arg) { return desugar(std::move(arg) ,result); })
+        .and_then([&](auto arg) { return desugar(std::move(arg) ,defs, result); })
         .and_then([&](auto arg) { return gen(std::move(arg), defs, result); })
         .and_then([&](auto arg) { return type(std::move(arg), result); })
         .and_then([&](auto arg) { return optimize(std::move(arg), result); })
@@ -236,7 +267,7 @@ namespace yave {
 
   auto node_compiler::compile(params p) -> node_compiler_result
   {
-    return m_pimpl->compile(std::move(p.node_graph), p.node_defs);
+    return m_pimpl->compile(std::move(p.node_graph), std::move(p.node_defs));
   }
 
   auto node_compiler::impl::verbose_check(
@@ -269,6 +300,7 @@ namespace yave {
 
   auto node_compiler::impl::desugar(
     structured_node_graph&& ng,
+    node_definition_store& defs,
     node_compiler_result & /*res*/) -> tl::optional<structured_node_graph>
   {
     auto roots = ng.search_path("/");
@@ -282,6 +314,27 @@ namespace yave {
 
     assert(ng.output_sockets(root).size() == 1);
     auto rootos = ng.output_sockets(root)[0];
+
+    // Insert frame buffer output
+    {
+      auto decl = FrameBufferOutput::declaration();
+      auto def  = FrameBufferOutput::definition();
+
+      defs.add(def);
+
+      auto func = ng.create_function(decl);
+      auto call = ng.create_copy(root, func);
+
+      auto is = ng.input_sockets(ng.get_group_output(root))[0];
+      assert(ng.connections(is).size() == 1);
+
+      auto c     = ng.connections(is)[0];
+      auto cinfo = ng.get_info(c);
+      ng.disconnect(c);
+
+      ng.connect(cinfo->src_socket(), ng.input_sockets(call)[0]);
+      ng.connect(ng.output_sockets(call)[0], cinfo->dst_socket());
+    }
 
     // Add Variables on empty input socket of lambda calls
     auto fill_variables = [](const auto& n, auto& ng) {
@@ -573,10 +626,6 @@ namespace yave {
     } catch (const compile_result& r) {
       // forward
       res.add_result(r);
-
-      // internal type errors
-    } catch (const type_error::type_error& e) {
-      res.add_result(unexpected_error("Internal type error: "s + e.what()));
 
       // others
     } catch (const std::exception& e) {
