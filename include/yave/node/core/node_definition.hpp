@@ -16,34 +16,26 @@ namespace yave {
   {
   public:
     /// Construct node definition.
-    /// \param qualified_name fully qualified name of bind (should match to
+    /// \param full_name fully qualified name of bind (should match to
     /// target node_info::qualified_name())
     /// \param output_socket name of output socket
-    /// \param description Description of this bind.
     /// \param instance A non-null managed pointer to a closure object
     /// \throws std::invalid_argument when arguments are invalid.
     node_definition(
-      std::string qualified_name,
+      std::string full_name,
       size_t output_socket,
-      object_ptr<const Object> instance,
-      std::string description)
-      : m_qualified_name {std::move(qualified_name)}
+      object_ptr<const Object> instance)
+      : m_full_name {std::move(full_name)}
       , m_os {std::move(output_socket)}
       , m_instance {std::move(instance)}
-      , m_description {std::move(description)}
     {
       if (!m_instance)
         throw std::invalid_argument("instance is null");
     }
 
-    [[nodiscard]] auto& qualified_name() const
+    [[nodiscard]] auto& full_name() const
     {
-      return m_qualified_name;
-    }
-
-    [[nodiscard]] auto& description() const
-    {
-      return m_description;
+      return m_full_name;
     }
 
     [[nodiscard]] auto& instance() const
@@ -58,12 +50,10 @@ namespace yave {
 
   private:
     /// name of name
-    std::string m_qualified_name;
+    std::string m_full_name;
     /// output socket index
     size_t m_os;
     /// instance getter
     object_ptr<const Object> m_instance;
-    /// instance description
-    std::string m_description;
   };
 } // namespace yave
