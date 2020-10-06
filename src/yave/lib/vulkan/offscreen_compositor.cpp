@@ -258,7 +258,7 @@ namespace {
     info.renderPass          = renderPass;
     info.layout              = pipelineLayout;
 
-    return device.createGraphicsPipelineUnique(pipelineCache, info);
+    return device.createGraphicsPipelineUnique(pipelineCache, info).value;
   }
 
 } // namespace

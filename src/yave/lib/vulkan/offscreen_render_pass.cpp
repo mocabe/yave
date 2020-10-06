@@ -375,8 +375,11 @@ namespace yave::vulkan {
 
     void wait_draw()
     {
-      offscreen_ctx.device().waitForFences(
+      auto r = offscreen_ctx.device().waitForFences(
         submit_fence.get(), true, std::numeric_limits<uint64_t>::max());
+
+      if (r != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to wait fence");
     }
   };
 
