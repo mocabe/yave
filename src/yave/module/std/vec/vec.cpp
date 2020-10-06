@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/geometry/vec.hpp>
+#include <yave/module/std/vec/vec.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/vec/property.hpp>
 #include <yave/obj/primitive/property.hpp>
@@ -14,7 +14,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Geom.Vec2",
+      "Std.Vec.Vec2",
       "Vec2 constructor",
       {"x", "y"},
       {"value"},
@@ -25,7 +25,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Geom.Vec3",
+      "Std.Vec.Vec3",
       "Vec3 constructor",
       {"x", "y", "z"},
       {"value"},
@@ -38,7 +38,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Geom.Vec4",
+      "Std.Vec.Vec4",
       "Vec3 constructor",
       {"x", "y", "z", "w"},
       {"value"},
@@ -110,6 +110,5 @@ namespace yave {
       info.full_name(),
       0,
       make_object<modules::_std::geometry::Vec4Constructor>())};
-  }
   }
 } // namespace yave

@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/functional/apply.hpp>
+#include <yave/module/std/function/apply.hpp>
 #include <yave/node/core/function.hpp>
 
 namespace yave {

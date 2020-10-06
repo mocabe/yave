@@ -13,7 +13,7 @@
 #include <yave/editor/editor_data.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
 #include <yave/module/std/color/color.hpp>
-#include <yave/module/std/geometry/vec.hpp>
+#include <yave/module/std/vec/vec.hpp>
 #include <imgui_stdlib.h>
 #include <iostream>
 

@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/geometry/mat.hpp>
+#include <yave/module/std/mat/mat.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/mat/mat.hpp>
 #include <yave/obj/vec/vec.hpp>
@@ -17,14 +17,14 @@ namespace yave {
   auto node_declaration_traits<node::Mat4>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration("Std.Geom.Mat4", "4x4 Matrix", {}, {"mat4"});
+    return node_declaration("Std.Mat.Mat4", "4x4 Matrix", {}, {"mat4"});
   }
 
   auto node_declaration_traits<node::Mat4Rotate>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Std.Geom.Rotate",
+      "Std.Mat.Rotate",
       "Rotate object around axis",
       {"mat4", "deg", "axis"},
       {"mat4"},
@@ -35,7 +35,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Geom.RotateX",
+      "Std.Mat.RotateX",
       "Rotate object around X axis",
       {"mat4", "deg"},
       {"mat4"},
@@ -46,7 +46,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Geom.RotateY",
+      "Std.Mat.RotateY",
       "Rotate object around Y axis",
       {"mat4", "deg"},
       {"mat4"},
@@ -57,7 +57,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Geom.RotateZ",
+      "Std.Mat.RotateZ",
       "Rotate object around Z axis",
       {"mat4", "deg"},
       {"mat4"},
@@ -68,7 +68,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Geom.Translate", "Move object", {"mat4", "vec3"}, {"mat4"});
+      "Std.Mat.Translate", "Move object", {"mat4", "vec3"}, {"mat4"});
   }
 
   namespace modules::_std::geometry {
