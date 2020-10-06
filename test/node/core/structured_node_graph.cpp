@@ -97,13 +97,13 @@ TEST_CASE("root")
   REQUIRE(ng.get_calls(ng.get_group_input(root)).empty());
   REQUIRE(ng.get_calls(ng.get_group_output(root)).empty());
 
-  REQUIRE(ng.get_path(root) == "/root");
+  REQUIRE(*ng.get_path(root) == "root");
   REQUIRE(
-    ng.get_path(ng.get_group_input(root))
-    == ("/root/" + *ng.get_name(ng.get_group_input(root))));
+    *ng.get_path(ng.get_group_input(root))
+    == ("root." + *ng.get_name(ng.get_group_input(root))));
   REQUIRE(
-    ng.get_path(ng.get_group_output(root))
-    == ("/root/" + *ng.get_name(ng.get_group_output(root))));
+    *ng.get_path(ng.get_group_output(root))
+    == ("root." + *ng.get_name(ng.get_group_output(root))));
 }
 
 TEST_CASE("root destroy")
@@ -372,7 +372,7 @@ TEST_CASE("root add func")
   REQUIRE(!ng.is_parent_of(func, root));
   REQUIRE(!ng.is_child_of(func, root));
 
-  REQUIRE(*ng.get_path(func) == decl.qualified_name());
+  REQUIRE(*ng.get_path(func) == decl.full_name());
 
   for (size_t i = 0; i < decl.input_sockets().size(); ++i)
     REQUIRE(
@@ -393,8 +393,8 @@ TEST_CASE("root add func")
   REQUIRE(ng.get_group_members(root).size() == 1);
   REQUIRE(ng.get_group_nodes(root).size() == 3);
 
-  REQUIRE(*ng.get_path(call) == "/root/" + decl.name());
-  REQUIRE(*ng.get_path(ng.get_definition(call)) == decl.qualified_name());
+  REQUIRE(*ng.get_path(call) == "root." + decl.node_name());
+  REQUIRE(*ng.get_path(ng.get_definition(call)) == decl.full_name());
 
   for (size_t i = 0; i < decl.input_sockets().size(); ++i)
     REQUIRE(
@@ -411,7 +411,7 @@ TEST_CASE("root add func")
   REQUIRE(!ng.add_output_socket(call, ""));
   ng.set_name(call, "");
   ng.set_name(ng.input_sockets(call)[0], "");
-  REQUIRE(*ng.get_name(call) == decl.name());
+  REQUIRE(*ng.get_name(call) == decl.node_name());
   REQUIRE(*ng.get_name(ng.input_sockets(call)[0]) == decl.input_sockets()[0]);
 }
 
@@ -785,32 +785,34 @@ TEST_CASE("path")
 {
   structured_node_graph ng;
   auto root = ng.create_group({nullptr}, {});
-  ng.set_name(root, "root");
+  ng.set_name(root, "Root");
   auto decl = get_node_declaration<node::Int>();
   auto func = ng.create_function(decl);
 
-  REQUIRE(*ng.get_path(root) == "/root");
-  REQUIRE(*ng.get_path(func) == decl.qualified_name());
+  REQUIRE(*ng.get_path(root) == "Root");
+  REQUIRE(*ng.get_path(func) == decl.full_name());
 
-  REQUIRE(ng.search_path("").empty());
-  REQUIRE(ng.search_path("/").size() == 2); // root, std
-  REQUIRE(ng.search_path("/").front() == root);
-  REQUIRE(ng.search_path("//").empty());
-  REQUIRE(ng.search_path("/root") == std::vector {root});
-  REQUIRE(ng.search_path("/root/").empty());
-  REQUIRE(ng.search_path("foo").empty());
-  REQUIRE(ng.search_path("/foo").empty());
-  REQUIRE(ng.search_path(decl.qualified_name()) == std::vector {func});
-  REQUIRE(ng.search_path(decl.qualified_name() + "/").empty());
+  REQUIRE(ng.search_path(".").empty());
+  REQUIRE(ng.search_path("").size() == 2); // root, std
+  REQUIRE(ng.search_path("").front() == root);
+  REQUIRE(ng.search_path("..").empty()); // invaild
+  REQUIRE(ng.search_path("Root") == std::vector {root});
+  REQUIRE(ng.search_path("Root.").empty());
+  REQUIRE(ng.search_path(".Root.").empty());
+  REQUIRE(ng.search_path(".Root").empty());
+  REQUIRE(ng.search_path("Foo").empty());
+  REQUIRE(ng.search_path(".Foo").empty());
+  REQUIRE(ng.search_path(decl.full_name()) == std::vector {func});
+  REQUIRE(ng.search_path(decl.full_name() + ".").empty());
 
   auto g = ng.create_group(root, {});
-  ng.set_name(g, "g");
-  REQUIRE(*ng.get_path(g) == "/root/g");
-  REQUIRE(ng.search_path("/root/") == std::vector {g});
-  REQUIRE(ng.search_path("/root/g") == std::vector {g});
-  REQUIRE(ng.search_path("/root/foo").empty());
-  REQUIRE(ng.search_path("/root////foo").empty());
-  REQUIRE(ng.search_path("/root/In").empty());
+  ng.set_name(g, "G");
+  REQUIRE(*ng.get_path(g) == "Root.G");
+  REQUIRE(ng.search_path("Root.") == std::vector {g});
+  REQUIRE(ng.search_path("Root.G") == std::vector {g});
+  REQUIRE(ng.search_path("Root.Foo").empty());
+  REQUIRE(ng.search_path("Root....Foo").empty());
+  REQUIRE(ng.search_path("Root.In").empty());
 }
 
 TEST_CASE("custom id")
