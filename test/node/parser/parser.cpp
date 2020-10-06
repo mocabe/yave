@@ -17,17 +17,17 @@ TEST_CASE("node_parser v2")
   node_parser parser;
 
   // single output
-  auto decl1 = node_declaration("decl1", "/test", "", {}, {"out"});
+  auto decl1 = node_declaration("test.decl1", "", {}, {"out"});
   // multi output
-  auto decl2 = node_declaration("decl2", "/test", "", {}, {"out1", "out2"});
+  auto decl2 = node_declaration("test.decl2", "", {}, {"out1", "out2"});
   // singl in-out
-  auto decl3 = node_declaration("decl3", "/test", "", {"in"}, {"out"});
+  auto decl3 = node_declaration("test.decl3", "", {"in"}, {"out"});
   // single in-out with default argument
   auto decl4 = node_declaration(
-    "decl4", "/test", "", {"in"}, {"out"}, {{0, make_object<Int>()}});
+    "test.decl4", "", {"in"}, {"out"}, {{0, make_object<Int>()}});
   // multi in-out
-  auto decl5 = node_declaration(
-    "decl5", "/test", "", {"in1", "in2", "in3"}, {"out1", "out2"});
+  auto decl5 =
+    node_declaration("test.decl5", "", {"in1", "in2", "in3"}, {"out1", "out2"});
 
   REQUIRE(ng.search_path("/").empty());
 

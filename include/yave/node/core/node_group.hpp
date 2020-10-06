@@ -29,7 +29,7 @@ namespace yave {
   {
     static auto get_node_declaration() -> node_declaration
     {
-      return node_declaration("NodeGroupInterface", "/dummy", "", {}, {});
+      return node_declaration("_.NodeGroupInterface", "", {}, {});
     }
   };
 
@@ -39,7 +39,7 @@ namespace yave {
   {
     static auto get_node_declaration() -> node_declaration
     {
-      return node_declaration("NodeDependency", "/dummy", "", {""}, {""});
+      return node_declaration("_.NodeGroupDependency", "", {""}, {""});
     }
   };
 
@@ -49,7 +49,7 @@ namespace yave {
   {
     static auto get_node_declaration() -> node_declaration
     {
-      return node_declaration("NodeGroupInput", "/dummy", "", {}, {});
+      return node_declaration("_.NodeGroupInput", "", {}, {});
     }
   };
 
@@ -59,7 +59,7 @@ namespace yave {
   {
     static auto get_node_declaration() -> node_declaration
     {
-      return node_declaration("NodeGroupOutput", "/dummy", "", {}, {});
+      return node_declaration("_.NodeGroupOutput", "", {}, {});
     }
   };
 
@@ -71,8 +71,7 @@ namespace yave {
     {
       class X;
       return node_declaration(
-        "NodeGroupIOBit",
-        "/dummy",
+        "_.NodeGroupIOBit",
         "",
         {""},  // will change dynamically
         {""}); // will change dynamically

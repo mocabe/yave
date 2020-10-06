@@ -260,7 +260,7 @@ namespace yave::editor::imgui {
             if (auto decl = decl_tree.decl(n)) {
               if (ImGui::Selectable(name.c_str())) {
 
-                auto ns = ng.search_path(decl->qualified_name());
+                auto ns = ng.search_path(decl->full_name());
 
                 if (!ns.empty()) {
                   dctx.cmd(

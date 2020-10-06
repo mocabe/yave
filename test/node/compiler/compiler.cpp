@@ -48,7 +48,7 @@ struct yave::node_declaration_traits<n::Add>
   static auto get_node_declaration()
   {
     class X;
-    return node_declaration("Add", "/test", "", {"x", "y"}, {"out"});
+    return node_declaration("test.Add", "", {"x", "y"}, {"out"});
   }
 };
 
@@ -59,17 +59,11 @@ struct yave::node_definition_traits<n::Add, test_backend>
   {
     // Int version
     auto defi = node_definition(
-      get_node_declaration<n::Add>().qualified_name(),
-      0,
-      make_object<AddI>(),
-      "AddI");
+      get_node_declaration<n::Add>().full_name(), 0, make_object<AddI>());
 
     // Float version
     auto defd = node_definition(
-      get_node_declaration<n::Add>().qualified_name(),
-      0,
-      make_object<AddF>(),
-      "AddF");
+      get_node_declaration<n::Add>().full_name(), 0, make_object<AddF>());
 
     return {defi, defd};
   }
