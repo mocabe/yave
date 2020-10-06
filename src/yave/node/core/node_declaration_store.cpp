@@ -20,10 +20,10 @@ namespace yave {
     namespace rs = ranges;
     namespace rv = ranges::views;
 
-    auto split_module_path_to_names(const std::string& path)
+    auto split_path_name(const std::string& path)
     {
-      return rv::all(path)                                                    //
-             | rv::split('/')                                                 //
+      return path                                                             //
+             | rv::split('.')                                                 //
              | rv::drop_while([](auto&& s) { return s.empty(); })             //
              | rv::transform([](auto&& r) { return rs::to<std::string>(r); }) //
              | rs::to_vector;
@@ -35,7 +35,7 @@ namespace yave {
     /// parent node
     node* parent = nullptr;
     /// name
-    std::string name = "/";
+    std::string name = "";
     /// decl (nullable)
     std::shared_ptr<node_declaration> pdecl = nullptr;
     /// children
@@ -86,7 +86,7 @@ namespace yave {
       assert(pdecl);
       auto& decl = *pdecl;
 
-      auto names = split_module_path_to_names(decl.qualified_name());
+      auto names = split_path_name(decl.full_name());
 
       node* n = &tree;
 
@@ -146,7 +146,7 @@ namespace yave {
     auto find(const std::shared_ptr<node_declaration>& pdecl) -> node*
     {
       assert(pdecl);
-      auto names = split_module_path_to_names(pdecl->qualified_name());
+      auto names = split_path_name(pdecl->full_name());
 
       node* n = &tree;
 
@@ -232,31 +232,31 @@ namespace yave {
     bool add(const node_declaration& decl)
     {
       auto [it, succ] = m_map.emplace(
-        decl.qualified_name(), std::make_shared<node_declaration>(decl));
+        decl.full_name(), std::make_shared<node_declaration>(decl));
 
       if (succ) {
-        Info(g_logger, "Added new declaration: {}", decl.qualified_name());
+        Info(g_logger, "Added new declaration: {}", decl.full_name());
         m_tree.insert(it->second);
         return true;
       }
 
-      auto& name = it->second->name();
+      auto& name = it->second->full_name();
       auto& iss  = it->second->input_sockets();
       auto& oss  = it->second->output_sockets();
 
       // validate duplication
       if (
-        name == decl.name() &&         //
+        name == decl.full_name() &&    //
         iss == decl.input_sockets() && //
         oss == decl.output_sockets()) {
         Info(
           g_logger,
           "Node declaration {} already exists, ignored.",
-          decl.qualified_name());
+          decl.full_name());
         return true;
       }
 
-      Error(g_logger, "Failed to add declaration: {}", decl.qualified_name());
+      Error(g_logger, "Failed to add declaration: {}", decl.full_name());
       return false;
     }
 
@@ -266,7 +266,7 @@ namespace yave {
 
       for (auto&& decl : decls) {
         if (add(decl)) {
-          added.push_back(decl.qualified_name());
+          added.push_back(decl.full_name());
         } else {
           for (auto&& name : added) {
             remove(name);
