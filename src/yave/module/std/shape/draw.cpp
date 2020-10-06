@@ -79,7 +79,7 @@ namespace yave {
       }
     };
 
-    struct DrawShape : NodeFunction<DrawShape, Shape, FrameBuffer, FrameBuffer>
+    struct DrawShape : NodeFunction<DrawShape, Shape, FrameBuffer>
     {
       data::frame_buffer_manager& m_fbm;
       vulkan::rgba32f_offscreen_compositor& m_compositor;
@@ -95,7 +95,7 @@ namespace yave {
       auto code() const -> return_type
       {
         auto shape = eval_arg<0>();
-        auto fb    = eval_arg<1>().clone();
+        auto fb    = make_object<FrameBuffer>(m_fbm.get_pool_object());
 
         if (!m_fbm.exists(fb->id()))
           assert(!"TODO");
