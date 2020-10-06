@@ -25,7 +25,8 @@
 #include <yave/module/std/shape/rect.hpp>
 #include <yave/module/std/shape/draw.hpp>
 #include <yave/module/std/shape/transform.hpp>
-#include <yave/module/std/math/math.hpp>
+#include <yave/module/std/ops/ops.hpp>
+#include <yave/module/std/math/ops.hpp>
 
 #include <yave/lib/vulkan/offscreen_compositor.hpp>
 #include <yave/support/log.hpp>
@@ -166,10 +167,10 @@ namespace yave::modules::_std {
             get_node_declaration<node::ShapeTranslate>(),
             get_node_declaration<node::ShapeRotate>(),
             get_node_declaration<node::ShapeScale>(),
-            get_node_declaration<node::MathAdd>(),
-            get_node_declaration<node::MathSubtract>(),
-            get_node_declaration<node::MathMultiply>(),
-            get_node_declaration<node::MathDivide>()};
+            get_node_declaration<node::Add>(),
+            get_node_declaration<node::Sub>(),
+            get_node_declaration<node::Mul>(),
+            get_node_declaration<node::Div>(),
   }
 
   auto module::get_node_definitions() const -> std::vector<node_definition>
@@ -228,10 +229,10 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::ShapeTranslate, _std::tag>());
     add(yave::get_node_definitions<node::ShapeRotate, _std::tag>());
     add(yave::get_node_definitions<node::ShapeScale, _std::tag>());
-    add(yave::get_node_definitions<node::MathAdd, _std::tag>());
-    add(yave::get_node_definitions<node::MathSubtract, _std::tag>());
-    add(yave::get_node_definitions<node::MathMultiply, _std::tag>());
-    add(yave::get_node_definitions<node::MathDivide, _std::tag>());
+    add(yave::get_node_definitions<node::Add, _std::math::tag>());
+    add(yave::get_node_definitions<node::Sub, _std::math::tag>());
+    add(yave::get_node_definitions<node::Mul, _std::math::tag>());
+    add(yave::get_node_definitions<node::Div, _std::math::tag>());
 
     return ret;
   }

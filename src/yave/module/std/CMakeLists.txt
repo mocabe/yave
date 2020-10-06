@@ -19,7 +19,8 @@ add_library(yave-module-std
   shape/rect.cpp
   shape/draw.cpp
   shape/transform.cpp
-  math/math.cpp
+  ops/ops.cpp
+  math/ops.cpp
   module.cpp
   module_loader.cpp
 )
