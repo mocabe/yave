@@ -15,8 +15,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "ReTime",
-      "/std/time",
+      "Std.Time.ReTime",
       "Assign new time to subtree",
       {"any", "time"},
       {"any"});
@@ -26,15 +25,14 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "DelayTime", "/std/time", "Delay time", {"any", "time"}, {"any"});
+      "Std.Time.Delay", "Delay time", {"any", "time"}, {"any"});
   }
 
   auto node_declaration_traits<node::ScaleTime>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "ScaleTime",
-      "/std/time",
+      "Std.Time.Scale",
       "Scale time",
       {"any", "scaling"},
       {"any"},
@@ -107,10 +105,7 @@ namespace yave {
     auto info = get_node_declaration<node::ReTime>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::time::ReTime>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::time::ReTime>())};
   }
 
   auto node_definition_traits<node::DelayTime, modules::_std::tag>::
@@ -119,10 +114,7 @@ namespace yave {
     auto info = get_node_declaration<node::DelayTime>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::time::DelayTime>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::time::DelayTime>())};
   }
 
   auto node_definition_traits<node::ScaleTime, modules::_std::tag>::
@@ -131,9 +123,6 @@ namespace yave {
     auto info = get_node_declaration<node::ScaleTime>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::time::ScaleTime>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::time::ScaleTime>())};
   }
 } // namespace yave

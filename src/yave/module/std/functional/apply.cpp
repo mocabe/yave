@@ -12,8 +12,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Apply",
-      "/std/functional",
+      "Std.Function.Apply",
       "Apply argument to function",
       {"fn", "arg"},
       {"fn"});
@@ -39,9 +38,6 @@ namespace yave {
     auto info = get_node_declaration<node::Apply>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::functional::Apply>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::functional::Apply>())};
   }
 } // namespace yave

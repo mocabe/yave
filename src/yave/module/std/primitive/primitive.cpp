@@ -18,8 +18,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      node_name,
-      "/std/prim",
+      std::string("Std.Prim.") + node_name,
       "Data type constructor",
       {"value"},
       {"value"},
@@ -46,10 +45,9 @@ namespace yave {
     auto info = get_node_declaration<node::PrimitiveCtor<T>>();
 
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::prim::PrimitiveCtor<T>>(),
-      info.name())};
+      make_object<modules::_std::prim::PrimitiveCtor<T>>())};
   }
 
   YAVE_DEF_PRIM_NODE(Int);

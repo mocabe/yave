@@ -15,8 +15,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Rectangle",
-      "/std/shape",
+      "Std.Shape.Rectangle",
       "Create rect shape",
       {"pos", "size"},
       {"shape"},
@@ -41,10 +40,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::RectShape>();
     return std::vector {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::shape::RectShapeCtor>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::shape::RectShapeCtor>())};
   }
 
 } // namespace yave

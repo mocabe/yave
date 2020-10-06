@@ -18,8 +18,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Fill",
-      "/std/shape",
+      "Std.Shape.Fill",
       "Fill shape",
       {"shape", "color"},
       {"shape"},
@@ -30,8 +29,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Stroke",
-      "/std/shape",
+      "Std.Shape.Stroke",
       "Stroke shape",
       {"shape", "color", "width"},
       {"shape"},
@@ -45,14 +43,7 @@ namespace yave {
     data::frame_buffer_manager& fbm) -> node_declaration
   {
     return node_declaration(
-      "Draw",
-      "/std/shape",
-      "Render shape to frame buffer",
-      {"shape", "frame"},
-      {"frame"},
-      {{1,
-        make_object<modules::_std::frame::FrameBufferConstructor>(
-          fbm.get_pool_object())}});
+      "Std.Shape.Draw", "Render shape to frame buffer", {"shape"}, {"frame"});
   }
 
   namespace modules::_std::shape {
@@ -137,10 +128,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::FillShape>();
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::shape::FillShape>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::shape::FillShape>())};
   }
 
   auto node_definition_traits<node::StrokeShape, modules::_std::tag>::
@@ -148,10 +136,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::StrokeShape>();
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::shape::StrokeShape>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::shape::StrokeShape>())};
   }
 
   auto node_definition_traits<node::DrawShape, modules::_std::tag>::
@@ -162,10 +147,9 @@ namespace yave {
   {
     auto info = get_node_declaration<node::DrawShape>(fbm);
     return std::vector {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::shape::DrawShape>(fbm, compositor),
-      info.description())};
+      make_object<modules::_std::shape::DrawShape>(fbm, compositor))};
   }
 
 } // namespace yave

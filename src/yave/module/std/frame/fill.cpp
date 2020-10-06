@@ -15,8 +15,7 @@ namespace yave {
     data::frame_buffer_manager& fbm) -> node_declaration
   {
     return node_declaration(
-      "Fill",
-      "/std/frame",
+      "Std.Frame.Fill",
       "Fill frame buffer with specified color",
       {"color", "frame"},
       {"frame"},
@@ -68,9 +67,8 @@ namespace yave {
   {
     auto info = get_node_declaration<node::FillFrame>(fbm);
     return std::vector {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::frame::FillFrame>(fbm, compositor),
-      info.description())};
+      make_object<modules::_std::frame::FillFrame>(fbm, compositor))};
   }
 } // namespace yave

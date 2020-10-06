@@ -16,8 +16,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Circle",
-      "/std/shape",
+      "Std.Shape.Circle",
       "Create circle shape",
       {"pos", "radius"},
       {"shape"},
@@ -42,10 +41,9 @@ namespace yave {
   {
     auto info = get_node_declaration<node::CircleShape>();
     return std::vector {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::shape::CircleShapeCtor>(),
-      info.description())};
+      make_object<modules::_std::shape::CircleShapeCtor>())};
   }
 
 } // namespace yave

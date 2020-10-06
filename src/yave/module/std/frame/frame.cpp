@@ -14,8 +14,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Frame",
-      "/std/frame",
+      "Std.Frame.Frame",
       "Create new frame buffer",
       {"color"},
       {"frame"},
@@ -63,9 +62,8 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Frame>();
     return std::vector {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::frame::FrameBufferColored>(mngr, comp),
-      info.description())};
+      make_object<modules::_std::frame::FrameBufferColored>(mngr, comp))};
   }
 } // namespace yave

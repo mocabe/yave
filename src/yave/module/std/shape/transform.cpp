@@ -16,19 +16,14 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Translate",
-      "/std/shape",
-      "Translate shape",
-      {"shape", "vec"},
-      {"shape"});
+      "Std.Shape.Translate", "Translate shape", {"shape", "vec"}, {"shape"});
   }
 
   auto node_declaration_traits<node::ShapeRotate>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Rotate",
-      "/std/shape",
+      "Std.Shape.Rotate",
       "Rotate shape",
       {"shape", "degree", "center"},
       {"shape"},
@@ -39,8 +34,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Scale",
-      "/std/shape",
+      "Std.Shape.Scale",
       "Scale shape",
       {"shape", "ratio", "center"},
       {"shape"},
@@ -100,10 +94,7 @@ namespace yave {
     auto info = get_node_declaration<node::ShapeTranslate>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::shape::Translate>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::shape::Translate>())};
   }
 
   auto node_definition_traits<node::ShapeRotate, modules::_std::tag>::
@@ -112,10 +103,7 @@ namespace yave {
     auto info = get_node_declaration<node::ShapeRotate>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::shape::Rotate>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::shape::Rotate>())};
   }
 
   auto node_definition_traits<node::ShapeScale, modules::_std::tag>::
@@ -124,9 +112,6 @@ namespace yave {
     auto info = get_node_declaration<node::ShapeScale>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::shape::Scale>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::shape::Scale>())};
   }
 } // namespace yave
