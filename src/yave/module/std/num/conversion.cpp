@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/primitive/conversion.hpp>
+#include <yave/module/std/num/conversion.hpp>
 #include <yave/node/core/function.hpp>
 
 namespace yave {
@@ -12,7 +12,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "IntToFloat", "/std/prim", "Convert Int to Float", {"int"}, {"float"});
+      "Std.Num.IntToFloat", "Convert Int to Float", {"int"}, {"float"});
   }
 
   namespace modules::_std::prim {
@@ -31,10 +31,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::IntToFloat>();
     return std::vector {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::prim::IntToFloat>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::prim::IntToFloat>())};
   }
 
 } // namespace yave

@@ -13,8 +13,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Nil",
-      "/std/list",
+      "Std.List.Nil",
       "Constructs empty list. Result can be passed to any type of node which "
       "takes list as input.",
       {},
@@ -25,19 +24,14 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Cons",
-      "/std/list",
-      "Construct new list node",
-      {"head", "tail"},
-      {"cons"});
+      "Std.List.Cons", "Construct new list node", {"head", "tail"}, {"cons"});
   }
 
   auto node_declaration_traits<node::ListDecompose>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Match",
-      "/std/list",
+      "Std.List.Match",
       "Decompose list into head and tail",
       {"list"},
       {"head", "tail"});
@@ -103,10 +97,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::ListNil>();
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<yave::modules::_std::list::ListNil>(),
-      info.name())};
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListNil>())};
   }
 
   auto node_definition_traits<node::ListCons, modules::_std::tag>::
@@ -114,10 +105,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::ListCons>();
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<yave::modules::_std::list::ListCons>(),
-      info.name())};
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListCons>())};
   }
 
   auto node_definition_traits<node::ListDecompose, modules::_std::tag>::
@@ -126,16 +114,10 @@ namespace yave {
     auto info = get_node_declaration<node::ListDecompose>();
 
     auto d1 = node_definition(
-      info.qualified_name(),
-      0,
-      make_object<yave::modules::_std::list::ListHead>(),
-      info.description());
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListHead>());
 
     auto d2 = node_definition(
-      info.qualified_name(),
-      1,
-      make_object<yave::modules::_std::list::ListTail>(),
-      info.description());
+      info.full_name(), 1, make_object<yave::modules::_std::list::ListTail>());
 
     return {std::move(d1), std::move(d2)};
   }

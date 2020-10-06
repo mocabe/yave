@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/geometry/vec.hpp>
+#include <yave/module/std/vec/vec.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/vec/property.hpp>
 #include <yave/obj/primitive/property.hpp>
@@ -14,8 +14,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Vec2",
-      "/std/geometry",
+      "Std.Vec.Vec2",
       "Vec2 constructor",
       {"x", "y"},
       {"value"},
@@ -26,8 +25,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Vec3",
-      "/std/geometry",
+      "Std.Vec.Vec3",
       "Vec3 constructor",
       {"x", "y", "z"},
       {"value"},
@@ -40,8 +38,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Vec4",
-      "/std/geometry",
+      "Std.Vec.Vec4",
       "Vec3 constructor",
       {"x", "y", "z", "w"},
       {"value"},
@@ -88,10 +85,9 @@ namespace yave {
     auto info = get_node_declaration<node::Vec2>();
 
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::geometry::Vec2Constructor>(),
-      info.description())};
+      make_object<modules::_std::geometry::Vec2Constructor>())};
   }
 
   auto node_definition_traits<node::Vec3, modules::_std::tag>::
@@ -100,10 +96,9 @@ namespace yave {
     auto info = get_node_declaration<node::Vec3>();
 
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::geometry::Vec3Constructor>(),
-      info.description())};
+      make_object<modules::_std::geometry::Vec3Constructor>())};
   }
 
   auto node_definition_traits<node::Vec4, modules::_std::tag>::
@@ -112,9 +107,8 @@ namespace yave {
     auto info = get_node_declaration<node::Vec4>();
 
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::geometry::Vec4Constructor>(),
-      info.description())};
+      make_object<modules::_std::geometry::Vec4Constructor>())};
   }
 } // namespace yave

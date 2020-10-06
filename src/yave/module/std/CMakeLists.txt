@@ -2,14 +2,17 @@
 
 add_library(yave-module-std
   color/color.cpp
-  geometry/vec.cpp
-  geometry/mat.cpp
+  vec/vec.cpp
+  mat/mat.cpp
   list/list.cpp
   list/algorithm.cpp
-  functional/apply.cpp
+  function/apply.cpp
   logic/if.cpp
   primitive/primitive.cpp
-  primitive/conversion.cpp
+  num/num.cpp
+  num/conversion.cpp
+  string/string.cpp
+  bool/bool.cpp
   frame/frame.cpp
   frame/mix.cpp
   frame/fill.cpp

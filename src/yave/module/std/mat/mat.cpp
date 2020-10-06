@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/geometry/mat.hpp>
+#include <yave/module/std/mat/mat.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/mat/mat.hpp>
 #include <yave/obj/vec/vec.hpp>
@@ -17,16 +17,14 @@ namespace yave {
   auto node_declaration_traits<node::Mat4>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
-      "Mat4", "/std/geometry", "4x4 Matrix", {}, {"mat4"});
+    return node_declaration("Std.Mat.Mat4", "4x4 Matrix", {}, {"mat4"});
   }
 
   auto node_declaration_traits<node::Mat4Rotate>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Rotate",
-      "/std/geometry",
+      "Std.Mat.Rotate",
       "Rotate object around axis",
       {"mat4", "deg", "axis"},
       {"mat4"},
@@ -37,8 +35,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "RotateX",
-      "/std/geometry",
+      "Std.Mat.RotateX",
       "Rotate object around X axis",
       {"mat4", "deg"},
       {"mat4"},
@@ -49,8 +46,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "RotateY",
-      "/std/geometry",
+      "Std.Mat.RotateY",
       "Rotate object around Y axis",
       {"mat4", "deg"},
       {"mat4"},
@@ -61,8 +57,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "RotateZ",
-      "/std/geometry",
+      "Std.Mat.RotateZ",
       "Rotate object around Z axis",
       {"mat4", "deg"},
       {"mat4"},
@@ -73,7 +68,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Translate", "/std/geometry", "Move object", {"mat4", "vec3"}, {"mat4"});
+      "Std.Mat.Translate", "Move object", {"mat4", "vec3"}, {"mat4"});
   }
 
   namespace modules::_std::geometry {
@@ -166,10 +161,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat4>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::geometry::Mat4Ctor>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::geometry::Mat4Ctor>())};
   }
 
   auto node_definition_traits<node::Mat4Rotate, modules::_std::tag>::
@@ -178,10 +170,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat4Rotate>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::geometry::Mat4Rotate>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::geometry::Mat4Rotate>())};
   }
 
   auto node_definition_traits<node::Mat4RotateX, modules::_std::tag>::
@@ -190,10 +179,9 @@ namespace yave {
     auto info = get_node_declaration<node::Mat4RotateX>();
 
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::geometry::Mat4RotateX>(),
-      info.description())};
+      make_object<modules::_std::geometry::Mat4RotateX>())};
   }
 
   auto node_definition_traits<node::Mat4RotateY, modules::_std::tag>::
@@ -202,10 +190,9 @@ namespace yave {
     auto info = get_node_declaration<node::Mat4RotateY>();
 
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::geometry::Mat4RotateY>(),
-      info.description())};
+      make_object<modules::_std::geometry::Mat4RotateY>())};
   }
 
   auto node_definition_traits<node::Mat4RotateZ, modules::_std::tag>::
@@ -214,10 +201,9 @@ namespace yave {
     auto info = get_node_declaration<node::Mat4RotateZ>();
 
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::geometry::Mat4RotateZ>(),
-      info.description())};
+      make_object<modules::_std::geometry::Mat4RotateZ>())};
   }
 
   auto node_definition_traits<node::Mat4Translate, modules::_std::tag>::
@@ -226,9 +212,8 @@ namespace yave {
     auto info = get_node_declaration<node::Mat4Translate>();
 
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::geometry::Mat4Translate>(),
-      info.description())};
+      make_object<modules::_std::geometry::Mat4Translate>())};
   }
 } // namespace yave

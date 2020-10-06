@@ -12,7 +12,6 @@ namespace yave {
 
   namespace node {
     class IntToFloat;
-    class FloatToInt;
   } // namespace node
 
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::IntToFloat);

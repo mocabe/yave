@@ -21,6 +21,9 @@ namespace yave::editor::imgui {
       ImVec2 pos, size;
     };
 
+    // title
+    std::string m_title;
+
     // cache socket layout
     mutable bool m_layout_cache = false;
     mutable ImVec2 m_cached_header_size;

@@ -15,7 +15,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Mix", "/std/frame", "Mix frames", {"src", "dst"}, {"frame"});
+      "Std.Frame.Mix", "Mix frames", {"src", "dst"}, {"frame"});
   }
 
   namespace modules::_std::frame {
@@ -65,9 +65,8 @@ namespace yave {
   {
     auto info = get_node_declaration<node::MixFrame>();
     return std::vector {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::frame::MixFrame>(fbm, compositor),
-      info.description())};
+      make_object<modules::_std::frame::MixFrame>(fbm, compositor))};
   }
 }

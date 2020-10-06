@@ -15,8 +15,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Time",
-      "/std/time",
+      "Std.Time.Time",
       "Constructor of time value. This node construct new FrameTime object "
       "from argument, or creates FrameTime object which represents current "
       "time applied to the tree.",
@@ -29,8 +28,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Seconds",
-      "/std/time",
+      "Std.Time.ToSeconds",
       "Get float seconds from time",
       {"time"},
       {"seconds"},
@@ -41,8 +39,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "FromSeconds",
-      "/std/time",
+      "Std.Time.FromSeconds",
       "Make time from seconds",
       {"time"},
       {"seconds"},
@@ -83,10 +80,9 @@ namespace yave {
     auto info = get_node_declaration<node::Time>();
 
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::time::TimeConstructor>(),
-      info.description())};
+      make_object<modules::_std::time::TimeConstructor>())};
   }
 
   auto node_definition_traits<node::TimeSeconds, modules::_std::tag>::
@@ -95,10 +91,7 @@ namespace yave {
     auto info = get_node_declaration<node::TimeSeconds>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::time::Seconds>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::time::Seconds>())};
   }
 
   auto node_definition_traits<node::TimeFromSeconds, modules::_std::tag>::
@@ -107,9 +100,6 @@ namespace yave {
     auto info = get_node_declaration<node::TimeFromSeconds>();
 
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<modules::_std::time::FromSeconds>(),
-      info.description())};
+      info.full_name(), 0, make_object<modules::_std::time::FromSeconds>())};
   }
 } // namespace yave

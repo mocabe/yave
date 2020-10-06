@@ -8,14 +8,17 @@
 
 // module defs
 #include <yave/module/std/color/color.hpp>
-#include <yave/module/std/geometry/vec.hpp>
-#include <yave/module/std/geometry/mat.hpp>
+#include <yave/module/std/vec/vec.hpp>
+#include <yave/module/std/mat/mat.hpp>
 #include <yave/module/std/list/list.hpp>
 #include <yave/module/std/list/algorithm.hpp>
-#include <yave/module/std/functional/apply.hpp>
+#include <yave/module/std/function/apply.hpp>
 #include <yave/module/std/logic/if.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
-#include <yave/module/std/primitive/conversion.hpp>
+#include <yave/module/std/num/num.hpp>
+#include <yave/module/std/num/conversion.hpp>
+#include <yave/module/std/string/string.hpp>
+#include <yave/module/std/bool/bool.hpp>
 #include <yave/module/std/frame/frame.hpp>
 #include <yave/module/std/frame/mix.hpp>
 #include <yave/module/std/frame/fill.hpp>

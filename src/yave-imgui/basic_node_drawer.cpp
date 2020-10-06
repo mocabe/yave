@@ -32,8 +32,9 @@ namespace yave::editor::imgui {
     auto min_height = 32.f;
     auto x_padding  = 32.f;
     auto y_padding  = 0.f;
-    return {std::max(text_size.x + x_padding * 2, min_width),
-            std::max(text_size.y + y_padding * 2, min_height)};
+    return {
+      std::max(text_size.x + x_padding * 2, min_width),
+      std::max(text_size.y + y_padding * 2, min_height)};
   }
 
   basic_node_drawer::basic_node_drawer(
@@ -41,8 +42,14 @@ namespace yave::editor::imgui {
     const structured_node_graph& g,
     const node_window& nw)
     : node_drawable {n, *g.get_info(n)}
+    , m_title {info.name()}
   {
     (void)nw;
+
+    if (!g.is_definition(n)) {
+      if (auto def = g.get_definition(n))
+        m_title = *g.get_path(def);
+    }
   }
 
   auto basic_node_drawer::_calc_area_layout(
@@ -54,7 +61,7 @@ namespace yave::editor::imgui {
         m_cached_header_size, m_cached_node_size, m_cached_areas);
 
     // header min size
-    auto header_min_size = calc_node_header_min_size(info.name());
+    auto header_min_size = calc_node_header_min_size(m_title);
     // total node size
     auto node_size = header_min_size;
     // socket area list
@@ -121,7 +128,6 @@ namespace yave::editor::imgui {
                         : selected ? get_node_header_fill_color_selected()
                                    : get_node_header_fill_color();
 
-    auto title     = info.name();
     auto rounding  = get_node_rounding();
     auto draw_list = ImGui::GetWindowDrawList();
 
@@ -133,9 +139,9 @@ namespace yave::editor::imgui {
 
     // text
     auto text_pos =
-      calc_text_pos(title, font_size_level::e15, size, text_alignment::center);
+      calc_text_pos(m_title, font_size_level::e15, size, text_alignment::left);
     ImGui::SetCursorScreenPos(pos + text_pos);
-    ImGui::TextColored(get_node_header_text_color(), "%s", title.c_str());
+    ImGui::TextColored(get_node_header_text_color(), "%s", m_title.c_str());
   }
 
   void basic_node_drawer::_draw_edge(
@@ -177,15 +183,7 @@ namespace yave::editor::imgui {
             dctx.cmd(std::make_unique<dcmd_nset_name>(n, tmp));
         }
       } else {
-        std::string path = [&] {
-          auto lck = dctx.lock();
-          auto& ng = lck.get_data<editor_data>().node_graph();
-          if (auto p = ng.get_path(ng.get_definition(n)))
-            return *p;
-          else
-            return info.name();
-        }();
-        ImGui::Text("%s", path.c_str());
+        ImGui::Text("%s", m_title.c_str());
       }
 
       // id

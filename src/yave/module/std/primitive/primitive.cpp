@@ -4,12 +4,11 @@
 //
 
 #include <yave/module/std/primitive/primitive.hpp>
+#include <yave/module/std/num/num.hpp>
+#include <yave/module/std/string/string.hpp>
+#include <yave/module/std/bool/bool.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/primitive/property.hpp>
-
-#define YAVE_DEF_PRIM_NODE(TYPE)                       \
-  template struct node_declaration_traits<node::TYPE>; \
-  template struct node_definition_traits<node::TYPE, modules::_std::tag>
 
 namespace yave {
 
@@ -18,8 +17,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      node_name,
-      "/std/prim",
+      std::string(module) + "." + node_name,
       "Data type constructor",
       {"value"},
       {"value"},
@@ -46,10 +44,9 @@ namespace yave {
     auto info = get_node_declaration<node::PrimitiveCtor<T>>();
 
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<modules::_std::prim::PrimitiveCtor<T>>(),
-      info.name())};
+      make_object<modules::_std::prim::PrimitiveCtor<T>>())};
   }
 
   YAVE_DEF_PRIM_NODE(Int);

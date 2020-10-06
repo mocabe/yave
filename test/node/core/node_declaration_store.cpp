@@ -6,7 +6,7 @@
 #include <catch2/catch.hpp>
 
 #include <yave/node/core/node_declaration_store.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
+#include <yave/module/std/num/num.hpp>
 
 using namespace yave;
 
@@ -46,9 +46,9 @@ TEST_CASE("node_declaration_store")
   // allows duplicate
   REQUIRE(store.add(*fdecl));
 
-  REQUIRE(store.find(idecl->qualified_name()));
-  REQUIRE(store.find(fdecl->qualified_name()));
+  REQUIRE(store.find(idecl->full_name()));
+  REQUIRE(store.find(fdecl->full_name()));
 
-  store.remove(fdecl->qualified_name());
-  REQUIRE(!store.find(fdecl->qualified_name()));
+  store.remove(fdecl->full_name());
+  REQUIRE(!store.find(fdecl->full_name()));
 }

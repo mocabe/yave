@@ -44,12 +44,12 @@ namespace yave {
 
   bool node_definition_store::add(const node_definition& def)
   {
-    m_map.emplace(def.qualified_name(), std::make_shared<node_definition>(def));
+    m_map.emplace(def.full_name(), std::make_shared<node_definition>(def));
 
     Info(
       g_logger,
       "Added new definition: name={}, os={}",
-      def.qualified_name(),
+      def.full_name(),
       def.output_socket());
 
     return true;

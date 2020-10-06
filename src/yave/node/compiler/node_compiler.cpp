@@ -55,8 +55,7 @@ namespace yave {
 
       static auto declaration()
       {
-        return node_declaration(
-          "FrameBufferOutput", "/_", "internal", {""}, {""});
+        return node_declaration("_.FrameBufferOutput", "", {""}, {""});
       }
 
       static auto definition()
@@ -64,7 +63,7 @@ namespace yave {
         auto decl = declaration();
 
         return node_definition(
-          decl.qualified_name(), 0, make_object<FrameBufferOutput>(), "");
+          decl.full_name(), 0, make_object<FrameBufferOutput>());
       }
     };
 
@@ -303,7 +302,7 @@ namespace yave {
     node_definition_store& defs,
     node_compiler_result & /*res*/) -> tl::optional<structured_node_graph>
   {
-    auto roots = ng.search_path("/");
+    auto roots = ng.search_path("");
 
     auto root = [&] {
       for (auto&& r : roots)
@@ -417,7 +416,7 @@ namespace yave {
   {
     using namespace compile_results;
 
-    auto roots = ng.search_path("/");
+    auto roots = ng.search_path("");
 
     auto root = [&] {
       for (auto&& r : roots)

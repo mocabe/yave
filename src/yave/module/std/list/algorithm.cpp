@@ -13,16 +13,14 @@ namespace yave {
   auto node_declaration_traits<node::ListMap>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
-      "Map", "/std/list", "map", {"list", "func"}, {"list"});
+    return node_declaration("Std.List.Map", "map", {"list", "func"}, {"list"});
   }
 
   auto node_declaration_traits<node::ListRepeat>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Repeat",
-      "/std/list",
+      "Std.List.Repeat",
       "repeat",
       {"value", "n"},
       {"list"},
@@ -33,14 +31,14 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Enumerate", "/std/list", "enumerate", {"list", "func"}, {"list"});
+      "Std.List.Enumerate", "enumerate", {"list", "func"}, {"list"});
   }
 
   auto node_declaration_traits<node::ListFold>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Fold", "/std/list", "foldl", {"list", "func", "init"}, {"list"});
+      "Std.List.Fold", "foldl", {"list", "func", "init"}, {"list"});
   }
 
   namespace modules::_std::list {
@@ -218,10 +216,9 @@ namespace yave {
   {
     auto info = get_node_declaration<node::ListMap>();
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<yave::modules::_std::list::StrictListMap>(),
-      info.name())};
+      make_object<yave::modules::_std::list::StrictListMap>())};
   }
 
   auto node_definition_traits<node::ListRepeat, modules::_std::tag>::
@@ -229,10 +226,9 @@ namespace yave {
   {
     auto info = get_node_declaration<node::ListRepeat>();
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<yave::modules::_std::list::ListRepeat>(),
-      info.name())};
+      make_object<yave::modules::_std::list::ListRepeat>())};
   }
 
   auto node_definition_traits<node::ListEnumerate, modules::_std::tag>::
@@ -240,10 +236,9 @@ namespace yave {
   {
     auto info = get_node_declaration<node::ListEnumerate>();
     return {node_definition(
-      info.qualified_name(),
+      info.full_name(),
       0,
-      make_object<yave::modules::_std::list::ListEnumerate>(),
-      info.name())};
+      make_object<yave::modules::_std::list::ListEnumerate>())};
   }
 
   auto node_definition_traits<node::ListFold, modules::_std::tag>::
@@ -251,9 +246,6 @@ namespace yave {
   {
     auto info = get_node_declaration<node::ListFold>();
     return {node_definition(
-      info.qualified_name(),
-      0,
-      make_object<yave::modules::_std::list::ListFold>(),
-      info.name())};
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListFold>())};
   }
 } // namespace yave

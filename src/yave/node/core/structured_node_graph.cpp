@@ -463,11 +463,10 @@ namespace yave {
           n = io->parent->defcall()->node;
       }
 
-      std::string path;
-      for (auto&& name : queue | rng::views::reverse)
-        path += "/" + name;
-
-      return path;
+      return queue                   //
+             | rng::views::reverse   //
+             | rng::views::join('.') //
+             | rng::to<std::string>;
     }
 
     auto search_path(const std::string& path) const -> std::vector<node_handle>
@@ -477,28 +476,24 @@ namespace yave {
 
       while (true) {
 
-        if (sv == "/")
+        if (sv == "") {
           return g->members //
                  | rng::views::filter([&](auto&& n) { return is_defcall(n); })
                  | rng::to_vector;
-
-        if (sv.find_first_of('/') != 0)
-          return {};
-
-        auto pos = sv.find_first_of('/', 1);
-
-        if (pos == sv.npos) {
-
-          auto name = sv.substr(1, pos);
-
-          for (auto&& n : g->nodes)
-            if (is_defcall(n) && *ng.get_name(n) == name)
-              return {n};
-
-          return {};
         }
 
-        auto name = sv.substr(1, pos - 1);
+        auto pos = sv.find_first_of('.');
+
+        // find name
+        if (pos == sv.npos) {
+          return g->nodes //
+                 | rng::views::filter([&](auto&& n) {
+                     return is_defcall(n) && *ng.get_name(n) == sv;
+                   })
+                 | rng::to_vector;
+        }
+
+        auto name = sv.substr(0, pos);
 
         for (auto&& n : g->nodes) {
           if (is_defcall(n) && *ng.get_name(n) == name) {
@@ -510,16 +505,16 @@ namespace yave {
 
             // group: set next group
             if (auto group = get_callee_group(n)) {
-              sv.remove_prefix(pos);
-              g = group;
-              goto nextloop;
+              sv = sv.substr(pos + 1, sv.npos);
+              g  = group;
+              goto _continue;
             }
             unreachable();
           }
         }
         return {};
 
-      nextloop:;
+      _continue:;
       }
       return {};
     }
@@ -549,12 +544,12 @@ namespace yave {
       auto o_decl = get_node_declaration<node::NodeGroupOutput>();
       auto d_decl = get_node_declaration<node::NodeDependency>();
 
-      auto g = check(ng.add(g_decl.name(), {}, {}, node_type::interface));
-      auto i = check(ng.add(i_decl.name(), {}, {}, node_type::interface));
-      auto o = check(ng.add(o_decl.name(), {}, {}, node_type::interface));
+      auto g = check(ng.add(g_decl.node_name(), {}, {}, node_type::interface));
+      auto i = check(ng.add(i_decl.node_name(), {}, {}, node_type::interface));
+      auto o = check(ng.add(o_decl.node_name(), {}, {}, node_type::interface));
 
       auto d = check(ng.add(
-        d_decl.name(),
+        d_decl.node_name(),
         d_decl.input_sockets(),
         d_decl.output_sockets(),
         node_type::normal));
@@ -619,13 +614,13 @@ namespace yave {
       auto d_decl = get_node_declaration<node::NodeDependency>();
 
       auto body = ng.add(
-        decl.name(),
+        decl.node_name(),
         decl.input_sockets(),
         decl.output_sockets(),
         node_type::normal);
 
       auto dep = ng.add(
-        d_decl.name(),
+        d_decl.node_name(),
         d_decl.input_sockets(),
         d_decl.output_sockets(),
         node_type::normal);
@@ -673,7 +668,7 @@ namespace yave {
 
       // create bit
       auto bit =
-        check(ng.add(bit_decl.name(), {name}, {name}, node_type::normal));
+        check(ng.add(bit_decl.node_name(), {name}, {name}, node_type::normal));
 
       if (type == socket_type::input)
         check(ng.attach_interface(node, ng.input_sockets(bit)[0]));
@@ -698,7 +693,7 @@ namespace yave {
       auto d_decl = get_node_declaration<node::NodeDependency>();
 
       auto dep = check(ng.add(
-        d_decl.name(),
+        d_decl.node_name(),
         d_decl.input_sockets(),
         d_decl.output_sockets(),
         node_type::normal));
@@ -1507,7 +1502,8 @@ namespace yave {
           node_handle newbit;
           {
             auto decl = get_node_declaration<node::NodeGroupIOBit>();
-            newbit = ng.add(decl.name(), {socket}, {socket}, node_type::normal);
+            newbit =
+              ng.add(decl.node_name(), {socket}, {socket}, node_type::normal);
             g->input_bits.insert(g->input_bits.begin() + index, newbit);
           }
 
@@ -1532,7 +1528,8 @@ namespace yave {
           node_handle newbit;
           {
             auto decl = get_node_declaration<node::NodeGroupIOBit>();
-            newbit = ng.add(decl.name(), {socket}, {socket}, node_type::normal);
+            newbit =
+              ng.add(decl.node_name(), {socket}, {socket}, node_type::normal);
             caller->input_bits.insert(
               caller->input_bits.begin() + index, newbit);
           }
@@ -1590,7 +1587,8 @@ namespace yave {
           node_handle newbit;
           {
             auto decl = get_node_declaration<node::NodeGroupIOBit>();
-            newbit = ng.add(decl.name(), {socket}, {socket}, node_type::normal);
+            newbit =
+              ng.add(decl.node_name(), {socket}, {socket}, node_type::normal);
             g->output_bits.insert(g->output_bits.begin() + index, newbit);
           }
 
@@ -1615,7 +1613,8 @@ namespace yave {
           node_handle newbit;
           {
             auto decl = get_node_declaration<node::NodeGroupIOBit>();
-            newbit = ng.add(decl.name(), {socket}, {socket}, node_type::normal);
+            newbit =
+              ng.add(decl.node_name(), {socket}, {socket}, node_type::normal);
             caller->output_bits.insert(
               caller->output_bits.begin() + index, newbit);
           }
@@ -1696,7 +1695,7 @@ namespace yave {
       structured_node_graph& self,
       const node_declaration& decl) -> node_handle
     {
-      auto path           = decl.qualified_name();
+      auto path           = decl.full_name();
       std::string_view sv = path;
 
       Info(g_logger, "Creating new function: {}", path);
@@ -1706,15 +1705,13 @@ namespace yave {
 
       while (true) {
 
-        assert(sv.find_first_of('/') == 0);
-
-        auto pos = sv.find_first_of('/', 1);
+        auto pos  = sv.find_first_of('.');
+        auto name = sv.substr(0, pos);
 
         // create function
         if (pos == sv.npos) {
 
-          auto name = sv.substr(1, pos);
-          assert(name == decl.name());
+          assert(name == decl.node_name());
 
           for (auto&& n : g->nodes) {
             if (is_defcall(n) && *ng.get_name(n) == name) {
@@ -1722,7 +1719,7 @@ namespace yave {
                 g_logger,
                 "Failed to create node function: Node {} already "
                 "exists.",
-                decl.qualified_name());
+                decl.full_name());
               return {};
             }
           }
@@ -1732,7 +1729,7 @@ namespace yave {
             auto newg = check(add_new_group());
             ng.set_name(newg->input_handler, "In");
             ng.set_name(newg->output_handler, "Out");
-            ng.set_name(newg->node, decl.name());
+            ng.set_name(newg->node, decl.node_name());
 
             auto call = check(add_new_call(g, newg));
 
@@ -1752,8 +1749,6 @@ namespace yave {
 
           return {};
         }
-
-        auto name = sv.substr(1, pos - 1);
 
         node_group* nextg = nullptr;
 
@@ -1780,8 +1775,8 @@ namespace yave {
           nextg = newg;
         }
 
-        sv.remove_prefix(pos);
-        g = nextg;
+        sv = sv.substr(pos + 1, sv.npos);
+        g  = nextg;
       }
 
       return {};
