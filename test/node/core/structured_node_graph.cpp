@@ -4,7 +4,8 @@
 //
 
 #include <yave/node/core/structured_node_graph.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
+#include <yave/module/std/num/num.hpp>
+#include <yave/module/std/string/string.hpp>
 #include <catch2/catch.hpp>
 
 #include <iostream>

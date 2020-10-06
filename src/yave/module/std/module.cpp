@@ -15,7 +15,10 @@
 #include <yave/module/std/function/apply.hpp>
 #include <yave/module/std/logic/if.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
-#include <yave/module/std/primitive/conversion.hpp>
+#include <yave/module/std/num/num.hpp>
+#include <yave/module/std/num/conversion.hpp>
+#include <yave/module/std/string/string.hpp>
+#include <yave/module/std/bool/bool.hpp>
 #include <yave/module/std/frame/frame.hpp>
 #include <yave/module/std/frame/mix.hpp>
 #include <yave/module/std/frame/fill.hpp>

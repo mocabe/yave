@@ -6,7 +6,7 @@
 #include <catch2/catch.hpp>
 
 #include <yave/node/core/node_declaration_store.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
+#include <yave/module/std/num/num.hpp>
 
 using namespace yave;
 

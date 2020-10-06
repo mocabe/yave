@@ -5,7 +5,8 @@
 
 #include <yave/node/compiler/node_compiler.hpp>
 #include <yave/node/core/function.hpp>
-#include <yave/module/std/primitive/primitive.hpp>
+#include <yave/module/std/num/num.hpp>
+#include <yave/module/std/bool/bool.hpp>
 #include <yave/module/std/list/list.hpp>
 #include <yave/module/std/logic/if.hpp>
 #include <catch2/catch.hpp>
