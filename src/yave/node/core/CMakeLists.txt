@@ -10,6 +10,7 @@ add_library(yave-node-core
   node_graph.cpp
   socket_instance_manager.cpp
   node_initializer.cpp
+  node_declaration.cpp
   node_declaration_store.cpp
   node_definition_store.cpp
   structured_node_graph.cpp
