@@ -173,7 +173,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::Add>(),
             get_node_declaration<node::Sub>(),
             get_node_declaration<node::Mul>(),
-            get_node_declaration<node::Div>(),
+            get_node_declaration<node::Div>()};
   }
 
   auto module::get_node_definitions() const -> std::vector<node_definition>
