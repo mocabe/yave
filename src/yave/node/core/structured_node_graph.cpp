@@ -17,6 +17,7 @@
 #include <variant>
 #include <string_view>
 #include <algorithm>
+#include <regex>
 
 YAVE_DECL_G_LOGGER(structured_node_graph)
 
@@ -1392,8 +1393,15 @@ namespace yave {
     {
       assert(is_valid(node));
 
+      static const auto re = std::regex(R"(^[^\.\s]+$)");
+
+      if (!std::regex_match(name, re)) {
+        Error(g_logger, "Invalid node name: {}", name);
+        return;
+      }
+
       if (!is_defcall(node)) {
-        Info(g_logger, "Cannot rename non-definition node call");
+        Error(g_logger, "Cannot rename non-definition node call");
         return;
       }
 

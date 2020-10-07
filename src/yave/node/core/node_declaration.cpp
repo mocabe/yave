@@ -47,7 +47,7 @@ namespace yave {
     }
 
     // requires '.' delimited path
-    static auto re = std::regex(R"(^(\w+)(\.\w+)*$)");
+    static const auto re = std::regex(R"(^(\w+)(\.\w+)*$)");
 
     if (!std::regex_match(m_name, re))
       throw std::invalid_argument("Invalid name format");
