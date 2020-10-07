@@ -246,7 +246,7 @@ namespace yave::editor::imgui {
           auto tmp  = si.name();
           auto flag = ImGuiInputTextFlags_EnterReturnsTrue;
           if (ImGui::InputText("", &tmp, flag))
-            dctx.cmd(std::make_unique<dcmd_nset_name>(n, tmp));
+            dctx.cmd(std::make_unique<dcmd_sset_name>(s, tmp));
 
           ImGui::SameLine(0, spacing);
           if (ImGui::Button("-", {button_size, button_size}))
