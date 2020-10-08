@@ -614,9 +614,9 @@ namespace yave::graph {
     using socket_property_type   = SocketProperty;
     using edge_property_type     = EdgeProperty;
 
-    using node_type              = node<type>;
-    using socket_type            = socket<type>;
-    using edge_type              = edge<type>;
+    using node_type              = yave::graph::node<type>;
+    using socket_type            = yave::graph::socket<type>;
+    using edge_type              = yave::graph::edge<type>;
 
     using node_container_type    = graph_container<node, type>;
     using socket_container_type  = graph_container<socket, type>;
