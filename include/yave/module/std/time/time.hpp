@@ -13,22 +13,22 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::Time {
     /// Primitive node for frame time.
     struct Time;
     /// Convert time to seconds
-    struct TimeSeconds;
+    struct Seconds;
     /// Construct time from float seconds
-    struct TimeFromSeconds;
+    struct FromSeconds;
   } // namespace node
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Time);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::TimeSeconds);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::TimeFromSeconds);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Time::Time);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Time::Seconds);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Time::FromSeconds);
 
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Time, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::TimeSeconds, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::TimeFromSeconds, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Time::Time, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Time::Seconds, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Time::FromSeconds, modules::_std::tag);
 
   namespace modules::_std::core {
     /// Get time from demand

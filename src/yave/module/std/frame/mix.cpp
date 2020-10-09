@@ -11,7 +11,7 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::MixFrame>::get_node_declaration()
+  auto node_declaration_traits<node::Frame::Mix>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -57,13 +57,13 @@ namespace yave {
     };
   } // namespace modules::_std::render
 
-  auto node_definition_traits<node::MixFrame, modules::_std::tag>::
+  auto node_definition_traits<node::Frame::Mix, modules::_std::tag>::
     get_node_definitions(
       data::frame_buffer_manager& fbm,
       vulkan::rgba32f_offscreen_compositor& compositor)
       -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::MixFrame>();
+    auto info = get_node_declaration<node::Frame::Mix>();
     return std::vector {node_definition(
       info.full_name(),
       0,

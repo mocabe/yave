@@ -12,19 +12,20 @@
 
 namespace yave {
 
-  namespace node {
-    struct FillFrame;
-  }
+  namespace node::Frame {
+    /// Fill frame
+    struct Fill;
+  } // namespace node::Frame
 
   template <>
-  struct node_declaration_traits<node::FillFrame>
+  struct node_declaration_traits<node::Frame::Fill>
   {
     static auto get_node_declaration(data::frame_buffer_manager& fbm)
       -> node_declaration;
   };
 
   template <>
-  struct node_definition_traits<node::FillFrame, modules::_std::tag>
+  struct node_definition_traits<node::Frame::Fill, modules::_std::tag>
   {
     static auto get_node_definitions(
       data::frame_buffer_manager& fbm,

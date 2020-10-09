@@ -8,7 +8,7 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::If>::get_node_declaration()
+  auto node_declaration_traits<node::Logic::If>::get_node_declaration()
     -> node_declaration
   {
     class X;
@@ -39,10 +39,10 @@ namespace yave {
 
   } // namespace modules::_std::logic
 
-  auto node_definition_traits<node::If, modules::_std::tag>::
+  auto node_definition_traits<node::Logic::If, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::If>();
+    auto info = get_node_declaration<node::Logic::If>();
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::logic::If>())};
   }

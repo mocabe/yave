@@ -13,15 +13,15 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::Frame {
     /// frame buffer
     class Frame;
-  } // namespace node
+  } // namespace node::Frame
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Frame);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Frame::Frame);
 
   template <>
-  struct node_definition_traits<node::Frame, modules::_std::tag>
+  struct node_definition_traits<node::Frame::Frame, modules::_std::tag>
   {
     static auto get_node_definitions(
       data::frame_buffer_manager& mngr,

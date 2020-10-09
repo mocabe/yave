@@ -128,53 +128,54 @@ namespace yave::modules::_std {
   {
     auto& fmngr    = m_pimpl->resource->frame_buff;
 
-    return {get_node_declaration<node::color::Color>(),
-            get_node_declaration<node::color::FromFloats>(),
-            get_node_declaration<node::Vec2>(),
-            get_node_declaration<node::Vec3>(),
-            get_node_declaration<node::Vec4>(),
-            get_node_declaration<node::Mat4>(),
-            get_node_declaration<node::Mat4Translate>(),
-            get_node_declaration<node::Mat4Rotate>(),
-            get_node_declaration<node::Mat4RotateX>(),
-            get_node_declaration<node::Mat4RotateY>(),
-            get_node_declaration<node::Mat4RotateZ>(),
-            get_node_declaration<node::ListNil>(),
-            get_node_declaration<node::ListCons>(),
-            get_node_declaration<node::ListDecompose>(),
-            get_node_declaration<node::ListMap>(),
-            get_node_declaration<node::ListRepeat>(),
-            get_node_declaration<node::ListEnumerate>(),
-            get_node_declaration<node::ListFold>(),
-            get_node_declaration<node::Apply>(),
-            get_node_declaration<node::If>(),
+    return {get_node_declaration<node::Color::Color>(),
+            get_node_declaration<node::Color::FromFloats>(),
+            get_node_declaration<node::Vec::Vec2>(),
+            get_node_declaration<node::Vec::Vec3>(),
+            get_node_declaration<node::Vec::Vec4>(),
+            get_node_declaration<node::Mat::Mat4>(),
+            get_node_declaration<node::Mat::Translate>(),
+            get_node_declaration<node::Mat::Rotate>(),
+            get_node_declaration<node::Mat::RotateX>(),
+            get_node_declaration<node::Mat::RotateY>(),
+            get_node_declaration<node::Mat::RotateZ>(),
+            get_node_declaration<node::List::Nil>(),
+            get_node_declaration<node::List::Cons>(),
+            get_node_declaration<node::List::Decompose>(),
+            get_node_declaration<node::List::Map>(),
+            get_node_declaration<node::List::Repeat>(),
+            get_node_declaration<node::List::Enumerate>(),
+            get_node_declaration<node::List::Fold>(),
+            get_node_declaration<node::Function::Apply>(),
+            get_node_declaration<node::Logic::If>(),
             get_node_declaration<node::Int>(),
             get_node_declaration<node::Float>(),
             get_node_declaration<node::Bool>(),
             get_node_declaration<node::String>(),
-            get_node_declaration<node::ToFloat>(),
-            get_node_declaration<node::ToInt>(),
-            get_node_declaration<node::Frame>(),
-            get_node_declaration<node::MixFrame>(),
-            get_node_declaration<node::FillFrame>(fmngr),
-            get_node_declaration<node::ReTime>(),
-            get_node_declaration<node::DelayTime>(),
-            get_node_declaration<node::ScaleTime>(),
-            get_node_declaration<node::Time>(),
-            get_node_declaration<node::TimeSeconds>(),
-            get_node_declaration<node::TimeFromSeconds>(),
-            get_node_declaration<node::CircleShape>(),
-            get_node_declaration<node::RectShape>(),
-            get_node_declaration<node::FillShape>(),
-            get_node_declaration<node::StrokeShape>(),
-            get_node_declaration<node::DrawShape>(fmngr),
-            get_node_declaration<node::ShapeTranslate>(),
-            get_node_declaration<node::ShapeRotate>(),
-            get_node_declaration<node::ShapeScale>(),
-            get_node_declaration<node::Add>(),
-            get_node_declaration<node::Sub>(),
-            get_node_declaration<node::Mul>(),
-            get_node_declaration<node::Div>()};
+            get_node_declaration<node::Num::ToFloat>(),
+            get_node_declaration<node::Num::ToInt>(),
+            get_node_declaration<node::Frame::Frame>(),
+            get_node_declaration<node::Frame::Mix>(),
+            get_node_declaration<node::Frame::Fill>(fmngr),
+            get_node_declaration<node::FrameVisibilityRange>(),
+            get_node_declaration<node::Time::ReTime>(),
+            get_node_declaration<node::Time::Delay>(),
+            get_node_declaration<node::Time::Scale>(),
+            get_node_declaration<node::Time::Time>(),
+            get_node_declaration<node::Time::Seconds>(),
+            get_node_declaration<node::Time::FromSeconds>(),
+            get_node_declaration<node::Shape::Circle>(),
+            get_node_declaration<node::Shape::Rect>(),
+            get_node_declaration<node::Shape::Fill>(),
+            get_node_declaration<node::Shape::Stroke>(),
+            get_node_declaration<node::Shape::Draw>(fmngr),
+            get_node_declaration<node::Shape::Translate>(),
+            get_node_declaration<node::Shape::Rotate>(),
+            get_node_declaration<node::Shape::Scale>(),
+            get_node_declaration<node::Ops::Add>(),
+            get_node_declaration<node::Ops::Sub>(),
+            get_node_declaration<node::Ops::Mul>(),
+            get_node_declaration<node::Ops::Div>()};
   }
 
   auto module::get_node_definitions() const -> std::vector<node_definition>
@@ -190,54 +191,55 @@ namespace yave::modules::_std {
     auto& fmngr      = m_pimpl->resource->frame_buff;
     auto& compositor = m_pimpl->resource->compositor;
 
-    add(yave::get_node_definitions<node::Frame, _std::tag>(fmngr, compositor));
+    add(yave::get_node_definitions<node::Frame::Frame, _std::tag>(fmngr, compositor));
 
-    add(yave::get_node_definitions<node::color::Color, _std::tag>());
-    add(yave::get_node_definitions<node::color::FromFloats, _std::tag>());
-    add(yave::get_node_definitions<node::Vec2, _std::tag>());
-    add(yave::get_node_definitions<node::Vec3, _std::tag>());
-    add(yave::get_node_definitions<node::Vec4, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4Rotate, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4RotateX, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4RotateY, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4RotateZ, _std::tag>());
-    add(yave::get_node_definitions<node::Mat4Translate, _std::tag>());
-    add(yave::get_node_definitions<node::ListNil, _std::tag>());
-    add(yave::get_node_definitions<node::ListCons, _std::tag>());
-    add(yave::get_node_definitions<node::ListDecompose, _std::tag>());
-    add(yave::get_node_definitions<node::ListMap, _std::tag>());
-    add(yave::get_node_definitions<node::ListRepeat, _std::tag>());
-    add(yave::get_node_definitions<node::ListEnumerate, _std::tag>());
-    add(yave::get_node_definitions<node::ListFold, _std::tag>());
-    add(yave::get_node_definitions<node::If, _std::tag>());
-    add(yave::get_node_definitions<node::Apply, _std::tag>());
+    add(yave::get_node_definitions<node::Color::Color, _std::tag>());
+    add(yave::get_node_definitions<node::Color::FromFloats, _std::tag>());
+    add(yave::get_node_definitions<node::Vec::Vec2, _std::tag>());
+    add(yave::get_node_definitions<node::Vec::Vec3, _std::tag>());
+    add(yave::get_node_definitions<node::Vec::Vec4, _std::tag>());
+    add(yave::get_node_definitions<node::Mat::Mat4, _std::tag>());
+    add(yave::get_node_definitions<node::Mat::Rotate, _std::tag>());
+    add(yave::get_node_definitions<node::Mat::RotateX, _std::tag>());
+    add(yave::get_node_definitions<node::Mat::RotateY, _std::tag>());
+    add(yave::get_node_definitions<node::Mat::RotateZ, _std::tag>());
+    add(yave::get_node_definitions<node::Mat::Translate, _std::tag>());
+    add(yave::get_node_definitions<node::List::Nil, _std::tag>());
+    add(yave::get_node_definitions<node::List::Cons, _std::tag>());
+    add(yave::get_node_definitions<node::List::Decompose, _std::tag>());
+    add(yave::get_node_definitions<node::List::Map, _std::tag>());
+    add(yave::get_node_definitions<node::List::Repeat, _std::tag>());
+    add(yave::get_node_definitions<node::List::Enumerate, _std::tag>());
+    add(yave::get_node_definitions<node::List::Fold, _std::tag>());
+    add(yave::get_node_definitions<node::Logic::If, _std::tag>());
+    add(yave::get_node_definitions<node::Function::Apply, _std::tag>());
     add(yave::get_node_definitions<node::Int, _std::tag>());
     add(yave::get_node_definitions<node::Float, _std::tag>());
     add(yave::get_node_definitions<node::Bool, _std::tag>());
     add(yave::get_node_definitions<node::String, _std::tag>());
-    add(yave::get_node_definitions<node::ToFloat, _std::tag>());
-    add(yave::get_node_definitions<node::ToInt, _std::tag>());
-    add(yave::get_node_definitions<node::MixFrame, _std::tag>(fmngr, compositor));
-    add(yave::get_node_definitions<node::FillFrame, _std::tag>(fmngr, compositor));
-    add(yave::get_node_definitions<node::Time, _std::tag>());
-    add(yave::get_node_definitions<node::TimeSeconds, _std::tag>());
-    add(yave::get_node_definitions<node::TimeFromSeconds, _std::tag>());
-    add(yave::get_node_definitions<node::ReTime, _std::tag>());
-    add(yave::get_node_definitions<node::DelayTime, _std::tag>());
-    add(yave::get_node_definitions<node::ScaleTime, _std::tag>());
-    add(yave::get_node_definitions<node::CircleShape, _std::tag>());
-    add(yave::get_node_definitions<node::RectShape, _std::tag>());
-    add(yave::get_node_definitions<node::FillShape, _std::tag>());
-    add(yave::get_node_definitions<node::StrokeShape, _std::tag>());
-    add(yave::get_node_definitions<node::DrawShape, _std::tag>(fmngr, compositor));
-    add(yave::get_node_definitions<node::ShapeTranslate, _std::tag>());
-    add(yave::get_node_definitions<node::ShapeRotate, _std::tag>());
-    add(yave::get_node_definitions<node::ShapeScale, _std::tag>());
-    add(yave::get_node_definitions<node::Add, _std::math::tag>());
-    add(yave::get_node_definitions<node::Sub, _std::math::tag>());
-    add(yave::get_node_definitions<node::Mul, _std::math::tag>());
-    add(yave::get_node_definitions<node::Div, _std::math::tag>());
+    add(yave::get_node_definitions<node::Num::ToFloat, _std::tag>());
+    add(yave::get_node_definitions<node::Num::ToInt, _std::tag>());
+    add(yave::get_node_definitions<node::Frame::Mix, _std::tag>(fmngr, compositor));
+    add(yave::get_node_definitions<node::Frame::Fill, _std::tag>(fmngr, compositor));
+    add(yave::get_node_definitions<node::FrameVisibilityRange, _std::tag>(fmngr));
+    add(yave::get_node_definitions<node::Time::Time, _std::tag>());
+    add(yave::get_node_definitions<node::Time::Seconds, _std::tag>());
+    add(yave::get_node_definitions<node::Time::FromSeconds, _std::tag>());
+    add(yave::get_node_definitions<node::Time::ReTime, _std::tag>());
+    add(yave::get_node_definitions<node::Time::Delay, _std::tag>());
+    add(yave::get_node_definitions<node::Time::Scale, _std::tag>());
+    add(yave::get_node_definitions<node::Shape::Circle, _std::tag>());
+    add(yave::get_node_definitions<node::Shape::Rect, _std::tag>());
+    add(yave::get_node_definitions<node::Shape::Fill, _std::tag>());
+    add(yave::get_node_definitions<node::Shape::Stroke, _std::tag>());
+    add(yave::get_node_definitions<node::Shape::Draw, _std::tag>(fmngr, compositor));
+    add(yave::get_node_definitions<node::Shape::Translate, _std::tag>());
+    add(yave::get_node_definitions<node::Shape::Rotate, _std::tag>());
+    add(yave::get_node_definitions<node::Shape::Scale, _std::tag>());
+    add(yave::get_node_definitions<node::Ops::Add, _std::math::tag>());
+    add(yave::get_node_definitions<node::Ops::Sub, _std::math::tag>());
+    add(yave::get_node_definitions<node::Ops::Mul, _std::math::tag>());
+    add(yave::get_node_definitions<node::Ops::Div, _std::math::tag>());
 
     return ret;
   }

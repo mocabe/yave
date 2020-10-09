@@ -11,7 +11,7 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::Time>::get_node_declaration()
+  auto node_declaration_traits<node::Time::Time>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -24,7 +24,7 @@ namespace yave {
       {{0, make_object<modules::_std::core::GetCurrentTime>()}});
   }
 
-  auto node_declaration_traits<node::TimeSeconds>::get_node_declaration()
+  auto node_declaration_traits<node::Time::Seconds>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -35,7 +35,7 @@ namespace yave {
       {{0, make_object<modules::_std::core::GetCurrentTime>()}});
   }
 
-  auto node_declaration_traits<node::TimeFromSeconds>::get_node_declaration()
+  auto node_declaration_traits<node::Time::FromSeconds>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -74,10 +74,10 @@ namespace yave {
     };
   } // namespace modules::_std::time
 
-  auto node_definition_traits<node::Time, modules::_std::tag>::
+  auto node_definition_traits<node::Time::Time, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Time>();
+    auto info = get_node_declaration<node::Time::Time>();
 
     return {node_definition(
       info.full_name(),
@@ -85,19 +85,19 @@ namespace yave {
       make_object<modules::_std::time::TimeConstructor>())};
   }
 
-  auto node_definition_traits<node::TimeSeconds, modules::_std::tag>::
+  auto node_definition_traits<node::Time::Seconds, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::TimeSeconds>();
+    auto info = get_node_declaration<node::Time::Seconds>();
 
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::time::Seconds>())};
   }
 
-  auto node_definition_traits<node::TimeFromSeconds, modules::_std::tag>::
+  auto node_definition_traits<node::Time::FromSeconds, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::TimeFromSeconds>();
+    auto info = get_node_declaration<node::Time::FromSeconds>();
 
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::time::FromSeconds>())};

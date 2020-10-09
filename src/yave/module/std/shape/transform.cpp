@@ -12,14 +12,14 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::ShapeTranslate>::get_node_declaration()
+  auto node_declaration_traits<node::Shape::Translate>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
       "Std.Shape.Translate", "Translate shape", {"shape", "vec"}, {"shape"});
   }
 
-  auto node_declaration_traits<node::ShapeRotate>::get_node_declaration()
+  auto node_declaration_traits<node::Shape::Rotate>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -30,7 +30,7 @@ namespace yave {
       {{1, make_node_argument<Float>(0.f)}});
   }
 
-  auto node_declaration_traits<node::ShapeScale>::get_node_declaration()
+  auto node_declaration_traits<node::Shape::Scale>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -88,28 +88,28 @@ namespace yave {
     };
   } // namespace modules::_std::shape
 
-  auto node_definition_traits<node::ShapeTranslate, modules::_std::tag>::
+  auto node_definition_traits<node::Shape::Translate, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ShapeTranslate>();
+    auto info = get_node_declaration<node::Shape::Translate>();
 
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::shape::Translate>())};
   }
 
-  auto node_definition_traits<node::ShapeRotate, modules::_std::tag>::
+  auto node_definition_traits<node::Shape::Rotate, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ShapeRotate>();
+    auto info = get_node_declaration<node::Shape::Rotate>();
 
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::shape::Rotate>())};
   }
 
-  auto node_definition_traits<node::ShapeScale, modules::_std::tag>::
+  auto node_definition_traits<node::Shape::Scale, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ShapeScale>();
+    auto info = get_node_declaration<node::Shape::Scale>();
 
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::shape::Scale>())};

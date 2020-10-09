@@ -10,20 +10,20 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::Time {
     /// ReTime
     struct ReTime;
-    /// DelayTime
-    struct DelayTime;
-    /// ScaleTime
-    struct ScaleTime;
+    /// Delay time
+    struct Delay;
+    /// Scale time
+    struct Scale;
   } // namespace node
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ReTime);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::DelayTime);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ScaleTime);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Time::ReTime);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Time::Delay);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Time::Scale);
 
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ReTime, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::DelayTime, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ScaleTime, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Time::ReTime, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Time::Delay, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Time::Scale, modules::_std::tag);
 }

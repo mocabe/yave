@@ -10,12 +10,12 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::Shape {
     // Circle shape ctor
-    class CircleShape;
-  } // namespace node
+    class Circle;
+  } // namespace node::Shape
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::CircleShape);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::CircleShape, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Shape::Circle);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Shape::Circle, modules::_std::tag);
 
 } // namespace yave

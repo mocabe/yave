@@ -12,14 +12,15 @@
 
 namespace yave {
 
-  namespace node {
-    struct MixFrame;
-  }
+  namespace node::Frame {
+    /// mix frames
+    struct Mix;
+  } // namespace node::frame
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::MixFrame);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Frame::Mix);
 
   template <>
-  struct node_definition_traits<node::MixFrame, modules::_std::tag>
+  struct node_definition_traits<node::Frame::Mix, modules::_std::tag>
   {
     static auto get_node_definitions(
       data::frame_buffer_manager& fbm,

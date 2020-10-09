@@ -27,10 +27,10 @@ namespace yave {
 
   } // namespace modules::_std::math
 
-  auto node_definition_traits<node::Add, modules::_std::math::tag>::
+  auto node_definition_traits<node::Ops::Add, modules::_std::math::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Add>();
+    auto info = get_node_declaration<node::Ops::Add>();
 
     return {
       node_definition(
@@ -39,10 +39,10 @@ namespace yave {
         info.full_name(), 0, make_object<modules::_std::math::TAdd<Int>>())};
   }
 
-  auto node_definition_traits<node::Sub, modules::_std::math::tag>::
+  auto node_definition_traits<node::Ops::Sub, modules::_std::math::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Sub>();
+    auto info = get_node_declaration<node::Ops::Sub>();
 
     return {
       node_definition(
@@ -51,10 +51,10 @@ namespace yave {
         info.full_name(), 0, make_object<modules::_std::math::TSub<Int>>())};
   }
 
-  auto node_definition_traits<node::Mul, modules::_std::math::tag>::
+  auto node_definition_traits<node::Ops::Mul, modules::_std::math::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Mul>();
+    auto info = get_node_declaration<node::Ops::Mul>();
 
     return {
       node_definition(
@@ -63,10 +63,10 @@ namespace yave {
         info.full_name(), 0, make_object<modules::_std::math::TMul<Int>>())};
   }
 
-  auto node_definition_traits<node::Div, modules::_std::math::tag>::
+  auto node_definition_traits<node::Ops::Div, modules::_std::math::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Div>();
+    auto info = get_node_declaration<node::Ops::Div>();
 
     return {
       node_definition(

@@ -10,12 +10,12 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::Shape {
     // Rect shape ctor
-    class RectShape;
+    class Rect;
   } // namespace node
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::RectShape);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::RectShape, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Shape::Rect);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Shape::Rect, modules::_std::tag);
 
 } // namespace yave

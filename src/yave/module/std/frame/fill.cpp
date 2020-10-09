@@ -11,7 +11,7 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::FillFrame>::get_node_declaration(
+  auto node_declaration_traits<node::Frame::Fill>::get_node_declaration(
     data::frame_buffer_manager& fbm) -> node_declaration
   {
     return node_declaration(
@@ -59,13 +59,13 @@ namespace yave {
     };
   } // namespace modules::_std::frame
 
-  auto node_definition_traits<node::FillFrame, modules::_std::tag>::
+  auto node_definition_traits<node::Frame::Fill, modules::_std::tag>::
     get_node_definitions(
       data::frame_buffer_manager& fbm,
       vulkan::rgba32f_offscreen_compositor& compositor)
       -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::FillFrame>(fbm);
+    auto info = get_node_declaration<node::Frame::Fill>(fbm);
     return std::vector {node_definition(
       info.full_name(),
       0,

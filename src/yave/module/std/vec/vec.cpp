@@ -10,7 +10,7 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::Vec2>::get_node_declaration()
+  auto node_declaration_traits<node::Vec::Vec2>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -21,7 +21,7 @@ namespace yave {
       {{0, make_node_argument<Float64>()}, {1, make_node_argument<Float64>()}});
   }
 
-  auto node_declaration_traits<node::Vec3>::get_node_declaration()
+  auto node_declaration_traits<node::Vec::Vec3>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -34,7 +34,7 @@ namespace yave {
        {2, make_node_argument<Float>()}});
   }
 
-  auto node_declaration_traits<node::Vec4>::get_node_declaration()
+  auto node_declaration_traits<node::Vec::Vec4>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -79,10 +79,10 @@ namespace yave {
     };
   } // namespace modules::_std::geometry
 
-  auto node_definition_traits<node::Vec2, modules::_std::tag>::
+  auto node_definition_traits<node::Vec::Vec2, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Vec2>();
+    auto info = get_node_declaration<node::Vec::Vec2>();
 
     return {node_definition(
       info.full_name(),
@@ -90,10 +90,10 @@ namespace yave {
       make_object<modules::_std::geometry::Vec2Constructor>())};
   }
 
-  auto node_definition_traits<node::Vec3, modules::_std::tag>::
+  auto node_definition_traits<node::Vec::Vec3, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Vec3>();
+    auto info = get_node_declaration<node::Vec::Vec3>();
 
     return {node_definition(
       info.full_name(),
@@ -101,10 +101,10 @@ namespace yave {
       make_object<modules::_std::geometry::Vec3Constructor>())};
   }
 
-  auto node_definition_traits<node::Vec4, modules::_std::tag>::
+  auto node_definition_traits<node::Vec::Vec4, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Vec4>();
+    auto info = get_node_declaration<node::Vec::Vec4>();
 
     return {node_definition(
       info.full_name(),

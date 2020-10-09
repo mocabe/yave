@@ -10,12 +10,12 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::Function {
     /// Apply
     struct Apply;
   } // namespace node
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Apply);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Apply, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Function::Apply);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Function::Apply, modules::_std::tag);
 
 } // namespace yave

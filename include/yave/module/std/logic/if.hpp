@@ -10,12 +10,12 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::Logic {
     /// If
     struct If;
   } // namespace node
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::If);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::If, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Logic::If);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Logic::If, modules::_std::tag);
 
 } // namespace yave

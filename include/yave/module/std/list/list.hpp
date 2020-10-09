@@ -10,20 +10,20 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::List {
     /// Nil
-    struct ListNil;
+    struct Nil;
     /// Cons
-    struct ListCons;
+    struct Cons;
     /// Decompose
-    struct ListDecompose;
-  } // namespace node
+    struct Decompose;
+  } // namespace node::List
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ListNil);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ListCons);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ListDecompose);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Nil);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Cons);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Decompose);
 
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ListNil, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ListCons, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ListDecompose, modules::_std::tag);
-}
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Nil, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Cons, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Decompose, modules::_std::tag);
+} // namespace yave

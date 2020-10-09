@@ -10,15 +10,15 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::Ops {
     struct Add;
     struct Sub;
     struct Mul;
     struct Div;
-  } // namespace node
+  } // namespace node::Ops
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Add);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Sub);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Mul);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Div);
-}
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Ops::Add);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Ops::Sub);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Ops::Mul);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Ops::Div);
+} // namespace yave

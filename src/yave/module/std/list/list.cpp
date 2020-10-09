@@ -9,7 +9,7 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::ListNil>::get_node_declaration()
+  auto node_declaration_traits<node::List::Nil>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -20,18 +20,18 @@ namespace yave {
       {"[]"});
   }
 
-  auto node_declaration_traits<node::ListCons>::get_node_declaration()
+  auto node_declaration_traits<node::List::Cons>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
       "Std.List.Cons", "Construct new list node", {"head", "tail"}, {"cons"});
   }
 
-  auto node_declaration_traits<node::ListDecompose>::get_node_declaration()
+  auto node_declaration_traits<node::List::Decompose>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Std.List.Match",
+      "Std.List.Decompose",
       "Decompose list into head and tail",
       {"list"},
       {"head", "tail"});
@@ -92,26 +92,26 @@ namespace yave {
     };
   } // namespace modules::_std::list
 
-  auto node_definition_traits<node::ListNil, modules::_std::tag>::
+  auto node_definition_traits<node::List::Nil, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ListNil>();
+    auto info = get_node_declaration<node::List::Nil>();
     return {node_definition(
       info.full_name(), 0, make_object<yave::modules::_std::list::ListNil>())};
   }
 
-  auto node_definition_traits<node::ListCons, modules::_std::tag>::
+  auto node_definition_traits<node::List::Cons, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ListCons>();
+    auto info = get_node_declaration<node::List::Cons>();
     return {node_definition(
       info.full_name(), 0, make_object<yave::modules::_std::list::ListCons>())};
   }
 
-  auto node_definition_traits<node::ListDecompose, modules::_std::tag>::
+  auto node_definition_traits<node::List::Decompose, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ListDecompose>();
+    auto info = get_node_declaration<node::List::Decompose>();
 
     auto d1 = node_definition(
       info.full_name(), 0, make_object<yave::modules::_std::list::ListHead>());

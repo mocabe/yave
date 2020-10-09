@@ -10,13 +10,13 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::ListMap>::get_node_declaration()
+  auto node_declaration_traits<node::List::Map>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration("Std.List.Map", "map", {"list", "func"}, {"list"});
   }
 
-  auto node_declaration_traits<node::ListRepeat>::get_node_declaration()
+  auto node_declaration_traits<node::List::Repeat>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -27,14 +27,14 @@ namespace yave {
       {{1, make_node_argument<Int>(1)}});
   }
 
-  auto node_declaration_traits<node::ListEnumerate>::get_node_declaration()
+  auto node_declaration_traits<node::List::Enumerate>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
       "Std.List.Enumerate", "enumerate", {"list", "func"}, {"list"});
   }
 
-  auto node_declaration_traits<node::ListFold>::get_node_declaration()
+  auto node_declaration_traits<node::List::Fold>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -211,40 +211,40 @@ namespace yave {
 
   } // namespace modules::_std::list
 
-  auto node_definition_traits<node::ListMap, modules::_std::tag>::
+  auto node_definition_traits<node::List::Map, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ListMap>();
+    auto info = get_node_declaration<node::List::Map>();
     return {node_definition(
       info.full_name(),
       0,
       make_object<yave::modules::_std::list::StrictListMap>())};
   }
 
-  auto node_definition_traits<node::ListRepeat, modules::_std::tag>::
+  auto node_definition_traits<node::List::Repeat, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ListRepeat>();
+    auto info = get_node_declaration<node::List::Repeat>();
     return {node_definition(
       info.full_name(),
       0,
       make_object<yave::modules::_std::list::ListRepeat>())};
   }
 
-  auto node_definition_traits<node::ListEnumerate, modules::_std::tag>::
+  auto node_definition_traits<node::List::Enumerate, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ListEnumerate>();
+    auto info = get_node_declaration<node::List::Enumerate>();
     return {node_definition(
       info.full_name(),
       0,
       make_object<yave::modules::_std::list::ListEnumerate>())};
   }
 
-  auto node_definition_traits<node::ListFold, modules::_std::tag>::
+  auto node_definition_traits<node::List::Fold, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ListFold>();
+    auto info = get_node_declaration<node::List::Fold>();
     return {node_definition(
       info.full_name(), 0, make_object<yave::modules::_std::list::ListFold>())};
   }

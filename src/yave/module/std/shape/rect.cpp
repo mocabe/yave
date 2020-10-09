@@ -11,7 +11,7 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::RectShape>::get_node_declaration()
+  auto node_declaration_traits<node::Shape::Rect>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -35,10 +35,10 @@ namespace yave {
     };
   } // namespace modules::_std::shape
 
-  auto node_definition_traits<node::RectShape, modules::_std::tag>::
+  auto node_definition_traits<node::Shape::Rect, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::RectShape>();
+    auto info = get_node_declaration<node::Shape::Rect>();
     return std::vector {node_definition(
       info.full_name(), 0, make_object<modules::_std::shape::RectShapeCtor>())};
   }

@@ -12,30 +12,30 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::Shape {
     /// Fill shape
-    class FillShape;
+    class Fill;
     /// Stroke shape
-    class StrokeShape;
+    class Stroke;
     // Draw shape to framebuffer
-    class DrawShape;
+    class Draw;
   } // namespace node
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::FillShape);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::StrokeShape);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Shape::Fill);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Shape::Stroke);
 
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::FillShape, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::StrokeShape, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Shape::Fill, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Shape::Stroke, modules::_std::tag);
 
   template <>
-  struct node_declaration_traits<node::DrawShape>
+  struct node_declaration_traits<node::Shape::Draw>
   {
     static auto get_node_declaration(data::frame_buffer_manager& fbm)
       -> node_declaration;
   };
 
   template <>
-  struct node_definition_traits<node::DrawShape, modules::_std::tag>
+  struct node_definition_traits<node::Shape::Draw, modules::_std::tag>
   {
     static auto get_node_definitions(
       data::frame_buffer_manager& fbm,

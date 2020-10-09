@@ -10,7 +10,7 @@
 
 namespace yave {
 
-  namespace node {
+  namespace node::Vec {
     /// float vec2
     struct Vec2;
     /// float vec3
@@ -19,11 +19,11 @@ namespace yave {
     struct Vec4;
   } // namespace node
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Vec2);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Vec3);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Vec4);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Vec::Vec2);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Vec::Vec3);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Vec::Vec4);
 
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Vec2, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Vec3, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Vec4, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Vec::Vec2, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Vec::Vec3, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Vec::Vec4, modules::_std::tag);
 } // namespace yave

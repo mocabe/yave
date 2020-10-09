@@ -10,7 +10,7 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::Frame>::get_node_declaration()
+  auto node_declaration_traits<node::Frame::Frame>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -54,13 +54,13 @@ namespace yave {
 
   } // namespace modules::_std::frame
 
-  auto node_definition_traits<node::Frame, modules::_std::tag>::
+  auto node_definition_traits<node::Frame::Frame, modules::_std::tag>::
     get_node_definitions(
       data::frame_buffer_manager& mngr,
       vulkan::rgba32f_offscreen_compositor& comp)
       -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Frame>();
+    auto info = get_node_declaration<node::Frame::Frame>();
     return std::vector {node_definition(
       info.full_name(),
       0,

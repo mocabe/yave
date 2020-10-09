@@ -11,7 +11,7 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::ReTime>::get_node_declaration()
+  auto node_declaration_traits<node::Time::ReTime>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -21,14 +21,14 @@ namespace yave {
       {"any"});
   }
 
-  auto node_declaration_traits<node::DelayTime>::get_node_declaration()
+  auto node_declaration_traits<node::Time::Delay>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
       "Std.Time.Delay", "Delay time", {"any", "time"}, {"any"});
   }
 
-  auto node_declaration_traits<node::ScaleTime>::get_node_declaration()
+  auto node_declaration_traits<node::Time::Scale>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -99,28 +99,28 @@ namespace yave {
 
   } // namespace modules::_std::time
 
-  auto node_definition_traits<node::ReTime, modules::_std::tag>::
+  auto node_definition_traits<node::Time::ReTime, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ReTime>();
+    auto info = get_node_declaration<node::Time::ReTime>();
 
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::time::ReTime>())};
   }
 
-  auto node_definition_traits<node::DelayTime, modules::_std::tag>::
+  auto node_definition_traits<node::Time::Delay, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::DelayTime>();
+    auto info = get_node_declaration<node::Time::Delay>();
 
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::time::DelayTime>())};
   }
 
-  auto node_definition_traits<node::ScaleTime, modules::_std::tag>::
+  auto node_definition_traits<node::Time::Scale, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::ScaleTime>();
+    auto info = get_node_declaration<node::Time::Scale>();
 
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::time::ScaleTime>())};

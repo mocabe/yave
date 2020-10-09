@@ -10,17 +10,17 @@
 
 namespace yave {
 
-  namespace node::color {
+  namespace node::Color {
     // Color ctor node
     class Color;
     // Color ctor from floats
     class FromFloats;
-  } // namespace node::color
+  } // namespace node::Color
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::color::Color);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::color::FromFloats);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Color::Color);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Color::FromFloats);
 
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::color::Color, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::color::FromFloats, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Color::Color, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Color::FromFloats, modules::_std::tag);
 
 } // namespace yave

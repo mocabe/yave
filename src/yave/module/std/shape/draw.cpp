@@ -14,7 +14,7 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::FillShape>::get_node_declaration()
+  auto node_declaration_traits<node::Shape::Fill>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -25,7 +25,7 @@ namespace yave {
       {{1, make_node_argument<Color>(glm::fvec4(0.f))}});
   }
 
-  auto node_declaration_traits<node::StrokeShape>::get_node_declaration()
+  auto node_declaration_traits<node::Shape::Stroke>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
@@ -39,7 +39,7 @@ namespace yave {
           0.f, 0.f, std::numeric_limits<float>::max(), 0.1f)}});
   }
 
-  auto node_declaration_traits<node::DrawShape>::get_node_declaration(
+  auto node_declaration_traits<node::Shape::Draw>::get_node_declaration(
     data::frame_buffer_manager& fbm) -> node_declaration
   {
     return node_declaration(
@@ -123,29 +123,29 @@ namespace yave {
     };
   } // namespace modules::_std::shape
 
-  auto node_definition_traits<node::FillShape, modules::_std::tag>::
+  auto node_definition_traits<node::Shape::Fill, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::FillShape>();
+    auto info = get_node_declaration<node::Shape::Fill>();
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::shape::FillShape>())};
   }
 
-  auto node_definition_traits<node::StrokeShape, modules::_std::tag>::
+  auto node_definition_traits<node::Shape::Stroke, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::StrokeShape>();
+    auto info = get_node_declaration<node::Shape::Stroke>();
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::shape::StrokeShape>())};
   }
 
-  auto node_definition_traits<node::DrawShape, modules::_std::tag>::
+  auto node_definition_traits<node::Shape::Draw, modules::_std::tag>::
     get_node_definitions(
       data::frame_buffer_manager& fbm,
       vulkan::rgba32f_offscreen_compositor& compositor)
       -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::DrawShape>(fbm);
+    auto info = get_node_declaration<node::Shape::Draw>(fbm);
     return std::vector {node_definition(
       info.full_name(),
       0,
