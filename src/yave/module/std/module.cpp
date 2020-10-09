@@ -157,7 +157,6 @@ namespace yave::modules::_std {
             get_node_declaration<node::Frame::Frame>(),
             get_node_declaration<node::Frame::Mix>(),
             get_node_declaration<node::Frame::Fill>(fmngr),
-            get_node_declaration<node::FrameVisibilityRange>(),
             get_node_declaration<node::Time::ReTime>(),
             get_node_declaration<node::Time::Delay>(),
             get_node_declaration<node::Time::Scale>(),
@@ -221,7 +220,6 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Num::ToInt, _std::tag>());
     add(yave::get_node_definitions<node::Frame::Mix, _std::tag>(fmngr, compositor));
     add(yave::get_node_definitions<node::Frame::Fill, _std::tag>(fmngr, compositor));
-    add(yave::get_node_definitions<node::FrameVisibilityRange, _std::tag>(fmngr));
     add(yave::get_node_definitions<node::Time::Time, _std::tag>());
     add(yave::get_node_definitions<node::Time::Seconds, _std::tag>());
     add(yave::get_node_definitions<node::Time::FromSeconds, _std::tag>());
