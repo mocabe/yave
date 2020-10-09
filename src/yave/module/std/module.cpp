@@ -128,8 +128,8 @@ namespace yave::modules::_std {
   {
     auto& fmngr    = m_pimpl->resource->frame_buff;
 
-    return {get_node_declaration<node::Color>(),
-            get_node_declaration<node::ColorFloat>(),
+    return {get_node_declaration<node::color::Color>(),
+            get_node_declaration<node::color::FromFloats>(),
             get_node_declaration<node::Vec2>(),
             get_node_declaration<node::Vec3>(),
             get_node_declaration<node::Vec4>(),
@@ -192,8 +192,8 @@ namespace yave::modules::_std {
 
     add(yave::get_node_definitions<node::Frame, _std::tag>(fmngr, compositor));
 
-    add(yave::get_node_definitions<node::Color, _std::tag>());
-    add(yave::get_node_definitions<node::ColorFloat, _std::tag>());
+    add(yave::get_node_definitions<node::color::Color, _std::tag>());
+    add(yave::get_node_definitions<node::color::FromFloats, _std::tag>());
     add(yave::get_node_definitions<node::Vec2, _std::tag>());
     add(yave::get_node_definitions<node::Vec3, _std::tag>());
     add(yave::get_node_definitions<node::Vec4, _std::tag>());
