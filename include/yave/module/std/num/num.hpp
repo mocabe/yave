@@ -9,7 +9,12 @@
 
 namespace yave {
 
-  YAVE_DECL_PRIM_NODE(Int, Std.Num);
-  YAVE_DECL_PRIM_NODE(Float, Std.Num);
+  namespace node::Num {
+    using Int   = PrimitiveCtor<yave::Int>;
+    using Float = PrimitiveCtor<yave::Float>;
+  } // namespace node::Num
+
+  YAVE_DECL_PRIM_NODE(Num::Int, Std.Num);
+  YAVE_DECL_PRIM_NODE(Num::Float, Std.Num);
 
 } // namespace yave

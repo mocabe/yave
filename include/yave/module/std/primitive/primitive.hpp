@@ -10,9 +10,6 @@
 #include <yave/obj/primitive/primitive.hpp>
 
 #define YAVE_DECL_PRIM_NODE(TYPE, MODULE)                                  \
-  namespace node {                                                         \
-    using TYPE = PrimitiveCtor<yave::TYPE>;                                \
-  }                                                                        \
   template <>                                                              \
   constexpr char node_declaration_traits<node::TYPE>::node_name[] = #TYPE; \
   template <>                                                              \

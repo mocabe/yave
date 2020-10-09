@@ -9,6 +9,10 @@
 
 namespace yave {
 
-  YAVE_DECL_PRIM_NODE(Bool, Std.Bool);
+  namespace node::Bool {
+    using Bool = PrimitiveCtor<yave::Bool>;
+  }
+
+  YAVE_DECL_PRIM_NODE(Bool::Bool, Std.Bool);
 
 }

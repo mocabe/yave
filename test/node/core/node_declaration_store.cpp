@@ -15,9 +15,9 @@ TEST_CASE("node_declaration_tree")
   node_declaration_tree tree;
 
   auto idecl =
-    std::make_shared<node_declaration>(get_node_declaration<node::Int>());
+    std::make_shared<node_declaration>(get_node_declaration<node::Num::Int>());
   auto fdecl =
-    std::make_shared<node_declaration>(get_node_declaration<node::Float>());
+    std::make_shared<node_declaration>(get_node_declaration<node::Num::Float>());
 
   REQUIRE(!tree.find(idecl));
   REQUIRE(!tree.find(fdecl));
@@ -36,9 +36,9 @@ TEST_CASE("node_declaration_store")
   node_declaration_store store;
 
   auto idecl =
-    std::make_shared<node_declaration>(get_node_declaration<node::Int>());
+    std::make_shared<node_declaration>(get_node_declaration<node::Num::Int>());
   auto fdecl =
-    std::make_shared<node_declaration>(get_node_declaration<node::Float>());
+    std::make_shared<node_declaration>(get_node_declaration<node::Num::Float>());
 
   REQUIRE(store.add(*idecl));
   REQUIRE(store.add(*fdecl));

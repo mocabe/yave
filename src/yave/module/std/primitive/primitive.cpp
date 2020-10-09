@@ -49,9 +49,9 @@ namespace yave {
       make_object<modules::_std::prim::PrimitiveCtor<T>>())};
   }
 
-  YAVE_DEF_PRIM_NODE(Int);
-  YAVE_DEF_PRIM_NODE(Float);
-  YAVE_DEF_PRIM_NODE(Bool);
-  YAVE_DEF_PRIM_NODE(String);
+  YAVE_DEF_PRIM_NODE(Num::Int);
+  YAVE_DEF_PRIM_NODE(Num::Float);
+  YAVE_DEF_PRIM_NODE(Bool::Bool);
+  YAVE_DEF_PRIM_NODE(String::String);
 
 } // namespace yave

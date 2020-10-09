@@ -148,10 +148,10 @@ namespace yave::modules::_std {
             get_node_declaration<node::List::Fold>(),
             get_node_declaration<node::Function::Apply>(),
             get_node_declaration<node::Logic::If>(),
-            get_node_declaration<node::Int>(),
-            get_node_declaration<node::Float>(),
-            get_node_declaration<node::Bool>(),
-            get_node_declaration<node::String>(),
+            get_node_declaration<node::Num::Int>(),
+            get_node_declaration<node::Num::Float>(),
+            get_node_declaration<node::Bool::Bool>(),
+            get_node_declaration<node::String::String>(),
             get_node_declaration<node::Num::ToFloat>(),
             get_node_declaration<node::Num::ToInt>(),
             get_node_declaration<node::Frame::Frame>(),
@@ -213,10 +213,10 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::List::Fold, _std::tag>());
     add(yave::get_node_definitions<node::Logic::If, _std::tag>());
     add(yave::get_node_definitions<node::Function::Apply, _std::tag>());
-    add(yave::get_node_definitions<node::Int, _std::tag>());
-    add(yave::get_node_definitions<node::Float, _std::tag>());
-    add(yave::get_node_definitions<node::Bool, _std::tag>());
-    add(yave::get_node_definitions<node::String, _std::tag>());
+    add(yave::get_node_definitions<node::Num::Int, _std::tag>());
+    add(yave::get_node_definitions<node::Num::Float, _std::tag>());
+    add(yave::get_node_definitions<node::Bool::Bool, _std::tag>());
+    add(yave::get_node_definitions<node::String::String, _std::tag>());
     add(yave::get_node_definitions<node::Num::ToFloat, _std::tag>());
     add(yave::get_node_definitions<node::Num::ToInt, _std::tag>());
     add(yave::get_node_definitions<node::Frame::Mix, _std::tag>(fmngr, compositor));

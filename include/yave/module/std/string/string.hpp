@@ -9,6 +9,10 @@
 
 namespace yave {
 
-  YAVE_DECL_PRIM_NODE(String, Std.String);
+  namespace node::String {
+    using String = PrimitiveCtor<yave::String>;
+  }
 
-}
+  YAVE_DECL_PRIM_NODE(String::String, Std.String);
+
+} // namespace yave

@@ -79,21 +79,21 @@ TEST_CASE("node_compiler V2")
 
   // clang-format off
 
-  auto int_decl   = get_node_declaration<node::Int>();
-  auto bool_decl  = get_node_declaration<node::Bool>();
-  auto float_decl = get_node_declaration<node::Float>();
-  auto if_decl    = get_node_declaration<node::If>();
-  auto nil_decl   = get_node_declaration<node::ListNil>();
-  auto cons_decl  = get_node_declaration<node::ListCons>();
+  auto int_decl   = get_node_declaration<node::Num::Int>();
+  auto bool_decl  = get_node_declaration<node::Bool::Bool>();
+  auto float_decl = get_node_declaration<node::Num::Float>();
+  auto if_decl    = get_node_declaration<node::Logic::If>();
+  auto nil_decl   = get_node_declaration<node::List::Nil>();
+  auto cons_decl  = get_node_declaration<node::List::Cons>();
   auto add_decl   = get_node_declaration<n::Add>();
 
   auto add_defs   = get_node_definitions<n::Add, test_backend>();
-  auto int_defs   = get_node_definitions<node::Int, modules::_std::tag>();
-  auto bool_defs  = get_node_definitions<node::Bool, modules::_std::tag>();
-  auto float_defs = get_node_definitions<node::Float, modules::_std::tag>();
-  auto if_defs    = get_node_definitions<node::If, modules::_std::tag>();
-  auto nil_defs   = get_node_definitions<node::ListNil, modules::_std::tag>();
-  auto cons_defs  = get_node_definitions<node::ListCons, modules::_std::tag>();
+  auto int_defs   = get_node_definitions<node::Num::Int, modules::_std::tag>();
+  auto bool_defs  = get_node_definitions<node::Bool::Bool, modules::_std::tag>();
+  auto float_defs = get_node_definitions<node::Num::Float, modules::_std::tag>();
+  auto if_defs    = get_node_definitions<node::Logic::If, modules::_std::tag>();
+  auto nil_defs   = get_node_definitions<node::List::Nil, modules::_std::tag>();
+  auto cons_defs  = get_node_definitions<node::List::Cons, modules::_std::tag>();
 
   // clang-format on
 

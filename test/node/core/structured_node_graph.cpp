@@ -362,7 +362,7 @@ TEST_CASE("root add func")
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
-  auto decl = get_node_declaration<node::Int>();
+  auto decl = get_node_declaration<node::Num::Int>();
   auto func = ng.create_function(decl);
   REQUIRE(ng.exists(func));
   REQUIRE(!ng.is_group(func));
@@ -422,7 +422,7 @@ TEST_CASE("func conn")
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
-  auto decl = get_node_declaration<node::Int>();
+  auto decl = get_node_declaration<node::Num::Int>();
   auto func = ng.create_function(decl);
 
   SECTION("global")
@@ -484,11 +484,11 @@ TEST_CASE("func destroy")
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
-  auto decl = get_node_declaration<node::Int>();
+  auto decl = get_node_declaration<node::Num::Int>();
   auto func = ng.create_function(decl);
 
   {
-    auto decl2 = get_node_declaration<node::String>();
+    auto decl2 = get_node_declaration<node::String::String>();
     auto func2 = ng.create_function(decl2);
     REQUIRE(ng.exists(func2));
     ng.destroy(func2);
@@ -533,9 +533,8 @@ TEST_CASE("group")
   structured_node_graph ng;
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
-  auto decl = get_node_declaration<node::Int>();
+  auto decl = get_node_declaration<node::Num::Int>();
   auto func = ng.create_function(decl);
-
 
   SECTION("")
   {
@@ -735,7 +734,7 @@ TEST_CASE("clone")
   structured_node_graph ng;
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
-  auto decl = get_node_declaration<node::Int>();
+  auto decl = get_node_declaration<node::Num::Int>();
   auto func = ng.create_function(decl);
 
   auto f1 = ng.create_copy(root, func);
@@ -787,7 +786,7 @@ TEST_CASE("path")
   structured_node_graph ng;
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "Root");
-  auto decl = get_node_declaration<node::Int>();
+  auto decl = get_node_declaration<node::Num::Int>();
   auto func = ng.create_function(decl);
 
   REQUIRE(*ng.get_path(root) == "Root");
@@ -819,7 +818,7 @@ TEST_CASE("path")
 TEST_CASE("custom id")
 {
   structured_node_graph ng;
-  auto i = ng.create_function(get_node_declaration<node::Int>());
+  auto i = ng.create_function(get_node_declaration<node::Num::Int>());
   REQUIRE(ng.exists(i));
 
   auto id = uid::random_generate();
