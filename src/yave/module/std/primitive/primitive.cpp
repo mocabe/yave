@@ -17,7 +17,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      std::string(module) + "." + node_name,
+      name,
       "Data type constructor",
       {"value"},
       {"value"},
@@ -48,6 +48,10 @@ namespace yave {
       0,
       make_object<modules::_std::prim::PrimitiveCtor<T>>())};
   }
+
+#define YAVE_DEF_PRIM_NODE(TYPE)                       \
+  template struct node_declaration_traits<node::TYPE>; \
+  template struct node_definition_traits<node::TYPE, modules::_std::tag>
 
   YAVE_DEF_PRIM_NODE(Num::Int);
   YAVE_DEF_PRIM_NODE(Num::Float);

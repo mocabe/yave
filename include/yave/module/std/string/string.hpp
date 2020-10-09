@@ -13,6 +13,6 @@ namespace yave {
     using String = PrimitiveCtor<yave::String>;
   }
 
-  YAVE_DECL_PRIM_NODE(String::String, Std.String);
+  YAVE_DECL_PRIM_NODE(String::String, Std.String.String);
 
 } // namespace yave

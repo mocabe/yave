@@ -9,17 +9,9 @@
 #include <yave/module/std/config.hpp>
 #include <yave/obj/primitive/primitive.hpp>
 
-#define YAVE_DECL_PRIM_NODE(TYPE, MODULE)                                  \
-  template <>                                                              \
-  constexpr char node_declaration_traits<node::TYPE>::node_name[] = #TYPE; \
-  template <>                                                              \
-  constexpr char node_declaration_traits<node::TYPE>::module[] = #MODULE;  \
-  extern template struct node_declaration_traits<node::TYPE>;              \
-  extern template struct node_definition_traits<node::TYPE, modules::_std::tag>
-
-#define YAVE_DEF_PRIM_NODE(TYPE)                       \
-  template struct node_declaration_traits<node::TYPE>; \
-  template struct node_definition_traits<node::TYPE, modules::_std::tag>
+#define YAVE_DECL_PRIM_NODE(TYPE, NAME) \
+  template <>                           \
+  constexpr char node_declaration_traits<node::TYPE>::name[] = #NAME;
 
 namespace yave {
 
@@ -35,8 +27,7 @@ namespace yave {
   struct node_declaration_traits<node::PrimitiveCtor<T>>
   {
     static auto get_node_declaration() -> node_declaration;
-    static const char node_name[];
-    static const char module[];
+    static const char name[];
   };
 
   template <class T>
