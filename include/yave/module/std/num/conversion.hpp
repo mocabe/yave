@@ -11,9 +11,17 @@
 namespace yave {
 
   namespace node {
-    class IntToFloat;
+
+    /// Convert value to Float
+    class ToFloat;
+    /// Convert value to Int
+    class ToInt;
+
   } // namespace node
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::IntToFloat);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::IntToFloat, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ToFloat);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::ToInt);
+
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ToFloat, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::ToInt, modules::_std::tag);
 }
