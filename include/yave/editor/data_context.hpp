@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/config/config.hpp>
-#include <yave/editor/unique_context_data.hpp>
+#include <yave/lib/unique_any/unique_any.hpp>
 
 #include <mutex>
 
@@ -37,7 +37,7 @@ namespace yave::editor {
     data_context_access(data_context_access&&) noexcept = default;
 
     // new data
-    void add_data(unique_context_data new_data);
+    void add_data(unique_any new_data);
 
     // remove data
     template <class T>
@@ -107,7 +107,7 @@ namespace yave::editor {
     /// add new data.
     /// \param new data to be added
     /// \requires data.type() should be unique in context
-    void add_data(unique_context_data data);
+    void add_data(unique_any data);
 
     /// remove data.
     /// \param id typeid of data to be removed
@@ -125,7 +125,7 @@ namespace yave::editor {
     [[nodiscard]] auto lock() -> data_context_access;
   };
 
-  inline void data_context_access::add_data(unique_context_data new_data)
+  inline void data_context_access::add_data(unique_any new_data)
   {
     m_ctx.add_data(std::move(new_data));
   }
@@ -139,7 +139,7 @@ namespace yave::editor {
   template <class T>
   auto data_context_access::get_data() -> T&
   {
-    if (auto p = m_ctx.get_data(typeid(std::decay_t<T>)))
+    if (auto p = m_ctx.get_data(typeid(T)))
       return *static_cast<T*>(p);
 
     throw std::range_error("requested data type does not exist");
@@ -148,7 +148,7 @@ namespace yave::editor {
   template <class T>
   auto const_data_context_access::get_data() -> const T&
   {
-    if (auto p = m_ctx.get_data(typeid(std::decay_t<T>)))
+    if (auto p = m_ctx.get_data(typeid(T)))
       return *static_cast<const T*>(p);
 
     throw std::range_error("requested data type does not exist");

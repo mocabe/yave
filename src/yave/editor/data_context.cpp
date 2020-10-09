@@ -75,7 +75,7 @@ namespace yave::editor {
 
   public:
     /// editor data
-    std::list<unique_context_data> data_list;
+    std::list<unique_any> data_list;
 
   private:
     /// data processing thread
@@ -142,7 +142,7 @@ namespace yave::editor {
     }
 
   public:
-    void add_data(unique_context_data new_data)
+    void add_data(unique_any new_data)
     {
       assert(!new_data.empty());
 
@@ -341,7 +341,7 @@ namespace yave::editor {
     return const_data_context_access(*this, m_pimpl->lock());
   }
 
-  void data_context::add_data(unique_context_data new_data)
+  void data_context::add_data(unique_any new_data)
   {
     m_pimpl->check_exception();
     m_pimpl->add_data(std::move(new_data));

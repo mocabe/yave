@@ -9,11 +9,12 @@
 
 #include <memory>
 #include <typeinfo>
+#include <stdexcept>
 
-namespace yave::editor {
+namespace yave {
 
-  /// unique context data container
-  class unique_context_data
+  /// unique version of std::any
+  class unique_any
   {
     struct holder_base
     {
@@ -51,21 +52,24 @@ namespace yave::editor {
 
   public:
     /// ctor
-    unique_context_data() noexcept = delete;
+    unique_any() noexcept = default;
     /// dtor
-    ~unique_context_data() noexcept = default;
+    ~unique_any() noexcept = default;
     /// no copy
-    unique_context_data(const unique_context_data&) = delete;
+    unique_any(const unique_any&) = delete;
     /// movable
-    unique_context_data(unique_context_data&&) noexcept = default;
+    unique_any(unique_any&&) noexcept = default;
+    /// no copy
+    unique_any& operator=(const unique_any&) = delete;
+    /// movable
+    unique_any& operator=(unique_any&&) noexcept = default;
 
   public:
     /// construct from data
     template <
       class T,
-      class =
-        std::enable_if_t<!std::is_same_v<std::decay_t<T>, unique_context_data>>>
-    unique_context_data(T&& val)
+      class = std::enable_if_t<!std::is_same_v<std::decay_t<T>, unique_any>>>
+    unique_any(T&& val)
       : m_data {std::make_unique<holder<std::decay_t<T>>>(std::forward<T>(val))}
     {
     }
@@ -96,4 +100,41 @@ namespace yave::editor {
       return !empty() ? m_data->data() : nullptr;
     }
   };
-}
+
+  template <class T>
+  [[nodiscard]] auto unique_any_cast(unique_any* v) -> T*
+  {
+    if (v && v->type() == typeid(T)) {
+      return static_cast<T*>(v->data());
+    }
+    return nullptr;
+  }
+
+  template <class T>
+  [[nodiscard]] auto unique_any_cast(const unique_any* v) -> const T*
+  {
+    if (v && v->type() == typeid(T)) {
+      return static_cast<const T*>(v->data());
+    }
+    return nullptr;
+  }
+
+  template <class T>
+  [[nodiscard]] auto& unique_any_cast(unique_any& v)
+  {
+    if (auto ptr = unique_any_cast<T>(&v)) {
+      return *ptr;
+    }
+    throw std::bad_cast();
+  }
+
+  template <class T>
+  [[nodiscard]] auto& unique_any_cast(const unique_any& v)
+  {
+    if (auto ptr = unique_any_cast<T>(&v)) {
+      return *ptr;
+    }
+    throw std::bad_cast();
+  }
+
+} // namespace yave

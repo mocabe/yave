@@ -12,20 +12,6 @@
 using namespace yave;
 using namespace yave::editor;
 
-TEST_CASE("unique_context_data")
-{
-  unique_context_data data(42);
-
-  REQUIRE(!data.empty());
-  REQUIRE(data.type() == typeid(int));
-  REQUIRE(*static_cast<int*>(data.data()) == 42);
-
-  unique_context_data data2 = std::move(data);
-  REQUIRE(data.empty());
-  REQUIRE(data2.type() == typeid(int));
-  REQUIRE(*static_cast<int*>(data2.data()) == 42);
-}
-
 TEST_CASE("data_context")
 {
   SECTION("empty")
