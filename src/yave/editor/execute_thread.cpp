@@ -59,7 +59,7 @@ namespace yave::editor {
 
               execute_flag = false;
 
-              std::optional<executable> exe;
+              std::optional<compiler::executable> exe;
               std::optional<time> time;
               {
                 auto lck       = data_ctx.lock();
@@ -71,9 +71,13 @@ namespace yave::editor {
                   continue;
 
                 // get compiled result
-                exe  = compiler.compile_result().clone_executable();
+                if (auto&& r = compiler.executable()) {
+                  exe = r->clone();
+                }
+
                 time = executor.time();
               }
+
               // no compile result
               if (!exe)
                 continue;
