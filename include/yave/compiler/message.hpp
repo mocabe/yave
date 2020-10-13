@@ -428,8 +428,7 @@ namespace yave::compiler {
     type_missmatch,
     unsolvable_constraints,
     // verify
-    invalid_output_type
-    >;
+    invalid_output_type>;
 
   /// get kind of message
   [[nodiscard]] inline auto kind(const message& msg)
