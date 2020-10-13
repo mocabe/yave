@@ -442,12 +442,22 @@ namespace yave::compiler {
     return std::visit([](auto&& x) { return x.category(); }, msg);
   }
 
+  // clang-format off
+  // Workaround for VS2019 Preview 16.8: requires-expression is broken
+  template <class T>
+  concept _msg_has_text = requires(T x) { x.text(); };
+  template <class T>
+  concept _msg_has_node_id = requires(T x) { x.node_id(); };
+  template <class T>
+  concept _msg_has_socket_id = requires(T x) { x.socket_id(); };
+  // clang-format on
+
   /// get text message
   [[nodiscard]] inline auto text(const message& msg)
   {
     return std::visit(
       [](auto&& x) -> std::optional<std::string> {
-        if constexpr (requires { x.text(); })
+        if constexpr (_msg_has_text<decltype(x)>)
           return x.text();
         return std::nullopt;
       },
@@ -459,7 +469,7 @@ namespace yave::compiler {
   {
     return std::visit(
       [](auto&& x) -> std::optional<uid> {
-        if constexpr (requires { x.node_id(); })
+        if constexpr (_msg_has_node_id<decltype(x)>)
           return x.node_id();
         return std::nullopt;
       },
@@ -471,7 +481,7 @@ namespace yave::compiler {
   {
     return std::visit(
       [](auto&& x) -> std::optional<uid> {
-        if constexpr (requires { x.socket_id(); })
+        if constexpr (_msg_has_socket_id<decltype(x)>)
           return x.socket_id();
         return std::nullopt;
       },

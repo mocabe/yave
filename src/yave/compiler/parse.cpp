@@ -26,7 +26,7 @@ namespace yave::compiler {
 
     [[nodiscard]] auto pass() -> monad
     {
-      return tl::optional(42);
+      return {1};
     }
 
     [[nodiscard]] auto fail() -> monad

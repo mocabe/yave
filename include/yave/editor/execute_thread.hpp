@@ -10,6 +10,8 @@
 #include <yave/lib/time/time.hpp>
 #include <yave/lib/image/image.hpp>
 
+#include <optional>
+
 namespace yave::editor {
 
   /// execute thread
