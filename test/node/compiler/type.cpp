@@ -5,11 +5,12 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/node/compiler/type.hpp>
-#include <yave/node/compiler/compile_result.hpp>
+#include <yave/compiler/typecheck.hpp>
+#include <yave/compiler/message.hpp>
 #include <yave/rts/rts.hpp>
 
 using namespace yave;
+using namespace yave::compiler;
 
 TEST_CASE("overloading")
 {
@@ -119,8 +120,7 @@ TEST_CASE("overloading")
     {
       auto app = o << b;
       REQUIRE_THROWS_AS(
-        type_of_overloaded(app, std::move(env), std::move(loc)),
-        compile_results::no_valid_overloading);
+        type_of_overloaded(app, std::move(env), std::move(loc)), message);
     }
 
     SECTION("(id f) (f 42)")
