@@ -3,12 +3,11 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/compiler/executable.hpp>
+#include <yave/compiler/executable.hpp>
 #include <yave/obj/frame_demand/frame_demand.hpp>
-
 #include <yave/rts/rts.hpp>
 
-namespace yave {
+namespace yave::compiler {
 
   executable::executable(
     object_ptr<const Object> obj,
@@ -51,4 +50,5 @@ namespace yave {
   {
     return {copy_apply_graph(m_obj), m_type};
   }
+
 }

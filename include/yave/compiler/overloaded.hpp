@@ -8,7 +8,7 @@
 #include <yave/rts/box.hpp>
 #include <yave/rts/type_value.hpp>
 
-namespace yave {
+namespace yave::compiler {
 
   struct overloaded_object_value
   {
@@ -26,6 +26,6 @@ namespace yave {
   /// Overloaded node
   using Overloaded = Box<overloaded_object_value>;
 
-} // namespace yave
+} // namespace yave::compiler
 
-YAVE_DECL_TYPE(yave::Overloaded, "a1d282e3-e68e-49ce-ab8f-afe90cfe7a78");
+YAVE_DECL_TYPE(yave::compiler::Overloaded, "a1d282e3-e68e-49ce-ab8f-afe90cfe7a78");
