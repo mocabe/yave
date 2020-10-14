@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include <yave/node/parser/node_parser.hpp>
-#include <yave/node/compiler/node_compiler.hpp>
+#include <yave/compiler/message.hpp>
+#include <yave/compiler/executable.hpp>
+
 #include <yave/editor/data_context.hpp>
 
 #include <optional>
@@ -39,12 +40,10 @@ namespace yave::editor {
 
     /// compile thread ref
     compile_thread* m_thread_ptr = nullptr;
-    /// parse result
-    node_parser_result m_parse_result = {};
-    /// compile errors
-    node_compiler_result m_compile_result = {};
+    /// compile result
+    compiler::message_map m_messages;
     /// result
-    std::optional<executable> m_result;
+    std::optional<compiler::executable> m_exe;
 
   public:
     compile_thread_interface()                                    = default;
@@ -65,12 +64,17 @@ namespace yave::editor {
     void deinit()
     {
       if (m_thread_ptr) {
-        auto lck         = m_thread_ptr->wait_task();
-        m_thread_ptr     = nullptr;
-        m_parse_result   = {};
-        m_compile_result = {};
-        m_result         = std::nullopt;
+        auto lck     = m_thread_ptr->wait_task();
+        m_thread_ptr = nullptr;
+        m_messages   = {};
+        m_exe     = std::nullopt;
       }
+    }
+
+    void clear_results()
+    {
+      m_messages = {};
+      m_exe      = std::nullopt;
     }
 
     void notify_recompile()
@@ -79,16 +83,16 @@ namespace yave::editor {
       m_thread_ptr->notify_recompile();
     }
 
-    auto& parse_result() const
+    auto& messages() const
     {
       assert(m_thread_ptr);
-      return m_parse_result;
+      return m_messages;
     }
 
-    auto& compile_result() const
+    auto& executable() const
     {
       assert(m_thread_ptr);
-      return m_compile_result;
+      return m_exe;
     }
   };
 } // namespace yave::editor

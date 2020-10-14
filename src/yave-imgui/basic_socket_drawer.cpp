@@ -68,27 +68,22 @@ namespace yave::editor::imgui {
       auto lck    = dctx.lock();
       auto& data  = lck.get_data<editor_data>();
       auto& ng    = data.node_graph();
-      auto& parse = data.compile_thread().parse_result();
 
-      auto res = parse.get_results(ng, s);
+      auto& msgs = data.compile_thread().messages();
 
-      for (auto&& r : res) {
+      for (auto&& msg : msgs.get_results(ng, s)) {
 
-        if (yave::type(r) == parse_result_type::info) {
-          // has input
-          if (
-            std::get_if<parse_results::has_default_argument>(&r) || //
-            std::get_if<parse_results::has_input_connection>(&r) || //
-            std::get_if<parse_results::has_output_connection>(&r)) {
-            col = get_socket_slot_color_connected();
-          }
+        if (category(msg) != compiler::message_category::parse)
+          continue;
+
+        if (
+          std::get_if<compiler::has_default_argument>(&msg) || //
+          std::get_if<compiler::has_input_connection>(&msg) || //
+          std::get_if<compiler::has_output_connection>(&msg)) {
+          col = get_socket_slot_color_connected();
         }
 
-        if (yave::type(r) == parse_result_type::warning) {
-          // TODO
-        }
-
-        if (yave::type(r) == parse_result_type::error) {
+        if (kind(msg) == compiler::message_kind::error) {
           col = get_socket_slot_color_missing();
           break;
         }

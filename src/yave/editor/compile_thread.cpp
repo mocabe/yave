@@ -5,10 +5,11 @@
 
 #include <yave/editor/compile_thread.hpp>
 #include <yave/editor/editor_data.hpp>
-#include <yave/node/parser/node_parser.hpp>
-#include <yave/node/compiler/node_compiler.hpp>
+#include <yave/compiler/message.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/support/log.hpp>
+
+#include <yave/compiler/compile.hpp>
 
 #include <thread>
 #include <mutex>
@@ -22,10 +23,6 @@ namespace yave::editor {
   {
   public:
     data_context& data_ctx;
-
-  public:
-    node_parser parser;
-    node_compiler compiler;
 
   public:
     std::thread thread;
@@ -69,19 +66,31 @@ namespace yave::editor {
 
               recompile_flag = false;
 
-              std::optional<structured_node_graph> g;
-              std::optional<socket_handle> os;
-              {
+              // initialize compiler pipeilne
+              auto init_pipeline = [&] {
                 auto lck       = data_ctx.lock();
                 auto& data     = lck.get_data<editor_data>();
                 auto& compiler = data.compile_thread();
 
-                // thread interface is unlinked
-                if (!compiler.initialized())
-                  continue;
+                compiler.clear_results();
 
-                // clear last result
-                compiler.m_result = std::nullopt;
+                auto pipeline = compiler::init_pipeline();
+
+                // thread interface is unlinked
+                if (!compiler.initialized()) {
+                  pipeline.get_data<compiler::message_map>("msg_map").add(
+                    compiler::internal_compile_error(
+                      "Compile thread is not initialized!"));
+                  pipeline.set_failed();
+                }
+
+                return pipeline;
+              };
+
+              // prepare compiler input
+              auto init_input = [&](auto& pipeline) {
+                auto lck   = data_ctx.lock();
+                auto& data = lck.get_data<editor_data>();
 
                 // clone graph
                 auto _ng   = data.node_graph().clone();
@@ -91,59 +100,53 @@ namespace yave::editor {
                              ? socket_handle()
                              : _ng.output_sockets(_root)[0];
 
-                g  = std::move(_ng);
-                os = std::move(_os);
-              }
+                auto _defs = data.node_definitions();
 
-              assert(g && os);
+                compiler::input(
+                  pipeline, std::move(_ng), std::move(_os), std::move(_defs));
+              };
 
-              // parse
-              auto parse_result = parser.parse(
-                {.node_graph = std::move(*g), .output_socket = std::move(*os)});
+              // compiler stages
+              auto parse    = [](auto& p) { compiler::parse(p); };
+              auto sema     = [](auto& p) { compiler::sema(p); };
+              auto verify   = [](auto& p) { compiler::verify(p); };
+              auto optimize = [](auto& p) { compiler::optimize(p); };
 
-              auto parsed_ng = parse_result.take_node_graph();
-              auto defs_copy = std::optional<node_definition_store>();
+              // process compiler output
+              auto process_output = [&](compiler::pipeline& pipeline) {
+                auto lck       = data_ctx.lock();
+                auto& data     = lck.get_data<editor_data>();
+                auto& compiler = data.compile_thread();
 
-              {
-                auto data_lck = data_ctx.lock();
-                auto& data    = data_lck.get_data<editor_data>();
-                // store parse results
-                data.compile_thread().m_parse_result = std::move(parse_result);
-                data.compile_thread().m_compile_result = {};
-                // build local copy of defs for compilation
-                if (parsed_ng)
-                  defs_copy = data.node_definitions();
-              }
+                auto& msgs =
+                  pipeline.get_data<compiler::message_map>("msg_map");
 
-              // parse failed
-              if (!parsed_ng) {
-                Info(g_logger, "Failed to parse node graph");
-                continue;
-              }
+                compiler.m_messages = std::move(msgs);
 
-              Info(g_logger, "Success to parse node graph");
+                if (pipeline.success()) {
 
-              assert(parsed_ng && defs_copy);
+                  Info(g_logger, "Compile Success");
 
-              // compile
-              auto compile_result = compiler.compile(
-                {.node_graph = std::move(*parsed_ng),
-                 .node_defs  = std::move(*defs_copy)});
+                  auto& exe = pipeline.get_data<compiler::executable>("exe");
 
-              if (compile_result.success())
-                Info(g_logger, "Success to compile node graph");
-              else
-                Info(g_logger, "Failed to compile node graph");
+                  compiler.m_exe = std::move(exe);
 
-              {
-                auto data_lck = data_ctx.lock();
-                auto& data    = data_lck.get_data<editor_data>();
-                // set compile result
-                data.compile_thread().m_compile_result =
-                  std::move(compile_result);
-                // execute
-                data.execute_thread().notify_execute();
-              }
+                  data.execute_thread().notify_execute();
+
+                } else {
+                  Info(g_logger, "Compile Failed");
+                }
+              };
+
+              auto pipeline = init_pipeline();
+
+              pipeline //
+                .and_then(init_input)
+                .and_then(parse)
+                .and_then(sema)
+                .and_then(verify)
+                .and_then(optimize)
+                .apply(process_output);
             }
           }
         } catch (...) {

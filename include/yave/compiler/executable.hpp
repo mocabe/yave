@@ -8,7 +8,7 @@
 #include <yave/rts/object_ptr.hpp>
 #include <yave/data/frame_demand/frame_demand.hpp>
 
-namespace yave {
+namespace yave::compiler {
 
   /// Executable wrapper
   class executable

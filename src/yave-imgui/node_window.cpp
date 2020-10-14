@@ -179,11 +179,9 @@ namespace yave::editor::imgui {
       auto data_lck = dctx.lock();
       auto& data    = data_lck.get_data<editor_data>();
 
-      for (auto&& e : data.compile_thread().parse_result().get_errors())
-        ImGui::TextColored({255, 0, 0, 255}, "%s", message(e).c_str());
-
-      for (auto&& e : data.compile_thread().compile_result().get_errors())
-        ImGui::TextColored({255, 0, 0, 255}, "%s", message(e).c_str());
+      for (auto&& e : data.compile_thread().messages().get_errors())
+        if (auto&& msg = text(e))
+          ImGui::TextColored({255, 0, 0, 255}, "%s", msg->c_str());
     }
 
     // handle scrolling

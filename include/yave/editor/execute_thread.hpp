@@ -5,11 +5,12 @@
 
 #pragma once
 
-#include <yave/node/compiler/node_compiler.hpp>
 #include <yave/editor/data_context.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/lib/time/time.hpp>
 #include <yave/lib/image/image.hpp>
+
+#include <optional>
 
 namespace yave::editor {
 

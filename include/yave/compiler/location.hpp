@@ -11,7 +11,7 @@
 
 #include <map>
 
-namespace yave {
+namespace yave::compiler {
 
   /// object/type location map
   class location_map
