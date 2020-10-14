@@ -325,6 +325,12 @@ namespace yave::compiler {
       return tl::nullopt;
     }
 
+    auto output(executable&& exe, pipeline& pipe)
+    {
+      pipe.add_data("exe", std::move(exe));
+      return tl::optional(true);
+    }
+
   } // namespace
 
   void sema(pipeline& pipe)
@@ -346,6 +352,7 @@ namespace yave::compiler {
       .and_then([&](auto arg) { return desugar(std::move(arg), os, msg_map); })
       .and_then([&](auto arg) { return gen(std::move(arg), os, defs, msg_map); })
       .and_then([&](auto arg) { return type(std::move(arg), msg_map); })
+      .and_then([&](auto arg) { return output(std::move(arg), pipe); })
       .or_else([&] { pipe.set_failed(); });
     // clang-format on
 

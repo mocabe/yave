@@ -89,9 +89,8 @@ namespace yave::editor {
 
               // prepare compiler input
               auto init_input = [&](auto& pipeline) {
-                auto lck       = data_ctx.lock();
-                auto& data     = lck.get_data<editor_data>();
-                auto& compiler = data.compile_thread();
+                auto lck   = data_ctx.lock();
+                auto& data = lck.get_data<editor_data>();
 
                 // clone graph
                 auto _ng   = data.node_graph().clone();
@@ -108,10 +107,10 @@ namespace yave::editor {
               };
 
               // compiler stages
-              auto parse    = [&](auto& p) { compiler::parse(p); };
-              auto sema     = [&](auto& p) { compiler::sema(p); };
-              auto verify   = [&](auto& p) { compiler::verify(p); };
-              auto optimize = [&](auto& p) { compiler::optimize(p); };
+              auto parse    = [](auto& p) { compiler::parse(p); };
+              auto sema     = [](auto& p) { compiler::sema(p); };
+              auto verify   = [](auto& p) { compiler::verify(p); };
+              auto optimize = [](auto& p) { compiler::optimize(p); };
 
               // process compiler output
               auto process_output = [&](compiler::pipeline& pipeline) {
@@ -119,17 +118,18 @@ namespace yave::editor {
                 auto& data     = lck.get_data<editor_data>();
                 auto& compiler = data.compile_thread();
 
+                auto& msgs =
+                  pipeline.get_data<compiler::message_map>("msg_map");
+
+                compiler.m_messages = std::move(msgs);
+
                 if (pipeline.success()) {
 
                   Info(g_logger, "Compile Success");
 
-                  auto& msgs =
-                    pipeline.get_data<compiler::message_map>("msg_map");
-
                   auto& exe = pipeline.get_data<compiler::executable>("exe");
 
-                  compiler.m_messages = std::move(msgs);
-                  compiler.m_exe      = std::move(exe);
+                  compiler.m_exe = std::move(exe);
 
                   data.execute_thread().notify_execute();
 
