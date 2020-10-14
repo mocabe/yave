@@ -92,7 +92,7 @@ include(${YAVE_EXTERNAL_DIR}/external.cmake)
 if(YAVE_COMPILER_MSVC)
   # Remove /RTC1 from default set of compile flags.
   set(CMAKE_CXX_FLAGS_DEBUG "/MDd /Zi /Ob0 /Od" CACHE STRING "" FORCE)
-  set(YAVE_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4)
+  set(YAVE_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4 /Zc:__cplusplus)
 else()
   set(YAVE_COMPILE_FLAGS -O0 -Wall -Wextra -g -pedantic)
 endif()
