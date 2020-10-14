@@ -20,8 +20,9 @@ namespace yave::compiler {
     auto& exe     = pipe.get_data<executable>("exe");
 
     // check output type
-    if (!same_type(exe.type(), object_type<node_closure<FrameBuffer>>())) {
-      msg_map.add(invalid_output_type(object_type<FrameBuffer>(), exe.type()));
+    auto out_type = object_type<node_closure<FrameBuffer>>();
+    if (!same_type(exe.type(), out_type)) {
+      msg_map.add(invalid_output_type(out_type, exe.type()));
       pipe.set_failed();
     }
 
