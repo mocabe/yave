@@ -11,7 +11,7 @@
 
 namespace yave::compiler {
 
-  std::string missing_input::text() const
+  auto missing_input::text() const -> std::string
   {
     return fmt::format(
       "Missing input connections: n={}, s={}",
@@ -19,7 +19,7 @@ namespace yave::compiler {
       to_string(m_socket_id));
   }
 
-  std::string missing_output::text() const
+  auto missing_output::text() const -> std::string
   {
     return fmt::format(
       "Missing output connections: n={}, s={}",
@@ -27,7 +27,7 @@ namespace yave::compiler {
       to_string(m_socket_id));
   }
 
-  std::string unexpected_parse_error::text() const
+  auto unexpected_parse_error::text() const -> std::string
   {
     return fmt::format("Unexpected parse error occured: {}", m_str);
   }
