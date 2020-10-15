@@ -1,0 +1,109 @@
+trigger:
+- master
+
+pr:
+- master
+
+variables:
+  - name: System.Debug
+    value: true
+  - name: setup_packages
+    value: |
+      wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+      sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.2.154-bionic.list https://packages.lunarg.com/vulkan/1.2.154/lunarg-vulkan-1.2.154-bionic.list
+      sudo apt-get update
+  - name: install_packages
+    value: sudo apt-get install g++-10 clang++-10 ninja-build vulkan-sdk libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev
+
+strategy:
+  matrix: 
+    GCC-10 Debug:
+      ImageName: 'ubuntu-latest'
+      BuildType: Debug
+      CMakeArgs: 
+        -GNinja 
+        -DCMAKE_C_COMPILER=gcc-10
+        -DCMAKE_CXX_COMPILER=g++-10
+      BeforeBuild: |
+        $(setup_packages)
+        $(install_packages)
+
+    Clang-10 Debug:
+      ImageName: 'ubuntu-latest'
+      BuildType: Debug
+      CMakeArgs: 
+        -GNinja 
+        -DCMAKE_C_COMPILER=clang-10 
+        -DCMAKE_CXX_COMPILER=clang++-10
+      BeforeBuild: |
+        $(setup_packages)
+        $(install_packages)
+
+    VS2019 Debug:
+      ImageName: 'windows-latest'
+      BuildType: Debug        
+      CMakeArgs: -G "Visual Studio 16 2019" -A x64
+      BeforeBuild: |
+        dir /b C:\VulkanSDK\* > tmp    
+        set /p VK_SDK_PATH=<tmp
+        set VK_SDK_PATH=C:\VulkanSDK\%VK_SDK_PATH%
+        set VULKAN_SDK=%VK_SDK_PATH%
+
+pool:
+  vmImage: $(ImageName)
+
+steps:
+- script: git submodule update --init external/vcpkg
+  displayName: 'Init vcpkg submodule'
+
+- pwsh: |
+    if($IsWindows) {
+      Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk.exe" -OutFile VulkanSDK.exe
+      $installer = Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("/S");
+      $installer.WaitForExit();
+    }
+  displayName: 'Install Vulkan SDK'
+
+- task: Cache@2
+  displayName: 'Cache vcpkg'
+  inputs:
+    key: $(Build.SourcesDirectory)/vcpkg.json | $(Build.SourcesDirectory)/.git/modules/external/vcpkg/HEAD | "$(Agent.OS)" | "0"
+    path: '$(Build.SourcesDirectory)/external/vcpkg'
+
+- script: |
+    $(BeforeBuild)
+    mkdir build
+    cd build
+    cmake .. $(CMakeArgs) -DCMAKE_BUILD_TYPE=$(BuildType)
+    cmake --build .
+  displayName: 'Build'
+  env:
+    VCPKG_BINARY_SOURCES: files,$(Build.SourcesDirectory)/external/vcpkg/archives,readwrite
+  
+- script: |
+    cat $(Build.SourcesDirectory)/build/vcpkg-manifest-install-out.log
+    cat $(Build.SourcesDirectory)/build/vcpkg-manifest-install-err.log
+  displayName: 'Show vcpkg logs'
+  condition: always()
+
+- task: DeleteFiles@1
+  displayName: 'Remove tmp files for vcpkg'
+  inputs:
+    SourceFolder: $(Build.SourcesDirectory)/external/vcpkg
+    Contents: |
+      buildtrees/*
+      downloads/*
+      installed/* 
+      packages/*
+
+- task: CopyFiles@2
+  displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)/build'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: '$(Agent.JobName)'
