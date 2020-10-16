@@ -17,14 +17,14 @@ namespace yave {
   auto node_declaration_traits<node::Mat::Mat4>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration("Std.Mat.Mat4", "4x4 Matrix", {}, {"mat4"});
+    return node_declaration("Mat.Mat4", "4x4 Matrix", {}, {"mat4"});
   }
 
   auto node_declaration_traits<node::Mat::Rotate>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Std.Mat.Rotate",
+      "Mat.Rotate",
       "Rotate object around axis",
       {"mat4", "deg", "axis"},
       {"mat4"},
@@ -35,7 +35,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Mat.RotateX",
+      "Mat.RotateX",
       "Rotate object around X axis",
       {"mat4", "deg"},
       {"mat4"},
@@ -46,7 +46,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Mat.RotateY",
+      "Mat.RotateY",
       "Rotate object around Y axis",
       {"mat4", "deg"},
       {"mat4"},
@@ -57,7 +57,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Mat.RotateZ",
+      "Mat.RotateZ",
       "Rotate object around Z axis",
       {"mat4", "deg"},
       {"mat4"},
@@ -68,7 +68,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Mat.Translate", "Move object", {"mat4", "vec3"}, {"mat4"});
+      "Mat.Translate", "Move object", {"mat4", "vec3"}, {"mat4"});
   }
 
   namespace modules::_std::geometry {

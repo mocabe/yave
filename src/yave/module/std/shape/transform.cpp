@@ -16,14 +16,14 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Shape.Translate", "Translate shape", {"shape", "vec"}, {"shape"});
+      "Shape.Translate", "Translate shape", {"shape", "vec"}, {"shape"});
   }
 
   auto node_declaration_traits<node::Shape::Rotate>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Std.Shape.Rotate",
+      "Shape.Rotate",
       "Rotate shape",
       {"shape", "degree", "center"},
       {"shape"},
@@ -34,7 +34,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Shape.Scale",
+      "Shape.Scale",
       "Scale shape",
       {"shape", "ratio", "center"},
       {"shape"},

@@ -15,7 +15,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Time.Time",
+      "Time.Time",
       "Constructor of time value. This node construct new FrameTime object "
       "from argument, or creates FrameTime object which represents current "
       "time applied to the tree.",
@@ -28,7 +28,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Time.ToSeconds",
+      "Time.ToSeconds",
       "Get float seconds from time",
       {"time"},
       {"seconds"},
@@ -39,7 +39,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Time.FromSeconds",
+      "Time.FromSeconds",
       "Make time from seconds",
       {"time"},
       {"seconds"},

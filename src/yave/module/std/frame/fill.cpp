@@ -15,7 +15,7 @@ namespace yave {
     data::frame_buffer_manager& fbm) -> node_declaration
   {
     return node_declaration(
-      "Std.Frame.Fill",
+      "Frame.Fill",
       "Fill frame buffer with specified color",
       {"color", "frame"},
       {"frame"},

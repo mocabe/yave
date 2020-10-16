@@ -15,7 +15,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Shape.Rectangle",
+      "Shape.Rectangle",
       "Create rect shape",
       {"pos", "size"},
       {"shape"},

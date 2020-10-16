@@ -12,10 +12,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Function.Apply",
-      "Apply argument to function",
-      {"fn", "arg"},
-      {"fn"});
+      "Function.Apply", "Apply argument to function", {"fn", "arg"}, {"fn"});
   }
 
   namespace modules::_std::function {

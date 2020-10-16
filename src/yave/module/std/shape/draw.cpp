@@ -18,7 +18,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Shape.Fill",
+      "Shape.Fill",
       "Fill shape",
       {"shape", "color"},
       {"shape"},
@@ -29,7 +29,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Shape.Stroke",
+      "Shape.Stroke",
       "Stroke shape",
       {"shape", "color", "width"},
       {"shape"},
@@ -43,7 +43,7 @@ namespace yave {
     data::frame_buffer_manager& fbm) -> node_declaration
   {
     return node_declaration(
-      "Std.Shape.Draw", "Render shape to frame buffer", {"shape"}, {"frame"});
+      "Shape.Draw", "Render shape to frame buffer", {"shape"}, {"frame"});
   }
 
   namespace modules::_std::shape {

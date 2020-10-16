@@ -14,7 +14,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Frame.Frame",
+      "Frame.Frame",
       "Create new frame buffer",
       {"color"},
       {"frame"},

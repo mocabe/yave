@@ -13,14 +13,14 @@ namespace yave {
   auto node_declaration_traits<node::List::Map>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration("Std.List.Map", "map", {"list", "func"}, {"list"});
+    return node_declaration("List.Map", "map", {"list", "func"}, {"list"});
   }
 
   auto node_declaration_traits<node::List::Repeat>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Std.List.Repeat",
+      "List.Repeat",
       "repeat",
       {"value", "n"},
       {"list"},
@@ -31,14 +31,14 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.List.Enumerate", "enumerate", {"list", "func"}, {"list"});
+      "List.Enumerate", "enumerate", {"list", "func"}, {"list"});
   }
 
   auto node_declaration_traits<node::List::Fold>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Std.List.Fold", "foldl", {"list", "func", "init"}, {"list"});
+      "List.Fold", "foldl", {"list", "func", "init"}, {"list"});
   }
 
   namespace modules::_std::list {

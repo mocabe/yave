@@ -12,14 +12,14 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Num.ToFloat", "Convert Num to Float", {"num"}, {"float"});
+      "Num.ToFloat", "Convert Num to Float", {"num"}, {"float"});
   }
 
   auto node_declaration_traits<node::Num::ToInt>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Std.Num.ToInt", "Convert Num to Int", {"num"}, {"int"});
+      "Num.ToInt", "Convert Num to Int", {"num"}, {"int"});
   }
 
   namespace modules::_std::prim {

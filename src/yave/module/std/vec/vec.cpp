@@ -14,7 +14,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Vec.Vec2",
+      "Vec.Vec2",
       "Vec2 constructor",
       {"x", "y"},
       {"value"},
@@ -25,7 +25,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Vec.Vec3",
+      "Vec.Vec3",
       "Vec3 constructor",
       {"x", "y", "z"},
       {"value"},
@@ -38,7 +38,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Vec.Vec4",
+      "Vec.Vec4",
       "Vec3 constructor",
       {"x", "y", "z", "w"},
       {"value"},

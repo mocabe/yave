@@ -13,8 +13,8 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Color.Color",
-      "",
+      "Color.Color",
+      "Create Color",
       {"color"},
       {"color"},
       {{0, make_node_argument<Color>()}});
@@ -24,8 +24,8 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Color.FromFloats",
-      "",
+      "Color.FromFloats",
+      "Create Color from floats",
       {"R", "G", "B", "A"},
       {"color"},
       {{0, make_node_argument<Float>(0.f, 0.f, 1.f, 0.001f)},

@@ -16,7 +16,7 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Shape.Circle",
+      "Shape.Circle",
       "Create circle shape",
       {"pos", "radius"},
       {"shape"},

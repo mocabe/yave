@@ -15,24 +15,21 @@ namespace yave {
     -> node_declaration
   {
     return node_declaration(
-      "Std.Time.ReTime",
-      "Assign new time to subtree",
-      {"any", "time"},
-      {"any"});
+      "Time.ReTime", "Assign new time to subtree", {"any", "time"}, {"any"});
   }
 
   auto node_declaration_traits<node::Time::Delay>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Std.Time.Delay", "Delay time", {"any", "time"}, {"any"});
+      "Time.Delay", "Delay time", {"any", "time"}, {"any"});
   }
 
   auto node_declaration_traits<node::Time::Scale>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Std.Time.Scale",
+      "Time.Scale",
       "Scale time",
       {"any", "scaling"},
       {"any"},
