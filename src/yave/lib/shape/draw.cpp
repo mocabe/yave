@@ -30,6 +30,7 @@ namespace yave {
     BLContext ctx(img);
 
     std::vector<BLPath> ps;
+    ps.reserve(s.paths().size());
 
     // build path
     for (auto&& path : s.paths()) {
