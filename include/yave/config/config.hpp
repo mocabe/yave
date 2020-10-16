@@ -41,6 +41,8 @@ namespace yave {
   static_assert(CHAR_BIT == 8);
   static_assert(sizeof(char) == sizeof(int8_t));
   static_assert(sizeof(unsigned char) == sizeof(uint8_t));
+  static_assert(sizeof(bool) == sizeof(char));
+  static_assert(alignof(bool) == alignof(char));
 
   static_assert(sizeof(float) == 4);
   static_assert(sizeof(double) == 8);
