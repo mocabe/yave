@@ -1197,14 +1197,6 @@ namespace yave::imgui {
       device,
       physicalDevice);
 
-    vulkan::clear_texture_data(
-      texture,
-      std::array {0.f, 0.f, 0.f, 0.f},
-      queue,
-      commandPool,
-      device,
-      physicalDevice);
-
     return texture;
   }
 
