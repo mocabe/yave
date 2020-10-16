@@ -18,7 +18,7 @@
 #include <yave/module/std/num/num.hpp>
 #include <yave/module/std/num/conversion.hpp>
 #include <yave/module/std/string/string.hpp>
-#include <yave/module/std/bool/bool.hpp>
+#include <yave/module/std/logic/bool.hpp>
 #include <yave/module/std/frame/frame.hpp>
 #include <yave/module/std/frame/blend.hpp>
 #include <yave/module/std/frame/fill.hpp>
@@ -147,10 +147,10 @@ namespace yave::modules::_std {
             get_node_declaration<node::List::Enumerate>(),
             get_node_declaration<node::List::Fold>(),
             get_node_declaration<node::Function::Apply>(),
+            get_node_declaration<node::Logic::Bool>(),
             get_node_declaration<node::Logic::If>(),
             get_node_declaration<node::Num::Int>(),
             get_node_declaration<node::Num::Float>(),
-            get_node_declaration<node::Bool::Bool>(),
             get_node_declaration<node::String::String>(),
             get_node_declaration<node::Num::ToFloat>(),
             get_node_declaration<node::Num::ToInt>(),
@@ -210,11 +210,11 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::List::Repeat, _std::tag>());
     add(yave::get_node_definitions<node::List::Enumerate, _std::tag>());
     add(yave::get_node_definitions<node::List::Fold, _std::tag>());
+    add(yave::get_node_definitions<node::Logic::Bool, _std::tag>());
     add(yave::get_node_definitions<node::Logic::If, _std::tag>());
     add(yave::get_node_definitions<node::Function::Apply, _std::tag>());
     add(yave::get_node_definitions<node::Num::Int, _std::tag>());
     add(yave::get_node_definitions<node::Num::Float, _std::tag>());
-    add(yave::get_node_definitions<node::Bool::Bool, _std::tag>());
     add(yave::get_node_definitions<node::String::String, _std::tag>());
     add(yave::get_node_definitions<node::Num::ToFloat, _std::tag>());
     add(yave::get_node_definitions<node::Num::ToInt, _std::tag>());

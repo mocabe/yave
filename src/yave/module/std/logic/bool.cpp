@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/bool/bool.hpp>
+#include <yave/module/std/logic/bool.hpp>
 
 namespace yave {
 }

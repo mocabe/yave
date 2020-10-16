@@ -7,12 +7,12 @@ add_library(yave-module-std
   list/list.cpp
   list/algorithm.cpp
   function/apply.cpp
+  logic/bool.cpp
   logic/if.cpp
   primitive/primitive.cpp
   num/num.cpp
   num/conversion.cpp
   string/string.cpp
-  bool/bool.cpp
   frame/frame.cpp
   frame/blend.cpp
   frame/fill.cpp

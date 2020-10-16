@@ -8,7 +8,7 @@
 #include <yave/support/log.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/module/std/num/num.hpp>
-#include <yave/module/std/bool/bool.hpp>
+#include <yave/module/std/logic/bool.hpp>
 #include <yave/module/std/list/list.hpp>
 #include <yave/module/std/logic/if.hpp>
 #include <catch2/catch.hpp>
@@ -80,7 +80,7 @@ TEST_CASE("node_compiler V2")
   // clang-format off
 
   auto int_decl   = get_node_declaration<node::Num::Int>();
-  auto bool_decl  = get_node_declaration<node::Bool::Bool>();
+  auto bool_decl  = get_node_declaration<node::Logic::Bool>();
   auto float_decl = get_node_declaration<node::Num::Float>();
   auto if_decl    = get_node_declaration<node::Logic::If>();
   auto nil_decl   = get_node_declaration<node::List::Nil>();
@@ -89,7 +89,7 @@ TEST_CASE("node_compiler V2")
 
   auto add_defs   = get_node_definitions<n::Add, test_backend>();
   auto int_defs   = get_node_definitions<node::Num::Int, modules::_std::tag>();
-  auto bool_defs  = get_node_definitions<node::Bool::Bool, modules::_std::tag>();
+  auto bool_defs  = get_node_definitions<node::Logic::Bool, modules::_std::tag>();
   auto float_defs = get_node_definitions<node::Num::Float, modules::_std::tag>();
   auto if_defs    = get_node_definitions<node::Logic::If, modules::_std::tag>();
   auto nil_defs   = get_node_definitions<node::List::Nil, modules::_std::tag>();

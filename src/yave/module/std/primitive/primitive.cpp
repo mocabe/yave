@@ -6,7 +6,7 @@
 #include <yave/module/std/primitive/primitive.hpp>
 #include <yave/module/std/num/num.hpp>
 #include <yave/module/std/string/string.hpp>
-#include <yave/module/std/bool/bool.hpp>
+#include <yave/module/std/logic/bool.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/primitive/property.hpp>
 
@@ -55,7 +55,7 @@ namespace yave {
 
   YAVE_DEF_PRIM_NODE(Num::Int);
   YAVE_DEF_PRIM_NODE(Num::Float);
-  YAVE_DEF_PRIM_NODE(Bool::Bool);
+  YAVE_DEF_PRIM_NODE(Logic::Bool);
   YAVE_DEF_PRIM_NODE(String::String);
 
 } // namespace yave
