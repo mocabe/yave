@@ -93,8 +93,10 @@ if(YAVE_COMPILER_MSVC)
   # Remove /RTC1 from default set of compile flags.
   set(CMAKE_CXX_FLAGS_DEBUG "/MDd /Zi /Ob0 /Od" CACHE STRING "" FORCE)
   set(YAVE_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4 /Zc:__cplusplus)
+  set(YAVE_LINK_FLAGS )
 else()
   set(YAVE_COMPILE_FLAGS -O0 -Wall -Wextra -g -pedantic)
+  set(YAVE_LINK_FLAGS )
 endif()
 
 if(YAVE_COMPILER_LLVM)
