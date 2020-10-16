@@ -57,20 +57,35 @@ namespace yave {
   public:
     bool exists(const node_handle& h) const
     {
-      return h.has_value() && g.exists(h.descriptor())
-             && h.id() == uid {g.id(h.descriptor())};
+      if (!h.has_value())
+        return false;
+
+      if (auto d = g.node(h.id().data))
+        return d == h.descriptor();
+
+      return false;
     }
 
     bool exists(const socket_handle& h) const
     {
-      return h.has_value() && g.exists(h.descriptor())
-             && h.id() == uid {g.id(h.descriptor())};
+      if (!h.has_value())
+        return false;
+
+      if (auto d = g.socket(h.id().data))
+        return d == h.descriptor();
+
+      return false;
     }
 
     bool exists(const connection_handle& h) const
     {
-      return h.has_value() && g.exists(h.descriptor())
-             && h.id() == uid {g.id(h.descriptor())};
+      if (!h.has_value())
+        return false;
+
+      if (auto d = g.edge(h.id().data))
+        return d == h.descriptor();
+
+      return false;
     }
 
   public:
