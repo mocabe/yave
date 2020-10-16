@@ -29,45 +29,46 @@ namespace yave {
       m_data = other.m_data.clone();
     }
 
-    // FIXME: This is very bad design indeed...
-    [[nodiscard]] auto get_data_constructor(
-      const object_ptr<const NodeArgument>& arg) -> object_ptr<const Object>
-    {
-      assert(this == arg.value());
-      return m_ctor << arg;
-    }
-
+    /// current data
     [[nodiscard]] auto data() const -> object_ptr<const Object>
     {
       return m_data;
     }
 
+    /// data constructor which takes NodeArgument and returns data type
     [[nodiscard]] auto ctor() const -> object_ptr<const Object>
     {
       return m_ctor;
     }
 
+    /// data property
     [[nodiscard]] auto property() const -> object_ptr<const Object>
     {
       return m_property;
     }
 
-    void set_property(object_ptr<const Object> new_property)
+    struct init_arg
     {
-      assert(!m_property);
-      m_property = std::move(new_property);
-    }
+      object_ptr<const Object> prop;
+      object_ptr<const Object> ctor;
+      object_ptr<const Object> data;
+    };
 
-    void set_ctor(object_ptr<const Object> new_ctor)
+    void init(init_arg arg)
     {
-      assert(!m_ctor);
-      m_ctor = std::move(new_ctor);
+      assert(!m_property && arg.prop);
+      assert(!m_ctor && arg.ctor);
+      assert(!m_data && arg.data);
+
+      m_property = std::move(arg.prop);
+      m_ctor     = std::move(arg.ctor);
+      m_data     = std::move(arg.data);
     }
 
     void set_data(object_ptr<const Object> new_data)
     {
-      if (m_data)
-        assert(same_type(get_type(m_data), get_type(new_data)));
+      assert(m_data);
+      assert(same_type(get_type(m_data), get_type(new_data)));
       // atomically update data
       m_data = std::move(new_data);
     }
@@ -124,9 +125,10 @@ namespace yave {
     auto ctor     = make_object<NodeArgumentCtor<value_type>>();
     auto data     = prop->initial_value().clone();
 
-    argument->set_property(prop);
-    argument->set_ctor(ctor);
-    argument->set_data(data);
+    argument->init(
+      {.prop = std::move(prop),
+       .ctor = std::move(ctor),
+       .data = std::move(data)});
 
     return argument;
   }

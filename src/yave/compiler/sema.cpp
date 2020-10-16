@@ -233,7 +233,7 @@ namespace yave::compiler {
 
             // TODO: remove this branch
             if (auto arg = value_cast_if<NodeArgument>(data))
-              body = body << arg->get_data_constructor(arg);
+              body = body << (arg->ctor() << arg);
             else
               body = body << data;
 

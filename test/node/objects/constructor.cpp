@@ -27,7 +27,7 @@ TEST_CASE("Constructor")
     check_type_dynamic<Int>(v->data());
     check_type_dynamic<IntDataProperty>(v->property());
     v->set_data(make_object<Int>(42));
-    auto app = (v->get_data_constructor(v)) << make_object<FrameDemand>();
+    auto app = (v->ctor() << v) << make_object<FrameDemand>();
     check_type_dynamic<Int>(app);
     REQUIRE(*value_cast<Int>(eval(app)) == 42);
   }
