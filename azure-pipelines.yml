@@ -74,7 +74,7 @@ steps:
     $(BeforeBuild)
     mkdir build
     cd build
-    cmake .. $(CMakeArgs) -DCMAKE_BUILD_TYPE=$(BuildType)
+    cmake .. --warn-uninitialized $(CMakeArgs) -DCMAKE_BUILD_TYPE=$(BuildType)
     cmake --build .
   displayName: 'Build'
   env:
