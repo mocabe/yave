@@ -66,14 +66,18 @@ namespace yave::editor {
                 auto& data     = lck.get_data<editor_data>();
                 auto& executor = data.execute_thread();
                 auto& compiler = data.compile_thread();
+                auto& updates  = data.update_channel();
 
                 if (!executor.initialized())
                   continue;
 
+                // apply updates
+                for (auto&& u : updates.consume_updates())
+                  u.apply();
+
                 // get compiled result
-                if (auto&& r = compiler.executable()) {
+                if (auto&& r = compiler.executable())
                   exe = r->clone();
-                }
 
                 time = executor.time();
               }

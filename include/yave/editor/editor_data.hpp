@@ -14,6 +14,7 @@
 
 #include <yave/editor/compile_thread.hpp>
 #include <yave/editor/execute_thread.hpp>
+#include <yave/editor/update_channel.hpp>
 
 #include <string>
 #include <filesystem>
@@ -79,5 +80,9 @@ namespace yave::editor {
     /// executor interface
     auto execute_thread() -> execute_thread_interface &;
     auto execute_thread() const -> const execute_thread_interface &;
+
+  public:
+    /// update channel
+    auto update_channel() -> node_argument_update_channel &;
   };
 } // namespace yave::editor

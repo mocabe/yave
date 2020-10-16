@@ -7,6 +7,7 @@ add_library(yave-editor
   view_context.cpp
   compile_thread.cpp
   execute_thread.cpp
+  update_channel.cpp
   editor_data.cpp
 )
 

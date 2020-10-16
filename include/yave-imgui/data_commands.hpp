@@ -8,8 +8,26 @@
 #include <yave/editor/data_command.hpp>
 #include <yave/lib/imgui/extension.hpp>
 #include <yave/node/core/structured_node_graph.hpp>
+#include <yave/obj/node/argument.hpp>
 
 namespace yave::editor::imgui {
+
+  /// push update
+  struct dcmd_push_update : data_command
+  {
+    object_ptr<NodeArgument> arg;
+    object_ptr<const Object> data;
+
+    dcmd_push_update(object_ptr<NodeArgument> a, object_ptr<const Object> d)
+      : arg {std::move(a)}
+      , data {std::move(d)}
+    {
+    }
+
+    void exec(data_context::accessor& ctx) override;
+    void undo(data_context::accessor& ctx) override;
+    auto type() const -> data_command_type override;
+  };
 
   /// notify execute
   struct dcmd_notify_execute : data_command

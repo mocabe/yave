@@ -75,7 +75,7 @@ namespace yave::editor::imgui {
         (name + ":%.3f").c_str());
 
       if (*f != val) {
-        m_holder->set_data(make_object<Float>(val));
+        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, make_object<Float>(val)));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -148,7 +148,7 @@ namespace yave::editor::imgui {
         (name + ":%.3f").c_str());
 
       if (*i != val) {
-        m_holder->set_data(make_object<Int>(val));
+        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, make_object<Int>(val)));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -206,7 +206,8 @@ namespace yave::editor::imgui {
       ImGui::Checkbox("", &val);
 
       if (*b != val) {
-        m_holder->set_data(make_object<Bool>(val));
+        auto d = make_object<Bool>(val);
+        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, std::move(d)));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -264,7 +265,8 @@ namespace yave::editor::imgui {
       ImGui::InputText("", &val);
 
       if (std::string(*str) != val) {
-        m_holder->set_data(make_object<String>(val));
+        auto d = make_object<String>(val);
+        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, std::move(d)));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -331,7 +333,8 @@ namespace yave::editor::imgui {
       ImGui::ColorEdit4("", &(val.r), ImGuiColorEditFlags_Float);
 
       if (glm::fvec4(*c) != val) {
-        m_holder->set_data(make_object<Color>(val));
+        auto d = make_object<Color>(val);
+        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, std::move(d)));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -408,7 +411,8 @@ namespace yave::editor::imgui {
       ImGui::DragFloat("##y", &val.y, step, lo, hi, "y:%.1f");
 
       if (glm::fvec2(*vec) != val) {
-        m_holder->set_data(make_object<Vec2>(val));
+        auto d = make_object<Vec2>(val);
+        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, std::move(d)));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }

@@ -38,6 +38,10 @@ namespace yave::editor {
     execute_thread_interface executor;
 
   public:
+    /// update channel
+    node_argument_update_channel updates;
+
+  public:
     impl()
     {
       init();
@@ -317,6 +321,11 @@ namespace yave::editor {
   auto editor_data::execute_thread() const -> const execute_thread_interface&
   {
     return m_pimpl->executor;
+  }
+
+  auto editor_data::update_channel() -> node_argument_update_channel&
+  {
+    return m_pimpl->updates;
   }
 
 } // namespace yave::editor

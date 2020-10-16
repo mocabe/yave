@@ -10,6 +10,25 @@
 namespace yave::editor::imgui {
 
   // ------------------------------------------
+  // dcmd_push_update
+
+  void dcmd_push_update::exec(data_context::accessor& ctx)
+  {
+    ctx.get_data<editor_data>().update_channel().push_update(
+      {.arg = arg, .data = data});
+  }
+
+  void dcmd_push_update::undo(data_context::accessor& /*ctx*/)
+  {
+    assert(false);
+  }
+
+  auto dcmd_push_update::type() const -> data_command_type
+  {
+    return data_command_type::single_time;
+  }
+
+  // ------------------------------------------
   // dcmd_notify_execute
 
   void dcmd_notify_execute::exec(data_context::accessor& ctx)
