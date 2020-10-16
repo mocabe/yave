@@ -11,7 +11,7 @@
 
 #include <imgui_internal.h>
 
-YAVE_DECL_G_LOGGER(node_window);
+YAVE_DECL_G_LOGGER(node_window)
 
 namespace yave::editor::imgui {
 
@@ -97,7 +97,7 @@ namespace yave::editor::imgui {
 
   void node_window::update(
     editor::data_context& data_ctx,
-    editor::view_context& view_ctx)
+    editor::view_context& /*view_ctx*/)
   {
     auto lck   = data_ctx.lock();
     auto& data = lck.get_data<editor_data>();
@@ -399,8 +399,8 @@ namespace yave::editor::imgui {
   }
 
   void node_window::_draw_foreground(
-    const data_context& dctx,
-    const view_context& vctx,
+    const data_context& /*dctx*/,
+    const view_context& /*vctx*/,
     node_window_draw_info& di,
     ImDrawListSplitter& chs) const
   {

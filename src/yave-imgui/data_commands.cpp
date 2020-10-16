@@ -17,7 +17,7 @@ namespace yave::editor::imgui {
     ctx.get_data<editor_data>().execute_thread().notify_execute();
   }
 
-  void dcmd_notify_execute::undo(data_context::accessor& ctx)
+  void dcmd_notify_execute::undo(data_context::accessor& /*ctx*/)
   {
     assert(false);
   }
@@ -122,7 +122,7 @@ namespace yave::editor::imgui {
     data.compile_thread().notify_recompile();
   }
 
-  void dcmd_ndestroy::undo(data_context::accessor& ctx)
+  void dcmd_ndestroy::undo(data_context::accessor& /*ctx*/)
   {
     // TODO
     assert(false);
@@ -161,7 +161,7 @@ namespace yave::editor::imgui {
     data.compile_thread().notify_recompile();
   }
 
-  void dcmd_ngroup::undo(data_context::accessor& ctx)
+  void dcmd_ngroup::undo(data_context::accessor& /*ctx*/)
   {
     // TODO
     assert(false);
@@ -431,7 +431,7 @@ namespace yave::editor::imgui {
     ng.bring_front(node);
   }
 
-  void dcmd_nbring_front::undo(data_context::accessor& ctx)
+  void dcmd_nbring_front::undo(data_context::accessor& /*ctx*/)
   {
     assert(false);
   }
@@ -457,7 +457,7 @@ namespace yave::editor::imgui {
     data.compile_thread().notify_recompile();
   }
 
-  void dcmd_sremove::undo(data_context::accessor& ctx)
+  void dcmd_sremove::undo(data_context::accessor& /*ctx*/)
   {
     assert(false);
   }
@@ -496,7 +496,7 @@ namespace yave::editor::imgui {
       data.compile_thread().notify_recompile();
   }
 
-  void dcmd_sadd::undo(data_context::accessor& ctx)
+  void dcmd_sadd::undo(data_context::accessor& /*ctx*/)
   {
     assert(false);
   }
