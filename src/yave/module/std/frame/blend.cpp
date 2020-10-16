@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/module/std/frame/mix.hpp>
+#include <yave/module/std/frame/blend.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/lib/image/image_blend.hpp>
@@ -11,23 +11,23 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::Frame::Mix>::get_node_declaration()
+  auto node_declaration_traits<node::Frame::Blend>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "Std.Frame.Mix", "Mix frames", {"src", "dst"}, {"frame"});
+      "Frame.Blend", "Alpha blend frames", {"src", "dst"}, {"out"});
   }
 
   namespace modules::_std::frame {
 
-    struct MixFrame
-      : NodeFunction<MixFrame, FrameBuffer, FrameBuffer, FrameBuffer>
+    struct BlendFrame
+      : NodeFunction<BlendFrame, FrameBuffer, FrameBuffer, FrameBuffer>
     {
       data::frame_buffer_manager& m_fbm;
       vulkan::rgba32f_offscreen_compositor& m_compositor;
       vulkan::rgba32f_offscreen_render_pass& m_render_pass;
 
-      MixFrame(
+      BlendFrame(
         data::frame_buffer_manager& fbm,
         vulkan::rgba32f_offscreen_compositor& compositor)
         : m_fbm {fbm}
@@ -41,8 +41,8 @@ namespace yave {
         auto src = eval_arg<0>();
         auto dst = eval_arg<1>().clone();
 
-        auto w   = src->width();
-        auto h   = src->height();
+        auto w = src->width();
+        auto h = src->height();
 
         if (!m_fbm.exists(src->id()) || !m_fbm.exists(dst->id()))
           assert(!"TODO");
@@ -55,18 +55,18 @@ namespace yave {
         return dst;
       }
     };
-  } // namespace modules::_std::render
+  } // namespace modules::_std::frame
 
-  auto node_definition_traits<node::Frame::Mix, modules::_std::tag>::
+  auto node_definition_traits<node::Frame::Blend, modules::_std::tag>::
     get_node_definitions(
       data::frame_buffer_manager& fbm,
       vulkan::rgba32f_offscreen_compositor& compositor)
       -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Frame::Mix>();
+    auto info = get_node_declaration<node::Frame::Blend>();
     return std::vector {node_definition(
       info.full_name(),
       0,
-      make_object<modules::_std::frame::MixFrame>(fbm, compositor))};
+      make_object<modules::_std::frame::BlendFrame>(fbm, compositor))};
   }
-}
+} // namespace yave

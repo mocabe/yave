@@ -20,7 +20,7 @@
 #include <yave/module/std/string/string.hpp>
 #include <yave/module/std/bool/bool.hpp>
 #include <yave/module/std/frame/frame.hpp>
-#include <yave/module/std/frame/mix.hpp>
+#include <yave/module/std/frame/blend.hpp>
 #include <yave/module/std/frame/fill.hpp>
 #include <yave/module/std/time/retime.hpp>
 #include <yave/module/std/time/time.hpp>
@@ -155,7 +155,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::Num::ToFloat>(),
             get_node_declaration<node::Num::ToInt>(),
             get_node_declaration<node::Frame::Frame>(),
-            get_node_declaration<node::Frame::Mix>(),
+            get_node_declaration<node::Frame::Blend>(),
             get_node_declaration<node::Frame::Fill>(fmngr),
             get_node_declaration<node::Time::ReTime>(),
             get_node_declaration<node::Time::Delay>(),
@@ -218,7 +218,7 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::String::String, _std::tag>());
     add(yave::get_node_definitions<node::Num::ToFloat, _std::tag>());
     add(yave::get_node_definitions<node::Num::ToInt, _std::tag>());
-    add(yave::get_node_definitions<node::Frame::Mix, _std::tag>(fmngr, compositor));
+    add(yave::get_node_definitions<node::Frame::Blend, _std::tag>(fmngr, compositor));
     add(yave::get_node_definitions<node::Frame::Fill, _std::tag>(fmngr, compositor));
     add(yave::get_node_definitions<node::Time::Time, _std::tag>());
     add(yave::get_node_definitions<node::Time::Seconds, _std::tag>());

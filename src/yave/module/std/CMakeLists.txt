@@ -14,7 +14,7 @@ add_library(yave-module-std
   string/string.cpp
   bool/bool.cpp
   frame/frame.cpp
-  frame/mix.cpp
+  frame/blend.cpp
   frame/fill.cpp
   time/retime.cpp 
   time/time.cpp
