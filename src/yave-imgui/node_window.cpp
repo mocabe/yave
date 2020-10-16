@@ -164,24 +164,17 @@ namespace yave::editor::imgui {
     // print debug info
     ImGui::Text("path: %s", current_group_path.c_str());
     ImGui::Text("scroll: %f, %f", scroll.x, scroll.y);
-    ImGui::Text("state: %d", (int)current_state);
-    ImGui::Text("hov: %s", to_string(n_hovered.id()).c_str());
-    ImGui::Text("bg hov: %d", (int)hov);
 
-    if (s_selected)
-      ImGui::Text("ssel: %s", to_string(s_selected.id()).c_str());
+    // show compile errors
+    auto compile_errors = [&] {
+      auto lck   = dctx.lock();
+      auto& data = lck.get_data<editor_data>();
+      return data.compile_thread().messages().get_errors();
+    }();
 
-    for (auto&& n : n_selected)
-      ImGui::Text("nsel: %s", to_string(n.id()).c_str());
-
-    // show compile result for debug
-    {
-      auto data_lck = dctx.lock();
-      auto& data    = data_lck.get_data<editor_data>();
-
-      for (auto&& e : data.compile_thread().messages().get_errors())
-        if (auto&& msg = text(e))
-          ImGui::TextColored({255, 0, 0, 255}, "%s", msg->c_str());
+    for (auto&& e : compile_errors) {
+      if (auto&& msg = text(e))
+        ImGui::TextColored({255, 0, 0, 255}, "%s", msg->c_str());
     }
 
     // handle scrolling
@@ -495,7 +488,6 @@ namespace yave::editor::imgui {
       Warning("current_state != state::neutral");
       return;
     }
-    Info(g_logger, "state: neutral -> background");
     current_state   = state::background;
     drag_source_pos = drag_src_pos;
   }
@@ -506,7 +498,6 @@ namespace yave::editor::imgui {
       Warning("current_state != state::background");
       return;
     }
-    Info(g_logger, "state: background -> neutral");
     current_state   = state::neutral;
     drag_source_pos = {};
   }
@@ -517,7 +508,6 @@ namespace yave::editor::imgui {
       Warning("current_state != state::neutral");
       return;
     }
-    Info(g_logger, "state: neutral -> node");
     current_state   = state::node;
     drag_source_pos = drag_src_pos;
   }
@@ -528,7 +518,6 @@ namespace yave::editor::imgui {
       Warning("current_state != state::node");
       return;
     }
-    Info(g_logger, "state: node -> neutral");
     current_state   = state::neutral;
     drag_source_pos = {};
   }
@@ -539,7 +528,6 @@ namespace yave::editor::imgui {
       Warning("current_state != state::neutral");
       return;
     }
-    Info(g_logger, "state: neutral -> socket");
     current_state   = state::socket;
     drag_source_pos = drag_src_pos;
   }
@@ -550,7 +538,6 @@ namespace yave::editor::imgui {
       Warning("current_state != state::socket");
       return;
     }
-    Info(g_logger, "state: socket -> neutral");
     current_state   = state::neutral;
     drag_source_pos = {};
   }
