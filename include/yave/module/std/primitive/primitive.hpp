@@ -11,7 +11,7 @@
 
 #define YAVE_DECL_PRIM_NODE(TYPE, NAME) \
   template <>                           \
-  constexpr char node_declaration_traits<node::TYPE>::name[] = #NAME;
+  constexpr char node_declaration_traits<node::TYPE>::name[] = #NAME
 
 namespace yave {
 
