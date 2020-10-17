@@ -328,4 +328,10 @@ namespace yave::editor {
     return m_pimpl->updates;
   }
 
+  auto editor_data::update_channel() const
+    -> const node_argument_update_channel&
+  {
+    return m_pimpl->updates;
+  }
+
 } // namespace yave::editor

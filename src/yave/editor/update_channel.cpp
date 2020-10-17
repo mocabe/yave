@@ -11,17 +11,34 @@ namespace yave::editor {
 
   class node_argument_update_channel::impl
   {
-    std::vector<update_data> data_list;
+    std::vector<update_data> updates;
 
   public:
-    void push(update_data d)
+    void push_update(update_data d)
     {
-      data_list.push_back(std::move(d));
+      for (auto&& u : updates) {
+        if (u.arg == d.arg) {
+          u.data = std::move(d.data);
+          return;
+        }
+      }
+      updates.push_back(std::move(d));
     }
 
-    auto consume()
+    auto consume_updates()
     {
-      return std::move(data_list);
+      return std::move(updates);
+    }
+
+    auto get_current_change(const object_ptr<NodeArgument>& arg) const
+      -> object_ptr<const Object>
+    {
+      for (auto&& u : updates) {
+        if (u.arg == arg) {
+          return u.data;
+        }
+      }
+      return nullptr;
     }
   };
 
@@ -38,12 +55,18 @@ namespace yave::editor {
 
   void node_argument_update_channel::push_update(update_data data)
   {
-    m_pimpl->push(std::move(data));
+    m_pimpl->push_update(std::move(data));
   }
 
   auto node_argument_update_channel::consume_updates()
     -> std::vector<update_data>
   {
-    return m_pimpl->consume();
+    return m_pimpl->consume_updates();
+  }
+
+  auto node_argument_update_channel::get_current_change(
+    const object_ptr<NodeArgument>& arg) const -> object_ptr<const Object>
+  {
+    return m_pimpl->get_current_change(arg);
   }
 }

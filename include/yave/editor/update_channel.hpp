@@ -42,6 +42,9 @@ namespace yave::editor {
     void push_update(update_data data);
     /// execute all updates
     [[nodiscard]] auto consume_updates() -> std::vector<update_data>;
+    /// get current change
+    [[nodiscard]] auto get_current_change(
+      const object_ptr<NodeArgument>& arg) const -> object_ptr<const Object>;
   };
 
 } // namespace yave::editor

@@ -11,6 +11,25 @@
 
 namespace yave::editor::imgui {
 
+  namespace {
+
+    template <class T>
+    auto get_current_argument_data(
+      const object_ptr<NodeArgument>& arg,
+      const data_context& dctx)
+    {
+      // get staged change in update channel
+      auto staged = dctx
+                      .lock() //
+                      .get_data<editor_data>()
+                      .update_channel()
+                      .get_current_change(arg);
+
+      // return staged data or current value in argument holder
+      return value_cast<T>(staged ? staged : arg->data());
+    }
+  } // namespace
+
   data_type_socket<Float>::data_type_socket(
     const object_ptr<NodeArgument>& holder,
     const object_ptr<const FloatDataProperty>& property,
@@ -64,7 +83,7 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto f   = value_cast<Float>(m_holder->data());
+      auto f   = get_current_argument_data<Float>(m_holder, dctx);
       auto val = static_cast<float>(*f);
       ImGui::DragFloat(
         "",
@@ -75,7 +94,8 @@ namespace yave::editor::imgui {
         (name + ":%.3f").c_str());
 
       if (*f != val) {
-        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, make_object<Float>(val)));
+        dctx.cmd(std::make_unique<dcmd_push_update>(
+          m_holder, make_object<Float>(val)));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -137,7 +157,7 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto i   = value_cast<Int>(m_holder->data());
+      auto i   = get_current_argument_data<Int>(m_holder, dctx);
       auto val = static_cast<int>(*i);
       ImGui::DragInt(
         "",
@@ -148,7 +168,8 @@ namespace yave::editor::imgui {
         (name + ":%.3f").c_str());
 
       if (*i != val) {
-        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, make_object<Int>(val)));
+        dctx.cmd(
+          std::make_unique<dcmd_push_update>(m_holder, make_object<Int>(val)));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -201,7 +222,7 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto b   = value_cast<Bool>(m_holder->data());
+      auto b   = get_current_argument_data<Bool>(m_holder, dctx);
       auto val = *b;
       ImGui::Checkbox("", &val);
 
@@ -260,7 +281,7 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto str = value_cast<String>(m_holder->data());
+      auto str = get_current_argument_data<String>(m_holder, dctx);
       auto val = std::string(*str);
       ImGui::InputText("", &val);
 
@@ -328,7 +349,7 @@ namespace yave::editor::imgui {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
     {
-      auto c   = value_cast<Color>(m_holder->data());
+      auto c   = get_current_argument_data<Color>(m_holder, dctx);
       auto val = glm::fvec4(*c);
       ImGui::ColorEdit4("", &(val.r), ImGuiColorEditFlags_Float);
 
@@ -397,7 +418,7 @@ namespace yave::editor::imgui {
     {
       auto& style = ImGui::GetStyle();
 
-      auto vec = value_cast<Vec2>(m_holder->data());
+      auto vec = get_current_argument_data<Vec2>(m_holder, dctx);
       auto val = glm::fvec2(*vec);
 
       auto step = 1.f;
