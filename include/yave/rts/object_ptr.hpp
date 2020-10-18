@@ -237,7 +237,6 @@ namespace yave {
   {
     if (likely(get() && !is_static())) {
       if (root_head()->refcount.fetch_sub() == 1) {
-        std::atomic_thread_fence(std::memory_order_acquire);
         root_info_table()->destroy(get());
       }
     }

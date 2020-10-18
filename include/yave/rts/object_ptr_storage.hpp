@@ -69,14 +69,14 @@ namespace yave {
     {
       assert(get());
       // inherit from root object
-      return root_head()->refcount.load() == 0;
+      return root_head()->refcount.load_relaxed() == 0;
     }
 
     /// use_count
     [[nodiscard]] auto use_count() const noexcept -> uint64_t
     {
       assert(get());
-      return root_head()->refcount.load();
+      return root_head()->refcount.load_relaxed();
     }
 
     /// increment refcount (mutable)
