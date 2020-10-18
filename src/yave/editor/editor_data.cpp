@@ -33,16 +33,18 @@ namespace yave::editor {
 
   public:
     /// compiler interface
-    compile_thread_interface compiler;
+    compile_thread_data compiler;
     /// executor interface
-    execute_thread_interface executor;
+    execute_thread_data executor;
 
   public:
     /// update channel
     node_argument_update_channel updates;
 
   public:
-    impl()
+    impl(data_context& dctx)
+      : compiler {dctx}
+      , executor {dctx}
     {
       init();
     }
@@ -75,9 +77,7 @@ namespace yave::editor {
     void deinit_modules();
 
     /// init task threads
-    void init_threads(
-      editor::compile_thread& tcompiler,
-      editor::execute_thread& texecutor);
+    void init_threads();
     /// deinit task threads
     void deinit_threads();
   };
@@ -99,8 +99,6 @@ namespace yave::editor {
       assert(loader->get().empty());
 
     assert(loaded_module_names.empty());
-    assert(!compiler.initialized());
-    assert(!executor.initialized());
   }
 
   void editor_data::impl::add_module_loader(
@@ -198,12 +196,10 @@ namespace yave::editor {
     // leave scene_config as-is
   }
 
-  void editor_data::impl::init_threads(
-    editor::compile_thread& tcompiler,
-    editor::execute_thread& texecutor)
+  void editor_data::impl::init_threads()
   {
-    compiler.init(tcompiler);
-    executor.init(texecutor);
+    compiler.init();
+    executor.init();
   }
 
   void editor_data::impl::deinit_threads()
@@ -212,8 +208,8 @@ namespace yave::editor {
     executor.deinit();
   }
 
-  editor_data::editor_data()
-    : m_pimpl {std::make_unique<impl>()}
+  editor_data::editor_data(data_context& dctx)
+    : m_pimpl {std::make_unique<impl>(dctx)}
   {
   }
 
@@ -251,11 +247,9 @@ namespace yave::editor {
     m_pimpl->deinit_modules();
   }
 
-  void editor_data::init_threads(
-    editor::compile_thread& tcompiler,
-    editor::execute_thread& texecutor)
+  void editor_data::init_threads()
   {
-    m_pimpl->init_threads(tcompiler, texecutor);
+    m_pimpl->init_threads();
   }
 
   void editor_data::deinit_threads()
@@ -303,22 +297,22 @@ namespace yave::editor {
     return m_pimpl->root_group;
   }
 
-  auto editor_data::compile_thread() -> compile_thread_interface&
+  auto editor_data::compile_thread() -> compile_thread_data&
   {
     return m_pimpl->compiler;
   }
 
-  auto editor_data::compile_thread() const -> const compile_thread_interface&
+  auto editor_data::compile_thread() const -> const compile_thread_data&
   {
     return m_pimpl->compiler;
   }
 
-  auto editor_data::execute_thread() -> execute_thread_interface&
+  auto editor_data::execute_thread() -> execute_thread_data&
   {
     return m_pimpl->executor;
   }
 
-  auto editor_data::execute_thread() const -> const execute_thread_interface&
+  auto editor_data::execute_thread() const -> const execute_thread_data&
   {
     return m_pimpl->executor;
   }

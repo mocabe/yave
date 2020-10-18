@@ -14,95 +14,70 @@
 
 namespace yave::editor {
 
-  /// execute thread
-  class execute_thread
+  /// unexpected thread failure
+  class execute_thread_failure : std::runtime_error
+  {
+    std::exception_ptr m_exception;
+
+  public:
+    execute_thread_failure(std::exception_ptr exception)
+      : std::runtime_error("execution thread failed by uncaught exception")
+      , m_exception {exception}
+    {
+    }
+
+    /// get exception thrown in execute thread to it
+    [[nodiscard]] auto exception() const
+    {
+      return m_exception;
+    }
+  };
+
+  /// Execute thread interface
+  class execute_thread_data
   {
     class impl;
     std::unique_ptr<impl> m_pimpl;
 
   public:
-    /// ctor
-    execute_thread(data_context& dctx);
-    /// dtor
-    ~execute_thread() noexcept;
+    execute_thread_data(data_context& dctx);
+    ~execute_thread_data() noexcept;
+    execute_thread_data(const execute_thread_data&) = delete;
 
-  public:
-    /// notify execution
+    /// initialize executor thread.
+    /// should be called after constructing related data.
+    void init();
+
+    /// deinit executor thread.
+    /// should be called before destructing related data.
+    void deinit();
+
+    /// send notification to thread.
     void notify_execute();
-    /// wait current task and block next one
-    auto wait_task() -> std::unique_lock<std::mutex>;
-  };
 
-  /// Execute thread interface
-  class execute_thread_interface
-  {
-    friend class execute_thread;
+    /// get time argument to execute.
+    auto arg_time() const -> yave::time;
+    /// set time argument to execute.
+    void set_arg_time(yave::time t);
 
-    /// execute thread ref
-    execute_thread* m_thread_ptr = nullptr;
-    /// time to execute
-    yave::time m_time;
-    /// execution result
-    std::optional<image> m_result = std::nullopt;
-    /// execution time
-    std::chrono::nanoseconds m_exec_time = {};
-    /// timestamp
-    std::chrono::steady_clock::time_point m_timestamp =
-      std::chrono::steady_clock::now();
+    /// get duration required to run execution last time
+    auto exec_duration() const -> std::chrono::milliseconds;
+
+    /// get timestamp of execution finished last time
+    auto exec_timestamp() const -> std::chrono::steady_clock::time_point;
+
+    /// access to result of execution
+    auto exec_result() -> std::optional<yave::image>&;
 
   public:
-    execute_thread_interface()                                = default;
-    execute_thread_interface(const execute_thread_interface&) = delete;
-    execute_thread_interface(execute_thread_interface&&)      = default;
-
-    void init(execute_thread& th)
+    struct exec_results
     {
-      m_thread_ptr = &th;
-    }
+      std::optional<yave::image> img;
+      std::chrono::milliseconds duration;
+      std::chrono::steady_clock::time_point timestamp;
+    };
 
-    bool initialized() const
-    {
-      return m_thread_ptr;
-    }
-
-    void deinit()
-    {
-      if (m_thread_ptr) {
-        auto lck     = m_thread_ptr->wait_task();
-        m_thread_ptr = nullptr;
-        m_result     = std::nullopt;
-      }
-    }
-
-    void notify_execute()
-    {
-      assert(m_thread_ptr);
-      m_thread_ptr->notify_execute();
-    }
-
-    auto& time() const
-    {
-      return m_time;
-    }
-
-    void set_time(const yave::time& newtime)
-    {
-      m_time = newtime;
-    }
-
-    auto& exec_time() const
-    {
-      return m_exec_time;
-    }
-
-    auto& timestamp() const
-    {
-      return m_timestamp;
-    }
-
-    auto& get_result() const
-    {
-      return m_result;
-    }
+    /// should be called from execute thread
+    void set_exec_results(exec_results results);
   };
 } // namespace yave::editor

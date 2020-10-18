@@ -49,14 +49,14 @@ namespace yave::editor {
     width        = scene_config.width();
     height       = scene_config.height();
     frame_format = scene_config.frame_format();
-    current_time = executor.time();
+    current_time = executor.arg_time();
 
     // no update
-    if (executor.timestamp() <= last_timestamp)
+    if (executor.exec_timestamp() <= last_timestamp)
       return;
 
     // take execution result
-    if (auto& fb = executor.get_result()) {
+    if (auto& fb = executor.exec_result()) {
 
       if (!res_tex_id) {
         res_tex_data = imgui_ctx.create_texture(
@@ -67,8 +67,8 @@ namespace yave::editor {
       imgui_ctx.write_texture(
         res_tex_data, {0, 0}, res_tex_data.extent, fb->data());
 
-      last_timestamp = executor.timestamp();
-      exec_time      = executor.exec_time();
+      last_timestamp = executor.exec_timestamp();
+      exec_time      = executor.exec_duration();
     }
   }
 
@@ -145,8 +145,8 @@ namespace yave::editor {
       data_ctx.cmd(make_data_command([t = yave::time::seconds(sec)](auto& ctx) {
         auto& data     = ctx.template get_data<editor_data>();
         auto& executor = data.execute_thread();
-        if (executor.time() != t) {
-          executor.set_time(t);
+        if (executor.arg_time() != t) {
+          executor.set_arg_time(t);
           executor.notify_execute();
         }
       }));

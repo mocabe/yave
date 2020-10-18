@@ -15,154 +15,283 @@
 
 namespace yave::editor {
 
-  class execute_thread::impl
-  {
-  public:
-    data_context& data_ctx;
+  namespace {
 
-  public:
-    std::thread thread;
-    std::mutex mtx;
-    std::condition_variable cond;
-    std::atomic<bool> terminate_flag = false;
-    std::atomic<bool> execute_flag   = false;
-
-  public:
-    std::exception_ptr exception;
-
-    void check_exception()
+    /// internal task thread for execution
+    class execute_thread
     {
-      if (exception)
-        std::rethrow_exception(exception);
-    }
+    private:
+      data_context& data_ctx;
+
+    private:
+      std::thread thread;
+      std::mutex mtx;
+      std::condition_variable cond;
+
+    private:
+      std::atomic<bool> terminate_flag = false;
+      std::atomic<bool> execute_flag   = false;
+
+    private:
+      std::exception_ptr exception;
+
+      void check_failure()
+      {
+        if (!thread.joinable()) {
+          if (exception != nullptr) {
+            // exception thrown inside thread
+            throw execute_thread_failure(exception);
+          }
+        }
+      }
+
+    public:
+      execute_thread(data_context& dctx)
+        : data_ctx {dctx}
+      {
+      }
+
+      bool is_running()
+      {
+        return thread.joinable();
+      }
+
+    public:
+      void start()
+      {
+        check_failure();
+
+        thread = std::thread([&] {
+          try {
+            while (true) {
+
+              {
+                std::unique_lock lck {mtx};
+                cond.wait(lck, [&] { return terminate_flag || execute_flag; });
+              }
+
+              if (terminate_flag)
+                break;
+
+              if (execute_flag) {
+
+                execute_flag = false;
+
+                std::optional<compiler::executable> exe;
+                std::optional<time> time;
+                {
+                  auto lck       = data_ctx.lock();
+                  auto& data     = lck.get_data<editor_data>();
+                  auto& executor = data.execute_thread();
+                  auto& compiler = data.compile_thread();
+                  auto& updates  = data.update_channel();
+
+                  // apply updates
+                  for (auto&& u : updates.consume_updates())
+                    u.apply();
+
+                  // get compiled result
+                  if (auto&& r = compiler.executable())
+                    exe = r->clone();
+
+                  time = executor.arg_time();
+                }
+
+                // no compile result
+                if (!exe)
+                  continue;
+
+                assert(exe && time);
+
+                assert(same_type(
+                  exe->type(), object_type<node_closure<FrameBuffer>>()));
+
+                auto bgn = std::chrono::high_resolution_clock::now();
+
+                // execute app tree.
+                auto img = [&]() -> std::optional<image> {
+                  try {
+                    auto r = value_cast<FrameBuffer>(exe->execute(*time));
+                    // load to host memory
+                    auto img = image(r->width(), r->height(), r->format());
+                    r->read_data(0, 0, r->width(), r->height(), img.data());
+                    return img;
+                  } catch (...) {
+                    // execution error
+                    return std::nullopt;
+                  }
+                }();
+
+                auto end = std::chrono::high_resolution_clock::now();
+
+                {
+                  auto lck       = data_ctx.lock();
+                  auto& data     = lck.get_data<editor_data>();
+                  auto& executor = data.execute_thread();
+
+                  using namespace std::chrono;
+
+                  executor.set_exec_results(
+                    {.img       = std::move(img),
+                     .duration  = duration_cast<milliseconds>(end - bgn),
+                     .timestamp = steady_clock::now()});
+                }
+              }
+            }
+          } catch (...) {
+            exception = std::current_exception();
+          }
+        });
+      }
+
+      void stop()
+      {
+        check_failure();
+        terminate_flag = true;
+        cond.notify_one();
+        thread.join();
+      }
+
+      void notify_execute()
+      {
+        check_failure();
+        execute_flag = true;
+        cond.notify_one();
+      }
+    };
+
+  } // namespace
+
+  class execute_thread_data::impl
+  {
+    /// execute thread
+    execute_thread m_thread;
+    /// result image
+    std::optional<yave::image> m_result;
+    /// arg time
+    yave::time m_arg_time;
+    /// duration of run
+    std::chrono::milliseconds m_exec_duration;
+    /// timestamp of run
+    std::chrono::steady_clock::time_point m_exec_timestamp;
 
   public:
     impl(data_context& dctx)
-      : data_ctx {dctx}
+      : m_thread {dctx}
     {
     }
 
-  public:
-    void start()
+    bool is_thread_running()
     {
-      thread = std::thread([&] {
-        try {
-          while (true) {
-
-            std::unique_lock lck {mtx};
-            cond.wait(lck, [&] { return terminate_flag || execute_flag; });
-
-            if (terminate_flag)
-              break;
-
-            if (execute_flag) {
-
-              execute_flag = false;
-
-              std::optional<compiler::executable> exe;
-              std::optional<time> time;
-              {
-                auto lck       = data_ctx.lock();
-                auto& data     = lck.get_data<editor_data>();
-                auto& executor = data.execute_thread();
-                auto& compiler = data.compile_thread();
-                auto& updates  = data.update_channel();
-
-                if (!executor.initialized())
-                  continue;
-
-                // apply updates
-                for (auto&& u : updates.consume_updates())
-                  u.apply();
-
-                // get compiled result
-                if (auto&& r = compiler.executable())
-                  exe = r->clone();
-
-                time = executor.time();
-              }
-
-              // no compile result
-              if (!exe)
-                continue;
-
-              assert(exe && time);
-
-              assert(same_type(
-                exe->type(), object_type<node_closure<FrameBuffer>>()));
-
-              auto bgn = std::chrono::high_resolution_clock::now();
-
-              // execute app tree.
-              auto result = [&]() -> std::optional<image> {
-                try {
-                  auto r = value_cast<FrameBuffer>(exe->execute(*time));
-                  // load to host memory
-                  auto img = image(r->width(), r->height(), r->format());
-                  r->read_data(0, 0, r->width(), r->height(), img.data());
-                  return img;
-                } catch (...) {
-                  // execution error
-                  return std::nullopt;
-                }
-              }();
-
-              auto end = std::chrono::high_resolution_clock::now();
-
-              {
-                auto lck             = data_ctx.lock();
-                auto& data           = lck.get_data<editor_data>();
-                auto& executor       = data.execute_thread();
-                executor.m_result    = std::move(result);
-                executor.m_exec_time = end - bgn;
-                executor.m_timestamp = std::chrono::steady_clock::now();
-              }
-            }
-          }
-        } catch (...) {
-          exception = std::current_exception();
-        }
-      });
+      return m_thread.is_running();
     }
 
-    auto wait_task()
+    void init()
     {
-      return std::unique_lock {mtx};
+      m_thread.start();
     }
 
-    void stop()
+    void deinit()
     {
-      terminate_flag = true;
-      cond.notify_one();
-      thread.join();
+      m_thread.stop();
     }
 
     void notify_execute()
     {
-      execute_flag = true;
-      cond.notify_one();
+      m_thread.notify_execute();
+    }
+
+  public:
+    auto arg_time() const
+    {
+      return m_arg_time;
+    }
+
+    void set_arg_time(yave::time t)
+    {
+      m_arg_time = t;
+    }
+
+    auto exec_duration() const
+    {
+      return m_exec_duration;
+    }
+
+    auto exec_timestamp() const
+    {
+      return m_exec_timestamp;
+    }
+
+    auto& exec_result()
+    {
+      return m_result;
+    }
+
+    void set_exec_results(exec_results results)
+    {
+      m_result         = std::move(results.img);
+      m_exec_duration  = results.duration;
+      m_exec_timestamp = results.timestamp;
     }
   };
 
-  execute_thread::execute_thread(data_context& dctx)
+  execute_thread_data::execute_thread_data(data_context& dctx)
     : m_pimpl {std::make_unique<impl>(dctx)}
   {
-    m_pimpl->start();
+    // call init() to start
+    assert(!m_pimpl->is_thread_running());
   }
 
-  execute_thread::~execute_thread() noexcept
+  execute_thread_data::~execute_thread_data() noexcept
   {
-    m_pimpl->stop();
+    // deinit() should be called
+    assert(!m_pimpl->is_thread_running());
   }
 
-  void execute_thread::notify_execute()
+  void execute_thread_data::init()
   {
-    m_pimpl->check_exception();
+    m_pimpl->init();
+  }
+
+  void execute_thread_data::deinit()
+  {
+    m_pimpl->deinit();
+  }
+
+  void execute_thread_data::notify_execute()
+  {
     m_pimpl->notify_execute();
   }
 
-  auto execute_thread::wait_task() -> std::unique_lock<std::mutex>
+  auto execute_thread_data::arg_time() const -> yave::time
   {
-    return m_pimpl->wait_task();
+    return m_pimpl->arg_time();
   }
+
+  void execute_thread_data::set_arg_time(yave::time t)
+  {
+    return m_pimpl->set_arg_time(t);
+  }
+
+  auto execute_thread_data::exec_duration() const -> std::chrono::milliseconds
+  {
+    return m_pimpl->exec_duration();
+  }
+
+  auto execute_thread_data::exec_timestamp() const
+    -> std::chrono::steady_clock::time_point
+  {
+    return m_pimpl->exec_timestamp();
+  }
+
+  auto execute_thread_data::exec_result() -> std::optional<yave::image>&
+  {
+    return m_pimpl->exec_result();
+  }
+
+  void execute_thread_data::set_exec_results(exec_results results)
+  {
+    m_pimpl->set_exec_results(std::move(results));
+  }
+
 } // namespace yave::editor

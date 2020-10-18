@@ -14,85 +14,66 @@
 
 namespace yave::editor {
 
+  /// unexpected thread failure
+  class compile_thread_failure : std::runtime_error
+  {
+    std::exception_ptr m_exception;
+
+  public:
+    compile_thread_failure(std::exception_ptr exception)
+      : std::runtime_error("compile thread failed by uncaught exception")
+      , m_exception {exception}
+    {
+    }
+
+    /// get exception thrown in execute thread to it
+    [[nodiscard]] auto exception() const
+    {
+      return m_exception;
+    }
+  };
+
   /// compile thread
-  class compile_thread
+  class compile_thread_data
   {
     class impl;
     std::unique_ptr<impl> m_pimpl;
 
   public:
-    /// ctor
-    compile_thread(data_context& dctx);
-    /// dtor
-    ~compile_thread() noexcept;
+    compile_thread_data(data_context& dctx);
+    ~compile_thread_data() noexcept;
+
+  public:
+    /// initialize compile thread.
+    /// should be called after constructing related data.
+    void init();
+
+    /// deinit compile thread.
+    /// should be called before destructing related data.
+    void deinit();
 
   public:
     /// recompile graph
     void notify_recompile();
-    /// wait current task finish and block next task
-    auto wait_task() -> std::unique_lock<std::mutex>;
-  };
 
-  /// Compiler thread operation interface for editor_data
-  class compile_thread_interface
-  {
-    friend class compile_thread;
+    /// get compile message
+    auto messages() const -> const compiler::message_map&;
 
-    /// compile thread ref
-    compile_thread* m_thread_ptr = nullptr;
-    /// compile result
-    compiler::message_map m_messages;
-    /// result
-    std::optional<compiler::executable> m_exe;
+    /// get executable
+    auto executable() -> std::optional<compiler::executable>&;
 
   public:
-    compile_thread_interface()                                    = default;
-    compile_thread_interface(const compile_thread_interface&)     = delete;
-    compile_thread_interface(compile_thread_interface&&) noexcept = default;
+    /// clear compile results
+    void clear_results();
 
-    void init(compile_thread& th)
+    struct compile_results
     {
-      assert(!m_thread_ptr);
-      m_thread_ptr = &th;
-    }
+      compiler::message_map messages;
+      std::optional<compiler::executable> exe;
+    };
 
-    bool initialized() const
-    {
-      return m_thread_ptr;
-    }
-
-    void deinit()
-    {
-      if (m_thread_ptr) {
-        auto lck     = m_thread_ptr->wait_task();
-        m_thread_ptr = nullptr;
-        m_messages   = {};
-        m_exe     = std::nullopt;
-      }
-    }
-
-    void clear_results()
-    {
-      m_messages = {};
-      m_exe      = std::nullopt;
-    }
-
-    void notify_recompile()
-    {
-      assert(m_thread_ptr);
-      m_thread_ptr->notify_recompile();
-    }
-
-    auto& messages() const
-    {
-      assert(m_thread_ptr);
-      return m_messages;
-    }
-
-    auto& executable() const
-    {
-      assert(m_thread_ptr);
-      return m_exe;
-    }
+    /// set results
+    void set_results(compile_results results);
   };
+
 } // namespace yave::editor

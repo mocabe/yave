@@ -32,10 +32,6 @@ namespace yave::editor::imgui {
     yave::editor::data_context data_ctx;
     yave::editor::view_context view_ctx;
 
-  public: /* threads */
-    yave::editor::compile_thread compiler;
-    yave::editor::execute_thread executor;
-
   public:
     impl();
     ~impl() noexcept;
@@ -54,7 +50,7 @@ namespace yave::editor::imgui {
   {
     auto data_lck = data_ctx.lock();
 
-    data_lck.add_data(editor_data());
+    data_lck.add_data(editor_data(data_ctx));
 
     auto& data = data_lck.get_data<editor_data>();
 
@@ -63,7 +59,7 @@ namespace yave::editor::imgui {
 
     data.load_modules({{modules::_std::module_name}});
     data.init_modules(data.scene_config());
-    data.init_threads(compiler, executor);
+    data.init_threads();
 
     data.compile_thread().notify_recompile();
   }
@@ -83,8 +79,6 @@ namespace yave::editor::imgui {
     , imgui_ctx {vulkan_ctx, {.width = 1280, .height = 720, .name = "yave"}}
     , data_ctx {}
     , view_ctx {data_ctx}
-    , compiler {data_ctx}
-    , executor {data_ctx}
   {
     init_data();
 
