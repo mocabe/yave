@@ -43,16 +43,16 @@ namespace yave {
       return *this;
     }
 
-    /// Atomic load with memory_order_acquire
-    [[nodiscard]] T load() const noexcept
-    {
-      return atomic.load(std::memory_order_acquire);
-    }
-
     /// Atomic load with memory_order_relaxed
     [[nodiscard]] T load_relaxed() const noexcept
     {
       return atomic.load(std::memory_order_relaxed);
+    }
+
+    /// Atomic load with memory_order_acquire
+    [[nodiscard]] T load_acquire() const noexcept
+    {
+      return atomic.load(std::memory_order_acquire);
     }
 
     /// Atomic store.
@@ -67,10 +67,10 @@ namespace yave {
       return atomic.fetch_add(1u, std::memory_order_relaxed);
     }
 
-    /// with memory_order_acq_rel
+    /// with memory_order_release
     T fetch_sub() noexcept
     {
-      return atomic.fetch_sub(1u, std::memory_order_acq_rel);
+      return atomic.fetch_sub(1u, std::memory_order_release);
     }
 
   private:

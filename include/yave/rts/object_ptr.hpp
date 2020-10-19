@@ -237,6 +237,8 @@ namespace yave {
   {
     if (likely(get() && !is_static())) {
       if (root_head()->refcount.fetch_sub() == 1) {
+        // use load as fence
+        (void)root_head()->refcount.load_acquire();
         root_info_table()->destroy(get());
       }
     }

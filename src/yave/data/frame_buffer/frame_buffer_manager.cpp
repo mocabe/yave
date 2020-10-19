@@ -208,7 +208,8 @@ namespace yave::data {
     try {
       auto ptr = id_to_table_ptr(id);
       if (ptr->refcount.fetch_sub() == 1) {
-        std::atomic_thread_fence(std::memory_order_acquire);
+        // use load as fence
+        (void)ptr->refcount.load_acquire();
         map.erase(ptr->id);
       }
     } catch (...) {
@@ -217,7 +218,7 @@ namespace yave::data {
     auto use_count(uid id) noexcept -> uint64_t
     try {
       auto ptr = id_to_table_ptr(id);
-      return ptr->refcount.load();
+      return ptr->refcount.load_relaxed();
     } catch (...) {
       return 0;
     }
