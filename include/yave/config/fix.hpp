@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 namespace yave {
 
   /// helper class to fix lambda
