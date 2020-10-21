@@ -18,7 +18,7 @@ namespace yave {
       "Create new frame buffer",
       {"color"},
       {"frame"},
-      {{0, make_node_argument<Color>()}});
+      {{0, make_node_argument<Color>(data::color(0.f, 0.f, 0.f, 1.f))}});
   }
 
   namespace modules::_std::frame {

@@ -19,7 +19,7 @@ namespace yave {
       "Fill frame buffer with specified color",
       {"color", "frame"},
       {"frame"},
-      {{0, make_node_argument<Color>()},
+      {{0, make_node_argument<Color>(data::color(0.f, 0.f, 0.f, 1.f))},
        {1,
         make_object<modules::_std::frame::FrameBufferConstructor>(
           fbm.get_pool_object())}});
