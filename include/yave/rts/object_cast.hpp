@@ -9,7 +9,7 @@
 
 namespace yave {
 
-  /// static object cast (possibly unsafe)
+  /// static object cast (unchecked, thus unsafe)
   template <class T, class U>
   [[nodiscard]] auto static_object_cast(const object_ptr<U>& o) noexcept
     -> object_ptr<T>
@@ -18,16 +18,17 @@ namespace yave {
     if (likely(o && !o.is_static()))
       _get_storage(o).increment_refcount();
 
-    // to ensure safety of cast
+    // there're some situations where this assertion fails but casting is still
+    // safe, but it's better to be strict to ensure safety and intent of cast.
     static_assert(
       std::is_base_of_v<T, U> || // upcast
       std::is_base_of_v<U, T> || // downcast
-      sizeof(T) == sizeof(U));   // crosscast to proxy type
+      sizeof(T) == sizeof(U));   // cast between same size
 
     // crosscasting to proxy types to add additional compile time information
     // using static_cast leads undefined behaviour by itself. So here we use
     // reinterpret_cast. Programmer is responsible for casting back to original
-    // type or it's base type (Object for example) before accessing it's data.
+    // type or it's base type (Object for example) before accessing its data.
     return reinterpret_cast<T*>(o.get());
   }
 
