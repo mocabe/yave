@@ -7,6 +7,8 @@
 
 #include <yave/rts/static_typing.hpp>
 #include <yave/rts/type_gen.hpp>
+#include <yave/rts/list.hpp>
+#include <yave/rts/maybe.hpp>
 
 using namespace yave;
 
@@ -747,6 +749,12 @@ void test_guess_object_type()
     // list<T> -> List<T>
     constexpr auto l = guess_object_type(type_c<ty_list<ty_value<Int>>>);
     constexpr auto r = type_c<List<Int>>;
-    static_assert(std::is_same_v<decltype(l), decltype(r)>);
+    static_assert(l == r);
+  }
+  {
+    // Maybe<T> -> Maybe<T>
+    constexpr auto l = guess_object_type(type_c<ty_maybe<ty_value<Int>>>);
+    constexpr auto r = type_c<Maybe<Int>>;
+    static_assert(l == r);
   }
 }
