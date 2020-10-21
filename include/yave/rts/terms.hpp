@@ -50,6 +50,12 @@ namespace yave {
   {
   };
 
+  /// tm_maybe
+  template <class T>
+  struct tm_maybe
+  {
+  };
+
   // ------------------------------------------
   // Term accessors
 
@@ -111,6 +117,16 @@ namespace yave {
   struct meta_type<tm_list<T>>
   {
     using type = tm_list<T>;
+    constexpr auto t() const
+    {
+      return type_c<T>;
+    }
+  };
+
+  template <class T>
+  struct meta_type<tm_maybe<T>>
+  {
+    using type = tm_maybe<T>;
     constexpr auto t() const
     {
       return type_c<T>;
@@ -286,6 +302,27 @@ namespace yave {
   }
 
   // ------------------------------------------
+  // is_tm_maybe
+
+  template <class T>
+  [[nodiscard]] constexpr auto is_tm_maybe(meta_type<tm_maybe<T>>)
+  {
+    return true_c;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto is_tm_maybe(meta_type<T>)
+  {
+    return false_c;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto has_tm_maybe()
+  {
+    return is_tm_maybe(get_term<T>());
+  }
+
+  // ------------------------------------------
   // to_tuple
 
   template <class... Ts>
@@ -340,6 +377,15 @@ namespace yave {
   }
 
   // ------------------------------------------
+  // make_tm_maybe
+
+  template <class T>
+  [[nodiscard]] constexpr auto make_tm_maybe(meta_type<T>)
+  {
+    return type_c<tm_maybe<T>>;
+  }
+
+  // ------------------------------------------
   // head
 
   template <class T, class... Ts>
@@ -387,6 +433,8 @@ namespace yave {
         return polymorphic_term_export_impl(
           term.t2(), polymorphic_term_export_impl(term.t1(), target));
       } else if constexpr (is_tm_list(term)) {
+        return polymorphic_term_export_impl(term.t(), target);
+      } else if constexpr (is_tm_maybe(term)) {
         return polymorphic_term_export_impl(term.t(), target);
       } else
         return target;

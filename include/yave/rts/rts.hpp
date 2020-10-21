@@ -9,6 +9,7 @@
 #include <yave/rts/function.hpp>
 #include <yave/rts/eval.hpp>
 #include <yave/rts/list.hpp>
+#include <yave/rts/maybe.hpp>
 #include <yave/rts/fix.hpp>
 #include <yave/rts/unit.hpp>
 #include <yave/rts/identity.hpp>

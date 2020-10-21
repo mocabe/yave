@@ -64,6 +64,14 @@ namespace yave {
     static constexpr auto term = make_tm_list(get_term<T>());
   };
 
+  /// proxy type of maybe
+  template <class T>
+  struct MaybeProxy : Object
+  {
+    /// term
+    static constexpr auto term = make_tm_maybe(get_term<T>());
+  };
+
   /// proxy type of named objec type
   template <class T>
   struct ObjectProxy : Object
@@ -234,6 +242,33 @@ namespace yave {
     };
 
     // ------------------------------------------
+    // maybe type
+
+    constexpr auto maybe_type_uuid()
+    {
+      return read_uuid_from_constexpr_string(
+        "6b8bcbb1-6283-46c1-8b68-6e8ad6c99d46");
+    }
+
+    constexpr auto maybe_type_name()
+    {
+      return "?";
+    }
+
+    template <>
+    struct tcon_traits<maybe_tcon_tag>
+    {
+      static constexpr auto id   = maybe_type_uuid();
+      static constexpr auto name = maybe_type_name();
+    };
+
+    template <class T>
+    struct term_to_type<tm_maybe<T>>
+    {
+      using type = ty_maybe<term_to_type_t<T>>;
+    };
+
+    // ------------------------------------------
     // constexpr version of object_type type
 
     template <class Term>
@@ -266,6 +301,13 @@ namespace yave {
       tcon<list_tcon_tag, kfun<kstar, kstar>>>::type;
   }
 
+  /// for maybe type
+  [[nodiscard]] inline auto maybe_type_tcon() -> object_ptr<const Type>
+  {
+    return &detail::type_initializer<
+      tcon<maybe_tcon_tag, kfun<kstar, kstar>>>::type;
+  }
+
   // ------------------------------------------
   // guess_object_type
 
@@ -292,6 +334,12 @@ namespace yave {
   [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_list<T>>)
   {
     return get_list_object_type(make_ty_list(guess_object_type(type_c<T>)));
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_maybe<T>>)
+  {
+    return get_maybe_object_type(make_ty_maybe(guess_object_type(type_c<T>)));
   }
 
   template <class T1, class T2>

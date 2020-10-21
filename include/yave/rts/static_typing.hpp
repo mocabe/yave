@@ -300,6 +300,8 @@ namespace yave {
       return term;
     } else if constexpr (is_tm_list(term)) {
       return make_tm_list(subst_term(from, to, term.t()));
+    } else if constexpr (is_tm_maybe(term)) {
+      return make_tm_maybe(subst_term(from, to, term.t()));
     } else
       static_assert(false_v<Term>, "Invalid type");
   }
@@ -494,6 +496,11 @@ namespace yave {
         auto t = p.first();
         auto g = p.second();
         return make_pair(make_ty_list(t), g);
+      } else if constexpr (is_tm_maybe(term)) {
+        auto p = type_of_impl(term.t(), gen, enable_assert);
+        auto t = p.first();
+        auto g = p.second();
+        return make_pair(make_ty_maybe(t), g);
       } else if constexpr (is_tm_closure(term)) {
         return type_of_impl_closure(term, gen, enable_assert);
       } else if constexpr (is_tm_value(term)) {
