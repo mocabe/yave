@@ -44,10 +44,16 @@ namespace yave {
         return eval(this->template arg<N>());
       }
 
+      /// Get current demand applied to this function
+      [[nodiscard]] auto arg_demand() const -> object_ptr<const FrameDemand>
+      {
+        return base::template eval_arg<sizeof...(Ts)>();
+      }
+
       /// Get current time applied to this function
       [[nodiscard]] auto arg_time() const -> object_ptr<const FrameTime>
       {
-        return base::template eval_arg<sizeof...(Ts)>()->time;
+        return arg_demand()->time;
       }
     };
 
