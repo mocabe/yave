@@ -89,8 +89,8 @@ namespace yave::editor {
     scene_config = yave::scene_config();
 
     root_group = node_graph.create_group({}, {});
-    node_graph.set_name(root_group, "root");
-    node_graph.add_output_socket(root_group, "out");
+    node_graph.set_name(root_group, "ProjectRoot");
+    node_graph.add_output_socket(root_group, "frame_out");
   }
 
   void editor_data::impl::deinit() noexcept
