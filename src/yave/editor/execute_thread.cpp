@@ -9,9 +9,13 @@
 #include <yave/node/core/function.hpp>
 #include <yave/lib/image/image.hpp>
 
+#include <yave/support/log.hpp>
+
 #include <thread>
 #include <mutex>
 #include <atomic>
+
+YAVE_DECL_G_LOGGER(execute_thread);
 
 namespace yave::editor {
 
@@ -49,6 +53,7 @@ namespace yave::editor {
       execute_thread(data_context& dctx)
         : data_ctx {dctx}
       {
+        init_logger();
       }
 
       bool is_running()
@@ -57,6 +62,53 @@ namespace yave::editor {
       }
 
     public:
+      static auto exec_frame_output(compiler::executable&& exe, yave::time t)
+        -> std::optional<image>
+      {
+        try {
+          auto r = value_cast<FrameBuffer>(exe.execute(t));
+          // load result to host memory
+          auto img = image(r->width(), r->height(), r->format());
+          r->read_data(0, 0, r->width(), r->height(), img.data());
+          return img;
+        } catch (const exception_result& e) {
+
+          // exception object
+          auto eo   = e.exception();
+          auto msg  = eo->message();
+          auto erro = eo->error();
+
+          Error(g_logger, "Failed to execute frame output: {}", msg);
+
+          // print additional info
+
+          if (auto err = value_cast_if<BadValueCast>(erro)) {
+            Error(
+              g_logger,
+              "  BadValueCast: from:{}, to:{}",
+              to_string(err->from),
+              to_string(err->to));
+          }
+
+          if (auto err = value_cast_if<TypeError>(erro)) {
+            Error(
+              g_logger,
+              "  TypeError: type:{}, t1:{}, t2:{}",
+              err->error_type,
+              to_string(err->t1),
+              to_string(err->t2));
+          }
+
+          if (auto err = value_cast_if<ResultError>(erro)) {
+            Error(g_logger, "  ResultError: type:{}", err->error_type);
+          }
+
+        } catch (...) {
+          Error(g_logger, "unknown exception detected during execution!");
+        }
+        return std::nullopt;
+      }
+
       void start()
       {
         check_failure();
@@ -109,18 +161,7 @@ namespace yave::editor {
                 auto bgn = std::chrono::high_resolution_clock::now();
 
                 // execute app tree.
-                auto img = [&]() -> std::optional<image> {
-                  try {
-                    auto r = value_cast<FrameBuffer>(exe->execute(*time));
-                    // load to host memory
-                    auto img = image(r->width(), r->height(), r->format());
-                    r->read_data(0, 0, r->width(), r->height(), img.data());
-                    return img;
-                  } catch (...) {
-                    // execution error
-                    return std::nullopt;
-                  }
-                }();
+                auto img = exec_frame_output(std::move(*exe), *time);
 
                 auto end = std::chrono::high_resolution_clock::now();
 
