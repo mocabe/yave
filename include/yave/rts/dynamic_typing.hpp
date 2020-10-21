@@ -226,6 +226,23 @@ namespace yave {
   }
 
   // ------------------------------------------
+  // maybe type
+
+  [[nodiscard]] inline auto make_maybe_type(const object_ptr<const Type>& t)
+  {
+    return make_object<const Type>(tap_type {maybe_type_tcon(), t});
+  }
+
+  [[nodiscard]] inline auto is_maybe_type(const object_ptr<const Type>& t)
+  {
+    if (auto tap = is_tap_type_if(t))
+      if (same_type(tap->t1, maybe_type_tcon()))
+        return true;
+
+    return false;
+  }
+
+  // ------------------------------------------
   // var type
 
   [[nodiscard]] inline auto make_var_type(uint64_t id)

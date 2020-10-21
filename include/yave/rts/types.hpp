@@ -92,8 +92,8 @@ namespace yave {
   // Type constructor tags
 
   struct arrow_tcon_tag;
-
   struct list_tcon_tag;
+  struct maybe_tcon_tag;
 
   template <class Tag>
   struct varvalue_tcon_tag;
@@ -127,6 +127,10 @@ namespace yave {
   // ty_list
   template <class T>
   using ty_list = tap<tcon<list_tcon_tag, kfun<kstar, kstar>>, T>;
+
+  // ty_maybe
+  template <class T>
+  using ty_maybe = tap<tcon<maybe_tcon_tag, kfun<kstar, kstar>>, T>;
 
   // ------------------------------------------
   // kind_of
@@ -270,6 +274,12 @@ namespace yave {
   [[nodiscard]] constexpr auto make_ty_list(meta_type<T>)
   {
     return type_c<ty_list<T>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto make_ty_maybe(meta_type<T>)
+  {
+    return type_c<ty_maybe<T>>;
   }
 
   template <class T1, class T2, class Other = meta_tuple<>>

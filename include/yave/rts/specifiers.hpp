@@ -27,8 +27,15 @@ namespace yave {
   template <class T>
   struct list;
 
+  /// maybe specifier
+  template <class T>
+  struct maybe;
+
   // ------------------------------------------
   // proxy types (forward decl)
+
+  template <class T>
+  struct Box;
 
   template <class... Ts>
   struct ClosureProxy;
@@ -44,6 +51,9 @@ namespace yave {
 
   template <class T>
   struct ListProxy;
+
+  template <class T>
+  struct MaybeProxy;
 
   // ------------------------------------------
   // is_specifier
@@ -74,6 +84,12 @@ namespace yave {
 
   template <class T>
   [[nodiscard]] constexpr auto is_specifier(meta_type<list<T>>)
+  {
+    return true_c;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto is_specifier(meta_type<maybe<T>>)
   {
     return true_c;
   }
@@ -119,6 +135,13 @@ namespace yave {
       list<typename decltype(normalize_specifier(type_c<T>))::type>>;
   }
 
+  template <class T>
+  [[nodiscard]] constexpr auto normalize_specifier(meta_type<maybe<T>>)
+  {
+    return type_c<
+      maybe<typename decltype(normalize_specifier(type_c<T>))::type>>;
+  }
+
   // ------------------------------------------
   // get_proxy_type
 
@@ -146,6 +169,13 @@ namespace yave {
   {
     return type_c<
       ListProxy<typename decltype(get_proxy_type(type_c<T>))::type>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_proxy_type(meta_type<maybe<T>>)
+  {
+    return type_c<
+      MaybeProxy<typename decltype(get_proxy_type(type_c<T>))::type>>;
   }
 
   // ------------------------------------------
@@ -177,6 +207,12 @@ namespace yave {
     return get_proxy_type(l);
   }
 
+  template <class T>
+  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<maybe<T>> m)
+  {
+    return get_proxy_type(m);
+  }
+
   // ------------------------------------------
   // get_value_object_type
 
@@ -190,9 +226,6 @@ namespace yave {
   // get_list_object_type
 
   template <class T>
-  struct Box;
-
-  template <class T>
   struct list_object_value;
 
   template <class T>
@@ -202,6 +235,21 @@ namespace yave {
   [[nodiscard]] constexpr auto get_list_object_type(meta_type<ty_list<T>>)
   {
     return type_c<List<T>>;
+  }
+
+  // ------------------------------------------
+  // get_maybe_object_type
+
+  template <class T>
+  struct maybe_object_value;
+
+  template <class T>
+  using Maybe = Box<maybe_object_value<T>>;
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_maybe_object_type(meta_type<ty_maybe<T>>)
+  {
+    return type_c<Maybe<T>>;
   }
 
   // ------------------------------------------
