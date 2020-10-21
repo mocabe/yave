@@ -53,7 +53,19 @@ namespace yave::editor::imgui {
   {
     assert(g.exists(current_group));
 
-    auto nodes = g.get_group_nodes(current_group);
+    auto nodes = g.get_group_members(current_group);
+
+    // add IO handler which has socket
+    {
+      auto gi = g.get_group_input(current_group);
+      auto go = g.get_group_output(current_group);
+
+      if (!g.output_sockets(gi).empty())
+        nodes.push_back(gi);
+
+      if (!g.input_sockets(go).empty())
+        nodes.push_back(go);
+    }
 
     node_window_draw_info info;
 
@@ -236,13 +248,13 @@ namespace yave::editor::imgui {
         auto npos = ImGui::GetMousePosOnOpeningCurrentPopup() - wpos
                     - to_ImVec2(scroll_pos);
 
-        if (ImGui::BeginMenu("New Node")) {
+        // TODO: store tree info in update stage
+        auto lck        = dctx.lock();
+        auto& data      = lck.get_data<editor_data>();
+        auto& ng        = data.node_graph();
+        auto& decl_tree = data.node_declarations().get_tree();
 
-          // TODO: store tree info in update stage
-          auto lck        = dctx.lock();
-          auto& data      = lck.get_data<editor_data>();
-          auto& ng        = data.node_graph();
-          auto& decl_tree = data.node_declarations().get_tree();
+        if (ImGui::BeginMenu("New Node")) {
 
           auto build_menu_impl = [&](auto&& self, auto n) -> void {
             auto name = decl_tree.name(n);
@@ -281,6 +293,24 @@ namespace yave::editor::imgui {
         if (ImGui::Selectable("New Group")) {
           dctx.cmd(std::make_unique<dcmd_gcreate>(npos, current_group));
         }
+
+        if (data.root_group() != current_group) {
+
+          if (ng.output_sockets(ng.get_group_input(current_group)).empty()) {
+            if (ImGui::Selectable("New Input")) {
+              dctx.cmd(std::make_unique<dcmd_sadd>(
+                ng.get_group_input(current_group), socket_type::output, 0));
+            }
+          }
+
+          if (ng.input_sockets(ng.get_group_output(current_group)).empty()) {
+            if (ImGui::Selectable("New Output")) {
+              dctx.cmd(std::make_unique<dcmd_sadd>(
+                ng.get_group_output(current_group), socket_type::input, 0));
+            }
+          }
+        }
+
         ImGui::EndPopup();
       }
       ImGui::PopStyleVar(2);
