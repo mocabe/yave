@@ -141,7 +141,9 @@ namespace yave::modules::_std {
             get_node_declaration<node::Mat::RotateZ>(),
             get_node_declaration<node::List::Nil>(),
             get_node_declaration<node::List::Cons>(),
-            get_node_declaration<node::List::Decompose>(),
+            get_node_declaration<node::List::Head>(),
+            get_node_declaration<node::List::Tail>(),
+            get_node_declaration<node::List::At>(),
             get_node_declaration<node::List::Map>(),
             get_node_declaration<node::List::Repeat>(),
             get_node_declaration<node::List::Enumerate>(),
@@ -205,7 +207,9 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Mat::Translate, _std::tag>());
     add(yave::get_node_definitions<node::List::Nil, _std::tag>());
     add(yave::get_node_definitions<node::List::Cons, _std::tag>());
-    add(yave::get_node_definitions<node::List::Decompose, _std::tag>());
+    add(yave::get_node_definitions<node::List::Head, _std::tag>());
+    add(yave::get_node_definitions<node::List::Tail, _std::tag>());
+    add(yave::get_node_definitions<node::List::At, _std::tag>());
     add(yave::get_node_definitions<node::List::Map, _std::tag>());
     add(yave::get_node_definitions<node::List::Repeat, _std::tag>());
     add(yave::get_node_definitions<node::List::Enumerate, _std::tag>());

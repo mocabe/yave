@@ -15,15 +15,23 @@ namespace yave {
     struct Nil;
     /// Cons
     struct Cons;
-    /// Decompose
-    struct Decompose;
+    /// Head
+    struct Head;
+    /// Tail
+    struct Tail;
+    /// At
+    struct At;
   } // namespace node::List
 
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Nil);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Cons);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Decompose);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Head);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Tail);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::At);
 
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Nil, modules::_std::tag);
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Cons, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Decompose, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Head, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Tail, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::At, modules::_std::tag);
 } // namespace yave

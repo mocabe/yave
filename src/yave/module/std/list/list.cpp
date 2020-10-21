@@ -6,6 +6,7 @@
 #include <yave/module/std/list/list.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/rts/list.hpp>
+#include <yave/obj/primitive/property.hpp>
 
 namespace yave {
 
@@ -27,14 +28,29 @@ namespace yave {
       "List.Cons", "Construct new list node", {"head", "tail"}, {"cons"});
   }
 
-  auto node_declaration_traits<node::List::Decompose>::get_node_declaration()
+  auto node_declaration_traits<node::List::Head>::get_node_declaration()
     -> node_declaration
   {
     return node_declaration(
-      "List.Decompose",
-      "Decompose list into head and tail",
-      {"list"},
-      {"head", "tail"});
+      "List.Head", "Get head of list", {"list"}, {"head"});
+  }
+
+  auto node_declaration_traits<node::List::Tail>::get_node_declaration()
+    -> node_declaration
+  {
+    return node_declaration(
+      "List.Tail", "Get head of list", {"list"}, {"head"});
+  }
+
+  auto node_declaration_traits<node::List::At>::get_node_declaration()
+    -> node_declaration
+  {
+    return node_declaration(
+      "List.At",
+      "Access list element by index",
+      {"list", "index"},
+      {"value"},
+      {{1, make_node_argument<Int>(0)}});
   }
 
   namespace modules::_std::list {
@@ -43,6 +59,7 @@ namespace yave {
     class ListCons_X;
     class ListHead_X;
     class ListTail_X;
+    class ListAt_X;
 
     struct ListNil : NodeFunction<ListNil, List<ListNil_X>>
     {
@@ -68,15 +85,12 @@ namespace yave {
       }
     };
 
-    struct ListHead : Function<
-                        ListHead,
-                        node_closure<List<node_closure<ListHead_X>>>,
-                        FrameDemand,
-                        ListHead_X>
+    struct ListHead
+      : NodeFunction<ListHead, List<node_closure<ListHead_X>>, ListHead_X>
     {
       auto code() const -> return_type
       {
-        return eval(arg<0>() << arg<1>())->head() << arg<1>();
+        return eval_arg<0>()->head() << arg_demand();
       }
     };
 
@@ -88,6 +102,21 @@ namespace yave {
       return_type code() const
       {
         return eval_arg<0>()->tail();
+      }
+    };
+
+    struct ListAt
+      : NodeFunction<ListAt, List<node_closure<ListAt_X>>, Int, ListAt_X>
+    {
+      return_type code() const
+      {
+        auto l   = eval_arg<0>();
+        auto idx = eval_arg<1>();
+
+        for (auto i = 0; i < *idx; ++i)
+          l = eval(l->tail());
+
+        return l->head() << arg_demand();
       }
     };
   } // namespace modules::_std::list
@@ -108,17 +137,27 @@ namespace yave {
       info.full_name(), 0, make_object<yave::modules::_std::list::ListCons>())};
   }
 
-  auto node_definition_traits<node::List::Decompose, modules::_std::tag>::
+  auto node_definition_traits<node::List::Head, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::List::Decompose>();
+    auto info = get_node_declaration<node::List::Head>();
+    return {node_definition(
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListHead>())};
+  }
 
-    auto d1 = node_definition(
-      info.full_name(), 0, make_object<yave::modules::_std::list::ListHead>());
+  auto node_definition_traits<node::List::Tail, modules::_std::tag>::
+    get_node_definitions() -> std::vector<node_definition>
+  {
+    auto info = get_node_declaration<node::List::Tail>();
+    return {node_definition(
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListTail>())};
+  }
 
-    auto d2 = node_definition(
-      info.full_name(), 1, make_object<yave::modules::_std::list::ListTail>());
-
-    return {std::move(d1), std::move(d2)};
+  auto node_definition_traits<node::List::At, modules::_std::tag>::
+    get_node_definitions() -> std::vector<node_definition>
+  {
+    auto info = get_node_declaration<node::List::At>();
+    return {node_definition(
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListAt>())};
   }
 } // namespace yave
