@@ -9,6 +9,7 @@
 #include <yave/rts/eval.hpp>
 #include <yave/rts/unit.hpp>
 #include <yave/rts/list.hpp>
+#include <yave/rts/maybe.hpp>
 
 #include <iostream>
 
@@ -294,5 +295,58 @@ TEST_CASE("List<T>")
     auto f = make_object<F>();
     auto g = make_object<G>();
     auto h = make_object<H>();
+  }
+}
+
+TEST_CASE("Maybe<T>")
+{
+  SECTION("basic")
+  {
+    struct F : Function<F, Maybe<Int>, Maybe<Int>>
+    {
+      return_type code() const
+      {
+        return arg<0>();
+        return eval_arg<0>();
+        return make_maybe<Int>(eval(eval_arg<0>()->value()));
+        return make_maybe<Int>(eval_arg<0>()->value());
+      }
+    };
+
+    auto f = make_object<F>();
+  }
+
+  SECTION("ho")
+  {
+    struct F : Function<F, closure<Maybe<Int>, Int>, Maybe<Int>, Int>
+    {
+      return_type code() const
+      {
+        return arg<0>() << arg<1>();
+        return eval_arg<0>() << arg<1>();
+        return arg<0>() << eval_arg<1>();
+        return make_maybe<Int>(arg<0>() << arg<1>())->value();
+      }
+    };
+
+    auto f = make_object<F>();
+  }
+
+  SECTION("poly")
+  {
+    class X;
+    struct F : Function<F, closure<X, Maybe<X>>, X, Maybe<X>>
+    {
+      return_type code() const
+      {
+        return arg<0>() << arg<1>();
+        return eval_arg<0>() << eval_arg<1>();
+        return eval_arg<0>() << arg<1>();
+        return arg<0>() << eval_arg<1>();
+        return eval(arg<0>()) << eval(arg<1>());
+      }
+    };
+
+    auto f = make_object<F>();
   }
 }

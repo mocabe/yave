@@ -11,6 +11,7 @@
 #include <yave/rts/identity.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/list.hpp>
+#include <yave/rts/maybe.hpp>
 
 #include <fmt/format.h>
 
@@ -578,6 +579,19 @@ TEST_CASE("copy_type")
   SECTION("list")
   {
     struct F : Function<F, List<Int>, List<List<Int>>>
+    {
+      return_type code() const
+      {
+        throw;
+      }
+    };
+    auto tp  = object_type<F>();
+    auto cpy = copy_type(tp);
+    REQUIRE(same_type(tp, cpy));
+  }
+  SECTION("maybe")
+  {
+    struct F : Function<F, Maybe<Int>, Maybe<Maybe<Int>>>
     {
       return_type code() const
       {
