@@ -42,10 +42,8 @@ namespace yave {
         auto col = eval_arg<0>();
         auto dst = eval_arg<1>().clone();
 
-        if (!m_fbm.exists(dst->id()))
-          assert(!"TODO");
+        assert(m_fbm.exists(dst->id()));
 
-        // to floats
         auto c = static_cast<glm::fvec4>(*col);
 
         m_render_pass.clear_texture(
