@@ -78,13 +78,8 @@ namespace yave::editor::imgui {
     auto dock_bottom = ImGui::DockBuilderSplitNode(
       dock_main, ImGuiDir_Down, 0.5f, nullptr, &dock_main);
 
-    auto dock_right = ImGui::DockBuilderSplitNode(
-      dock_main, ImGuiDir_Right, 0.2f, nullptr, &dock_main);
-
     // windows
-    ImGui::DockBuilderDockWindow("inspector", dock_right);
     ImGui::DockBuilderDockWindow(node_canvas->name().c_str(), dock_bottom);
-    ImGui::DockBuilderDockWindow("compiler", dock_bottom);
     ImGui::DockBuilderDockWindow(render_view->name().c_str(), dock_main);
     ImGui::DockBuilderFinish(dockid);
 
