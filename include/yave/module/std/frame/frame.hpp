@@ -28,24 +28,4 @@ namespace yave {
       vulkan::rgba32f_offscreen_compositor& comp)
       -> std::vector<node_definition>;
   };
-
-  namespace modules::_std::frame {
-
-    /// Generates empty frame buffer. For default frame inputs.
-    struct FrameBufferConstructor
-      : NodeFunction<FrameBufferConstructor, FrameBuffer>
-    {
-      FrameBufferConstructor(const object_ptr<const FrameBufferPool>& pool)
-        : pool {pool}
-      {
-      }
-
-      return_type code() const
-      {
-        return make_object<FrameBuffer>(pool);
-      }
-
-      object_ptr<const FrameBufferPool> pool;
-    };
-  } // namespace modules::_std::frame
 }
