@@ -44,8 +44,7 @@ namespace yave {
         auto w = src->width();
         auto h = src->height();
 
-        if (!m_fbm.exists(src->id()) || !m_fbm.exists(dst->id()))
-          assert(!"TODO");
+        assert(m_fbm.exists(src->id()) && m_fbm.exists(dst->id()));
 
         m_compositor.compose_source(m_fbm.get_texture_data(dst->id()));
         m_compositor.compose_over(m_fbm.get_texture_data(src->id()));

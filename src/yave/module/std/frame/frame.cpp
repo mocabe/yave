@@ -42,11 +42,13 @@ namespace yave {
         auto col = eval_arg<0>();
         auto fb  = make_object<FrameBuffer>(m_fbm.get_pool_object());
 
-        // to floats
         auto c = static_cast<glm::fvec4>(*col);
 
-        m_render_pass.clear_texture(
-          m_fbm.get_texture_data(fb->id()), std::array {c.r, c.g, c.b, c.a});
+        // fill
+        if (c != glm::fvec4(0.f)) {
+          m_render_pass.clear_texture(
+            m_fbm.get_texture_data(fb->id()), std::array {c.r, c.g, c.b, c.a});
+        }
 
         return fb;
       }
