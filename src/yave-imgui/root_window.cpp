@@ -39,23 +39,86 @@ namespace yave::editor::imgui {
   {
   }
 
-  void root_window::_draw_menu_bar() const
+  void root_window::_draw_menu_bar(const editor::view_context& vctx) const
   {
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
+    bool open_usage = false;
+    bool open_about = false;
+    bool open_demo  = false;
+
     // main menu bar
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
     if (ImGui::BeginMenuBar()) {
-      if (ImGui::BeginMenu("File")) {
-        if (ImGui::MenuItem("1")) {
-        }
-        if (ImGui::MenuItem("2")) {
-        }
-        if (ImGui::MenuItem("3")) {
-        }
+      if (ImGui::BeginMenu("Help")) {
+        ImGui::MenuItem("usage", nullptr, &open_usage);
+        ImGui::MenuItem("about", nullptr, &open_about);
+        ImGui::MenuItem("imgui demo", nullptr, &open_demo);
         ImGui::EndMenu();
       }
       ImGui::EndMenuBar();
     }
     ImGui::PopStyleVar(1);
+
+    // set model
+    vctx.cmd(make_window_view_command(*this, [=](auto& w) {
+      // clang-format off
+      if (open_usage) w.open_usage_modal = true;
+      if (open_about) w.open_about_modal = true;
+      if (open_demo) w.open_demo_window = true;
+      // clang-format on
+    }));
+  }
+
+  void root_window::_draw_usage_modal(const editor::view_context& vctx) const
+  {
+    if (ImGui::BeginPopupModal("usage")) {
+
+      if (ImGui::Button("close"))
+        ImGui::CloseCurrentPopup();
+
+      ImGui::EndPopup();
+    }
+
+    if (open_usage_modal) {
+      // open popup
+      ImGui::OpenPopup("usage");
+      // clear flag
+      vctx.cmd(make_window_view_command(
+        *this, [](auto& w) { w.open_usage_modal = false; }));
+    }
+  }
+
+  void root_window::_draw_about_modal(const editor::view_context& vctx) const
+  {
+    if (ImGui::BeginPopupModal("about")) {
+
+      if (ImGui::Button("close"))
+        ImGui::CloseCurrentPopup();
+
+      ImGui::EndPopup();
+    }
+
+    if (open_about_modal) {
+      Info(g_logger, "about!");
+      // open popup
+      ImGui::OpenPopup("about");
+      // clear flag
+      vctx.cmd(make_window_view_command(
+        *this, [](auto& w) { w.open_about_modal = false; }));
+    }
+  }
+
+  void root_window::_draw_imgui_demo(const editor::view_context& vctx) const
+  {
+    if (!open_demo_window)
+      return;
+
+    // open demo window
+    bool show = open_demo_window;
+    ImGui::ShowDemoWindow(&show);
+
+    // turn off flag when closed
+    vctx.cmd(make_window_view_command(
+      *this, [=](auto& w) { w.open_demo_window = show; }));
   }
 
   void root_window::_layout_once(const editor::view_context& vctx) const
@@ -124,10 +187,11 @@ namespace yave::editor::imgui {
     // root window
     ImGui::Begin(name().c_str(), nullptr, root_flags);
     {
-      // make layout
       _layout_once(vctx);
-      // menu bar
-      _draw_menu_bar();
+      _draw_menu_bar(vctx);
+      _draw_about_modal(vctx);
+      _draw_usage_modal(vctx);
+      _draw_imgui_demo(vctx);
     }
     ImGui::End();
     ImGui::PopStyleVar(2);
