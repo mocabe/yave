@@ -118,7 +118,8 @@ namespace yave::editor::imgui {
     auto root_flags = ImGuiWindowFlags_NoTitleBar |  //
                       ImGuiWindowFlags_NoScrollbar | //
                       ImGuiWindowFlags_NoResize |    //
-                      ImGuiWindowFlags_MenuBar;      //
+                      ImGuiWindowFlags_MenuBar |     //
+                      ImGuiWindowFlags_NoBringToFrontOnFocus;
 
     // root window
     ImGui::Begin(name().c_str(), nullptr, root_flags);
