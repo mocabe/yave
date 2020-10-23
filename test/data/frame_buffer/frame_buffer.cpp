@@ -28,7 +28,6 @@ TEST_CASE("")
     REQUIRE(buff->width() == 100);
     REQUIRE(buff->height() == 100);
     REQUIRE(buff->format() == image_format::rgba32f);
-    REQUIRE(buff->use_count() == 1);
   }
 
   SECTION("1", "[lib][frame_buffer]")
@@ -44,8 +43,8 @@ TEST_CASE("")
     REQUIRE(fb1 != fb2);
     auto fb3 = fb_mngr.create_from(fb2);
     REQUIRE(fb2 != fb3);
-    fb_mngr.unref(fb1);
-    fb_mngr.unref(fb2);
-    fb_mngr.unref(fb3);
+    fb_mngr.destroy(fb1);
+    fb_mngr.destroy(fb2);
+    fb_mngr.destroy(fb3);
   }
 }
