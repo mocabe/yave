@@ -15,6 +15,9 @@ namespace yave::data {
   /// Frame buffer object value.
   struct frame_buffer
   {
+    /// deleted
+    frame_buffer() = delete;
+
     /// Initialize new buffer
     frame_buffer(object_ptr<const FrameBufferPool> pool)
       : m_pool {std::move(pool)}
@@ -24,12 +27,16 @@ namespace yave::data {
         throw std::runtime_error("Failed to create frame buffer");
     }
 
-    /// deleted
-    frame_buffer() = delete;
-    /// deleted
-    frame_buffer(frame_buffer&&) = delete;
+    /// Move ctor
+    frame_buffer(frame_buffer&& other) noexcept
+      : m_pool {std::move(other.m_pool)}
+      , m_id {m_id}
+    {
+      other.m_pool = nullptr;
+      other.m_id   = 0;
+    }
 
-    /// Copy Ctor.
+    /// Copy ctor required for clone()
     frame_buffer(const frame_buffer& other)
       : m_pool {other.m_pool}
       , m_id {other.m_pool->create_from(other.m_id)}
@@ -42,13 +49,7 @@ namespace yave::data {
     /// Decrements refcount.
     ~frame_buffer() noexcept
     {
-      m_pool->unref(m_id);
-    }
-
-    /// Get current use count
-    [[nodiscard]] auto use_count() const -> uint64_t
-    {
-      return m_pool->get_use_count(m_id);
+      m_pool->destroy(m_id);
     }
 
     /// Get ID of buffer
@@ -110,7 +111,7 @@ namespace yave::data {
     }
 
   private:
-    const object_ptr<const FrameBufferPool> m_pool;
-    const uint64_t m_id;
+    object_ptr<const FrameBufferPool> m_pool;
+    uint64_t m_id;
   };
 } // namespace yave
