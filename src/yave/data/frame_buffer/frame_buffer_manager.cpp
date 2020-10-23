@@ -6,51 +6,49 @@
 #include <yave/data/frame_buffer/frame_buffer_manager.hpp>
 #include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
 #include <yave/lib/vulkan/offscreen_context.hpp>
-
 #include <yave/support/id.hpp>
-#include <yave/rts/atomic.hpp>
+#include <yave/support/log.hpp>
 
 #include <boost/gil.hpp>
 #include <map>
-#include <shared_mutex>
+
+YAVE_DECL_G_LOGGER(frame_buffer_manager);
 
 namespace yave::data {
 
   namespace {
 
-    // table
-    struct frame_table
+    // shared frame data table
+    struct frame_data
     {
-      // refcount
-      atomic_refcount<uint32_t> refcount;
-      // id (internal)
-      const uint32_t id;
       // vulkan texture
       vulkan::texture_data texture;
+      // dirty?
+      bool is_dirty;
 
-      frame_table(uint32_t id, vulkan::texture_data&& tex)
-        : refcount {1}
-        , id {id}
-        , texture {std::move(tex)}
+      frame_data(vulkan::texture_data&& tex)
+        : texture {std::move(tex)}
+        , is_dirty {false}
       {
       }
     };
 
-    auto table_ptr_to_id(frame_table* ptr)
+    // frame entry
+    struct frame_entry
     {
-      return uid {std::uintptr_t(ptr)};
-    }
+      // ref of table holding actual data
+      std::shared_ptr<frame_data> data;
 
-    auto id_to_table_ptr(uid id)
-    {
-      return (frame_table*)(std::uintptr_t(id.data));
-    }
+      frame_entry(std::shared_ptr<frame_data> data)
+        : data {std::move(data)}
+      {
+      }
+    };
 
-    auto gen_id()
+    // create new id
+    auto get_new_id()
     {
-      static std::mt19937 rng(
-        std::chrono::high_resolution_clock::now().time_since_epoch().count());
-      return rng();
+      return uid::random_generate();
     }
 
     auto create_command_pool(uint32_t graphicsQueueIndex, vk::Device device)
@@ -74,16 +72,95 @@ namespace yave::data {
     vk::Format vk_format;
     // vulkan staging buffer for data transfer
     vulkan::staging_buffer staging;
+
+  public:
     // memory pool
     std::pmr::unsynchronized_pool_resource memory_resource;
-    // table map
-    std::pmr::map<uint32_t, frame_table> map;
+    // entry map
+    std::pmr::map<uid, frame_entry> map;
+    // cached empty frame
+    uid empty_frame;
+
+  public:
     // extent
     uint32_t fb_width, fb_height;
     // format
     image_format fb_format;
+
+  public:
     // pool
     object_ptr<const FrameBufferPool> pool_object;
+
+  private:
+    // find entry from id
+    auto find_entry(uid id) -> frame_entry*
+    {
+      if (auto it = map.find(id); it != map.end())
+        return &it->second;
+      return nullptr;
+    }
+
+    // create empty frame
+    uid create_empty() noexcept
+    {
+      try {
+
+        auto tex = vulkan::create_texture_data(
+          fb_width,
+          fb_height,
+          vk_format,
+          offscreen_ctx.graphics_queue(),
+          command_pool.get(),
+          offscreen_ctx.device(),
+          offscreen_ctx.vulkan_ctx().physical_device());
+
+        vulkan::clear_texture_data(
+          tex,
+          std::array {0.f, 0.f, 0.f, 0.f},
+          offscreen_ctx.graphics_queue(),
+          command_pool.get(),
+          offscreen_ctx.device(),
+          offscreen_ctx.vulkan_ctx().physical_device());
+
+        auto data = std::make_shared<frame_data>(std::move(tex));
+
+        auto id = get_new_id();
+
+        auto [it, succ] = map.emplace(
+          std::piecewise_construct,
+          std::forward_as_tuple(id),
+          std::forward_as_tuple(std::move(data)));
+
+        if (!succ) {
+          Error(g_logger, "Failed to insert new frame buffer id");
+          return uid();
+        }
+
+        return id;
+
+      } catch (...) {
+        Error(g_logger, "Failed to create empty frame by exception");
+        return uid();
+      }
+    }
+
+    // COW: make entry writable
+    void make_entry_writable(frame_entry* entry)
+    {
+      assert(entry);
+
+      if (entry->data.use_count() == 1)
+        return;
+
+      auto tex = vulkan::clone_texture_data(
+        entry->data->texture,
+        offscreen_ctx.graphics_queue(),
+        command_pool.get(),
+        offscreen_ctx.device(),
+        offscreen_ctx.vulkan_ctx().physical_device());
+
+      entry->data = std::make_shared<frame_data>(std::move(tex));
+    }
 
   public:
     impl(
@@ -99,6 +176,8 @@ namespace yave::data {
       , fb_height {height}
       , fb_format {format}
     {
+      init_logger();
+
       if (format != image_format::rgba32f)
         throw std::runtime_error("Unsupported image format for frame buffer");
 
@@ -115,9 +194,7 @@ namespace yave::data {
         backend_id,
         [](void* handle)              noexcept -> uint64_t { return ((impl*)handle)->create().data; },
         [](void* handle, uint64_t id) noexcept -> uint64_t { return ((impl*)handle)->create_from({id}).data; },
-        [](void* handle, uint64_t id) noexcept -> void     { return ((impl*)handle)->ref({id}); },
-        [](void* handle, uint64_t id) noexcept -> void     { return ((impl*)handle)->unref({id}); },
-        [](void* handle, uint64_t id) noexcept -> uint64_t { return ((impl*)handle)->use_count({id}); },
+        [](void* handle, uint64_t id) noexcept -> void     { return ((impl*)handle)->destroy({id}); },
         [](void* handle, uint64_t id, uint32_t x, uint32_t y, uint32_t w, uint32_t h, const uint8_t* d) noexcept -> void { return ((impl*)handle)->store_data({id}, x, y, w, h, d); },
         [](void* handle, uint64_t id, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint8_t* d)       noexcept -> void { return ((impl*)handle)->read_data({id}, x, y, w, h, d); },
         [](void* handle)              noexcept -> uint32_t     { return ((impl*)handle)->width(); },
@@ -126,101 +203,68 @@ namespace yave::data {
       // clang-format on
     }
 
+    ~impl() noexcept
+    {
+      destroy(empty_frame);
+    }
+
     uid create() noexcept
-    try {
+    {
+      try {
+        // cache empty frame
+        if (empty_frame == uid())
+          empty_frame = create_empty();
 
-      auto id  = gen_id();
-      auto tex = vulkan::create_texture_data(
-        fb_width,
-        fb_height,
-        vk_format,
-        offscreen_ctx.graphics_queue(),
-        command_pool.get(),
-        offscreen_ctx.device(),
-        offscreen_ctx.vulkan_ctx().physical_device());
+        return create_from(empty_frame);
 
-      vulkan::clear_texture_data(
-        tex,
-        std::array {0.f, 0.f, 0.f, 0.f},
-        offscreen_ctx.graphics_queue(),
-        command_pool.get(),
-        offscreen_ctx.device(),
-        offscreen_ctx.vulkan_ctx().physical_device());
-
-      auto [it, succ] = map.emplace(
-        std::piecewise_construct,
-        std::forward_as_tuple(id),
-        std::forward_as_tuple(id, std::move(tex)));
-
-      if (!succ)
+      } catch (...) {
+        Error(g_logger, "Failed to create new frame by exception");
         return uid();
-
-      return table_ptr_to_id(&it->second);
-
-    } catch (...) {
-      return uid();
+      }
     }
 
     uid create_from(uid id) noexcept
-    try {
+    {
+      try {
+        auto entry = find_entry(id);
 
-      auto ptr    = id_to_table_ptr(id);
-      auto new_id = gen_id();
+        if (!entry) {
+          Error(g_logger, "Invalid frame id");
+          return uid();
+        }
 
-      auto tex = vulkan::clone_texture_data(
-        ptr->texture,
-        offscreen_ctx.graphics_queue(),
-        command_pool.get(),
-        offscreen_ctx.device(),
-        offscreen_ctx.vulkan_ctx().physical_device());
+        auto new_id = get_new_id();
 
-      auto [it, succ] = map.emplace(
-        std::piecewise_construct,
-        std::forward_as_tuple(new_id),
-        std::forward_as_tuple(new_id, std::move(tex)));
+        auto [it, succ] = map.emplace(
+          std::piecewise_construct,
+          std::forward_as_tuple(new_id),
+          std::forward_as_tuple(entry->data));
 
-      if (!succ)
+        if (!succ) {
+          Error(g_logger, "Failed to insert new frame buffer id");
+          return uid();
+        }
+
+        return new_id;
+      } catch (...) {
+        Info(g_logger, "Failed to clone frame by exception");
         return uid();
+      }
+    }
 
-      return table_ptr_to_id(&it->second);
-    } catch (...) {
-      return uid();
+    void destroy(uid id) noexcept
+    {
+      if (auto it = map.find(id); it != map.end())
+        map.erase(it);
     }
 
     bool exists(uid id) noexcept
-    try {
-      for (auto&& p : map)
-        if (table_ptr_to_id(&p.second) == id)
-          return true;
-      return false;
-    } catch (...) {
-      return false;
-    }
-
-    void ref(uid id) noexcept
-    try {
-      auto ptr = id_to_table_ptr(id);
-      ptr->refcount.fetch_add();
-    } catch (...) {
-    }
-
-    void unref(uid id) noexcept
-    try {
-      auto ptr = id_to_table_ptr(id);
-      if (ptr->refcount.fetch_sub() == 1) {
-        // use load as fence
-        (void)ptr->refcount.load_acquire();
-        map.erase(ptr->id);
+    {
+      try {
+        return find_entry(id);
+      } catch (...) {
+        return false;
       }
-    } catch (...) {
-    }
-
-    auto use_count(uid id) noexcept -> uint64_t
-    try {
-      auto ptr = id_to_table_ptr(id);
-      return ptr->refcount.load_relaxed();
-    } catch (...) {
-      return 0;
     }
 
     void store_data(
@@ -230,19 +274,34 @@ namespace yave::data {
       uint32_t width,
       uint32_t height,
       const uint8_t* data) noexcept
-    try {
-      auto ptr = id_to_table_ptr(id);
-      vulkan::store_texture_data(
-        staging,
-        ptr->texture,
-        vk::Offset2D(offset_x, offset_y),
-        vk::Extent2D(width, height),
-        data,
-        offscreen_ctx.graphics_queue(),
-        command_pool.get(),
-        offscreen_ctx.device(),
-        offscreen_ctx.vulkan_ctx().physical_device());
-    } catch (...) {
+    {
+      try {
+
+        auto entry = find_entry(id);
+
+        if (!entry) {
+          Error(g_logger, "Invalid frame id");
+          return;
+        }
+
+        make_entry_writable(entry);
+
+        vulkan::store_texture_data(
+          staging,
+          entry->data->texture,
+          vk::Offset2D(offset_x, offset_y),
+          vk::Extent2D(width, height),
+          data,
+          offscreen_ctx.graphics_queue(),
+          command_pool.get(),
+          offscreen_ctx.device(),
+          offscreen_ctx.vulkan_ctx().physical_device());
+
+        // mark as dirty
+        entry->data->is_dirty = true;
+
+      } catch (...) {
+      }
     }
 
     void read_data(
@@ -252,19 +311,29 @@ namespace yave::data {
       uint32_t width,
       uint32_t height,
       uint8_t* data) noexcept
-    try {
-      auto ptr = id_to_table_ptr(id);
-      vulkan::load_texture_data(
-        staging,
-        ptr->texture,
-        vk::Offset2D(offset_x, offset_y),
-        vk::Extent2D(width, height),
-        data,
-        offscreen_ctx.graphics_queue(),
-        command_pool.get(),
-        offscreen_ctx.device(),
-        offscreen_ctx.vulkan_ctx().physical_device());
-    } catch (...) {
+    {
+      try {
+
+        auto entry = find_entry(id);
+
+        if (!entry) {
+          Error(g_logger, "Invalid frame id");
+          return;
+        }
+
+        vulkan::load_texture_data(
+          staging,
+          entry->data->texture,
+          vk::Offset2D(offset_x, offset_y),
+          vk::Extent2D(width, height),
+          data,
+          offscreen_ctx.graphics_queue(),
+          command_pool.get(),
+          offscreen_ctx.device(),
+          offscreen_ctx.vulkan_ctx().physical_device());
+
+      } catch (...) {
+      }
     }
 
     auto width() noexcept -> uint32_t
@@ -284,8 +353,9 @@ namespace yave::data {
 
     auto get_texture_data(uid id) -> vulkan::texture_data&
     {
-      auto ptr = id_to_table_ptr(id);
-      return ptr->texture;
+      auto entry = find_entry(id);
+      make_entry_writable(entry);
+      return entry->data->texture;
     }
   };
 
@@ -319,24 +389,14 @@ namespace yave::data {
     return m_pimpl->create_from(id);
   }
 
+  void frame_buffer_manager::destroy(uid id) noexcept
+  {
+    return m_pimpl->destroy(id);
+  }
+
   bool frame_buffer_manager::exists(uid id) const noexcept
   {
     return m_pimpl->exists(id);
-  }
-
-  void frame_buffer_manager::ref(uid id) noexcept
-  {
-    m_pimpl->ref(id);
-  }
-
-  void frame_buffer_manager::unref(uid id) noexcept
-  {
-    m_pimpl->unref(id);
-  }
-
-  auto frame_buffer_manager::use_count(uid id) const noexcept -> uint64_t
-  {
-    return m_pimpl->use_count(id);
   }
 
   auto frame_buffer_manager::width() const noexcept -> uint32_t
@@ -364,4 +424,4 @@ namespace yave::data {
   {
     return m_pimpl->get_texture_data(id);
   }
-} // namespace yave
+} // namespace yave::data

@@ -45,17 +45,11 @@ namespace yave::data {
     [[nodiscard]] auto create() noexcept -> uid;
     /// create from
     [[nodiscard]] auto create_from(uid) noexcept -> uid;
+    /// destroy
+    void destroy(uid) noexcept;
+
     /// valid id?
     [[nodiscard]] bool exists(uid id) const noexcept;
-
-    /// ref
-    void ref(uid id) noexcept;
-    /// unref
-    void unref(uid id) noexcept;
-
-    /// Get use count
-    [[nodiscard]] auto use_count(uid id) const noexcept -> uint64_t;
-
     /// Get width of buffers.
     [[nodiscard]] auto width() const noexcept -> uint32_t;
     /// Get heightautoers.

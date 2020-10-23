@@ -20,9 +20,7 @@ namespace yave::data {
       uuid backend_id,
       auto (*create)(void*) noexcept->uint64_t,
       auto (*create_from)(void*, uint64_t) noexcept->uint64_t,
-      void (*ref)(void*, uint64_t) noexcept,
-      void (*unref)(void*, uint64_t) noexcept,
-      auto (*get_use_count)(void* handle, uint64_t id) noexcept->uint64_t,
+      void (*destroy)(void*, uint64_t) noexcept,
       void (*store_data)(void*, uint64_t ,uint32_t, uint32_t, uint32_t, uint32_t, const uint8_t*) noexcept,
       void (*read_data )(void*, uint64_t, uint32_t, uint32_t, uint32_t, uint32_t, uint8_t*) noexcept,
       auto (*get_width)(void*) noexcept->uint32_t,
@@ -32,9 +30,7 @@ namespace yave::data {
       , m_backend_id {backend_id}
       , m_create {create}
       , m_create_from {create_from}
-      , m_ref {ref}
-      , m_unref {unref}
-      , m_get_use_count {get_use_count}
+      , m_destroy {destroy}
       , m_store_data {store_data}
       , m_read_data {read_data}
       , m_get_format {get_format}
@@ -67,22 +63,10 @@ namespace yave::data {
       return m_create_from(m_handle, id);
     }
 
-    /// Increment reference count of buffer
-    [[nodiscard]] auto ref(uint64_t id) const noexcept
+    /// Destroy frame buffer
+    [[nodiscard]] auto destroy(uint64_t id) const noexcept
     {
-      return m_ref(m_handle, id);
-    }
-
-    /// Decrement reference count of buffer
-    [[nodiscard]] auto unref(uint64_t id) const noexcept
-    {
-      return m_unref(m_handle, id);
-    }
-
-    /// Get use count
-    [[nodiscard]] auto get_use_count(uint64_t id) const noexcept
-    {
-      return m_get_use_count(m_handle, id);
+      return m_destroy(m_handle, id);
     }
 
     /// Store data
@@ -144,17 +128,9 @@ namespace yave::data {
     /// \note id should be valid.
     auto (*m_create_from)(void* handle, uint64_t id) noexcept -> uint64_t;
 
-    /// Increment refcount
+    /// Destroy reference count.
     /// \note id should be valid.
-    void (*m_ref)(void* handle, uint64_t id) noexcept;
-
-    /// Decrement reference count.
-    /// \note id should be valid.
-    void (*m_unref)(void* handle, uint64_t id) noexcept;
-
-    /// Get current use count.
-    /// \note id should be valid.
-    auto (*m_get_use_count)(void* handle, uint64_t id) noexcept -> uint64_t;
+    void (*m_destroy)(void* handle, uint64_t id) noexcept;
 
     /// Store data to buffer
     void (*m_store_data)(
