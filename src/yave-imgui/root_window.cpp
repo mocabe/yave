@@ -70,13 +70,31 @@ namespace yave::editor::imgui {
 
   void root_window::_draw_usage_modal(const editor::view_context& vctx) const
   {
-    if (ImGui::BeginPopupModal("usage")) {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 5.f);
+    {
+      auto flags = ImGuiWindowFlags_NoResize;
+      if (ImGui::BeginPopupModal("usage", nullptr, flags)) {
 
-      if (ImGui::Button("close"))
-        ImGui::CloseCurrentPopup();
+        ImGui::Text("Keyboard shortcuts");
+        ImGui::Separator();
 
-      ImGui::EndPopup();
+        ImGui::Bullet();
+        ImGui::Text("Ctrl + G: Make new group from selected nodes.");
+
+        ImGui::Bullet();
+        ImGui::Text("Ctrl + U: Move to upper group.");
+
+        ImGui::Bullet();
+        ImGui::Text("Del: Delete selected nodes.");
+
+        if (ImGui::Button("ok"))
+          ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+      }
     }
+    ImGui::PopStyleVar(2);
 
     if (open_usage_modal) {
       // open popup
@@ -89,16 +107,27 @@ namespace yave::editor::imgui {
 
   void root_window::_draw_about_modal(const editor::view_context& vctx) const
   {
-    if (ImGui::BeginPopupModal("about")) {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 5.f);
+    {
+      auto flags = ImGuiWindowFlags_NoResize;
+      if (ImGui::BeginPopupModal("about", nullptr, flags)) {
 
-      if (ImGui::Button("close"))
-        ImGui::CloseCurrentPopup();
+        ImGui::Text("yave-imgui");
+        ImGui::Separator();
+        ImGui::Text("author: mocabe");
+        ImGui::Text("version: 0.0.0");
+        ImGui::Text("source: https://github.com/mocabe/yave");
 
-      ImGui::EndPopup();
+        if (ImGui::Button("ok"))
+          ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+      }
     }
+    ImGui::PopStyleVar(2);
 
     if (open_about_modal) {
-      Info(g_logger, "about!");
       // open popup
       ImGui::OpenPopup("about");
       // clear flag
@@ -112,9 +141,15 @@ namespace yave::editor::imgui {
     if (!open_demo_window)
       return;
 
-    // open demo window
     bool show = open_demo_window;
-    ImGui::ShowDemoWindow(&show);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 5.f);
+    {
+      // demo window
+      ImGui::ShowDemoWindow(&show);
+    }
+    ImGui::PopStyleVar(2);
 
     // turn off flag when closed
     vctx.cmd(make_window_view_command(
