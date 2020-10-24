@@ -7,7 +7,6 @@
 
 #include <yave/config/config.hpp>
 #include <yave/lib/image/image_format.hpp>
-#include <yave/data/buffer/buffer_manager.hpp>
 #include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/lib/vulkan/texture.hpp>
