@@ -30,7 +30,7 @@ namespace yave::data {
     /// Move ctor
     frame_buffer(frame_buffer&& other) noexcept
       : m_pool {std::move(other.m_pool)}
-      , m_id {m_id}
+      , m_id {other.m_id}
     {
       other.m_pool = nullptr;
       other.m_id   = 0;
