@@ -1,1 +1,0 @@
-YAVE_Test(buffer buffer yave::data::buffer)

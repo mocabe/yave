@@ -1,2 +1,1 @@
-add_subdirectory(buffer)
 add_subdirectory(frame_buffer)
