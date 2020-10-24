@@ -189,6 +189,28 @@ namespace yave::editor::imgui {
       // id
       ImGui::TextDisabled("id: %s", to_string(n.id()).c_str());
 
+      // description
+      if (info.is_function()) {
+
+        auto dsc = [&] {
+          auto lck    = dctx.lock();
+          auto& data  = lck.get_data<editor_data>();
+          auto& ng    = data.node_graph();
+          auto& decls = data.node_declarations();
+
+          auto path = ng.get_path(ng.get_definition(n));
+          assert(path);
+
+          if (auto decl = decls.find(*path))
+            return decl->description();
+
+          return std::string();
+        }();
+
+        if (dsc != "")
+          ImGui::TextDisabled("%s", dsc.c_str());
+      }
+
       if (info.is_group() || info.is_group_input()) {
 
         ImGui::Separator();
