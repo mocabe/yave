@@ -65,9 +65,9 @@ namespace yave::editor::imgui {
 
     // choose color
     {
-      auto lck    = dctx.lock();
-      auto& data  = lck.get_data<editor_data>();
-      auto& ng    = data.node_graph();
+      auto lck   = dctx.get_data<editor_data>();
+      auto& data = lck.ref();
+      auto& ng   = data.node_graph();
 
       auto& msgs = data.compile_thread().messages();
 

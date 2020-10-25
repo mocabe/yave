@@ -40,8 +40,8 @@ namespace yave::editor {
   {
     (void)view_ctx;
 
-    auto data_lck = data_ctx.lock();
-    auto& data    = data_lck.template get_data<editor_data>();
+    auto lck   = data_ctx.get_data<editor_data>();
+    auto& data = lck.ref();
 
     auto& executor     = data.execute_thread();
     auto& scene_config = data.scene_config();
@@ -143,7 +143,8 @@ namespace yave::editor {
       ImGui::PopItemWidth();
 
       data_ctx.cmd(make_data_command([t = yave::time::seconds(sec)](auto& ctx) {
-        auto& data     = ctx.template get_data<editor_data>();
+        auto lck       = ctx.template get_data<editor_data>();
+        auto& data     = lck.ref();
         auto& executor = data.execute_thread();
         if (executor.arg_time() != t) {
           executor.set_arg_time(t);

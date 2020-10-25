@@ -74,8 +74,8 @@ namespace yave::editor {
     std::stack<cmd_ptr> cmd_redo_stack;
 
   public:
-    /// editor data
-    std::list<unique_any> data_list;
+    /// editor data list
+    std::vector<std::shared_ptr<data_holder>> data_list;
 
   private:
     /// data processing thread
@@ -135,15 +135,11 @@ namespace yave::editor {
       cmd_cond.notify_one();
     }
 
-    /// get read lock
-    auto lock()
-    {
-      return lock_data();
-    }
-
   public:
     void add_data(unique_any new_data)
     {
+      auto lck = lock_data();
+
       assert(!new_data.empty());
 
       auto lb = std::lower_bound(
@@ -151,11 +147,14 @@ namespace yave::editor {
         data_list.end(),
         new_data.type(),
         [](auto& l, auto& r) {
-          return std::type_index(l.type()) < std::type_index(r);
+          return std::type_index(l->data.type()) < std::type_index(r);
         });
 
-      if (lb == data_list.end() || lb->type() != new_data.type()) {
-        data_list.insert(lb, std::move(new_data));
+      if (lb == data_list.end() || (*lb)->data.type() != new_data.type()) {
+
+        data_list.insert(
+          lb, std::make_shared<data_holder>(std::move(new_data)));
+
         return;
       }
 
@@ -164,28 +163,32 @@ namespace yave::editor {
 
     void remove_data(const std::type_info& id)
     {
+      auto lck = lock_data();
+
       auto lb = std::lower_bound(
         data_list.begin(), data_list.end(), id, [](auto& l, auto& r) {
-          return std::type_index(l.type()) < std::type_index(r);
+          return std::type_index(l->data.type()) < std::type_index(r);
         });
 
-      if (lb == data_list.end() || lb->type() != id)
+      if (lb == data_list.end() || (*lb)->data.type() != id)
         return;
 
       data_list.erase(lb);
     }
 
-    auto find_data(const std::type_info& id) -> void*
+    auto find_data(const std::type_info& id) -> std::shared_ptr<data_holder>
     {
+      auto lck = lock_data();
+
       auto lb = std::lower_bound(
         data_list.begin(), data_list.end(), id, [](auto& l, auto& r) {
-          return std::type_index(l.type()) < std::type_index(r);
+          return std::type_index(l->data.type()) < std::type_index(r);
         });
 
-      if (lb == data_list.end() || lb->type() != id)
+      if (lb == data_list.end() || (*lb)->data.type() != id)
         return nullptr;
 
-      return lb->data();
+      return *lb;
     }
 
   public:
@@ -208,8 +211,7 @@ namespace yave::editor {
     void process(cmd_ptr&& top)
     {
       {
-        auto lck = data_context_access(*_this, lock_data());
-        top->exec(lck);
+        top->exec(*_this);
       }
 
       // dispose command if not undoable
@@ -234,8 +236,7 @@ namespace yave::editor {
       }
 
       {
-        auto lck = data_context_access(*_this, lock_data());
-        top->undo(lck);
+        top->undo(*_this);
       }
 
       {
@@ -259,8 +260,7 @@ namespace yave::editor {
       }
 
       {
-        auto lck = data_context_access(*_this, lock_data());
-        top->exec(lck);
+        top->exec(*_this);
       }
 
       {
@@ -329,37 +329,20 @@ namespace yave::editor {
     m_pimpl->redo();
   }
 
-  auto data_context::lock() -> data_context_access
-  {
-    m_pimpl->check_exception();
-    return data_context_access(*this, m_pimpl->lock());
-  }
-
-  auto data_context::lock() const -> const_data_context_access
-  {
-    m_pimpl->check_exception();
-    return const_data_context_access(*this, m_pimpl->lock());
-  }
-
-  void data_context::add_data(unique_any new_data)
+  void data_context::_add_data(unique_any new_data)
   {
     m_pimpl->check_exception();
     m_pimpl->add_data(std::move(new_data));
   }
 
-  void data_context::remove_data(const std::type_info& ti)
+  void data_context::_remove_data(const std::type_info& ti)
   {
     m_pimpl->check_exception();
     m_pimpl->remove_data(ti);
   }
 
-  auto data_context::get_data(const std::type_info& id) const -> const void*
-  {
-    m_pimpl->check_exception();
-    return m_pimpl->find_data(id);
-  }
-
-  auto data_context::get_data(const std::type_info& id) -> void*
+  auto data_context::_get_data(const std::type_info& id) const
+    -> std::shared_ptr<data_holder>
   {
     m_pimpl->check_exception();
     return m_pimpl->find_data(id);

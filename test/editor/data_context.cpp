@@ -8,6 +8,7 @@
 #include <catch2/catch.hpp>
 
 #include <iostream>
+#include <thread>
 
 using namespace yave;
 using namespace yave::editor;
@@ -32,17 +33,20 @@ TEST_CASE("data_context")
   SECTION("data")
   {
     data_context ctx;
-    auto lck = ctx.lock();
-    lck.add_data(42);
+    ctx.add_data(42);
 
-    REQUIRE_NOTHROW(lck.get_data<int>());
-    REQUIRE_NOTHROW(lck.add_data(3.14));
-    REQUIRE_THROWS(lck.add_data(24));
-    REQUIRE_THROWS(lck.add_data(4.13));
-    REQUIRE(lck.get_data<int>() == 42);
+    REQUIRE_NOTHROW(ctx.get_data<int>());
+    REQUIRE_NOTHROW(ctx.add_data(3.14));
+    REQUIRE_THROWS(ctx.add_data(24));
+    REQUIRE_THROWS(ctx.add_data(4.13));
 
-    lck.remove_data<int>();
-    REQUIRE_THROWS(lck.get_data<int>());
+    {
+      auto lck = ctx.get_data<int>();
+      REQUIRE(lck.ref() == 42);
+    }
+
+    ctx.remove_data<int>();
+    REQUIRE_THROWS(ctx.get_data<int>());
   }
 
   SECTION("cmd")
@@ -112,16 +116,37 @@ TEST_CASE("data_context")
 
   SECTION("data lock")
   {
-    int i = 0;
+    std::atomic<int> i = 0;
     {
       data_context ctx;
+      ctx.add_data(42);
+
       ctx.cmd(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
       ctx.cmd(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+
+      // wait tasks
+      while (i != 2)
+        ;
+
       {
-        auto lck = ctx.lock();
-        auto tmp = i;
-        ctx.cmd(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
-        ctx.cmd(make_data_command([&i](auto&) { ++i; }, [](auto&) {}));
+        auto lck = ctx.get_data<int>();
+        auto tmp = i.load();
+
+        ctx.cmd(make_data_command(
+          [&i](auto& c) {
+            c.template get_data<int>();
+            ++i;
+          },
+          [](auto&) {}));
+
+        ctx.cmd(make_data_command(
+          [&i](auto& c) {
+            c.template get_data<int>();
+            ++i;
+          },
+          [](auto&) {}));
+
+        // lck blocks tasks
         REQUIRE(i == tmp);
       }
     }

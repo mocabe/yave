@@ -48,11 +48,10 @@ namespace yave::editor::imgui {
   /// initialize internal data structure
   void application::impl::init_data()
   {
-    auto data_lck = data_ctx.lock();
+    data_ctx.add_data(editor_data(data_ctx));
 
-    data_lck.add_data(editor_data(data_ctx));
-
-    auto& data = data_lck.get_data<editor_data>();
+    auto lck   = data_ctx.get_data<editor_data>();
+    auto& data = lck.ref();
 
     data.add_module_loader(
       std::make_unique<modules::_std::module_loader>(vulkan_ctx));
@@ -66,8 +65,8 @@ namespace yave::editor::imgui {
 
   void application::impl::deinit_data()
   {
-    auto data_lck = data_ctx.lock();
-    auto& data    = data_lck.get_data<editor_data>();
+    auto lck   = data_ctx.get_data<editor_data>();
+    auto& data = lck.ref();
 
     data.deinit_threads();
     data.deinit_modules();

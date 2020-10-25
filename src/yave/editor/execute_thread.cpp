@@ -132,8 +132,8 @@ namespace yave::editor {
                 std::optional<compiler::executable> exe;
                 std::optional<time> time;
                 {
-                  auto lck       = data_ctx.lock();
-                  auto& data     = lck.get_data<editor_data>();
+                  auto lck       = data_ctx.get_data<editor_data>();
+                  auto& data     = lck.ref();
                   auto& executor = data.execute_thread();
                   auto& compiler = data.compile_thread();
                   auto& updates  = data.update_channel();
@@ -166,8 +166,8 @@ namespace yave::editor {
                 auto end = std::chrono::high_resolution_clock::now();
 
                 {
-                  auto lck       = data_ctx.lock();
-                  auto& data     = lck.get_data<editor_data>();
+                  auto lck       = data_ctx.get_data<editor_data>();
+                  auto& data     = lck.ref();
                   auto& executor = data.execute_thread();
 
                   using namespace std::chrono;

@@ -83,8 +83,8 @@ namespace yave::editor {
 
                 // initialize compiler pipeilne
                 auto init_pipeline = [&] {
-                  auto lck       = data_ctx.lock();
-                  auto& data     = lck.get_data<editor_data>();
+                  auto lck       = data_ctx.get_data<editor_data>();
+                  auto& data     = lck.ref();
                   auto& compiler = data.compile_thread();
 
                   compiler.clear_results();
@@ -96,8 +96,8 @@ namespace yave::editor {
 
                 // prepare compiler input
                 auto init_input = [&](auto& pipeline) {
-                  auto lck   = data_ctx.lock();
-                  auto& data = lck.get_data<editor_data>();
+                  auto lck   = data_ctx.get_data<editor_data>();
+                  auto& data = lck.ref();
 
                   // clone graph
                   auto _ng   = data.node_graph().clone();
@@ -121,8 +121,8 @@ namespace yave::editor {
 
                 // process compiler output
                 auto process_output = [&](compiler::pipeline& pipeline) {
-                  auto lck       = data_ctx.lock();
-                  auto& data     = lck.get_data<editor_data>();
+                  auto lck       = data_ctx.get_data<editor_data>();
+                  auto& data     = lck.ref();
                   auto& compiler = data.compile_thread();
 
                   auto& msgs =

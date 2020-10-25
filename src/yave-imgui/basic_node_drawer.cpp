@@ -193,8 +193,8 @@ namespace yave::editor::imgui {
       if (info.is_function()) {
 
         auto dsc = [&] {
-          auto lck    = dctx.lock();
-          auto& data  = lck.get_data<editor_data>();
+          auto lck    = dctx.get_data<editor_data>();
+          auto& data  = lck.ref();
           auto& ng    = data.node_graph();
           auto& decls = data.node_declarations();
 

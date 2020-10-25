@@ -111,8 +111,8 @@ namespace yave::editor::imgui {
     editor::data_context& data_ctx,
     editor::view_context& /*view_ctx*/)
   {
-    auto lck   = data_ctx.lock();
-    auto& data = lck.get_data<editor_data>();
+    auto lck   = data_ctx.get_data<editor_data>();
+    auto& data = lck.ref();
     auto& g    = data.node_graph();
 
     if (!g.exists(current_group) || !g.is_group(current_group)) {
@@ -179,8 +179,8 @@ namespace yave::editor::imgui {
 
     // show compile errors
     auto compile_errors = [&] {
-      auto lck   = dctx.lock();
-      auto& data = lck.get_data<editor_data>();
+      auto lck   = dctx.get_data<editor_data>();
+      auto& data = lck.ref();
       return data.compile_thread().messages().get_errors();
     }();
 
@@ -249,8 +249,8 @@ namespace yave::editor::imgui {
                     - to_ImVec2(scroll_pos);
 
         // TODO: store tree info in update stage
-        auto lck        = dctx.lock();
-        auto& data      = lck.get_data<editor_data>();
+        auto lck        = dctx.get_data<editor_data>();
+        auto& data      = lck.ref();
         auto& ng        = data.node_graph();
         auto& decl_tree = data.node_declarations().get_tree();
 
@@ -405,8 +405,8 @@ namespace yave::editor::imgui {
 
         vctx.cmd(
           make_window_view_command(*this, [&dctx, g = current_group](auto& w) {
-            auto lck   = dctx.lock();
-            auto& data = lck.template get_data<editor_data>();
+            auto lck   = dctx.template get_data<editor_data>();
+            auto& data = lck.ref();
             auto& ng   = data.node_graph();
 
             auto root = data.root_group();

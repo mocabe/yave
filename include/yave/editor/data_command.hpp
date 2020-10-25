@@ -33,9 +33,9 @@ namespace yave::editor {
   {
   public:
     /// Exec command
-    virtual void exec(data_context::accessor& data_ctx) = 0;
+    virtual void exec(data_context& data_ctx) = 0;
     /// Undo command
-    virtual void undo(data_context::accessor& data_ctx) = 0;
+    virtual void undo(data_context& data_ctx) = 0;
     /// Undoable command?
     virtual auto type() const -> data_command_type = 0;
 
@@ -68,11 +68,11 @@ namespace yave::editor {
         : ExecFunc(std::forward<ExecFunc>(exec))
       {
       }
-      void exec(data_context::accessor& data_ctx) override
+      void exec(data_context& data_ctx) override
       {
         ExecFunc::operator()(data_ctx);
       }
-      void undo(data_context::accessor&) override
+      void undo(data_context&) override
       {
         // no undo
       }
@@ -91,11 +91,11 @@ namespace yave::editor {
         , UndoFunc(std::forward<UndoFunc>(undo))
       {
       }
-      void exec(data_context::accessor& data_ctx) override
+      void exec(data_context& data_ctx) override
       {
         ExecFunc::operator()(data_ctx);
       }
-      void undo(data_context::accessor& data_ctx) override
+      void undo(data_context& data_ctx) override
       {
         UndoFunc::operator()(data_ctx);
       }

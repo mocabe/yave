@@ -18,10 +18,11 @@ namespace yave::editor::imgui {
       const object_ptr<NodeArgument>& arg,
       const data_context& dctx)
     {
+      auto data = dctx.get_data<editor_data>();
+
       // get staged change in update channel
-      auto staged = dctx
-                      .lock() //
-                      .get_data<editor_data>()
+      auto staged = data //
+                      .ref()
                       .update_channel()
                       .get_current_change(arg);
 

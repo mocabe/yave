@@ -24,16 +24,16 @@ namespace yave::editor::imgui {
     {
     }
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
   /// notify execute
   struct dcmd_notify_execute : data_command
   {
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -53,8 +53,8 @@ namespace yave::editor::imgui {
       const node_handle& group,
       const node_handle& source);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -70,8 +70,8 @@ namespace yave::editor::imgui {
 
     dcmd_gcreate(const ImVec2& pos, const node_handle& parent);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -83,8 +83,8 @@ namespace yave::editor::imgui {
 
     dcmd_ndestroy(std::vector<node_handle> ns);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -97,8 +97,8 @@ namespace yave::editor::imgui {
 
     dcmd_ngroup(node_handle p, std::vector<node_handle> ns);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -125,8 +125,8 @@ namespace yave::editor::imgui {
       const node_handle& dst_node,
       size_t dst_idx);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -144,8 +144,8 @@ namespace yave::editor::imgui {
 
     dcmd_disconnect(const connection_handle& connection);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -160,8 +160,8 @@ namespace yave::editor::imgui {
 
     dcmd_nset_name(node_handle node, std::string new_name);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -176,8 +176,8 @@ namespace yave::editor::imgui {
 
     dcmd_sset_name(socket_handle socket, std::string new_name);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -192,8 +192,8 @@ namespace yave::editor::imgui {
 
     dcmd_nset_pos(node_handle node, glm::vec2 new_name);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -205,8 +205,8 @@ namespace yave::editor::imgui {
 
     dcmd_nbring_front(node_handle node);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -217,8 +217,8 @@ namespace yave::editor::imgui {
 
     dcmd_sremove(socket_handle s);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 
@@ -231,8 +231,8 @@ namespace yave::editor::imgui {
 
     dcmd_sadd(node_handle n, socket_type stype, size_t index);
 
-    void exec(data_context::accessor& ctx) override;
-    void undo(data_context::accessor& ctx) override;
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
 }
