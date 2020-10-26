@@ -186,6 +186,30 @@ namespace yave::editor::imgui {
         ImGui::Text("%s", m_title.c_str());
       }
 
+      // node type (same line)
+      {
+        std::string str;
+
+        // group or func
+        if (info.is_group())
+          str = "group";
+        if (info.is_function())
+          str = "func";
+
+        // def or call
+        if (info.is_definition())
+          str += " def";
+        if (info.is_call())
+          str += " call";
+
+        // io
+        if (info.is_group_input() || info.is_group_output())
+          str = "group io";
+
+        ImGui::SameLine();
+        ImGui::TextDisabled("[%s]", str.c_str());
+      }
+
       // id
       ImGui::TextDisabled("id: %s", to_string(n.id()).c_str());
 
