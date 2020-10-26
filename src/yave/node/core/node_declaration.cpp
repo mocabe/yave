@@ -54,14 +54,12 @@ namespace yave {
 
   auto node_name_of(const node_declaration& decl) -> std::string
   {
-    return std::visit(
-      [](auto& d) { return get_node_name_component(d.full_name()); }, decl);
+    return std::visit([](auto& d) { return d.node_name(); }, decl);
   }
 
   auto node_path_of(const node_declaration& decl) -> std::string
   {
-    return std::visit(
-      [](auto& d) { return get_node_path_component(d.full_name()); }, decl);
+    return std::visit([](auto& d) { return d.node_path(); }, decl);
   }
 
   auto description_of(const node_declaration& decl) -> const std::string&
@@ -129,6 +127,16 @@ namespace yave {
       throw std::invalid_argument("default value should be unique");
   }
 
+  auto function_node_declaration::node_name() const -> std::string
+  {
+    return get_node_name_component(m_name);
+  }
+
+  auto function_node_declaration::node_path() const -> std::string
+  {
+    return get_node_path_component(m_name);
+  }
+
   composed_node_declaration::composed_node_declaration(
     std::string full_name,
     std::string description,
@@ -158,6 +166,16 @@ namespace yave {
       throw std::invalid_argument("null initialier function");
   }
 
+  auto composed_node_declaration::node_name() const -> std::string
+  {
+    return get_node_name_component(m_name);
+  }
+
+  auto composed_node_declaration::node_path() const -> std::string
+  {
+    return get_node_path_component(m_name);
+  }
+
   macro_node_declaration::macro_node_declaration(
     std::string full_name,
     std::string description,
@@ -185,6 +203,16 @@ namespace yave {
 
     if (!m_func)
       throw std::invalid_argument("null macro function");
+  }
+
+  auto macro_node_declaration::node_name() const -> std::string
+  {
+    return get_node_name_component(m_name);
+  }
+
+  auto macro_node_declaration::node_path() const -> std::string
+  {
+    return get_node_path_component(m_name);
   }
 
 } // namespace yave

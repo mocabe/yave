@@ -74,6 +74,11 @@ namespace yave {
       return m_defargs;
     }
 
+    /// get name component from full name
+    [[nodiscard]] auto node_name() const -> std::string;
+    /// get path component from full name
+    [[nodiscard]] auto node_path() const -> std::string;
+
   private:
     std::string m_name;
     std::string m_dsc;
@@ -136,6 +141,11 @@ namespace yave {
     {
       m_func(g, n);
     }
+
+    /// get name component from full name
+    [[nodiscard]] auto node_name() const -> std::string;
+    /// get path component from full name
+    [[nodiscard]] auto node_path() const -> std::string;
 
   private:
     std::string m_name;
@@ -239,6 +249,11 @@ namespace yave {
     {
       m_func->on_expand(g, n);
     }
+
+    /// get name component from full name
+    [[nodiscard]] auto node_name() const -> std::string;
+    /// get path component from full name
+    [[nodiscard]] auto node_path() const -> std::string;
 
   private:
     std::string m_name;
