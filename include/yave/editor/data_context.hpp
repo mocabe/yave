@@ -18,7 +18,7 @@ namespace yave::editor {
   class data_command;
 
   /// unexpected thread failure
-  class data_thread_failure : std::runtime_error
+  class data_thread_failure : public std::runtime_error
   {
     std::exception_ptr m_exception;
 
