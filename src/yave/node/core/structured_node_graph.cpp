@@ -464,14 +464,25 @@ namespace yave {
           n = io->parent->defcall()->node;
       }
 
-      return queue                   //
-             | rng::views::reverse   //
-             | rng::views::join('.') //
-             | rng::to<std::string>;
+      auto path = queue                   //
+                  | rng::views::reverse   //
+                  | rng::views::join('.') //
+                  | rng::to<std::string>;
+
+      assert(std::regex_match(path, std::regex(path_name_regex)));
+
+      return path;
     }
 
     auto search_path(const std::string& path) const -> std::vector<node_handle>
     {
+      static const auto re = std::regex(path_search_regex);
+
+      if (!std::regex_match(path, re)) {
+        Error(g_logger, "Invalid path format: {}", path);
+        return {};
+      }
+
       node_group* g       = get_group(root);
       std::string_view sv = path;
 
@@ -1393,7 +1404,7 @@ namespace yave {
     {
       assert(is_valid(node));
 
-      static const auto re = std::regex(R"(^[^\.\s]+$)");
+      static const auto re = std::regex(node_name_regex);
 
       if (!std::regex_match(name, re)) {
         Error(g_logger, "Invalid node name: {}", name);
@@ -1433,6 +1444,13 @@ namespace yave {
       auto idx  = socket_index(socket);
 
       assert(is_valid(node));
+
+      static const auto re = std::regex(socket_name_regex);
+
+      if (!std::regex_match(name, re)) {
+        Error(g_logger, "Invalid socket name: {}", name);
+        return;
+      }
 
       //  io handler case
       if (auto io = get_io(node)) {
@@ -1837,7 +1855,7 @@ namespace yave {
 
       set_name(
         newc->node,
-        fmt::format("Group#{}", to_string(newc->node.id()).substr(0, 4)));
+        fmt::format("Group_{}", to_string(newc->node.id()).substr(0, 4)));
 
       // collect outbound connections
       std::vector<connection_handle> ocs, ics;

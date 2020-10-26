@@ -19,6 +19,16 @@ namespace yave {
   class structured_node_graph
   {
   public:
+    /// regex pattern for valid node names
+    static constexpr auto node_name_regex = R"(^[^\W\s]+$)";
+    /// regex pattern for valid socket names
+    static constexpr auto socket_name_regex = R"(^[\w\s]+$)";
+    /// regex pattern for path
+    static constexpr auto path_name_regex = R"(^(\w+)(\.\w+)*$)";
+    /// regex pattern for path search
+    static constexpr auto path_search_regex = R"(^(|\.|(\w+)(\.\w+)*\.?)$)";
+
+  public:
     /// construct empty node graph
     structured_node_graph();
     /// copy ctor (deleted, use clone())
