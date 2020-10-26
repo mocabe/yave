@@ -104,10 +104,12 @@ namespace yave::editor {
 
   public:
     /// check exception in data thread
-    void check_exception()
+    void check_failure()
     {
-      if (exception)
-        std::rethrow_exception(exception);
+      if (!thread.joinable()) {
+        if (exception != nullptr)
+          throw data_thread_failure(exception);
+      }
     }
 
     /// push command
@@ -313,38 +315,38 @@ namespace yave::editor {
 
   void data_context::cmd(cmd_ptr&& op) const
   {
-    m_pimpl->check_exception();
+    m_pimpl->check_failure();
     m_pimpl->cmd(std::move(op));
   }
 
   void data_context::undo()
   {
-    m_pimpl->check_exception();
+    m_pimpl->check_failure();
     m_pimpl->undo();
   }
 
   void data_context::redo()
   {
-    m_pimpl->check_exception();
+    m_pimpl->check_failure();
     m_pimpl->redo();
   }
 
   void data_context::_add_data(unique_any new_data)
   {
-    m_pimpl->check_exception();
+    m_pimpl->check_failure();
     m_pimpl->add_data(std::move(new_data));
   }
 
   void data_context::_remove_data(const std::type_info& ti)
   {
-    m_pimpl->check_exception();
+    m_pimpl->check_failure();
     m_pimpl->remove_data(ti);
   }
 
   auto data_context::_get_data(const std::type_info& id) const
     -> std::shared_ptr<data_holder>
   {
-    m_pimpl->check_exception();
+    m_pimpl->check_failure();
     return m_pimpl->find_data(id);
   }
 

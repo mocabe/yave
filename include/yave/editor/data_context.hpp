@@ -10,11 +10,31 @@
 #include <yave/lib/util/locked_reference.hpp>
 
 #include <mutex>
+#include <stdexcept>
 
 namespace yave::editor {
 
   class data_context;
   class data_command;
+
+  /// unexpected thread failure
+  class data_thread_failure : std::runtime_error
+  {
+    std::exception_ptr m_exception;
+
+  public:
+    data_thread_failure(std::exception_ptr exception)
+      : std::runtime_error("data thread terminated by uncaught exception")
+      , m_exception {exception}
+    {
+    }
+
+    /// get exception thrown in data thread
+    [[nodiscard]] auto exception() const
+    {
+      return m_exception;
+    }
+  };
 
   /// Application data context
   class data_context
