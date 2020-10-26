@@ -256,29 +256,29 @@ namespace yave {
     macro_node_declaration>;
 
   /// get full name of declaration
-  [[nodiscard]] auto full_name(const node_declaration& decl)
+  [[nodiscard]] auto full_name_of(const node_declaration& decl)
     -> const std::string&;
 
   /// get name component of node declaration
-  [[nodiscard]] auto node_name(const node_declaration& decl) -> std::string;
+  [[nodiscard]] auto node_name_of(const node_declaration& decl) -> std::string;
 
   /// get path component of node declaration
-  [[nodiscard]] auto node_path(const node_declaration& decl) -> std::string;
+  [[nodiscard]] auto node_path_of(const node_declaration& decl) -> std::string;
 
   /// get description
-  [[nodiscard]] auto description(const node_declaration& decl)
+  [[nodiscard]] auto description_of(const node_declaration& decl)
     -> const std::string&;
 
   /// get input sockets
-  [[nodiscard]] auto input_sockets(const node_declaration& decl)
+  [[nodiscard]] auto input_sockets_of(const node_declaration& decl)
     -> const std::vector<std::string>&;
 
   /// get output sockets
-  [[nodiscard]] auto output_sockets(const node_declaration& decl)
+  [[nodiscard]] auto output_sockets_of(const node_declaration& decl)
     -> const std::vector<std::string>&;
 
   /// get node visibility
-  [[nodiscard]] auto visibility(const node_declaration& decl)
+  [[nodiscard]] auto visibility_of(const node_declaration& decl)
     -> node_declaration_visibility;
 
 } // namespace yave
