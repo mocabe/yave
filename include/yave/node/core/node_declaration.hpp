@@ -167,16 +167,8 @@ namespace yave {
 
       virtual ~abstract_macro_func() noexcept = default;
 
-      /// called when macro node is initialized.
-      virtual void on_create(structured_node_graph& g, const node_handle& n) = 0;
-      /// called when macro node is destroyed.
-      virtual void on_destroy(structured_node_graph& g, const node_handle& n) = 0;
-      /// called when new socket is connected to macro node.
-      virtual void on_connect(structured_node_graph& g, const socket_handle& s) = 0;
-      /// called when socket is disconnected.
-      virtual void on_disconnect(structured_node_graph& g, const socket_handle& s) = 0;
       /// called when macro node is expanded
-      virtual void on_expand(structured_node_graph& g, const node_handle& n) = 0;
+      virtual void on_expand(structured_node_graph& g, const node_handle& n) const = 0;
 
       // clang-format on
     };
@@ -221,30 +213,6 @@ namespace yave {
     }
 
     /// call macro callback
-    void macro_on_create(structured_node_graph& g, node_handle n) const
-    {
-      m_func->on_create(g, n);
-    }
-
-    /// call macro callback
-    void macro_on_destroy(structured_node_graph& g, node_handle n) const
-    {
-      m_func->on_destroy(g, n);
-    }
-
-    /// call macro callback
-    void macro_on_connect(structured_node_graph& g, socket_handle s) const
-    {
-      m_func->on_connect(g, s);
-    }
-
-    /// call macro callback
-    void macro_on_disconnect(structured_node_graph& g, socket_handle s) const
-    {
-      m_func->on_disconnect(g, s);
-    }
-
-    /// call macro callback
     void macro_on_expand(structured_node_graph& g, node_handle n) const
     {
       m_func->on_expand(g, n);
@@ -271,29 +239,29 @@ namespace yave {
     macro_node_declaration>;
 
   /// get full name of declaration
-  [[nodiscard]] auto full_name_of(const node_declaration& decl)
+  [[nodiscard]] auto get_full_name(const node_declaration& decl)
     -> const std::string&;
 
   /// get name component of node declaration
-  [[nodiscard]] auto node_name_of(const node_declaration& decl) -> std::string;
+  [[nodiscard]] auto get_node_name(const node_declaration& decl) -> std::string;
 
   /// get path component of node declaration
-  [[nodiscard]] auto node_path_of(const node_declaration& decl) -> std::string;
+  [[nodiscard]] auto get_node_path(const node_declaration& decl) -> std::string;
 
   /// get description
-  [[nodiscard]] auto description_of(const node_declaration& decl)
+  [[nodiscard]] auto get_description(const node_declaration& decl)
     -> const std::string&;
 
   /// get input sockets
-  [[nodiscard]] auto input_sockets_of(const node_declaration& decl)
+  [[nodiscard]] auto get_input_sockets(const node_declaration& decl)
     -> const std::vector<std::string>&;
 
   /// get output sockets
-  [[nodiscard]] auto output_sockets_of(const node_declaration& decl)
+  [[nodiscard]] auto get_output_sockets(const node_declaration& decl)
     -> const std::vector<std::string>&;
 
   /// get node visibility
-  [[nodiscard]] auto visibility_of(const node_declaration& decl)
+  [[nodiscard]] auto get_visibility(const node_declaration& decl)
     -> node_declaration_visibility;
 
 } // namespace yave

@@ -46,43 +46,43 @@ namespace yave {
 
   } // namespace
 
-  auto full_name_of(const node_declaration& decl) -> const std::string&
+  auto get_full_name(const node_declaration& decl) -> const std::string&
   {
     return std::visit(
       [](auto& d) -> auto& { return d.full_name(); }, decl);
   }
 
-  auto node_name_of(const node_declaration& decl) -> std::string
+  auto get_node_name(const node_declaration& decl) -> std::string
   {
     return std::visit([](auto& d) { return d.node_name(); }, decl);
   }
 
-  auto node_path_of(const node_declaration& decl) -> std::string
+  auto get_node_path(const node_declaration& decl) -> std::string
   {
     return std::visit([](auto& d) { return d.node_path(); }, decl);
   }
 
-  auto description_of(const node_declaration& decl) -> const std::string&
+  auto get_description(const node_declaration& decl) -> const std::string&
   {
     return std::visit(
       [](auto& d) -> auto& { return d.description(); }, decl);
   }
 
-  auto input_sockets_of(const node_declaration& decl)
+  auto get_input_sockets(const node_declaration& decl)
     -> const std::vector<std::string>&
   {
     return std::visit(
       [](auto& d) -> auto& { return d.input_sockets(); }, decl);
   }
 
-  auto output_sockets_of(const node_declaration& decl)
+  auto get_output_sockets(const node_declaration& decl)
     -> const std::vector<std::string>&
   {
     return std::visit(
       [](auto& d) -> auto& { return d.output_sockets(); }, decl);
   }
 
-  auto visibility_of(const node_declaration& decl)
+  auto get_visibility(const node_declaration& decl)
     -> node_declaration_visibility
   {
     return std::visit(
