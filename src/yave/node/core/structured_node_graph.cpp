@@ -5,6 +5,7 @@
 
 #include <yave/node/core/structured_node_graph.hpp>
 #include <yave/rts/to_string.hpp>
+#include <yave/rts/value_cast.hpp>
 
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view.hpp>
@@ -211,6 +212,8 @@ namespace yave {
         callers.erase(rng::find(callers, caller));
       }
 
+      auto& io_bits(socket_type type);
+
       void refresh(const node_graph& ng);
     };
 
@@ -335,6 +338,8 @@ namespace yave {
           [this](auto& p) { return p->is_defcall(this); }, callee);
       }
 
+      auto& io_bits(socket_type type);
+
       void refresh(const node_graph& ng);
     };
 
@@ -389,6 +394,28 @@ namespace yave {
     [[nodiscard]] auto make_node_data(Arg&& arg)
     {
       return make_object<NodeData>(std::forward<Arg>(arg));
+    }
+
+    // io bits
+    auto _get_io_bits_ref = [](auto* p, auto type) -> auto&
+    {
+      switch (type) {
+        case socket_type::input:
+          return p->input_bits;
+        case socket_type::output:
+          return p->output_bits;
+      }
+      unreachable();
+    };
+
+    auto& node_group::io_bits(socket_type type)
+    {
+      return _get_io_bits_ref(this, type);
+    }
+
+    auto& node_call::io_bits(socket_type type)
+    {
+      return _get_io_bits_ref(this, type);
     }
 
     // refresh functions
@@ -486,7 +513,7 @@ namespace yave {
     }
 
     /// get default name of node group
-    auto get_default_group_name(uid id)
+    auto get_default_new_group_name(uid id)
     {
       return fmt::format("Group_{}", to_string(id).substr(0, 4));
     }
@@ -1824,17 +1851,7 @@ namespace yave {
       socket_type type,
       size_t index)
     {
-      auto& bits = [&]() -> auto&
-      {
-        switch (type) {
-          case socket_type::input:
-            return call->input_bits;
-          case socket_type::output:
-            return call->output_bits;
-        }
-        unreachable();
-      }
-      ();
+      auto& bits = call->io_bits(type);
 
       // index range shoud be valid
       assert(0 <= index && index <= bits.size());
@@ -1891,17 +1908,7 @@ namespace yave {
       socket_type type,
       size_t index)
     {
-      auto& bits = [&]() -> auto&
-      {
-        switch (type) {
-          case socket_type::input:
-            return g->input_bits;
-          case socket_type::output:
-            return g->output_bits;
-        }
-        unreachable();
-      }
-      ();
+      auto& bits = g->io_bits(type);
 
       // index range shoud be valid
       assert(0 <= index && index <= bits.size());
@@ -1972,21 +1979,19 @@ namespace yave {
 
       // macro
       if (get_callee_macro(node)) {
-        // add socket only to caller
-        insert_node_call_bit(get_call(node), socket, socket_type::input, index);
+        auto c = check(get_call(node));
+        insert_node_call_bit(c, socket, socket_type::input, index);
+        return ng.input_sockets(node)[index];
       }
 
       // group
       if (auto g = get_callee_group(node)) {
 
-        // insert bit to callee
         insert_group_callee_bit(g, socket, socket_type::input, index);
 
-        // update callers
         for (auto&& caller : g->callers)
           insert_node_call_bit(caller, socket, socket_type::input, index);
 
-        assert(ng.input_sockets(node).size() > index);
         return ng.input_sockets(node)[index];
       }
 
@@ -2017,9 +2022,9 @@ namespace yave {
 
       // macro
       if (get_callee_macro(node)) {
-        // add socket only to caller
-        insert_node_call_bit(
-          get_call(node), socket, socket_type::output, index);
+        auto c = check(get_call(node));
+        insert_node_call_bit(c, socket, socket_type::output, index);
+        return ng.output_sockets(node)[index];
       }
 
       // group
@@ -2030,7 +2035,6 @@ namespace yave {
         for (auto&& caller : g->callers)
           insert_node_call_bit(caller, socket, socket_type::output, index);
 
-        assert(ng.output_sockets(node).size() > index);
         return ng.output_sockets(node)[index];
       }
 
@@ -2045,6 +2049,7 @@ namespace yave {
 
       auto node = this->node(socket);
       auto idx  = socket_index(socket);
+      auto type = ng.get_info(socket)->type();
 
       assert(is_valid(node));
 
@@ -2060,33 +2065,30 @@ namespace yave {
         }
       }
 
+      // remove io bit from group or call
+      auto rm_bit = [&](auto* p, auto type, auto idx) {
+        auto& bits = p->io_bits(type);
+        assert(idx < bits.size());
+        ng.remove(bits[idx]);
+        bits.erase(bits.begin() + idx);
+      };
+
+      // macro
+      if (get_callee_macro(node)) {
+        rm_bit(get_call(node), type, idx);
+        return;
+      }
+
+      // group
       if (auto g = get_callee_group(node)) {
-        if (ng.is_input_socket(socket)) {
-          auto rm_input = [&](auto* p, auto idx) {
-            assert(idx < p->input_bits.size());
-            ng.remove(p->input_bits[idx]);
-            p->input_bits.erase(p->input_bits.begin() + idx);
-          };
-          // group
-          rm_input(g, idx);
-          // caller
-          for (auto&& caller : g->callers)
-            rm_input(caller, idx);
-        }
-        if (ng.is_output_socket(socket)) {
-          auto rm_output = [&](auto* p, auto idx) {
-            assert(idx < p->output_bits.size());
-            ng.remove(p->output_bits[idx]);
-            p->output_bits.erase(p->output_bits.begin() + idx);
-          };
-          // group
-          rm_output(g, idx);
-          // caller
-          for (auto&& caller : g->callers)
-            rm_output(caller, idx);
-        }
-      } else
-        Error(g_logger, "Tried to remove socket of non-group, ignored.");
+        // callee group
+        rm_bit(g, type, idx);
+        // caller
+        for (auto&& caller : g->callers)
+          rm_bit(caller, type, idx);
+        return;
+      }
+      Error(g_logger, "Tried to remove socket of non-group, ignored.");
     }
 
   private:
@@ -2183,9 +2185,8 @@ namespace yave {
     }
 
   public:
-    auto create_declaration(
-      structured_node_graph& self,
-      const std::shared_ptr<node_declaration>& pdecl) -> node_handle
+    auto create_declaration(const std::shared_ptr<node_declaration>& pdecl)
+      -> node_handle
     {
       return std::visit(
         [&](auto& decl) -> node_handle {
@@ -2247,9 +2248,8 @@ namespace yave {
         return {};
       }
 
-      set_name(
-        newc->node,
-        fmt::format("Group_{}", to_string(newc->node.id()).substr(0, 4)));
+      // set default name
+      set_name(newc->node, get_default_new_group_name(newc->node.id()));
 
       // collect outbound connections
       std::vector<connection_handle> ocs, ics;
@@ -2892,7 +2892,7 @@ namespace yave {
   auto structured_node_graph::create_declaration(
     const std::shared_ptr<node_declaration>& decl) -> node_handle
   {
-    return m_pimpl->create_declaration(*this, decl);
+    return m_pimpl->create_declaration(decl);
   }
 
   auto structured_node_graph::create_group(
