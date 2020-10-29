@@ -15,7 +15,19 @@
 
 namespace yave {
 
-  /// NodeGraph v2 PoC implementation
+  /// Node graph PoC implementation v3.
+  /// This is the heart of our visual language, and probably one of the most
+  /// complex data structure in the codebase. This class is built on top of two
+  /// layers of infrastructure: `graph::graph` and `node_graph`.
+  ///
+  /// This data can be considered as an equivalent of AST in traditional
+  /// programming languages, but there're fundamental differences:
+  /// 1. User can access and modify node graph freely, and these operations will
+  /// not cause any syntax errors like undefined identifiers. For example,
+  /// deleting a function definition will also delete all of calls to it
+  /// automatically.
+  /// 2. Some part of node graph is event driven, it modifies itself depending
+  /// on user actions.
   class structured_node_graph
   {
   public:
@@ -23,9 +35,9 @@ namespace yave {
     static constexpr auto node_name_regex = R"(^[^\W\s]+$)";
     /// regex pattern for valid socket names
     static constexpr auto socket_name_regex = R"(^[\w\s]+$)";
-    /// regex pattern for path
+    /// regex pattern for valid path
     static constexpr auto path_name_regex = R"(^(\w+)(\.\w+)*$)";
-    /// regex pattern for path search
+    /// regex pattern for valid path search pattern
     static constexpr auto path_search_regex = R"(^(|\.|(\w+)(\.\w+)*\.?)$)";
 
   public:
@@ -143,12 +155,12 @@ namespace yave {
       -> std::vector<connection_handle>;
 
   public:
-    /// Create new builtin function
+    /// Create new declaration
     /// \param decl new function declaration
     /// \note decl should have unique name, otherwise will fail
     /// \returns null handle when failed
-    [[nodiscard]] auto create_function(const node_declaration& decl)
-      -> node_handle;
+    [[nodiscard]] auto create_declaration(
+      const std::shared_ptr<node_declaration>& decl) -> node_handle;
 
     /// Create new group
     /// \param parent_group parent group. null handle with it's global
@@ -212,6 +224,9 @@ namespace yave {
   public:
     /// Function?
     [[nodiscard]] bool is_function(const node_handle& node) const;
+
+    /// Macro?
+    [[nodiscard]] bool is_macro(const node_handle& node) const;
 
     /// Group?
     [[nodiscard]] bool is_group(const node_handle& node) const;
