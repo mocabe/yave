@@ -12,9 +12,10 @@ namespace yave {
   auto node_declaration_traits<node::Color::Color>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Color.Color",
       "Create Color",
+      node_declaration_visibility::_public,
       {"color"},
       {"color"},
       {{0, make_node_argument<Color>()}});
@@ -23,9 +24,10 @@ namespace yave {
   auto node_declaration_traits<node::Color::FromFloats>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Color.FromFloats",
       "Create Color from floats",
+      node_declaration_visibility::_public,
       {"R", "G", "B", "A"},
       {"color"},
       {{0, make_node_argument<Float>(0.f, 0.f, 1.f, 0.001f)},
@@ -60,7 +62,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Color::Color>();
     return std::vector {node_definition(
-      info.full_name(), 0, make_object<modules::_std::color::ColorCtor>())};
+      get_full_name(info), 0, make_object<modules::_std::color::ColorCtor>())};
   }
 
   auto node_definition_traits<node::Color::FromFloats, modules::_std::tag>::
@@ -68,6 +70,6 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Color::FromFloats>();
     return std::vector {node_definition(
-      info.full_name(), 0, make_object<modules::_std::color::ColorFloat>())};
+      get_full_name(info), 0, make_object<modules::_std::color::ColorFloat>())};
   }
 } // namespace yave

@@ -13,9 +13,10 @@ namespace yave {
   auto node_declaration_traits<node::Frame::Frame>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Frame.Frame",
       "Create new frame buffer",
+      node_declaration_visibility::_public,
       {"color"},
       {"frame"},
       {{0, make_node_argument<Color>(data::color(0.f, 0.f, 0.f, 1.f))}});
@@ -64,7 +65,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Frame::Frame>();
     return std::vector {node_definition(
-      info.full_name(),
+      get_full_name(info),
       0,
       make_object<modules::_std::frame::FrameBufferColored>(mngr, comp))};
   }

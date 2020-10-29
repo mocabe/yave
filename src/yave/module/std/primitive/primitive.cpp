@@ -16,9 +16,10 @@ namespace yave {
   auto node_declaration_traits<node::PrimitiveCtor<T>>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       name,
       "Data type constructor",
+      node_declaration_visibility::_public,
       {"value"},
       {"value"},
       {{0, make_node_argument<T>()}});
@@ -42,9 +43,8 @@ namespace yave {
     get_node_definitions() -> std::vector<node_definition>
   {
     auto info = get_node_declaration<node::PrimitiveCtor<T>>();
-
     return {node_definition(
-      info.full_name(),
+      get_full_name(info),
       0,
       make_object<modules::_std::prim::PrimitiveCtor<T>>())};
   }

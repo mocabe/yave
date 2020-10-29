@@ -17,15 +17,21 @@ namespace yave {
   auto node_declaration_traits<node::Mat::Mat4>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration("Mat.Mat4", "4x4 Matrix", {}, {"mat4"});
+    return function_node_declaration(
+      "Mat.Mat4",
+      "4x4 Matrix",
+      node_declaration_visibility::_public,
+      {},
+      {"mat4"});
   }
 
   auto node_declaration_traits<node::Mat::Rotate>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Mat.Rotate",
       "Rotate object around axis",
+      node_declaration_visibility::_public,
       {"mat4", "deg", "axis"},
       {"mat4"},
       {{1, make_node_argument<Float>()}});
@@ -34,9 +40,10 @@ namespace yave {
   auto node_declaration_traits<node::Mat::RotateX>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Mat.RotateX",
       "Rotate object around X axis",
+      node_declaration_visibility::_public,
       {"mat4", "deg"},
       {"mat4"},
       {{1, make_node_argument<Float>()}});
@@ -45,9 +52,10 @@ namespace yave {
   auto node_declaration_traits<node::Mat::RotateY>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Mat.RotateY",
       "Rotate object around Y axis",
+      node_declaration_visibility::_public,
       {"mat4", "deg"},
       {"mat4"},
       {{1, make_node_argument<Float>()}});
@@ -56,9 +64,10 @@ namespace yave {
   auto node_declaration_traits<node::Mat::RotateZ>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Mat.RotateZ",
       "Rotate object around Z axis",
+      node_declaration_visibility::_public,
       {"mat4", "deg"},
       {"mat4"},
       {{1, make_node_argument<Float>()}});
@@ -67,8 +76,12 @@ namespace yave {
   auto node_declaration_traits<node::Mat::Translate>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
-      "Mat.Translate", "Move object", {"mat4", "vec3"}, {"mat4"});
+    return function_node_declaration(
+      "Mat.Translate",
+      "Move object",
+      node_declaration_visibility::_public,
+      {"mat4", "vec3"},
+      {"mat4"});
   }
 
   namespace modules::_std::geometry {
@@ -161,7 +174,9 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::Mat4>();
 
     return {node_definition(
-      info.full_name(), 0, make_object<modules::_std::geometry::Mat4Ctor>())};
+      get_full_name(info),
+      0,
+      make_object<modules::_std::geometry::Mat4Ctor>())};
   }
 
   auto node_definition_traits<node::Mat::Rotate, modules::_std::tag>::
@@ -170,7 +185,9 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::Rotate>();
 
     return {node_definition(
-      info.full_name(), 0, make_object<modules::_std::geometry::Mat4Rotate>())};
+      get_full_name(info),
+      0,
+      make_object<modules::_std::geometry::Mat4Rotate>())};
   }
 
   auto node_definition_traits<node::Mat::RotateX, modules::_std::tag>::
@@ -179,7 +196,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::RotateX>();
 
     return {node_definition(
-      info.full_name(),
+      get_full_name(info),
       0,
       make_object<modules::_std::geometry::Mat4RotateX>())};
   }
@@ -190,7 +207,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::RotateY>();
 
     return {node_definition(
-      info.full_name(),
+      get_full_name(info),
       0,
       make_object<modules::_std::geometry::Mat4RotateY>())};
   }
@@ -201,7 +218,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::RotateZ>();
 
     return {node_definition(
-      info.full_name(),
+      get_full_name(info),
       0,
       make_object<modules::_std::geometry::Mat4RotateZ>())};
   }
@@ -212,7 +229,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::Translate>();
 
     return {node_definition(
-      info.full_name(),
+      get_full_name(info),
       0,
       make_object<modules::_std::geometry::Mat4Translate>())};
   }

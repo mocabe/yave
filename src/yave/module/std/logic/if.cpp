@@ -11,12 +11,11 @@ namespace yave {
   auto node_declaration_traits<node::Logic::If>::get_node_declaration()
     -> node_declaration
   {
-    class X;
-    return node_declaration(
+    return function_node_declaration(
       "Logic.If",
-      "Basic control primitive. Takes single (Bool) value to switch call to "
-      "subgraph. Because of lazy evaluation, subgraph not taken will not be "
-      "evaluated",
+      "Basic control primitive. \n"
+      "Takes single (Bool) value to switch call to subgraph",
+      node_declaration_visibility::_public,
       {"cond", "then", "else"},
       {"out"});
   }
@@ -44,6 +43,6 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Logic::If>();
     return {node_definition(
-      info.full_name(), 0, make_object<modules::_std::logic::If>())};
+      get_full_name(info), 0, make_object<modules::_std::logic::If>())};
   }
 } // namespace yave
