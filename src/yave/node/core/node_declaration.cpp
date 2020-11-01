@@ -33,7 +33,7 @@ namespace yave {
     {
       std::string_view sv = full_name;
       auto pos            = sv.find_last_of('.');
-      return std::string(sv.substr(0, pos));
+      return std::string(sv.substr(pos + 1, sv.npos));
     }
 
     /// get path from full path
@@ -41,7 +41,7 @@ namespace yave {
     {
       std::string_view sv = full_name;
       auto pos            = sv.find_last_of('.');
-      return std::string(sv.substr(pos + 1, sv.npos));
+      return std::string(sv.substr(0, pos));
     }
 
   } // namespace
