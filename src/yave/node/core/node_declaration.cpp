@@ -104,15 +104,15 @@ namespace yave {
     , m_defargs {std::move(default_arg)}
   {
     if (!valid_node_path(m_name))
-      throw std::invalid_argument("invalid node path");
+      throw std::invalid_argument("invalid node path: " + m_name);
 
     for (auto&& s : m_iss)
       if (!valid_socket_name(s))
-        throw std::invalid_argument("invalid socket name");
+        throw std::invalid_argument("invalid socket name: " + s);
 
     for (auto&& s : m_oss)
       if (!valid_socket_name(s))
-        throw std::invalid_argument("invalid socket name");
+        throw std::invalid_argument("invalid socket name: " + s);
 
     std::sort(m_defargs.begin(), m_defargs.end(), [](auto&& lhs, auto&& rhs) {
       return lhs.first < rhs.first;

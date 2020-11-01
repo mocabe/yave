@@ -226,7 +226,7 @@ namespace yave::editor::imgui {
           assert(path);
 
           if (auto decl = decls.find(*path))
-            return decl->description();
+            return get_description(*decl);
 
           return std::string();
         }();
