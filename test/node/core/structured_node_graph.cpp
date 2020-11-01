@@ -231,13 +231,19 @@ TEST_CASE("root add group out")
   ng.set_name(root, "root");
   REQUIRE(ng.get_info(root)->input_sockets().empty());
   REQUIRE(ng.get_info(root)->output_sockets().empty());
+  REQUIRE(ng.get_info(ng.get_group_input(root))->input_sockets().empty());
+  REQUIRE(ng.get_info(ng.get_group_output(root))->output_sockets().empty());
 
   // {} -> test1
   auto s1 = ng.add_output_socket(root, "test1");
   REQUIRE(ng.exists(s1));
   REQUIRE(ng.node(s1) == root);
   REQUIRE(ng.get_info(root)->output_sockets().size() == 1);
+  REQUIRE(ng.get_info(ng.get_group_output(root))->output_sockets().empty());
+  REQUIRE(ng.get_info(ng.get_group_output(root))->input_sockets().size() == 1);
   REQUIRE(ng.get_info(root)->input_sockets().size() == 0);
+  REQUIRE(ng.get_info(ng.get_group_input(root))->output_sockets().empty());
+  REQUIRE(ng.get_info(ng.get_group_input(root))->input_sockets().empty());
   REQUIRE(ng.get_info(root)->output_sockets()[0] == s1);
   REQUIRE(ng.get_info(s1)->name() == "test1");
   REQUIRE(ng.get_info(s1)->index() == 0);
@@ -362,8 +368,10 @@ TEST_CASE("root add func")
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
-  auto decl = get_node_declaration<node::Num::Int>();
-  auto func = ng.create_function(decl);
+  auto decl  = get_node_declaration<node::Num::Int>();
+  auto pdecl = std::make_shared<node_declaration>(decl);
+  auto func  = ng.create_declaration(pdecl);
+
   REQUIRE(ng.exists(func));
   REQUIRE(!ng.is_group(func));
   REQUIRE(!ng.is_group_input(func));
@@ -373,19 +381,19 @@ TEST_CASE("root add func")
   REQUIRE(!ng.is_parent_of(func, root));
   REQUIRE(!ng.is_child_of(func, root));
 
-  REQUIRE(*ng.get_path(func) == decl.full_name());
+  REQUIRE(*ng.get_path(func) == get_full_name(decl));
 
-  for (size_t i = 0; i < decl.input_sockets().size(); ++i)
+  for (size_t i = 0; i < get_input_sockets(decl).size(); ++i)
     REQUIRE(
       ng.get_info(ng.get_info(func)->input_sockets()[i])->name()
-      == decl.input_sockets()[i]);
+      == get_input_sockets(decl)[i]);
 
-  for (size_t i = 0; i < decl.output_sockets().size(); ++i)
+  for (size_t i = 0; i < get_output_sockets(decl).size(); ++i)
     REQUIRE(
       ng.get_info(ng.get_info(func)->output_sockets()[i])->name()
-      == decl.output_sockets()[i]);
+      == get_output_sockets(decl)[i]);
 
-  REQUIRE(!ng.create_function(decl));
+  REQUIRE(!ng.create_declaration(pdecl));
 
   // add call
   auto call = ng.create_copy(root, func);
@@ -394,26 +402,27 @@ TEST_CASE("root add func")
   REQUIRE(ng.get_group_members(root).size() == 1);
   REQUIRE(ng.get_group_nodes(root).size() == 3);
 
-  REQUIRE(*ng.get_path(call) == "root." + decl.node_name());
-  REQUIRE(*ng.get_path(ng.get_definition(call)) == decl.full_name());
+  REQUIRE(*ng.get_path(call) == "root." + get_node_name(decl));
+  REQUIRE(*ng.get_path(ng.get_definition(call)) == get_full_name(decl));
 
-  for (size_t i = 0; i < decl.input_sockets().size(); ++i)
+  for (size_t i = 0; i < get_input_sockets(decl).size(); ++i)
     REQUIRE(
       ng.get_info(ng.get_info(call)->input_sockets()[i])->name()
-      == decl.input_sockets()[i]);
+      == get_input_sockets(decl)[i]);
 
-  for (size_t i = 0; i < decl.output_sockets().size(); ++i)
+  for (size_t i = 0; i < get_output_sockets(decl).size(); ++i)
     REQUIRE(
       ng.get_info(ng.get_info(call)->output_sockets()[i])->name()
-      == decl.output_sockets()[i]);
+      == get_output_sockets(decl)[i]);
 
   // fail
   REQUIRE(!ng.add_input_socket(call, ""));
   REQUIRE(!ng.add_output_socket(call, ""));
   ng.set_name(call, "");
   ng.set_name(ng.input_sockets(call)[0], "");
-  REQUIRE(*ng.get_name(call) == decl.node_name());
-  REQUIRE(*ng.get_name(ng.input_sockets(call)[0]) == decl.input_sockets()[0]);
+  REQUIRE(*ng.get_name(call) == get_node_name(decl));
+  REQUIRE(
+    *ng.get_name(ng.input_sockets(call)[0]) == get_input_sockets(decl)[0]);
 }
 
 TEST_CASE("func conn")
@@ -422,8 +431,9 @@ TEST_CASE("func conn")
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
-  auto decl = get_node_declaration<node::Num::Int>();
-  auto func = ng.create_function(decl);
+  auto decl  = get_node_declaration<node::Num::Int>();
+  auto pdecl = std::make_shared<node_declaration>(decl);
+  auto func  = ng.create_declaration(pdecl);
 
   SECTION("global")
   {
@@ -484,12 +494,14 @@ TEST_CASE("func destroy")
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
 
-  auto decl = get_node_declaration<node::Num::Int>();
-  auto func = ng.create_function(decl);
+  auto decl  = get_node_declaration<node::Num::Int>();
+  auto pdecl = std::make_shared<node_declaration>(decl);
+  auto func  = ng.create_declaration(pdecl);
 
   {
-    auto decl2 = get_node_declaration<node::String::String>();
-    auto func2 = ng.create_function(decl2);
+    auto decl2  = get_node_declaration<node::String::String>();
+    auto pdecl2 = std::make_shared<node_declaration>(decl2);
+    auto func2  = ng.create_declaration(pdecl2);
     REQUIRE(ng.exists(func2));
     ng.destroy(func2);
   }
@@ -533,8 +545,9 @@ TEST_CASE("group")
   structured_node_graph ng;
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
-  auto decl = get_node_declaration<node::Num::Int>();
-  auto func = ng.create_function(decl);
+  auto decl  = get_node_declaration<node::Num::Int>();
+  auto pdecl = std::make_shared<node_declaration>(decl);
+  auto func  = ng.create_declaration(pdecl);
 
   SECTION("")
   {
@@ -639,16 +652,18 @@ TEST_CASE("group")
       == ng.get_info(ng.connections(ng.input_sockets(f1)[0])[0])->src_node());
 
     REQUIRE(
-      ng.get_info(ng.output_sockets(g)[0])->name() == decl.output_sockets()[0]);
+      ng.get_info(ng.output_sockets(g)[0])->name()
+      == get_output_sockets(decl)[0]);
     REQUIRE(
-      ng.get_info(ng.input_sockets(g)[0])->name() == decl.input_sockets()[0]);
+      ng.get_info(ng.input_sockets(g)[0])->name()
+      == get_input_sockets(decl)[0]);
 
     REQUIRE(
       ng.get_info(ng.input_sockets(ng.get_group_output(g))[0])->name()
-      == decl.output_sockets()[0]);
+      == get_output_sockets(decl)[0]);
     REQUIRE(
       ng.get_info(ng.output_sockets(ng.get_group_input(g))[0])->name()
-      == decl.input_sockets()[0]);
+      == get_input_sockets(decl)[0]);
   }
 
   SECTION("misc")
@@ -734,8 +749,9 @@ TEST_CASE("clone")
   structured_node_graph ng;
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "root");
-  auto decl = get_node_declaration<node::Num::Int>();
-  auto func = ng.create_function(decl);
+  auto decl  = get_node_declaration<node::Num::Int>();
+  auto pdecl = std::make_shared<node_declaration>(decl);
+  auto func  = ng.create_declaration(pdecl);
 
   auto f1 = ng.create_copy(root, func);
   auto f2 = ng.create_copy(root, func);
@@ -786,11 +802,12 @@ TEST_CASE("path")
   structured_node_graph ng;
   auto root = ng.create_group({nullptr}, {});
   ng.set_name(root, "Root");
-  auto decl = get_node_declaration<node::Num::Int>();
-  auto func = ng.create_function(decl);
+  auto decl  = get_node_declaration<node::Num::Int>();
+  auto pdecl = std::make_shared<node_declaration>(decl);
+  auto func  = ng.create_declaration(pdecl);
 
   REQUIRE(*ng.get_path(root) == "Root");
-  REQUIRE(*ng.get_path(func) == decl.full_name());
+  REQUIRE(*ng.get_path(func) == get_full_name(decl));
 
   REQUIRE(ng.search_path(".").empty());
   REQUIRE(ng.search_path("").size() == 2); // root, std
@@ -802,8 +819,8 @@ TEST_CASE("path")
   REQUIRE(ng.search_path(".Root").empty());
   REQUIRE(ng.search_path("Foo").empty());
   REQUIRE(ng.search_path(".Foo").empty());
-  REQUIRE(ng.search_path(decl.full_name()) == std::vector {func});
-  REQUIRE(ng.search_path(decl.full_name() + ".").empty());
+  REQUIRE(ng.search_path(get_full_name(decl)) == std::vector {func});
+  REQUIRE(ng.search_path(get_full_name(decl) + ".").empty());
 
   auto g = ng.create_group(root, {});
   ng.set_name(g, "G");
@@ -818,7 +835,9 @@ TEST_CASE("path")
 TEST_CASE("custom id")
 {
   structured_node_graph ng;
-  auto i = ng.create_function(get_node_declaration<node::Num::Int>());
+  auto decl  = get_node_declaration<node::Num::Int>();
+  auto pdecl = std::make_shared<node_declaration>(decl);
+  auto i     = ng.create_declaration(pdecl);
   REQUIRE(ng.exists(i));
 
   auto id = uid::random_generate();

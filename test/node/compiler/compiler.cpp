@@ -50,8 +50,12 @@ struct yave::node_declaration_traits<n::Add>
 {
   static auto get_node_declaration()
   {
-    class X;
-    return node_declaration("test.Add", "", {"x", "y"}, {"out"});
+    return function_node_declaration(
+      "test.Add",
+      "",
+      node_declaration_visibility::_public,
+      {"x", "y"},
+      {"out"});
   }
 };
 
@@ -62,11 +66,11 @@ struct yave::node_definition_traits<n::Add, test_backend>
   {
     // Int version
     auto defi = node_definition(
-      get_node_declaration<n::Add>().full_name(), 0, make_object<AddI>());
+      get_full_name(get_node_declaration<n::Add>()), 0, make_object<AddI>());
 
     // Float version
     auto defd = node_definition(
-      get_node_declaration<n::Add>().full_name(), 0, make_object<AddF>());
+      get_full_name(get_node_declaration<n::Add>()), 0, make_object<AddF>());
 
     return {defi, defd};
   }
@@ -105,13 +109,13 @@ TEST_CASE("node_compiler V2")
   defs.add(nil_defs);
   defs.add(cons_defs);
 
-  auto int_func   = ng.create_function(int_decl);
-  auto add_func   = ng.create_function(add_decl);
-  auto float_func = ng.create_function(float_decl);
-  auto bool_func  = ng.create_function(bool_decl);
-  auto if_func    = ng.create_function(if_decl);
-  auto nil_func   = ng.create_function(nil_decl);
-  auto cons_func  = ng.create_function(cons_decl);
+  auto int_func   = ng.create_declaration(std::make_shared<node_declaration>(int_decl));
+  auto add_func   = ng.create_declaration(std::make_shared<node_declaration>(add_decl));
+  auto float_func = ng.create_declaration(std::make_shared<node_declaration>(float_decl));
+  auto bool_func  = ng.create_declaration(std::make_shared<node_declaration>(bool_decl));
+  auto if_func    = ng.create_declaration(std::make_shared<node_declaration>(if_decl));
+  auto nil_func   = ng.create_declaration(std::make_shared<node_declaration>(nil_decl));
+  auto cons_func  = ng.create_declaration(std::make_shared<node_declaration>(cons_decl));
 
   REQUIRE(int_func);
   REQUIRE(add_func);

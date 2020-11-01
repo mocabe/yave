@@ -14,22 +14,47 @@
 
 using namespace yave;
 
+auto make_pdecl(function_node_declaration decl)
+{
+  return std::make_shared<node_declaration>(std::move(decl));
+}
+
 TEST_CASE("parse")
 {
   structured_node_graph ng;
 
   // single output
-  auto decl1 = node_declaration("test.decl1", "", {}, {"out"});
+  auto decl1 = make_pdecl(function_node_declaration(
+    "test.decl1", "", node_declaration_visibility::_public, {}, {"out"}));
+
   // multi output
-  auto decl2 = node_declaration("test.decl2", "", {}, {"out1", "out2"});
+  auto decl2 = make_pdecl(function_node_declaration(
+    "test.decl2",
+    "",
+    node_declaration_visibility::_public,
+    {},
+    {"out1", "out2"}));
+
   // singl in-out
-  auto decl3 = node_declaration("test.decl3", "", {"in"}, {"out"});
+  auto decl3 = make_pdecl(function_node_declaration(
+    "test.decl3", "", node_declaration_visibility::_public, {"in"}, {"out"}));
+
   // single in-out with default argument
-  auto decl4 = node_declaration(
-    "test.decl4", "", {"in"}, {"out"}, {{0, make_object<Int>()}});
+  auto decl4 = make_pdecl(function_node_declaration(
+    "test.decl4",
+    "",
+    node_declaration_visibility::_public,
+    {"in"},
+    {"out"},
+    {{0, make_object<Int>()}}));
+
   // multi in-out
-  auto decl5 =
-    node_declaration("test.decl5", "", {"in1", "in2", "in3"}, {"out1", "out2"});
+  auto decl5 = make_pdecl(function_node_declaration(
+    "test.decl5",
+    "",
+    node_declaration_visibility::_public,
+    {"in1", "in2", "in3"},
+    {"out1", "out2"}));
 
   REQUIRE(ng.search_path("/").empty());
 
@@ -86,7 +111,7 @@ TEST_CASE("parse")
 
     SECTION("ro <- decl1")
     {
-      auto f1 = ng.create_function(decl1);
+      auto f1 = ng.create_declaration(decl1);
       auto n  = ng.create_copy(root, f1);
       REQUIRE(ng.exists(n));
       REQUIRE(ng.connect(
@@ -98,7 +123,7 @@ TEST_CASE("parse")
 
     SECTION("ro <- decl2")
     {
-      auto f1 = ng.create_function(decl2);
+      auto f1 = ng.create_declaration(decl2);
       auto n  = ng.create_copy(root, f1);
       REQUIRE(ng.exists(n));
       REQUIRE(ng.connect(
@@ -110,8 +135,8 @@ TEST_CASE("parse")
 
     SECTION("ro <- decl3 <- decl1")
     {
-      auto f1 = ng.create_function(decl3);
-      auto f2 = ng.create_function(decl1);
+      auto f1 = ng.create_declaration(decl3);
+      auto f2 = ng.create_declaration(decl1);
       auto n1 = ng.create_copy(root, f1);
       auto n2 = ng.create_copy(root, f2);
 
@@ -129,8 +154,8 @@ TEST_CASE("parse")
 
     SECTION("ro <- decl4 <- decl1")
     {
-      auto f1 = ng.create_function(decl4);
-      auto f2 = ng.create_function(decl1);
+      auto f1 = ng.create_declaration(decl4);
+      auto f2 = ng.create_declaration(decl1);
       auto n1 = ng.create_copy(root, f1);
       auto n2 = ng.create_copy(root, f2);
 
@@ -147,7 +172,7 @@ TEST_CASE("parse")
 
     SECTION("ro <- g[ <- decl1 ] (<-...)")
     {
-      auto f1 = ng.create_function(decl1);
+      auto f1 = ng.create_declaration(decl1);
       auto g  = ng.create_group(root, {});
       ng.set_name(g, "g");
       REQUIRE(ng.add_output_socket(g, "out"));
@@ -172,7 +197,7 @@ TEST_CASE("parse")
 
     SECTION("ro <- g[ <- decl3 <- ] (<-...)")
     {
-      auto f = ng.create_function(decl3);
+      auto f = ng.create_declaration(decl3);
       auto g = ng.create_group(root, {});
       ng.set_name(g, "g");
       REQUIRE(ng.add_input_socket(g, "in"));
@@ -201,8 +226,8 @@ TEST_CASE("parse")
 
     SECTION("ro <- decl5 <<<-<< g[ <<-< decl1 ]")
     {
-      auto d1 = ng.create_function(decl1);
-      auto d5 = ng.create_function(decl5);
+      auto d1 = ng.create_declaration(decl1);
+      auto d5 = ng.create_declaration(decl5);
 
       auto f5 = ng.create_copy(root, d5);
       auto f1 = ng.create_copy(root, d1);
