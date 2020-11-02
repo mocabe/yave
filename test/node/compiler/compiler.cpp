@@ -66,11 +66,11 @@ struct yave::node_definition_traits<n::Add, test_backend>
   {
     // Int version
     auto defi = node_definition(
-      get_full_name(get_node_declaration<n::Add>()), 0, make_object<AddI>());
+      get_node_declaration<n::Add>().full_name(), 0, make_object<AddI>());
 
     // Float version
     auto defd = node_definition(
-      get_full_name(get_node_declaration<n::Add>()), 0, make_object<AddF>());
+      get_node_declaration<n::Add>().full_name(), 0, make_object<AddF>());
 
     return {defi, defd};
   }

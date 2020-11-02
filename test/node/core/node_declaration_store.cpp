@@ -46,9 +46,9 @@ TEST_CASE("node_declaration_store")
   // allows duplicate
   REQUIRE(store.add(*fdecl));
 
-  REQUIRE(store.find(get_full_name(*idecl)));
-  REQUIRE(store.find(get_full_name(*fdecl)));
+  REQUIRE(store.find(idecl->full_name()));
+  REQUIRE(store.find(fdecl->full_name()));
 
-  store.remove(get_full_name(*fdecl));
-  REQUIRE(!store.find(get_full_name(*fdecl)));
+  store.remove(fdecl->full_name());
+  REQUIRE(!store.find(fdecl->full_name()));
 }

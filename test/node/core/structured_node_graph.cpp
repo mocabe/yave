@@ -381,17 +381,17 @@ TEST_CASE("root add func")
   REQUIRE(!ng.is_parent_of(func, root));
   REQUIRE(!ng.is_child_of(func, root));
 
-  REQUIRE(*ng.get_path(func) == get_full_name(decl));
+  REQUIRE(*ng.get_path(func) == decl.full_name());
 
-  for (size_t i = 0; i < get_input_sockets(decl).size(); ++i)
+  for (size_t i = 0; i < decl.input_sockets().size(); ++i)
     REQUIRE(
       ng.get_info(ng.get_info(func)->input_sockets()[i])->name()
-      == get_input_sockets(decl)[i]);
+      == decl.input_sockets()[i]);
 
-  for (size_t i = 0; i < get_output_sockets(decl).size(); ++i)
+  for (size_t i = 0; i < decl.output_sockets().size(); ++i)
     REQUIRE(
       ng.get_info(ng.get_info(func)->output_sockets()[i])->name()
-      == get_output_sockets(decl)[i]);
+      == decl.output_sockets()[i]);
 
   REQUIRE(!ng.create_declaration(pdecl));
 
@@ -402,27 +402,26 @@ TEST_CASE("root add func")
   REQUIRE(ng.get_group_members(root).size() == 1);
   REQUIRE(ng.get_group_nodes(root).size() == 3);
 
-  REQUIRE(*ng.get_path(call) == "root." + get_node_name(decl));
-  REQUIRE(*ng.get_path(ng.get_definition(call)) == get_full_name(decl));
+  REQUIRE(*ng.get_path(call) == "root." + decl.node_name());
+  REQUIRE(*ng.get_path(ng.get_definition(call)) == decl.full_name());
 
-  for (size_t i = 0; i < get_input_sockets(decl).size(); ++i)
+  for (size_t i = 0; i < decl.input_sockets().size(); ++i)
     REQUIRE(
       ng.get_info(ng.get_info(call)->input_sockets()[i])->name()
-      == get_input_sockets(decl)[i]);
+      == decl.input_sockets()[i]);
 
-  for (size_t i = 0; i < get_output_sockets(decl).size(); ++i)
+  for (size_t i = 0; i < decl.output_sockets().size(); ++i)
     REQUIRE(
       ng.get_info(ng.get_info(call)->output_sockets()[i])->name()
-      == get_output_sockets(decl)[i]);
+      == decl.output_sockets()[i]);
 
   // fail
   REQUIRE(!ng.add_input_socket(call, ""));
   REQUIRE(!ng.add_output_socket(call, ""));
   ng.set_name(call, "");
   ng.set_name(ng.input_sockets(call)[0], "");
-  REQUIRE(*ng.get_name(call) == get_node_name(decl));
-  REQUIRE(
-    *ng.get_name(ng.input_sockets(call)[0]) == get_input_sockets(decl)[0]);
+  REQUIRE(*ng.get_name(call) == decl.node_name());
+  REQUIRE(*ng.get_name(ng.input_sockets(call)[0]) == decl.input_sockets()[0]);
 }
 
 TEST_CASE("func conn")
@@ -652,18 +651,16 @@ TEST_CASE("group")
       == ng.get_info(ng.connections(ng.input_sockets(f1)[0])[0])->src_node());
 
     REQUIRE(
-      ng.get_info(ng.output_sockets(g)[0])->name()
-      == get_output_sockets(decl)[0]);
+      ng.get_info(ng.output_sockets(g)[0])->name() == decl.output_sockets()[0]);
     REQUIRE(
-      ng.get_info(ng.input_sockets(g)[0])->name()
-      == get_input_sockets(decl)[0]);
+      ng.get_info(ng.input_sockets(g)[0])->name() == decl.input_sockets()[0]);
 
     REQUIRE(
       ng.get_info(ng.input_sockets(ng.get_group_output(g))[0])->name()
-      == get_output_sockets(decl)[0]);
+      == decl.output_sockets()[0]);
     REQUIRE(
       ng.get_info(ng.output_sockets(ng.get_group_input(g))[0])->name()
-      == get_input_sockets(decl)[0]);
+      == decl.input_sockets()[0]);
   }
 
   SECTION("misc")
@@ -807,7 +804,7 @@ TEST_CASE("path")
   auto func  = ng.create_declaration(pdecl);
 
   REQUIRE(*ng.get_path(root) == "Root");
-  REQUIRE(*ng.get_path(func) == get_full_name(decl));
+  REQUIRE(*ng.get_path(func) == decl.full_name());
 
   REQUIRE(ng.search_path(".").empty());
   REQUIRE(ng.search_path("").size() == 2); // root, std
@@ -819,8 +816,8 @@ TEST_CASE("path")
   REQUIRE(ng.search_path(".Root").empty());
   REQUIRE(ng.search_path("Foo").empty());
   REQUIRE(ng.search_path(".Foo").empty());
-  REQUIRE(ng.search_path(get_full_name(decl)) == std::vector {func});
-  REQUIRE(ng.search_path(get_full_name(decl) + ".").empty());
+  REQUIRE(ng.search_path(decl.full_name()) == std::vector {func});
+  REQUIRE(ng.search_path(decl.full_name() + ".").empty());
 
   auto g = ng.create_group(root, {});
   ng.set_name(g, "G");
