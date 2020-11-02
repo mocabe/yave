@@ -35,14 +35,14 @@ namespace yave {
 
     /// self visit
     template <class F>
-    [[nodiscard]] auto visit(F&& f)
+    [[nodiscard]] decltype(auto) visit(F&& f)
     {
       return std::visit(std::forward<F>(f), as_variant());
     }
 
     /// self visit
     template <class F>
-    [[nodiscard]] auto visit(F&& f) const
+    [[nodiscard]] decltype(auto) visit(F&& f) const
     {
       return std::visit(std::forward<F>(f), as_variant());
     }

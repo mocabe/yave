@@ -253,7 +253,7 @@ namespace yave {
     /// get full name of declaration
     [[nodiscard]] auto full_name() const -> const std::string&
     {
-      return visit([](auto& d) { return d.full_name(); });
+      return visit([](auto& d) -> auto& { return d.full_name(); });
     }
 
     /// get name component of node declaration
@@ -271,19 +271,19 @@ namespace yave {
     /// get description
     [[nodiscard]] auto description() const -> const std::string&
     {
-      return visit([](auto& d) { return d.description(); });
+      return visit([](auto& d) -> auto& { return d.description(); });
     }
 
     /// get input sockets
     [[nodiscard]] auto input_sockets() const -> const std::vector<std::string>&
     {
-      return visit([](auto& d) { return d.input_sockets(); });
+      return visit([](auto& d) -> auto& { return d.input_sockets(); });
     }
 
     /// get output sockets
     [[nodiscard]] auto output_sockets() const -> const std::vector<std::string>&
     {
-      return visit([](auto& d) { return d.output_sockets(); });
+      return visit([](auto& d) -> auto& { return d.output_sockets(); });
     }
 
     /// get node visibility
