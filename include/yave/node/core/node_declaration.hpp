@@ -8,6 +8,7 @@
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/node/core/node_handle.hpp>
 #include <yave/node/core/socket_handle.hpp>
+#include <yave/lib/util/variant_mixin.hpp>
 
 #include <functional>
 #include <memory>
@@ -43,6 +44,9 @@ namespace yave {
       std::vector<std::string> iss,
       std::vector<std::string> oss,
       std::vector<std::pair<size_t, object_ptr<Object>>> default_arg = {});
+
+    function_node_declaration(const function_node_declaration&)     = default;
+    function_node_declaration(function_node_declaration&&) noexcept = default;
 
     [[nodiscard]] auto& full_name() const
     {
@@ -110,6 +114,9 @@ namespace yave {
       std::vector<std::string> iss,
       std::vector<std::string> oss,
       initializer_func init_func);
+
+    composed_node_declaration(const composed_node_declaration&)     = default;
+    composed_node_declaration(composed_node_declaration&&) noexcept = default;
 
     [[nodiscard]] auto& full_name() const
     {
@@ -187,6 +194,9 @@ namespace yave {
       std::vector<std::string> oss,
       std::unique_ptr<abstract_macro_func> macro_func);
 
+    macro_node_declaration(const macro_node_declaration&)     = default;
+    macro_node_declaration(macro_node_declaration&&) noexcept = default;
+
     [[nodiscard]] auto& full_name() const
     {
       return m_name;
@@ -233,35 +243,54 @@ namespace yave {
   };
 
   /// node declaration
-  using node_declaration = std::variant<
-    function_node_declaration,
-    composed_node_declaration,
-    macro_node_declaration>;
+  struct node_declaration : variant_mixin<
+                              function_node_declaration,
+                              composed_node_declaration,
+                              macro_node_declaration>
+  {
+    using variant_mixin::variant_mixin;
 
-  /// get full name of declaration
-  [[nodiscard]] auto get_full_name(const node_declaration& decl)
-    -> const std::string&;
+    /// get full name of declaration
+    [[nodiscard]] auto full_name() const -> const std::string&
+    {
+      return visit([](auto& d) { return d.full_name(); });
+    }
 
-  /// get name component of node declaration
-  [[nodiscard]] auto get_node_name(const node_declaration& decl) -> std::string;
+    /// get name component of node declaration
+    [[nodiscard]] auto node_name() const -> std::string
+    {
+      return visit([](auto& d) { return d.node_name(); });
+    }
 
-  /// get path component of node declaration
-  [[nodiscard]] auto get_node_path(const node_declaration& decl) -> std::string;
+    /// get path component of node declaration
+    [[nodiscard]] auto node_path() const -> std::string
+    {
+      return visit([](auto& d) { return d.node_path(); });
+    }
 
-  /// get description
-  [[nodiscard]] auto get_description(const node_declaration& decl)
-    -> const std::string&;
+    /// get description
+    [[nodiscard]] auto description() const -> const std::string&
+    {
+      return visit([](auto& d) { return d.description(); });
+    }
 
-  /// get input sockets
-  [[nodiscard]] auto get_input_sockets(const node_declaration& decl)
-    -> const std::vector<std::string>&;
+    /// get input sockets
+    [[nodiscard]] auto input_sockets() const -> const std::vector<std::string>&
+    {
+      return visit([](auto& d) { return d.input_sockets(); });
+    }
 
-  /// get output sockets
-  [[nodiscard]] auto get_output_sockets(const node_declaration& decl)
-    -> const std::vector<std::string>&;
+    /// get output sockets
+    [[nodiscard]] auto output_sockets() const -> const std::vector<std::string>&
+    {
+      return visit([](auto& d) { return d.output_sockets(); });
+    }
 
-  /// get node visibility
-  [[nodiscard]] auto get_visibility(const node_declaration& decl)
-    -> node_declaration_visibility;
+    /// get node visibility
+    [[nodiscard]] auto visibility() const -> node_declaration_visibility
+    {
+      return visit([](auto& d) { return d.visibility(); });
+    }
+  };
 
 } // namespace yave

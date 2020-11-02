@@ -55,7 +55,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Num::ToFloat>();
     return std::vector {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::prim::IntToFloat>())};
+      info.full_name(), 0, make_object<modules::_std::prim::IntToFloat>())};
   }
 
   auto node_definition_traits<node::Num::ToInt, modules::_std::tag>::
@@ -63,7 +63,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Num::ToInt>();
     return std::vector {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::prim::FloatToInt>())};
+      info.full_name(), 0, make_object<modules::_std::prim::FloatToInt>())};
   }
 
 } // namespace yave

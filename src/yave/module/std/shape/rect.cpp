@@ -41,9 +41,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Shape::Rect>();
     return std::vector {node_definition(
-      get_full_name(info),
-      0,
-      make_object<modules::_std::shape::RectShapeCtor>())};
+      info.full_name(), 0, make_object<modules::_std::shape::RectShapeCtor>())};
   }
 
 } // namespace yave

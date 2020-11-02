@@ -140,9 +140,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::List::Nil>();
     return {node_definition(
-      get_full_name(info),
-      0,
-      make_object<yave::modules::_std::list::ListNil>())};
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListNil>())};
   }
 
   auto node_definition_traits<node::List::Cons, modules::_std::tag>::
@@ -150,9 +148,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::List::Cons>();
     return {node_definition(
-      get_full_name(info),
-      0,
-      make_object<yave::modules::_std::list::ListCons>())};
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListCons>())};
   }
 
   auto node_definition_traits<node::List::Head, modules::_std::tag>::
@@ -160,9 +156,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::List::Head>();
     return {node_definition(
-      get_full_name(info),
-      0,
-      make_object<yave::modules::_std::list::ListHead>())};
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListHead>())};
   }
 
   auto node_definition_traits<node::List::Tail, modules::_std::tag>::
@@ -170,9 +164,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::List::Tail>();
     return {node_definition(
-      get_full_name(info),
-      0,
-      make_object<yave::modules::_std::list::ListTail>())};
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListTail>())};
   }
 
   auto node_definition_traits<node::List::At, modules::_std::tag>::
@@ -180,8 +172,6 @@ namespace yave {
   {
     auto info = get_node_declaration<node::List::At>();
     return {node_definition(
-      get_full_name(info),
-      0,
-      make_object<yave::modules::_std::list::ListAt>())};
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListAt>())};
   }
 } // namespace yave

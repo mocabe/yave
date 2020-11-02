@@ -65,7 +65,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Frame::Frame>();
     return std::vector {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::frame::FrameBufferColored>(mngr, comp))};
   }

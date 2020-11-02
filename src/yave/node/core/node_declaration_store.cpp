@@ -86,7 +86,7 @@ namespace yave {
       assert(pdecl);
       auto& decl = *pdecl;
 
-      auto names = split_path_name(get_full_name(decl));
+      auto names = split_path_name(decl.full_name());
 
       node* n = &tree;
 
@@ -146,7 +146,7 @@ namespace yave {
     auto find(const std::shared_ptr<node_declaration>& pdecl) -> node*
     {
       assert(pdecl);
-      auto names = split_path_name(get_full_name(*pdecl));
+      auto names = split_path_name(pdecl->full_name());
 
       node* n = &tree;
 
@@ -232,31 +232,31 @@ namespace yave {
     bool add(const node_declaration& decl)
     {
       auto [it, succ] = m_map.emplace(
-        get_full_name(decl), std::make_shared<node_declaration>(decl));
+        decl.full_name(), std::make_shared<node_declaration>(decl));
 
       if (succ) {
-        Info(g_logger, "Added new declaration: {}", get_full_name(decl));
+        Info(g_logger, "Added new declaration: {}", decl.full_name());
         m_tree.insert(it->second);
         return true;
       }
 
-      auto& name = get_full_name(*it->second);
-      auto& iss  = get_input_sockets(*it->second);
-      auto& oss  = get_output_sockets(*it->second);
+      auto& name = it->second->full_name();
+      auto& iss  = it->second->input_sockets();
+      auto& oss  = it->second->output_sockets();
 
       // validate duplication
       if (
-        name == get_full_name(decl) &&    //
-        iss == get_input_sockets(decl) && //
-        oss == get_output_sockets(decl)) {
+        name == decl.full_name() &&    //
+        iss == decl.input_sockets() && //
+        oss == decl.output_sockets()) {
         Info(
           g_logger,
           "Node declaration {} already exists, ignored.",
-          get_full_name(decl));
+          decl.full_name());
         return true;
       }
 
-      Error(g_logger, "Failed to add declaration: {}", get_full_name(decl));
+      Error(g_logger, "Failed to add declaration: {}", decl.full_name());
       return false;
     }
 
@@ -266,7 +266,7 @@ namespace yave {
 
       for (auto&& decl : decls) {
         if (add(decl)) {
-          added.push_back(get_full_name(decl));
+          added.push_back(decl.full_name());
         } else {
           for (auto&& name : added) {
             remove(name);

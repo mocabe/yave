@@ -43,6 +43,6 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Logic::If>();
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::logic::If>())};
+      info.full_name(), 0, make_object<modules::_std::logic::If>())};
   }
 } // namespace yave

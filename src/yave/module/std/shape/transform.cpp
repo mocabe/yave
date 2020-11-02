@@ -99,7 +99,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Shape::Translate>();
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::shape::Translate>())};
+      info.full_name(), 0, make_object<modules::_std::shape::Translate>())};
   }
 
   auto node_definition_traits<node::Shape::Rotate, modules::_std::tag>::
@@ -107,7 +107,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Shape::Rotate>();
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::shape::Rotate>())};
+      info.full_name(), 0, make_object<modules::_std::shape::Rotate>())};
   }
 
   auto node_definition_traits<node::Shape::Scale, modules::_std::tag>::
@@ -115,6 +115,6 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Shape::Scale>();
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::shape::Scale>())};
+      info.full_name(), 0, make_object<modules::_std::shape::Scale>())};
   }
 } // namespace yave

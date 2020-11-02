@@ -34,11 +34,9 @@ namespace yave {
 
     return {
       node_definition(
-        get_full_name(info),
-        0,
-        make_object<modules::_std::math::TAdd<Float>>()),
+        info.full_name(), 0, make_object<modules::_std::math::TAdd<Float>>()),
       node_definition(
-        get_full_name(info), 0, make_object<modules::_std::math::TAdd<Int>>())};
+        info.full_name(), 0, make_object<modules::_std::math::TAdd<Int>>())};
   }
 
   auto node_definition_traits<node::Ops::Sub, modules::_std::math::tag>::
@@ -48,11 +46,9 @@ namespace yave {
 
     return {
       node_definition(
-        get_full_name(info),
-        0,
-        make_object<modules::_std::math::TSub<Float>>()),
+        info.full_name(), 0, make_object<modules::_std::math::TSub<Float>>()),
       node_definition(
-        get_full_name(info), 0, make_object<modules::_std::math::TSub<Int>>())};
+        info.full_name(), 0, make_object<modules::_std::math::TSub<Int>>())};
   }
 
   auto node_definition_traits<node::Ops::Mul, modules::_std::math::tag>::
@@ -62,11 +58,9 @@ namespace yave {
 
     return {
       node_definition(
-        get_full_name(info),
-        0,
-        make_object<modules::_std::math::TMul<Float>>()),
+        info.full_name(), 0, make_object<modules::_std::math::TMul<Float>>()),
       node_definition(
-        get_full_name(info), 0, make_object<modules::_std::math::TMul<Int>>())};
+        info.full_name(), 0, make_object<modules::_std::math::TMul<Int>>())};
   }
 
   auto node_definition_traits<node::Ops::Div, modules::_std::math::tag>::
@@ -76,10 +70,8 @@ namespace yave {
 
     return {
       node_definition(
-        get_full_name(info),
-        0,
-        make_object<modules::_std::math::TDiv<Float>>()),
+        info.full_name(), 0, make_object<modules::_std::math::TDiv<Float>>()),
       node_definition(
-        get_full_name(info), 0, make_object<modules::_std::math::TDiv<Int>>())};
+        info.full_name(), 0, make_object<modules::_std::math::TDiv<Int>>())};
   }
 } // namespace yave

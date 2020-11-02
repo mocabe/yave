@@ -174,9 +174,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::Mat4>();
 
     return {node_definition(
-      get_full_name(info),
-      0,
-      make_object<modules::_std::geometry::Mat4Ctor>())};
+      info.full_name(), 0, make_object<modules::_std::geometry::Mat4Ctor>())};
   }
 
   auto node_definition_traits<node::Mat::Rotate, modules::_std::tag>::
@@ -185,9 +183,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::Rotate>();
 
     return {node_definition(
-      get_full_name(info),
-      0,
-      make_object<modules::_std::geometry::Mat4Rotate>())};
+      info.full_name(), 0, make_object<modules::_std::geometry::Mat4Rotate>())};
   }
 
   auto node_definition_traits<node::Mat::RotateX, modules::_std::tag>::
@@ -196,7 +192,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::RotateX>();
 
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::geometry::Mat4RotateX>())};
   }
@@ -207,7 +203,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::RotateY>();
 
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::geometry::Mat4RotateY>())};
   }
@@ -218,7 +214,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::RotateZ>();
 
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::geometry::Mat4RotateZ>())};
   }
@@ -229,7 +225,7 @@ namespace yave {
     auto info = get_node_declaration<node::Mat::Translate>();
 
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::geometry::Mat4Translate>())};
   }

@@ -110,7 +110,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Time::ReTime>();
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::time::ReTime>())};
+      info.full_name(), 0, make_object<modules::_std::time::ReTime>())};
   }
 
   auto node_definition_traits<node::Time::Delay, modules::_std::tag>::
@@ -118,7 +118,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Time::Delay>();
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::time::DelayTime>())};
+      info.full_name(), 0, make_object<modules::_std::time::DelayTime>())};
   }
 
   auto node_definition_traits<node::Time::Scale, modules::_std::tag>::
@@ -126,6 +126,6 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Time::Scale>();
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::time::ScaleTime>())};
+      info.full_name(), 0, make_object<modules::_std::time::ScaleTime>())};
   }
 } // namespace yave

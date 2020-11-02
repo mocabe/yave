@@ -38,6 +38,6 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Function::Apply>();
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::function::Apply>())};
+      info.full_name(), 0, make_object<modules::_std::function::Apply>())};
   }
 } // namespace yave

@@ -88,7 +88,7 @@ namespace yave {
     auto info = get_node_declaration<node::Vec::Vec2>();
 
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::geometry::Vec2Constructor>())};
   }
@@ -99,7 +99,7 @@ namespace yave {
     auto info = get_node_declaration<node::Vec::Vec3>();
 
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::geometry::Vec3Constructor>())};
   }
@@ -110,7 +110,7 @@ namespace yave {
     auto info = get_node_declaration<node::Vec::Vec4>();
 
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::geometry::Vec4Constructor>())};
   }

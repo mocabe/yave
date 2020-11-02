@@ -83,7 +83,7 @@ namespace yave {
     auto info = get_node_declaration<node::Time::Time>();
 
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::time::TimeConstructor>())};
   }
@@ -94,7 +94,7 @@ namespace yave {
     auto info = get_node_declaration<node::Time::Seconds>();
 
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::time::Seconds>())};
+      info.full_name(), 0, make_object<modules::_std::time::Seconds>())};
   }
 
   auto node_definition_traits<node::Time::FromSeconds, modules::_std::tag>::
@@ -103,6 +103,6 @@ namespace yave {
     auto info = get_node_declaration<node::Time::FromSeconds>();
 
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::time::FromSeconds>())};
+      info.full_name(), 0, make_object<modules::_std::time::FromSeconds>())};
   }
 } // namespace yave

@@ -44,7 +44,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::PrimitiveCtor<T>>();
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::prim::PrimitiveCtor<T>>())};
   }

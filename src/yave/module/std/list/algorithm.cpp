@@ -230,7 +230,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::List::Map>();
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<yave::modules::_std::list::StrictListMap>())};
   }
@@ -240,7 +240,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::List::Repeat>();
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<yave::modules::_std::list::ListRepeat>())};
   }
@@ -250,7 +250,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::List::Enumerate>();
     return {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<yave::modules::_std::list::ListEnumerate>())};
   }
@@ -260,8 +260,6 @@ namespace yave {
   {
     auto info = get_node_declaration<node::List::Fold>();
     return {node_definition(
-      get_full_name(info),
-      0,
-      make_object<yave::modules::_std::list::ListFold>())};
+      info.full_name(), 0, make_object<yave::modules::_std::list::ListFold>())};
   }
 } // namespace yave

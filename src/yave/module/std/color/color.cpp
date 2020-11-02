@@ -62,7 +62,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Color::Color>();
     return std::vector {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::color::ColorCtor>())};
+      info.full_name(), 0, make_object<modules::_std::color::ColorCtor>())};
   }
 
   auto node_definition_traits<node::Color::FromFloats, modules::_std::tag>::
@@ -70,6 +70,6 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Color::FromFloats>();
     return std::vector {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::color::ColorFloat>())};
+      info.full_name(), 0, make_object<modules::_std::color::ColorFloat>())};
   }
 } // namespace yave

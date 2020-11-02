@@ -134,7 +134,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Shape::Fill>();
     return {node_definition(
-      get_full_name(info), 0, make_object<modules::_std::shape::FillShape>())};
+      info.full_name(), 0, make_object<modules::_std::shape::FillShape>())};
   }
 
   auto node_definition_traits<node::Shape::Stroke, modules::_std::tag>::
@@ -142,9 +142,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Shape::Stroke>();
     return {node_definition(
-      get_full_name(info),
-      0,
-      make_object<modules::_std::shape::StrokeShape>())};
+      info.full_name(), 0, make_object<modules::_std::shape::StrokeShape>())};
   }
 
   auto node_definition_traits<node::Shape::Draw, modules::_std::tag>::
@@ -155,7 +153,7 @@ namespace yave {
   {
     auto info = get_node_declaration<node::Shape::Draw>(fbm);
     return std::vector {node_definition(
-      get_full_name(info),
+      info.full_name(),
       0,
       make_object<modules::_std::shape::DrawShape>(fbm, compositor))};
   }

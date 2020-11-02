@@ -46,49 +46,6 @@ namespace yave {
 
   } // namespace
 
-  auto get_full_name(const node_declaration& decl) -> const std::string&
-  {
-    return std::visit(
-      [](auto& d) -> auto& { return d.full_name(); }, decl);
-  }
-
-  auto get_node_name(const node_declaration& decl) -> std::string
-  {
-    return std::visit([](auto& d) { return d.node_name(); }, decl);
-  }
-
-  auto get_node_path(const node_declaration& decl) -> std::string
-  {
-    return std::visit([](auto& d) { return d.node_path(); }, decl);
-  }
-
-  auto get_description(const node_declaration& decl) -> const std::string&
-  {
-    return std::visit(
-      [](auto& d) -> auto& { return d.description(); }, decl);
-  }
-
-  auto get_input_sockets(const node_declaration& decl)
-    -> const std::vector<std::string>&
-  {
-    return std::visit(
-      [](auto& d) -> auto& { return d.input_sockets(); }, decl);
-  }
-
-  auto get_output_sockets(const node_declaration& decl)
-    -> const std::vector<std::string>&
-  {
-    return std::visit(
-      [](auto& d) -> auto& { return d.output_sockets(); }, decl);
-  }
-
-  auto get_visibility(const node_declaration& decl)
-    -> node_declaration_visibility
-  {
-    return std::visit(
-      [](auto& d) -> auto& { return d.visibility(); }, decl);
-  }
-
   function_node_declaration::function_node_declaration(
     std::string full_name,
     std::string description,
