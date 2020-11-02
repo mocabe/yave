@@ -330,20 +330,9 @@ namespace yave {
       void refresh(const node_graph& ng);
     };
 
-    // for internal dependency
-    struct node_dep
-    {
-      void refresh(const node_graph&);
-    };
-
     /// node data variant
-    struct node_data : variant_mixin<
-                         node_function,
-                         node_group,
-                         node_macro,
-                         node_call,
-                         node_io,
-                         node_dep>
+    struct node_data
+      : variant_mixin<node_function, node_group, node_macro, node_call, node_io>
     {
       void refresh(node_graph& ng)
       {
@@ -485,10 +474,6 @@ namespace yave {
     {
       auto pn = ng.node(parent->node.id());
       parent  = &std::get<node_group>(*value_cast<NodeData>(ng.get_data(pn)));
-    }
-
-    void node_dep::refresh(const node_graph&)
-    {
     }
 
     /// get default name of node group
@@ -740,12 +725,9 @@ namespace yave {
       auto odata = make_node_data(
         node_io {.parent = pgdata, .type = node_io::io_type::output});
 
-      auto ddata = make_node_data(node_dep {});
-
       set_data(g, gdata);
       set_data(i, idata);
       set_data(o, odata);
-      set_data(d, ddata);
 
       for (auto&& s : pdecl->input_sockets()) {
         auto bit = ng.add(b_decl.node_name(), {s}, {s}, node_type::normal);
@@ -801,10 +783,7 @@ namespace yave {
       auto bdata = make_node_data(node_function {
         .node = body, .dependency = dep, .pdecl = pdecl, .callers = {}});
 
-      auto ddata = make_node_data(node_dep());
-
       ng.set_data(body, bdata);
-      ng.set_data(dep, ddata);
 
       Info(
         g_logger,
@@ -836,10 +815,10 @@ namespace yave {
       assert(body && dep);
       assert(!ng.get_data(body));
 
-      auto bdata = make_node_data(node_macro {
-        .node = body, .dependency = dep, .pdecl = pdecl, .callers {}});
+      auto bdata = make_node_data(
+        node_macro {.node = body, .dependency = dep, .pdecl = pdecl});
 
-      auto ddata = make_node_data(node_dep());
+      ng.set_data(body, bdata);
 
       Info(
         g_logger,
@@ -1021,11 +1000,8 @@ namespace yave {
         .input_bits  = ibits,
         .output_bits = obits});
       
-      auto ddata = make_node_data(node_dep());
-
       // set data
       set_data(n, ndata);
-      set_data(dep, ddata);
 
       // add to parent
       parent->add_member(n);
@@ -1434,13 +1410,6 @@ namespace yave {
       return std::get_if<node_io>(&*get_data(node));
     }
 
-    auto get_dep(const node_handle& node) const -> node_dep*
-    {
-      assert(!get_call(node));
-      assert(get_data(node));
-      return std::get_if<node_dep>(&*get_data(node));
-    }
-
     auto get_callee_function(const node_handle& node) const -> node_function*
     {
       if (auto call = get_call(node))
@@ -1502,11 +1471,6 @@ namespace yave {
     bool is_io(const node_handle& node) const
     {
       return get_io(node);
-    }
-
-    bool is_dep(const node_handle& node) const
-    {
-      return get_dep(node);
     }
 
     bool is_group_call(const node_handle& node) const
