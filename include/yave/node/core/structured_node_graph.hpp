@@ -103,6 +103,44 @@ namespace yave {
     /// set socket data
     void set_data(const socket_handle& socket, object_ptr<Object> data);
 
+  private:
+    // clang-format off
+    auto _get_property(const node_handle&,   const std::string&) -> object_ptr<Object>;
+    auto _get_property(const socket_handle&, const std::string&) -> object_ptr<Object>;
+    // clang-format on
+
+  public:
+    /// get property
+    template <class T>
+    [[nodiscard]] auto get_property(
+      const node_handle& node,
+      const std::string& name) -> object_ptr<T>
+    {
+      return value_cast<T>(_get_property(node, name));
+    }
+
+    /// get property
+    template <class T>
+    [[nodiscard]] auto get_property(
+      const socket_handle& socket,
+      const std::string& name) -> object_ptr<T>
+    {
+      return value_cast<T>(_get_property(socket, name));
+    }
+
+    /// set property
+    void set_property(
+      const node_handle&,
+      const std::string&,
+      object_ptr<Object>);
+
+    /// set property
+    void set_property(
+      const socket_handle&,
+      const std::string&,
+      object_ptr<Object>);
+
+  public:
     /// get socket index
     [[nodiscard]] auto get_index(const socket_handle& socket) const
       -> std::optional<size_t>;
