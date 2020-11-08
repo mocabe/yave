@@ -778,8 +778,8 @@ namespace yave {
         rng::views::transform([](auto* p) { return p->node; }) | rng::to_vector;
 
       if (auto call = get_call(node))
-        return std::visit(
-          [&](auto* p) { return p->callers | to_nodes; }, call->callee);
+        return call->callee.visit(
+          [&](auto* p) { return p->callers | to_nodes; });
 
       return {};
     }
@@ -1174,7 +1174,7 @@ namespace yave {
     void remove_callee(node_callee callee)
     {
       // dispatch
-      std::visit([&](auto& p) { remove_callee(p); }, callee);
+      callee.visit([&](auto& p) { remove_callee(p); });
     }
 
     // remove node gruop which no longer has callers.
@@ -1255,18 +1255,15 @@ namespace yave {
         node_type::normal));
 
       // check dependency (ignore when it's root call)
-      auto valid = std::visit(
-        [&](auto* p) {
-          assert(p);
-          // call -> parent group
-          check(ng.connect(
-            ng.output_sockets(dep)[0],
-            ng.input_sockets(parent->dependency)[0]));
-          // caleee -> call
-          return ng.connect(
-            ng.output_sockets(p->dependency)[0], ng.input_sockets(dep)[0]);
-        },
-        callee);
+      auto valid = callee.visit([&](auto* p) {
+        assert(p);
+        // call -> parent group
+        check(ng.connect(
+          ng.output_sockets(dep)[0], ng.input_sockets(parent->dependency)[0]));
+        // caleee -> call
+        return ng.connect(
+          ng.output_sockets(p->dependency)[0], ng.input_sockets(dep)[0]);
+      });
 
       // closed loop
       if (!valid) {
@@ -1294,7 +1291,7 @@ namespace yave {
         return nullptr;
 
       auto info =
-        check(std::visit([&](auto p) { return ng.get_info(p->node); }, callee));
+        check(callee.visit([&](auto p) { return ng.get_info(p->node); }));
 
       // create interface
       auto n = ng.add(info->name(), {}, {}, node_type::interface, id);
@@ -1371,13 +1368,11 @@ namespace yave {
         return tmp;
       };
 
-      std::visit(
-        [&](auto& p) {
-          auto name = make_fresh_name(info->name());
-          ng.set_name(n, name);
-          ng.set_name(p->node, name);
-        },
-        callee);
+      callee.visit([&](auto& p) {
+        auto name = make_fresh_name(info->name());
+        ng.set_name(n, name);
+        ng.set_name(p->node, name);
+      });
 
       Info(
         g_logger,
@@ -1438,12 +1433,10 @@ namespace yave {
       ng.remove(call->node);
 
       // remove function or group when it's orphan
-      std::visit(
-        [&](auto* p) {
-          if (p->callers.empty())
-            remove_callee(p);
-        },
-        callee);
+      callee.visit([&](auto* p) {
+        if (p->callers.empty())
+          remove_callee(p);
+      });
     }
 
     // copy node call
@@ -1554,8 +1547,8 @@ namespace yave {
       node_call* call,
       uid id = uid::random_generate()) -> node_call*
     {
-      return std::visit(
-        [&](auto* p) { return clone_call(parent, call, p, id); }, call->callee);
+      return call->callee.visit(
+        [&](auto* p) { return clone_call(parent, call, p, id); });
     }
 
     // clone node function
@@ -1725,16 +1718,13 @@ namespace yave {
       assert(is_valid(node));
 
       if (auto call = get_call(node))
-        return std::visit(
-          [](auto* p) {
-            auto&& cs = p->callers;
-            assert(!cs.empty());
-            return rng::subrange(cs.begin() + 1, cs.end())
-                   | rng::views::transform(
-                     [](auto* call) { return call->node; })
-                   | rng::to_vector;
-          },
-          call->callee);
+        return call->callee.visit([](auto* p) {
+          auto&& cs = p->callers;
+          assert(!cs.empty());
+          return rng::subrange(cs.begin() + 1, cs.end())
+                 | rng::views::transform([](auto* call) { return call->node; })
+                 | rng::to_vector;
+        });
 
       return {};
     }
@@ -3066,44 +3056,43 @@ namespace yave {
       const std::shared_ptr<node_declaration>& decl,
       structured_node_graph& ng) -> node_handle
     {
-      return std::visit(
-        overloaded {
-          [&](composed_node_declaration& d) {
-            auto n = m_impl.create_group_declaration(
-              d.node_path(),
-              d.node_name(),
-              d.input_sockets(),
-              d.output_sockets());
+      return decl->visit( //
+        overloaded        //
+        {[&](composed_node_declaration& d) {
+           auto n = m_impl.create_group_declaration(
+             d.node_path(),
+             d.node_name(),
+             d.input_sockets(),
+             d.output_sockets());
 
-            if (n) {
-              // init composed group
-              d.init_composed(ng, n);
-            }
-            return n;
-          },
-          [&](function_node_declaration& d) {
-            auto n = m_impl.create_function_declaration(
-              d.node_path(),
-              d.node_name(),
-              d.input_sockets(),
-              d.output_sockets());
+           if (n) {
+             // init composed group
+             d.init_composed(ng, n);
+           }
+           return n;
+         },
+         [&](function_node_declaration& d) {
+           auto n = m_impl.create_function_declaration(
+             d.node_path(),
+             d.node_name(),
+             d.input_sockets(),
+             d.output_sockets());
 
-            if (n) {
-              // set default args
-              for (auto&& [idx, arg] : d.default_args()) {
-                set_data(input_sockets(n)[idx], arg.clone());
-              }
-            }
-            return n;
-          },
-          [&](macro_node_declaration& d) {
-            return m_impl.create_macro_declaration(
-              d.node_path(),
-              d.node_name(),
-              d.input_sockets(),
-              d.output_sockets());
-          }},
-        *decl);
+           if (n) {
+             // set default args
+             for (auto&& [idx, arg] : d.default_args()) {
+               set_data(input_sockets(n)[idx], arg.clone());
+             }
+           }
+           return n;
+         },
+         [&](macro_node_declaration& d) {
+           return m_impl.create_macro_declaration(
+             d.node_path(),
+             d.node_name(),
+             d.input_sockets(),
+             d.output_sockets());
+         }});
     }
 
     auto create_group(
