@@ -10,7 +10,6 @@
 
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view.hpp>
-#include <range/v3/action.hpp>
 
 #include <yave/lib/util/variant_mixin.hpp>
 #include <yave/support/log.hpp>
@@ -27,7 +26,8 @@ namespace yave {
 
   namespace {
 
-    namespace rng = ranges;
+    namespace rn = ranges;
+    namespace rv = ranges::views;
 
     // inline assertion
     inline constexpr auto check = [](auto&& arg) {
@@ -131,7 +131,7 @@ namespace yave {
 
       bool has_member(const node_handle& n)
       {
-        return rng::find(members, n) != members.end();
+        return rn::find(members, n) != members.end();
       }
 
       void add_member(const node_handle& n)
@@ -146,8 +146,8 @@ namespace yave {
       {
         assert(has_member(n));
         assert(members.size() + 2 == nodes.size());
-        members.erase(rng::find(members, n));
-        nodes.erase(rng::find(nodes, n));
+        members.erase(rn::find(members, n));
+        nodes.erase(rn::find(nodes, n));
       }
 
       void bring_front(const node_handle& n)
@@ -156,7 +156,7 @@ namespace yave {
         assert(members.size() + 2 == nodes.size());
 
         auto _bring_front = [](auto&& ns, auto&& n) {
-          auto it = rng::remove(ns, n);
+          auto it = rn::remove(ns, n);
           if (it != ns.end()) {
             ns.erase(it, ns.end());
             ns.insert(ns.end(), n);
@@ -173,7 +173,7 @@ namespace yave {
         assert(members.size() + 2 == nodes.size());
 
         auto _bring_back = [](auto&& ns, auto&& n) {
-          auto it = rng::remove(ns, n);
+          auto it = rn::remove(ns, n);
           if (it != ns.end()) {
             ns.erase(it, ns.end());
             ns.insert(ns.begin(), n);
@@ -248,7 +248,7 @@ namespace yave {
         visit([&](auto* p) {
           auto& callers = p->callers;
 
-          assert(rng::find(callers, caller) == callers.end());
+          assert(rn::find(callers, caller) == callers.end());
           // first caller becomes defcall
           callers.push_back(caller);
         });
@@ -263,8 +263,8 @@ namespace yave {
           if (callers.size() > 1)
             assert(callers.front() != caller);
 
-          assert(rng::find(callers, caller) != callers.end());
-          callers.erase(rng::find(callers, caller));
+          assert(rn::find(callers, caller) != callers.end());
+          callers.erase(rn::find(callers, caller));
         });
       }
 
@@ -631,7 +631,7 @@ namespace yave {
     auto get_group(const node_handle& node) const -> node_group*
     {
       if (get_call(node)) {
-        throw; 
+        throw;
       }
       assert(!get_call(node));
       assert(get_data(node));
@@ -681,7 +681,7 @@ namespace yave {
 
     bool is_io(const node_handle& node) const
     {
-      return get_io(node); 
+      return get_io(node);
     }
 
     bool is_group(const node_handle& node) const
@@ -743,13 +743,6 @@ namespace yave {
       return !is_caller(node);
     }
 
-  private:
-    // for assertion
-    [[maybe_unused]] bool is_valid(const node_handle& node) const
-    {
-      return ng.exists(node) && (is_call(node) || is_io(node));
-    }
-
   public:
     // get node of socket
     auto get_node(const socket_handle& socket) const -> node_handle
@@ -772,10 +765,10 @@ namespace yave {
     auto get_caller_nodes(const node_handle& node) const
       -> std::vector<node_handle>
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       constexpr auto to_nodes =
-        rng::views::transform([](auto* p) { return p->node; }) | rng::to_vector;
+        rv::transform([](auto* p) { return p->node; }) | rn::to_vector;
 
       if (auto call = get_call(node))
         return call->callee.visit(
@@ -856,7 +849,7 @@ namespace yave {
     auto get_callee_property(const node_handle& n, const std::string& name)
       -> object_ptr<Object>
     {
-      assert(is_valid(n));
+      assert(is_caller(n));
       if (auto call = get_call(n))
         return call->callee.get_property(name);
       return nullptr;
@@ -867,14 +860,14 @@ namespace yave {
       const std::string& name,
       object_ptr<Object> data)
     {
-      assert(is_valid(n));
+      assert(is_caller(n));
       if (auto call = get_call(n))
         call->callee.set_property(name, std::move(data));
     }
 
     void remove_callee_property(const node_handle& n, const std::string& name)
     {
-      assert(is_valid(n));
+      assert(is_caller(n));
       if (auto call = get_call(n))
         call->callee.remove_property(name);
     }
@@ -885,11 +878,11 @@ namespace yave {
     {
       if (ng.is_input_socket(socket)) {
         auto ss = ng.input_sockets(node);
-        return rng::distance(ss.begin(), rng::find(ss, socket));
+        return rn::distance(ss.begin(), rn::find(ss, socket));
       }
       if (ng.is_output_socket(socket)) {
         auto ss = ng.output_sockets(node);
-        return rng::distance(ss.begin(), rng::find(ss, socket));
+        return rn::distance(ss.begin(), rn::find(ss, socket));
       }
       unreachable();
     }
@@ -902,14 +895,14 @@ namespace yave {
   public:
     auto get_path(const node_handle& node) const -> std::optional<std::string>
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       node_handle n = node;
       std::vector<std::string> queue;
 
       while (true) {
 
-        assert(is_valid(n));
+        assert(is_caller(n));
 
         queue.push_back(*ng.get_name(n));
 
@@ -924,10 +917,10 @@ namespace yave {
           n = io->parent->get_defcall()->node;
       }
 
-      auto path = queue                   //
-                  | rng::views::reverse   //
-                  | rng::views::join('.') //
-                  | rng::to<std::string>;
+      auto path = queue           //
+                  | rv::reverse   //
+                  | rv::join('.') //
+                  | rn::to<std::string>;
 
       assert(std::regex_match(path, std::regex(path_name_regex)));
 
@@ -950,8 +943,8 @@ namespace yave {
 
         if (sv == "") {
           return g->members //
-                 | rng::views::filter([&](auto&& n) { return is_defcall(n); })
-                 | rng::to_vector;
+                 | rv::filter([&](auto&& n) { return is_defcall(n); })
+                 | rn::to_vector;
         }
 
         auto pos = sv.find_first_of('.');
@@ -959,10 +952,10 @@ namespace yave {
         // find name
         if (pos == sv.npos) {
           return g->nodes //
-                 | rng::views::filter([&](auto&& n) {
+                 | rv::filter([&](auto&& n) {
                      return is_defcall(n) && *ng.get_name(n) == sv;
                    })
-                 | rng::to_vector;
+                 | rn::to_vector;
         }
 
         auto name = sv.substr(0, pos);
@@ -1350,10 +1343,10 @@ namespace yave {
       assert(newcall->is_defcall());
 
       auto name_used = [&](const auto& name) {
-        using namespace rng::views;
-        auto ns = parent->nodes //
-                  | filter([&](auto&& n) { return n != newcall->node; })
-                  | filter([&](auto&& n) { return ng.get_name(n) == name; });
+        auto ns =
+          parent->nodes
+          | rv::filter([&](auto&& n) { return n != newcall->node; })
+          | rv::filter([&](auto&& n) { return ng.get_name(n) == name; });
         return !ns.empty();
       };
 
@@ -1523,7 +1516,7 @@ namespace yave {
       }
 
       // clone socket property
-      for (auto&& [idx, s] : iss | rng::views::enumerate) {
+      for (auto&& [idx, s] : iss | rv::enumerate) {
         for (auto&& [key, v] : get_data(s)->properties) {
           set_caller_property(
             ng.input_sockets(newc->node)[idx], key, v.clone());
@@ -1531,7 +1524,7 @@ namespace yave {
       }
 
       // clone socket property
-      for (auto&& [idx, s] : oss | rng::views::enumerate) {
+      for (auto&& [idx, s] : oss | rv::enumerate) {
         for (auto&& [key, v] : get_data(s)->properties) {
           set_caller_property(
             ng.output_sockets(newc->node)[idx], key, v.clone());
@@ -1599,10 +1592,10 @@ namespace yave {
 
       // copy/clone members
       for (auto&& n : callee->members) {
-        assert(is_valid(n));
+        assert(is_caller(n));
 
         auto newn = clone_call(newg, get_call(n))->node;
-        assert(is_valid(newn));
+        assert(is_caller(newn));
 
         auto oldis = ng.input_sockets(n);
         auto oldos = ng.output_sockets(n);
@@ -1680,7 +1673,7 @@ namespace yave {
   public:
     auto get_node_type(const node_handle& node) const -> structured_node_type
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
       if (is_function_call(node))
         return structured_node_type::function;
       if (is_group_call(node))
@@ -1705,7 +1698,7 @@ namespace yave {
   public:
     auto get_definition(const node_handle& node) const -> node_handle
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       if (auto call = get_call(node))
         return call->callee.get_defcall()->node;
@@ -1715,15 +1708,15 @@ namespace yave {
 
     auto get_calls(const node_handle& node) const -> std::vector<node_handle>
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       if (auto call = get_call(node))
         return call->callee.visit([](auto* p) {
           auto&& cs = p->callers;
           assert(!cs.empty());
-          return rng::subrange(cs.begin() + 1, cs.end())
-                 | rng::views::transform([](auto* call) { return call->node; })
-                 | rng::to_vector;
+          return rn::subrange(cs.begin() + 1, cs.end())
+                 | rv::transform([](auto* call) { return call->node; })
+                 | rn::to_vector;
         });
 
       return {};
@@ -1732,7 +1725,7 @@ namespace yave {
     auto get_group_members(const node_handle& node) const
       -> std::vector<node_handle>
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       if (auto g = get_callee_group(node))
         return g->members;
@@ -1742,7 +1735,7 @@ namespace yave {
 
     auto get_group_input(const node_handle& node) const -> node_handle
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       if (auto g = get_callee_group(node))
         return g->input_handler;
@@ -1752,7 +1745,7 @@ namespace yave {
 
     auto get_group_output(const node_handle& node) const -> node_handle
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       if (auto g = get_callee_group(node))
         return g->output_handler;
@@ -1763,7 +1756,7 @@ namespace yave {
     auto get_group_nodes(const node_handle& node) const
       -> std::vector<node_handle>
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       if (auto g = get_callee_group(node))
         return g->nodes;
@@ -1773,7 +1766,7 @@ namespace yave {
 
     auto get_parent_group(const node_handle& node) const -> node_handle
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       if (auto call = get_call(node))
         if (call->parent != get_group(root))
@@ -1788,7 +1781,7 @@ namespace yave {
   public:
     void set_name(const node_handle& node, const std::string& name)
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       static const auto re = std::regex(node_name_regex);
 
@@ -1838,7 +1831,7 @@ namespace yave {
       auto node = get_node(socket);
       auto idx  = get_index(node, socket);
 
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       static const auto re = std::regex(socket_name_regex);
 
@@ -1996,7 +1989,7 @@ namespace yave {
       const std::string& socket,
       size_t index) -> socket_handle
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       // io (redirect to group)
       if (auto io = get_io(node)) {
@@ -2039,7 +2032,7 @@ namespace yave {
       const std::string& socket,
       size_t index) -> socket_handle
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       // io (redirect to group)
       if (auto io = get_io(node)) {
@@ -2086,7 +2079,7 @@ namespace yave {
       auto idx  = get_index(node, socket);
       auto type = ng.get_info(socket)->type();
 
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       // io handler
       if (auto io = get_io(node)) {
@@ -2326,7 +2319,7 @@ namespace yave {
       std::vector<connection_handle> ocs, ics;
 
       auto addc = [&](auto& cs, auto& c) {
-        if (rng::find(cs, c) == cs.end())
+        if (rn::find(cs, c) == cs.end())
           cs.push_back(c);
       };
 
@@ -2334,13 +2327,13 @@ namespace yave {
         for (auto&& c : ng.input_connections(n)) {
           auto info = ng.get_info(c);
           assert(info->src_interfaces().size() == 1);
-          if (rng::find(nodes, info->src_interfaces()[0]) == nodes.end())
+          if (rn::find(nodes, info->src_interfaces()[0]) == nodes.end())
             addc(ics, c);
         }
         for (auto&& c : ng.output_connections(n)) {
           auto info = ng.get_info(c);
           assert(info->dst_interfaces().size() == 1);
-          if (rng::find(nodes, info->dst_interfaces()[0]) == nodes.end())
+          if (rn::find(nodes, info->dst_interfaces()[0]) == nodes.end())
             addc(ocs, c);
         }
       }
@@ -2392,10 +2385,10 @@ namespace yave {
       const node_handle& src,
       const uid& id) -> node_handle
     {
-      assert(is_valid(src));
+      assert(is_caller(src));
 
       if (parent_group)
-        assert(is_valid(parent_group));
+        assert(is_caller(parent_group));
 
       // when parent_group is null, use internal root
       node_group* g =
@@ -2418,10 +2411,10 @@ namespace yave {
       const node_handle& src,
       const uid& id) -> node_handle
     {
-      assert(is_valid(src));
+      assert(is_caller(src));
 
       if (parent_group)
-        assert(is_valid(parent_group));
+        assert(is_caller(parent_group));
 
       // when parent_group is null, use internal root
       node_group* g =
@@ -2441,7 +2434,7 @@ namespace yave {
 
     void destroy(const node_handle& node)
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       if (auto call = get_call(node))
         return remove_call(call);
@@ -2457,8 +2450,8 @@ namespace yave {
       auto srcn = get_node(src_socket);
       auto dstn = get_node(dst_socket);
 
-      assert(is_valid(srcn));
-      assert(is_valid(dstn));
+      assert(is_caller(srcn));
+      assert(is_caller(dstn));
 
       auto srcp = get_parent(srcn);
       auto dstp = get_parent(dstn);
@@ -2492,7 +2485,7 @@ namespace yave {
 
     void bring_front(const node_handle& node)
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       if (auto call = get_call(node))
         if (call->parent != get_group(root))
@@ -2504,7 +2497,7 @@ namespace yave {
 
     void bring_back(const node_handle& node)
     {
-      assert(is_valid(node));
+      assert(is_caller(node));
 
       if (auto call = get_call(node))
         if (call->parent != get_group(root))
