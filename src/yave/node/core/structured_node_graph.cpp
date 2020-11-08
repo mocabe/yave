@@ -784,33 +784,6 @@ namespace yave {
       return {};
     }
 
-    // get callee node
-    auto get_callee_node(const node_handle& node) const -> node_handle
-    {
-      assert(is_valid(node));
-      if (auto cd = get_call(node))
-        return std::visit(
-          overloaded {[](auto* p) { return p->node; }}, cd->callee);
-
-      return {};
-    }
-
-    // get callee socket
-    auto get_callee_socket(const socket_handle& s) -> socket_handle
-    {
-      auto n   = get_node(s);
-      auto idx = get_index(n, s);
-      assert(is_caller(n));
-
-      if (auto cn = get_callee_node(n)) {
-        if (ng.is_input_socket(s))
-          return ng.input_sockets(cn)[idx];
-        if (ng.is_output_socket(s))
-          return ng.output_sockets(cn)[idx];
-      }
-      return {};
-    }
-
   private:
     auto get_data(const node_handle& node) const -> object_ptr<NodeData>
     {
@@ -883,17 +856,9 @@ namespace yave {
     auto get_callee_property(const node_handle& n, const std::string& name)
       -> object_ptr<Object>
     {
-      assert(is_caller(n));
+      assert(is_valid(n));
       if (auto call = get_call(n))
         return call->callee.get_property(name);
-      return nullptr;
-    }
-
-    auto get_callee_property(const socket_handle& s, const std::string& name)
-      -> object_ptr<Object>
-    {
-      if (auto cs = get_callee_socket(s))
-        return get_data(cs)->get_property(name);
       return nullptr;
     }
 
@@ -902,29 +867,16 @@ namespace yave {
       const std::string& name,
       object_ptr<Object> data)
     {
+      assert(is_valid(n));
       if (auto call = get_call(n))
         call->callee.set_property(name, std::move(data));
     }
 
-    void set_callee_property(
-      const socket_handle& s,
-      const std::string& name,
-      object_ptr<Object> data)
-    {
-      if (auto cs = get_callee_socket(s))
-        return get_data(cs)->set_property(name, std::move(data));
-    }
-
     void remove_callee_property(const node_handle& n, const std::string& name)
     {
+      assert(is_valid(n));
       if (auto call = get_call(n))
         call->callee.remove_property(name);
-    }
-
-    void remove_callee_property(const socket_handle& s, const std::string& name)
-    {
-      if (auto cs = get_callee_socket(s))
-        get_data(cs)->remove_property(name);
     }
 
   public:
@@ -1504,17 +1456,30 @@ namespace yave {
       assert(call->output_bits.size() == newc->output_bits.size());
 
       auto iss = ng.input_sockets(call->node);
-      for (auto&& [idx, s] : iss | rng::views::enumerate) {
-        for (auto&& [key, v] : get_data(s)->properties)
-          set_caller_property(
-            ng.input_sockets(newc->node)[idx], key, v.clone());
+      auto oss = ng.output_sockets(call->node);
+
+      assert(iss.size() == newc->input_bits.size());
+      assert(oss.size() == newc->output_bits.size());
+
+      // clone node property
+      for (auto&& [key, v] : call->properties) {
+        set_caller_property(newc->node, key, v.clone());
       }
 
-      auto oss = ng.output_sockets(call->node);
+      // clone socket property
+      for (auto&& [idx, s] : iss | rng::views::enumerate) {
+        for (auto&& [key, v] : get_data(s)->properties) {
+          set_caller_property(
+            ng.input_sockets(newc->node)[idx], key, v.clone());
+        }
+      }
+
+      // clone socket property
       for (auto&& [idx, s] : oss | rng::views::enumerate) {
-        for (auto&& [key, v] : get_data(s)->properties)
+        for (auto&& [key, v] : get_data(s)->properties) {
           set_caller_property(
             ng.output_sockets(newc->node)[idx], key, v.clone());
+        }
       }
 
       return newc;
@@ -2756,16 +2721,17 @@ namespace yave {
       m_impl.set_caller_property(h, name, std::move(data));
     }
 
-    auto _get_shared_property(const node_handle& h, const std::string& name)
-      -> object_ptr<Object>
+    void remove_property(const node_handle& h, const std::string& name)
     {
-      if (!exists(h))
-        return nullptr;
-
-      return m_impl.get_callee_property(h, name);
+      m_impl.remove_caller_property(h, name);
     }
 
-    auto _get_shared_property(const socket_handle& h, const std::string& name)
+    void remove_property(const socket_handle& h, const std::string& name)
+    {
+      m_impl.remove_caller_property(h, name);
+    }
+
+    auto _get_shared_property(const node_handle& h, const std::string& name)
       -> object_ptr<Object>
     {
       if (!exists(h))
@@ -2785,15 +2751,9 @@ namespace yave {
       m_impl.set_callee_property(h, name, std::move(data));
     }
 
-    void set_shared_property(
-      const socket_handle& h,
-      const std::string& name,
-      object_ptr<Object> data)
+    void remove_shared_property(const node_handle& h, const std::string& name)
     {
-      if (!exists(h))
-        return;
-
-      m_impl.set_callee_property(h, name, std::move(data));
+      m_impl.remove_callee_property(h, name);
     }
 
     auto get_index(const socket_handle& socket) const -> std::optional<size_t>
@@ -3300,13 +3260,6 @@ namespace yave {
     return m_pimpl->_get_property(h, name);
   }
 
-  auto structured_node_graph::_get_shared_property(
-    const node_handle& h,
-    const std::string& name) -> object_ptr<Object>
-  {
-    return m_pimpl->_get_shared_property(h, name);
-  }
-
   auto structured_node_graph::_get_property(
     const socket_handle& h,
     const std::string& name) -> object_ptr<Object>
@@ -3314,21 +3267,43 @@ namespace yave {
     return m_pimpl->_get_property(h, name);
   }
 
-  auto structured_node_graph::_get_shared_property(
+  void structured_node_graph::set_property(
+    const node_handle& h,
+    const std::string& name,
+    object_ptr<Object> data)
+  {
+    m_pimpl->set_property(h, name, std::move(data));
+  }
+
+  void structured_node_graph::set_property(
     const socket_handle& h,
+    const std::string& name,
+    object_ptr<Object> data)
+  {
+    m_pimpl->set_property(h, name, std::move(data));
+  }
+
+  void structured_node_graph::remove_property(
+    const node_handle& h,
+    const std::string& name)
+  {
+    m_pimpl->remove_property(h, name);
+  }
+
+  void structured_node_graph::remove_property(
+    const socket_handle& h,
+    const std::string& name)
+  {
+    m_pimpl->remove_property(h, name);
+  }
+
+  auto structured_node_graph::_get_shared_property(
+    const node_handle& h,
     const std::string& name) -> object_ptr<Object>
   {
     return m_pimpl->_get_shared_property(h, name);
   }
 
-  void structured_node_graph::set_property(
-    const node_handle& h,
-    const std::string& name,
-    object_ptr<Object> data)
-  {
-    m_pimpl->set_property(h, name, std::move(data));
-  }
-
   void structured_node_graph::set_shared_property(
     const node_handle& h,
     const std::string& name,
@@ -3337,20 +3312,11 @@ namespace yave {
     m_pimpl->set_shared_property(h, name, std::move(data));
   }
 
-  void structured_node_graph::set_property(
-    const socket_handle& h,
-    const std::string& name,
-    object_ptr<Object> data)
+  void structured_node_graph::remove_shared_property(
+    const node_handle& h,
+    const std::string& name)
   {
-    m_pimpl->set_property(h, name, std::move(data));
-  }
-
-  void structured_node_graph::set_shared_property(
-    const socket_handle& h,
-    const std::string& name,
-    object_ptr<Object> data)
-  {
-    m_pimpl->set_shared_property(h, name, std::move(data));
+    m_pimpl->remove_shared_property(h, name);
   }
 
   auto structured_node_graph::get_index(const socket_handle& socket) const

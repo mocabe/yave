@@ -121,15 +121,6 @@ namespace yave {
       return value_cast<T>(_get_property(node, name));
     }
 
-    /// get shared property
-    template <class T>
-    [[nodiscard]] auto get_shared_property(
-      const node_handle& node,
-      const std::string& name) -> object_ptr<T>
-    {
-      return value_cast<T>(_get_shared_property(node, name));
-    }
-
     /// get property
     template <class T>
     [[nodiscard]] auto get_property(
@@ -139,38 +130,42 @@ namespace yave {
       return value_cast<T>(_get_property(socket, name));
     }
 
-    /// get property
+    /// set property
+    void set_property(
+      const node_handle&,
+      const std::string&,
+      object_ptr<Object>);
+
+    /// set property
+    void set_property(
+      const socket_handle&,
+      const std::string&,
+      object_ptr<Object>);
+
+    /// remove property
+    void remove_property(const node_handle&, const std::string&);
+
+    /// remove property
+    void remove_property(const socket_handle&, const std::string&);
+
+  public:
+    /// get shared property
     template <class T>
     [[nodiscard]] auto get_shared_property(
-      const socket_handle& socket,
+      const node_handle& node,
       const std::string& name) -> object_ptr<T>
     {
-      return value_cast<T>(_get_shared_property(socket, name));
+      return value_cast<T>(_get_shared_property(node, name));
     }
 
-    /// set property
-    void set_property(
-      const node_handle&,
-      const std::string&,
-      object_ptr<Object>);
-
     /// set shared property
     void set_shared_property(
       const node_handle&,
       const std::string&,
       object_ptr<Object>);
 
-    /// set property
-    void set_property(
-      const socket_handle&,
-      const std::string&,
-      object_ptr<Object>);
-
-    /// set shared property
-    void set_shared_property(
-      const socket_handle&,
-      const std::string&,
-      object_ptr<Object>);
+    /// remove shared property
+    void remove_shared_property(const node_handle&, const std::string&);
 
   public:
     /// get socket index
