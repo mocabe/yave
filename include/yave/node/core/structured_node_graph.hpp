@@ -15,17 +15,29 @@
 
 namespace yave {
 
-  /// NodeGraph v2 PoC implementation
+  /// Node graph PoC implementation v3.
+  /// This is the heart of our visual language, and probably one of the most
+  /// complex data structure in the codebase. This class is built on top of two
+  /// layers of infrastructure: `graph::graph` and `node_graph`.
+  ///
+  /// This data can be considered as an equivalent of AST in traditional
+  /// programming languages, but there're fundamental differences:
+  /// 1. User can access and modify node graph freely, and these operations will
+  /// not cause any syntax errors like undefined identifiers. For example,
+  /// deleting a function definition will also delete all of calls to it
+  /// automatically.
+  /// 2. Some part of node graph is event driven, it modifies itself depending
+  /// on user actions.
   class structured_node_graph
   {
   public:
     /// regex pattern for valid node names
     static constexpr auto node_name_regex = R"(^[^\W\s]+$)";
     /// regex pattern for valid socket names
-    static constexpr auto socket_name_regex = R"(^[\w\s]+$)";
-    /// regex pattern for path
+    static constexpr auto socket_name_regex = R"(^.*$)";
+    /// regex pattern for valid path
     static constexpr auto path_name_regex = R"(^(\w+)(\.\w+)*$)";
-    /// regex pattern for path search
+    /// regex pattern for valid path search pattern
     static constexpr auto path_search_regex = R"(^(|\.|(\w+)(\.\w+)*\.?)$)";
 
   public:
@@ -91,6 +103,71 @@ namespace yave {
     /// set socket data
     void set_data(const socket_handle& socket, object_ptr<Object> data);
 
+  private:
+    // clang-format off
+    auto _get_property(const node_handle&,   const std::string&) -> object_ptr<Object>;
+    auto _get_property(const socket_handle&, const std::string&) -> object_ptr<Object>;
+    auto _get_shared_property(const node_handle&,   const std::string&) -> object_ptr<Object>;
+    auto _get_shared_property(const socket_handle&, const std::string&) -> object_ptr<Object>;
+    // clang-format on
+
+  public:
+    /// get property
+    template <class T>
+    [[nodiscard]] auto get_property(
+      const node_handle& node,
+      const std::string& name) -> object_ptr<T>
+    {
+      return value_cast<T>(_get_property(node, name));
+    }
+
+    /// get property
+    template <class T>
+    [[nodiscard]] auto get_property(
+      const socket_handle& socket,
+      const std::string& name) -> object_ptr<T>
+    {
+      return value_cast<T>(_get_property(socket, name));
+    }
+
+    /// set property
+    void set_property(
+      const node_handle&,
+      const std::string&,
+      object_ptr<Object>);
+
+    /// set property
+    void set_property(
+      const socket_handle&,
+      const std::string&,
+      object_ptr<Object>);
+
+    /// remove property
+    void remove_property(const node_handle&, const std::string&);
+
+    /// remove property
+    void remove_property(const socket_handle&, const std::string&);
+
+  public:
+    /// get shared property
+    template <class T>
+    [[nodiscard]] auto get_shared_property(
+      const node_handle& node,
+      const std::string& name) -> object_ptr<T>
+    {
+      return value_cast<T>(_get_shared_property(node, name));
+    }
+
+    /// set shared property
+    void set_shared_property(
+      const node_handle&,
+      const std::string&,
+      object_ptr<Object>);
+
+    /// remove shared property
+    void remove_shared_property(const node_handle&, const std::string&);
+
+  public:
     /// get socket index
     [[nodiscard]] auto get_index(const socket_handle& socket) const
       -> std::optional<size_t>;
@@ -143,12 +220,12 @@ namespace yave {
       -> std::vector<connection_handle>;
 
   public:
-    /// Create new builtin function
+    /// Create new declaration
     /// \param decl new function declaration
     /// \note decl should have unique name, otherwise will fail
     /// \returns null handle when failed
-    [[nodiscard]] auto create_function(const node_declaration& decl)
-      -> node_handle;
+    [[nodiscard]] auto create_declaration(
+      const std::shared_ptr<node_declaration>& decl) -> node_handle;
 
     /// Create new group
     /// \param parent_group parent group. null handle with it's global
@@ -212,6 +289,9 @@ namespace yave {
   public:
     /// Function?
     [[nodiscard]] bool is_function(const node_handle& node) const;
+
+    /// Macro?
+    [[nodiscard]] bool is_macro(const node_handle& node) const;
 
     /// Group?
     [[nodiscard]] bool is_group(const node_handle& node) const;
@@ -283,7 +363,8 @@ namespace yave {
 
   private:
     class impl;
-    std::unique_ptr<impl> m_pimpl;
-    structured_node_graph(std::unique_ptr<impl>&&);
+    class impl_wrap;
+    std::unique_ptr<impl_wrap> m_pimpl;
+    structured_node_graph(std::unique_ptr<impl_wrap>&&);
   };
 } // namespace yave

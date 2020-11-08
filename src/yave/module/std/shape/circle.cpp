@@ -15,9 +15,10 @@ namespace yave {
   auto node_declaration_traits<node::Shape::Circle>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Shape.Circle",
       "Create circle shape",
+      node_declaration_visibility::_public,
       {"pos", "radius"},
       {"shape"},
       {{0, make_node_argument<Vec2>()}, {1, make_node_argument<Float>(128.f)}});

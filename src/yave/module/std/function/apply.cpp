@@ -11,8 +11,12 @@ namespace yave {
   auto node_declaration_traits<node::Function::Apply>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
-      "Function.Apply", "Apply argument to function", {"fn", "arg"}, {"fn"});
+    return function_node_declaration(
+      "Function.Apply",
+      "Apply argument to function",
+      node_declaration_visibility::_public,
+      {"fn", "arg"},
+      {"fn"});
   }
 
   namespace modules::_std::function {
@@ -27,13 +31,12 @@ namespace yave {
         return arg<0>() << arg<1>();
       }
     };
-  } // namespace modules::_std::functional
+  } // namespace modules::_std::function
 
   auto node_definition_traits<node::Function::Apply, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
     auto info = get_node_declaration<node::Function::Apply>();
-
     return {node_definition(
       info.full_name(), 0, make_object<modules::_std::function::Apply>())};
   }

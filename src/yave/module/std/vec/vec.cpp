@@ -13,9 +13,10 @@ namespace yave {
   auto node_declaration_traits<node::Vec::Vec2>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Vec.Vec2",
       "Vec2 constructor",
+      node_declaration_visibility::_public,
       {"x", "y"},
       {"value"},
       {{0, make_node_argument<Float64>()}, {1, make_node_argument<Float64>()}});
@@ -24,9 +25,10 @@ namespace yave {
   auto node_declaration_traits<node::Vec::Vec3>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Vec.Vec3",
       "Vec3 constructor",
+      node_declaration_visibility::_public,
       {"x", "y", "z"},
       {"value"},
       {{0, make_node_argument<Float>()},
@@ -37,9 +39,10 @@ namespace yave {
   auto node_declaration_traits<node::Vec::Vec4>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Vec.Vec4",
       "Vec3 constructor",
+      node_declaration_visibility::_public,
       {"x", "y", "z", "w"},
       {"value"},
       {{0, make_node_argument<Float>()},

@@ -11,15 +11,23 @@ namespace yave {
   auto node_declaration_traits<node::Num::ToFloat>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
-      "Num.ToFloat", "Convert Num to Float", {"num"}, {"float"});
+    return function_node_declaration(
+      "Num.ToFloat",
+      "Convert Num to Float",
+      node_declaration_visibility::_public,
+      {"num"},
+      {"float"});
   }
 
   auto node_declaration_traits<node::Num::ToInt>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
-      "Num.ToInt", "Convert Num to Int", {"num"}, {"int"});
+    return function_node_declaration(
+      "Num.ToInt",
+      "Convert Num to Int",
+      node_declaration_visibility::_public,
+      {"num"},
+      {"int"});
   }
 
   namespace modules::_std::prim {

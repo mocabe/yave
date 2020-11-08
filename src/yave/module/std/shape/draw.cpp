@@ -17,9 +17,10 @@ namespace yave {
   auto node_declaration_traits<node::Shape::Fill>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Shape.Fill",
       "Fill shape",
+      node_declaration_visibility::_public,
       {"shape", "color"},
       {"shape"},
       {{1, make_node_argument<Color>(glm::fvec4(0.f))}});
@@ -28,9 +29,10 @@ namespace yave {
   auto node_declaration_traits<node::Shape::Stroke>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Shape.Stroke",
       "Stroke shape",
+      node_declaration_visibility::_public,
       {"shape", "color", "width"},
       {"shape"},
       {{1, make_node_argument<Color>(glm::fvec4(0.f))},
@@ -42,8 +44,12 @@ namespace yave {
   auto node_declaration_traits<node::Shape::Draw>::get_node_declaration(
     data::frame_buffer_manager& fbm) -> node_declaration
   {
-    return node_declaration(
-      "Shape.Draw", "Render shape to frame buffer", {"shape"}, {"frame"});
+    return function_node_declaration(
+      "Shape.Draw",
+      "Render shape to frame buffer",
+      node_declaration_visibility::_public,
+      {"shape"},
+      {"frame"});
   }
 
   namespace modules::_std::shape {

@@ -14,9 +14,10 @@ namespace yave {
   auto node_declaration_traits<node::Shape::Rect>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Shape.Rectangle",
       "Create rect shape",
+      node_declaration_visibility::_public,
       {"pos", "size"},
       {"shape"},
       {{0, make_node_argument<Vec2>()}, {1, make_node_argument<Vec2>()}});

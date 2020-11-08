@@ -14,8 +14,12 @@ namespace yave {
   auto node_declaration_traits<node::Frame::Blend>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
-      "Frame.Blend", "Alpha blend frames", {"src", "dst"}, {"out"});
+    return function_node_declaration(
+      "Frame.Blend",
+      "Alpha blend frames",
+      node_declaration_visibility::_public,
+      {"src", "dst"},
+      {"out"});
   }
 
   namespace modules::_std::frame {

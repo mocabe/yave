@@ -13,10 +13,11 @@ namespace yave {
   auto node_declaration_traits<node::List::Nil>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "List.Nil",
       "Constructs empty list. Result can be passed to any type of node which "
       "takes list as input.",
+      node_declaration_visibility::_public,
       {},
       {"[]"});
   }
@@ -24,30 +25,43 @@ namespace yave {
   auto node_declaration_traits<node::List::Cons>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
-      "List.Cons", "Construct new list node", {"head", "tail"}, {"cons"});
+    return function_node_declaration(
+      "List.Cons",
+      "Construct new list node",
+      node_declaration_visibility::_public,
+      {"head", "tail"},
+      {"cons"});
   }
 
   auto node_declaration_traits<node::List::Head>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
-      "List.Head", "Get head of list", {"list"}, {"head"});
+    return function_node_declaration(
+      "List.Head",
+      "Get head of list",
+      node_declaration_visibility::_public,
+      {"list"},
+      {"head"});
   }
 
   auto node_declaration_traits<node::List::Tail>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
-      "List.Tail", "Get head of list", {"list"}, {"head"});
+    return function_node_declaration(
+      "List.Tail",
+      "Get head of list",
+      node_declaration_visibility::_public,
+      {"list"},
+      {"head"});
   }
 
   auto node_declaration_traits<node::List::At>::get_node_declaration()
     -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "List.At",
       "Access list element by index",
+      node_declaration_visibility::_public,
       {"list", "index"},
       {"value"},
       {{1, make_node_argument<Int>(0)}});

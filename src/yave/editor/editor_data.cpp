@@ -166,7 +166,7 @@ namespace yave::editor {
 
     // register functions
     for (auto&& decl : node_decls.enumerate())
-      (void)node_graph.create_function(*decl);
+      (void)node_graph.create_declaration(decl);
   }
 
   void editor_data::impl::update_modules(const yave::scene_config& cfg)

@@ -14,9 +14,10 @@ namespace yave {
   auto node_declaration_traits<node::Frame::Fill>::get_node_declaration(
     data::frame_buffer_manager& fbm) -> node_declaration
   {
-    return node_declaration(
+    return function_node_declaration(
       "Frame.Fill",
       "Fill frame buffer with specified color",
+      node_declaration_visibility::_public,
       {"color", "frame"},
       {"frame"},
       {{0, make_node_argument<Color>(data::color(0.f, 0.f, 0.f, 1.f))}});

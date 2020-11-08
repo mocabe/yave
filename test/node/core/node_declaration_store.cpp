@@ -37,8 +37,8 @@ TEST_CASE("node_declaration_store")
 
   auto idecl =
     std::make_shared<node_declaration>(get_node_declaration<node::Num::Int>());
-  auto fdecl =
-    std::make_shared<node_declaration>(get_node_declaration<node::Num::Float>());
+  auto fdecl = std::make_shared<node_declaration>(
+    get_node_declaration<node::Num::Float>());
 
   REQUIRE(store.add(*idecl));
   REQUIRE(store.add(*fdecl));
