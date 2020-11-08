@@ -6,6 +6,7 @@
 #include <yave/node/core/structured_node_graph.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/value_cast.hpp>
+#include <yave/obj/vec/vec.hpp>
 
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view.hpp>
@@ -111,8 +112,6 @@ namespace yave {
       node_handle node;
       /// dependency node handle
       node_handle dependency;
-      ///  declaration
-      std::shared_ptr<composed_node_declaration> pdecl;
       /// members in this group
       std::vector<node_handle> members;
       /// input handler node
@@ -200,8 +199,6 @@ namespace yave {
       node_handle node;
       /// dependency node
       node_handle dependency;
-      /// declaration
-      std::shared_ptr<function_node_declaration> pdecl;
       /// callers
       std::vector<node_call*> callers;
       /// properties
@@ -217,8 +214,6 @@ namespace yave {
       node_handle node;
       /// dependency
       node_handle dependency;
-      /// decl
-      std::shared_ptr<macro_node_declaration> pdecl;
       /// callers
       std::vector<node_call*> callers;
       /// properties
@@ -272,6 +267,31 @@ namespace yave {
           callers.erase(rng::find(callers, caller));
         });
       }
+
+      auto get_property(const std::string& name) -> object_ptr<Object>
+      {
+        return visit([&](auto* p) -> object_ptr<Object> {
+          auto& map = p->properties;
+
+          if (auto it = map.find(name); it != map.end())
+            return it->second;
+
+          return nullptr;
+        });
+      }
+
+      void set_property(const std::string& name, object_ptr<Object> obj)
+      {
+        visit([&](auto* p) {
+          auto& map = p->properties;
+          map.insert_or_assign(name, std::move(obj));
+        });
+      }
+
+      void remove_property(const std::string& name)
+      {
+        visit([&](auto* p) { p->properties.erase(name); });
+      }
     };
 
     /// node call
@@ -290,8 +310,6 @@ namespace yave {
       std::vector<node_handle> input_bits;
       /// output bits
       std::vector<node_handle> output_bits;
-      /// pos
-      glm::dvec2 pos = {};
       /// properties
       std::map<std::string, object_ptr<Object>> properties;
 
@@ -322,8 +340,6 @@ namespace yave {
       node_group* parent;
       /// type
       io_type type;
-      /// pos
-      glm::dvec2 pos = {};
       /// properties
       std::map<std::string, object_ptr<Object>> properties;
 
@@ -393,7 +409,7 @@ namespace yave {
         properties.insert_or_assign(name, std::move(data));
       }
 
-      void remove_peoperty(const std::string& name)
+      void remove_property(const std::string& name)
       {
         properties.erase(name);
       }
@@ -564,7 +580,7 @@ namespace yave {
     void init()
     {
       assert(ng.empty());
-      auto g = check(add_new_group());
+      auto g = check(add_new_callee_group());
       root   = g->node;
       // for readability in logs
       ng.set_name(g->node, "__root");
@@ -584,6 +600,216 @@ namespace yave {
 
     impl(impl&&) noexcept = default;
     ~impl() noexcept      = default;
+
+  private:
+    auto get_call(const node_handle& node) const -> node_call*
+    {
+      assert(get_data(node));
+      return std::get_if<node_call>(&*get_data(node));
+    }
+
+    auto get_io(const node_handle& node) const -> node_io*
+    {
+      assert(get_data(node));
+      return std::get_if<node_io>(&*get_data(node));
+    }
+
+    auto get_function(const node_handle& node) const -> node_function*
+    {
+      assert(!get_call(node));
+      assert(get_data(node));
+      return std::get_if<node_function>(&*get_data(node));
+    }
+
+    auto get_macro(const node_handle& node) const -> node_macro*
+    {
+      assert(!get_call(node));
+      assert(get_data(node));
+      return std::get_if<node_macro>(&*get_data(node));
+    }
+
+    auto get_group(const node_handle& node) const -> node_group*
+    {
+      if (get_call(node)) {
+        throw; 
+      }
+      assert(!get_call(node));
+      assert(get_data(node));
+      return std::get_if<node_group>(&*get_data(node));
+    }
+
+    auto get_callee_function(const node_handle& node) const -> node_function*
+    {
+      if (auto call = get_call(node))
+        if (auto pp = std::get_if<node_function*>(&call->callee))
+          return *pp;
+      return nullptr;
+    }
+
+    auto get_callee_macro(const node_handle& node) const -> node_macro*
+    {
+      if (auto call = get_call(node))
+        if (auto pp = std::get_if<node_macro*>(&call->callee))
+          return *pp;
+      return nullptr;
+    }
+
+    auto get_callee_group(const node_handle& node) const -> node_group*
+    {
+      if (auto call = get_call(node))
+        if (auto pp = std::get_if<node_group*>(&call->callee))
+          return *pp;
+      return nullptr;
+    }
+
+    auto get_parent(const node_handle& node) const -> node_group*
+    {
+      if (auto call = get_call(node))
+        return call->parent;
+
+      if (auto io = get_io(node))
+        return io->parent;
+
+      return nullptr;
+    }
+
+  public:
+    bool is_call(const node_handle& node) const
+    {
+      return get_call(node);
+    }
+
+    bool is_io(const node_handle& node) const
+    {
+      return get_io(node); 
+    }
+
+    bool is_group(const node_handle& node) const
+    {
+      return get_group(node);
+    }
+
+    bool is_function(const node_handle& node) const
+    {
+      return get_function(node);
+    }
+
+    bool is_macro(const node_handle& node) const
+    {
+      return get_macro(node);
+    }
+
+    bool is_group_call(const node_handle& node) const
+    {
+      return get_callee_group(node);
+    }
+
+    bool is_function_call(const node_handle& node) const
+    {
+      return get_callee_function(node);
+    }
+
+    bool is_macro_call(const node_handle& node) const
+    {
+      return get_callee_macro(node);
+    }
+
+    bool is_group_member(const node_handle& node) const
+    {
+      return is_call(node);
+    }
+
+    bool is_group_output(const node_handle& node) const
+    {
+      if (auto io = get_io(node))
+        return io->is_output();
+      return false;
+    }
+
+    bool is_group_input(const node_handle& node) const
+    {
+      if (auto io = get_io(node))
+        return io->is_input();
+      return false;
+    }
+
+    bool is_caller(const node_handle& node) const
+    {
+      return get_call(node) || get_io(node);
+    }
+
+    bool is_callee(const node_handle& node) const
+    {
+      return !is_caller(node);
+    }
+
+  private:
+    // for assertion
+    [[maybe_unused]] bool is_valid(const node_handle& node) const
+    {
+      return ng.exists(node) && (is_call(node) || is_io(node));
+    }
+
+  public:
+    // get node of socket
+    auto get_node(const socket_handle& socket) const -> node_handle
+    {
+      assert(ng.interfaces(socket).size() == 1);
+      return ng.interfaces(socket)[0];
+    }
+
+    // defcall?
+    bool is_defcall(const node_handle& node) const
+    {
+      assert(is_caller(node));
+      if (auto call = get_call(node))
+        return call->callee.get_defcall() == call;
+      return false;
+    }
+
+  private:
+    // collect caller nodes, including defcall
+    auto get_caller_nodes(const node_handle& node) const
+      -> std::vector<node_handle>
+    {
+      assert(is_valid(node));
+
+      constexpr auto to_nodes =
+        rng::views::transform([](auto* p) { return p->node; }) | rng::to_vector;
+
+      if (auto call = get_call(node))
+        return std::visit(
+          [&](auto* p) { return p->callers | to_nodes; }, call->callee);
+
+      return {};
+    }
+
+    // get callee node
+    auto get_callee_node(const node_handle& node) const -> node_handle
+    {
+      assert(is_valid(node));
+      if (auto cd = get_call(node))
+        return std::visit(
+          overloaded {[](auto* p) { return p->node; }}, cd->callee);
+
+      return {};
+    }
+
+    // get callee socket
+    auto get_callee_socket(const socket_handle& s) -> socket_handle
+    {
+      auto n   = get_node(s);
+      auto idx = get_index(n, s);
+      assert(is_caller(n));
+
+      if (auto cn = get_callee_node(n)) {
+        if (ng.is_input_socket(s))
+          return ng.input_sockets(cn)[idx];
+        if (ng.is_output_socket(s))
+          return ng.output_sockets(cn)[idx];
+      }
+      return {};
+    }
 
   private:
     auto get_data(const node_handle& node) const -> object_ptr<NodeData>
@@ -610,15 +836,16 @@ namespace yave {
 
   public:
     auto get_caller_property(const node_handle& n, const std::string& name)
-      -> object_ptr<Object>
+      const -> object_ptr<Object>
     {
-      assert(get_call(n) || get_io(n));
+      assert(is_caller(n));
       return get_data(n)->get_property(name);
     }
 
     auto get_caller_property(const socket_handle& s, const std::string& name)
+      const
     {
-      assert(get_call(ng.interfaces(s)[0]) || get_io(ng.interfaces(s)[0]));
+      assert(is_caller(get_node(s)));
       return get_data(s)->get_property(name);
     }
 
@@ -627,7 +854,7 @@ namespace yave {
       const std::string& name,
       object_ptr<Object> data)
     {
-      assert(get_call(n) || get_io(n));
+      assert(is_caller(n));
       get_data(n)->set_property(name, std::move(data));
     }
 
@@ -636,11 +863,71 @@ namespace yave {
       const std::string& name,
       object_ptr<Object> data)
     {
-      assert(get_call(ng.interfaces(s)[0]) || get_io(ng.interfaces(s)[0]));
+      assert(is_caller(get_node(s)));
       get_data(s)->set_property(name, std::move(data));
     }
 
-  private:
+    void remove_caller_property(const node_handle& n, const std::string& name)
+    {
+      assert(is_caller(n));
+      get_data(n)->remove_property(name);
+    }
+
+    void remove_caller_property(const socket_handle& s, const std::string& name)
+    {
+      assert(is_caller(get_node(s)));
+      get_data(s)->remove_property(name);
+    }
+
+  public:
+    auto get_callee_property(const node_handle& n, const std::string& name)
+      -> object_ptr<Object>
+    {
+      assert(is_caller(n));
+      if (auto call = get_call(n))
+        return call->callee.get_property(name);
+      return nullptr;
+    }
+
+    auto get_callee_property(const socket_handle& s, const std::string& name)
+      -> object_ptr<Object>
+    {
+      if (auto cs = get_callee_socket(s))
+        return get_data(cs)->get_property(name);
+      return nullptr;
+    }
+
+    void set_callee_property(
+      const node_handle& n,
+      const std::string& name,
+      object_ptr<Object> data)
+    {
+      if (auto call = get_call(n))
+        call->callee.set_property(name, std::move(data));
+    }
+
+    void set_callee_property(
+      const socket_handle& s,
+      const std::string& name,
+      object_ptr<Object> data)
+    {
+      if (auto cs = get_callee_socket(s))
+        return get_data(cs)->set_property(name, std::move(data));
+    }
+
+    void remove_callee_property(const node_handle& n, const std::string& name)
+    {
+      if (auto call = get_call(n))
+        call->callee.remove_property(name);
+    }
+
+    void remove_callee_property(const socket_handle& s, const std::string& name)
+    {
+      if (auto cs = get_callee_socket(s))
+        get_data(cs)->remove_property(name);
+    }
+
+  public:
     auto get_index(const node_handle& node, const socket_handle& socket) const
       -> size_t
     {
@@ -655,13 +942,9 @@ namespace yave {
       unreachable();
     }
 
-  public:
     auto get_index(const socket_handle& socket) const
     {
-      assert(ng.interfaces(socket).size() == 1);
-      auto n = ng.interfaces(socket)[0];
-      assert(is_valid(n));
-      return get_index(n, socket);
+      return get_index(get_node(socket), socket);
     }
 
   public:
@@ -773,44 +1056,25 @@ namespace yave {
     }
 
   private:
-    auto create_call_bit(const std::string& name, socket_type type)
+    auto create_io_bit(const std::string& name)
     {
-      auto bit_decl = get_declaration(type_c<node::NodeGroupIOBit>);
-      auto bit =
-        check(ng.add(bit_decl.node_name(), {name}, {name}, node_type::normal));
+      auto decl = get_declaration(type_c<node::NodeGroupIOBit>);
+      auto bit  = ng.add(decl.node_name(), {name}, {name}, node_type::normal);
 
-      if (type == socket_type::input) {
-        auto s = ng.input_sockets(bit)[0];
-        set_data(s, make_object<SocketData>());
-      }
-      if (type == socket_type::output) {
-        auto s = ng.output_sockets(bit)[0];
-        set_data(s, make_object<SocketData>());
-      }
-      return bit;
-    }
+      assert(bit);
 
-    auto create_group_bit(const std::string& name, socket_type type)
-    {
-      auto bit_decl = get_declaration(type_c<node::NodeGroupIOBit>);
-      auto bit =
-        check(ng.add(bit_decl.node_name(), {name}, {name}, node_type::normal));
+      set_data(ng.input_sockets(bit)[0], make_object<SocketData>());
+      set_data(ng.output_sockets(bit)[0], make_object<SocketData>());
 
-      if (type == socket_type::input) {
-        auto s = ng.output_sockets(bit)[0];
-        set_data(s, make_object<SocketData>());
-      }
-      if (type == socket_type::output) {
-        auto s = ng.input_sockets(bit)[0];
-        set_data(s, make_object<SocketData>());
-      }
       return bit;
     }
 
   private:
     /// create new group callee
-    auto add_new_callee(const std::shared_ptr<composed_node_declaration>& pdecl)
-      -> node_group*
+    auto add_new_callee_group(
+      const std::string& name,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss) -> node_group*
     {
       auto d_decl = get_declaration(type_c<node::NodeDependency>);
       auto i_decl = get_declaration(type_c<node::NodeGroupInput>);
@@ -824,14 +1088,13 @@ namespace yave {
         node_type::normal));
 
       // group interface
-      auto g = check(ng.add(pdecl->node_name(), {}, {}, node_type::interface));
+      auto g = check(ng.add(name, {}, {}, node_type::interface));
       auto i = check(ng.add(i_decl.node_name(), {}, {}, node_type::interface));
       auto o = check(ng.add(o_decl.node_name(), {}, {}, node_type::interface));
 
       auto gdata = make_node_data(node_group {
         .node           = g,
         .dependency     = d,
-        .pdecl          = pdecl,
         .input_handler  = i,
         .output_handler = o,
         .nodes          = {i, o}});
@@ -848,15 +1111,15 @@ namespace yave {
       set_data(i, idata);
       set_data(o, odata);
 
-      for (auto&& s : pdecl->input_sockets()) {
-        auto bit = create_group_bit(s, socket_type::input);
+      for (auto&& s : iss) {
+        auto bit = create_io_bit(s);
         check(ng.attach_interface(g, ng.input_sockets(bit)[0]));
         check(ng.attach_interface(o, ng.output_sockets(bit)[0]));
         pgdata->input_bits.push_back(bit);
       }
 
-      for (auto&& s : pdecl->output_sockets()) {
-        auto bit = create_group_bit(s, socket_type::output);
+      for (auto&& s : oss) {
+        auto bit = create_io_bit(s);
         check(ng.attach_interface(g, ng.output_sockets(bit)[0]));
         check(ng.attach_interface(o, ng.input_sockets(bit)[0]));
         pgdata->output_bits.push_back(bit);
@@ -872,23 +1135,20 @@ namespace yave {
     }
 
     /// helper to create empty node group callee
-    auto add_new_group() -> node_group*
+    auto add_new_callee_group() -> node_group*
     {
-      return add_new_callee(std::make_shared<composed_node_declaration>(
-        get_declaration(type_c<node::NodeGroupInterface>)));
+      auto decl = get_declaration(type_c<node::NodeGroupInterface>);
+      return add_new_callee_group(
+        decl.node_name(), decl.input_sockets(), decl.output_sockets());
     }
 
     /// create new function callee
-    auto add_new_callee(const std::shared_ptr<function_node_declaration>& pdecl)
-      -> node_function*
+    auto add_new_callee_function(
+      const std::string& name,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss) -> node_function*
     {
       auto d_decl = get_declaration(type_c<node::NodeDependency>);
-
-      auto body = ng.add(
-        pdecl->node_name(),
-        pdecl->input_sockets(),
-        pdecl->output_sockets(),
-        node_type::normal);
 
       auto dep = ng.add(
         d_decl.node_name(),
@@ -896,13 +1156,21 @@ namespace yave {
         d_decl.output_sockets(),
         node_type::normal);
 
+      auto body = ng.add(name, iss, oss, node_type::normal);
+
       assert(body && dep);
       assert(!ng.get_data(body));
 
-      auto bdata = make_node_data(node_function {
-        .node = body, .dependency = dep, .pdecl = pdecl, .callers = {}});
+      auto bdata = make_node_data(
+        node_function {.node = body, .dependency = dep, .callers = {}});
 
       set_data(body, bdata);
+
+      for (auto&& s : ng.input_sockets(body))
+        set_data(s, make_object<SocketData>());
+
+      for (auto&& s : ng.output_sockets(body))
+        set_data(s, make_object<SocketData>());
 
       Info(
         g_logger,
@@ -914,16 +1182,12 @@ namespace yave {
     }
 
     /// create new macro callee
-    auto add_new_callee(const std::shared_ptr<macro_node_declaration>& pdecl)
-      -> node_macro*
+    auto add_new_callee_macro(
+      const std::string& name,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss) -> node_macro*
     {
       auto d_decl = get_declaration(type_c<node::NodeDependency>);
-
-      auto body = ng.add(
-        pdecl->node_name(),
-        pdecl->input_sockets(),
-        pdecl->output_sockets(),
-        node_type::normal);
 
       auto dep = ng.add(
         d_decl.node_name(),
@@ -931,13 +1195,20 @@ namespace yave {
         d_decl.output_sockets(),
         node_type::normal);
 
+      auto body = ng.add(name, iss, oss, node_type::normal);
+
       assert(body && dep);
       assert(!ng.get_data(body));
 
-      auto bdata = make_node_data(
-        node_macro {.node = body, .dependency = dep, .pdecl = pdecl});
+      auto bdata = make_node_data(node_macro {.node = body, .dependency = dep});
 
       set_data(body, bdata);
+
+      for (auto&& s : ng.input_sockets(body))
+        set_data(s, make_object<SocketData>());
+
+      for (auto&& s : ng.output_sockets(body))
+        set_data(s, make_object<SocketData>());
 
       Info(
         g_logger,
@@ -1075,13 +1346,13 @@ namespace yave {
       obits.reserve(info->output_sockets().size());
 
       for (auto&& s : info->input_sockets()) {
-        auto bit = create_call_bit(*ng.get_name(s), socket_type::input);
+        auto bit = create_io_bit(*ng.get_name(s));
         check(ng.attach_interface(n, ng.input_sockets(bit)[0]));
         ibits.push_back(bit);
       }
 
       for (auto&& s : info->output_sockets()) {
-        auto bit = create_call_bit(*ng.get_name(s), socket_type::output);
+        auto bit = create_io_bit(*ng.get_name(s));
         check(ng.attach_interface(n, ng.output_sockets(bit)[0]));
         obits.push_back(bit);
       }
@@ -1145,18 +1416,6 @@ namespace yave {
           ng.set_name(n, name_fixed);
           ng.set_name(p->node, name_fixed);
         },
-        callee);
-
-      // init call
-      std::visit(
-        overloaded {
-          [&](node_function* f) {
-            // set default arguments for function for each function call
-            auto iss = ng.input_sockets(n);
-            for (auto&& [idx, val] : f->pdecl->default_args())
-              get_data(iss[idx])->set_property("data", val.clone());
-          },
-          [](auto) {}},
         callee);
 
       Info(
@@ -1244,17 +1503,18 @@ namespace yave {
       assert(call->input_bits.size() == newc->input_bits.size());
       assert(call->output_bits.size() == newc->output_bits.size());
 
-      // clone socket data
-
       auto iss = ng.input_sockets(call->node);
       for (auto&& [idx, s] : iss | rng::views::enumerate) {
-        auto data = get_data(s).clone();
-        data->clone_properties();
+        for (auto&& [key, v] : get_data(s)->properties)
+          set_caller_property(
+            ng.input_sockets(newc->node)[idx], key, v.clone());
       }
+
       auto oss = ng.output_sockets(call->node);
       for (auto&& [idx, s] : oss | rng::views::enumerate) {
-        auto data = get_data(s).clone();
-        data->clone_properties();
+        for (auto&& [key, v] : get_data(s)->properties)
+          set_caller_property(
+            ng.output_sockets(newc->node)[idx], key, v.clone());
       }
 
       return newc;
@@ -1309,7 +1569,7 @@ namespace yave {
       std::map<socket_handle, socket_handle> smap;
 
       // create empty group
-      auto newg = add_new_group();
+      auto newg = add_new_callee_group();
 
       // copy node names
       ng.set_name(newg->node, *ng.get_name(callee->node));
@@ -1347,11 +1607,19 @@ namespace yave {
       }
 
       // copy sockets
-      for (auto&& s : ng.input_sockets(call->node))
-        check(add_input_socket(newc->node, *ng.get_name(s), size_t(-1)));
+      for (auto&& s : ng.input_sockets(call->node)) {
+        auto news =
+          check(add_input_socket(newc->node, *ng.get_name(s), size_t(-1)));
+        for (auto&& [key, v] : get_data(s)->properties)
+          set_caller_property(news, key, v.clone());
+      }
 
-      for (auto&& s : ng.output_sockets(call->node))
-        check(add_output_socket(newc->node, *ng.get_name(s), size_t(-1)));
+      for (auto&& s : ng.output_sockets(call->node)) {
+        auto news =
+          check(add_output_socket(newc->node, *ng.get_name(s), size_t(-1)));
+        for (auto&& [key, v] : get_data(s)->properties)
+          set_caller_property(news, key, v.clone());
+      }
 
       { // map sockets of IO handler
         auto oldis = ng.input_sockets(callee->output_handler);
@@ -1389,295 +1657,28 @@ namespace yave {
     }
 
   public:
-    auto get_info(const node_handle& node) const
+    auto get_node_type(const node_handle& node) const -> structured_node_type
     {
-      auto info = ng.get_info(node);
-      assert(info);
+      assert(is_valid(node));
+      if (is_function_call(node))
+        return structured_node_type::function;
+      if (is_group_call(node))
+        return structured_node_type::group;
+      if (is_group_input(node))
+        return structured_node_type::group_input;
+      if (is_group_output(node))
+        return structured_node_type::group_output;
+      unreachable();
+    }
 
-      auto type = [&] {
-        if (is_function_call(node))
-          return structured_node_type::function;
-        if (is_group_call(node))
-          return structured_node_type::group;
-        if (is_group_input(node))
-          return structured_node_type::group_input;
-        if (is_group_output(node))
-          return structured_node_type::group_output;
-        unreachable();
-      }();
-
+    auto get_call_type(const node_handle& node) const -> structured_call_type
+    {
       auto call_type = structured_call_type::call;
 
       if (is_defcall(node))
         call_type = structured_call_type::definition;
 
-      auto pos = get_pos(node);
-
-      return structured_node_info(
-        info->name(),
-        info->input_sockets(),
-        info->output_sockets(),
-        type,
-        call_type,
-        pos);
-    }
-
-    auto get_info(const socket_handle& socket) const
-    {
-      auto info = check(ng.get_info(socket));
-      assert(info->interfaces().size() == 1);
-
-      auto n = info->interfaces()[0];
-      assert(is_valid(n));
-
-      auto cs = ng.connections(socket);
-
-      return structured_socket_info(
-        info->name(), info->type(), n, get_index(n, socket), cs);
-    }
-
-    auto get_info(const connection_handle& connection) const
-    {
-      auto info = check(ng.get_info(connection));
-      assert(info->src_interfaces().size() == 1);
-      assert(info->dst_interfaces().size() == 1);
-
-      return structured_connection_info(
-        info->src_interfaces()[0],
-        info->src_socket(),
-        info->dst_interfaces()[0],
-        info->dst_socket());
-    }
-
-    auto node(const socket_handle& socket) const
-    {
-      assert(ng.interfaces(socket).size() == 1);
-      return ng.interfaces(socket)[0];
-    }
-
-  private:
-    auto socket_index(const socket_handle& socket) const -> size_t
-    {
-      assert(ng.exists(socket));
-
-      auto node = this->node(socket);
-      assert(is_valid(node));
-
-      auto getidx = [&](auto&& ss) {
-        size_t ret = rng::distance(ss.begin(), rng::find(ss, socket));
-        assert(ret < ss.size());
-        return ret;
-      };
-
-      if (ng.is_input_socket(socket))
-        return getidx(ng.input_sockets(node));
-
-      if (ng.is_output_socket(socket))
-        return getidx(ng.output_sockets(node));
-
-      unreachable();
-    }
-
-  private:
-    auto get_call(const node_handle& node) const -> node_call*
-    {
-      assert(get_data(node));
-      return std::get_if<node_call>(&*get_data(node));
-    }
-
-    auto get_function(const node_handle& node) const -> node_function*
-    {
-      assert(!get_call(node));
-      assert(get_data(node));
-      return std::get_if<node_function>(&*get_data(node));
-    }
-
-    auto get_macro(const node_handle& node) const -> node_macro*
-    {
-      assert(!get_call(node));
-      assert(get_data(node));
-      return std::get_if<node_macro>(&*get_data(node));
-    }
-
-    auto get_group(const node_handle& node) const -> node_group*
-    {
-      assert(!get_call(node));
-      assert(get_data(node));
-      return std::get_if<node_group>(&*get_data(node));
-    }
-
-    auto get_io(const node_handle& node) const -> node_io*
-    {
-      assert(get_data(node));
-      return std::get_if<node_io>(&*get_data(node));
-    }
-
-    auto get_callee_function(const node_handle& node) const -> node_function*
-    {
-      if (auto call = get_call(node))
-        if (auto pp = std::get_if<node_function*>(&call->callee))
-          return *pp;
-      return nullptr;
-    }
-
-    auto get_callee_macro(const node_handle& node) const -> node_macro*
-    {
-      if (auto call = get_call(node))
-        if (auto pp = std::get_if<node_macro*>(&call->callee))
-          return *pp;
-      return nullptr;
-    }
-
-    auto get_callee_group(const node_handle& node) const -> node_group*
-    {
-      if (auto call = get_call(node))
-        if (auto pp = std::get_if<node_group*>(&call->callee))
-          return *pp;
-      return nullptr;
-    }
-
-    auto get_parent(const node_handle& node) const -> node_group*
-    {
-      if (auto call = get_call(node))
-        return call->parent;
-
-      if (auto io = get_io(node))
-        return io->parent;
-
-      return nullptr;
-    }
-
-  private:
-    bool is_call(const node_handle& node) const
-    {
-      return get_call(node);
-    }
-
-    bool is_defcall(const node_handle& node) const
-    {
-      if (auto call = get_call(node))
-        return call->is_defcall();
-      return false;
-    }
-
-    bool is_group(const node_handle& node) const
-    {
-      return get_group(node);
-    }
-
-    bool is_function(const node_handle& node) const
-    {
-      return get_function(node);
-    }
-
-    bool is_io(const node_handle& node) const
-    {
-      return get_io(node);
-    }
-
-    bool is_group_call(const node_handle& node) const
-    {
-      return get_callee_group(node);
-    }
-
-    bool is_function_call(const node_handle& node) const
-    {
-      return get_callee_function(node);
-    }
-
-    bool is_macro_call(const node_handle& node) const
-    {
-      return get_callee_macro(node);
-    }
-
-    bool is_group_output(const node_handle& node) const
-    {
-      if (auto io = get_io(node))
-        return io->is_output();
-      return false;
-    }
-
-    bool is_group_input(const node_handle& node) const
-    {
-      if (auto io = get_io(node))
-        return io->is_input();
-      return false;
-    }
-
-  private:
-    // for assertion
-    [[maybe_unused]] bool is_valid(const node_handle& node) const
-    {
-      return ng.exists(node) && (is_call(node) || is_io(node));
-    }
-
-  private:
-    // get callee node
-    auto get_callee_node(const node_handle& node) const -> node_handle
-    {
-      assert(is_valid(node));
-      if (auto cd = get_call(node))
-        return std::visit(
-          overloaded {[](auto* p) { return p->node; }}, cd->callee);
-
-      return {};
-    }
-
-    // collect caller nodes, including defcall
-    auto get_caller_nodes(const node_handle& node) const
-      -> std::vector<node_handle>
-    {
-      assert(is_valid(node));
-
-      constexpr auto to_nodes =
-        rng::views::transform([](auto* p) { return p->node; }) | rng::to_vector;
-
-      if (auto call = get_call(node))
-        return std::visit(
-          [&](auto* p) { return p->callers | to_nodes; }, call->callee);
-
-      return {};
-    }
-
-  public: /* for member function */
-    bool is_function_node(const node_handle& node) const
-    {
-      return is_function_call(node);
-    }
-
-    bool is_macro_node(const node_handle& node) const
-    {
-      return is_macro_call(node);
-    }
-
-    bool is_group_node(const node_handle& node) const
-    {
-      return is_group_call(node);
-    }
-
-    bool is_definition_node(const node_handle& node) const
-    {
-      return is_defcall(node);
-    }
-
-    bool is_call_node(const node_handle& node) const
-    {
-      return is_call(node);
-    }
-
-    bool is_group_output_node(const node_handle& node) const
-    {
-      return is_group_output(node);
-    }
-
-    bool is_group_input_node(const node_handle& node) const
-    {
-      return is_group_input(node);
-    }
-
-    bool is_group_member_node(const node_handle& node) const
-    {
-      return is_call(node);
+      return call_type;
     }
 
   public:
@@ -1767,37 +1768,6 @@ namespace yave {
     }
 
   public:
-    auto get_pos(const node_handle& node) const -> glm::dvec2
-    {
-      assert(is_valid(node));
-
-      if (auto call = get_call(node))
-        return call->pos;
-
-      if (auto io = get_io(node))
-        return io->pos;
-
-      unreachable();
-    }
-
-    void set_pos(const node_handle& node, const glm::dvec2& newpos)
-    {
-      assert(is_valid(node));
-
-      if (auto call = get_call(node)) {
-        call->pos = newpos;
-        return;
-      }
-
-      if (auto io = get_io(node)) {
-        io->pos = newpos;
-        return;
-      }
-
-      unreachable();
-    }
-
-  public:
     void set_name(const node_handle& node, const std::string& name)
     {
       assert(is_valid(node));
@@ -1847,8 +1817,8 @@ namespace yave {
     void set_name(const socket_handle& socket, const std::string& name)
     {
       // call
-      auto node = this->node(socket);
-      auto idx  = socket_index(socket);
+      auto node = get_node(socket);
+      auto idx  = get_index(node, socket);
 
       assert(is_valid(node));
 
@@ -1929,7 +1899,7 @@ namespace yave {
         ng.detach_interface(call->node, bit_outer_socket(bit));
 
       // insert new bit
-      auto newbit = create_call_bit(name, type);
+      auto newbit = create_io_bit(name);
       bits.insert(bits.begin() + index, newbit);
 
       // attach bits
@@ -1992,7 +1962,7 @@ namespace yave {
       }
 
       // insert new bit
-      auto newbit = create_group_bit(name, type);
+      auto newbit = create_io_bit(name);
       bits.insert(bits.begin() + index, newbit);
 
       // attach interfaces
@@ -2015,7 +1985,7 @@ namespace yave {
         if (io->is_output()) {
           auto outer =
             add_output_socket(io->parent->get_defcall()->node, socket, index);
-          return ng.input_sockets(node)[socket_index(outer)];
+          return ng.input_sockets(node)[get_index(outer)];
         }
         Error(g_logger, "Cannot add input socket to input handler");
         return {};
@@ -2058,7 +2028,7 @@ namespace yave {
         if (io->is_input()) {
           auto outer =
             add_input_socket(io->parent->get_defcall()->node, socket, index);
-          return ng.output_sockets(node)[socket_index(outer)];
+          return ng.output_sockets(node)[get_index(outer)];
         }
         Error(g_logger, "Cannot output socket to output handler");
         return {};
@@ -2094,8 +2064,8 @@ namespace yave {
       assert(ng.exists(socket));
       Info(g_logger, "Removing socket {}", to_string(socket.id()));
 
-      auto node = this->node(socket);
-      auto idx  = socket_index(socket);
+      auto node = get_node(socket);
+      auto idx  = get_index(node, socket);
       auto type = ng.get_info(socket)->type();
 
       assert(is_valid(node));
@@ -2211,7 +2181,7 @@ namespace yave {
         // if group doesn't exist then create new one
         if (!nextg) {
 
-          auto newg = add_new_group();
+          auto newg = add_new_callee_group();
           ng.set_name(newg->input_handler, "In");
           ng.set_name(newg->output_handler, "Out");
           ng.set_name(newg->node, std::string(name));
@@ -2232,33 +2202,58 @@ namespace yave {
     }
 
   public:
-    auto create_declaration(
-      const std::shared_ptr<node_declaration>& pdecl,
-      structured_node_graph& owner) -> node_handle
+    auto create_function_declaration(
+      const std::string& node_path,
+      const std::string& node_name,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss) -> node_handle
     {
-      return std::visit(
-        [&](auto& decl) -> node_handle {
-          Info(g_logger, "Creating new declaration: {}", decl.full_name());
+      auto full_name = node_path + "." + node_name;
 
-          using t = std::decay_t<decltype(decl)>;
+      Info(g_logger, "Creating new function declaration: {}", full_name);
 
-          if (auto p = create_declaration_path(decl.full_name())) {
+      if (auto p = create_declaration_path(full_name)) {
+        auto func = check(add_new_callee_function(node_name, iss, oss));
+        auto call = check(add_new_call(p, func));
+        return call->node;
+      }
+      return {};
+    }
 
-            // create defcall
-            auto func = check(add_new_callee(std::shared_ptr<t>(pdecl, &decl)));
-            auto call = check(add_new_call(p, func));
+    auto create_macro_declaration(
+      const std::string& node_path,
+      const std::string& node_name,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss) -> node_handle
+    {
+      auto full_name = node_path + "." + node_name;
 
-            // call init callback for composed group
-            if constexpr (std::is_same_v<t, composed_node_declaration>) {
-              Info(g_logger, "init_composed()");
-              decl.init_composed(owner, call->node);
-            }
+      Info(g_logger, "Creating new macro declaration: {}", full_name);
 
-            return call->node;
-          }
-          return {};
-        },
-        *pdecl);
+      if (auto p = create_declaration_path(full_name)) {
+        auto func = check(add_new_callee_macro(node_name, iss, oss));
+        auto call = check(add_new_call(p, func));
+        return call->node;
+      }
+      return {};
+    }
+
+    auto create_group_declaration(
+      const std::string& node_path,
+      const std::string& node_name,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss) -> node_handle
+    {
+      auto full_name = node_path + "." + node_name;
+
+      Info(g_logger, "Creating new group declaration: {}", full_name);
+
+      if (auto p = create_declaration_path(full_name)) {
+        auto func = check(add_new_callee_group(node_name, iss, oss));
+        auto call = check(add_new_call(p, func));
+        return call->node;
+      }
+      return {};
     }
 
     auto create_group(
@@ -2293,7 +2288,7 @@ namespace yave {
         Info(g_logger, "  {}", to_string(n.id()));
 
       // create new group under parent
-      auto newg = add_new_group();
+      auto newg = add_new_callee_group();
       ng.set_name(newg->input_handler, "In");
       ng.set_name(newg->output_handler, "Out");
 
@@ -2441,8 +2436,8 @@ namespace yave {
       const socket_handle& dst_socket,
       const uid& id) -> connection_handle
     {
-      auto srcn = node(src_socket);
-      auto dstn = node(dst_socket);
+      auto srcn = get_node(src_socket);
+      auto dstn = get_node(dst_socket);
 
       assert(is_valid(srcn));
       assert(is_valid(dstn));
@@ -2534,7 +2529,7 @@ namespace yave {
         if (auto data = ret.ng.get_data(n))
           value_cast<NodeData>(data)->refresh(ret.ng);
 
-      return structured_node_graph(std::make_unique<impl>(std::move(ret)));
+      return structured_node_graph(std::make_unique<impl_wrap>(std::move(ret)));
     }
 
     void clear()
@@ -2544,12 +2539,638 @@ namespace yave {
     }
   };
 
+  // wrapper for public graph interface
+  class structured_node_graph::impl_wrap
+  {
+    impl m_impl;
+
+  public:
+    impl_wrap() = default;
+
+    impl_wrap(impl&& other) noexcept
+      : m_impl {std::move(other)}
+    {
+    }
+
+  public:
+    bool exists(const node_handle& node) const
+    {
+      return m_impl.ng.exists(node);
+    }
+
+    bool exists(const connection_handle& connection) const
+    {
+      return m_impl.ng.exists(connection);
+    }
+
+    bool exists(const socket_handle& socket) const
+    {
+      return m_impl.ng.exists(socket);
+    }
+
+  public:
+    auto node(const uid& id) const -> node_handle
+    {
+      return m_impl.ng.node(id);
+    }
+
+    auto socket(const uid& id) const -> socket_handle
+    {
+      return m_impl.ng.socket(id);
+    }
+
+    auto connection(const uid& id) const -> connection_handle
+    {
+      return m_impl.ng.connection(id);
+    }
+
+  public:
+    auto get_info(const node_handle& node) const
+      -> std::optional<structured_node_info>
+    {
+      if (!exists(node))
+        return std::nullopt;
+
+      auto info = m_impl.ng.get_info(node);
+      assert(info);
+
+      auto pos   = get_pos(node);
+      auto ntype = m_impl.get_node_type(node);
+      auto ctype = m_impl.get_call_type(node);
+
+      assert(pos);
+
+      return structured_node_info(
+        info->name(),
+        info->input_sockets(),
+        info->output_sockets(),
+        ntype,
+        ctype,
+        *pos);
+    }
+
+    auto get_info(const socket_handle& socket) const
+      -> std::optional<structured_socket_info>
+    {
+      if (!exists(socket))
+        return std::nullopt;
+
+      auto n = m_impl.get_node(socket);
+      assert(n);
+
+      auto info = m_impl.ng.get_info(socket);
+      assert(info);
+
+      auto cs = m_impl.ng.connections(socket);
+
+      return structured_socket_info(
+        info->name(), info->type(), n, m_impl.get_index(n, socket), cs);
+    }
+
+    auto get_info(const connection_handle& connection) const
+      -> std::optional<structured_connection_info>
+    {
+      if (!exists(connection))
+        return std::nullopt;
+
+      auto info = m_impl.ng.get_info(connection);
+      assert(info);
+
+      return structured_connection_info(
+        m_impl.get_node(info->src_socket()),
+        info->src_socket(),
+        m_impl.get_node(info->dst_socket()),
+        info->dst_socket());
+    }
+
+  public:
+    auto get_name(const node_handle& node) const -> std::optional<std::string>
+    {
+      return m_impl.ng.get_name(node);
+    }
+
+    auto get_name(const socket_handle& socket) const
+      -> std::optional<std::string>
+    {
+      return m_impl.ng.get_name(socket);
+    }
+
+    void set_name(const node_handle& node, const std::string& name)
+    {
+      if (!exists(node))
+        return;
+
+      m_impl.set_name(node, name);
+    }
+
+    void set_name(const socket_handle& socket, const std::string& name)
+    {
+      if (!exists(socket))
+        return;
+
+      m_impl.set_name(socket, name);
+    }
+
+    auto get_pos(const node_handle& node) const -> std::optional<glm::dvec2>
+    {
+      if (!exists(node))
+        return std::nullopt;
+
+      if (auto prop = m_impl.get_caller_property(node, "__pos"))
+        if (auto vec = value_cast_if<Vec2>(prop))
+          return *vec;
+
+      return glm::dvec2();
+    }
+
+    void set_pos(const node_handle& node, const glm::dvec2& newpos)
+    {
+      if (!exists(node))
+        return;
+
+      if (auto prop = m_impl.get_caller_property(node, "__pos")) {
+        if (auto vec = value_cast_if<Vec2>(prop)) {
+          *vec = newpos;
+          return;
+        }
+      }
+
+      // add new prop
+      auto vec = make_object<Vec2>(newpos);
+      m_impl.set_caller_property(node, "__pos", vec);
+    }
+
+    auto get_data(const socket_handle& socket) const -> object_ptr<Object>
+    {
+      if (!exists(socket))
+        return {};
+
+      return m_impl.get_caller_property(socket, "__data");
+    }
+
+    void set_data(const socket_handle& socket, object_ptr<Object> data)
+    {
+      if (!exists(socket))
+        return;
+
+      m_impl.set_caller_property(socket, "__data", std::move(data));
+    }
+
+    auto _get_property(const node_handle& h, const std::string& name)
+      -> object_ptr<Object>
+    {
+      if (!exists(h))
+        return nullptr;
+
+      return m_impl.get_caller_property(h, name);
+    }
+
+    auto _get_property(const socket_handle& h, const std::string& name)
+      -> object_ptr<Object>
+    {
+      if (!exists(h))
+        return nullptr;
+
+      return m_impl.get_caller_property(h, name);
+    }
+
+    void set_property(
+      const node_handle& h,
+      const std::string& name,
+      object_ptr<Object> data)
+    {
+      if (!exists(h))
+        return;
+
+      m_impl.set_caller_property(h, name, std::move(data));
+    }
+
+    void set_property(
+      const socket_handle& h,
+      const std::string& name,
+      object_ptr<Object> data)
+    {
+      if (!exists(h))
+        return;
+
+      m_impl.set_caller_property(h, name, std::move(data));
+    }
+
+    auto _get_shared_property(const node_handle& h, const std::string& name)
+      -> object_ptr<Object>
+    {
+      if (!exists(h))
+        return nullptr;
+
+      return m_impl.get_callee_property(h, name);
+    }
+
+    auto _get_shared_property(const socket_handle& h, const std::string& name)
+      -> object_ptr<Object>
+    {
+      if (!exists(h))
+        return nullptr;
+
+      return m_impl.get_callee_property(h, name);
+    }
+
+    void set_shared_property(
+      const node_handle& h,
+      const std::string& name,
+      object_ptr<Object> data)
+    {
+      if (!exists(h))
+        return;
+
+      m_impl.set_callee_property(h, name, std::move(data));
+    }
+
+    void set_shared_property(
+      const socket_handle& h,
+      const std::string& name,
+      object_ptr<Object> data)
+    {
+      if (!exists(h))
+        return;
+
+      m_impl.set_callee_property(h, name, std::move(data));
+    }
+
+    auto get_index(const socket_handle& socket) const -> std::optional<size_t>
+    {
+      if (!exists(socket))
+        return std::nullopt;
+
+      return m_impl.get_index(socket);
+    }
+
+    auto get_path(const node_handle& node) const -> std::optional<std::string>
+    {
+      if (!exists(node))
+        return std::nullopt;
+
+      return m_impl.get_path(node);
+    }
+
+    auto search_path(const std::string& path) const -> std::vector<node_handle>
+    {
+      return m_impl.search_path(path);
+    }
+
+    bool is_parent_of(const node_handle& parent, const node_handle& child) const
+    {
+      if (!exists(parent) || !exists(child))
+        return false;
+
+      return m_impl.is_parent_of(parent, child);
+    }
+
+    bool is_child_of(const node_handle& child, const node_handle& parent) const
+    {
+      if (!exists(child) || !exists(parent))
+        return false;
+
+      return m_impl.is_child_of(child, parent);
+    }
+
+    auto node(const socket_handle& socket) const -> node_handle
+    {
+      if (!exists(socket))
+        return {};
+
+      return m_impl.get_node(socket);
+    }
+
+    auto input_sockets(const node_handle& node) const
+      -> std::vector<socket_handle>
+    {
+      return m_impl.ng.input_sockets(node);
+    }
+
+    auto output_sockets(const node_handle& node) const
+      -> std::vector<socket_handle>
+    {
+      return m_impl.ng.output_sockets(node);
+    }
+
+    auto input_connections(const node_handle& node) const
+      -> std::vector<connection_handle>
+    {
+      return m_impl.ng.input_connections(node);
+    }
+
+    auto output_connections(const node_handle& node) const
+      -> std::vector<connection_handle>
+    {
+      return m_impl.ng.output_connections(node);
+    }
+
+    auto connections(const socket_handle& socket) const
+      -> std::vector<connection_handle>
+    {
+      return m_impl.ng.connections(socket);
+    }
+
+    bool is_definition(const node_handle& node) const
+    {
+      if (!exists(node))
+        return false;
+
+      return m_impl.is_defcall(node);
+    }
+
+    auto get_definition(const node_handle& node) const -> node_handle
+    {
+      if (!exists(node))
+        return {};
+
+      return m_impl.get_definition(node);
+    }
+
+    bool is_call(const node_handle& node) const
+    {
+      if (!exists(node))
+        return false;
+
+      return m_impl.is_call(node);
+    }
+
+    auto get_calls(const node_handle& node) const -> std::vector<node_handle>
+    {
+      if (!exists(node))
+        return {};
+
+      return m_impl.get_calls(node);
+    }
+
+    bool is_function(const node_handle& node) const
+    {
+      if (!exists(node))
+        return false;
+
+      return m_impl.is_function_call(node);
+    }
+
+    bool is_macro(const node_handle& node) const
+    {
+      if (!exists(node))
+        return false;
+
+      return m_impl.is_macro_call(node);
+    }
+
+    bool is_group(const node_handle& node) const
+    {
+      if (!exists(node))
+        return false;
+
+      return m_impl.is_group_call(node);
+    }
+
+    bool is_group_member(const node_handle& node) const
+    {
+      if (!exists(node))
+        return false;
+
+      return m_impl.is_group_member(node);
+    }
+
+    bool is_group_output(const node_handle& node) const
+    {
+      if (!exists(node))
+        return false;
+
+      return m_impl.is_group_output(node);
+    }
+
+    bool is_group_input(const node_handle& node) const
+    {
+      if (!exists(node))
+        return false;
+
+      return m_impl.is_group_input(node);
+    }
+
+    auto get_group_members(const node_handle& node) const
+      -> std::vector<node_handle>
+    {
+      if (!exists(node))
+        return {};
+
+      return m_impl.get_group_members(node);
+    }
+
+    auto get_group_input(const node_handle& node) const -> node_handle
+    {
+      if (!exists(node))
+        return {};
+
+      return m_impl.get_group_input(node);
+    }
+
+    auto get_group_output(const node_handle& node) const -> node_handle
+    {
+      if (!exists(node))
+        return {};
+
+      return m_impl.get_group_output(node);
+    }
+
+    auto get_group_nodes(const node_handle& node) const
+      -> std::vector<node_handle>
+    {
+      if (!exists(node))
+        return {};
+
+      return m_impl.get_group_nodes(node);
+    }
+
+    auto get_parent_group(const node_handle& node) const -> node_handle
+    {
+      if (!exists(node))
+        return {};
+
+      return m_impl.get_parent_group(node);
+    }
+
+    auto add_input_socket(
+      const node_handle& group,
+      const std::string& socket,
+      size_t index) -> socket_handle
+    {
+      if (!exists(group))
+        return {};
+
+      return m_impl.add_input_socket(group, socket, index);
+    }
+
+    auto add_output_socket(
+      const node_handle& group,
+      const std::string& socket,
+      size_t index) -> socket_handle
+    {
+      if (!exists(group))
+        return {};
+
+      return m_impl.add_output_socket(group, socket, index);
+    }
+
+    void remove_socket(const socket_handle& socket)
+    {
+      if (!exists(socket))
+        return;
+
+      return m_impl.remove_socket(socket);
+    }
+
+    void bring_front(const node_handle& node)
+    {
+      if (!exists(node))
+        return;
+
+      m_impl.bring_front(node);
+    }
+
+    void bring_back(const node_handle& node)
+    {
+      if (!exists(node))
+        return;
+
+      m_impl.bring_back(node);
+    }
+
+    auto create_declaration(
+      const std::shared_ptr<node_declaration>& decl,
+      structured_node_graph& ng) -> node_handle
+    {
+      return std::visit(
+        overloaded {
+          [&](composed_node_declaration& d) {
+            auto n = m_impl.create_group_declaration(
+              d.node_path(),
+              d.node_name(),
+              d.input_sockets(),
+              d.output_sockets());
+
+            if (n) {
+              // init composed group
+              d.init_composed(ng, n);
+            }
+            return n;
+          },
+          [&](function_node_declaration& d) {
+            auto n = m_impl.create_function_declaration(
+              d.node_path(),
+              d.node_name(),
+              d.input_sockets(),
+              d.output_sockets());
+
+            if (n) {
+              // set default args
+              for (auto&& [idx, arg] : d.default_args()) {
+                set_data(input_sockets(n)[idx], arg.clone());
+              }
+            }
+            return n;
+          },
+          [&](macro_node_declaration& d) {
+            return m_impl.create_macro_declaration(
+              d.node_path(),
+              d.node_name(),
+              d.input_sockets(),
+              d.output_sockets());
+          }},
+        *decl);
+    }
+
+    auto create_group(
+      const node_handle& parent_group,
+      const std::vector<node_handle>& nodes,
+      const uid& id) -> node_handle
+    {
+      if (parent_group && !exists(parent_group))
+        return {};
+
+      for (auto&& n : nodes)
+        if (!exists(n))
+          return {};
+
+      return m_impl.create_group(parent_group, nodes, id);
+    }
+
+    auto create_copy(
+      const node_handle& parent_group,
+      const node_handle& src,
+      const uid& id) -> node_handle
+    {
+      if (parent_group && !exists(parent_group))
+        return {};
+
+      if (!exists(src))
+        return {};
+
+      return m_impl.create_copy(parent_group, src, id);
+    }
+
+    auto create_clone(
+      const node_handle& parent_group,
+      const node_handle& src,
+      const uid& id) -> node_handle
+    {
+      if (parent_group && !exists(parent_group))
+        return {};
+
+      if (!exists(src))
+        return {};
+
+      return m_impl.create_clone(parent_group, src, id);
+    }
+
+    void destroy(const node_handle& node)
+    {
+      if (!exists(node))
+        return;
+
+      m_impl.destroy(node);
+    }
+
+    auto connect(
+      const socket_handle& src_socket,
+      const socket_handle& dst_socket,
+      const uid& id) -> connection_handle
+    {
+      if (!exists(src_socket) || !exists(dst_socket))
+        return {};
+
+      return m_impl.connect(src_socket, dst_socket, id);
+    }
+
+    void disconnect(const connection_handle& c)
+    {
+      if (!exists(c))
+        return;
+
+      return m_impl.disconnect(c);
+    }
+
+    auto clone() const -> structured_node_graph
+    {
+      return m_impl.clone();
+    }
+
+    void clear()
+    {
+      m_impl.clear();
+    }
+  };
+
   structured_node_graph::structured_node_graph()
-    : m_pimpl {std::make_unique<impl>()}
+    : m_pimpl {std::make_unique<impl_wrap>()}
   {
   }
 
-  structured_node_graph::structured_node_graph(std::unique_ptr<impl>&& pimpl)
+  structured_node_graph::structured_node_graph(
+    std::unique_ptr<impl_wrap>&& pimpl)
     : m_pimpl {std::move(pimpl)}
   {
   }
@@ -2573,81 +3194,69 @@ namespace yave {
 
   bool structured_node_graph::exists(const node_handle& node) const
   {
-    return m_pimpl->ng.exists(node);
+    return m_pimpl->exists(node);
   }
 
   bool structured_node_graph::exists(const connection_handle& connection) const
   {
-    return m_pimpl->ng.exists(connection);
+    return m_pimpl->exists(connection);
   }
 
   bool structured_node_graph::exists(const socket_handle& socket) const
   {
-    return m_pimpl->ng.exists(socket);
+    return m_pimpl->exists(socket);
   }
 
   auto structured_node_graph::node(const uid& id) const -> node_handle
   {
-    return m_pimpl->ng.node(id);
+    return m_pimpl->node(id);
   }
 
   auto structured_node_graph::socket(const uid& id) const -> socket_handle
   {
-    return m_pimpl->ng.socket(id);
+    return m_pimpl->socket(id);
   }
 
   auto structured_node_graph::connection(const uid& id) const
     -> connection_handle
   {
-    return m_pimpl->ng.connection(id);
+    return m_pimpl->connection(id);
   }
 
   auto structured_node_graph::get_info(const node_handle& node) const
     -> std::optional<structured_node_info>
   {
-    if (!exists(node))
-      return std::nullopt;
-
     return m_pimpl->get_info(node);
   }
 
   auto structured_node_graph::get_info(const socket_handle& socket) const
     -> std::optional<structured_socket_info>
   {
-    if (!exists(socket))
-      return std::nullopt;
-
     return m_pimpl->get_info(socket);
   }
 
   auto structured_node_graph::get_info(const connection_handle& connection)
     const -> std::optional<structured_connection_info>
   {
-    if (!exists(connection))
-      return std::nullopt;
-
     return m_pimpl->get_info(connection);
   }
 
   auto structured_node_graph::get_name(const node_handle& node) const
     -> std::optional<std::string>
   {
-    return m_pimpl->ng.get_name(node);
+    return m_pimpl->get_name(node);
   }
 
   auto structured_node_graph::get_name(const socket_handle& socket) const
     -> std::optional<std::string>
   {
-    return m_pimpl->ng.get_name(socket);
+    return m_pimpl->get_name(socket);
   }
 
   void structured_node_graph::set_name(
     const node_handle& node,
     const std::string& name)
   {
-    if (!exists(node))
-      return;
-
     m_pimpl->set_name(node, name);
   }
 
@@ -2655,18 +3264,12 @@ namespace yave {
     const socket_handle& socket,
     const std::string& name)
   {
-    if (!exists(socket))
-      return;
-
     m_pimpl->set_name(socket, name);
   }
 
   auto structured_node_graph::get_pos(const node_handle& node) const
     -> std::optional<glm::dvec2>
   {
-    if (!exists(node))
-      return std::nullopt;
-
     return m_pimpl->get_pos(node);
   }
 
@@ -2674,49 +3277,48 @@ namespace yave {
     const node_handle& node,
     const glm::dvec2& newpos)
   {
-    if (!exists(node))
-      return;
-
     return m_pimpl->set_pos(node, newpos);
   }
 
   auto structured_node_graph::get_data(const socket_handle& socket) const
     -> object_ptr<Object>
   {
-    if (!exists(socket))
-      return {};
-
-    return m_pimpl->get_caller_property(socket, "data");
+    return m_pimpl->get_data(socket);
   }
 
   void structured_node_graph::set_data(
     const socket_handle& socket,
     object_ptr<Object> data)
   {
-    if (!exists(socket))
-      return;
-
-    m_pimpl->set_caller_property(socket, "data", std::move(data));
+    m_pimpl->set_data(socket, std::move(data));
   }
 
   auto structured_node_graph::_get_property(
     const node_handle& h,
     const std::string& name) -> object_ptr<Object>
   {
-    if (!exists(h))
-      return nullptr;
+    return m_pimpl->_get_property(h, name);
+  }
 
-    return m_pimpl->get_caller_property(h, name);
+  auto structured_node_graph::_get_shared_property(
+    const node_handle& h,
+    const std::string& name) -> object_ptr<Object>
+  {
+    return m_pimpl->_get_shared_property(h, name);
   }
 
   auto structured_node_graph::_get_property(
     const socket_handle& h,
     const std::string& name) -> object_ptr<Object>
   {
-    if (!exists(h))
-      return nullptr;
+    return m_pimpl->_get_property(h, name);
+  }
 
-    return m_pimpl->get_caller_property(h, name);
+  auto structured_node_graph::_get_shared_property(
+    const socket_handle& h,
+    const std::string& name) -> object_ptr<Object>
+  {
+    return m_pimpl->_get_shared_property(h, name);
   }
 
   void structured_node_graph::set_property(
@@ -2724,10 +3326,15 @@ namespace yave {
     const std::string& name,
     object_ptr<Object> data)
   {
-    if (!exists(h))
-      return;
+    m_pimpl->set_property(h, name, std::move(data));
+  }
 
-    m_pimpl->set_caller_property(h, name, std::move(data));
+  void structured_node_graph::set_shared_property(
+    const node_handle& h,
+    const std::string& name,
+    object_ptr<Object> data)
+  {
+    m_pimpl->set_shared_property(h, name, std::move(data));
   }
 
   void structured_node_graph::set_property(
@@ -2735,27 +3342,26 @@ namespace yave {
     const std::string& name,
     object_ptr<Object> data)
   {
-    if (!exists(h))
-      return;
+    m_pimpl->set_property(h, name, std::move(data));
+  }
 
-    m_pimpl->set_caller_property(h, name, std::move(data));
+  void structured_node_graph::set_shared_property(
+    const socket_handle& h,
+    const std::string& name,
+    object_ptr<Object> data)
+  {
+    m_pimpl->set_shared_property(h, name, std::move(data));
   }
 
   auto structured_node_graph::get_index(const socket_handle& socket) const
     -> std::optional<size_t>
   {
-    if (!exists(socket))
-      return std::nullopt;
-
     return m_pimpl->get_index(socket);
   }
 
   auto structured_node_graph::get_path(const node_handle& node) const
     -> std::optional<std::string>
   {
-    if (!exists(node))
-      return std::nullopt;
-
     return m_pimpl->get_path(node);
   }
 
@@ -2769,9 +3375,6 @@ namespace yave {
     const node_handle& parent,
     const node_handle& child) const
   {
-    if (!exists(parent) || !exists(child))
-      return false;
-
     return m_pimpl->is_parent_of(parent, child);
   }
 
@@ -2779,107 +3382,80 @@ namespace yave {
     const node_handle& child,
     const node_handle& parent) const
   {
-    if (!exists(child) || !exists(parent))
-      return false;
-
     return m_pimpl->is_child_of(child, parent);
   }
 
   auto structured_node_graph::node(const socket_handle& socket) const
     -> node_handle
   {
-    if (!exists(socket))
-      return {};
-
     return m_pimpl->node(socket);
   }
 
   auto structured_node_graph::input_sockets(const node_handle& node) const
     -> std::vector<socket_handle>
   {
-    return m_pimpl->ng.input_sockets(node);
+    return m_pimpl->input_sockets(node);
   }
 
   auto structured_node_graph::output_sockets(const node_handle& node) const
     -> std::vector<socket_handle>
   {
-    return m_pimpl->ng.output_sockets(node);
+    return m_pimpl->output_sockets(node);
   }
 
   auto structured_node_graph::input_connections(const node_handle& node) const
     -> std::vector<connection_handle>
   {
-    return m_pimpl->ng.input_connections(node);
+    return m_pimpl->input_connections(node);
   }
 
   auto structured_node_graph::output_connections(const node_handle& node) const
     -> std::vector<connection_handle>
   {
-    return m_pimpl->ng.output_connections(node);
+    return m_pimpl->output_connections(node);
   }
 
   auto structured_node_graph::connections(const socket_handle& socket) const
     -> std::vector<connection_handle>
   {
-    return m_pimpl->ng.connections(socket);
+    return m_pimpl->connections(socket);
   }
 
   bool structured_node_graph::is_definition(const node_handle& node) const
   {
-    if (!exists(node))
-      return false;
-
-    return m_pimpl->is_definition_node(node);
+    return m_pimpl->is_definition(node);
   }
 
   auto structured_node_graph::get_definition(const node_handle& node) const
     -> node_handle
   {
-    if (!exists(node))
-      return {};
-
     return m_pimpl->get_definition(node);
   }
 
   bool structured_node_graph::is_call(const node_handle& node) const
   {
-    if (!exists(node))
-      return false;
-
-    return m_pimpl->is_call_node(node);
+    return m_pimpl->is_call(node);
   }
 
   auto structured_node_graph::get_calls(const node_handle& node) const
     -> std::vector<node_handle>
   {
-    if (!exists(node))
-      return {};
-
     return m_pimpl->get_calls(node);
   }
 
   bool structured_node_graph::is_function(const node_handle& node) const
   {
-    if (!exists(node))
-      return false;
-
-    return m_pimpl->is_function_node(node);
+    return m_pimpl->is_function(node);
   }
 
   bool structured_node_graph::is_macro(const node_handle& node) const
   {
-    if (!exists(node))
-      return false;
-
-    return m_pimpl->is_macro_node(node);
+    return m_pimpl->is_macro(node);
   }
 
   bool structured_node_graph::is_group(const node_handle& node) const
   {
-    if (!exists(node))
-      return false;
-
-    return m_pimpl->is_group_node(node);
+    return m_pimpl->is_group(node);
   }
 
   bool structured_node_graph::is_group_member(const node_handle& node) const
@@ -2887,67 +3463,46 @@ namespace yave {
     if (!exists(node))
       return false;
 
-    return m_pimpl->is_group_member_node(node);
+    return m_pimpl->is_group_member(node);
   }
 
   bool structured_node_graph::is_group_output(const node_handle& node) const
   {
-    if (!exists(node))
-      return false;
-
-    return m_pimpl->is_group_output_node(node);
+    return m_pimpl->is_group_output(node);
   }
 
   bool structured_node_graph::is_group_input(const node_handle& node) const
   {
-    if (!exists(node))
-      return false;
-
-    return m_pimpl->is_group_input_node(node);
+    return m_pimpl->is_group_input(node);
   }
 
   auto structured_node_graph::get_group_members(const node_handle& node) const
     -> std::vector<node_handle>
   {
-    if (!exists(node))
-      return {};
-
     return m_pimpl->get_group_members(node);
   }
 
   auto structured_node_graph::get_group_input(const node_handle& node) const
     -> node_handle
   {
-    if (!exists(node))
-      return {};
-
     return m_pimpl->get_group_input(node);
   }
 
   auto structured_node_graph::get_group_output(const node_handle& node) const
     -> node_handle
   {
-    if (!exists(node))
-      return {};
-
     return m_pimpl->get_group_output(node);
   }
 
   auto structured_node_graph::get_group_nodes(const node_handle& node) const
     -> std::vector<node_handle>
   {
-    if (!exists(node))
-      return {};
-
     return m_pimpl->get_group_nodes(node);
   }
 
   auto structured_node_graph::get_parent_group(const node_handle& node) const
     -> node_handle
   {
-    if (!exists(node))
-      return {};
-
     return m_pimpl->get_parent_group(node);
   }
 
@@ -2956,9 +3511,6 @@ namespace yave {
     const std::string& socket,
     size_t index) -> socket_handle
   {
-    if (!exists(group))
-      return {};
-
     return m_pimpl->add_input_socket(group, socket, index);
   }
 
@@ -2967,33 +3519,21 @@ namespace yave {
     const std::string& socket,
     size_t index) -> socket_handle
   {
-    if (!exists(group))
-      return {};
-
     return m_pimpl->add_output_socket(group, socket, index);
   }
 
   void structured_node_graph::remove_socket(const socket_handle& socket)
   {
-    if (!exists(socket))
-      return;
-
     return m_pimpl->remove_socket(socket);
   }
 
   void structured_node_graph::bring_front(const node_handle& node)
   {
-    if (!exists(node))
-      return;
-
     m_pimpl->bring_front(node);
   }
 
   void structured_node_graph::bring_back(const node_handle& node)
   {
-    if (!exists(node))
-      return;
-
     m_pimpl->bring_back(node);
   }
 
@@ -3008,13 +3548,6 @@ namespace yave {
     const std::vector<node_handle>& nodes,
     const uid& id) -> node_handle
   {
-    if (parent_group && !exists(parent_group))
-      return {};
-
-    for (auto&& n : nodes)
-      if (!exists(n))
-        return {};
-
     return m_pimpl->create_group(parent_group, nodes, id);
   }
 
@@ -3023,12 +3556,6 @@ namespace yave {
     const node_handle& src,
     const uid& id) -> node_handle
   {
-    if (parent_group && !exists(parent_group))
-      return {};
-
-    if (!exists(src))
-      return {};
-
     return m_pimpl->create_copy(parent_group, src, id);
   }
 
@@ -3037,20 +3564,11 @@ namespace yave {
     const node_handle& src,
     const uid& id) -> node_handle
   {
-    if (parent_group && !exists(parent_group))
-      return {};
-
-    if (!exists(src))
-      return {};
-
     return m_pimpl->create_clone(parent_group, src, id);
   }
 
   void structured_node_graph::destroy(const node_handle& node)
   {
-    if (!exists(node))
-      return;
-
     m_pimpl->destroy(node);
   }
 
@@ -3059,17 +3577,11 @@ namespace yave {
     const socket_handle& dst_socket,
     const uid& id) -> connection_handle
   {
-    if (!exists(src_socket) || !exists(dst_socket))
-      return {};
-
     return m_pimpl->connect(src_socket, dst_socket, id);
   }
 
   void structured_node_graph::disconnect(const connection_handle& c)
   {
-    if (!exists(c))
-      return;
-
     return m_pimpl->disconnect(c);
   }
 
