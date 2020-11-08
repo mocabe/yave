@@ -884,3 +884,140 @@ TEST_CASE("custom id")
     REQUIRE(ng.node(id) == n);
   }
 }
+
+TEST_CASE("macro")
+{
+  structured_node_graph ng;
+  auto root = ng.create_group({nullptr}, {});
+  ng.set_name(root, "root");
+
+  REQUIRE(root);
+
+  struct macro_func : macro_node_declaration::abstract_macro_func
+  {
+    virtual void on_expand(structured_node_graph&, const node_handle&) const
+    {
+    }
+  };
+
+  auto decl = node_declaration(macro_node_declaration(
+    "Test.Macro",
+    "",
+    node_declaration_visibility::_public,
+    {"a", "b"},
+    {"c"},
+    std::make_unique<macro_func>()));
+
+  auto pdecl = std::make_shared<node_declaration>(decl);
+
+  SECTION("add")
+  {
+    auto m = ng.create_declaration(pdecl);
+    REQUIRE(m);
+    REQUIRE(ng.exists(m));
+    REQUIRE(ng.get_path(m) == decl.full_name());
+    REQUIRE(ng.input_sockets(m).size() == decl.input_sockets().size());
+    REQUIRE(ng.output_sockets(m).size() == decl.output_sockets().size());
+    REQUIRE(ng.get_name(m) == decl.node_name());
+
+    SECTION("add sockets")
+    {
+      REQUIRE(ng.add_input_socket(m, ""));
+      REQUIRE(ng.add_output_socket(m, ""));
+      REQUIRE(ng.input_sockets(m).size() == decl.input_sockets().size() + 1);
+      REQUIRE(ng.output_sockets(m).size() == decl.output_sockets().size() + 1);
+    }
+
+    SECTION("copy")
+    {
+      auto m2 = node_handle();
+
+      SECTION("")
+      {
+        m2 = ng.create_copy(root, m);
+      }
+
+      SECTION("")
+      {
+        m2 = ng.create_clone(root, m);
+      }
+
+      REQUIRE(ng.exists(m2));
+      REQUIRE(ng.add_output_socket(m2, ""));
+      REQUIRE(ng.output_sockets(m2).size() == decl.output_sockets().size() + 1);
+      REQUIRE(ng.output_sockets(m).size() == decl.output_sockets().size());
+
+      auto m3 = ng.create_copy(root, m2);
+      REQUIRE(ng.exists(m3));
+      REQUIRE(ng.output_sockets(m2).size() == ng.output_sockets(m3).size());
+      ng.destroy(m3);
+      REQUIRE(!ng.exists(m3));
+      REQUIRE(ng.exists(m2));
+
+      ng.destroy(m);
+      REQUIRE(!ng.exists(m));
+      REQUIRE(!ng.exists(m2));
+    }
+
+    SECTION("property")
+    {
+      SECTION("caller")
+      {
+        auto s = ng.output_sockets(m).at(0);
+        ng.set_property(m, "test", make_object<Int>(42));
+        ng.set_property(s, "test", make_object<Int>(42));
+        REQUIRE(*ng.get_property<Int>(m, "test") == 42);
+        REQUIRE(*ng.get_property<Int>(s, "test") == 42);
+
+        // copy
+        auto m2 = ng.create_copy(root, m);
+        auto s2 = ng.output_sockets(m2).at(0);
+
+        REQUIRE(ng.exists(m2));
+        REQUIRE(ng.exists(s2));
+        REQUIRE(*ng.get_property<Int>(m, "test") == 42);
+        REQUIRE(*ng.get_property<Int>(m2, "test") == 42);
+        REQUIRE(*ng.get_property<Int>(s, "test") == 42);
+        REQUIRE(*ng.get_property<Int>(s2, "test") == 42);
+
+        // set
+        *ng.get_property<Int>(m2, "test") = 24;
+        *ng.get_property<Int>(s2, "test") = 24;
+        REQUIRE(*ng.get_property<Int>(m, "test") == 42);
+        REQUIRE(*ng.get_property<Int>(m2, "test") == 24);
+        REQUIRE(*ng.get_property<Int>(s, "test") == 42);
+        REQUIRE(*ng.get_property<Int>(s2, "test") == 24);
+
+        // rm
+        ng.remove_property(m2, "test");
+        ng.remove_property(s2, "test");
+        REQUIRE_NOTHROW(ng.get_property<Int>(m, "test"));
+        REQUIRE_THROWS(ng.get_property<Int>(m2, "test"));
+        REQUIRE_NOTHROW(ng.get_property<Int>(s, "test"));
+        REQUIRE_THROWS(ng.get_property<Int>(s2, "test"));
+      }
+
+      SECTION("callee")
+      {
+        ng.set_shared_property(m, "test", make_object<Int>(42));
+        REQUIRE(*ng.get_shared_property<Int>(m, "test") == 42);
+
+        // copy
+        auto m2 = ng.create_copy(root, m);
+        REQUIRE(ng.exists(m2));
+        REQUIRE(*ng.get_shared_property<Int>(m2, "test") == 42);
+        REQUIRE(*ng.get_shared_property<Int>(m, "test") == 42);
+
+        // set
+        *ng.get_shared_property<Int>(m, "test") = 24;
+        REQUIRE(*ng.get_shared_property<Int>(m2, "test") == 24);
+        REQUIRE(*ng.get_shared_property<Int>(m, "test") == 24);
+
+        // rm
+        ng.remove_shared_property(m2, "test");
+        REQUIRE_THROWS(ng.get_property<Int>(m, "test"));
+        REQUIRE_THROWS(ng.get_property<Int>(m2, "test"));
+      }
+    }
+  }
+}
