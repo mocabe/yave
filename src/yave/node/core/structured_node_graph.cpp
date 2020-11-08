@@ -1237,13 +1237,12 @@ namespace yave {
       ng.remove(macro->node);
     }
 
-    /// create new node call in group.
-    /// \param parent paretn group
-    /// \param callee callee node function or group
-    auto add_new_call(
-      node_group* parent,
-      node_callee callee,
-      uid id = uid::random_generate()) -> node_call*
+    /// create new dependency for node call
+    /// \param parent parent group to add new call
+    /// \param callee callee of new call
+    /// \returns dependency node
+    auto add_new_call_dependency(node_group* parent, node_callee callee)
+      -> node_handle
     {
       assert(parent);
 
@@ -1271,13 +1270,29 @@ namespace yave {
 
       // closed loop
       if (!valid) {
-        ng.remove(dep);
         Error(
           g_logger, "Failed to add node call: recursive call is not allowed");
-        return nullptr;
+        ng.remove(dep);
+        return {};
       }
+      return dep;
+    }
 
-      // get info
+    /// create new defcall in group.
+    /// \param parent paretn group
+    /// \param callee callee node function or group
+    auto add_new_call(
+      node_group* parent,
+      node_callee callee,
+      uid id = uid::random_generate()) -> node_call*
+    {
+      assert(parent);
+
+      auto dep = add_new_call_dependency(parent, callee);
+
+      if (!dep)
+        return nullptr;
+
       auto info =
         check(std::visit([&](auto p) { return ng.get_info(p->node); }, callee));
 
@@ -1328,45 +1343,39 @@ namespace yave {
       // set data
       set_data(n, ndata);
 
-      // add to parent
-      parent->add_member(n);
-
       auto newcall = &std::get<node_call>(*ndata);
 
+      // add to parent
+      parent->add_member(n);
       // set caller pointer
       callee.add_caller(newcall);
 
-      // find name collision
-      auto defcall_name_collides = [&](const auto& name) {
-        // find other defcalls which has same name to new node
-        auto ns = parent->nodes //
-                  | rng::views::filter([&](auto&& n) {
-                      return n != newcall->node && newcall->is_defcall();
-                    })
-                  | rng::views::filter(
-                    [&](auto&& n) { return ng.get_name(n) == name; });
+      assert(newcall->is_defcall());
 
+      auto name_used = [&](const auto& name) {
+        using namespace rng::views;
+        auto ns = parent->nodes //
+                  | filter([&](auto&& n) { return n != newcall->node; })
+                  | filter([&](auto&& n) { return ng.get_name(n) == name; });
         return !ns.empty();
       };
 
-      // get non-colliding name
-      auto fix_defcall_name_collision = [&](const auto& name) {
+      auto make_fresh_name = [&](const auto& name) {
         // escape string
         auto tmp   = name;
         auto count = 1;
-        while (defcall_name_collides(tmp)) {
+        while (name_used(tmp)) {
           tmp = fmt::format("{}{}", name, count);
           ++count;
         }
         return tmp;
       };
 
-      // fix name collision
       std::visit(
         [&](auto& p) {
-          auto name_fixed = fix_defcall_name_collision(info->name());
-          ng.set_name(n, name_fixed);
-          ng.set_name(p->node, name_fixed);
+          auto name = make_fresh_name(info->name());
+          ng.set_name(n, name);
+          ng.set_name(p->node, name);
         },
         callee);
 
@@ -1445,12 +1454,66 @@ namespace yave {
     {
       assert(parent);
 
-      // create new call
-      auto newc = add_new_call(parent, call->callee, id);
+      auto callee = call->callee;
+      auto dep    = add_new_call_dependency(parent, callee);
+
+      if (!dep)
+        return nullptr;
+
+      // create interface
+      auto info = ng.get_info(call->node);
+      auto n    = ng.add(info->name(), {}, {}, node_type::interface, id);
 
       // invalid id
-      if (!newc)
+      if (!n) {
+        ng.remove(dep);
         return nullptr;
+      }
+
+      // setup in/out sockets for the interface
+      std::vector<node_handle> ibits;
+      std::vector<node_handle> obits;
+
+      ibits.reserve(info->input_sockets().size());
+      obits.reserve(info->output_sockets().size());
+
+      for (auto&& s : info->input_sockets()) {
+        auto bit = create_io_bit(*ng.get_name(s));
+        check(ng.attach_interface(n, ng.input_sockets(bit)[0]));
+        ibits.push_back(bit);
+      }
+
+      for (auto&& s : info->output_sockets()) {
+        auto bit = create_io_bit(*ng.get_name(s));
+        check(ng.attach_interface(n, ng.output_sockets(bit)[0]));
+        obits.push_back(bit);
+      }
+
+      // in-out dependency
+      for (auto&& obit : obits)
+        for (auto&& ibit : ibits)
+          check(
+            ng.connect(ng.output_sockets(ibit)[0], ng.input_sockets(obit)[0]));
+
+      assert(!ng.get_data(n));
+
+      auto ndata = make_node_data(node_call {
+        .node        = n,
+        .dependency  = dep,
+        .parent      = parent,
+        .callee      = callee,
+        .input_bits  = ibits,
+        .output_bits = obits});
+
+      // set data
+      set_data(n, ndata);
+
+      auto newc = &std::get<node_call>(*ndata);
+
+      // add to parent
+      parent->add_member(n);
+      // set caller pointer
+      callee.add_caller(newc);
 
       assert(call->input_bits.size() == newc->input_bits.size());
       assert(call->output_bits.size() == newc->output_bits.size());
