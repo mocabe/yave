@@ -44,12 +44,12 @@ namespace yave::editor::imgui {
 
     auto type = info.type();
 
-    switch (type) {
-      case socket_type::input:
-        return {size.x, size.y / 2};
-      case socket_type::output:
-        return {0, size.y / 2};
-    }
+    if (info.is_input())
+      return {size.x, size.y / 2};
+
+    if (info.is_output())
+      return {0, size.y / 2};
+
     unreachable();
   }
 
@@ -125,7 +125,7 @@ namespace yave::editor::imgui {
           auto socket_to_select = s;
 
           // when input socket already has connections, disconnect.
-          if (info.type() == socket_type::input) {
+          if (info.is_input()) {
             if (!info.connections().empty()) {
               auto c = info.connections()[0];
               dctx.cmd(std::make_unique<dcmd_disconnect>(c));
@@ -194,21 +194,15 @@ namespace yave::editor::imgui {
   {
     (void)nw, (void)dctx, (void)vctx, (void)draw_info;
 
-    auto type = info.type();
     auto name = info.name();
 
-    text_alignment align;
-
-    switch (type) {
-      case socket_type::input:
-        align = text_alignment::right;
-        break;
-      case socket_type::output:
-        align = text_alignment::left;
-        break;
-      default:
-        unreachable();
-    }
+    text_alignment align = [&] {
+      if (info.is_input())
+        return text_alignment::right;
+      if (info.is_output())
+        return text_alignment::left;
+      unreachable();
+    }();
 
     auto text_pos = calc_text_pos(name, font_size_level::e15, size, align);
     auto col      = get_socket_text_color();

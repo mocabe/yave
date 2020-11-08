@@ -9,6 +9,13 @@
 
 namespace yave {
 
+  /// socket type
+  enum class structured_socket_type
+  {
+    input,
+    output,
+  };
+
   /// socket info
   class structured_socket_info
   {
@@ -21,7 +28,7 @@ namespace yave {
 
     structured_socket_info(
       std::string name,
-      socket_type type,
+      structured_socket_type type,
       node_handle node,
       size_t index,
       std::vector<connection_handle> cs)
@@ -42,13 +49,13 @@ namespace yave {
     /// input?
     [[nodiscard]] bool is_input() const
     {
-      return m_type == socket_type::input;
+      return m_type == structured_socket_type::input;
     }
 
     /// output?
     [[nodiscard]] bool is_output() const
     {
-      return m_type == socket_type::output;
+      return m_type == structured_socket_type::output;
     }
 
     /// socket type
@@ -77,7 +84,7 @@ namespace yave {
 
   private:
     std::string m_name;
-    socket_type m_type;
+    structured_socket_type m_type;
     node_handle m_node;
     size_t m_index;
     std::vector<connection_handle> m_cs;

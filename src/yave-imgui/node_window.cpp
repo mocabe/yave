@@ -450,7 +450,7 @@ namespace yave::editor::imgui {
 
           ImVec2 src, dst;
 
-          if (sd->info.type() == socket_type::input) {
+          if (sd->info.is_input()) {
             src = ImGui::GetMousePos();
             dst =
               nd->screen_pos(*this, *draw_info)
@@ -458,7 +458,7 @@ namespace yave::editor::imgui {
               + sd->slot_pos(*draw_info, nd->socket_area_size(*draw_info, s));
           }
 
-          if (sd->info.type() == socket_type::output) {
+          if (sd->info.is_output()) {
             src =
               nd->screen_pos(*this, *draw_info)
               + nd->socket_area_pos(*draw_info, s)

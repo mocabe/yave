@@ -62,7 +62,7 @@ namespace yave::editor::imgui {
   {
     (void)vctx, (void)nw, (void)draw_info;
 
-    assert(info.type() == socket_type::input);
+    assert(info.is_input());
     assert(m_holder);
     assert(m_property);
 
@@ -136,7 +136,7 @@ namespace yave::editor::imgui {
     ImVec2 size) const
   {
     (void)nw, (void)vctx, (void)draw_info;
-    assert(info.type() == socket_type::input);
+    assert(info.is_input());
     assert(m_holder);
     assert(m_property);
 
@@ -201,7 +201,7 @@ namespace yave::editor::imgui {
     ImVec2 size) const
   {
     (void)nw, (void)vctx, (void)draw_info;
-    assert(info.type() == socket_type::input);
+    assert(info.is_input());
     assert(m_holder);
     assert(m_property);
 
@@ -260,7 +260,7 @@ namespace yave::editor::imgui {
     ImVec2 size) const
   {
     (void)nw, (void)vctx, (void)draw_info;
-    assert(info.type() == socket_type::input);
+    assert(info.is_input());
     assert(m_holder);
     assert(m_property);
 
@@ -327,7 +327,7 @@ namespace yave::editor::imgui {
     ImVec2 size) const
   {
     (void)nw, (void)vctx, (void)draw_info;
-    assert(info.type() == socket_type::input);
+    assert(info.is_input());
     assert(m_holder);
     assert(m_property);
 
@@ -395,7 +395,7 @@ namespace yave::editor::imgui {
     ImVec2 size) const
   {
     (void)nw, (void)vctx, (void)draw_info;
-    assert(info.type() == socket_type::input);
+    assert(info.is_input());
     assert(m_holder);
     assert(m_property);
 

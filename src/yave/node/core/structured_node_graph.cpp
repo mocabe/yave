@@ -1695,6 +1695,16 @@ namespace yave {
       return call_type;
     }
 
+    auto get_socket_type(const socket_handle& socket) const
+      -> structured_socket_type
+    {
+      if (ng.is_input_socket(socket))
+        return structured_socket_type::input;
+      if (ng.is_output_socket(socket))
+        return structured_socket_type::output;
+      unreachable();
+    }
+
   public:
     auto get_definition(const node_handle& node) const -> node_handle
     {
@@ -2632,10 +2642,11 @@ namespace yave {
       auto info = m_impl.ng.get_info(socket);
       assert(info);
 
-      auto cs = m_impl.ng.connections(socket);
+      auto stype = m_impl.get_socket_type(socket);
+      auto cs    = m_impl.ng.connections(socket);
 
       return structured_socket_info(
-        info->name(), info->type(), n, m_impl.get_index(n, socket), cs);
+        info->name(), stype, n, m_impl.get_index(n, socket), cs);
     }
 
     auto get_info(const connection_handle& connection) const
