@@ -252,7 +252,7 @@ namespace yave::editor::imgui {
         auto lck        = dctx.get_data<editor_data>();
         auto& data      = lck.ref();
         auto& ng        = data.node_graph();
-        auto& decl_tree = data.node_declarations().get_tree();
+        auto& decl_tree = data.node_declarations().get_pub_tree();
 
         if (ImGui::BeginMenu("New Node")) {
 

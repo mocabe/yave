@@ -291,6 +291,18 @@ namespace yave {
     {
       return visit([](auto& d) { return d.visibility(); });
     }
+
+    /// public?
+    [[nodiscard]] auto is_public() const
+    {
+      return visibility() == node_declaration_visibility::_public;
+    }
+
+    /// private?
+    [[nodiscard]] auto is_private() const
+    {
+      return visibility() == node_declaration_visibility::_private;
+    }
   };
 
 } // namespace yave
