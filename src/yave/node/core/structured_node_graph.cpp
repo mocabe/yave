@@ -268,7 +268,12 @@ namespace yave {
         });
       }
 
-      auto get_property(const std::string& name) -> object_ptr<Object>
+      auto& properties() const
+      {
+        return visit([](auto* p) -> auto& { return p->properties; });
+      }
+
+      auto get_property(const std::string& name) const -> object_ptr<Object>
       {
         return visit([&](auto* p) -> object_ptr<Object> {
           auto& map = p->properties;
@@ -365,7 +370,7 @@ namespace yave {
         visit([&](auto& x) { x.refresh(ng); });
       }
 
-      auto get_property(const std::string& name) -> object_ptr<Object>
+      auto get_property(const std::string& name) const -> object_ptr<Object>
       {
         return visit([&](auto& x) -> object_ptr<Object> {
           auto& map = x.properties;
@@ -396,7 +401,7 @@ namespace yave {
     {
       std::map<std::string, object_ptr<Object>> properties;
 
-      auto get_property(const std::string& name) -> object_ptr<Object>
+      auto get_property(const std::string& name) const -> object_ptr<Object>
       {
         if (auto it = properties.find(name); it != properties.end())
           return it->second;
@@ -412,12 +417,6 @@ namespace yave {
       void remove_property(const std::string& name)
       {
         properties.erase(name);
-      }
-
-      void clone_properties()
-      {
-        for (auto&& [key, prop] : properties)
-          prop = prop.clone();
       }
     };
 
@@ -1620,19 +1619,26 @@ namespace yave {
         return nullptr;
       }
 
-      // copy sockets
-      for (auto&& s : ng.input_sockets(call->node)) {
-        auto news =
-          check(add_input_socket(newc->node, *ng.get_name(s), size_t(-1)));
-        for (auto&& [key, v] : get_data(s)->properties)
-          set_caller_property(news, key, v.clone());
-      }
+      { // clone properties
+        for (auto&& [key, v] : call->callee.properties())
+          set_callee_property(newc->node, key, v.clone());
 
-      for (auto&& s : ng.output_sockets(call->node)) {
-        auto news =
-          check(add_output_socket(newc->node, *ng.get_name(s), size_t(-1)));
-        for (auto&& [key, v] : get_data(s)->properties)
-          set_caller_property(news, key, v.clone());
+        for (auto&& [key, v] : call->properties)
+          set_caller_property(newc->node, key, v.clone());
+
+        for (auto&& s : ng.input_sockets(call->node)) {
+          auto news =
+            check(add_input_socket(newc->node, *ng.get_name(s), size_t(-1)));
+          for (auto&& [key, v] : get_data(s)->properties)
+            set_caller_property(news, key, v.clone());
+        }
+
+        for (auto&& s : ng.output_sockets(call->node)) {
+          auto news =
+            check(add_output_socket(newc->node, *ng.get_name(s), size_t(-1)));
+          for (auto&& [key, v] : get_data(s)->properties)
+            set_caller_property(news, key, v.clone());
+        }
       }
 
       { // map sockets of IO handler
