@@ -113,21 +113,25 @@ namespace yave {
 
   public:
     /// get property
+    /// \param T expected type of property
+    /// \returns nullptr on not found or invalid type
     template <class T>
     [[nodiscard]] auto get_property(
       const node_handle& node,
       const std::string& name) const -> object_ptr<T>
     {
-      return value_cast<T>(_get_property(node, name));
+      return value_cast_if<T>(_get_property(node, name));
     }
 
     /// get property
+    /// \param T expected type of property
+    /// \returns nullptr on not found or invalid type
     template <class T>
     [[nodiscard]] auto get_property(
       const socket_handle& socket,
       const std::string& name) const -> object_ptr<T>
     {
-      return value_cast<T>(_get_property(socket, name));
+      return value_cast_if<T>(_get_property(socket, name));
     }
 
     /// set property
@@ -150,12 +154,14 @@ namespace yave {
 
   public:
     /// get shared property
+    /// \param T expected type of property
+    /// \returns nullptr on not found or invalid type
     template <class T>
     [[nodiscard]] auto get_shared_property(
       const node_handle& node,
       const std::string& name) const -> object_ptr<T>
     {
-      return value_cast<T>(_get_shared_property(node, name));
+      return value_cast_if<T>(_get_shared_property(node, name));
     }
 
     /// set shared property

@@ -1053,10 +1053,10 @@ TEST_CASE("property")
       // rm
       ng.remove_property(m2, "test");
       ng.remove_property(s2, "test");
-      REQUIRE_NOTHROW(ng.get_property<Int>(m, "test"));
-      REQUIRE_THROWS(ng.get_property<Int>(m2, "test"));
-      REQUIRE_NOTHROW(ng.get_property<Int>(s, "test"));
-      REQUIRE_THROWS(ng.get_property<Int>(s2, "test"));
+      REQUIRE(ng.get_property<Int>(m, "test"));
+      REQUIRE(!ng.get_property<Int>(m2, "test"));
+      REQUIRE(ng.get_property<Int>(s, "test"));
+      REQUIRE(!ng.get_property<Int>(s2, "test"));
     }
 
     SECTION("callee")
@@ -1077,8 +1077,8 @@ TEST_CASE("property")
 
       // rm
       ng.remove_shared_property(m2, "test");
-      REQUIRE_THROWS(ng.get_property<Int>(m, "test"));
-      REQUIRE_THROWS(ng.get_property<Int>(m2, "test"));
+      REQUIRE(!ng.get_property<Int>(m, "test"));
+      REQUIRE(!ng.get_property<Int>(m2, "test"));
     }
   }
 
@@ -1100,6 +1100,19 @@ TEST_CASE("property")
       REQUIRE(*ng.get_property<Int>(g, "test") == 42);
       REQUIRE(*ng.get_property<Int>(s1, "test") == 422);
       REQUIRE(*ng.get_property<Int>(s2, "test") == 4222);
+
+      SECTION("reassign")
+      {
+        ng.set_property(g, "test", make_object<Float>(42.f));
+        ng.set_property(s1, "test", make_object<Float>(422.f));
+        ng.set_property(s2, "test", make_object<Float>(4222.f));
+        REQUIRE(!ng.get_property<Int>(g, "test"));
+        REQUIRE(!ng.get_property<Int>(s1, "test"));
+        REQUIRE(!ng.get_property<Int>(s2, "test"));
+        REQUIRE(*ng.get_property<Float>(g, "test") == 42.f);
+        REQUIRE(*ng.get_property<Float>(s1, "test") == 422.f);
+        REQUIRE(*ng.get_property<Float>(s2, "test") == 4222.f);
+      }
 
       SECTION("")
       {
