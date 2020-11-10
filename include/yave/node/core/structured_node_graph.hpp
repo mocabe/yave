@@ -105,10 +105,10 @@ namespace yave {
 
   private:
     // clang-format off
-    auto _get_property(const node_handle&,   const std::string&) -> object_ptr<Object>;
-    auto _get_property(const socket_handle&, const std::string&) -> object_ptr<Object>;
-    auto _get_shared_property(const node_handle&,   const std::string&) -> object_ptr<Object>;
-    auto _get_shared_property(const socket_handle&, const std::string&) -> object_ptr<Object>;
+    auto _get_property(const node_handle&,   const std::string&) const -> object_ptr<Object>;
+    auto _get_property(const socket_handle&, const std::string&) const -> object_ptr<Object>;
+    auto _get_shared_property(const node_handle&,   const std::string&) const -> object_ptr<Object>;
+    auto _get_shared_property(const socket_handle&, const std::string&) const -> object_ptr<Object>;
     // clang-format on
 
   public:
@@ -116,7 +116,7 @@ namespace yave {
     template <class T>
     [[nodiscard]] auto get_property(
       const node_handle& node,
-      const std::string& name) -> object_ptr<T>
+      const std::string& name) const -> object_ptr<T>
     {
       return value_cast<T>(_get_property(node, name));
     }
@@ -125,7 +125,7 @@ namespace yave {
     template <class T>
     [[nodiscard]] auto get_property(
       const socket_handle& socket,
-      const std::string& name) -> object_ptr<T>
+      const std::string& name) const -> object_ptr<T>
     {
       return value_cast<T>(_get_property(socket, name));
     }
@@ -153,7 +153,7 @@ namespace yave {
     template <class T>
     [[nodiscard]] auto get_shared_property(
       const node_handle& node,
-      const std::string& name) -> object_ptr<T>
+      const std::string& name) const -> object_ptr<T>
     {
       return value_cast<T>(_get_shared_property(node, name));
     }

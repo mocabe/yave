@@ -846,7 +846,7 @@ namespace yave {
 
   public:
     auto get_callee_property(const node_handle& n, const std::string& name)
-      -> object_ptr<Object>
+      const -> object_ptr<Object>
     {
       assert(is_caller(n));
       if (auto call = get_call(n))
@@ -2744,7 +2744,7 @@ namespace yave {
       m_impl.set_caller_property(socket, "__data", std::move(data));
     }
 
-    auto _get_property(const node_handle& h, const std::string& name)
+    auto _get_property(const node_handle& h, const std::string& name) const
       -> object_ptr<Object>
     {
       if (!exists(h))
@@ -2753,7 +2753,7 @@ namespace yave {
       return m_impl.get_caller_property(h, name);
     }
 
-    auto _get_property(const socket_handle& h, const std::string& name)
+    auto _get_property(const socket_handle& h, const std::string& name) const
       -> object_ptr<Object>
     {
       if (!exists(h))
@@ -2794,7 +2794,7 @@ namespace yave {
       m_impl.remove_caller_property(h, name);
     }
 
-    auto _get_shared_property(const node_handle& h, const std::string& name)
+    auto _get_shared_property(const node_handle& h, const std::string& name) const
       -> object_ptr<Object>
     {
       if (!exists(h))
@@ -3317,14 +3317,14 @@ namespace yave {
 
   auto structured_node_graph::_get_property(
     const node_handle& h,
-    const std::string& name) -> object_ptr<Object>
+    const std::string& name) const -> object_ptr<Object>
   {
     return m_pimpl->_get_property(h, name);
   }
 
   auto structured_node_graph::_get_property(
     const socket_handle& h,
-    const std::string& name) -> object_ptr<Object>
+    const std::string& name) const -> object_ptr<Object>
   {
     return m_pimpl->_get_property(h, name);
   }
@@ -3361,7 +3361,7 @@ namespace yave {
 
   auto structured_node_graph::_get_shared_property(
     const node_handle& h,
-    const std::string& name) -> object_ptr<Object>
+    const std::string& name) const -> object_ptr<Object>
   {
     return m_pimpl->_get_shared_property(h, name);
   }
