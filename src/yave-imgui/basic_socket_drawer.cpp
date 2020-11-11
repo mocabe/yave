@@ -24,7 +24,6 @@ namespace yave::editor::imgui {
     : socket_drawable {s, *g.get_info(s)}
   {
     (void)nw;
-    m_data = g.get_data(s);
   }
 
   auto basic_socket_drawer::min_size(node_window_draw_info&) const -> ImVec2

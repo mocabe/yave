@@ -11,8 +11,6 @@ namespace yave::editor::imgui {
 
   class basic_socket_drawer : public socket_drawable
   {
-    object_ptr<Object> m_data;
-
   public:
     basic_socket_drawer(
       const socket_handle& s,
