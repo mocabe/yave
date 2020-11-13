@@ -18,6 +18,7 @@ namespace yave {
     group_input,
     group_output,
     function,
+    macro,
   };
 
   /// node call type
@@ -42,14 +43,12 @@ namespace yave {
       std::vector<socket_handle> input_sockets,
       std::vector<socket_handle> output_sockets,
       structured_node_type type,
-      structured_call_type call_type,
-      glm::dvec2 pos)
+      structured_call_type call_type)
       : m_name {name}
       , m_input_sockets {input_sockets}
       , m_output_sockets {output_sockets}
       , m_type {type}
       , m_call_type {call_type}
-      , m_pos {pos}
     {
     }
 
@@ -71,10 +70,16 @@ namespace yave {
       return m_output_sockets;
     }
 
-    /// normal?
+    /// function?
     [[nodiscard]] bool is_function() const
     {
       return m_type == structured_node_type::function;
+    }
+
+    /// macro?
+    [[nodiscard]] bool is_macro() const
+    {
+      return m_type == structured_node_type::macro;
     }
 
     /// group?
@@ -119,12 +124,6 @@ namespace yave {
       return m_call_type;
     }
 
-    /// pos
-    [[nodiscard]] auto& pos() const
-    {
-      return m_pos;
-    }
-
   private:
     /// name of node
     std::string m_name;
@@ -136,7 +135,5 @@ namespace yave {
     structured_node_type m_type;
     /// definition
     structured_call_type m_call_type;
-    /// pos
-    glm::dvec2 m_pos;
   };
 } // namespace yave

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/node/core/socket_info.hpp>
+#include <yave/node/core/connection_handle.hpp>
 
 namespace yave {
 

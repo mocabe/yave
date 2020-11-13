@@ -4,6 +4,7 @@
 //
 
 #include <yave/node/core/structured_node_graph.hpp>
+#include <yave/node/core/node_graph.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/value_cast.hpp>
 #include <yave/obj/vec/vec.hpp>
@@ -563,6 +564,8 @@ namespace yave {
     {
       return fmt::format("Group{}", to_string(id).substr(0, 4));
     }
+
+    using NodeDeclData = Box<std::shared_ptr<node_declaration>>;
 
   } // namespace
 
@@ -1682,6 +1685,8 @@ namespace yave {
       assert(is_caller(node));
       if (is_function_call(node))
         return structured_node_type::function;
+      if (is_macro_call(node))
+        return structured_node_type::macro;
       if (is_group_call(node))
         return structured_node_type::group;
       if (is_group_input(node))
@@ -2598,19 +2603,10 @@ namespace yave {
     }
 
   public:
-    bool exists(const node_handle& node) const
+    template <class Handle>
+    bool exists(const Handle& h) const
     {
-      return m_impl.ng.exists(node);
-    }
-
-    bool exists(const connection_handle& connection) const
-    {
-      return m_impl.ng.exists(connection);
-    }
-
-    bool exists(const socket_handle& socket) const
-    {
-      return m_impl.ng.exists(socket);
+      return m_impl.ng.exists(h);
     }
 
   public:
@@ -2639,19 +2635,15 @@ namespace yave {
       auto info = m_impl.ng.get_info(node);
       assert(info);
 
-      auto pos   = get_pos(node);
       auto ntype = m_impl.get_node_type(node);
       auto ctype = m_impl.get_call_type(node);
-
-      assert(pos);
 
       return structured_node_info(
         info->name(),
         info->input_sockets(),
         info->output_sockets(),
         ntype,
-        ctype,
-        *pos);
+        ctype);
     }
 
     auto get_info(const socket_handle& socket) const
@@ -2690,31 +2682,19 @@ namespace yave {
     }
 
   public:
-    auto get_name(const node_handle& node) const -> std::optional<std::string>
+    template <class Handle>
+    auto get_name(const Handle& h) const -> std::optional<std::string>
     {
-      return m_impl.ng.get_name(node);
+      return m_impl.ng.get_name(h);
     }
 
-    auto get_name(const socket_handle& socket) const
-      -> std::optional<std::string>
+    template <class Handle>
+    void set_name(const Handle& h, const std::string& name)
     {
-      return m_impl.ng.get_name(socket);
-    }
-
-    void set_name(const node_handle& node, const std::string& name)
-    {
-      if (!exists(node))
+      if (!exists(h))
         return;
 
-      m_impl.set_name(node, name);
-    }
-
-    void set_name(const socket_handle& socket, const std::string& name)
-    {
-      if (!exists(socket))
-        return;
-
-      m_impl.set_name(socket, name);
+      m_impl.set_name(h, name);
     }
 
     auto get_pos(const node_handle& node) const -> std::optional<glm::dvec2>
@@ -2746,23 +2726,64 @@ namespace yave {
       m_impl.set_caller_property(node, "__pos", vec);
     }
 
-    auto get_data(const socket_handle& socket) const -> object_ptr<Object>
+    auto get_arg(const socket_handle& socket) const -> object_ptr<Object>
     {
       if (!exists(socket))
         return {};
 
-      return m_impl.get_caller_property(socket, "__data");
+      assert(m_impl.ng.is_input_socket(socket));
+      return m_impl.get_caller_property(socket, "__arg");
     }
 
-    void set_data(const socket_handle& socket, object_ptr<Object> data)
+    void set_arg(const socket_handle& socket, object_ptr<Object> data)
     {
       if (!exists(socket))
         return;
 
-      m_impl.set_caller_property(socket, "__data", std::move(data));
+      assert(m_impl.ng.is_input_socket(socket));
+      m_impl.set_caller_property(socket, "__arg", std::move(data));
     }
 
-    auto _get_property(const node_handle& h, const std::string& name) const
+    template <class Handle>
+    auto get_source_id(const Handle& h) -> uid
+    {
+      if (!exists(h))
+        return {};
+
+      if (auto prop = m_impl.get_caller_property(h, "__src"))
+        return uid(*value_cast<UInt64>(prop));
+
+      return h.id();
+    }
+
+    template <class Handle>
+    void set_source_id(const Handle& h, uid id)
+    {
+      if (!exists(h))
+        return;
+
+      if (auto prop = m_impl.get_caller_property(h, "__src")) {
+        *value_cast<UInt64>(prop) = id.data;
+        return;
+      }
+
+      m_impl.set_caller_property(h, "__src", make_object<UInt64>(id.data));
+    }
+
+    auto get_node_declaration(const node_handle& n) const
+      -> std::shared_ptr<node_declaration>
+    {
+      if (!exists(n))
+        return nullptr;
+
+      if (auto prop = m_impl.get_callee_property(n, "__decl"))
+        return *value_cast<NodeDeclData>(prop);
+
+      return nullptr;
+    }
+
+    template <class Handle>
+    auto _get_property(const Handle& h, const std::string& name) const
       -> object_ptr<Object>
     {
       if (!exists(h))
@@ -2771,17 +2792,9 @@ namespace yave {
       return m_impl.get_caller_property(h, name);
     }
 
-    auto _get_property(const socket_handle& h, const std::string& name) const
-      -> object_ptr<Object>
-    {
-      if (!exists(h))
-        return nullptr;
-
-      return m_impl.get_caller_property(h, name);
-    }
-
+    template <class Handle>
     void set_property(
-      const node_handle& h,
+      const Handle& h,
       const std::string& name,
       object_ptr<Object> data)
     {
@@ -2791,29 +2804,14 @@ namespace yave {
       m_impl.set_caller_property(h, name, std::move(data));
     }
 
-    void set_property(
-      const socket_handle& h,
-      const std::string& name,
-      object_ptr<Object> data)
-    {
-      if (!exists(h))
-        return;
-
-      m_impl.set_caller_property(h, name, std::move(data));
-    }
-
-    void remove_property(const node_handle& h, const std::string& name)
+    template <class Handle>
+    void remove_property(const Handle& h, const std::string& name)
     {
       m_impl.remove_caller_property(h, name);
     }
 
-    void remove_property(const socket_handle& h, const std::string& name)
-    {
-      m_impl.remove_caller_property(h, name);
-    }
-
-    auto _get_shared_property(const node_handle& h, const std::string& name) const
-      -> object_ptr<Object>
+    auto _get_shared_property(const node_handle& h, const std::string& name)
+      const -> object_ptr<Object>
     {
       if (!exists(h))
         return nullptr;
@@ -3096,6 +3094,9 @@ namespace yave {
            if (n) {
              // init composed group
              d.init_composed(ng, n);
+
+             m_impl.set_callee_property(
+               n, "__decl", make_object<NodeDeclData>(decl));
            }
            return n;
          },
@@ -3109,17 +3110,26 @@ namespace yave {
            if (n) {
              // set default args
              for (auto&& [idx, arg] : d.default_args()) {
-               set_data(input_sockets(n)[idx], arg.clone());
+               set_arg(input_sockets(n)[idx], arg.clone());
              }
+
+             m_impl.set_callee_property(
+               n, "__decl", make_object<NodeDeclData>(decl));
            }
            return n;
          },
          [&](macro_node_declaration& d) {
-           return m_impl.create_macro_declaration(
+           auto n = m_impl.create_macro_declaration(
              d.node_path(),
              d.node_name(),
              d.input_sockets(),
              d.output_sockets());
+
+           if (n) {
+             m_impl.set_callee_property(
+               n, "__decl", make_object<NodeDeclData>(decl));
+           }
+           return n;
          }});
     }
 
@@ -3307,32 +3317,6 @@ namespace yave {
     m_pimpl->set_name(socket, name);
   }
 
-  auto structured_node_graph::get_pos(const node_handle& node) const
-    -> std::optional<glm::dvec2>
-  {
-    return m_pimpl->get_pos(node);
-  }
-
-  void structured_node_graph::set_pos(
-    const node_handle& node,
-    const glm::dvec2& newpos)
-  {
-    return m_pimpl->set_pos(node, newpos);
-  }
-
-  auto structured_node_graph::get_data(const socket_handle& socket) const
-    -> object_ptr<Object>
-  {
-    return m_pimpl->get_data(socket);
-  }
-
-  void structured_node_graph::set_data(
-    const socket_handle& socket,
-    object_ptr<Object> data)
-  {
-    m_pimpl->set_data(socket, std::move(data));
-  }
-
   auto structured_node_graph::_get_property(
     const node_handle& h,
     const std::string& name) const -> object_ptr<Object>
@@ -3397,6 +3381,58 @@ namespace yave {
     const std::string& name)
   {
     m_pimpl->remove_shared_property(h, name);
+  }
+
+  auto structured_node_graph::get_pos(const node_handle& node) const
+    -> std::optional<glm::dvec2>
+  {
+    return m_pimpl->get_pos(node);
+  }
+
+  void structured_node_graph::set_pos(
+    const node_handle& node,
+    const glm::dvec2& newpos)
+  {
+    return m_pimpl->set_pos(node, newpos);
+  }
+
+  auto structured_node_graph::get_arg(const socket_handle& socket) const
+    -> object_ptr<Object>
+  {
+    return m_pimpl->get_arg(socket);
+  }
+
+  void structured_node_graph::set_arg(
+    const socket_handle& socket,
+    object_ptr<Object> data)
+  {
+    m_pimpl->set_arg(socket, std::move(data));
+  }
+
+  auto structured_node_graph::get_source_id(const node_handle& h) const -> uid
+  {
+    return m_pimpl->get_source_id(h);
+  }
+
+  auto structured_node_graph::get_source_id(const socket_handle& h) const -> uid
+  {
+    return m_pimpl->get_source_id(h);
+  }
+
+  void structured_node_graph::set_source_id(const node_handle& h, uid id)
+  {
+    m_pimpl->set_source_id(h, id);
+  }
+
+  void structured_node_graph::set_source_id(const socket_handle& h, uid id)
+  {
+    m_pimpl->set_source_id(h, id);
+  }
+
+  auto structured_node_graph::get_node_declaration(const node_handle& n) const
+    -> std::shared_ptr<node_declaration>
+  {
+    return m_pimpl->get_node_declaration(n);
   }
 
   auto structured_node_graph::get_index(const socket_handle& socket) const
@@ -3645,3 +3681,4 @@ namespace yave {
 
 YAVE_DECL_TYPE(yave::NodeData, "14834d06-dfeb-4a01-81d8-a2fe59a755c2");
 YAVE_DECL_TYPE(yave::SocketData, "e22a82ce-1b16-481e-9702-087ff13217c8");
+YAVE_DECL_TYPE(yave::NodeDeclData, "0bb7f720-fd1b-4e49-bf10-85c6659dafb3");
