@@ -920,12 +920,27 @@ TEST_CASE("macro")
     REQUIRE(ng.output_sockets(m).size() == decl.output_sockets().size());
     REQUIRE(ng.get_name(m) == decl.node_name());
 
-    SECTION("add sockets")
+    SECTION("sockets")
     {
       REQUIRE(ng.add_input_socket(m, ""));
       REQUIRE(ng.add_output_socket(m, ""));
       REQUIRE(ng.input_sockets(m).size() == decl.input_sockets().size() + 1);
       REQUIRE(ng.output_sockets(m).size() == decl.output_sockets().size() + 1);
+
+      auto is = ng.input_sockets(m)[0];
+      auto os = ng.output_sockets(m)[0];
+
+      ng.set_name(is, "xyz");
+      REQUIRE(*ng.get_name(is) == "xyz");
+
+      ng.set_name(os, "xyz");
+      REQUIRE(*ng.get_name(os) == "xyz");
+
+      ng.remove_socket(is);
+      ng.remove_socket(os);
+
+      REQUIRE(!ng.exists(is));
+      REQUIRE(!ng.exists(os));
     }
 
     SECTION("copy")

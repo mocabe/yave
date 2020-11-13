@@ -1856,6 +1856,28 @@ namespace yave {
         return;
       }
 
+      auto set_bit_name = [&](auto&& bit, auto&& name) {
+        ng.set_name(ng.input_sockets(bit)[0], name);
+        ng.set_name(ng.output_sockets(bit)[0], name);
+      };
+
+      // macro
+      if (auto m = get_callee_macro(node)) {
+
+        auto caller = get_call(node);
+        assert(caller);
+
+        if (ng.is_input_socket(socket)) {
+          auto bit = caller->input_bits[idx];
+          set_bit_name(bit, name);
+        }
+
+        if (ng.is_output_socket(socket)) {
+          auto bit = caller->output_bits[idx];
+          set_bit_name(bit, name);
+        }
+      }
+
       //  io handler case
       if (auto io = get_io(node)) {
         if (ng.is_input_socket(socket)) {
@@ -1873,25 +1895,21 @@ namespace yave {
 
         if (ng.is_input_socket(socket)) {
           // set group socket name
-          ng.set_name(ng.input_sockets(g->input_bits[idx])[0], name);
-          ng.set_name(ng.output_sockets(g->input_bits[idx])[0], name);
+          set_bit_name(g->input_bits[idx], name);
 
           for (auto&& caller : g->callers) {
             // set caller socket names
-            ng.set_name(ng.input_sockets(caller->input_bits[idx])[0], name);
-            ng.set_name(ng.output_sockets(caller->input_bits[idx])[0], name);
+            set_bit_name(caller->input_bits[idx], name);
           }
         }
 
         if (ng.is_output_socket(socket)) {
           // set group socket name
-          ng.set_name(ng.output_sockets(g->output_bits[idx])[0], name);
-          ng.set_name(ng.input_sockets(g->output_bits[idx])[0], name);
+          set_bit_name(g->output_bits[idx], name);
 
           for (auto&& caller : g->callers) {
             // set caller socket names
-            ng.set_name(ng.output_sockets(caller->output_bits[idx])[0], name);
-            ng.set_name(ng.input_sockets(caller->output_bits[idx])[0], name);
+            set_bit_name(caller->output_bits[idx], name);
           }
         }
       }
