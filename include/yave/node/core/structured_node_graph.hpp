@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <yave/node/core/node_graph.hpp>
 #include <yave/node/core/structured_node_info.hpp>
 #include <yave/node/core/structured_socket_info.hpp>
 #include <yave/node/core/structured_connection_info.hpp>
@@ -21,13 +20,11 @@ namespace yave {
   /// layers of infrastructure: `graph::graph` and `node_graph`.
   ///
   /// This data can be considered as an equivalent of AST in traditional
-  /// programming languages, but there're fundamental differences:
-  /// 1. User can access and modify node graph freely, and these operations will
+  /// programming languages, but there're fundamental differences.
+  /// User can access and modify node graph freely, and these operations will
   /// not cause any syntax errors like undefined identifiers. For example,
   /// deleting a function definition will also delete all of calls to it
   /// automatically.
-  /// 2. Some part of node graph is event driven, it modifies itself depending
-  /// on user actions.
   class structured_node_graph
   {
   public:
@@ -89,19 +86,6 @@ namespace yave {
     void set_name(const node_handle& node, const std::string& name);
     /// set name of socket
     void set_name(const socket_handle& socket, const std::string& name);
-
-    /// get node pos
-    [[nodiscard]] auto get_pos(const node_handle& node) const
-      -> std::optional<glm::dvec2>;
-
-    /// set node pos
-    void set_pos(const node_handle& node, const glm::dvec2& newpos);
-
-    /// get socket data
-    [[nodiscard]] auto get_data(const socket_handle& socke) const
-      -> object_ptr<Object>;
-    /// set socket data
-    void set_data(const socket_handle& socket, object_ptr<Object> data);
 
   private:
     // clang-format off
@@ -172,6 +156,32 @@ namespace yave {
 
     /// remove shared property
     void remove_shared_property(const node_handle&, const std::string&);
+
+  public:
+    /// get node pos
+    [[nodiscard]] auto get_pos(const node_handle& node) const
+      -> std::optional<glm::dvec2>;
+    /// set node pos
+    void set_pos(const node_handle& node, const glm::dvec2& newpos);
+
+    /// get socket arg
+    [[nodiscard]] auto get_arg(const socket_handle& socke) const
+      -> object_ptr<Object>;
+    /// set socket arg
+    void set_arg(const socket_handle& socket, object_ptr<Object> data);
+
+    /// get source id
+    [[nodiscard]] auto get_source_id(const node_handle& h) const -> uid;
+    /// get source id
+    [[nodiscard]] auto get_source_id(const socket_handle& h) const -> uid;
+    /// set source id
+    void set_source_id(const node_handle& h, uid id);
+    /// set source id
+    void set_source_id(const socket_handle& h, uid id);
+
+    /// get declaration
+    [[nodiscard]] auto get_node_declaration(const node_handle& n) const
+      -> std::shared_ptr<node_declaration>;
 
   public:
     /// get socket index
