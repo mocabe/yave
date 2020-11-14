@@ -2731,7 +2731,6 @@ namespace yave {
       if (!exists(socket))
         return {};
 
-      assert(m_impl.ng.is_input_socket(socket));
       return m_impl.get_caller_property(socket, "__arg");
     }
 
@@ -2740,7 +2739,6 @@ namespace yave {
       if (!exists(socket))
         return;
 
-      assert(m_impl.ng.is_input_socket(socket));
       m_impl.set_caller_property(socket, "__arg", std::move(data));
     }
 
