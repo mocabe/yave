@@ -85,7 +85,7 @@ namespace yave::compiler {
     bool has_error() const
     {
       for (auto&& msg : m_msgs) {
-        if (kind(msg) == message_kind::error)
+        if (msg.kind() == message_kind::error)
           return true;
       }
       return false;
@@ -96,7 +96,7 @@ namespace yave::compiler {
       std::vector<message> ret;
 
       for (auto&& msg : m_msgs) {
-        if (kind(msg) == k) {
+        if (msg.kind() == k) {
           ret.push_back(msg);
         }
       }
@@ -115,7 +115,7 @@ namespace yave::compiler {
 
       for (auto&& msg : m_msgs) {
 
-        if (auto nid = node_id(msg)) {
+        if (auto nid = msg.get_node_id()) {
 
           auto h = ng.node(*nid);
 
@@ -134,7 +134,7 @@ namespace yave::compiler {
 
       for (auto&& msg : m_msgs) {
 
-        if (auto sid = socket_id(msg)) {
+        if (auto sid = msg.get_socket_id()) {
 
           auto h = ng.socket(*sid);
 

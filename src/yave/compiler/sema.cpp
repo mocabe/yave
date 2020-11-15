@@ -52,7 +52,7 @@ namespace yave::compiler {
         assert(ng.is_group(n));
         if (ng.input_connections(n).size() < ng.input_sockets(n).size())
           for (auto&& s : ng.input_sockets(n))
-            ng.set_data(s, make_object<Variable>());
+            ng.set_arg(s, make_object<Variable>());
       };
 
       // Rmove unsued default socket data
@@ -60,7 +60,7 @@ namespace yave::compiler {
         assert(ng.is_function(n));
         for (auto&& s : ng.input_sockets(n))
           if (!ng.connections(s).empty())
-            ng.set_data(s, nullptr);
+            ng.set_arg(s, nullptr);
       };
 
       // for group
@@ -151,7 +151,7 @@ namespace yave::compiler {
         auto ds = defs.get_binds(*ng.get_path(defcall), *ng.get_index(os));
 
         if (ds.empty())
-          throw no_valid_overloading(os);
+          throw no_valid_overloading(ng.get_source_id(os));
 
         auto insts = ds //
                      | rv::transform([](auto& d) { return d->instance(); })
@@ -176,7 +176,7 @@ namespace yave::compiler {
         for (auto&& s : ng.input_sockets(g)) {
 
           // variable
-          if (auto data = ng.get_data(s)) {
+          if (auto data = ng.get_arg(s)) {
             assert(ng.connections(s).empty());
             loc.add_location(data, s);
             ins.push_back(data);
@@ -229,7 +229,7 @@ namespace yave::compiler {
         for (auto&& s : ng.input_sockets(f)) {
 
           // default arg value
-          if (auto data = ng.get_data(s)) {
+          if (auto data = ng.get_arg(s)) {
 
             // TODO: remove this branch
             if (auto arg = value_cast_if<NodeArgument>(data))
