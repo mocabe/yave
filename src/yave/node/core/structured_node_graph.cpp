@@ -2749,7 +2749,7 @@ namespace yave {
         return {};
 
       if (auto prop = m_impl.get_caller_property(h, "__src"))
-        return uid(*value_cast<UInt64>(prop));
+        return uid {*value_cast<UInt64>(prop)};
 
       return h.id();
     }
