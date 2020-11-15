@@ -43,6 +43,7 @@ namespace yave::editor::imgui {
     const node_window& nw)
     : node_drawable {n, *g.get_info(n)}
     , m_title {info.name()}
+    , m_pos {*g.get_pos(n)}
   {
     (void)nw;
 
@@ -190,11 +191,13 @@ namespace yave::editor::imgui {
       {
         std::string str;
 
-        // group or func
+        // node type
         if (info.is_group())
           str = "group";
         if (info.is_function())
           str = "func";
+        if (info.is_macro())
+          str = "macro";
 
         // def or call
         if (info.is_definition())
@@ -214,7 +217,7 @@ namespace yave::editor::imgui {
       ImGui::TextDisabled("id: %s", to_string(n.id()).c_str());
 
       // description
-      if (info.is_function()) {
+      if (info.is_function() || info.is_macro()) {
 
         auto dsc = [&] {
           auto lck    = dctx.get_data<editor_data>();
@@ -270,7 +273,7 @@ namespace yave::editor::imgui {
             n, socket_type::output, info.output_sockets().size()));
       }
 
-      if (info.is_group() || info.is_group_output()) {
+      if (info.is_group() || info.is_macro() || info.is_group_output()) {
 
         ImGui::Separator();
 
@@ -390,7 +393,7 @@ namespace yave::editor::imgui {
   {
     (void)draw_info;
 
-    auto spos = ImGui::GetWindowPos() + nw.scroll() + to_ImVec2(info.pos());
+    auto spos = ImGui::GetWindowPos() + nw.scroll() + to_ImVec2(m_pos);
 
     // set dummy position to nodes being dragged, to avoid submitting
     // position updates every frame

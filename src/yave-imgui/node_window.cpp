@@ -185,7 +185,7 @@ namespace yave::editor::imgui {
     }();
 
     for (auto&& e : compile_errors) {
-      if (auto&& msg = text(e))
+      if (auto&& msg = e.get_text())
         ImGui::TextColored({255, 0, 0, 255}, "%s", msg->c_str());
     }
 

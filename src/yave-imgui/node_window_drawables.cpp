@@ -59,10 +59,9 @@ namespace yave::editor::imgui {
     constexpr auto data_types = tuple_c<Int, Float, Bool, String, Color, Vec2>;
 
     // check data types
-    if (auto data = g.get_data(s))
-      if (auto arg = value_cast_if<NodeArgument>(data))
-        if (auto ds = create_data_type_socket(data_types, arg, s, g, nw))
-          return ds;
+    if (auto arg = value_cast_if<NodeArgument>(g.get_arg(s)))
+      if (auto ds = create_data_type_socket(data_types, arg, s, g, nw))
+        return ds;
 
     return std::make_unique<basic_socket_drawer>(s, g, nw);
   }
