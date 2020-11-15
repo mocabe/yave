@@ -7,6 +7,11 @@
 #include <yave/node/core/function.hpp>
 #include <yave/rts/list.hpp>
 #include <yave/obj/primitive/property.hpp>
+#include <yave/node/core/structured_node_graph.hpp>
+
+#include <range/v3/view.hpp>
+#include <range/v3/action.hpp>
+#include <range/v3/numeric.hpp>
 
 namespace yave {
 
@@ -65,6 +70,77 @@ namespace yave {
       {"list", "index"},
       {"value"},
       {{1, make_node_argument<Int>(0)}});
+  }
+
+  auto node_declaration_traits<node::List::List>::get_node_declaration()
+    -> node_declaration
+  {
+    namespace rn = ranges;
+    namespace rv = ranges::views;
+    namespace ra = ranges::actions;
+
+    struct macro_func : macro_node_declaration::abstract_macro_func
+    {
+      auto on_expand(structured_node_graph& ng, const node_handle& n) const
+        -> node_handle override
+      {
+        // List.Cons
+        auto cons = ng.search_path(
+          yave::get_node_declaration<node::List::Cons>().full_name())[0];
+        // List.Nil
+        auto nil = ng.search_path(
+          yave::get_node_declaration<node::List::Nil>().full_name())[0];
+
+        assert(cons && nil);
+
+        auto g   = ng.get_parent_group(n);
+        auto iss = ng.input_sockets(n);
+
+        auto cells =
+          iss
+          // make cons cell
+          | rv::transform([&](auto&& s) {
+              // cons cell to return
+              auto cell = ng.create_copy(g, cons);
+              // set source for input sockets
+              ng.set_source_id(ng.input_sockets(cell)[0], s.id());
+              // connect input
+              if (auto ics = ng.connections(s); !ics.empty()) {
+                auto c    = ics[0];
+                auto info = ng.get_info(c);
+                ng.connect(info->src_socket(), ng.input_sockets(cell)[0]);
+              }
+              return cell;
+            })
+          // add nil to last
+          | rn::to_vector //
+          | ra::push_back(ng.create_copy(g, nil));
+
+        // connect cells
+        for (size_t i = 0; i < cells.size() - 1; ++i)
+          ng.connect(
+            ng.output_sockets(cells[i + 1])[0], ng.input_sockets(cells[i])[1]);
+
+        // replace macro node with cons tree
+        auto ret = cells[0];
+        for (auto&& c : ng.output_connections(n)) {
+          auto info = ng.get_info(c);
+          ng.disconnect(c);
+          ng.connect(ng.output_sockets(ret)[0], info->dst_socket());
+        }
+        ng.destroy(n);
+
+        return ret;
+      }
+    };
+
+    return macro_node_declaration(
+      "List.List",
+      "(Macro) Make list from arguments",
+      node_declaration_visibility::_public,
+      {},
+      {"list"},
+      std::make_unique<macro_func>());
   }
 
   namespace modules::_std::list {

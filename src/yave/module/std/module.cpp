@@ -144,6 +144,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::List::Head>(),
             get_node_declaration<node::List::Tail>(),
             get_node_declaration<node::List::At>(),
+            get_node_declaration<node::List::List>(),
             get_node_declaration<node::List::Map>(),
             get_node_declaration<node::List::Repeat>(),
             get_node_declaration<node::List::Enumerate>(),
