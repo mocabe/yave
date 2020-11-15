@@ -23,6 +23,8 @@ namespace yave::editor::imgui {
 
     // title
     std::string m_title;
+    // pos
+    glm::vec2 m_pos;
 
     // cache socket layout
     mutable bool m_layout_cache = false;

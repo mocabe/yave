@@ -72,7 +72,7 @@ namespace yave::editor::imgui {
 
       for (auto&& msg : msgs.get_results(ng, s)) {
 
-        if (category(msg) != compiler::message_category::parse)
+        if (msg.category() != compiler::message_category::parse)
           continue;
 
         if (
@@ -82,7 +82,7 @@ namespace yave::editor::imgui {
           col = get_socket_slot_color_connected();
         }
 
-        if (kind(msg) == compiler::message_kind::error) {
+        if (msg.kind() == compiler::message_kind::error) {
           col = get_socket_slot_color_missing();
           break;
         }
