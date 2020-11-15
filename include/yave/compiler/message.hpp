@@ -8,6 +8,7 @@
 #include <yave/support/id.hpp>
 #include <yave/node/core/node_handle.hpp>
 #include <yave/node/core/socket_handle.hpp>
+#include <yave/lib/util/variant_mixin.hpp>
 
 #include <variant>
 #include <string>
@@ -91,9 +92,9 @@ namespace yave::compiler {
   /// Missing input connection to socket
   struct missing_input : message_error<message_category::parse>
   {
-    missing_input(const node_handle& node, const socket_handle& socket)
-      : m_node_id {node.id()}
-      , m_socket_id {socket.id()}
+    missing_input(const uid& nid, const uid& sid)
+      : m_node_id {nid}
+      , m_socket_id {sid}
     {
     }
 
@@ -120,9 +121,9 @@ namespace yave::compiler {
   /// Missing output connection for active node group output
   struct missing_output : message_error<message_category::parse>
   {
-    missing_output(const node_handle& node, const socket_handle& socket)
-      : m_node_id {node.id()}
-      , m_socket_id {socket.id()}
+    missing_output(const uid& nid, const uid& sid)
+      : m_node_id {nid}
+      , m_socket_id {sid}
     {
     }
 
@@ -149,9 +150,9 @@ namespace yave::compiler {
   /// Socket has argument
   struct has_default_argument : message_info<message_category::parse>
   {
-    has_default_argument(const node_handle& node, const socket_handle& socket)
-      : m_node_id {node.id()}
-      , m_socket_id {socket.id()}
+    has_default_argument(const uid& nid, const uid& sid)
+      : m_node_id {nid}
+      , m_socket_id {sid}
     {
     }
 
@@ -175,9 +176,9 @@ namespace yave::compiler {
   /// Socket has input connection
   struct has_input_connection : message_info<message_category::parse>
   {
-    has_input_connection(const node_handle& node, const socket_handle& socket)
-      : m_node_id {node.id()}
-      , m_socket_id {socket.id()}
+    has_input_connection(const uid& nid, const uid& sid)
+      : m_node_id {nid}
+      , m_socket_id {sid}
     {
     }
 
@@ -201,9 +202,9 @@ namespace yave::compiler {
   /// Socket has output connection
   struct has_output_connection : message_info<message_category::parse>
   {
-    has_output_connection(const node_handle& node, const socket_handle& socket)
-      : m_node_id {node.id()}
-      , m_socket_id {socket.id()}
+    has_output_connection(const uid& nid, const uid& sid)
+      : m_node_id {nid}
+      , m_socket_id {sid}
     {
     }
 
@@ -227,8 +228,8 @@ namespace yave::compiler {
   /// Node is lambda mode
   struct is_lambda_node : message_info<message_category::parse>
   {
-    is_lambda_node(const node_handle& node)
-      : m_node_id {node.id()}
+    is_lambda_node(const uid& nid)
+      : m_node_id {nid}
     {
     }
 
@@ -258,8 +259,8 @@ namespace yave::compiler {
   /// No valid overloading error
   struct no_valid_overloading : message_error<message_category::type>
   {
-    no_valid_overloading(const socket_handle& socket)
-      : m_socket_id {socket.id()}
+    no_valid_overloading(const uid& sid)
+      : m_socket_id {sid}
     {
     }
 
@@ -281,12 +282,12 @@ namespace yave::compiler {
   struct type_missmatch : message_error<message_category::type>
   {
     type_missmatch(
-      const socket_handle& s_expected,
+      const uid& sid_expected,
+      const uid& sid_provided,
       object_ptr<const Type> expected,
-      const socket_handle& s_provided,
       object_ptr<const Type> provided)
-      : m_socket_expected_id {s_expected.id()}
-      , m_socket_provided_id {s_provided.id()}
+      : m_socket_expected_id {sid_expected}
+      , m_socket_provided_id {sid_provided}
       , m_expected {std::move(expected)}
       , m_provided {std::move(provided)}
     {
@@ -334,12 +335,12 @@ namespace yave::compiler {
   struct unsolvable_constraints : message_error<message_category::type>
   {
     unsolvable_constraints(
-      const socket_handle& lhs_socket,
+      const uid& lhs_sid,
+      const uid& rhs_sid,
       object_ptr<const Type> lhs_type,
-      const socket_handle& rhs_socket,
       object_ptr<const Type> rhs_type)
-      : m_lhs_id {lhs_socket.id()}
-      , m_rhs_id {rhs_socket.id()}
+      : m_lhs_id {lhs_sid}
+      , m_rhs_id {rhs_sid}
       , m_lhs_type {std::move(lhs_type)}
       , m_rhs_type {std::move(rhs_type)}
     {
@@ -411,37 +412,6 @@ namespace yave::compiler {
     object_ptr<const Type> m_provided;
   };
 
-  /// compile message
-  using message = std::variant<
-    internal_compile_error,
-    // parse
-    unexpected_parse_error,
-    missing_input,
-    missing_output,
-    is_lambda_node,
-    has_default_argument,
-    has_input_connection,
-    has_output_connection,
-    // type
-    unexpected_type_error,
-    no_valid_overloading,
-    type_missmatch,
-    unsolvable_constraints,
-    // verify
-    invalid_output_type>;
-
-  /// get kind of message
-  [[nodiscard]] inline auto kind(const message& msg)
-  {
-    return std::visit([](auto&& x) { return x.kind(); }, msg);
-  }
-
-  /// get category of message
-  [[nodiscard]] inline auto category(const message& msg)
-  {
-    return std::visit([](auto&& x) { return x.category(); }, msg);
-  }
-
   // clang-format off
   // Workaround for VS2019 Preview 16.8: requires-expression is broken
   template <class T>
@@ -452,41 +422,69 @@ namespace yave::compiler {
   concept _msg_has_socket_id = requires(T x) { x.socket_id(); };
   // clang-format on
 
-  /// get text message
-  [[nodiscard]] inline auto text(const message& msg)
+  /// compiler message
+  struct message : variant_mixin<
+                     internal_compile_error,
+                     // parse
+                     unexpected_parse_error,
+                     missing_input,
+                     missing_output,
+                     is_lambda_node,
+                     has_default_argument,
+                     has_input_connection,
+                     has_output_connection,
+                     // type
+                     unexpected_type_error,
+                     no_valid_overloading,
+                     type_missmatch,
+                     unsolvable_constraints,
+                     // verify
+                     invalid_output_type>
   {
-    return std::visit(
-      [](auto&& x) -> std::optional<std::string> {
+    using variant_mixin::variant_mixin;
+
+    /// get kind of message
+    [[nodiscard]] auto kind() const
+    {
+      return visit([](auto&& x) { return x.kind(); });
+    }
+
+    /// get category of message
+    [[nodiscard]] auto category() const
+    {
+      return visit([](auto&& x) { return x.category(); });
+    }
+
+    /// get text message
+    [[nodiscard]] auto get_text() const
+    {
+      return visit([](auto&& x) -> std::optional<std::string> {
         if constexpr (_msg_has_text<decltype(x)>)
           return x.text();
         return std::nullopt;
-      },
-      msg);
-  }
+      });
+    }
 
-  /// get node location
-  [[nodiscard]] inline auto node_id(const message& msg)
-  {
-    return std::visit(
-      [](auto&& x) -> std::optional<uid> {
+    /// get node location
+    [[nodiscard]] auto get_node_id() const
+    {
+      return visit([](auto&& x) -> std::optional<uid> {
         if constexpr (_msg_has_node_id<decltype(x)>)
           return x.node_id();
         return std::nullopt;
-      },
-      msg);
-  }
+      });
+    }
 
-  /// get socket location
-  [[nodiscard]] inline auto socket_id(const message& msg)
-  {
-    return std::visit(
-      [](auto&& x) -> std::optional<uid> {
+    /// get socket location
+    [[nodiscard]] auto get_socket_id() const
+    {
+      return visit([](auto&& x) -> std::optional<uid> {
         if constexpr (_msg_has_socket_id<decltype(x)>)
           return x.socket_id();
         return std::nullopt;
-      },
-      msg);
-  }
+      });
+    }
+  };
 
   /// Container of messages
   class message_map

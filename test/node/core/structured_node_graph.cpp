@@ -895,8 +895,10 @@ TEST_CASE("macro")
 
   struct macro_func : macro_node_declaration::abstract_macro_func
   {
-    virtual void on_expand(structured_node_graph&, const node_handle&) const
+    virtual auto on_expand(structured_node_graph&, const node_handle& n) const
+      -> node_handle
     {
+      return n;
     }
   };
 
@@ -1020,8 +1022,10 @@ TEST_CASE("property")
   {
     struct macro_func : macro_node_declaration::abstract_macro_func
     {
-      virtual void on_expand(structured_node_graph&, const node_handle&) const
+      virtual auto on_expand(structured_node_graph&, const node_handle& n) const
+        -> node_handle
       {
+        return n;
       }
     };
 
@@ -1035,6 +1039,10 @@ TEST_CASE("property")
 
     auto pdecl = std::make_shared<node_declaration>(decl);
     auto m     = ng.create_declaration(pdecl);
+
+    REQUIRE(ng.get_node_declaration(m));
+    REQUIRE_NOTHROW(
+      std::get<macro_node_declaration>(*ng.get_node_declaration(m)));
 
     REQUIRE(ng.exists(m));
 

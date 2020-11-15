@@ -219,7 +219,8 @@ namespace yave::compiler {
 
         // could not match overloading
         if (!result_type)
-          throw message(no_valid_overloading(env.locations.locate(tv)));
+          // FIXME: get_souce_id() should be used
+          throw message(no_valid_overloading(env.locations.locate(tv).id()));
 
         // get substitition to fix
         // use empty set if it's not specializable
@@ -286,16 +287,18 @@ namespace yave::compiler {
           return ty;
 
         } catch (type_error::type_missmatch& e) {
+          // FIXME: get_souce_id() should be used
           throw message(type_missmatch(
-            env.locations.locate(e.expected()),
+            env.locations.locate(e.expected()).id(),
+            env.locations.locate(e.provided()).id(),
             e.expected(),
-            env.locations.locate(e.provided()),
             e.provided()));
         } catch (type_error::unsolvable_constraints& e) {
+          // FIXME: get_souce_id() should be used
           throw message(unsolvable_constraints(
-            env.locations.locate(e.t1()),
+            env.locations.locate(e.t1()).id(),
+            env.locations.locate(e.t2()).id(),
             e.t1(),
-            env.locations.locate(e.t2()),
             e.t2()));
         } catch (type_error::type_error& e) {
           // TODO catch other type errors
@@ -386,7 +389,9 @@ namespace yave::compiler {
         if (it != env.results.end())
           return it->second;
 
-        throw message(no_valid_overloading(env.locations.locate(overloaded)));
+        // FIXME: get_souce_id() should be used
+        throw message(
+          no_valid_overloading(env.locations.locate(overloaded).id()));
       }
 
       return obj;

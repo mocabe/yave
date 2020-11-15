@@ -175,7 +175,7 @@ namespace yave {
       virtual ~abstract_macro_func() noexcept = default;
 
       /// called when macro node is expanded
-      virtual void on_expand(structured_node_graph& g, const node_handle& n) const = 0;
+      virtual auto on_expand(structured_node_graph& ng, const node_handle& n) const -> node_handle = 0;
 
       // clang-format on
     };
@@ -223,9 +223,10 @@ namespace yave {
     }
 
     /// call macro callback
-    void macro_on_expand(structured_node_graph& g, node_handle n) const
+    auto macro_on_expand(structured_node_graph& g, node_handle n) const
+      -> node_handle
     {
-      m_func->on_expand(g, n);
+      return m_func->on_expand(g, n);
     }
 
     /// get name component from full name
