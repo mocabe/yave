@@ -220,7 +220,7 @@ namespace yave {
     /// decl map
     std::map<std::string, std::shared_ptr<node_declaration>> m_map = {};
     /// decl tree
-    node_declaration_tree m_tree;
+    node_declaration_tree m_pub_tree;
 
   public:
     impl()
@@ -236,7 +236,10 @@ namespace yave {
 
       if (succ) {
         Info(g_logger, "Added new declaration: {}", decl.full_name());
-        m_tree.insert(it->second);
+
+        if (decl.is_public())
+          m_pub_tree.insert(it->second);
+
         return true;
       }
 
@@ -309,9 +312,9 @@ namespace yave {
       return ret;
     }
 
-    auto& get_tree() const
+    auto& get_pub_tree() const
     {
-      return m_tree;
+      return m_pub_tree;
     }
 
     void remove(const std::string& name)
@@ -323,7 +326,7 @@ namespace yave {
 
       Info(g_logger, "Removed declaration: {}", name);
 
-      m_tree.remove(iter->second);
+      m_pub_tree.remove(iter->second);
       m_map.erase(iter);
     }
 
@@ -396,9 +399,10 @@ namespace yave {
     return m_pimpl->enumerate();
   }
 
-  auto node_declaration_store::get_tree() const -> const node_declaration_tree&
+  auto node_declaration_store::get_pub_tree() const
+    -> const node_declaration_tree&
   {
-    return m_pimpl->get_tree();
+    return m_pimpl->get_pub_tree();
   }
 
   void node_declaration_store::remove(const std::string& name)

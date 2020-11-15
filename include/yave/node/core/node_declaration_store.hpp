@@ -91,8 +91,8 @@ namespace yave {
     [[nodiscard]] auto enumerate() const
       -> std::vector<std::shared_ptr<node_declaration>>;
 
-    /// get tree
-    [[nodiscard]] auto get_tree() const -> const node_declaration_tree&;
+    /// get public declaration tree
+    [[nodiscard]] auto get_pub_tree() const -> const node_declaration_tree&;
 
     /// Remove declaration
     void remove(const std::string& name);
