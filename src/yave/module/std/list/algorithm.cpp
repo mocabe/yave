@@ -10,49 +10,53 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::List::Map>::get_node_declaration()
+  auto node_declaration_traits<node::List::Algo::Map>::get_node_declaration()
     -> node_declaration
   {
     return function_node_declaration(
-      "List.Map",
-      "map",
+      "List.Algo.Map",
+      "[a] -> (a -> b) -> [b]\n"
+      "Apply transform to list elements",
       node_declaration_visibility::_public,
-      {"list", "func"},
-      {"list"});
+      {"[a]", "a -> b"},
+      {"[b]"});
   }
 
-  auto node_declaration_traits<node::List::Repeat>::get_node_declaration()
+  auto node_declaration_traits<node::List::Algo::Repeat>::get_node_declaration()
     -> node_declaration
   {
     return function_node_declaration(
-      "List.Repeat",
-      "repeat",
+      "List.Algo.Repeat",
+      "a -> Int -> [a]\n"
+      "Repeat elements in list",
       node_declaration_visibility::_public,
-      {"value", "n"},
-      {"list"},
+      {"a", "Int"},
+      {"[a]"},
       {{1, make_node_argument<Int>(1)}});
   }
 
-  auto node_declaration_traits<node::List::Enumerate>::get_node_declaration()
-    -> node_declaration
+  auto node_declaration_traits<
+    node::List::Algo::Enumerate>::get_node_declaration() -> node_declaration
   {
     return function_node_declaration(
-      "List.Enumerate",
-      "enumerate",
+      "List.Algo.Enumerate",
+      "[a] -> (Int -> a -> b) -> [b]\n"
+      "Enumerate list elements",
       node_declaration_visibility::_public,
-      {"list", "func"},
-      {"list"});
+      {"[a]", "Int -> a -> b"},
+      {"[b]"});
   }
 
-  auto node_declaration_traits<node::List::Fold>::get_node_declaration()
+  auto node_declaration_traits<node::List::Algo::Fold>::get_node_declaration()
     -> node_declaration
   {
     return function_node_declaration(
-      "List.Fold",
-      "foldl",
+      "List.Algo.Fold",
+      "[a] -> (b -> a -> b) -> b -> b\n"
+      "Left fold list",
       node_declaration_visibility::_public,
-      {"list", "func", "init"},
-      {"list"});
+      {"[a]", "b -> a -> b", "b"},
+      {"b"});
   }
 
   namespace modules::_std::list {
@@ -202,7 +206,7 @@ namespace yave {
     struct ListFold : Function<
                         ListFold,
                         node_closure<List<node_closure<ListFold_X>>>,
-                        node_closure<ListFold_X, ListFold_Y, ListFold_Y>,
+                        node_closure<ListFold_Y, ListFold_X, ListFold_Y>,
                         node_closure<ListFold_Y>,
                         FrameDemand,
                         ListFold_Y>
@@ -215,7 +219,7 @@ namespace yave {
         auto v  = eval_arg<2>();
 
         while (!l->is_nil()) {
-          v = eval(f << l->head() << v);
+          v = eval(f << v << l->head());
           l = eval(l->tail());
         }
 
@@ -225,40 +229,40 @@ namespace yave {
 
   } // namespace modules::_std::list
 
-  auto node_definition_traits<node::List::Map, modules::_std::tag>::
+  auto node_definition_traits<node::List::Algo::Map, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::List::Map>();
+    auto info = get_node_declaration<node::List::Algo::Map>();
     return {node_definition(
       info.full_name(),
       0,
       make_object<yave::modules::_std::list::StrictListMap>())};
   }
 
-  auto node_definition_traits<node::List::Repeat, modules::_std::tag>::
+  auto node_definition_traits<node::List::Algo::Repeat, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::List::Repeat>();
+    auto info = get_node_declaration<node::List::Algo::Repeat>();
     return {node_definition(
       info.full_name(),
       0,
       make_object<yave::modules::_std::list::ListRepeat>())};
   }
 
-  auto node_definition_traits<node::List::Enumerate, modules::_std::tag>::
+  auto node_definition_traits<node::List::Algo::Enumerate, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::List::Enumerate>();
+    auto info = get_node_declaration<node::List::Algo::Enumerate>();
     return {node_definition(
       info.full_name(),
       0,
       make_object<yave::modules::_std::list::ListEnumerate>())};
   }
 
-  auto node_definition_traits<node::List::Fold, modules::_std::tag>::
+  auto node_definition_traits<node::List::Algo::Fold, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::List::Fold>();
+    auto info = get_node_declaration<node::List::Algo::Fold>();
     return {node_definition(
       info.full_name(), 0, make_object<yave::modules::_std::list::ListFold>())};
   }

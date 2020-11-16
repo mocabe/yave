@@ -10,7 +10,7 @@
 
 namespace yave {
 
-  namespace node::List {
+  namespace node::List::Algo {
     /// map
     struct Map;
     /// repeat
@@ -19,15 +19,15 @@ namespace yave {
     struct Enumerate;
     /// foldl
     struct Fold;
-  } // namespace node
+  } // namespace node::List::Algo
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Map);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Repeat);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Enumerate);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Fold);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Algo::Map);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Algo::Repeat);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Algo::Enumerate);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::List::Algo::Fold);
 
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Map, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Repeat, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Enumerate, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Fold, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Algo::Map, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Algo::Repeat, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Algo::Enumerate, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::List::Algo::Fold, modules::_std::tag);
 }

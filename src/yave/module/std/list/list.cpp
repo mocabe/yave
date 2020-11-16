@@ -34,8 +34,8 @@ namespace yave {
       "List.Cons",
       "Construct new list node",
       node_declaration_visibility::_public,
-      {"head", "tail"},
-      {"cons"});
+      {"x", "xs"},
+      {"x:xs"});
   }
 
   auto node_declaration_traits<node::List::Head>::get_node_declaration()
@@ -45,8 +45,8 @@ namespace yave {
       "List.Head",
       "Get head of list",
       node_declaration_visibility::_public,
-      {"list"},
-      {"head"});
+      {"x:xs"},
+      {"x"});
   }
 
   auto node_declaration_traits<node::List::Tail>::get_node_declaration()
@@ -56,8 +56,8 @@ namespace yave {
       "List.Tail",
       "Get head of list",
       node_declaration_visibility::_public,
-      {"list"},
-      {"head"});
+      {"x:xs"},
+      {"xs"});
   }
 
   auto node_declaration_traits<node::List::At>::get_node_declaration()
@@ -67,8 +67,8 @@ namespace yave {
       "List.At",
       "Access list element by index",
       node_declaration_visibility::_public,
-      {"list", "index"},
-      {"value"},
+      {"[a]", "idx"},
+      {"a"},
       {{1, make_node_argument<Int>(0)}});
   }
 
@@ -139,7 +139,7 @@ namespace yave {
       "(Macro) Make list from arguments",
       node_declaration_visibility::_public,
       {},
-      {"list"},
+      {"[a]"},
       std::make_unique<macro_func>());
   }
 
