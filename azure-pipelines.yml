@@ -14,11 +14,12 @@ jobs:
       value: true
     - name: setup_packages
       value: |
+        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
         wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
         sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.2.154-bionic.list https://packages.lunarg.com/vulkan/1.2.154/lunarg-vulkan-1.2.154-bionic.list
         sudo apt-get update
     - name: install_packages
-      value: sudo apt-get install g++-10 clang++-10 ninja-build vulkan-sdk libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev
+      value: sudo apt-get install g++-10 clang++-11 ninja-build vulkan-sdk libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev
 
   strategy:
     matrix: 
@@ -33,13 +34,13 @@ jobs:
           $(setup_packages)
           $(install_packages)
 
-      Clang-10 Debug:
+      Clang-11 Debug:
         ImageName: 'ubuntu-latest'
         BuildType: Debug
         CMakeArgs: 
           -GNinja 
-          -DCMAKE_C_COMPILER=clang-10 
-          -DCMAKE_CXX_COMPILER=clang++-10
+          -DCMAKE_C_COMPILER=clang-11
+          -DCMAKE_CXX_COMPILER=clang++-11
         BeforeBuild: |
           $(setup_packages)
           $(install_packages)
