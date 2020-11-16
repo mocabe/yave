@@ -30,6 +30,7 @@
 #include <yave/module/std/shape/transform.hpp>
 #include <yave/module/std/ops/ops.hpp>
 #include <yave/module/std/math/ops.hpp>
+#include <yave/module/std/math/trigonometric.hpp>
 
 #include <yave/lib/vulkan/offscreen_compositor.hpp>
 #include <yave/support/log.hpp>
@@ -177,7 +178,10 @@ namespace yave::modules::_std {
             get_node_declaration<node::Ops::Add>(),
             get_node_declaration<node::Ops::Sub>(),
             get_node_declaration<node::Ops::Mul>(),
-            get_node_declaration<node::Ops::Div>()};
+            get_node_declaration<node::Ops::Div>(),
+            get_node_declaration<node::Math::Sin>(),
+            get_node_declaration<node::Math::Cos>(),
+            get_node_declaration<node::Math::Tan>()};
   }
 
   auto module::get_node_definitions() const -> std::vector<node_definition>
@@ -243,6 +247,9 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Ops::Sub, _std::math::tag>());
     add(yave::get_node_definitions<node::Ops::Mul, _std::math::tag>());
     add(yave::get_node_definitions<node::Ops::Div, _std::math::tag>());
+    add(yave::get_node_definitions<node::Math::Sin, _std::tag>());
+    add(yave::get_node_definitions<node::Math::Cos, _std::tag>());
+    add(yave::get_node_definitions<node::Math::Tan, _std::tag>());
 
     return ret;
   }

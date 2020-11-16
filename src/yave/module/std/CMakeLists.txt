@@ -24,6 +24,7 @@ add_library(yave-module-std
   shape/transform.cpp
   ops/ops.cpp
   math/ops.cpp
+  math/trigonometric.cpp
   module.cpp
   module_loader.cpp
 )
