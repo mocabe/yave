@@ -5,7 +5,6 @@
 
 #include <yave/module/std/shape/draw.hpp>
 #include <yave/lib/shape/draw.hpp>
-#include <yave/lib/image/image_blend.hpp>
 #include <yave/obj/shape/shape.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/obj/color/property.hpp>

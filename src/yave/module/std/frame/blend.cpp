@@ -6,7 +6,6 @@
 #include <yave/module/std/frame/blend.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
-#include <yave/lib/image/image_blend.hpp>
 #include <yave/lib/vulkan/offscreen_compositor.hpp>
 
 namespace yave {

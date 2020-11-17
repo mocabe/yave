@@ -1,6 +1,5 @@
 add_subdirectory(graph)
 add_subdirectory(vulkan)
-add_subdirectory(image)
 add_subdirectory(time)
 add_subdirectory(imgui)
 add_subdirectory(unique_any)
