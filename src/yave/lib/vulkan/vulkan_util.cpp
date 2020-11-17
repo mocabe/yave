@@ -4,8 +4,6 @@
 //
 
 #include <yave/lib/vulkan/vulkan_util.hpp>  
-#include <selene/img/typed/ImageView.hpp>
-#include <selene/img/pixel/PixelTypeAliases.hpp>
 
 namespace yave::vulkan {
 

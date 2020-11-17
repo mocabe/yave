@@ -2,10 +2,6 @@
 	path = external/imgui
 	url = https://github.com/ocornut/imgui.git
 	ignore = dirty
-[submodule "external/selene"]
-	path = external/selene
-	url = https://github.com/kmhofmann/selene.git
-	ignore = dirty
 [submodule "external/glslang"]
 	path = external/glslang
 	url = https://github.com/KhronosGroup/glslang.git
