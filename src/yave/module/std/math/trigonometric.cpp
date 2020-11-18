@@ -46,9 +46,9 @@ namespace yave {
 
   namespace modules::_std::math {
 
-    auto tsin = [](auto x) { return std::sin(x); };
-    auto tcos = [](auto x) { return std::cos(x); };
-    auto ttan = [](auto x) { return std::tan(x); };
+    constexpr auto tsin = [](auto x) { return std::sin(x); };
+    constexpr auto tcos = [](auto x) { return std::cos(x); };
+    constexpr auto ttan = [](auto x) { return std::tan(x); };
 
     template <class T>
     using TSin = UnaryFunction<T, T, decltype(tsin)>;
