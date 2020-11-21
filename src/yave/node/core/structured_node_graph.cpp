@@ -1061,7 +1061,7 @@ namespace yave {
       for (auto&& s : iss) {
         auto bit = create_io_bit(s);
         check(ng.attach_interface(g, ng.input_sockets(bit)[0]));
-        check(ng.attach_interface(o, ng.output_sockets(bit)[0]));
+        check(ng.attach_interface(i, ng.output_sockets(bit)[0]));
         pgdata->input_bits.push_back(bit);
       }
 

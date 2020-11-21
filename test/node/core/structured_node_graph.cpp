@@ -885,6 +885,52 @@ TEST_CASE("custom id")
   }
 }
 
+TEST_CASE("composed")
+{
+  structured_node_graph ng;
+  auto root = ng.create_group({nullptr}, {});
+  ng.set_name(root, "root");
+
+  REQUIRE(root);
+
+  auto decl = node_declaration(composed_node_declaration(
+    "Test.Composed",
+    "",
+    node_declaration_visibility::_public,
+    {"a", "b"},
+    {"c"},
+    std::function([](structured_node_graph& ng, const node_handle& g) {
+      REQUIRE(ng.exists(g));
+
+      auto i = ng.get_group_input(g);
+      auto o = ng.get_group_output(g);
+
+      REQUIRE(ng.exists(i));
+      REQUIRE(ng.exists(o));
+
+      REQUIRE(ng.input_sockets(i).size() == 0);
+      REQUIRE(ng.output_sockets(i).size() == 2);
+
+      REQUIRE(ng.input_sockets(o).size() == 1);
+      REQUIRE(ng.output_sockets(o).size() == 0);
+      return g;
+    })));
+
+  auto pdecl = std::make_shared<node_declaration>(decl);
+
+  SECTION("add")
+  {
+    auto g = ng.create_declaration(pdecl);
+
+    REQUIRE(g);
+    REQUIRE(ng.exists(g));
+    REQUIRE(ng.get_name(g) == decl.node_name());
+    REQUIRE(ng.input_sockets(g).size() == decl.input_sockets().size());
+    REQUIRE(ng.output_sockets(g).size() == decl.output_sockets().size());
+    REQUIRE(ng.get_path(g) == decl.full_name());
+  }
+}
+
 TEST_CASE("macro")
 {
   structured_node_graph ng;
