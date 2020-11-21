@@ -20,6 +20,7 @@
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/node/core/node_definition_store.hpp>
+#include <yave/obj/node/argument_property.hpp>
 
 #include <functional>
 
@@ -39,6 +40,37 @@ namespace yave::compiler {
 
     using namespace std::literals::string_literals;
 
+    // argument prop for variables (internal)
+    class variable_node_argument : public node_argument_holder
+    {
+      object_ptr<const Variable> m_var;
+
+    public:
+      variable_node_argument(object_ptr<const Variable> var)
+        : m_var {std::move(var)}
+      {
+      }
+
+      auto on_compile() const -> object_ptr<const Object> override
+      {
+        return m_var;
+      }
+
+      // clang-format off
+      auto data() const -> object_ptr<const Object>         override { assert(false); return nullptr; }
+      auto property() const -> object_ptr<const Object>     override { assert(false); return nullptr; }
+      void set_data(object_ptr<const Object>)               override { assert(false);                 }
+      auto clone() -> std::unique_ptr<node_argument_holder> override { assert(false); return nullptr; }
+      // clang-format on
+    };
+
+    auto make_variable_arg(
+      object_ptr<const Variable> var = make_object<Variable>())
+    {
+      return make_object<NodeArgument>(
+        std::make_unique<variable_node_argument>(std::move(var)));
+    }
+
     auto desugar(
       structured_node_graph&& ng,
       const socket_handle& os,
@@ -47,24 +79,24 @@ namespace yave::compiler {
       auto root   = ng.node(os);
       auto rootos = os;
 
-      // Add Variables on empty input socket of lambda calls
-      auto fill_variables = [](const auto& n, auto& ng) {
-        assert(ng.is_group(n));
-        if (ng.input_connections(n).size() < ng.input_sockets(n).size())
-          for (auto&& s : ng.input_sockets(n))
-            ng.set_arg(s, make_object<Variable>());
-      };
-
       // Rmove unsued default socket data
       auto omit_unused_defaults = [](const auto& n, auto& ng) {
-        assert(ng.is_function(n));
         for (auto&& s : ng.input_sockets(n))
           if (!ng.connections(s).empty())
             ng.set_arg(s, nullptr);
       };
 
+      // Add Variables on empty input sockets
+      auto fill_variables = [](const auto& n, auto& ng) {
+        for (auto&& s : ng.input_sockets(n))
+          if (ng.connections(s).empty() && !ng.get_arg(s))
+            ng.set_arg(s, make_variable_arg());
+      };
+
       // for group
       auto rec_g = [&](auto&& rec_n, const auto& g, const auto& os) -> void {
+        // omit
+        omit_unused_defaults(g, ng);
         // fill
         fill_variables(g, ng);
 
@@ -110,7 +142,7 @@ namespace yave::compiler {
         if (ng.is_group_input(n))
           return;
 
-        assert(false);
+        unreachable();
       };
 
       auto rec = fix_lambda(rec_n);
@@ -175,11 +207,10 @@ namespace yave::compiler {
         std::vector<object_ptr<const Object>> ins;
         for (auto&& s : ng.input_sockets(g)) {
 
-          // variable
           if (auto data = ng.get_arg(s)) {
-            assert(ng.connections(s).empty());
-            loc.add_location(data, s);
-            ins.push_back(data);
+            auto v = value_cast<NodeArgument>(ng.get_arg(s))->on_compile();
+            loc.add_location(v, s);
+            ins.push_back(v);
             continue;
           }
 
@@ -230,13 +261,7 @@ namespace yave::compiler {
 
           // default arg value
           if (auto data = ng.get_arg(s)) {
-
-            // TODO: remove this branch
-            if (auto arg = value_cast_if<NodeArgument>(data))
-              body = body << (arg->ctor() << arg);
-            else
-              body = body << data;
-
+            body = body << value_cast<NodeArgument>(data)->on_compile();
             loc.add_location(body, os);
             continue;
           }

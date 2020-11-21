@@ -23,11 +23,10 @@ TEST_CASE("Constructor")
   {
     auto v = make_node_argument<Int>();
     check_type_dynamic<NodeArgument>(v);
-    check_type_dynamic<closure<NodeArgument, FrameDemand, Int>>(v->ctor());
     check_type_dynamic<Int>(v->data());
     check_type_dynamic<IntDataProperty>(v->property());
     v->set_data(make_object<Int>(42));
-    auto app = (v->ctor() << v) << make_object<FrameDemand>();
+    auto app = v->on_compile() << make_object<FrameDemand>();
     check_type_dynamic<Int>(app);
     REQUIRE(*value_cast<Int>(eval(app)) == 42);
   }

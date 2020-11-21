@@ -3093,6 +3093,11 @@ namespace yave {
              // init composed group
              d.init_composed(ng, n);
 
+             // set default args (init time only)
+             for (auto&& [idx, arg] : d.default_args()) {
+               set_arg(input_sockets(n)[idx], arg.clone());
+             }
+
              m_impl.set_callee_property(
                n, "__decl", make_object<NodeDeclData>(decl));
            }

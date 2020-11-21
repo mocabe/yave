@@ -52,7 +52,7 @@ namespace yave {
     node_declaration_visibility visibility,
     std::vector<std::string> iss,
     std::vector<std::string> oss,
-    std::vector<std::pair<size_t, object_ptr<Object>>> default_arg)
+    std::vector<node_declaration_default_argument> default_arg)
     : m_name {std::move(full_name)}
     , m_dsc {std::move(description)}
     , m_vis {std::move(visibility)}
@@ -72,12 +72,12 @@ namespace yave {
         throw std::invalid_argument("invalid socket name: " + s);
 
     std::sort(m_defargs.begin(), m_defargs.end(), [](auto&& lhs, auto&& rhs) {
-      return lhs.first < rhs.first;
+      return lhs.idx < rhs.idx;
     });
 
     auto it = std::unique(
       m_defargs.begin(), m_defargs.end(), [](auto&& lhs, auto&& rhs) {
-        return lhs.first == rhs.first;
+        return lhs.idx == rhs.idx;
       });
 
     if (it != m_defargs.end())
@@ -100,13 +100,15 @@ namespace yave {
     node_declaration_visibility visibility,
     std::vector<std::string> iss,
     std::vector<std::string> oss,
-    initializer_func init_func)
+    initializer_func init_func,
+    std::vector<node_declaration_default_argument> args)
     : m_name {std::move(full_name)}
     , m_dsc {std::move(description)}
     , m_vis {std::move(visibility)}
     , m_iss {std::move(iss)}
     , m_oss {std::move(oss)}
     , m_func {std::move(init_func)}
+    , m_defargs {std::move(args)}
   {
     if (!valid_node_path(m_name))
       throw std::invalid_argument("invalid node path");
