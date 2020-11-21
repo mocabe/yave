@@ -27,6 +27,15 @@ namespace yave {
     _private,
   };
 
+  /// default argument data
+  struct node_declaration_default_argument
+  {
+    /// index of input socket
+    size_t idx;
+    /// node argument data
+    object_ptr<Object> arg;
+  };
+
   /// node declaration for builtin functions
   class function_node_declaration
   {
@@ -43,7 +52,7 @@ namespace yave {
       node_declaration_visibility visibility,
       std::vector<std::string> iss,
       std::vector<std::string> oss,
-      std::vector<std::pair<size_t, object_ptr<Object>>> default_arg = {});
+      std::vector<node_declaration_default_argument> default_arg = {});
 
     function_node_declaration(const function_node_declaration&)     = default;
     function_node_declaration(function_node_declaration&&) noexcept = default;
@@ -89,7 +98,7 @@ namespace yave {
     node_declaration_visibility m_vis;
     std::vector<std::string> m_iss;
     std::vector<std::string> m_oss;
-    std::vector<std::pair<size_t, object_ptr<Object>>> m_defargs;
+    std::vector<node_declaration_default_argument> m_defargs;
   };
 
   /// node declaration for composed function
@@ -113,7 +122,8 @@ namespace yave {
       node_declaration_visibility visibility,
       std::vector<std::string> iss,
       std::vector<std::string> oss,
-      initializer_func init_func);
+      initializer_func init_func,
+      std::vector<node_declaration_default_argument> defargs = {});
 
     composed_node_declaration(const composed_node_declaration&)     = default;
     composed_node_declaration(composed_node_declaration&&) noexcept = default;
@@ -143,6 +153,11 @@ namespace yave {
       return m_oss;
     }
 
+    [[nodiscard]] auto& default_args() const
+    {
+      return m_defargs;
+    }
+
     /// call initializer func
     void init_composed(structured_node_graph& g, node_handle n) const
     {
@@ -161,6 +176,7 @@ namespace yave {
     std::vector<std::string> m_iss;
     std::vector<std::string> m_oss;
     initializer_func m_func;
+    std::vector<node_declaration_default_argument> m_defargs;
   };
 
   /// node declaration for macro definitions
