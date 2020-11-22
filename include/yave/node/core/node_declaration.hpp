@@ -108,7 +108,7 @@ namespace yave {
     /// callback to initialize composed node declaration.
     /// this callback fills pre-initialized node gruop given as parameter.
     using initializer_func =
-      std::function<void(structured_node_graph&, node_handle)>;
+      std::function<bool(structured_node_graph&, node_handle)>;
 
     /// \param full_name full name of node
     /// \param description description of node
@@ -159,9 +159,10 @@ namespace yave {
     }
 
     /// call initializer func
-    void init_composed(structured_node_graph& g, node_handle n) const
+    [[nodiscard]] bool init_composed(structured_node_graph& g, node_handle n)
+      const
     {
-      m_func(g, n);
+      return m_func(g, n);
     }
 
     /// get name component from full name

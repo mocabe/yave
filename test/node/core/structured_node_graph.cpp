@@ -913,7 +913,7 @@ TEST_CASE("composed")
 
       REQUIRE(ng.input_sockets(o).size() == 1);
       REQUIRE(ng.output_sockets(o).size() == 0);
-      return g;
+      return true;
     })));
 
   auto pdecl = std::make_shared<node_declaration>(decl);

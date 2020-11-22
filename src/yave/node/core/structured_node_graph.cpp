@@ -59,7 +59,7 @@ namespace yave {
         node_declaration_visibility::_private,
         {},
         {},
-        [](auto&, auto) {});
+        [](auto&, auto) { return true; });
     }
 
     // internal node parameter
@@ -3090,8 +3090,12 @@ namespace yave {
              d.output_sockets());
 
            if (n) {
+
              // init composed group
-             d.init_composed(ng, n);
+             if (!d.init_composed(ng, n)) {
+               destroy(n);
+               return node_handle();
+             }
 
              // set default args (init time only)
              for (auto&& [idx, arg] : d.default_args()) {

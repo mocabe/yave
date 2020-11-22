@@ -164,9 +164,34 @@ namespace yave::editor {
       }
     }
 
-    // register functions
-    for (auto&& decl : node_decls.enumerate())
-      (void)node_graph.create_declaration(decl);
+    // add declarations
+    auto decls  = node_decls.enumerate();
+    auto remain = decls.size();
+    while (true) {
+
+      // nothing to add
+      if (remain < 1)
+        break;
+
+      auto remain_old = remain;
+
+      for (auto i = size_t(0); i < remain; ++i) {
+
+        // decl to add
+        auto& decl = decls[i];
+
+        // create one decl and remove from queue
+        if (node_graph.create_declaration(decl)) {
+          decl = nullptr;
+          std::swap(decl, decls[--remain]);
+          break;
+        }
+      }
+
+      // could not add any
+      if (remain_old == remain)
+        break;
+    }
   }
 
   void editor_data::impl::update_modules(const yave::scene_config& cfg)
