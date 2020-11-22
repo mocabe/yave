@@ -1096,22 +1096,19 @@ namespace yave::imgui {
       /* Resize buffers vector to match current in-flight frames */
       {
         auto frameCount = windowCtx.frame_index_count();
-        // vertec buffer
-        if (vertexBuffers.size() > frameCount) {
-          for (size_t i = 0; i < vertexBuffers.size() - frameCount; ++i)
-            vertexBuffers.pop_back();
-        } else {
-          for (size_t i = 0; i < frameCount - vertexBuffers.size(); ++i)
-            vertexBuffers.emplace_back(vk::BufferUsageFlagBits::eVertexBuffer);
-        }
-        // index buffer
-        if (indexBuffers.size() > frameCount) {
-          for (size_t i = 0; i < indexBuffers.size() - frameCount; ++i)
-            indexBuffers.pop_back();
-        } else {
-          for (size_t i = 0; i < frameCount - indexBuffers.size(); ++i)
-            indexBuffers.emplace_back(vk::BufferUsageFlagBits::eIndexBuffer);
-        }
+
+        auto resize = [&](auto& buff, auto type) {
+          if (buff.size() > frameCount) {
+            for (size_t i = 0, n = buff.size() - frameCount; i < n; ++i)
+              buff.pop_back();
+          } else {
+            for (size_t i = 0, n = frameCount - buff.size(); i < n; ++i)
+              buff.emplace_back(type);
+          }
+        };
+
+        resize(vertexBuffers, vk::BufferUsageFlagBits::eVertexBuffer);
+        resize(indexBuffers, vk::BufferUsageFlagBits::eIndexBuffer);
       }
 
       auto& vertexBuffer = vertexBuffers[windowCtx.frame_index()];
