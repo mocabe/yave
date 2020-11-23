@@ -9,3 +9,9 @@ if(WIN32)
   # BCryptGenRandom, etc.
   target_link_libraries(UUID PRIVATE Bcrypt)
 endif()
+
+add_executable(shader shader.cpp)
+target_link_libraries(shader PRIVATE fmt::fmt)
+target_link_libraries(shader PRIVATE glslang)
+target_link_libraries(shader PRIVATE SPIRV)
+target_link_libraries(shader PRIVATE glslang-default-resource-limits)
