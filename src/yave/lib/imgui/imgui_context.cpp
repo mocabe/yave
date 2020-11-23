@@ -5,6 +5,7 @@
 
 #include <yave/config/config.hpp>
 #include <yave/lib/imgui/imgui_context.hpp>
+#include <yave/lib/imgui/shader.hpp>
 #include <yave/lib/vulkan/texture.hpp>
 #include <yave/support/log.hpp>
 
@@ -16,12 +17,6 @@
 #include <thread>
 #include <fstream>
 #include <map>
-
-#if !defined(YAVE_IMGUI_VERT_SHADER) || !defined(YAVE_IMGUI_FRAG_SHADER)
-#  pragma message("Shader paths are not privided by build script.")
-#  define YAVE_IMGUI_VERT_SHADER vert.spv
-#  define YAVE_IMGUI_FRAG_SHADER frag.spv
-#endif
 
 #if !defined(YAVE_IMGUI_FONT_ROBOTO)
 #  pragma message("Font file paths are not provided by build script.")
@@ -60,37 +55,16 @@ namespace {
     return device.createPipelineCacheUnique(info);
   }
 
-  auto createShaderModule(
-    const std::vector<char>& code,
-    const vk::Device& device) -> vk::UniqueShaderModule
+  template <size_t N>
+  auto createShaderModule(const uint32_t (&data)[N], const vk::Device& device)
+    -> vk::UniqueShaderModule
   {
     vk::ShaderModuleCreateInfo info;
     info.flags    = vk::ShaderModuleCreateFlags();
-    info.codeSize = code.size();
-    info.pCode    = reinterpret_cast<const uint32_t*>(code.data());
+    info.codeSize = sizeof(uint32_t) * N;
+    info.pCode    = data;
 
     return device.createShaderModuleUnique(info);
-  }
-
-  auto loadShaderFile(const std::string& str_path) -> std::vector<char>
-  {
-    auto path = std::filesystem::u8path(str_path);
-
-    // open file and seek to end
-    std::ifstream ifs(path.string(), std::ios::binary | std::ios::ate);
-
-    if (!ifs.is_open())
-      throw std::runtime_error("Failed to open shader file " + path.string());
-
-    // get file size
-    auto size = ifs.tellg();
-    std::vector<char> ret(size);
-
-    // read whole file to buffer
-    ifs.seekg(0);
-    ifs.read(ret.data(), size);
-
-    return ret;
   }
 
   auto createImGuiPipeline(
@@ -103,8 +77,8 @@ namespace {
     /* shader stages */
 
     // vertex shader
-    vk::UniqueShaderModule vertShaderModule = createShaderModule(
-      loadShaderFile(YAVE_TOSTR(YAVE_IMGUI_VERT_SHADER)), device);
+    vk::UniqueShaderModule vertShaderModule =
+      createShaderModule(yave::imgui::shader_vert_spv, device);
 
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
     vertShaderStageInfo.stage  = vk::ShaderStageFlagBits::eVertex;
@@ -112,8 +86,8 @@ namespace {
     vertShaderStageInfo.pName  = "main";
 
     // fragment shader
-    vk::UniqueShaderModule fragShaderModule = createShaderModule(
-      loadShaderFile(YAVE_TOSTR(YAVE_IMGUI_FRAG_SHADER)), device);
+    vk::UniqueShaderModule fragShaderModule =
+      createShaderModule(yave::imgui::shader_frag_spv, device);
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
     fragShaderStageInfo.stage  = vk::ShaderStageFlagBits::eFragment;
