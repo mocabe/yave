@@ -92,13 +92,15 @@ namespace yave {
     /// atomic store with memory order
     void atomic_store(const Object* ptr, std::memory_order ord) noexcept
     {
-      m_ptr.store(ptr, ord);
+      const auto ref = std::atomic_ref(m_ptr);
+      ref.store(ptr, ord);
     }
 
     /// atomic load with memory order
     [[nodiscard]] auto atomic_load(std::memory_order ord) const noexcept
     {
-      return m_ptr.load(ord);
+      const auto ref = std::atomic_ref(const_cast<const Object*&>(m_ptr));
+      return ref.load(ord);
     }
 
     /// atomic exchange with memory order
@@ -106,7 +108,8 @@ namespace yave {
       const Object* ptr,
       std::memory_order ord) noexcept
     {
-      return m_ptr.exchange(ptr, ord);
+      auto ref = std::atomic_ref(m_ptr);
+      return ref.exchange(ptr, ord);
     }
 
   public:
@@ -125,28 +128,30 @@ namespace yave {
 
     /// Copy ctor
     object_ptr_storage(const object_ptr_storage& other) noexcept
-      : m_ptr {nullptr}
+      : m_ptr {other.m_ptr}
     {
-      m_ptr.store(other.m_ptr, std::memory_order_relaxed);
     }
 
     /// Copy assign
     auto& operator=(const object_ptr_storage& other) noexcept
     {
-      m_ptr.store(other.m_ptr, std::memory_order_relaxed);
+      m_ptr = other.m_ptr;
       return *this;
     }
 
   private:
     /// pointer to object
-    std::atomic<const Object*> m_ptr;
+    const Object* m_ptr;
   };
 
-  // should be standard layout
-  static_assert(std::atomic<const Object*>::is_always_lock_free);
+  // clang-format off
+  static_assert(std::atomic_ref<Object*>::is_always_lock_free);
+  static_assert(std::atomic_ref<Object*>::required_alignment == alignof(Object*));
   static_assert(std::is_standard_layout_v<object_ptr_storage>);
   static_assert(sizeof(object_ptr_storage) == sizeof(Object*));
+  static_assert(alignof(object_ptr_storage) == alignof(Object*));
   static_assert(std::is_nothrow_copy_constructible_v<object_ptr_storage>);
   static_assert(std::is_nothrow_move_constructible_v<object_ptr_storage>);
+  // clang-format on
 
 } // namespace yave

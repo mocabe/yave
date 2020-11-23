@@ -16,67 +16,73 @@ namespace yave {
   template <class T>
   class atomic_refcount
   {
+    static_assert(std::atomic_ref<T>::is_always_lock_free);
+    static_assert(std::atomic_ref<T>::required_alignment == alignof(T));
+
   public:
     /// ctor
     constexpr atomic_refcount() noexcept
-      : atomic {0}
+      : m_val {0}
     {
     }
 
     /// crot
     constexpr atomic_refcount(T v) noexcept
-      : atomic {v}
+      : m_val {v}
     {
     }
 
     /// operatnr=
     atomic_refcount& operator=(const atomic_refcount& other) noexcept
     {
-      store(other.load());
+      m_val = other.m_val;
       return *this;
     }
 
     /// operator=
     atomic_refcount& operator=(T v) noexcept
     {
-      store(v);
+      m_val = v;
       return *this;
     }
 
     /// Atomic load with memory_order_relaxed
     [[nodiscard]] T load_relaxed() const noexcept
     {
-      return atomic.load(std::memory_order_relaxed);
+      const auto ref = std::atomic_ref(const_cast<T&>(m_val));
+      return ref.load(std::memory_order_relaxed);
     }
 
     /// Atomic load with memory_order_acquire
     [[nodiscard]] T load_acquire() const noexcept
     {
-      return atomic.load(std::memory_order_acquire);
+      const auto ref = std::atomic_ref(const_cast<T&>(m_val));
+      return ref.load(std::memory_order_acquire);
     }
 
     /// Atomic store.
     void store(T v) noexcept
     {
-      atomic.store(v, std::memory_order_release);
+      auto ref = std::atomic_ref(m_val);
+      ref.store(v, std::memory_order_release);
     }
 
     /// with memory_order_relaxed
     T fetch_add() noexcept
     {
-      return atomic.fetch_add(1u, std::memory_order_relaxed);
+      auto ref = std::atomic_ref(m_val);
+      return ref.fetch_add(1u, std::memory_order_relaxed);
     }
 
     /// with memory_order_release
     T fetch_sub() noexcept
     {
-      return atomic.fetch_sub(1u, std::memory_order_release);
+      auto ref = std::atomic_ref(m_val);
+      return ref.fetch_sub(1u, std::memory_order_release);
     }
 
   private:
-    std::atomic<T> atomic;
-    static_assert(std::atomic<T>::is_always_lock_free);
-    static_assert(sizeof(T) == sizeof(std::atomic<T>));
+    T m_val;
   };
 
 } // namespace yave
