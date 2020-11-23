@@ -128,7 +128,7 @@ namespace yave {
       // constructor func
       const object_ptr<const Object> m_ctor;
       // current data
-      object_ptr<const Object> m_data;
+      object_ptr<NodeArgumentCtorArg> m_arg;
 
     public:
       data_node_argument(
@@ -137,7 +137,7 @@ namespace yave {
         object_ptr<const Object> data)
         : m_property {std::move(prop)}
         , m_ctor {std::move(ctor)}
-        , m_data {std::move(data)}
+        , m_arg {make_object<NodeArgumentCtorArg>(std::move(data))}
       {
       }
 
@@ -145,15 +145,14 @@ namespace yave {
 
       void set_data(object_ptr<const Object> new_data) override
       {
-        assert(m_data);
-        assert(same_type(get_type(m_data), get_type(new_data)));
-        // atomically update data
-        m_data = std::move(new_data);
+        assert(m_arg->data);
+        assert(same_type(get_type(m_arg->data), get_type(new_data)));
+        m_arg->data = std::move(new_data);
       }
 
       auto data() const -> object_ptr<const Object> override
       {
-        return m_data;
+        return m_arg->data;
       }
 
       auto property() const -> object_ptr<const Object> override
@@ -164,12 +163,12 @@ namespace yave {
       auto clone() -> std::unique_ptr<node_argument_holder> override
       {
         return std::make_unique<data_node_argument>(
-          m_property, m_ctor, m_data.clone());
+          m_property, m_ctor, m_arg->data.clone());
       }
 
       auto on_compile() const -> object_ptr<const Object> override
       {
-        return m_ctor << make_object<NodeArgumentCtorArg>(m_data);
+        return m_ctor << m_arg;
       }
     };
   } // namespace detail
