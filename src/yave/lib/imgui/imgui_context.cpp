@@ -18,13 +18,6 @@
 #include <fstream>
 #include <map>
 
-#if !defined(YAVE_IMGUI_FONT_ROBOTO)
-#  pragma message("Font file paths are not provided by build script.")
-#endif
-
-#define YAVE_TOSTR_(id) #id
-#define YAVE_TOSTR(id) YAVE_TOSTR_(id)
-
 YAVE_DECL_G_LOGGER(imgui)
 
 namespace {
@@ -932,7 +925,6 @@ namespace yave::imgui {
       // Add default font
       ImGuiIO& io = ImGui::GetIO();
       io.Fonts->AddFontDefault();
-      io.Fonts->AddFontFromFileTTF(YAVE_TOSTR(YAVE_IMGUI_FONT_ROBOTO), 13);
     }
 
     /* build fonts with FreeType */
