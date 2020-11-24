@@ -8,3 +8,6 @@
 [submodule "external/vcpkg"]
 	path = external/vcpkg
 	url = https://github.com/microsoft/vcpkg.git
+[submodule "external/cereal"]
+	path = external/cereal
+	url = https://github.com/USCiLab/cereal.git
