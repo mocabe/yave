@@ -107,7 +107,8 @@ namespace yave {
   public:
     /// callback to initialize composed node declaration.
     /// this callback fills pre-initialized node gruop given as parameter.
-    using initializer_func =
+    /// should not throw exception
+    using initializer_func_t =
       std::function<bool(structured_node_graph&, node_handle)>;
 
     /// \param full_name full name of node
@@ -122,7 +123,7 @@ namespace yave {
       node_declaration_visibility visibility,
       std::vector<std::string> iss,
       std::vector<std::string> oss,
-      initializer_func init_func,
+      initializer_func_t init_func,
       std::vector<node_declaration_default_argument> defargs = {});
 
     composed_node_declaration(const composed_node_declaration&)     = default;
@@ -160,7 +161,7 @@ namespace yave {
 
     /// call initializer func
     [[nodiscard]] bool init_composed(structured_node_graph& g, node_handle n)
-      const
+      const noexcept
     {
       return m_func(g, n);
     }
@@ -176,7 +177,7 @@ namespace yave {
     node_declaration_visibility m_vis;
     std::vector<std::string> m_iss;
     std::vector<std::string> m_oss;
-    initializer_func m_func;
+    initializer_func_t m_func;
     std::vector<node_declaration_default_argument> m_defargs;
   };
 
@@ -184,32 +185,24 @@ namespace yave {
   class macro_node_declaration
   {
   public:
-    /// 'macro's in yave are defined as set of event handlers.
-    struct abstract_macro_func
-    {
-      // clang-format off
-
-      virtual ~abstract_macro_func() noexcept = default;
-
-      /// called when macro node is expanded
-      virtual auto on_expand(structured_node_graph& ng, const node_handle& n) const -> node_handle = 0;
-
-      // clang-format on
-    };
+    /// callback will be called when macro node is expanded.
+    /// should not throw exception
+    using expand_func_t =
+      std::function<node_handle(structured_node_graph&, const node_handle&)>;
 
     /// \param full_name full name of node
     /// \param description description of node
     /// \param visibility visibility of node
     /// \param iss input sockets
     /// \param oss output sockets
-    /// \param macro_func macro function object
+    /// \param expand_func macro function object
     macro_node_declaration(
       std::string full_name,
       std::string description,
       node_declaration_visibility visibility,
       std::vector<std::string> iss,
       std::vector<std::string> oss,
-      std::unique_ptr<abstract_macro_func> macro_func);
+      expand_func_t expand_func);
 
     macro_node_declaration(const macro_node_declaration&)     = default;
     macro_node_declaration(macro_node_declaration&&) noexcept = default;
@@ -240,10 +233,10 @@ namespace yave {
     }
 
     /// call macro callback
-    auto macro_on_expand(structured_node_graph& g, node_handle n) const
+    auto macro_on_expand(structured_node_graph& g, node_handle n) const noexcept
       -> node_handle
     {
-      return m_func->on_expand(g, n);
+      return m_expand_func(g, n);
     }
 
     /// get name component from full name
@@ -257,7 +250,7 @@ namespace yave {
     node_declaration_visibility m_vis;
     std::vector<std::string> m_iss;
     std::vector<std::string> m_oss;
-    std::shared_ptr<abstract_macro_func> m_func;
+    expand_func_t m_expand_func;
   };
 
   /// node declaration

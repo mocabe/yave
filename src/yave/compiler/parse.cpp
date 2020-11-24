@@ -55,7 +55,9 @@ namespace yave::compiler {
         // expand macro
         newn = get<macro_node_declaration>(*decl).macro_on_expand(ng, n);
 
-        assert(ng.exists(newn));
+        if (!newn)
+          throw std::runtime_error(
+            "Failed to expand macro for " + decl->full_name());
 
         ++n_expanded;
 
@@ -135,7 +137,13 @@ namespace yave::compiler {
         }
 
         auto count = n_expanded;
-        rec(out_node, out_socket);
+
+        try {
+          rec(out_node, out_socket);
+        } catch (std::exception& e) {
+          msgs.add(unexpected_parse_error(e.what()));
+          return fail();
+        }
 
         // all macros are expanded
         if (count == n_expanded)

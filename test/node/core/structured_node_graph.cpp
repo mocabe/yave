@@ -939,22 +939,15 @@ TEST_CASE("macro")
 
   REQUIRE(root);
 
-  struct macro_func : macro_node_declaration::abstract_macro_func
-  {
-    virtual auto on_expand(structured_node_graph&, const node_handle& n) const
-      -> node_handle
-    {
-      return n;
-    }
-  };
-
   auto decl = node_declaration(macro_node_declaration(
     "Test.Macro",
     "",
     node_declaration_visibility::_public,
     {"a", "b"},
     {"c"},
-    std::make_unique<macro_func>()));
+    [](structured_node_graph&, const node_handle& n) noexcept -> node_handle {
+      return n;
+    }));
 
   auto pdecl = std::make_shared<node_declaration>(decl);
 
@@ -1066,22 +1059,15 @@ TEST_CASE("property")
 
   SECTION("macro")
   {
-    struct macro_func : macro_node_declaration::abstract_macro_func
-    {
-      virtual auto on_expand(structured_node_graph&, const node_handle& n) const
-        -> node_handle
-      {
-        return n;
-      }
-    };
-
     auto decl = node_declaration(macro_node_declaration(
       "Test.Macro",
       "",
       node_declaration_visibility::_public,
       {"a", "b"},
       {"c"},
-      std::make_unique<macro_func>()));
+      [](structured_node_graph&, const node_handle& n) noexcept -> node_handle {
+        return n;
+      }));
 
     auto pdecl = std::make_shared<node_declaration>(decl);
     auto m     = ng.create_declaration(pdecl);

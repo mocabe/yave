@@ -100,7 +100,7 @@ namespace yave {
     node_declaration_visibility visibility,
     std::vector<std::string> iss,
     std::vector<std::string> oss,
-    initializer_func init_func,
+    initializer_func_t init_func,
     std::vector<node_declaration_default_argument> args)
     : m_name {std::move(full_name)}
     , m_dsc {std::move(description)}
@@ -141,13 +141,13 @@ namespace yave {
     node_declaration_visibility visibility,
     std::vector<std::string> iss,
     std::vector<std::string> oss,
-    std::unique_ptr<abstract_macro_func> macro_func)
+    expand_func_t expand_func)
     : m_name {std::move(full_name)}
     , m_dsc {std::move(description)}
     , m_vis {std::move(visibility)}
     , m_iss {std::move(iss)}
     , m_oss {std::move(oss)}
-    , m_func {std::move(macro_func)}
+    , m_expand_func {std::move(expand_func)}
   {
     if (!valid_node_path(m_name))
       throw std::invalid_argument("invalid node path");
@@ -160,7 +160,7 @@ namespace yave {
       if (!valid_socket_name(s))
         throw std::invalid_argument("invalid socket name");
 
-    if (!m_func)
+    if (!m_expand_func)
       throw std::invalid_argument("null macro function");
   }
 
