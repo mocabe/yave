@@ -122,7 +122,6 @@ namespace yave::editor::imgui {
     current_group_path = *g.get_path(current_group);
 
     draw_info = std::make_unique<node_window_draw_info>(_create_draw_info(g));
-    decls     = data.node_declarations().enumerate();
   }
 
   void node_window::_draw_background(
