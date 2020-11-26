@@ -282,7 +282,7 @@ namespace yave {
   auto node_declaration_tree::find(
     const std::shared_ptr<const node_declaration>& pdecl) -> node*
   {
-    m_pimpl->find(pdecl);
+    return m_pimpl->find(pdecl);
   }
 
   void node_declaration_tree::clear()
