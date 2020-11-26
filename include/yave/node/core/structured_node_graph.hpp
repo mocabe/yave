@@ -181,7 +181,7 @@ namespace yave {
 
     /// get declaration
     [[nodiscard]] auto get_node_declaration(const node_handle& n) const
-      -> std::shared_ptr<node_declaration>;
+      -> std::shared_ptr<const node_declaration>;
 
   public:
     /// get socket index
@@ -241,7 +241,7 @@ namespace yave {
     /// \note decl should have unique name, otherwise will fail
     /// \returns null handle when failed
     [[nodiscard]] auto create_declaration(
-      const std::shared_ptr<node_declaration>& decl) -> node_handle;
+      const std::shared_ptr<const node_declaration>& decl) -> node_handle;
 
     /// Create new group
     /// \param parent_group parent group. null handle with it's global

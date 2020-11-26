@@ -565,7 +565,7 @@ namespace yave {
       return fmt::format("Group{}", to_string(id).substr(0, 4));
     }
 
-    using NodeDeclData = Box<std::shared_ptr<node_declaration>>;
+    using NodeDeclData = Box<std::shared_ptr<const node_declaration>>;
 
   } // namespace
 
@@ -2769,7 +2769,7 @@ namespace yave {
     }
 
     auto get_node_declaration(const node_handle& n) const
-      -> std::shared_ptr<node_declaration>
+      -> std::shared_ptr<const node_declaration>
     {
       if (!exists(n))
         return nullptr;
@@ -3077,12 +3077,12 @@ namespace yave {
     }
 
     auto create_declaration(
-      const std::shared_ptr<node_declaration>& decl,
+      const std::shared_ptr<const node_declaration>& decl,
       structured_node_graph& ng) -> node_handle
     {
       return decl->visit( //
         overloaded        //
-        {[&](composed_node_declaration& d) {
+        {[&](const composed_node_declaration& d) {
            auto n = m_impl.create_group_declaration(
              d.node_path(),
              d.node_name(),
@@ -3107,7 +3107,7 @@ namespace yave {
            }
            return n;
          },
-         [&](function_node_declaration& d) {
+         [&](const function_node_declaration& d) {
            auto n = m_impl.create_function_declaration(
              d.node_path(),
              d.node_name(),
@@ -3125,7 +3125,7 @@ namespace yave {
            }
            return n;
          },
-         [&](macro_node_declaration& d) {
+         [&](const macro_node_declaration& d) {
            auto n = m_impl.create_macro_declaration(
              d.node_path(),
              d.node_name(),
@@ -3437,7 +3437,7 @@ namespace yave {
   }
 
   auto structured_node_graph::get_node_declaration(const node_handle& n) const
-    -> std::shared_ptr<node_declaration>
+    -> std::shared_ptr<const node_declaration>
   {
     return m_pimpl->get_node_declaration(n);
   }
@@ -3627,7 +3627,7 @@ namespace yave {
   }
 
   auto structured_node_graph::create_declaration(
-    const std::shared_ptr<node_declaration>& decl) -> node_handle
+    const std::shared_ptr<const node_declaration>& decl) -> node_handle
   {
     return m_pimpl->create_declaration(decl, *this);
   }
