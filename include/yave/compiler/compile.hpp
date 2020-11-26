@@ -7,6 +7,7 @@
 
 #include <yave/compiler/pipeline.hpp>
 #include <yave/node/core/structured_node_graph.hpp>
+#include <yave/node/core/node_declaration_store.hpp>
 #include <yave/node/core/node_definition_store.hpp>
 
 namespace yave::compiler {
@@ -17,17 +18,24 @@ namespace yave::compiler {
   [[nodiscard]] auto init_pipeline() -> pipeline;
 
   /// Initialize program input
+  /// output:
+  /// | 'ng'    as structured_node_graph
+  /// | 'os'    as socket_handle
+  /// | 'decls' as node_declaraiton_map
+  /// | 'defs'  as node_definition_map
   void input(
     pipeline& pipe,
     structured_node_graph ng,
     socket_handle os,
-    node_definition_store defs);
+    node_declaration_map,
+    node_definition_map);
 
   /// Parse program input.
   /// input:
   /// | 'msg_map' as message_map
   /// | 'ng'      as structured_node_graph
   /// | 'os'      as socket_handle
+  /// | 'decls'   as node_declaration_map
   void parse(pipeline& pipe);
 
   /// Verify semantics of parsed program, generate executable apply graph.
@@ -39,7 +47,7 @@ namespace yave::compiler {
   /// | 'msg_map' as message_map
   /// | 'ng'      as structured_node_graph
   /// | 'os'      as socket_handle
-  /// | 'defs'    as node_definition_store
+  /// | 'defs'    as node_definition_map
   /// output:
   /// | 'exe'     as executable
   /// comsumes:

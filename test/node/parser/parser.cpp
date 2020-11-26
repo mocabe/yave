@@ -61,15 +61,21 @@ TEST_CASE("parse")
   // parse cloned node graph
   auto test_parse =
     [](const structured_node_graph& ng, const socket_handle& os) {
-      auto _ng   = ng.clone();
-      auto _os   = _ng.socket(os.id());
-      auto _defs = node_definition_store();
+      auto _ng    = ng.clone();
+      auto _os    = _ng.socket(os.id());
+      auto _decls = node_declaration_store().get_map();
+      auto _defs  = node_definition_store().get_map();
 
       auto pipe = compiler::init_pipeline();
 
       pipe
         .and_then([&](auto& p) {
-          input(p, std::move(_ng), std::move(_os), std::move(_defs));
+          input(
+            p,
+            std::move(_ng),
+            std::move(_os),
+            std::move(_decls),
+            std::move(_defs));
         })
         .and_then([&](auto& p) { parse(p); });
 

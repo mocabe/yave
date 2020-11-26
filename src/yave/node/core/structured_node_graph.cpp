@@ -2768,18 +2768,6 @@ namespace yave {
       m_impl.set_caller_property(h, "__src", make_object<UInt64>(id.data));
     }
 
-    auto get_node_declaration(const node_handle& n) const
-      -> std::shared_ptr<const node_declaration>
-    {
-      if (!exists(n))
-        return nullptr;
-
-      if (auto prop = m_impl.get_callee_property(n, "__decl"))
-        return *value_cast<NodeDeclData>(prop);
-
-      return nullptr;
-    }
-
     template <class Handle>
     auto _get_property(const Handle& h, const std::string& name) const
       -> object_ptr<Object>
@@ -3101,9 +3089,6 @@ namespace yave {
              for (auto&& [idx, arg] : d.default_args()) {
                set_arg(input_sockets(n)[idx], arg.clone());
              }
-
-             m_impl.set_callee_property(
-               n, "__decl", make_object<NodeDeclData>(decl));
            }
            return n;
          },
@@ -3119,9 +3104,6 @@ namespace yave {
              for (auto&& [idx, arg] : d.default_args()) {
                set_arg(input_sockets(n)[idx], arg.clone());
              }
-
-             m_impl.set_callee_property(
-               n, "__decl", make_object<NodeDeclData>(decl));
            }
            return n;
          },
@@ -3131,11 +3113,6 @@ namespace yave {
              d.node_name(),
              d.input_sockets(),
              d.output_sockets());
-
-           if (n) {
-             m_impl.set_callee_property(
-               n, "__decl", make_object<NodeDeclData>(decl));
-           }
            return n;
          }});
     }
@@ -3434,12 +3411,6 @@ namespace yave {
   void structured_node_graph::set_source_id(const socket_handle& h, uid id)
   {
     m_pimpl->set_source_id(h, id);
-  }
-
-  auto structured_node_graph::get_node_declaration(const node_handle& n) const
-    -> std::shared_ptr<const node_declaration>
-  {
-    return m_pimpl->get_node_declaration(n);
   }
 
   auto structured_node_graph::get_index(const socket_handle& socket) const

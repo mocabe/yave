@@ -165,7 +165,7 @@ namespace yave::editor {
     }
 
     // add declarations
-    auto decls  = node_decls.enumerate();
+    auto decls  = node_decls.get_list();
     auto remain = decls.size();
     while (true) {
 

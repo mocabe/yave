@@ -1072,10 +1072,6 @@ TEST_CASE("property")
     auto pdecl = std::make_shared<node_declaration>(decl);
     auto m     = ng.create_declaration(pdecl);
 
-    REQUIRE(ng.get_node_declaration(m));
-    REQUIRE_NOTHROW(
-      std::get<macro_node_declaration>(*ng.get_node_declaration(m)));
-
     REQUIRE(ng.exists(m));
 
     SECTION("caller")

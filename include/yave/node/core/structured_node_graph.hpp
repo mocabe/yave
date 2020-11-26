@@ -179,10 +179,6 @@ namespace yave {
     /// set source id
     void set_source_id(const socket_handle& h, uid id);
 
-    /// get declaration
-    [[nodiscard]] auto get_node_declaration(const node_handle& n) const
-      -> std::shared_ptr<const node_declaration>;
-
   public:
     /// get socket index
     [[nodiscard]] auto get_index(const socket_handle& socket) const

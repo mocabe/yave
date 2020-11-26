@@ -37,6 +37,7 @@ namespace yave::compiler {
     auto macro_expand(
       structured_node_graph& ng,
       const socket_handle& out_socket,
+      const node_declaration_map& decls,
       message_map& msgs) -> monad
     {
       int n_expanded = 0;
@@ -48,7 +49,7 @@ namespace yave::compiler {
         // new node handle
         auto newn = n;
 
-        auto decl = ng.get_node_declaration(n);
+        auto decl = decls.find(*ng.get_path(ng.get_definition(n)));
         assert(decl);
         assert(std::get_if<macro_node_declaration>(decl.get()));
 
@@ -371,13 +372,15 @@ namespace yave::compiler {
     assert(pipe.get_data_if<message_map>("msg_map"));
     assert(pipe.get_data_if<structured_node_graph>("ng"));
     assert(pipe.get_data_if<socket_handle>("os"));
+    assert(pipe.get_data_if<node_declaration_map>("decls"));
 
     auto& msg_map = pipe.get_data<message_map>("msg_map");
     auto& ng      = pipe.get_data<structured_node_graph>("ng");
     auto& os      = pipe.get_data<socket_handle>("os");
+    auto& decls   = pipe.get_data<node_declaration_map>("decls");
 
     pass() //
-      .and_then([&](auto) { return macro_expand(ng, os, msg_map); })
+      .and_then([&](auto) { return macro_expand(ng, os, decls, msg_map); })
       .and_then([&](auto) { return check(ng, os, msg_map); })
       .or_else([&] { pipe.set_failed(); });
   }

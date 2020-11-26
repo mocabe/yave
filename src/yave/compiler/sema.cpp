@@ -154,7 +154,7 @@ namespace yave::compiler {
     auto gen(
       structured_node_graph&& ng,
       const socket_handle& os,
-      const node_definition_store& defs,
+      const node_definition_map& defs,
       message_map& msgs)
       -> tl::optional<
         std::tuple<object_ptr<const Object>, class_env, location_map>>
@@ -365,12 +365,12 @@ namespace yave::compiler {
     assert(pipe.get_data_if<message_map>("msg_map"));
     assert(pipe.get_data_if<structured_node_graph>("ng"));
     assert(pipe.get_data_if<socket_handle>("os"));
-    assert(pipe.get_data_if<node_definition_store>("defs"));
+    assert(pipe.get_data_if<node_definition_map>("defs"));
 
     auto& msg_map = pipe.get_data<message_map>("msg_map");
     auto& ng      = pipe.get_data<structured_node_graph>("ng");
     auto& os      = pipe.get_data<socket_handle>("os");
-    auto& defs    = pipe.get_data<node_definition_store>("defs");
+    auto& defs    = pipe.get_data<node_definition_map>("defs");
 
     // clang-format off
     tl::make_optional(std::move(ng)) //
