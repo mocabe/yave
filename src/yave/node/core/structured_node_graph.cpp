@@ -383,6 +383,16 @@ namespace yave {
         });
       }
 
+      auto get_properties() const
+      {
+        return visit([](auto& x) {
+          return x.properties //
+                 | rv::transform(
+                   [](auto& p) { return std::make_pair(p.first, p.second); })
+                 | rn::to_vector;
+        });
+      }
+
       void set_property(const std::string& name, object_ptr<Object> obj)
       {
         visit([&](auto& x) {
@@ -408,6 +418,14 @@ namespace yave {
           return it->second;
 
         return nullptr;
+      }
+
+      auto get_properties() const
+      {
+        return properties //
+               | rv::transform(
+                 [](auto& p) { return std::make_pair(p.first, p.second); })
+               | rn::to_vector;
       }
 
       void set_property(const std::string& name, object_ptr<Object> data)
@@ -815,6 +833,18 @@ namespace yave {
     {
       assert(is_caller(get_node(s)));
       return get_data(s)->get_property(name);
+    }
+
+    auto get_caller_properties(const node_handle& n)
+    {
+      assert(is_caller(n));
+      return get_data(n)->get_properties();
+    }
+
+    auto get_caller_properties(const socket_handle& s)
+    {
+      assert(is_caller(get_node(s)));
+      return get_data(s)->get_properties();
     }
 
     void set_caller_property(
@@ -2779,6 +2809,16 @@ namespace yave {
     }
 
     template <class Handle>
+    auto get_properties(const Handle& h)
+      -> std::vector<std::pair<std::string, object_ptr<Object>>>
+    {
+      if (!exists(h))
+        return {};
+
+      return m_impl.get_caller_properties(h);
+    }
+
+    template <class Handle>
     void set_property(
       const Handle& h,
       const std::string& name,
@@ -3313,6 +3353,18 @@ namespace yave {
     const std::string& name) const -> object_ptr<Object>
   {
     return m_pimpl->_get_property(h, name);
+  }
+
+  auto structured_node_graph::get_properties(const node_handle& h)
+    -> std::vector<std::pair<std::string, object_ptr<Object>>>
+  {
+    return m_pimpl->get_properties(h);
+  }
+
+  auto structured_node_graph::get_properties(const socket_handle& h)
+    -> std::vector<std::pair<std::string, object_ptr<Object>>>
+  {
+    return m_pimpl->get_properties(h);
   }
 
   void structured_node_graph::set_property(

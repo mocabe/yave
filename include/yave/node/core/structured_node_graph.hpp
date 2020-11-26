@@ -118,6 +118,14 @@ namespace yave {
       return value_cast_if<T>(_get_property(socket, name));
     }
 
+    /// get all properties
+    [[nodiscard]] auto get_properties(const node_handle& h)
+      -> std::vector<std::pair<std::string, object_ptr<Object>>>;
+
+    /// get all properties
+    [[nodiscard]] auto get_properties(const socket_handle& h)
+      -> std::vector<std::pair<std::string, object_ptr<Object>>>;
+
     /// set property
     void set_property(
       const node_handle&,
