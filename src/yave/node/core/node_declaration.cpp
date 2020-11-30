@@ -5,6 +5,8 @@
 
 #include <yave/node/core/node_declaration.hpp>
 #include <yave/node/core/structured_node_graph.hpp>
+#include <yave/node/core/properties.hpp>
+#include <yave/support/overloaded.hpp>
 
 #include <regex>
 #include <string_view>
@@ -174,4 +176,47 @@ namespace yave {
     return get_node_path_component(m_name);
   }
 
+  auto create_declaration(
+    structured_node_graph& ng,
+    const std::shared_ptr<const node_declaration>& decl) -> node_handle
+  {
+    return decl->visit( //
+      overloaded        //
+      {[&](const composed_node_declaration& d) {
+         auto n = ng.create_group(
+           d.node_path(), d.node_name(), d.input_sockets(), d.output_sockets());
+
+         if (n) {
+
+           // init composed group
+           if (!d.init_composed(ng, n)) {
+             ng.destroy(n);
+             return node_handle();
+           }
+
+           // set default args (init time only)
+           for (auto&& [idx, arg] : d.default_args()) {
+             set_arg(ng, ng.input_sockets(n)[idx], arg.clone());
+           }
+         }
+         return n;
+       },
+       [&](const function_node_declaration& d) {
+         auto n = ng.create_function(
+           d.node_path(), d.node_name(), d.input_sockets(), d.output_sockets());
+
+         if (n) {
+           // set default args
+           for (auto&& [idx, arg] : d.default_args()) {
+             set_arg(ng, ng.input_sockets(n)[idx], arg.clone());
+           }
+         }
+         return n;
+       },
+       [&](const macro_node_declaration& d) {
+         auto n = ng.create_macro(
+           d.node_path(), d.node_name(), d.input_sockets(), d.output_sockets());
+         return n;
+       }});
+  }
 } // namespace yave

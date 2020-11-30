@@ -166,18 +166,6 @@ namespace yave {
     void remove_shared_property(const node_handle&, const std::string&);
 
   public:
-    /// get node pos
-    [[nodiscard]] auto get_pos(const node_handle& node) const
-      -> std::optional<glm::dvec2>;
-    /// set node pos
-    void set_pos(const node_handle& node, const glm::dvec2& newpos);
-
-    /// get socket arg
-    [[nodiscard]] auto get_arg(const socket_handle& socke) const
-      -> object_ptr<Object>;
-    /// set socket arg
-    void set_arg(const socket_handle& socket, object_ptr<Object> data);
-
     /// get source id
     [[nodiscard]] auto get_source_id(const node_handle& h) const -> uid;
     /// get source id
@@ -240,12 +228,26 @@ namespace yave {
       -> std::vector<connection_handle>;
 
   public:
-    /// Create new declaration
-    /// \param decl new function declaration
-    /// \note decl should have unique name, otherwise will fail
-    /// \returns null handle when failed
-    [[nodiscard]] auto create_declaration(
-      const std::shared_ptr<const node_declaration>& decl) -> node_handle;
+    /// Create function declaration
+    auto create_function(
+      const std::string& node_path,
+      const std::string& node_name,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss) -> node_handle;
+
+    /// Create macro declaration
+    auto create_macro(
+      const std::string& node_path,
+      const std::string& node_name,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss) -> node_handle;
+
+    /// Create group declaration
+    auto create_group(
+      const std::string& node_path,
+      const std::string& node_name,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss) -> node_handle;
 
     /// Create new group
     /// \param parent_group parent group. null handle with it's global

@@ -14,6 +14,7 @@ add_library(yave-node-core
   node_declaration_store.cpp
   node_definition_store.cpp
   structured_node_graph.cpp
+  properties.cpp
 )
 
 add_library(yave::node::core ALIAS yave-node-core)
@@ -22,3 +23,4 @@ target_link_libraries(yave-node-core PUBLIC yave::config)
 target_link_libraries(yave-node-core PRIVATE yave::support::log)
 target_link_libraries(yave-node-core PRIVATE yave::support::id)
 target_link_libraries(yave-node-core PUBLIC glm)
+target_link_libraries(yave-node-core PRIVATE cereal)
