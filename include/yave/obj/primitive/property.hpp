@@ -44,7 +44,7 @@ namespace yave {
       return make_object<NodeArgumentVariable>(val, props);
     }
 
-    struct Generator : Function<Generator, NodeArgument, T>
+    struct Generator : Function<Generator, NodeArgument, FrameDemand, T>
     {
       auto code() const -> typename Generator::return_type
       {
@@ -84,7 +84,7 @@ namespace yave {
       return make_object<NodeArgumentVariable>(val, props);
     }
 
-    struct Generator : Function<Generator, NodeArgument, String>
+    struct Generator : Function<Generator, NodeArgument, FrameDemand, String>
     {
       auto code() const -> return_type
       {
@@ -116,7 +116,7 @@ namespace yave {
       return make_object<NodeArgumentVariable>(val, props);
     }
 
-    struct Generator : Function<Generator, NodeArgument, Bool>
+    struct Generator : Function<Generator, NodeArgument, FrameDemand, Bool>
     {
       auto code() const -> return_type
       {

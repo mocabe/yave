@@ -28,7 +28,7 @@ namespace yave {
         std::move(name), object_type<Color>(), create_variable_members(value));
     }
 
-    struct Generator : Function<Generator, NodeArgument, Color>
+    struct Generator : Function<Generator, NodeArgument, FrameDemand, Color>
     {
       auto code() const -> return_type
       {

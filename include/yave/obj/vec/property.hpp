@@ -26,7 +26,7 @@ namespace yave {
         "vec2", object_type<Vec2>(), create_variable_members(value));
     }
 
-    struct Generator : Function<Generator, NodeArgument, Vec2>
+    struct Generator : Function<Generator, NodeArgument, FrameDemand, Vec2>
     {
       auto code() const -> return_type
       {
