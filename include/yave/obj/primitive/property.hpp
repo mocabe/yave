@@ -5,25 +5,133 @@
 
 #pragma once
 
-#include <yave/obj/node/argument_property.hpp>
+#include <yave/obj/primitive/primitive.hpp>
+#include <yave/obj/node/argument.hpp>
+#include <yave/rts/function.hpp>
+
+#include <limits>
+#include <concepts>
 
 namespace yave {
 
-  using BoolDataProperty = ValueArgumentProperty<Bool>;
-  YAVE_DECL_NODE_ARGUMENT_PROPERTY(Bool, Bool, BoolDataProperty);
+  // Float, Int
+  template <class T>
+  requires                
+    std::same_as<T, Int> || 
+    std::same_as<T, Float>  
+  struct node_argument_traits<T>
+  {
+    using value_type = typename T::value_type;
 
-  using StringDataProperty = ValueArgumentProperty<String>;
-  YAVE_DECL_NODE_ARGUMENT_PROPERTY(String, String, StringDataProperty);
+    /// \param value initial value
+    /// \param min minimum value
+    /// \param max max value
+    /// \param step step of value change
+    static auto create_variable(
+      const std::string& name,
+      value_type value = {0},
+      value_type min   = std::numeric_limits<value_type>::lowest(),
+      value_type max   = std::numeric_limits<value_type>::max(),
+      value_type step  = {1})
+    {
+      auto val = node_argument_nvp {data::string(name), make_object<T>(value)};
 
-  using FloatDataProperty = NumericDataTypeProperty<Float>;
-  YAVE_DECL_NODE_ARGUMENT_PROPERTY(Float, Float, FloatDataProperty);
+      auto props = std::vector<node_argument_nvp> {
+        {u8"min", make_object<T>(min)},
+        {u8"max", make_object<T>(max)},
+        {u8"step", make_object<T>(step)}};
 
-  using IntDataProperty = NumericDataTypeProperty<Int>;
-  YAVE_DECL_NODE_ARGUMENT_PROPERTY(Int, Int, IntDataProperty);
+      return make_object<NodeArgumentVariable>(val, props);
+    }
+
+    struct Generator : Function<Generator, NodeArgument, T>
+    {
+      auto code() const -> typename Generator::return_type
+      {
+        auto arg = this->template eval_arg<0>();
+        return value_cast<T>(arg->get_value("value"));
+      }
+    };
+
+    static auto create(
+      value_type value = {0},
+      value_type min   = std::numeric_limits<value_type>::lowest(),
+      value_type max   = std::numeric_limits<value_type>::max(),
+      value_type step  = {1})
+    {
+      return make_object<NodeArgument>(
+        object_type<T>(),
+        std::vector {create_variable("value", value, min, max, step)},
+        make_object<Generator>());
+    }
+  };
+
+  // String
+  template <>
+  struct node_argument_traits<String>
+  {
+    static auto create_variable(
+      const std::string& name,
+      std::string value = "",
+      std::string regex = R"(*)")
+    {
+      auto val =
+        node_argument_nvp {data::string(name), make_object<String>(value)};
+
+      auto props = std::vector<node_argument_nvp> {
+        {u8"regex", make_object<String>(regex)}};
+
+      return make_object<NodeArgumentVariable>(val, props);
+    }
+
+    struct Generator : Function<Generator, NodeArgument, String>
+    {
+      auto code() const -> return_type
+      {
+        auto arg = eval_arg<0>();
+        return value_cast<String>(arg->get_value("value"));
+      }
+    };
+
+    static auto create(std::string value = "", std::string regex = R"(*)")
+    {
+      return make_object<NodeArgument>(
+        object_type<String>(),
+        std::vector {create_variable("value", value, regex)},
+        make_object<Generator>());
+    }
+  };
+
+  // Bool
+  template <>
+  struct node_argument_traits<Bool>
+  {
+    static auto create_variable(const std::string& name, bool value = false)
+    {
+      auto val =
+        node_argument_nvp {data::string(name), make_object<Bool>(value)};
+
+      auto props = std::vector<node_argument_nvp> {};
+
+      return make_object<NodeArgumentVariable>(val, props);
+    }
+
+    struct Generator : Function<Generator, NodeArgument, Bool>
+    {
+      auto code() const -> return_type
+      {
+        auto arg = eval_arg<0>();
+        return value_cast<Bool>(arg->get_value("value"));
+      }
+    };
+
+    static auto create(bool value = false)
+    {
+      return make_object<NodeArgument>(
+        object_type<Bool>(),
+        std::vector {create_variable("value", value)},
+        make_object<Generator>());
+    }
+  };
 
 } // namespace yave
-
-YAVE_DECL_TYPE(yave::IntDataProperty, "d60f1ac7-5a57-4037-9d78-c9805cbe5407");
-YAVE_DECL_TYPE(yave::FloatDataProperty, "621188d3-d162-4778-aedd-3be0a4745c3e");
-YAVE_DECL_TYPE(yave::BoolDataProperty, "95a0e534-273b-4911-957d-0902f8d769a4");
-YAVE_DECL_TYPE(yave::StringDataProperty, "6d7e77a5-3cd3-4bd5-bd18-e9b1a02cb494");
