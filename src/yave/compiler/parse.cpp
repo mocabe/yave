@@ -6,6 +6,7 @@
 #include <yave/compiler/compile.hpp>
 #include <yave/compiler/message.hpp>
 #include <yave/support/log.hpp>
+#include <yave/node/core/properties.hpp>
 
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view.hpp>
@@ -211,7 +212,7 @@ namespace yave::compiler {
 
         // socket has default argument
         auto has_default_arg = [&](auto&& s) -> bool {
-          return ng.get_arg(s) != nullptr;
+          return get_arg(ng, s) != nullptr;
         };
 
         // missing socket connection

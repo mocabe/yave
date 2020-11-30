@@ -8,10 +8,12 @@
 #include <yave/compiler/executable.hpp>
 #include <yave/compiler/location.hpp>
 #include <yave/compiler/typecheck.hpp>
+#include <yave/compiler/argument_holder.hpp>
 #include <yave/support/log.hpp>
 #include <yave/node/core/socket_instance_manager.hpp>
 #include <yave/node/core/node_definition.hpp>
 #include <yave/node/core/node_declaration.hpp>
+#include <yave/node/core/properties.hpp>
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/value_cast.hpp>
@@ -20,7 +22,6 @@
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/node/core/function.hpp>
 #include <yave/node/core/node_definition_store.hpp>
-#include <yave/obj/node/argument_property.hpp>
 
 #include <functional>
 
@@ -40,65 +41,51 @@ namespace yave::compiler {
 
     using namespace std::literals::string_literals;
 
-    // argument prop for variables (internal)
-    class variable_node_argument : public node_argument_holder
+    constexpr auto arg_holder_property_name = "arg_holder";
+
+    auto set_arg_holder(
+      structured_node_graph& ng,
+      socket_handle s,
+      object_ptr<NodeArgumentHolder> arg)
     {
-      object_ptr<const Variable> m_var;
+      ng.set_property(s, arg_holder_property_name, std::move(arg));
+    }
 
-    public:
-      variable_node_argument(object_ptr<const Variable> var)
-        : m_var {std::move(var)}
-      {
-      }
-
-      auto on_compile() const -> object_ptr<const Object> override
-      {
-        return m_var;
-      }
-
-      // clang-format off
-      auto data() const -> object_ptr<const Object>         override { assert(false); return nullptr; }
-      auto property() const -> object_ptr<const Object>     override { assert(false); return nullptr; }
-      void set_data(object_ptr<const Object>)               override { assert(false);                 }
-      auto clone() -> std::unique_ptr<node_argument_holder> override { assert(false); return nullptr; }
-      // clang-format on
-    };
-
-    auto make_variable_arg(
-      object_ptr<const Variable> var = make_object<Variable>())
+    auto get_arg_holder(const structured_node_graph& ng, socket_handle s)
     {
-      return make_object<NodeArgument>(
-        std::make_unique<variable_node_argument>(std::move(var)));
+      return ng.get_property<NodeArgumentHolder>(s, arg_holder_property_name);
     }
 
     auto desugar(
       structured_node_graph&& ng,
       const socket_handle& os,
-      message_map & /*msgs*/) -> tl::optional<structured_node_graph>
+      message_map& /*msgs*/) -> tl::optional<structured_node_graph>
     {
       auto root   = ng.node(os);
       auto rootos = os;
 
-      // Rmove unsued default socket data
-      auto omit_unused_defaults = [](const auto& n, auto& ng) {
+      // omit unsued default socket data
+      auto select_arguments = [](const auto& n, auto& ng) {
         for (auto&& s : ng.input_sockets(n))
-          if (!ng.connections(s).empty())
-            ng.set_arg(s, nullptr);
+          if (ng.connections(s).empty())
+            if (auto arg = get_arg(ng, s))
+              set_arg_holder(ng, s, make_argument_holder(arg));
       };
 
-      // Add Variables on empty input sockets
-      auto fill_variables = [](const auto& n, auto& ng) {
+      // add variables on empty input sockets
+      auto insert_variables = [](const auto& n, auto& ng) {
         for (auto&& s : ng.input_sockets(n))
-          if (ng.connections(s).empty() && !ng.get_arg(s))
-            ng.set_arg(s, make_variable_arg());
+          if (ng.connections(s).empty() && !get_arg(ng, s))
+            set_arg_holder(
+              ng, s, make_argument_holder(make_object<Variable>()));
       };
 
       // for group
       auto rec_g = [&](auto&& rec_n, const auto& g, const auto& os) -> void {
-        // omit
-        omit_unused_defaults(g, ng);
-        // fill
-        fill_variables(g, ng);
+        // args
+        select_arguments(g, ng);
+        // vars
+        insert_variables(g, ng);
 
         // inputs
         for (auto&& c : ng.input_connections(g)) {
@@ -121,8 +108,8 @@ namespace yave::compiler {
 
       // for function
       auto rec_f = [&](auto&& rec_n, const auto& f) -> void {
-        // omit
-        omit_unused_defaults(f, ng);
+        // select
+        select_arguments(f, ng);
 
         // inputs
         for (auto&& c : ng.input_connections(f)) {
@@ -207,8 +194,8 @@ namespace yave::compiler {
         std::vector<object_ptr<const Object>> ins;
         for (auto&& s : ng.input_sockets(g)) {
 
-          if (auto data = ng.get_arg(s)) {
-            auto v = value_cast<NodeArgument>(ng.get_arg(s))->on_compile();
+          if (auto arg = get_arg_holder(ng, s)) {
+            auto v = get_arg_holder(ng, s)->compile();
             loc.add_location(v, s);
             ins.push_back(v);
             continue;
@@ -260,8 +247,8 @@ namespace yave::compiler {
         for (auto&& s : ng.input_sockets(f)) {
 
           // default arg value
-          if (auto data = ng.get_arg(s)) {
-            body = body << value_cast<NodeArgument>(data)->on_compile();
+          if (auto arg = get_arg_holder(ng, s)) {
+            body = body << arg->compile();
             loc.add_location(body, os);
             continue;
           }
