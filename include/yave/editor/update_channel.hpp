@@ -25,26 +25,22 @@ namespace yave::editor {
   public:
     struct update_data
     {
-      /// argument to apply update
-      object_ptr<NodeArgument> arg;
+      /// property node to apply update
+      object_ptr<NodeArgumentPropNode> arg;
       /// new data to set
       object_ptr<const Object> data;
-
-      /// apply update from this data
-      void apply()
-      {
-        assert(arg && data);
-        arg->set_data(data);
-      }
     };
 
     /// queue data update
     void push_update(update_data data);
+
     /// execute all updates
-    [[nodiscard]] auto consume_updates() -> std::vector<update_data>;
+    void apply_updates();
+
     /// get current change
-    [[nodiscard]] auto get_current_change(
-      const object_ptr<NodeArgument>& arg) const -> object_ptr<const Object>;
+    [[nodiscard]] auto get_current_value(
+      const object_ptr<NodeArgumentPropNode>& arg) const
+      -> object_ptr<const NodeArgumentPropNode>;
   };
 
 } // namespace yave::editor

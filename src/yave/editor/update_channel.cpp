@@ -4,10 +4,14 @@
 //
 
 #include <yave/editor/update_channel.hpp>
-
 #include <vector>
 
+#include <range/v3/view.hpp>
+
 namespace yave::editor {
+
+  namespace rn = ranges;
+  namespace rv = ranges::views;
 
   class node_argument_update_channel::impl
   {
@@ -16,6 +20,7 @@ namespace yave::editor {
   public:
     void push_update(update_data d)
     {
+      assert(d.arg && d.data);
       for (auto&& u : updates) {
         if (u.arg == d.arg) {
           u.data = std::move(d.data);
@@ -25,20 +30,52 @@ namespace yave::editor {
       updates.push_back(std::move(d));
     }
 
-    auto consume_updates()
+    auto apply_updates()
     {
-      return std::move(updates);
+      for (auto&& u : updates) {
+        assert(u.arg && u.data);
+        u.arg->set_value(u.data);
+      }
+      updates.clear();
     }
 
-    auto get_current_change(const object_ptr<NodeArgument>& arg) const
+    auto find_value(const object_ptr<NodeArgumentPropNode>& p) const
       -> object_ptr<const Object>
     {
       for (auto&& u : updates) {
-        if (u.arg == arg) {
+        if (u.arg == p) {
           return u.data;
         }
       }
       return nullptr;
+    }
+
+    auto rebuild_prop_tree(const object_ptr<NodeArgumentPropNode>& p) const
+      -> object_ptr<NodeArgumentPropNode>
+    {
+      if (p->is_value()) {
+        if (auto v = find_value(p)) {
+          auto r = p->clone();
+          r->set_value(v);
+          return r;
+        }
+        return p;
+      }
+
+      auto cs = p->children();
+
+      auto newcs =
+        cs //
+        | rv::transform([&](auto&& c) { return rebuild_prop_tree(c); })
+        | rn::to_vector;
+
+      return make_object<NodeArgumentPropNode>(p->name(), p->type(), newcs);
+    }
+
+    auto get_current_value(const object_ptr<NodeArgumentPropNode>& arg) const
+      -> object_ptr<const NodeArgumentPropNode>
+    {
+      return rebuild_prop_tree(arg);
     }
   };
 
@@ -58,15 +95,15 @@ namespace yave::editor {
     m_pimpl->push_update(std::move(data));
   }
 
-  auto node_argument_update_channel::consume_updates()
-    -> std::vector<update_data>
+  void node_argument_update_channel::apply_updates()
   {
-    return m_pimpl->consume_updates();
+    return m_pimpl->apply_updates();
   }
 
-  auto node_argument_update_channel::get_current_change(
-    const object_ptr<NodeArgument>& arg) const -> object_ptr<const Object>
+  auto node_argument_update_channel::get_current_value(
+    const object_ptr<NodeArgumentPropNode>& arg) const
+    -> object_ptr<const NodeArgumentPropNode>
   {
-    return m_pimpl->get_current_change(arg);
+    return m_pimpl->get_current_value(arg);
   }
-}
+} // namespace yave::editor
