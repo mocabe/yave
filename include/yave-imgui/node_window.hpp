@@ -111,10 +111,6 @@ namespace yave::editor::imgui {
     /// canvas draw info (will be updated every frame)
     std::unique_ptr<node_window_draw_info> draw_info;
 
-  private:
-    /// declaration list
-    std::vector<std::shared_ptr<node_declaration>> decls;
-
   public:
     node_window(yave::imgui::imgui_context& im);
     ~node_window() noexcept;

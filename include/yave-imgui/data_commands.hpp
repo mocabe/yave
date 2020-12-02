@@ -15,12 +15,10 @@ namespace yave::editor::imgui {
   /// push update
   struct dcmd_push_update : data_command
   {
-    object_ptr<NodeArgument> arg;
-    object_ptr<const Object> data;
+    std::vector<node_argument_diff> m_diffs;
 
-    dcmd_push_update(object_ptr<NodeArgument> a, object_ptr<const Object> d)
-      : arg {std::move(a)}
-      , data {std::move(d)}
+    dcmd_push_update(std::vector<node_argument_diff> diffs)
+      : m_diffs {std::move(diffs)}
     {
     }
 

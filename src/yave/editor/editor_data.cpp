@@ -181,7 +181,7 @@ namespace yave::editor {
         auto& decl = decls[i];
 
         // create one decl and remove from queue
-        if (node_graph.create_declaration(decl)) {
+        if (create_declaration(node_graph, decl)) {
           decl = nullptr;
           std::swap(decl, decls[--remain]);
           break;

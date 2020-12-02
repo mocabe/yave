@@ -138,9 +138,8 @@ namespace yave::editor {
                   auto& compiler = data.compile_thread();
                   auto& updates  = data.update_channel();
 
-                  // apply updates
-                  for (auto&& u : updates.consume_updates())
-                    u.apply();
+                  // process pending updates
+                  updates.apply_updates();
 
                   // get compiled result
                   if (auto&& r = compiler.executable())

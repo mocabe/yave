@@ -7,6 +7,7 @@
 #include <yave-imgui/node_window.hpp>
 #include <yave-imgui/data_commands.hpp>
 
+#include <yave/node/core/properties.hpp>
 #include <yave/editor/editor_data.hpp>
 #include <yave/editor/data_command.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
@@ -43,7 +44,7 @@ namespace yave::editor::imgui {
     const node_window& nw)
     : node_drawable {n, *g.get_info(n)}
     , m_title {info.name()}
-    , m_pos {*g.get_pos(n)}
+    , m_pos {get_pos(g, n)}
   {
     (void)nw;
 

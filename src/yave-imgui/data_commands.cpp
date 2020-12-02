@@ -6,6 +6,7 @@
 #include <yave-imgui/data_commands.hpp>
 #include <yave/editor/data_context.hpp>
 #include <yave/editor/editor_data.hpp>
+#include <yave/node/core/properties.hpp>
 
 namespace yave::editor::imgui {
 
@@ -14,8 +15,11 @@ namespace yave::editor::imgui {
 
   void dcmd_push_update::exec(data_context& ctx)
   {
-    auto lck = ctx.get_data<editor_data>();
-    lck.ref().update_channel().push_update({.arg = arg, .data = data});
+    auto lck  = ctx.get_data<editor_data>();
+    auto& upd = lck.ref().update_channel();
+
+    for (auto&& diff : m_diffs)
+      upd.push_update({.arg = diff.node, .data = diff.value});
   }
 
   void dcmd_push_update::undo(data_context& /*ctx*/)
@@ -72,7 +76,7 @@ namespace yave::editor::imgui {
       id = uid::random_generate();
 
     node = ng.create_copy(group, source, id);
-    ng.set_pos(node, {pos.x, pos.y});
+    set_pos(ng, node, {pos.x, pos.y});
   }
 
   void dcmd_ncreate::undo(data_context& ctx)
@@ -110,7 +114,7 @@ namespace yave::editor::imgui {
       id = uid::random_generate();
 
     group = ng.create_group(parent, {}, id);
-    ng.set_pos(group, {pos.x, pos.y});
+    set_pos(ng, group, {pos.x, pos.y});
   }
 
   void dcmd_gcreate::undo(data_context& ctx)
@@ -177,12 +181,11 @@ namespace yave::editor::imgui {
 
     auto avg_pos = glm::vec2();
 
-    for (auto&& n : nodes) {
-      if (auto np = ng.get_pos(n))
-        avg_pos += *np;
-    }
+    for (auto&& n : nodes)
+      avg_pos += get_pos(ng, n);
+
     avg_pos /= nodes.size();
-    ng.set_pos(newg, avg_pos);
+    set_pos(ng, newg, avg_pos);
 
     data.compile_thread().notify_recompile();
   }
@@ -429,8 +432,8 @@ namespace yave::editor::imgui {
     if (!ng.exists(node))
       return;
 
-    old_pos = *ng.get_pos(node);
-    ng.set_pos(node, new_pos);
+    old_pos = get_pos(ng, node);
+    set_pos(ng, node, new_pos);
   }
 
   void dcmd_nset_pos::undo(data_context& ctx)
@@ -439,7 +442,7 @@ namespace yave::editor::imgui {
     auto& ng = lck.ref().node_graph();
 
     if (ng.exists(node))
-      ng.set_pos(node, old_pos);
+      set_pos(ng, node, old_pos);
   }
 
   auto dcmd_nset_pos::type() const -> data_command_type

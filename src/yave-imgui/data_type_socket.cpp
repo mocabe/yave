@@ -20,26 +20,26 @@ namespace yave::editor::imgui {
     {
       auto data = dctx.get_data<editor_data>();
 
+      auto p = arg->prop_tree();
+
       // get staged change in update channel
       auto staged = data //
                       .ref()
                       .update_channel()
-                      .get_current_change(arg);
+                      .get_current_value(p);
 
       // return staged data or current value in argument holder
-      return value_cast<T>(staged ? staged : arg->data());
+      return get_node_argument_value<T>(staged ? staged : p);
     }
   } // namespace
 
   data_type_socket<Float>::data_type_socket(
-    const object_ptr<NodeArgument>& holder,
-    const object_ptr<const FloatDataProperty>& property,
+    const object_ptr<NodeArgument>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
     : basic_socket_drawer(s, g, nw)
-    , m_holder {holder}
-    , m_property {property}
+    , m_arg {arg}
   {
   }
 
@@ -63,8 +63,7 @@ namespace yave::editor::imgui {
     (void)vctx, (void)nw, (void)draw_info;
 
     assert(info.is_input());
-    assert(m_holder);
-    assert(m_property);
+    assert(m_arg);
 
     auto s    = handle;
     auto name = info.name();
@@ -84,19 +83,19 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto f   = get_current_argument_data<Float>(m_holder, dctx);
-      auto val = static_cast<float>(*f);
-      ImGui::DragFloat(
-        "",
-        &val,
-        *m_property->step(),
-        *m_property->min(),
-        *m_property->max(),
-        (name + ":%.3f").c_str());
+      auto val = (float)get_current_argument_data<Float>(m_arg, dctx);
 
-      if (*f != val) {
-        dctx.cmd(std::make_unique<dcmd_push_update>(
-          m_holder, make_object<Float>(val)));
+      auto p    = m_arg->prop_tree();
+      auto step = (float)*value_cast<Float>(p->property("step"));
+      auto min  = (float)*value_cast<Float>(p->property("min"));
+      auto max  = (float)*value_cast<Float>(p->property("max"));
+
+      ImGui::DragFloat("", &val, step, min, max, (name + ":%.3f").c_str());
+
+      auto diff = get_node_argument_diff<Float>(p, val);
+
+      if (!diff.empty()) {
+        dctx.cmd(std::make_unique<dcmd_push_update>(diff));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -107,14 +106,12 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Int>::data_type_socket(
-    const object_ptr<NodeArgument>& holder,
-    const object_ptr<const IntDataProperty>& property,
+    const object_ptr<NodeArgument>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
     : basic_socket_drawer(s, g, nw)
-    , m_holder {holder}
-    , m_property {property}
+    , m_arg {arg}
   {
   }
 
@@ -137,8 +134,7 @@ namespace yave::editor::imgui {
   {
     (void)nw, (void)vctx, (void)draw_info;
     assert(info.is_input());
-    assert(m_holder);
-    assert(m_property);
+    assert(m_arg);
 
     auto s    = handle;
     auto name = info.name();
@@ -158,19 +154,19 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto i   = get_current_argument_data<Int>(m_holder, dctx);
-      auto val = static_cast<int>(*i);
-      ImGui::DragInt(
-        "",
-        &val,
-        *m_property->step(),
-        *m_property->min(),
-        *m_property->max(),
-        (name + ":%.3f").c_str());
+      auto val = (int)get_current_argument_data<Int>(m_arg, dctx);
 
-      if (*i != val) {
-        dctx.cmd(
-          std::make_unique<dcmd_push_update>(m_holder, make_object<Int>(val)));
+      auto p    = m_arg->prop_tree();
+      auto step = (int)*value_cast<Int>(p->property("step"));
+      auto min  = (int)*value_cast<Int>(p->property("min"));
+      auto max  = (int)*value_cast<Int>(p->property("max"));
+
+      ImGui::DragInt("", &val, step, min, max, (name + ":%.3f").c_str());
+
+      auto diff = get_node_argument_diff<Int>(p, val);
+
+      if (!diff.empty()) {
+        dctx.cmd(std::make_unique<dcmd_push_update>(diff));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -181,14 +177,12 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Bool>::data_type_socket(
-    const object_ptr<NodeArgument>& holder,
-    const object_ptr<const BoolDataProperty>& property,
+    const object_ptr<NodeArgument>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
     : basic_socket_drawer(s, g, nw)
-    , m_holder {holder}
-    , m_property {property}
+    , m_arg {arg}
   {
   }
 
@@ -202,8 +196,7 @@ namespace yave::editor::imgui {
   {
     (void)nw, (void)vctx, (void)draw_info;
     assert(info.is_input());
-    assert(m_holder);
-    assert(m_property);
+    assert(m_arg);
 
     auto s    = handle;
     auto name = info.name();
@@ -223,13 +216,14 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto b   = get_current_argument_data<Bool>(m_holder, dctx);
-      auto val = *b;
+      auto val = get_current_argument_data<Bool>(m_arg, dctx);
+
       ImGui::Checkbox("", &val);
 
-      if (*b != val) {
-        auto d = make_object<Bool>(val);
-        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, std::move(d)));
+      auto diff = get_node_argument_diff<Bool>(m_arg->prop_tree(), val);
+
+      if (!diff.empty()) {
+        dctx.cmd(std::make_unique<dcmd_push_update>(diff));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -240,14 +234,12 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<String>::data_type_socket(
-    const object_ptr<NodeArgument>& holder,
-    const object_ptr<const StringDataProperty>& property,
+    const object_ptr<NodeArgument>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
     : basic_socket_drawer(s, g, nw)
-    , m_holder {holder}
-    , m_property {property}
+    , m_arg {arg}
   {
   }
 
@@ -261,8 +253,7 @@ namespace yave::editor::imgui {
   {
     (void)nw, (void)vctx, (void)draw_info;
     assert(info.is_input());
-    assert(m_holder);
-    assert(m_property);
+    assert(m_arg);
 
     auto s    = handle;
     auto name = info.name();
@@ -282,13 +273,15 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto str = get_current_argument_data<String>(m_holder, dctx);
-      auto val = std::string(*str);
+      auto val = (std::string)get_current_argument_data<String>(m_arg, dctx);
+
       ImGui::InputText("", &val);
 
-      if (std::string(*str) != val) {
-        auto d = make_object<String>(val);
-        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, std::move(d)));
+      auto diff =
+        get_node_argument_diff<String>(m_arg->prop_tree(), data::string(val));
+
+      if (!diff.empty()) {
+        dctx.cmd(std::make_unique<dcmd_push_update>(diff));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -299,14 +292,12 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Color>::data_type_socket(
-    const object_ptr<NodeArgument>& holder,
-    const object_ptr<const ColorDataProperty>& property,
+    const object_ptr<NodeArgument>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
     : basic_socket_drawer(s, g, nw)
-    , m_holder {holder}
-    , m_property {property}
+    , m_arg {arg}
   {
   }
 
@@ -328,8 +319,7 @@ namespace yave::editor::imgui {
   {
     (void)nw, (void)vctx, (void)draw_info;
     assert(info.is_input());
-    assert(m_holder);
-    assert(m_property);
+    assert(m_arg);
 
     auto s    = handle;
     auto name = info.name();
@@ -350,13 +340,14 @@ namespace yave::editor::imgui {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
     {
-      auto c   = get_current_argument_data<Color>(m_holder, dctx);
-      auto val = glm::fvec4(*c);
+      auto val = get_current_argument_data<Color>(m_arg, dctx);
+
       ImGui::ColorEdit4("", &(val.r), ImGuiColorEditFlags_Float);
 
-      if (glm::fvec4(*c) != val) {
-        auto d = make_object<Color>(val);
-        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, std::move(d)));
+      auto diff = get_node_argument_diff<Color>(m_arg->prop_tree(), val);
+
+      if (!diff.empty()) {
+        dctx.cmd(std::make_unique<dcmd_push_update>(diff));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
@@ -367,14 +358,12 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Vec2>::data_type_socket(
-    const object_ptr<NodeArgument>& holder,
-    const object_ptr<const Vec2DataProperty>& property,
+    const object_ptr<NodeArgument>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
     : basic_socket_drawer(s, g, nw)
-    , m_holder {holder}
-    , m_property {property}
+    , m_arg {arg}
   {
   }
 
@@ -396,8 +385,7 @@ namespace yave::editor::imgui {
   {
     (void)nw, (void)vctx, (void)draw_info;
     assert(info.is_input());
-    assert(m_holder);
-    assert(m_property);
+    assert(m_arg);
 
     auto s    = handle;
     auto name = info.name();
@@ -419,8 +407,7 @@ namespace yave::editor::imgui {
     {
       auto& style = ImGui::GetStyle();
 
-      auto vec = get_current_argument_data<Vec2>(m_holder, dctx);
-      auto val = glm::fvec2(*vec);
+      auto val = (glm::fvec2)get_current_argument_data<Vec2>(m_arg, dctx);
 
       auto step = 1.f;
       auto lo   = std::numeric_limits<float>::lowest();
@@ -432,9 +419,10 @@ namespace yave::editor::imgui {
       ImGui::SameLine(0, style.ItemInnerSpacing.x);
       ImGui::DragFloat("##y", &val.y, step, lo, hi, "y:%.1f");
 
-      if (glm::fvec2(*vec) != val) {
-        auto d = make_object<Vec2>(val);
-        dctx.cmd(std::make_unique<dcmd_push_update>(m_holder, std::move(d)));
+      auto diff = get_node_argument_diff<Vec2>(m_arg->prop_tree(), val);
+
+      if (!diff.empty()) {
+        dctx.cmd(std::make_unique<dcmd_push_update>(diff));
         dctx.cmd(std::make_unique<dcmd_notify_execute>());
       }
     }
