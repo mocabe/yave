@@ -16,16 +16,18 @@ namespace yave {
     static auto create_variable_members(data::color value)
     {
       return std::vector {
-        make_node_argument_variable<Float>("r", value.r),
-        make_node_argument_variable<Float>("g", value.g),
-        make_node_argument_variable<Float>("b", value.b),
-        make_node_argument_variable<Float>("a", value.a)};
+        make_node_argument_prop_tree<Float>("r", value.r),
+        make_node_argument_prop_tree<Float>("g", value.g),
+        make_node_argument_prop_tree<Float>("b", value.b),
+        make_node_argument_prop_tree<Float>("a", value.a)};
     }
 
-    static auto create_variable(std::string name, data::color value = {})
+    static auto create_prop_tree(
+      const std::string& name,
+      data::color value = {})
     {
-      return make_object<NodeArgumentVariable>(
-        std::move(name), object_type<Color>(), create_variable_members(value));
+      return make_object<NodeArgumentPropNode>(
+        name, object_type<Color>(), create_variable_members(value));
     }
 
     struct Generator : Function<Generator, NodeArgument, FrameDemand, Color>
@@ -33,15 +35,15 @@ namespace yave {
       auto code() const -> return_type
       {
         auto arg  = eval_arg<0>();
-        auto type = arg->get_type();
+        auto tree = arg->prop_tree();
 
-        if (!same_type(type, object_type<Color>()))
-          throw bad_value_cast(type, object_type<Color>());
+        assert(same_type(tree->type(), object_type<Color>()));
 
-        auto r = value_cast<Float>(arg->get_value("r"));
-        auto g = value_cast<Float>(arg->get_value("g"));
-        auto b = value_cast<Float>(arg->get_value("b"));
-        auto a = value_cast<Float>(arg->get_value("a"));
+        auto cs = tree->children();
+        auto r  = value_cast<Float>(cs.at(0)->value());
+        auto g  = value_cast<Float>(cs.at(1)->value());
+        auto b  = value_cast<Float>(cs.at(2)->value());
+        auto a  = value_cast<Float>(cs.at(3)->value());
 
         return make_object<Color>(*r, *g, *b, *a);
       }
@@ -50,9 +52,51 @@ namespace yave {
     static auto create(data::color value = {})
     {
       return make_object<NodeArgument>(
-        object_type<Color>(),
-        std::vector {create_variable_members(value)},
-        make_object<Generator>());
+        create_prop_tree("color", value), make_object<Generator>());
+    }
+
+    static auto get_value(const object_ptr<const NodeArgumentPropNode>& p)
+    {
+      auto cs = p->children();
+      auto r  = value_cast<Float>(cs.at(0)->value());
+      auto g  = value_cast<Float>(cs.at(1)->value());
+      auto b  = value_cast<Float>(cs.at(2)->value());
+      auto a  = value_cast<Float>(cs.at(3)->value());
+      return data::color {*r, *g, *b, *a};
+    }
+
+    static auto get_diff(
+      const object_ptr<NodeArgumentPropNode>& p,
+      data::color val)
+    {
+      auto cs  = p->children();
+      auto ret = std::vector<node_argument_diff>();
+
+      auto r = cs.at(0);
+      auto g = cs.at(1);
+      auto b = cs.at(2);
+      auto a = cs.at(3);
+
+      if (*value_cast<Float>(r->value()) != val.r)
+        ret.emplace_back(r, make_object<Float>(val.r));
+      if (*value_cast<Float>(g->value()) != val.g)
+        ret.emplace_back(g, make_object<Float>(val.g));
+      if (*value_cast<Float>(b->value()) != val.b)
+        ret.emplace_back(b, make_object<Float>(val.b));
+      if (*value_cast<Float>(a->value()) != val.a)
+        ret.emplace_back(a, make_object<Float>(val.a));
+      return ret;
+    }
+
+    static auto set_value(
+      const object_ptr<NodeArgumentPropNode>& p,
+      data::color val)
+    {
+      auto cs = p->children();
+      cs.at(0)->set_value(make_object<Float>(val.r));
+      cs.at(1)->set_value(make_object<Float>(val.g));
+      cs.at(2)->set_value(make_object<Float>(val.b));
+      cs.at(3)->set_value(make_object<Float>(val.a));
     }
   };
 

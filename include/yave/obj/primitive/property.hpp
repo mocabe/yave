@@ -16,32 +16,34 @@ namespace yave {
 
   // Float, Int
   template <class T>
-  requires                
-    std::same_as<T, Int> || 
-    std::same_as<T, Float>  
+    requires std::same_as<T, Int> || std::same_as<T, Float>  
   struct node_argument_traits<T>
   {
     using value_type = typename T::value_type;
+
+    static constexpr auto value_name = "value";
+    static constexpr auto min_name   = u8"min";
+    static constexpr auto max_name   = u8"max";
+    static constexpr auto step_name  = u8"step";
 
     /// \param value initial value
     /// \param min minimum value
     /// \param max max value
     /// \param step step of value change
-    static auto create_variable(
+    static auto create_prop_tree(
       const std::string& name,
       value_type value = {0},
       value_type min   = std::numeric_limits<value_type>::lowest(),
       value_type max   = std::numeric_limits<value_type>::max(),
       value_type step  = {1})
     {
-      auto val = node_argument_nvp {data::string(name), make_object<T>(value)};
-
       auto props = std::vector<node_argument_nvp> {
-        {u8"min", make_object<T>(min)},
-        {u8"max", make_object<T>(max)},
-        {u8"step", make_object<T>(step)}};
+        {min_name, make_object<T>(min)},
+        {max_name, make_object<T>(max)},
+        {step_name, make_object<T>(step)}};
 
-      return make_object<NodeArgumentVariable>(val, props);
+      return make_object<NodeArgumentPropNode>(
+        name, make_object<T>(value), props);
     }
 
     struct Generator : Function<Generator, NodeArgument, FrameDemand, T>
@@ -49,7 +51,7 @@ namespace yave {
       auto code() const -> typename Generator::return_type
       {
         auto arg = this->template eval_arg<0>();
-        return value_cast<T>(arg->get_value("value"));
+        return value_cast<T>(arg->prop_tree()->value());
       }
     };
 
@@ -60,77 +62,85 @@ namespace yave {
       value_type step  = {1})
     {
       return make_object<NodeArgument>(
-        object_type<T>(),
-        std::vector {create_variable("value", value, min, max, step)},
+        create_prop_tree(value_name, value, min, max, step),
         make_object<Generator>());
+    }
+
+    static auto get_value(const object_ptr<const NodeArgumentPropNode>& arg)
+      -> value_type
+    {
+      return *value_cast<T>(arg->value());
+    }
+
+    static auto get_diff(
+      const object_ptr<NodeArgumentPropNode>& arg,
+      value_type val)
+    {
+      auto ret = std::vector<node_argument_diff>();
+      if (*value_cast<T>(arg->value()) != val)
+        ret.emplace_back(arg, make_object<T>(val));
+      return ret;
+    }
+
+    static void set_value(
+      const object_ptr<NodeArgumentPropNode>& arg,
+      value_type val)
+    {
+      arg->set_value(make_object<T>(val));
     }
   };
 
-  // String
-  template <>
-  struct node_argument_traits<String>
+  // String, Bool
+  template <class T> 
+    requires std::same_as<T, Bool> || std::same_as<T, String>
+  struct node_argument_traits<T>
   {
-    static auto create_variable(
-      const std::string& name,
-      std::string value = "",
-      std::string regex = R"(*)")
+    using value_type = typename T::value_type;
+
+    static constexpr auto value_name = "value";
+
+    static auto create_prop_tree(const std::string& name, value_type value = {})
     {
-      auto val =
-        node_argument_nvp {data::string(name), make_object<String>(value)};
-
-      auto props = std::vector<node_argument_nvp> {
-        {u8"regex", make_object<String>(regex)}};
-
-      return make_object<NodeArgumentVariable>(val, props);
+      return make_object<NodeArgumentPropNode>(
+        name, make_object<T>(value), std::vector<node_argument_nvp>());
     }
 
-    struct Generator : Function<Generator, NodeArgument, FrameDemand, String>
+    struct Generator : Function<Generator, NodeArgument, FrameDemand, T>
     {
-      auto code() const -> return_type
+      auto code() const -> typename Generator::return_type
       {
-        auto arg = eval_arg<0>();
-        return value_cast<String>(arg->get_value("value"));
+        auto arg = this->template eval_arg<0>();
+        return value_cast<T>(arg->prop_tree()->value());
       }
     };
 
-    static auto create(std::string value = "", std::string regex = R"(*)")
+    static auto create(value_type value = {})
     {
       return make_object<NodeArgument>(
-        object_type<String>(),
-        std::vector {create_variable("value", value, regex)},
-        make_object<Generator>());
-    }
-  };
-
-  // Bool
-  template <>
-  struct node_argument_traits<Bool>
-  {
-    static auto create_variable(const std::string& name, bool value = false)
-    {
-      auto val =
-        node_argument_nvp {data::string(name), make_object<Bool>(value)};
-
-      auto props = std::vector<node_argument_nvp> {};
-
-      return make_object<NodeArgumentVariable>(val, props);
+        create_prop_tree(value_name, value), make_object<Generator>());
     }
 
-    struct Generator : Function<Generator, NodeArgument, FrameDemand, Bool>
+    static auto get_value(const object_ptr<const NodeArgumentPropNode>& arg)
+      -> value_type
     {
-      auto code() const -> return_type
-      {
-        auto arg = eval_arg<0>();
-        return value_cast<Bool>(arg->get_value("value"));
-      }
-    };
+      return *value_cast<T>(arg->value());
+    }
 
-    static auto create(bool value = false)
+    static auto get_diff(
+      const object_ptr<NodeArgumentPropNode>& arg,
+      value_type val)
     {
-      return make_object<NodeArgument>(
-        object_type<Bool>(),
-        std::vector {create_variable("value", value)},
-        make_object<Generator>());
+      auto ret = std::vector<node_argument_diff>();
+      if (*value_cast<T>(arg->value()) != val)
+        ret.emplace_back(arg, make_object<T>(val));
+      return ret;
+    }
+
+    static void set_value(
+      const object_ptr<NodeArgumentPropNode>& arg,
+      value_type val)
+    {
+      arg->set_value(make_object<T>(val));
     }
   };
 
