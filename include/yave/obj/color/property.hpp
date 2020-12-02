@@ -78,13 +78,13 @@ namespace yave {
       auto a = cs.at(3);
 
       if (*value_cast<Float>(r->value()) != val.r)
-        ret.emplace_back(r, make_object<Float>(val.r));
+        ret.push_back({r, make_object<Float>(val.r)});
       if (*value_cast<Float>(g->value()) != val.g)
-        ret.emplace_back(g, make_object<Float>(val.g));
+        ret.push_back({g, make_object<Float>(val.g)});
       if (*value_cast<Float>(b->value()) != val.b)
-        ret.emplace_back(b, make_object<Float>(val.b));
+        ret.push_back({b, make_object<Float>(val.b)});
       if (*value_cast<Float>(a->value()) != val.a)
-        ret.emplace_back(a, make_object<Float>(val.a));
+        ret.push_back({a, make_object<Float>(val.a)});
       return ret;
     }
 

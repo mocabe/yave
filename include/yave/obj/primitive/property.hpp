@@ -78,7 +78,7 @@ namespace yave {
     {
       auto ret = std::vector<node_argument_diff>();
       if (*value_cast<T>(arg->value()) != val)
-        ret.emplace_back(arg, make_object<T>(val));
+        ret.push_back({arg, make_object<T>(val)});
       return ret;
     }
 
@@ -132,7 +132,7 @@ namespace yave {
     {
       auto ret = std::vector<node_argument_diff>();
       if (*value_cast<T>(arg->value()) != val)
-        ret.emplace_back(arg, make_object<T>(val));
+        ret.push_back({arg, make_object<T>(val)});
       return ret;
     }
 

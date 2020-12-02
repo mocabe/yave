@@ -70,9 +70,9 @@ namespace yave {
       auto y = cs.at(1);
 
       if (*value_cast<Float>(x->value()) != val.x)
-        ret.emplace_back(x, make_object<Float>(val.x));
+        ret.push_back({x, make_object<Float>(val.x)});
       if (*value_cast<Float>(y->value()) != val.y)
-        ret.emplace_back(y, make_object<Float>(val.y));
+        ret.push_back({y, make_object<Float>(val.y)});
       return ret;
     }
 
