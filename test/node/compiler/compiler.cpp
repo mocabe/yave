@@ -110,13 +110,13 @@ TEST_CASE("node_compiler V2")
   defs.add(nil_defs);
   defs.add(cons_defs);
 
-  auto int_func   = ng.create_declaration(std::make_shared<node_declaration>(int_decl));
-  auto add_func   = ng.create_declaration(std::make_shared<node_declaration>(add_decl));
-  auto float_func = ng.create_declaration(std::make_shared<node_declaration>(float_decl));
-  auto bool_func  = ng.create_declaration(std::make_shared<node_declaration>(bool_decl));
-  auto if_func    = ng.create_declaration(std::make_shared<node_declaration>(if_decl));
-  auto nil_func   = ng.create_declaration(std::make_shared<node_declaration>(nil_decl));
-  auto cons_func  = ng.create_declaration(std::make_shared<node_declaration>(cons_decl));
+  auto int_func   = create_declaration(ng, std::make_shared<node_declaration>(int_decl));
+  auto add_func   = create_declaration(ng, std::make_shared<node_declaration>(add_decl));
+  auto float_func = create_declaration(ng, std::make_shared<node_declaration>(float_decl));
+  auto bool_func  = create_declaration(ng, std::make_shared<node_declaration>(bool_decl));
+  auto if_func    = create_declaration(ng, std::make_shared<node_declaration>(if_decl));
+  auto nil_func   = create_declaration(ng, std::make_shared<node_declaration>(nil_decl));
+  auto cons_func  = create_declaration(ng, std::make_shared<node_declaration>(cons_decl));
 
   REQUIRE(int_func);
   REQUIRE(add_func);

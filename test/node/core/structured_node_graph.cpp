@@ -370,7 +370,7 @@ TEST_CASE("root add func")
 
   auto decl  = get_node_declaration<node::Num::Int>();
   auto pdecl = std::make_shared<node_declaration>(decl);
-  auto func  = ng.create_declaration(pdecl);
+  auto func  = create_declaration(ng, pdecl);
 
   REQUIRE(ng.exists(func));
   REQUIRE(!ng.is_group(func));
@@ -393,7 +393,7 @@ TEST_CASE("root add func")
       ng.get_info(ng.get_info(func)->output_sockets()[i])->name()
       == decl.output_sockets()[i]);
 
-  REQUIRE(!ng.create_declaration(pdecl));
+  REQUIRE(!create_declaration(ng, pdecl));
 
   // add call
   auto call = ng.create_copy(root, func);
@@ -432,7 +432,7 @@ TEST_CASE("func conn")
 
   auto decl  = get_node_declaration<node::Num::Int>();
   auto pdecl = std::make_shared<node_declaration>(decl);
-  auto func  = ng.create_declaration(pdecl);
+  auto func  = create_declaration(ng, pdecl);
 
   SECTION("global")
   {
@@ -495,12 +495,12 @@ TEST_CASE("func destroy")
 
   auto decl  = get_node_declaration<node::Num::Int>();
   auto pdecl = std::make_shared<node_declaration>(decl);
-  auto func  = ng.create_declaration(pdecl);
+  auto func  = create_declaration(ng, pdecl);
 
   {
     auto decl2  = get_node_declaration<node::String::String>();
     auto pdecl2 = std::make_shared<node_declaration>(decl2);
-    auto func2  = ng.create_declaration(pdecl2);
+    auto func2  = create_declaration(ng, pdecl2);
     REQUIRE(ng.exists(func2));
     ng.destroy(func2);
   }
@@ -546,7 +546,7 @@ TEST_CASE("group")
   ng.set_name(root, "root");
   auto decl  = get_node_declaration<node::Num::Int>();
   auto pdecl = std::make_shared<node_declaration>(decl);
-  auto func  = ng.create_declaration(pdecl);
+  auto func  = create_declaration(ng, pdecl);
 
   SECTION("")
   {
@@ -748,7 +748,7 @@ TEST_CASE("clone")
   ng.set_name(root, "root");
   auto decl  = get_node_declaration<node::Num::Int>();
   auto pdecl = std::make_shared<node_declaration>(decl);
-  auto func  = ng.create_declaration(pdecl);
+  auto func  = create_declaration(ng, pdecl);
 
   auto f1 = ng.create_copy(root, func);
   auto f2 = ng.create_copy(root, func);
@@ -801,7 +801,7 @@ TEST_CASE("path")
   ng.set_name(root, "Root");
   auto decl  = get_node_declaration<node::Num::Int>();
   auto pdecl = std::make_shared<node_declaration>(decl);
-  auto func  = ng.create_declaration(pdecl);
+  auto func  = create_declaration(ng, pdecl);
 
   REQUIRE(*ng.get_path(root) == "Root");
   REQUIRE(*ng.get_path(func) == decl.full_name());
@@ -834,7 +834,7 @@ TEST_CASE("custom id")
   structured_node_graph ng;
   auto decl  = get_node_declaration<node::Num::Int>();
   auto pdecl = std::make_shared<node_declaration>(decl);
-  auto i     = ng.create_declaration(pdecl);
+  auto i     = create_declaration(ng, pdecl);
   REQUIRE(ng.exists(i));
 
   auto id = uid::random_generate();
@@ -920,7 +920,7 @@ TEST_CASE("composed")
 
   SECTION("add")
   {
-    auto g = ng.create_declaration(pdecl);
+    auto g = create_declaration(ng, pdecl);
 
     REQUIRE(g);
     REQUIRE(ng.exists(g));
@@ -953,7 +953,7 @@ TEST_CASE("macro")
 
   SECTION("add")
   {
-    auto m = ng.create_declaration(pdecl);
+    auto m = create_declaration(ng, pdecl);
     REQUIRE(m);
     REQUIRE(ng.exists(m));
     REQUIRE(ng.get_path(m) == decl.full_name());
@@ -1029,7 +1029,7 @@ TEST_CASE("property")
   {
     auto decl  = get_node_declaration<node::Num::Int>();
     auto pdecl = std::make_shared<node_declaration>(decl);
-    auto f     = ng.create_declaration(pdecl);
+    auto f     = create_declaration(ng, pdecl);
 
     SECTION("callee")
     {
@@ -1070,7 +1070,7 @@ TEST_CASE("property")
       }));
 
     auto pdecl = std::make_shared<node_declaration>(decl);
-    auto m     = ng.create_declaration(pdecl);
+    auto m     = create_declaration(ng, pdecl);
 
     REQUIRE(ng.exists(m));
 
