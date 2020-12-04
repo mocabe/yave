@@ -13,21 +13,18 @@ namespace yave {
   template <>
   struct node_argument_traits<Color>
   {
-    static auto create_variable_members(data::color value)
-    {
-      return std::vector {
-        make_node_argument_prop_tree<Float>("r", value.r),
-        make_node_argument_prop_tree<Float>("g", value.g),
-        make_node_argument_prop_tree<Float>("b", value.b),
-        make_node_argument_prop_tree<Float>("a", value.a)};
-    }
-
     static auto create_prop_tree(
       const std::string& name,
       data::color value = {})
     {
       return make_object<NodeArgumentPropNode>(
-        name, object_type<Color>(), create_variable_members(value));
+        name,
+        object_type<Color>(),
+        std::vector {
+          make_object<NodeArgumentPropNode>("r", make_object<Float>(value.r)),
+          make_object<NodeArgumentPropNode>("g", make_object<Float>(value.g)),
+          make_object<NodeArgumentPropNode>("b", make_object<Float>(value.b)),
+          make_object<NodeArgumentPropNode>("a", make_object<Float>(value.a))});
     }
 
     struct Generator : Function<Generator, NodeArgument, FrameDemand, Color>

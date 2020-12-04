@@ -17,13 +17,6 @@ namespace yave {
   class node_argument_property_node_object_value;
   using NodeArgumentPropNode = Box<node_argument_property_node_object_value>;
 
-  // name value pair
-  struct node_argument_nvp
-  {
-    data::string name;
-    object_ptr<const Object> value;
-  };
-
   /// value node of argument property tree
   class node_argument_property_node_object_value
   {
@@ -39,11 +32,6 @@ namespace yave {
     /// non-null when this is struct node
     object_ptr<const Type> m_stype;
 
-    /// properties of value
-    /// when value.value is nullptr, properties may contain "type" variable
-    /// which can be used from GUI otherwise empty.
-    data::vector<node_argument_nvp> m_properties;
-
     /// members of value
     /// this is not empty iff value.value is nullptr.
     data::vector<object_ptr<NodeArgumentPropNode>> m_children;
@@ -52,8 +40,7 @@ namespace yave {
     /// construct value node
     node_argument_property_node_object_value(
       const std::string& name,
-      const object_ptr<const Object>& value,
-      const std::vector<node_argument_nvp>& ps);
+      const object_ptr<const Object>& value);
 
     /// construct struct node
     node_argument_property_node_object_value(
@@ -76,13 +63,6 @@ namespace yave {
 
     /// set value
     void set_value(const object_ptr<const Object> v);
-
-    /// get property
-    auto property(const std::string& name) const -> object_ptr<const Object>;
-
-    /// get properties
-    /// \returns empty vector when value node
-    auto properties() const -> std::vector<node_argument_nvp>;
 
     /// get type
     /// \returns type of contained value when value node, otherwise user

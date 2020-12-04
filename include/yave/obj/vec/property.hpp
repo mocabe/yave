@@ -13,17 +13,14 @@ namespace yave {
   template <>
   struct node_argument_traits<Vec2>
   {
-    static auto create_variable_members(glm::vec2 value)
-    {
-      return std::vector {
-        make_node_argument_prop_tree<Float>("x", value.x),
-        make_node_argument_prop_tree<Float>("y", value.y)};
-    }
-
-    static auto create_prop_tree(glm::vec2 value = {})
+    static auto create_prop_tree(const std::string& name, glm::vec2 value = {})
     {
       return make_object<NodeArgumentPropNode>(
-        "vec2", object_type<Vec2>(), create_variable_members(value));
+        name,
+        object_type<Vec2>(),
+        std::vector {
+          make_object<NodeArgumentPropNode>("x", make_object<Float>(value.x)),
+          make_object<NodeArgumentPropNode>("y", make_object<Float>(value.y))});
     }
 
     struct Generator : Function<Generator, NodeArgument, FrameDemand, Vec2>
@@ -48,7 +45,7 @@ namespace yave {
     static auto create(glm::vec2 value = {})
     {
       return make_object<NodeArgument>(
-        create_prop_tree(value), make_object<Generator>());
+        create_prop_tree("", value), make_object<Generator>());
     }
 
     static auto get_value(const object_ptr<const NodeArgumentPropNode>& p)

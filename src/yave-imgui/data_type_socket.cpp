@@ -83,20 +83,23 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto val = (float)get_current_argument_data<Float>(m_arg, dctx);
+      auto prop = get_current_argument_data<Float>(m_arg, dctx);
 
-      auto p    = m_arg->prop_tree();
-      auto step = (float)*value_cast<Float>(p->property("step"));
-      auto min  = (float)*value_cast<Float>(p->property("min"));
-      auto max  = (float)*value_cast<Float>(p->property("max"));
+      auto val  = (float)prop.value;
+      auto min  = (float)prop.min;
+      auto max  = (float)prop.max;
+      auto step = (float)prop.step;
 
       ImGui::DragFloat("", &val, step, min, max, (name + ":%.3f").c_str());
 
-      auto diff = get_node_argument_diff<Float>(p, val);
+      if (min <= val && val <= max) {
 
-      if (!diff.empty()) {
-        dctx.cmd(std::make_unique<dcmd_push_update>(diff));
-        dctx.cmd(std::make_unique<dcmd_notify_execute>());
+        auto diff = get_node_argument_diff<Float>(m_arg->prop_tree(), val);
+
+        if (!diff.empty()) {
+          dctx.cmd(std::make_unique<dcmd_push_update>(diff));
+          dctx.cmd(std::make_unique<dcmd_notify_execute>());
+        }
       }
     }
     ImGui::PopStyleColor(4);
@@ -154,20 +157,23 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto val = (int)get_current_argument_data<Int>(m_arg, dctx);
+      auto prop = get_current_argument_data<Int>(m_arg, dctx);
 
-      auto p    = m_arg->prop_tree();
-      auto step = (int)*value_cast<Int>(p->property("step"));
-      auto min  = (int)*value_cast<Int>(p->property("min"));
-      auto max  = (int)*value_cast<Int>(p->property("max"));
+      auto val  = (int)prop.value;
+      auto min  = (int)prop.min;
+      auto max  = (int)prop.max;
+      auto step = (int)prop.step;
 
       ImGui::DragInt("", &val, step, min, max, (name + ":%.3f").c_str());
 
-      auto diff = get_node_argument_diff<Int>(p, val);
+      if (min <= val && val <= max) {
 
-      if (!diff.empty()) {
-        dctx.cmd(std::make_unique<dcmd_push_update>(diff));
-        dctx.cmd(std::make_unique<dcmd_notify_execute>());
+        auto diff = get_node_argument_diff<Int>(m_arg->prop_tree(), val);
+
+        if (!diff.empty()) {
+          dctx.cmd(std::make_unique<dcmd_push_update>(diff));
+          dctx.cmd(std::make_unique<dcmd_notify_execute>());
+        }
       }
     }
     ImGui::PopStyleColor(4);
@@ -216,7 +222,8 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto val = get_current_argument_data<Bool>(m_arg, dctx);
+      auto prop = get_current_argument_data<Bool>(m_arg, dctx);
+      auto val  = prop.value;
 
       ImGui::Checkbox("", &val);
 
@@ -273,7 +280,8 @@ namespace yave::editor::imgui {
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImU32(slider_bg_col));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     {
-      auto val = (std::string)get_current_argument_data<String>(m_arg, dctx);
+      auto prop = get_current_argument_data<String>(m_arg, dctx);
+      auto val  = (std::string)prop.value;
 
       ImGui::InputText("", &val);
 

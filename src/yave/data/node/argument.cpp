@@ -13,11 +13,9 @@ namespace yave {
   node_argument_property_node_object_value::
     node_argument_property_node_object_value(
       const std::string& name,
-      const object_ptr<const Object>& value,
-      const std::vector<node_argument_nvp>& ps)
+      const object_ptr<const Object>& value)
     : m_name {name}
     , m_value {value}
-    , m_properties {ps}
   {
   }
 
@@ -62,24 +60,6 @@ namespace yave {
       m_value = std::move(v);
   }
 
-  auto node_argument_property_node_object_value::property(
-    const std::string& name) const -> object_ptr<const Object>
-  {
-    for (auto&& nvp : m_properties) {
-      if (std::string(nvp.name) == name)
-        return nvp.value;
-    }
-    return nullptr;
-  }
-
-  auto node_argument_property_node_object_value::properties() const
-    -> std::vector<node_argument_nvp>
-  {
-    if (is_value())
-      return m_properties;
-    return {};
-  }
-
   auto node_argument_property_node_object_value::type() const
     -> object_ptr<const Type>
   {
@@ -101,10 +81,8 @@ namespace yave {
   auto node_argument_property_node_object_value::clone() const
     -> object_ptr<NodeArgumentPropNode>
   {
-    if (is_value()) {
-      return make_object<NodeArgumentPropNode>(
-        m_name, m_value.clone(), m_properties);
-    }
+    if (is_value())
+      return make_object<NodeArgumentPropNode>(m_name, m_value.clone());
 
     auto ns = name();
     auto ty = type();

@@ -37,9 +37,9 @@ TEST_CASE("Constructor")
     check_type_dynamic<Int>(p->value());
     p->set_value(make_object<Int>(42));
     REQUIRE(*value_cast<Int>(p->value()) == 42);
-    REQUIRE(get_node_argument_value<Int>(p) == 42);
+    REQUIRE(get_node_argument_value<Int>(p).value == 42);
     set_node_argument_value<Int>(p, 24);
-    REQUIRE(get_node_argument_value<Int>(p) == 24);
+    REQUIRE(get_node_argument_value<Int>(p).value == 24);
     set_node_argument_value<Int>(p, 42);
     auto app = v->generate(v) << make_object<FrameDemand>();
     check_type_dynamic<Int>(app);
