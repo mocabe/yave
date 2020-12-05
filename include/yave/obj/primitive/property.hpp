@@ -45,14 +45,14 @@ namespace yave {
       value_type max   = std::numeric_limits<value_type>::max(),
       value_type step  = {1})
     {
-      return make_object<NodeArgumentPropNode>(
+      return make_object<PropertyTreeNode>(
         name,
         object_type<T>(),
         std::vector {
-          make_object<NodeArgumentPropNode>(value_name, make_object<T>(value)),
-          make_object<NodeArgumentPropNode>(min_name, make_object<T>(min)),
-          make_object<NodeArgumentPropNode>(max_name, make_object<T>(max)),
-          make_object<NodeArgumentPropNode>(step_name, make_object<T>(step))});
+          make_object<PropertyTreeNode>(value_name, make_object<T>(value)),
+          make_object<PropertyTreeNode>(min_name, make_object<T>(min)),
+          make_object<PropertyTreeNode>(max_name, make_object<T>(max)),
+          make_object<PropertyTreeNode>(step_name, make_object<T>(step))});
     }
 
     struct Generator : Function<Generator, NodeArgument, FrameDemand, T>
@@ -62,10 +62,11 @@ namespace yave {
         auto arg  = this->template eval_arg<0>();
         auto tree = arg->prop_tree();
 
-        for (auto&& c : tree->children())
-          if (c->name() == value_name)
-            return value_cast<T>(c->value());
-
+        for (auto&& c : tree->children()) {
+          if (c->name() == value_name) {
+            return c->get_value<T>();
+          }
+        }
         throw std::runtime_error("invalid argument property");
       }
     };
@@ -80,7 +81,7 @@ namespace yave {
         create_prop_tree("", value, min, max, step), make_object<Generator>());
     }
 
-    static auto get_value(const object_ptr<const NodeArgumentPropNode>& arg)
+    static auto get_value(const object_ptr<const PropertyTreeNode>& arg)
       -> property_value
     {
       auto ret = property_value();
@@ -90,19 +91,19 @@ namespace yave {
         auto name = c->name();
 
         /**/ if (name == value_name)
-          ret.value = *value_cast<T>(c->value());
+          ret.value = *c->get_value<T>();
         else if (name == min_name)
-          ret.min = *value_cast<T>(c->value());
+          ret.min = *c->get_value<T>();
         else if (name == max_name)
-          ret.max = *value_cast<T>(c->value());
+          ret.max = *c->get_value<T>();
         else if (name == step_name)
-          ret.step = *value_cast<T>(c->value());
+          ret.step = *c->get_value<T>();
       }
       return ret;
     }
 
     static void set_value(
-      const object_ptr<NodeArgumentPropNode>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       value_type val)
     {
       for (auto&& c : arg->children()) {
@@ -114,14 +115,15 @@ namespace yave {
     }
 
     static auto get_diff(
-      const object_ptr<NodeArgumentPropNode>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       value_type val)
     {
       auto ret = std::vector<node_argument_diff>();
       for (auto&& c : arg->children()) {
         if (c->name() == value_name) {
-          if (*value_cast<T>(c->value()) != val)
+          if (*c->get_value<T>() != val) {
             ret.push_back({c, make_object<T>(val)});
+          }
         }
       }
       return ret;
@@ -144,10 +146,10 @@ namespace yave {
 
     static auto create_prop_tree(const std::string& name, value_type value = {})
     {
-      return make_object<NodeArgumentPropNode>(
+      return make_object<PropertyTreeNode>(
         name,
         object_type<T>(),
-        std::vector {make_object<NodeArgumentPropNode>(
+        std::vector {make_object<PropertyTreeNode>(
           value_name, make_object<T>(value))});
     }
 
@@ -156,7 +158,12 @@ namespace yave {
       auto code() const -> typename Generator::return_type
       {
         auto arg = this->template eval_arg<0>();
-        return value_cast<T>(arg->prop_tree()->value());
+
+        for (auto&& c : arg->prop_tree()->children()) {
+          if (c->name() == value_name)
+            return c->get_value<T>();
+        }
+        throw std::runtime_error("invalid argument property");
       }
     };
 
@@ -166,21 +173,21 @@ namespace yave {
         create_prop_tree("", value), make_object<Generator>());
     }
 
-    static auto get_value(const object_ptr<const NodeArgumentPropNode>& arg)
+    static auto get_value(const object_ptr<const PropertyTreeNode>& arg)
       -> property_value
     {
       auto ret = property_value();
 
       for (auto&& c : arg->children()) {
         if (c->name() == value_name) {
-          ret.value = *value_cast<T>(c->value());
+          ret.value = *c->get_value<T>();
         }
       }
       return ret;
     }
 
     static void set_value(
-      const object_ptr<NodeArgumentPropNode>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       value_type val)
     {
       for (auto&& c : arg->children()) {
@@ -192,14 +199,15 @@ namespace yave {
     }
 
     static auto get_diff(
-      const object_ptr<NodeArgumentPropNode>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       value_type val)
     {
       auto ret = std::vector<node_argument_diff>();
       for (auto&& c : arg->children()) {
         if (c->name() == value_name) {
-          if (*value_cast<T>(c->value()) != val)
+          if (*c->get_value<T>() != val) {
             ret.push_back({c, make_object<T>(val)});
+          }
         }
       }
       return ret;

@@ -26,7 +26,7 @@ namespace yave::editor {
     struct update_data
     {
       /// property node to apply update
-      object_ptr<NodeArgumentPropNode> arg;
+      object_ptr<PropertyTreeNode> arg;
       /// new data to set
       object_ptr<const Object> data;
     };
@@ -39,8 +39,8 @@ namespace yave::editor {
 
     /// get current change
     [[nodiscard]] auto get_current_value(
-      const object_ptr<NodeArgumentPropNode>& arg) const
-      -> object_ptr<const NodeArgumentPropNode>;
+      const object_ptr<PropertyTreeNode>& arg) const
+      -> object_ptr<const PropertyTreeNode>;
   };
 
 } // namespace yave::editor

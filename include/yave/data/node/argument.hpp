@@ -10,72 +10,9 @@
 
 #include <yave/data/vector/vector.hpp>
 #include <yave/data/string/string.hpp>
+#include <yave/obj/property/property.hpp>
 
 namespace yave {
-
-  // fwd
-  class node_argument_property_node_object_value;
-  using NodeArgumentPropNode = Box<node_argument_property_node_object_value>;
-
-  /// value node of argument property tree
-  class node_argument_property_node_object_value
-  {
-    /// name of variable
-    data::string m_name;
-
-    /// variable which contains value.
-    /// possible type: Int, Float, Bool, String and Type.
-    /// nullptr when this is struct node
-    object_ptr<const Object> m_value;
-
-    /// type of struct.
-    /// non-null when this is struct node
-    object_ptr<const Type> m_stype;
-
-    /// members of value
-    /// this is not empty iff value.value is nullptr.
-    data::vector<object_ptr<NodeArgumentPropNode>> m_children;
-
-  public:
-    /// construct value node
-    node_argument_property_node_object_value(
-      const std::string& name,
-      const object_ptr<const Object>& value);
-
-    /// construct struct node
-    node_argument_property_node_object_value(
-      const std::string& name,
-      const object_ptr<const Type>& type,
-      const std::vector<object_ptr<NodeArgumentPropNode>>& children);
-
-    /// value node?
-    bool is_value() const;
-
-    /// struct node?
-    bool is_struct() const;
-
-    /// get user defined name
-    auto name() const -> std::string;
-
-    /// get value
-    /// \returns nullptr when struct node
-    auto value() const -> object_ptr<const Object>;
-
-    /// set value
-    void set_value(const object_ptr<const Object> v);
-
-    /// get type
-    /// \returns type of contained value when value node, otherwise user
-    /// provided type for struct.
-    auto type() const -> object_ptr<const Type>;
-
-    /// get members
-    /// \returns empty when value node
-    auto children() const -> std::vector<object_ptr<NodeArgumentPropNode>>;
-
-    /// clone this node
-    auto clone() const -> object_ptr<NodeArgumentPropNode>;
-  };
 
   // fwd
   class node_argument_object_value;
@@ -84,7 +21,7 @@ namespace yave {
   class node_argument_object_value
   {
     /// property tree
-    object_ptr<NodeArgumentPropNode> m_tree;
+    object_ptr<PropertyTreeNode> m_tree;
 
     /// generator function of (NodeArgument -> T)
     object_ptr<const Object> m_func;
@@ -93,11 +30,11 @@ namespace yave {
     /// \param tree property variables tree
     /// \param func generator function
     node_argument_object_value(
-      object_ptr<NodeArgumentPropNode> tree,
+      object_ptr<PropertyTreeNode> tree,
       object_ptr<const Object> func);
 
     /// get variable tree
-    auto prop_tree() const -> object_ptr<NodeArgumentPropNode>;
+    auto prop_tree() const -> object_ptr<PropertyTreeNode>;
 
     /// clone
     auto clone() const -> object_ptr<NodeArgument>;
@@ -124,7 +61,7 @@ namespace yave {
   /// Create new node argument property tree
   template <class T, class... Ts>
   [[nodiscard]] auto make_node_argument_prop_tree(Ts&&... args)
-    -> object_ptr<NodeArgumentPropNode>
+    -> object_ptr<PropertyTreeNode>
   {
     return node_argument_traits<T>::create_prop_tree(std::forward<Ts>(args)...);
   }
@@ -132,7 +69,7 @@ namespace yave {
   /// Get value from argument
   template <class T>
   [[nodiscard]] auto get_node_argument_value(
-    const object_ptr<const NodeArgumentPropNode>& arg)
+    const object_ptr<const PropertyTreeNode>& arg)
   {
     assert(same_type(arg->type(), object_type<T>()));
     return node_argument_traits<T>::get_value(arg);
@@ -141,7 +78,7 @@ namespace yave {
   struct node_argument_diff
   {
     /// value node
-    object_ptr<NodeArgumentPropNode> node;
+    object_ptr<PropertyTreeNode> node;
     /// new value
     object_ptr<const Object> value;
   };
@@ -150,7 +87,7 @@ namespace yave {
   /// \returns list of (value node, new value) pairs
   template <class T, class U>
   [[nodiscard]] auto get_node_argument_diff(
-    const object_ptr<NodeArgumentPropNode>& arg,
+    const object_ptr<PropertyTreeNode>& arg,
     const U& val) -> std::vector<node_argument_diff>
   {
     assert(same_type(arg->type(), object_type<T>()));
@@ -161,7 +98,7 @@ namespace yave {
   /// \param args implementation specific value(s) to set
   template <class T, class... Ts>
   void set_node_argument_value(
-    const object_ptr<NodeArgumentPropNode>& arg,
+    const object_ptr<PropertyTreeNode>& arg,
     Ts&&... args)
   {
     assert(same_type(arg->type(), object_type<T>()));

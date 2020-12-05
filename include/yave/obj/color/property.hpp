@@ -17,14 +17,14 @@ namespace yave {
       const std::string& name,
       data::color value = {})
     {
-      return make_object<NodeArgumentPropNode>(
+      return make_object<PropertyTreeNode>(
         name,
         object_type<Color>(),
         std::vector {
-          make_object<NodeArgumentPropNode>("r", make_object<Float>(value.r)),
-          make_object<NodeArgumentPropNode>("g", make_object<Float>(value.g)),
-          make_object<NodeArgumentPropNode>("b", make_object<Float>(value.b)),
-          make_object<NodeArgumentPropNode>("a", make_object<Float>(value.a))});
+          make_object<PropertyTreeNode>("r", make_object<Float>(value.r)),
+          make_object<PropertyTreeNode>("g", make_object<Float>(value.g)),
+          make_object<PropertyTreeNode>("b", make_object<Float>(value.b)),
+          make_object<PropertyTreeNode>("a", make_object<Float>(value.a))});
     }
 
     struct Generator : Function<Generator, NodeArgument, FrameDemand, Color>
@@ -37,10 +37,10 @@ namespace yave {
         assert(same_type(tree->type(), object_type<Color>()));
 
         auto cs = tree->children();
-        auto r  = value_cast<Float>(cs.at(0)->value());
-        auto g  = value_cast<Float>(cs.at(1)->value());
-        auto b  = value_cast<Float>(cs.at(2)->value());
-        auto a  = value_cast<Float>(cs.at(3)->value());
+        auto r  = cs.at(0)->get_value<Float>();
+        auto g  = cs.at(1)->get_value<Float>();
+        auto b  = cs.at(2)->get_value<Float>();
+        auto a  = cs.at(3)->get_value<Float>();
 
         return make_object<Color>(*r, *g, *b, *a);
       }
@@ -52,18 +52,35 @@ namespace yave {
         create_prop_tree("color", value), make_object<Generator>());
     }
 
-    static auto get_value(const object_ptr<const NodeArgumentPropNode>& p)
+    struct property_value
+    {
+      data::color value;
+    };
+
+    static auto get_value(const object_ptr<const PropertyTreeNode>& p)
+    {
+      auto ret    = property_value();
+      auto cs     = p->children();
+      ret.value.r = *cs.at(0)->get_value<Float>();
+      ret.value.g = *cs.at(1)->get_value<Float>();
+      ret.value.b = *cs.at(2)->get_value<Float>();
+      ret.value.a = *cs.at(3)->get_value<Float>();
+      return ret;
+    }
+
+    static auto set_value(
+      const object_ptr<PropertyTreeNode>& p,
+      data::color val)
     {
       auto cs = p->children();
-      auto r  = value_cast<Float>(cs.at(0)->value());
-      auto g  = value_cast<Float>(cs.at(1)->value());
-      auto b  = value_cast<Float>(cs.at(2)->value());
-      auto a  = value_cast<Float>(cs.at(3)->value());
-      return data::color {*r, *g, *b, *a};
+      cs.at(0)->set_value(make_object<Float>(val.r));
+      cs.at(1)->set_value(make_object<Float>(val.g));
+      cs.at(2)->set_value(make_object<Float>(val.b));
+      cs.at(3)->set_value(make_object<Float>(val.a));
     }
 
     static auto get_diff(
-      const object_ptr<NodeArgumentPropNode>& p,
+      const object_ptr<PropertyTreeNode>& p,
       data::color val)
     {
       auto cs  = p->children();
@@ -74,26 +91,15 @@ namespace yave {
       auto b = cs.at(2);
       auto a = cs.at(3);
 
-      if (*value_cast<Float>(r->value()) != val.r)
+      if (*r->get_value<Float>() != val.r)
         ret.push_back({r, make_object<Float>(val.r)});
-      if (*value_cast<Float>(g->value()) != val.g)
+      if (*r->get_value<Float>() != val.g)
         ret.push_back({g, make_object<Float>(val.g)});
-      if (*value_cast<Float>(b->value()) != val.b)
+      if (*r->get_value<Float>() != val.b)
         ret.push_back({b, make_object<Float>(val.b)});
-      if (*value_cast<Float>(a->value()) != val.a)
+      if (*r->get_value<Float>() != val.a)
         ret.push_back({a, make_object<Float>(val.a)});
       return ret;
-    }
-
-    static auto set_value(
-      const object_ptr<NodeArgumentPropNode>& p,
-      data::color val)
-    {
-      auto cs = p->children();
-      cs.at(0)->set_value(make_object<Float>(val.r));
-      cs.at(1)->set_value(make_object<Float>(val.g));
-      cs.at(2)->set_value(make_object<Float>(val.b));
-      cs.at(3)->set_value(make_object<Float>(val.a));
     }
   };
 

@@ -348,7 +348,8 @@ namespace yave::editor::imgui {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, get_node_rounding());
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
     {
-      auto val = get_current_argument_data<Color>(m_arg, dctx);
+      auto prop = get_current_argument_data<Color>(m_arg, dctx);
+      auto val  = prop.value;
 
       ImGui::ColorEdit4("", &(val.r), ImGuiColorEditFlags_Float);
 
@@ -415,7 +416,8 @@ namespace yave::editor::imgui {
     {
       auto& style = ImGui::GetStyle();
 
-      auto val = (glm::fvec2)get_current_argument_data<Vec2>(m_arg, dctx);
+      auto prop = get_current_argument_data<Vec2>(m_arg, dctx);
+      auto val  = glm::fvec2(prop.value);
 
       auto step = 1.f;
       auto lo   = std::numeric_limits<float>::lowest();

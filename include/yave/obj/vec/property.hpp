@@ -15,12 +15,12 @@ namespace yave {
   {
     static auto create_prop_tree(const std::string& name, glm::vec2 value = {})
     {
-      return make_object<NodeArgumentPropNode>(
+      return make_object<PropertyTreeNode>(
         name,
         object_type<Vec2>(),
         std::vector {
-          make_object<NodeArgumentPropNode>("x", make_object<Float>(value.x)),
-          make_object<NodeArgumentPropNode>("y", make_object<Float>(value.y))});
+          make_object<PropertyTreeNode>("x", make_object<Float>(value.x)),
+          make_object<PropertyTreeNode>("y", make_object<Float>(value.y))});
     }
 
     struct Generator : Function<Generator, NodeArgument, FrameDemand, Vec2>
@@ -35,8 +35,8 @@ namespace yave {
         assert(tree->children()[1]->name() == "y");
 
         auto cs = tree->children();
-        auto x  = value_cast<Float>(cs.at(0)->value());
-        auto y  = value_cast<Float>(cs.at(1)->value());
+        auto x  = cs.at(0)->get_value<Float>();
+        auto y  = cs.at(1)->get_value<Float>();
 
         return make_object<Vec2>(*x, *y);
       }
@@ -48,16 +48,31 @@ namespace yave {
         create_prop_tree("", value), make_object<Generator>());
     }
 
-    static auto get_value(const object_ptr<const NodeArgumentPropNode>& p)
+    struct property_value
+    {
+      glm::vec2 value;
+    };
+
+    static auto get_value(const object_ptr<const PropertyTreeNode>& p)
+    {
+      auto ret    = property_value();
+      auto cs     = p->children();
+      ret.value.x = *cs.at(0)->get_value<Float>();
+      ret.value.y = *cs.at(1)->get_value<Float>();
+      return ret;
+    }
+
+    static auto set_value(
+      const object_ptr<PropertyTreeNode>& p,
+      data::vec2 val)
     {
       auto cs = p->children();
-      auto x  = value_cast<Float>(cs.at(0)->value());
-      auto y  = value_cast<Float>(cs.at(1)->value());
-      return data::vec2(*x, *y);
+      cs.at(0)->set_value(make_object<const Float>(val.x));
+      cs.at(1)->set_value(make_object<const Float>(val.y));
     }
 
     static auto get_diff(
-      const object_ptr<NodeArgumentPropNode>& p,
+      const object_ptr<PropertyTreeNode>& p,
       data::vec2 val)
     {
       auto cs  = p->children();
@@ -66,20 +81,11 @@ namespace yave {
       auto x = cs.at(0);
       auto y = cs.at(1);
 
-      if (*value_cast<Float>(x->value()) != val.x)
+      if (*x->get_value<Float>() != val.x)
         ret.push_back({x, make_object<Float>(val.x)});
-      if (*value_cast<Float>(y->value()) != val.y)
+      if (*y->get_value<Float>() != val.y)
         ret.push_back({y, make_object<Float>(val.y)});
       return ret;
-    }
-
-    static auto set_value(
-      const object_ptr<NodeArgumentPropNode>& p,
-      data::vec2 val)
-    {
-      auto cs = p->children();
-      cs.at(0)->set_value(make_object<Float>(val.x));
-      cs.at(1)->set_value(make_object<Float>(val.y));
     }
   };
 

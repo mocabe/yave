@@ -34,12 +34,12 @@ namespace yave::editor {
     {
       for (auto&& u : updates) {
         assert(u.arg && u.data);
-        u.arg->set_value(u.data);
+        u.arg->set_value_untyped(u.data);
       }
       updates.clear();
     }
 
-    auto find_value(const object_ptr<NodeArgumentPropNode>& p) const
+    auto find_value(const object_ptr<PropertyTreeNode>& p) const
       -> object_ptr<const Object>
     {
       for (auto&& u : updates) {
@@ -50,13 +50,13 @@ namespace yave::editor {
       return nullptr;
     }
 
-    auto rebuild_prop_tree(const object_ptr<NodeArgumentPropNode>& p) const
-      -> object_ptr<NodeArgumentPropNode>
+    auto rebuild_prop_tree(const object_ptr<PropertyTreeNode>& p) const
+      -> object_ptr<PropertyTreeNode>
     {
       if (p->is_value()) {
         if (auto v = find_value(p)) {
           auto r = p->clone();
-          r->set_value(v);
+          r->set_value_untyped(v);
           return r;
         }
         return p;
@@ -69,11 +69,11 @@ namespace yave::editor {
         | rv::transform([&](auto&& c) { return rebuild_prop_tree(c); })
         | rn::to_vector;
 
-      return make_object<NodeArgumentPropNode>(p->name(), p->type(), newcs);
+      return make_object<PropertyTreeNode>(p->name(), p->type(), newcs);
     }
 
-    auto get_current_value(const object_ptr<NodeArgumentPropNode>& arg) const
-      -> object_ptr<const NodeArgumentPropNode>
+    auto get_current_value(const object_ptr<PropertyTreeNode>& arg) const
+      -> object_ptr<const PropertyTreeNode>
     {
       return rebuild_prop_tree(arg);
     }
@@ -101,8 +101,8 @@ namespace yave::editor {
   }
 
   auto node_argument_update_channel::get_current_value(
-    const object_ptr<NodeArgumentPropNode>& arg) const
-    -> object_ptr<const NodeArgumentPropNode>
+    const object_ptr<PropertyTreeNode>& arg) const
+    -> object_ptr<const PropertyTreeNode>
   {
     return m_pimpl->get_current_value(arg);
   }
