@@ -1033,8 +1033,10 @@ TEST_CASE("property")
 
     SECTION("callee")
     {
-      ng.set_shared_property(f, "test", make_object<Int>(42));
-      REQUIRE(*ng.get_shared_property<Int>(f, "test") == 42);
+      ng.set_shared_property(
+        f, "test", make_object<PropertyTreeNode>("", make_object<Int>(42)));
+
+      REQUIRE(*ng.get_shared_property(f, "test")->get_value<Int>() == 42);
 
       auto ff = node_handle();
 
@@ -1048,12 +1050,12 @@ TEST_CASE("property")
         ff = ng.create_clone(root, f);
       }
 
-      REQUIRE(*ng.get_shared_property<Int>(ff, "test") == 42);
+      REQUIRE(*ng.get_shared_property(ff, "test")->get_value<Int>() == 42);
 
-      *ng.get_shared_property<Int>(f, "test") = 24;
+      ng.get_shared_property(f, "test")->set_value(make_object<Int>(24));
 
-      REQUIRE(*ng.get_shared_property<Int>(f, "test") == 24);
-      REQUIRE(*ng.get_shared_property<Int>(ff, "test") == 24);
+      REQUIRE(*ng.get_shared_property(f, "test")->get_value<Int>() == 24);
+      REQUIRE(*ng.get_shared_property(ff, "test")->get_value<Int>() == 24);
     }
   }
 
@@ -1077,10 +1079,13 @@ TEST_CASE("property")
     SECTION("caller")
     {
       auto s = ng.output_sockets(m).at(0);
-      ng.set_property(m, "test", make_object<Int>(42));
-      ng.set_property(s, "test", make_object<Int>(42));
-      REQUIRE(*ng.get_property<Int>(m, "test") == 42);
-      REQUIRE(*ng.get_property<Int>(s, "test") == 42);
+      ng.set_property(
+        m, "test", make_object<PropertyTreeNode>("", make_object<Int>(42)));
+      ng.set_property(
+        s, "test", make_object<PropertyTreeNode>("", make_object<Int>(42)));
+
+      REQUIRE(*ng.get_property(m, "test")->get_value<Int>() == 42);
+      REQUIRE(*ng.get_property(s, "test")->get_value<Int>() == 42);
 
       // copy
       auto m2 = ng.create_copy(root, m);
@@ -1088,48 +1093,50 @@ TEST_CASE("property")
 
       REQUIRE(ng.exists(m2));
       REQUIRE(ng.exists(s2));
-      REQUIRE(*ng.get_property<Int>(m, "test") == 42);
-      REQUIRE(*ng.get_property<Int>(m2, "test") == 42);
-      REQUIRE(*ng.get_property<Int>(s, "test") == 42);
-      REQUIRE(*ng.get_property<Int>(s2, "test") == 42);
+      REQUIRE(*ng.get_property(m, "test")->get_value<Int>() == 42);
+      REQUIRE(*ng.get_property(m2, "test")->get_value<Int>() == 42);
+      REQUIRE(*ng.get_property(s, "test")->get_value<Int>() == 42);
+      REQUIRE(*ng.get_property(s2, "test")->get_value<Int>() == 42);
 
       // set
-      *ng.get_property<Int>(m2, "test") = 24;
-      *ng.get_property<Int>(s2, "test") = 24;
-      REQUIRE(*ng.get_property<Int>(m, "test") == 42);
-      REQUIRE(*ng.get_property<Int>(m2, "test") == 24);
-      REQUIRE(*ng.get_property<Int>(s, "test") == 42);
-      REQUIRE(*ng.get_property<Int>(s2, "test") == 24);
+      ng.get_property(m2, "test")->set_value(make_object<Int>(24));
+      ng.get_property(s2, "test")->set_value(make_object<Int>(24));
+      REQUIRE(*ng.get_property(m, "test")->get_value<Int>() == 42);
+      REQUIRE(*ng.get_property(m2, "test")->get_value<Int>() == 24);
+      REQUIRE(*ng.get_property(s, "test")->get_value<Int>() == 42);
+      REQUIRE(*ng.get_property(s2, "test")->get_value<Int>() == 24);
 
       // rm
       ng.remove_property(m2, "test");
       ng.remove_property(s2, "test");
-      REQUIRE(ng.get_property<Int>(m, "test"));
-      REQUIRE(!ng.get_property<Int>(m2, "test"));
-      REQUIRE(ng.get_property<Int>(s, "test"));
-      REQUIRE(!ng.get_property<Int>(s2, "test"));
+      REQUIRE(ng.get_property(m, "test"));
+      REQUIRE(!ng.get_property(m2, "test"));
+      REQUIRE(ng.get_property(s, "test"));
+      REQUIRE(!ng.get_property(s2, "test"));
     }
 
     SECTION("callee")
     {
-      ng.set_shared_property(m, "test", make_object<Int>(42));
-      REQUIRE(*ng.get_shared_property<Int>(m, "test") == 42);
+      ng.set_shared_property(
+        m, "test", make_object<PropertyTreeNode>("", make_object<Int>(42)));
+
+      REQUIRE(*ng.get_shared_property(m, "test")->get_value<Int>() == 42);
 
       // copy
       auto m2 = ng.create_copy(root, m);
       REQUIRE(ng.exists(m2));
-      REQUIRE(*ng.get_shared_property<Int>(m2, "test") == 42);
-      REQUIRE(*ng.get_shared_property<Int>(m, "test") == 42);
+      REQUIRE(*ng.get_shared_property(m2, "test")->get_value<Int>() == 42);
+      REQUIRE(*ng.get_shared_property(m, "test")->get_value<Int>() == 42);
 
       // set
-      *ng.get_shared_property<Int>(m, "test") = 24;
-      REQUIRE(*ng.get_shared_property<Int>(m2, "test") == 24);
-      REQUIRE(*ng.get_shared_property<Int>(m, "test") == 24);
+      ng.get_shared_property(m, "test")->set_value(make_object<Int>(24));
+      REQUIRE(*ng.get_shared_property(m2, "test")->get_value<Int>() == 24);
+      REQUIRE(*ng.get_shared_property(m, "test")->get_value<Int>() == 24);
 
       // rm
       ng.remove_shared_property(m2, "test");
-      REQUIRE(!ng.get_property<Int>(m, "test"));
-      REQUIRE(!ng.get_property<Int>(m2, "test"));
+      REQUIRE(!ng.get_property(m, "test"));
+      REQUIRE(!ng.get_property(m2, "test"));
     }
   }
 
@@ -1145,24 +1152,35 @@ TEST_CASE("property")
 
     SECTION("caller")
     {
-      ng.set_property(g, "test", make_object<Int>(42));
-      ng.set_property(s1, "test", make_object<Int>(422));
-      ng.set_property(s2, "test", make_object<Int>(4222));
-      REQUIRE(*ng.get_property<Int>(g, "test") == 42);
-      REQUIRE(*ng.get_property<Int>(s1, "test") == 422);
-      REQUIRE(*ng.get_property<Int>(s2, "test") == 4222);
+      ng.set_property(
+        g, "test", make_object<PropertyTreeNode>("", make_object<Int>(42)));
+      ng.set_property(
+        s1, "test", make_object<PropertyTreeNode>("", make_object<Int>(422)));
+      ng.set_property(
+        s2, "test", make_object<PropertyTreeNode>("", make_object<Int>(4222)));
+
+      REQUIRE(*ng.get_property(g, "test")->get_value<Int>() == 42);
+      REQUIRE(*ng.get_property(s1, "test")->get_value<Int>() == 422);
+      REQUIRE(*ng.get_property(s2, "test")->get_value<Int>() == 4222);
 
       SECTION("reassign")
       {
-        ng.set_property(g, "test", make_object<Float>(42.f));
-        ng.set_property(s1, "test", make_object<Float>(422.f));
-        ng.set_property(s2, "test", make_object<Float>(4222.f));
-        REQUIRE(!ng.get_property<Int>(g, "test"));
-        REQUIRE(!ng.get_property<Int>(s1, "test"));
-        REQUIRE(!ng.get_property<Int>(s2, "test"));
-        REQUIRE(*ng.get_property<Float>(g, "test") == 42.f);
-        REQUIRE(*ng.get_property<Float>(s1, "test") == 422.f);
-        REQUIRE(*ng.get_property<Float>(s2, "test") == 4222.f);
+        ng.set_property(
+          g,
+          "test",
+          make_object<PropertyTreeNode>("", make_object<Float>(42.f)));
+        ng.set_property(
+          s1,
+          "test",
+          make_object<PropertyTreeNode>("", make_object<Float>(422.f)));
+        ng.set_property(
+          s2,
+          "test",
+          make_object<PropertyTreeNode>("", make_object<Float>(4222.f)));
+
+        REQUIRE(*ng.get_property(g, "test")->get_value<Float>() == 42.f);
+        REQUIRE(*ng.get_property(s1, "test")->get_value<Float>() == 422.f);
+        REQUIRE(*ng.get_property(s2, "test")->get_value<Float>() == 4222.f);
       }
 
       SECTION("")
@@ -1186,62 +1204,64 @@ TEST_CASE("property")
         REQUIRE(ng.exists(ss1));
         REQUIRE(ng.exists(ss2));
 
-        REQUIRE(*ng.get_property<Int>(g, "test") == 42);
+        REQUIRE(*ng.get_property(g, "test")->get_value<Int>() == 42);
 
-        REQUIRE(*ng.get_property<Int>(gg, "test") == 42);
-        REQUIRE(*ng.get_property<Int>(ss1, "test") == 422);
-        REQUIRE(*ng.get_property<Int>(ss2, "test") == 4222);
+        REQUIRE(*ng.get_property(gg, "test")->get_value<Int>() == 42);
+        REQUIRE(*ng.get_property(ss1, "test")->get_value<Int>() == 422);
+        REQUIRE(*ng.get_property(ss2, "test")->get_value<Int>() == 4222);
 
-        *ng.get_property<Int>(gg, "test")  = 24;
-        *ng.get_property<Int>(ss1, "test") = 224;
-        *ng.get_property<Int>(ss2, "test") = 2224;
+        ng.get_property(gg, "test")->set_value(make_object<Int>(24));
+        ng.get_property(ss1, "test")->set_value(make_object<Int>(224));
+        ng.get_property(ss2, "test")->set_value(make_object<Int>(2224));
 
-        REQUIRE(*ng.get_property<Int>(g, "test") == 42);
-        REQUIRE(*ng.get_property<Int>(s1, "test") == 422);
-        REQUIRE(*ng.get_property<Int>(s2, "test") == 4222);
+        REQUIRE(*ng.get_property(g, "test")->get_value<Int>() == 42);
+        REQUIRE(*ng.get_property(s1, "test")->get_value<Int>() == 422);
+        REQUIRE(*ng.get_property(s2, "test")->get_value<Int>() == 4222);
 
-        REQUIRE(*ng.get_property<Int>(gg, "test") == 24);
-        REQUIRE(*ng.get_property<Int>(ss1, "test") == 224);
-        REQUIRE(*ng.get_property<Int>(ss2, "test") == 2224);
+        REQUIRE(*ng.get_property(gg, "test")->get_value<Int>() == 24);
+        REQUIRE(*ng.get_property(ss1, "test")->get_value<Int>() == 224);
+        REQUIRE(*ng.get_property(ss2, "test")->get_value<Int>() == 2224);
 
         auto ggg  = ng.create_copy(root, gg);
         auto sss1 = ng.input_sockets(ggg)[0];
         auto sss2 = ng.output_sockets(ggg)[0];
-        REQUIRE(*ng.get_property<Int>(gg, "test") == 24);
-        REQUIRE(*ng.get_property<Int>(ggg, "test") == 24);
-        REQUIRE(*ng.get_property<Int>(sss1, "test") == 224);
-        REQUIRE(*ng.get_property<Int>(sss2, "test") == 2224);
+        REQUIRE(*ng.get_property(gg, "test")->get_value<Int>() == 24);
+        REQUIRE(*ng.get_property(ggg, "test")->get_value<Int>() == 24);
+        REQUIRE(*ng.get_property(sss1, "test")->get_value<Int>() == 224);
+        REQUIRE(*ng.get_property(sss2, "test")->get_value<Int>() == 2224);
       }
     }
 
     SECTION("callee")
     {
-      ng.set_shared_property(g, "test", make_object<Int>(42));
-      REQUIRE(*ng.get_shared_property<Int>(g, "test") == 42);
+      ng.set_shared_property(
+        g, "test", make_object<PropertyTreeNode>("", make_object<Int>(42)));
 
-      *ng.get_shared_property<Int>(g, "test") = 24;
-      REQUIRE(*ng.get_shared_property<Int>(g, "test") == 24);
+      REQUIRE(*ng.get_shared_property(g, "test")->get_value<Int>() == 42);
+
+      ng.get_shared_property(g, "test")->set_value(make_object<Int>(24));
+      REQUIRE(*ng.get_shared_property(g, "test")->get_value<Int>() == 24);
 
       SECTION("copy")
       {
         auto gg = ng.create_copy(root, g);
-        REQUIRE(*ng.get_shared_property<Int>(g, "test") == 24);
-        REQUIRE(*ng.get_shared_property<Int>(gg, "test") == 24);
+        REQUIRE(*ng.get_shared_property(g, "test")->get_value<Int>() == 24);
+        REQUIRE(*ng.get_shared_property(gg, "test")->get_value<Int>() == 24);
 
-        *ng.get_shared_property<Int>(gg, "test") = 42;
-        REQUIRE(*ng.get_shared_property<Int>(g, "test") == 42);
-        REQUIRE(*ng.get_shared_property<Int>(gg, "test") == 42);
+        ng.get_shared_property(gg, "test")->set_value(make_object<Int>(42));
+        REQUIRE(*ng.get_shared_property(g, "test")->get_value<Int>() == 42);
+        REQUIRE(*ng.get_shared_property(gg, "test")->get_value<Int>() == 42);
       }
 
       SECTION("clone")
       {
         auto gg = ng.create_clone(root, g);
-        REQUIRE(*ng.get_shared_property<Int>(g, "test") == 24);
-        REQUIRE(*ng.get_shared_property<Int>(gg, "test") == 24);
+        REQUIRE(*ng.get_shared_property(g, "test")->get_value<Int>() == 24);
+        REQUIRE(*ng.get_shared_property(gg, "test")->get_value<Int>() == 24);
 
-        *ng.get_shared_property<Int>(gg, "test") = 42;
-        REQUIRE(*ng.get_shared_property<Int>(g, "test") == 24);
-        REQUIRE(*ng.get_shared_property<Int>(gg, "test") == 42);
+        ng.get_shared_property(gg, "test")->set_value(make_object<Int>(42));
+        REQUIRE(*ng.get_shared_property(g, "test")->get_value<Int>() == 24);
+        REQUIRE(*ng.get_shared_property(gg, "test")->get_value<Int>() == 42);
       }
     }
   }
