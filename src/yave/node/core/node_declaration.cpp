@@ -196,7 +196,7 @@ namespace yave {
 
            // set default args (init time only)
            for (auto&& [idx, arg] : d.default_args()) {
-             set_arg(ng, ng.input_sockets(n)[idx], arg.clone());
+             set_arg(idx, arg, n, ng);
            }
          }
          return n;
@@ -208,7 +208,7 @@ namespace yave {
          if (n) {
            // set default args
            for (auto&& [idx, arg] : d.default_args()) {
-             set_arg(ng, ng.input_sockets(n)[idx], arg.clone());
+             set_arg(idx, arg, n, ng);
            }
          }
          return n;

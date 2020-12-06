@@ -5,6 +5,7 @@
 
 #include <yave/node/core/structured_node_graph.hpp>
 #include <yave/node/core/node_graph.hpp>
+#include <yave/node/core/node_declaration.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/value_cast.hpp>
 #include <yave/obj/vec/vec.hpp>
@@ -2754,30 +2755,40 @@ namespace yave {
     }
 
     template <class Handle>
-    auto _get_property(const Handle& h, const std::string& name) const
-      -> object_ptr<Object>
+    auto get_property(const Handle& h, const std::string& name) const
+      -> object_ptr<PropertyTreeNode>
     {
       if (!exists(h))
         return nullptr;
 
-      return m_impl.get_caller_property(h, name);
+      if (auto p = m_impl.get_caller_property(h, name))
+        return value_cast<PropertyTreeNode>(p);
+
+      return nullptr;
     }
 
     template <class Handle>
     auto get_properties(const Handle& h)
-      -> std::vector<std::pair<std::string, object_ptr<Object>>>
+      -> std::vector<std::pair<std::string, object_ptr<PropertyTreeNode>>>
     {
       if (!exists(h))
         return {};
 
-      return m_impl.get_caller_properties(h);
+      auto ps = m_impl.get_caller_properties(h);
+
+      return ps //
+             | rv::transform([](auto&& p) {
+                 return std::make_pair(
+                   p.first, value_cast<PropertyTreeNode>(p.second));
+               })
+             | rn::to_vector;
     }
 
     template <class Handle>
     void set_property(
       const Handle& h,
       const std::string& name,
-      object_ptr<Object> data)
+      object_ptr<PropertyTreeNode> data)
     {
       if (!exists(h))
         return;
@@ -2791,19 +2802,22 @@ namespace yave {
       m_impl.remove_caller_property(h, name);
     }
 
-    auto _get_shared_property(const node_handle& h, const std::string& name)
-      const -> object_ptr<Object>
+    auto get_shared_property(const node_handle& h, const std::string& name)
+      const -> object_ptr<PropertyTreeNode>
     {
       if (!exists(h))
         return nullptr;
 
-      return m_impl.get_callee_property(h, name);
+      if (auto p = m_impl.get_callee_property(h, name))
+        return value_cast<PropertyTreeNode>(p);
+
+      return nullptr;
     }
 
     void set_shared_property(
       const node_handle& h,
       const std::string& name,
-      object_ptr<Object> data)
+      object_ptr<PropertyTreeNode> data)
     {
       if (!exists(h))
         return;
@@ -3270,28 +3284,28 @@ namespace yave {
     m_pimpl->set_name(socket, name);
   }
 
-  auto structured_node_graph::_get_property(
+  auto structured_node_graph::get_property(
     const node_handle& h,
-    const std::string& name) const -> object_ptr<Object>
+    const std::string& name) const -> object_ptr<PropertyTreeNode>
   {
-    return m_pimpl->_get_property(h, name);
+    return m_pimpl->get_property(h, name);
   }
 
-  auto structured_node_graph::_get_property(
+  auto structured_node_graph::get_property(
     const socket_handle& h,
-    const std::string& name) const -> object_ptr<Object>
+    const std::string& name) const -> object_ptr<PropertyTreeNode>
   {
-    return m_pimpl->_get_property(h, name);
+    return m_pimpl->get_property(h, name);
   }
 
-  auto structured_node_graph::get_properties(const node_handle& h)
-    -> std::vector<std::pair<std::string, object_ptr<Object>>>
+  auto structured_node_graph::get_properties(const node_handle& h) const
+    -> std::vector<std::pair<std::string, object_ptr<PropertyTreeNode>>>
   {
     return m_pimpl->get_properties(h);
   }
 
-  auto structured_node_graph::get_properties(const socket_handle& h)
-    -> std::vector<std::pair<std::string, object_ptr<Object>>>
+  auto structured_node_graph::get_properties(const socket_handle& h) const
+    -> std::vector<std::pair<std::string, object_ptr<PropertyTreeNode>>>
   {
     return m_pimpl->get_properties(h);
   }
@@ -3299,7 +3313,7 @@ namespace yave {
   void structured_node_graph::set_property(
     const node_handle& h,
     const std::string& name,
-    object_ptr<Object> data)
+    object_ptr<PropertyTreeNode> data)
   {
     m_pimpl->set_property(h, name, std::move(data));
   }
@@ -3307,7 +3321,7 @@ namespace yave {
   void structured_node_graph::set_property(
     const socket_handle& h,
     const std::string& name,
-    object_ptr<Object> data)
+    object_ptr<PropertyTreeNode> data)
   {
     m_pimpl->set_property(h, name, std::move(data));
   }
@@ -3326,17 +3340,17 @@ namespace yave {
     m_pimpl->remove_property(h, name);
   }
 
-  auto structured_node_graph::_get_shared_property(
+  auto structured_node_graph::get_shared_property(
     const node_handle& h,
-    const std::string& name) const -> object_ptr<Object>
+    const std::string& name) const -> object_ptr<PropertyTreeNode>
   {
-    return m_pimpl->_get_shared_property(h, name);
+    return m_pimpl->get_shared_property(h, name);
   }
 
   void structured_node_graph::set_shared_property(
     const node_handle& h,
     const std::string& name,
-    object_ptr<Object> data)
+    object_ptr<PropertyTreeNode> data)
   {
     m_pimpl->set_shared_property(h, name, std::move(data));
   }

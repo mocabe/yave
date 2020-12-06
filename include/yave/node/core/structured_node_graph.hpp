@@ -8,7 +8,7 @@
 #include <yave/node/core/structured_node_info.hpp>
 #include <yave/node/core/structured_socket_info.hpp>
 #include <yave/node/core/structured_connection_info.hpp>
-#include <yave/node/core/node_declaration.hpp>
+#include <yave/obj/property/property.hpp>
 
 #include <glm/glm.hpp>
 
@@ -87,83 +87,60 @@ namespace yave {
     /// set name of socket
     void set_name(const socket_handle& socket, const std::string& name);
 
-  private:
-    // clang-format off
-    auto _get_property(const node_handle&,   const std::string&) const -> object_ptr<Object>;
-    auto _get_property(const socket_handle&, const std::string&) const -> object_ptr<Object>;
-    auto _get_shared_property(const node_handle&,   const std::string&) const -> object_ptr<Object>;
-    auto _get_shared_property(const socket_handle&, const std::string&) const -> object_ptr<Object>;
-    // clang-format on
-
   public:
     /// get property
-    /// \param T expected type of property
-    /// \returns nullptr on not found or invalid type
-    template <class T>
+    /// \returns nullptr on not found
     [[nodiscard]] auto get_property(
       const node_handle& node,
-      const std::string& name) const -> object_ptr<T>
-    {
-      return value_cast_if<T>(_get_property(node, name));
-    }
+      const std::string& name) const -> object_ptr<PropertyTreeNode>;
 
     /// get property
-    /// \param T expected type of property
-    /// \returns nullptr on not found or invalid type
-    template <class T>
+    /// \returns nullptr on not found
     [[nodiscard]] auto get_property(
       const socket_handle& socket,
-      const std::string& name) const -> object_ptr<T>
-    {
-      return value_cast_if<T>(_get_property(socket, name));
-    }
+      const std::string& name) const -> object_ptr<PropertyTreeNode>;
 
     /// get all properties
-    [[nodiscard]] auto get_properties(const node_handle& h)
-      -> std::vector<std::pair<std::string, object_ptr<Object>>>;
+    [[nodiscard]] auto get_properties(const node_handle& h) const
+      -> std::vector<std::pair<std::string, object_ptr<PropertyTreeNode>>>;
 
     /// get all properties
-    [[nodiscard]] auto get_properties(const socket_handle& h)
-      -> std::vector<std::pair<std::string, object_ptr<Object>>>;
+    [[nodiscard]] auto get_properties(const socket_handle& h) const
+      -> std::vector<std::pair<std::string, object_ptr<PropertyTreeNode>>>;
 
     /// set property
     void set_property(
-      const node_handle&,
-      const std::string&,
-      object_ptr<Object>);
+      const node_handle& h,
+      const std::string& name,
+      object_ptr<PropertyTreeNode> prop);
 
     /// set property
     void set_property(
-      const socket_handle&,
-      const std::string&,
-      object_ptr<Object>);
+      const socket_handle& h,
+      const std::string& name,
+      object_ptr<PropertyTreeNode> prop);
 
     /// remove property
-    void remove_property(const node_handle&, const std::string&);
+    void remove_property(const node_handle& h, const std::string& name);
 
     /// remove property
-    void remove_property(const socket_handle&, const std::string&);
+    void remove_property(const socket_handle& h, const std::string& name);
 
   public:
     /// get shared property
-    /// \param T expected type of property
-    /// \returns nullptr on not found or invalid type
-    template <class T>
+    /// \returns nullptr on not found
     [[nodiscard]] auto get_shared_property(
       const node_handle& node,
-      const std::string& name) const -> object_ptr<T>
-    {
-      return value_cast_if<T>(_get_shared_property(node, name));
-    }
+      const std::string& name) const -> object_ptr<PropertyTreeNode>;
 
     /// set shared property
     void set_shared_property(
-      const node_handle&,
-      const std::string&,
-      object_ptr<Object>);
+      const node_handle& h,
+      const std::string& name,
+      object_ptr<PropertyTreeNode> prop);
 
     /// remove shared property
-    void remove_shared_property(const node_handle&, const std::string&);
+    void remove_shared_property(const node_handle& h, const std::string& name);
 
   public:
     /// get source id

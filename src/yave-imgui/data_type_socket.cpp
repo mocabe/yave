@@ -15,26 +15,24 @@ namespace yave::editor::imgui {
 
     template <class T>
     auto get_current_argument_data(
-      const object_ptr<NodeArgument>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       const data_context& dctx)
     {
       auto data = dctx.get_data<editor_data>();
-
-      auto p = arg->prop_tree();
 
       // get staged change in update channel
       auto staged = data //
                       .ref()
                       .update_channel()
-                      .get_current_value(p);
+                      .get_current_value(arg);
 
       // return staged data or current value in argument holder
-      return get_node_argument_value<T>(staged ? staged : p);
+      return get_node_argument_value<T>(staged ? staged : arg);
     }
   } // namespace
 
   data_type_socket<Float>::data_type_socket(
-    const object_ptr<NodeArgument>& arg,
+    const object_ptr<PropertyTreeNode>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -94,7 +92,7 @@ namespace yave::editor::imgui {
 
       if (min <= val && val <= max) {
 
-        auto diff = get_node_argument_diff<Float>(m_arg->prop_tree(), val);
+        auto diff = get_node_argument_diff<Float>(m_arg, val);
 
         if (!diff.empty()) {
           dctx.cmd(std::make_unique<dcmd_push_update>(diff));
@@ -109,7 +107,7 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Int>::data_type_socket(
-    const object_ptr<NodeArgument>& arg,
+    const object_ptr<PropertyTreeNode>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -168,7 +166,7 @@ namespace yave::editor::imgui {
 
       if (min <= val && val <= max) {
 
-        auto diff = get_node_argument_diff<Int>(m_arg->prop_tree(), val);
+        auto diff = get_node_argument_diff<Int>(m_arg, val);
 
         if (!diff.empty()) {
           dctx.cmd(std::make_unique<dcmd_push_update>(diff));
@@ -183,7 +181,7 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Bool>::data_type_socket(
-    const object_ptr<NodeArgument>& arg,
+    const object_ptr<PropertyTreeNode>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -227,7 +225,7 @@ namespace yave::editor::imgui {
 
       ImGui::Checkbox("", &val);
 
-      auto diff = get_node_argument_diff<Bool>(m_arg->prop_tree(), val);
+      auto diff = get_node_argument_diff<Bool>(m_arg, val);
 
       if (!diff.empty()) {
         dctx.cmd(std::make_unique<dcmd_push_update>(diff));
@@ -241,7 +239,7 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<String>::data_type_socket(
-    const object_ptr<NodeArgument>& arg,
+    const object_ptr<PropertyTreeNode>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -285,8 +283,7 @@ namespace yave::editor::imgui {
 
       ImGui::InputText("", &val);
 
-      auto diff =
-        get_node_argument_diff<String>(m_arg->prop_tree(), data::string(val));
+      auto diff = get_node_argument_diff<String>(m_arg, data::string(val));
 
       if (!diff.empty()) {
         dctx.cmd(std::make_unique<dcmd_push_update>(diff));
@@ -300,7 +297,7 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Color>::data_type_socket(
-    const object_ptr<NodeArgument>& arg,
+    const object_ptr<PropertyTreeNode>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -353,7 +350,7 @@ namespace yave::editor::imgui {
 
       ImGui::ColorEdit4("", &(val.r), ImGuiColorEditFlags_Float);
 
-      auto diff = get_node_argument_diff<Color>(m_arg->prop_tree(), val);
+      auto diff = get_node_argument_diff<Color>(m_arg, val);
 
       if (!diff.empty()) {
         dctx.cmd(std::make_unique<dcmd_push_update>(diff));
@@ -367,7 +364,7 @@ namespace yave::editor::imgui {
   }
 
   data_type_socket<Vec2>::data_type_socket(
-    const object_ptr<NodeArgument>& arg,
+    const object_ptr<PropertyTreeNode>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw)
@@ -429,7 +426,7 @@ namespace yave::editor::imgui {
       ImGui::SameLine(0, style.ItemInnerSpacing.x);
       ImGui::DragFloat("##y", &val.y, step, lo, hi, "y:%.1f");
 
-      auto diff = get_node_argument_diff<Vec2>(m_arg->prop_tree(), val);
+      auto diff = get_node_argument_diff<Vec2>(m_arg, val);
 
       if (!diff.empty()) {
         dctx.cmd(std::make_unique<dcmd_push_update>(diff));

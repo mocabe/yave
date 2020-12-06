@@ -55,7 +55,7 @@ namespace yave::editor {
     {
       if (p->is_value()) {
         if (auto v = find_value(p)) {
-          auto r = p->clone();
+          auto r = p.clone();
           r->set_value_untyped(v);
           return r;
         }

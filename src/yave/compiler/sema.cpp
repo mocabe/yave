@@ -41,43 +41,54 @@ namespace yave::compiler {
 
     using namespace std::literals::string_literals;
 
-    constexpr auto arg_holder_property_name = "arg_holder";
+    using arg_holder_map_t =
+      std::map<socket_handle, object_ptr<NodeArgumentHolder>>;
 
-    auto set_arg_holder(
-      structured_node_graph& ng,
+    void set_arg_holder(
+      arg_holder_map_t& map,
       socket_handle s,
       object_ptr<NodeArgumentHolder> arg)
     {
-      ng.set_property(s, arg_holder_property_name, std::move(arg));
+      map.emplace(s, std::move(arg));
     }
 
-    auto get_arg_holder(const structured_node_graph& ng, socket_handle s)
+    auto get_arg_holder(const arg_holder_map_t& map, socket_handle s)
+      -> object_ptr<NodeArgumentHolder>
     {
-      return ng.get_property<NodeArgumentHolder>(s, arg_holder_property_name);
+      if (auto it = map.find(s); it != map.end())
+        return it->second;
+      return nullptr;
     }
 
     auto desugar(
       structured_node_graph&& ng,
       const socket_handle& os,
+      const node_declaration_map& decls,
+      arg_holder_map_t& arg_map,
       message_map& /*msgs*/) -> tl::optional<structured_node_graph>
     {
       auto root   = ng.node(os);
       auto rootos = os;
 
       // omit unsued default socket data
-      auto select_arguments = [](const auto& n, auto& ng) {
-        for (auto&& s : ng.input_sockets(n))
-          if (ng.connections(s).empty())
-            if (auto arg = get_arg(ng, s))
-              set_arg_holder(ng, s, make_argument_holder(arg));
+      auto select_arguments = [&](const auto& n, auto& ng) {
+        for (auto&& s : ng.input_sockets(n)) {
+          if (ng.connections(s).empty()) {
+            auto arg = get_arg(s, ng, decls);
+            assert(arg);
+            set_arg_holder(arg_map, s, make_argument_holder(arg));
+          }
+        }
       };
 
       // add variables on empty input sockets
-      auto insert_variables = [](const auto& n, auto& ng) {
-        for (auto&& s : ng.input_sockets(n))
-          if (ng.connections(s).empty() && !get_arg(ng, s))
+      auto insert_variables = [&](const auto& n, auto& ng) {
+        for (auto&& s : ng.input_sockets(n)) {
+          if (ng.connections(s).empty() && !get_arg_property(s, ng)) {
             set_arg_holder(
-              ng, s, make_argument_holder(make_object<Variable>()));
+              arg_map, s, make_argument_holder(make_object<Variable>()));
+          }
+        }
       };
 
       // for group
@@ -142,6 +153,7 @@ namespace yave::compiler {
       structured_node_graph&& ng,
       const socket_handle& os,
       const node_definition_map& defs,
+      arg_holder_map_t& arg_map,
       message_map& msgs)
       -> tl::optional<
         std::tuple<object_ptr<const Object>, class_env, location_map>>
@@ -194,8 +206,8 @@ namespace yave::compiler {
         std::vector<object_ptr<const Object>> ins;
         for (auto&& s : ng.input_sockets(g)) {
 
-          if (auto arg = get_arg_holder(ng, s)) {
-            auto v = get_arg_holder(ng, s)->compile();
+          if (auto arg = get_arg_holder(arg_map, s)) {
+            auto v = arg->compile();
             loc.add_location(v, s);
             ins.push_back(v);
             continue;
@@ -247,7 +259,7 @@ namespace yave::compiler {
         for (auto&& s : ng.input_sockets(f)) {
 
           // default arg value
-          if (auto arg = get_arg_holder(ng, s)) {
+          if (auto arg = get_arg_holder(arg_map, s)) {
             body = body << arg->compile();
             loc.add_location(body, os);
             continue;
@@ -353,16 +365,20 @@ namespace yave::compiler {
     assert(pipe.get_data_if<structured_node_graph>("ng"));
     assert(pipe.get_data_if<socket_handle>("os"));
     assert(pipe.get_data_if<node_definition_map>("defs"));
+    assert(pipe.get_data_if<node_declaration_map>("decls"));
 
     auto& msg_map = pipe.get_data<message_map>("msg_map");
     auto& ng      = pipe.get_data<structured_node_graph>("ng");
     auto& os      = pipe.get_data<socket_handle>("os");
     auto& defs    = pipe.get_data<node_definition_map>("defs");
+    auto& decls   = pipe.get_data<node_declaration_map>("decls");
+
+    auto arg_map = arg_holder_map_t();
 
     // clang-format off
     tl::make_optional(std::move(ng)) //
-      .and_then([&](auto arg) { return desugar(std::move(arg), os, msg_map); })
-      .and_then([&](auto arg) { return gen(std::move(arg), os, defs, msg_map); })
+      .and_then([&](auto arg) { return desugar(std::move(arg), os, decls, arg_map, msg_map); })
+      .and_then([&](auto arg) { return gen(std::move(arg), os, defs, arg_map, msg_map); })
       .and_then([&](auto arg) { return type(std::move(arg), msg_map); })
       .and_then([&](auto arg) { return output(std::move(arg), pipe); })
       .or_else([&] { pipe.set_failed(); });

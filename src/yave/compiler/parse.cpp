@@ -212,7 +212,7 @@ namespace yave::compiler {
 
         // socket has default argument
         auto has_default_arg = [&](auto&& s) -> bool {
-          return get_arg(ng, s) != nullptr;
+          return get_arg_property(s, ng) != nullptr;
         };
 
         // missing socket connection

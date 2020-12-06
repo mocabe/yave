@@ -7,6 +7,8 @@
 
 #include <yave/rts/object_ptr.hpp>
 #include <yave/node/core/function.hpp>
+#include <yave/data/string/string.hpp>
+#include <yave/data/vector/vector.hpp>
 #include <yave/obj/primitive/primitive.hpp>
 
 #include <concepts>
@@ -81,6 +83,18 @@ namespace yave {
     {
     }
 
+    /// copy constructor
+    property_tree_node_object_value(
+      const property_tree_node_object_value& other)
+      : m_name {other.m_name}
+      , m_value {other.m_value}
+      , m_type {other.m_type}
+      , m_children {other.m_children}
+    {
+      for (auto&& c : m_children)
+        c = c.clone();
+    }
+
     /// value node?
     bool is_value() const
     {
@@ -141,24 +155,6 @@ namespace yave {
     {
       assert(!is_value());
       return m_children;
-    }
-
-    /// clone from this node
-    auto clone() const -> object_ptr<PropertyTreeNode>
-    {
-      if (is_value())
-        return make_object<PropertyTreeNode>(
-          private_access {}, m_name, m_value.clone());
-
-      auto ns = name();
-      auto ty = type();
-      auto cs = m_children;
-
-      for (auto& c : cs)
-        c = c->clone();
-
-      return make_object<PropertyTreeNode>(
-        std::move(ns), std::move(ty), std::move(cs));
     }
   };
 } // namespace yave

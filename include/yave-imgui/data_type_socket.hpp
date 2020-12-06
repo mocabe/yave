@@ -21,11 +21,11 @@ namespace yave::editor::imgui {
   template <>
   class data_type_socket<Float> : public basic_socket_drawer
   {
-    object_ptr<NodeArgument> m_arg;
+    object_ptr<PropertyTreeNode> m_arg;
 
   public:
     data_type_socket(
-      const object_ptr<NodeArgument>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       const socket_handle& s,
       const structured_node_graph& g,
       const node_window& nw);
@@ -45,11 +45,11 @@ namespace yave::editor::imgui {
   template <>
   class data_type_socket<Int> : public basic_socket_drawer
   {
-    object_ptr<NodeArgument> m_arg;
+    object_ptr<PropertyTreeNode> m_arg;
 
   public:
     data_type_socket(
-      const object_ptr<NodeArgument>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       const socket_handle& s,
       const structured_node_graph& g,
       const node_window& nw);
@@ -69,11 +69,11 @@ namespace yave::editor::imgui {
   template <>
   class data_type_socket<Bool> : public basic_socket_drawer
   {
-    object_ptr<NodeArgument> m_arg;
+    object_ptr<PropertyTreeNode> m_arg;
 
   public:
     data_type_socket(
-      const object_ptr<NodeArgument>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       const socket_handle& s,
       const structured_node_graph& g,
       const node_window& nw);
@@ -91,11 +91,11 @@ namespace yave::editor::imgui {
   template <>
   class data_type_socket<String> : public basic_socket_drawer
   {
-    object_ptr<NodeArgument> m_arg;
+    object_ptr<PropertyTreeNode> m_arg;
 
   public:
     data_type_socket(
-      const object_ptr<NodeArgument>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       const socket_handle& s,
       const structured_node_graph& g,
       const node_window& nw);
@@ -113,11 +113,11 @@ namespace yave::editor::imgui {
   template <>
   class data_type_socket<Color> : public basic_socket_drawer
   {
-    object_ptr<NodeArgument> m_arg;
+    object_ptr<PropertyTreeNode> m_arg;
 
   public:
     data_type_socket(
-      const object_ptr<NodeArgument>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       const socket_handle& s,
       const structured_node_graph& g,
       const node_window& nw);
@@ -137,11 +137,11 @@ namespace yave::editor::imgui {
   template <>
   class data_type_socket<Vec2> : public basic_socket_drawer
   {
-    object_ptr<NodeArgument> m_arg;
+    object_ptr<PropertyTreeNode> m_arg;
 
   public:
     data_type_socket(
-      const object_ptr<NodeArgument>& arg,
+      const object_ptr<PropertyTreeNode>& arg,
       const socket_handle& s,
       const structured_node_graph& g,
       const node_window& nw);

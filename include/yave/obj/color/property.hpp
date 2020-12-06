@@ -32,7 +32,7 @@ namespace yave {
       auto code() const -> return_type
       {
         auto arg  = eval_arg<0>();
-        auto tree = arg->prop_tree();
+        auto tree = arg->property();
 
         assert(same_type(tree->type(), object_type<Color>()));
 

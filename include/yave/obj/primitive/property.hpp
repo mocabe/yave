@@ -60,7 +60,7 @@ namespace yave {
       auto code() const -> typename Generator::return_type
       {
         auto arg  = this->template eval_arg<0>();
-        auto tree = arg->prop_tree();
+        auto tree = arg->property();
 
         for (auto&& c : tree->children()) {
           if (c->name() == value_name) {
@@ -159,7 +159,7 @@ namespace yave {
       {
         auto arg = this->template eval_arg<0>();
 
-        for (auto&& c : arg->prop_tree()->children()) {
+        for (auto&& c : arg->property()->children()) {
           if (c->name() == value_name)
             return c->get_value<T>();
         }

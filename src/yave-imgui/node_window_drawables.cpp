@@ -34,12 +34,12 @@ namespace yave::editor::imgui {
   template <class T, class... Ts>
   auto create_data_type_socket(
     meta_tuple<T, Ts...>,
-    const object_ptr<NodeArgument>& arg,
+    const object_ptr<PropertyTreeNode>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw) -> std::unique_ptr<socket_drawable>
   {
-    if (same_type(arg->prop_tree()->type(), object_type<T>()))
+    if (same_type(arg->type(), object_type<T>()))
       return std::make_unique<data_type_socket<T>>(arg, s, g, nw);
 
     if constexpr (sizeof...(Ts) > 0)
@@ -57,7 +57,7 @@ namespace yave::editor::imgui {
     constexpr auto data_types = tuple_c<Int, Float, Bool, String, Color, Vec2>;
 
     // check data types
-    if (auto arg = get_arg(g, s))
+    if (auto arg = get_arg_property(s, g))
       if (auto ds = create_data_type_socket(data_types, arg, s, g, nw))
         return ds;
 

@@ -33,11 +33,13 @@ namespace yave {
       object_ptr<PropertyTreeNode> tree,
       object_ptr<const Object> func);
 
-    /// get variable tree
-    auto prop_tree() const -> object_ptr<PropertyTreeNode>;
+    node_argument_object_value(const node_argument_object_value& other);
 
-    /// clone
-    auto clone() const -> object_ptr<NodeArgument>;
+    /// get variable tree
+    auto property() const -> object_ptr<PropertyTreeNode>;
+
+    /// get generator
+    auto generator() const -> object_ptr<const Object>;
 
     /// generate executable object
     auto generate(object_ptr<const NodeArgument> self) const

@@ -44,7 +44,7 @@ namespace yave::editor::imgui {
     const node_window& nw)
     : node_drawable {n, *g.get_info(n)}
     , m_title {info.name()}
-    , m_pos {get_pos(g, n)}
+    , m_pos {get_pos(n, g)}
   {
     (void)nw;
 

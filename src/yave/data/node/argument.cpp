@@ -18,15 +18,22 @@ namespace yave {
   {
   }
 
-  auto node_argument_object_value::prop_tree() const
+  node_argument_object_value::node_argument_object_value(
+    const node_argument_object_value& other)
+    : m_tree {other.m_tree.clone()}
+    , m_func {other.m_func}
+  {
+  }
+
+  auto node_argument_object_value::property() const
     -> object_ptr<PropertyTreeNode>
   {
     return m_tree;
   }
 
-  auto node_argument_object_value::clone() const -> object_ptr<NodeArgument>
+  auto node_argument_object_value::generator() const -> object_ptr<const Object>
   {
-    return make_object<NodeArgument>(m_tree->clone(), m_func);
+    return m_func;
   }
 
   auto node_argument_object_value::generate(
