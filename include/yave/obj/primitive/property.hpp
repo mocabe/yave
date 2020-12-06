@@ -64,7 +64,7 @@ namespace yave {
 
         for (auto&& c : tree->children()) {
           if (c->name() == value_name) {
-            return c->get_value<T>();
+            return c->template get_value<T>();
           }
         }
         throw std::runtime_error("invalid argument property");
@@ -161,7 +161,7 @@ namespace yave {
 
         for (auto&& c : arg->property()->children()) {
           if (c->name() == value_name)
-            return c->get_value<T>();
+            return c->template get_value<T>();
         }
         throw std::runtime_error("invalid argument property");
       }
