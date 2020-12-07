@@ -74,9 +74,8 @@ namespace yave::compiler {
       auto select_arguments = [&](const auto& n, auto& ng) {
         for (auto&& s : ng.input_sockets(n)) {
           if (ng.connections(s).empty()) {
-            auto arg = get_arg(s, ng, decls);
-            assert(arg);
-            set_arg_holder(arg_map, s, make_argument_holder(arg));
+            if (auto arg = get_arg(s, ng, decls))
+              set_arg_holder(arg_map, s, make_argument_holder(arg));
           }
         }
       };
