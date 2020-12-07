@@ -207,24 +207,24 @@ namespace yave {
   public:
     /// Create function declaration
     auto create_function(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle;
+      const std::vector<std::string>& oss,
+      const uid& id = uid::random_generate()) -> node_handle;
 
     /// Create macro declaration
     auto create_macro(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle;
+      const std::vector<std::string>& oss,
+      const uid& id = uid::random_generate()) -> node_handle;
 
     /// Create group declaration
     auto create_group(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle;
+      const std::vector<std::string>& oss,
+      const uid& id = uid::random_generate()) -> node_handle;
 
     /// Create new group
     /// \param parent_group parent group. null handle with it's global

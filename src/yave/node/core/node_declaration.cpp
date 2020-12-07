@@ -184,7 +184,7 @@ namespace yave {
       overloaded        //
       {[&](const composed_node_declaration& d) {
          auto n = ng.create_group(
-           d.node_path(), d.node_name(), d.input_sockets(), d.output_sockets());
+           d.full_name(), d.input_sockets(), d.output_sockets());
 
          if (n) {
 
@@ -203,7 +203,7 @@ namespace yave {
        },
        [&](const function_node_declaration& d) {
          auto n = ng.create_function(
-           d.node_path(), d.node_name(), d.input_sockets(), d.output_sockets());
+           d.full_name(), d.input_sockets(), d.output_sockets());
 
          if (n) {
            // set default args
@@ -215,7 +215,7 @@ namespace yave {
        },
        [&](const macro_node_declaration& d) {
          auto n = ng.create_macro(
-           d.node_path(), d.node_name(), d.input_sockets(), d.output_sockets());
+           d.full_name(), d.input_sockets(), d.output_sockets());
          return n;
        }});
   }

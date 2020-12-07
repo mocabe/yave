@@ -2282,56 +2282,73 @@ namespace yave {
       return nullptr;
     }
 
+    bool check_decl_path(const std::string& path) const
+    {
+      static const auto re = std::regex(path_name_regex);
+      return std::regex_match(path, re);
+    }
+
+    auto get_decl_path_name(const std::string_view& path) const
+    {
+      return std::string(path.substr(path.find_last_of('.') + 1, path.npos));
+    }
+
   public:
     auto create_function_declaration(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
     {
-      auto full_name = node_path + "." + node_name;
+      Info(g_logger, "Creating new function: {}", path);
 
-      Info(g_logger, "Creating new function declaration: {}", full_name);
+      if (!check_decl_path(path))
+        return {};
 
-      if (auto p = create_declaration_path(full_name)) {
-        auto func = check(add_new_callee_function(node_name, iss, oss));
-        auto call = check(add_new_call(p, func));
+      if (auto p = create_declaration_path(path)) {
+        auto name = get_decl_path_name(path);
+        auto func = check(add_new_callee_function(name, iss, oss));
+        auto call = check(add_new_call(p, func, id));
         return call->node;
       }
       return {};
     }
 
     auto create_macro_declaration(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
     {
-      auto full_name = node_path + "." + node_name;
+      Info(g_logger, "Creating new macro: {}", path);
 
-      Info(g_logger, "Creating new macro declaration: {}", full_name);
+      if (!check_decl_path(path))
+        return {};
 
-      if (auto p = create_declaration_path(full_name)) {
-        auto func = check(add_new_callee_macro(node_name, iss, oss));
-        auto call = check(add_new_call(p, func));
+      if (auto p = create_declaration_path(path)) {
+        auto name = get_decl_path_name(path);
+        auto func = check(add_new_callee_macro(name, iss, oss));
+        auto call = check(add_new_call(p, func, id));
         return call->node;
       }
       return {};
     }
 
     auto create_group_declaration(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
     {
-      auto full_name = node_path + "." + node_name;
+      Info(g_logger, "Creating new group: {}", path);
 
-      Info(g_logger, "Creating new group declaration: {}", full_name);
+      if (!check_decl_path(path))
+        return {};
 
-      if (auto p = create_declaration_path(full_name)) {
-        auto func = check(add_new_callee_group(node_name, iss, oss));
-        auto call = check(add_new_call(p, func));
+      if (auto p = create_declaration_path(path)) {
+        auto name = get_decl_path_name(path);
+        auto func = check(add_new_callee_group(name, iss, oss));
+        auto call = check(add_new_call(p, func, id));
         return call->node;
       }
       return {};
@@ -3074,30 +3091,30 @@ namespace yave {
     }
 
     auto create_function(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
     {
-      return m_impl.create_function_declaration(node_path, node_name, iss, oss);
+      return m_impl.create_function_declaration(path, iss, oss, id);
     }
 
     auto create_macro(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
     {
-      return m_impl.create_macro_declaration(node_path, node_name, iss, oss);
+      return m_impl.create_macro_declaration(path, iss, oss, id);
     }
 
     auto create_group(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
     {
-      return m_impl.create_group_declaration(node_path, node_name, iss, oss);
+      return m_impl.create_group_declaration(path, iss, oss, id);
     }
 
     auto create_group(
@@ -3567,30 +3584,30 @@ namespace yave {
   }
 
   auto structured_node_graph::create_function(
-    const std::string& node_path,
-    const std::string& node_name,
+    const std::string& path,
     const std::vector<std::string>& iss,
-    const std::vector<std::string>& oss) -> node_handle
+    const std::vector<std::string>& oss,
+    const uid& id) -> node_handle
   {
-    return m_pimpl->create_function(node_path, node_name, iss, oss);
+    return m_pimpl->create_function(path, iss, oss, id);
   }
 
   auto structured_node_graph::create_macro(
-    const std::string& node_path,
-    const std::string& node_name,
+    const std::string& path,
     const std::vector<std::string>& iss,
-    const std::vector<std::string>& oss) -> node_handle
+    const std::vector<std::string>& oss,
+    const uid& id) -> node_handle
   {
-    return m_pimpl->create_macro(node_path, node_name, iss, oss);
+    return m_pimpl->create_macro(path, iss, oss, id);
   }
 
   auto structured_node_graph::create_group(
-    const std::string& node_path,
-    const std::string& node_name,
+    const std::string& path,
     const std::vector<std::string>& iss,
-    const std::vector<std::string>& oss) -> node_handle
+    const std::vector<std::string>& oss,
+    const uid& id) -> node_handle
   {
-    return m_pimpl->create_group(node_path, node_name, iss, oss);
+    return m_pimpl->create_group(path, iss, oss, id);
   }
 
   auto structured_node_graph::create_group(
