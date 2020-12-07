@@ -53,9 +53,15 @@ namespace yave {
       auto operator<=>(const hid&) const = default;
 
       template <class Archive>
-      void serialize(Archive& ar)
+      auto save_minimal(const Archive&) const
       {
-        ar(CEREAL_NVP(id));
+        return id;
+      }
+
+      template <class Archive>
+      void load_minimal(Archive&, const uint64_t& value)
+      {
+        id = value;
       }
     };
 
@@ -190,7 +196,7 @@ namespace yave {
       std::vector<cdata> cs;
 
       template <class Archive>
-      void serialize(Archive& ar)
+      void serialize(Archive& ar, const uint32_t)
       {
         ar(CEREAL_NVP(root), CEREAL_NVP(ns), CEREAL_NVP(ss), CEREAL_NVP(cs));
       }
@@ -673,3 +679,5 @@ namespace yave {
     structured_node_graph&);
 
 } // namespace yave
+
+CEREAL_CLASS_VERSION(yave::ngdata, 0);
