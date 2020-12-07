@@ -524,7 +524,7 @@ namespace yave {
           case ntype::group: {
 
             auto h = ng.create_copy(
-              ng.search_path(n.defpath).at(0), nmap.at(n.parent));
+              nmap.at(n.parent), ng.search_path(n.defpath).at(0));
 
             assert(h);
             nmap.emplace(n.id, h);
@@ -548,7 +548,7 @@ namespace yave {
           case ntype::macro: {
 
             auto h = ng.create_copy(
-              ng.search_path(n.defpath).at(0), nmap.at(n.parent));
+              nmap.at(n.parent), ng.search_path(n.defpath).at(0));
 
             assert(h);
             nmap.emplace(n.id, h);
