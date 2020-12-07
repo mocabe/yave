@@ -15,6 +15,7 @@ add_library(yave-node-core
   node_definition_store.cpp
   structured_node_graph.cpp
   properties.cpp
+  serialize.cpp
 )
 
 add_library(yave::node::core ALIAS yave-node-core)
