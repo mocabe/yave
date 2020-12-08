@@ -130,6 +130,7 @@ namespace yave {
     {
       nid id;
       nid parent;
+      std::string name;
       std::string defpath;
       ntype ntp;
       ctype ctp;
@@ -143,6 +144,7 @@ namespace yave {
         ar(
           CEREAL_NVP(id),
           CEREAL_NVP(parent),
+          CEREAL_NVP(name),
           CEREAL_NVP(defpath),
           CEREAL_NVP(ntp),
           CEREAL_NVP(ctp),
@@ -330,6 +332,7 @@ namespace yave {
         auto nd   = ndata();
         nd.id     = n;
         nd.parent = ng.get_parent_group(n);
+        nd.name   = ng.get_name(n).value();
 
         // io do not have definition
         if (auto d = ng.get_definition(n)) {
@@ -576,6 +579,8 @@ namespace yave {
             auto h = ng.get_group_input(nmap.at(n.parent));
             nmap.emplace(n.id, h);
 
+            ng.set_name(h, n.name);
+
             auto oss = ng.output_sockets(h);
             assert(n.oss.size() == oss.size());
             for (size_t i = 0; i < n.oss.size(); ++i) {
@@ -586,6 +591,8 @@ namespace yave {
           case ntype::group_output: {
             auto h = ng.get_group_output(nmap.at(n.parent));
             nmap.emplace(n.id, h);
+
+            ng.set_name(h, n.name);
 
             auto iss = ng.input_sockets(h);
             assert(n.iss.size() == iss.size());
