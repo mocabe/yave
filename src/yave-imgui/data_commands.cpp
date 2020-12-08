@@ -548,4 +548,43 @@ namespace yave::editor::imgui {
     // TODO: undo/redo
     return data_command_type::single_time;
   }
+
+  // ------------------------------------------
+  // dcmd_save
+
+  void dcmd_save::exec(data_context& ctx)
+  {
+    auto lck = ctx.get_data<editor_data>();
+    lck.ref().save();
+  }
+
+  void dcmd_save::undo(data_context& ctx)
+  {
+    assert(false);
+  }
+
+  auto dcmd_save::type() const -> data_command_type
+  {
+    return data_command_type::single_time;
+  }
+
+  // ------------------------------------------
+  // dcmd_load
+
+  void dcmd_load::exec(data_context& ctx)
+  {
+    auto lck = ctx.get_data<editor_data>();
+    lck.ref().load();
+    lck.ref().compile_thread().notify_recompile();
+  }
+
+  void dcmd_load::undo(data_context& ctx)
+  {
+    assert(false);
+  }
+
+  auto dcmd_load::type() const -> data_command_type
+  {
+    return data_command_type::single_time;
+  }
 } // namespace yave::editor::imgui

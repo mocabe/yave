@@ -7,6 +7,8 @@
 #include <yave-imgui/node_window.hpp>
 #include <yave-imgui/render_view_window.hpp>
 
+#include <yave-imgui/data_commands.hpp>
+
 #include <yave/support/log.hpp>
 #include <imgui_internal.h>
 
@@ -41,6 +43,8 @@ namespace yave::editor::imgui {
 
   void root_window::_draw_menu_bar(const editor::view_context& vctx) const
   {
+    bool open_save  = false;
+    bool open_load  = false;
     bool open_usage = false;
     bool open_about = false;
     bool open_demo  = false;
@@ -48,6 +52,11 @@ namespace yave::editor::imgui {
     // main menu bar
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, 5.f));
     if (ImGui::BeginMenuBar()) {
+      if (ImGui::BeginMenu("Edit")) {
+        ImGui::MenuItem("save", nullptr, &open_save);
+        ImGui::MenuItem("load", nullptr, &open_load);
+        ImGui::EndMenu();
+      }
       if (ImGui::BeginMenu("Help")) {
         ImGui::MenuItem("usage", nullptr, &open_usage);
         ImGui::MenuItem("about", nullptr, &open_about);
@@ -61,11 +70,89 @@ namespace yave::editor::imgui {
     // set model
     vctx.cmd(make_window_view_command(*this, [=](auto& w) {
       // clang-format off
+      if (open_save) w.open_save_modal = true;
+      if (open_load) w.open_load_modal = true;
       if (open_usage) w.open_usage_modal = true;
       if (open_about) w.open_about_modal = true;
       if (open_demo) w.open_demo_window = true;
       // clang-format on
     }));
+  }
+
+  void root_window::_draw_save_modal(
+    const editor::data_context& dctx,
+    const editor::view_context& vctx) const
+  {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.f, 10.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 5.f);
+    {
+      auto flags = ImGuiWindowFlags_NoResize;
+      if (ImGui::BeginPopupModal("save", nullptr, flags)) {
+
+        ImGui::Text("Save current nodes into 'yave.json'.");
+        ImGui::Separator();
+        ImGui::Text("This overwrites previous content of the file.");
+        ImGui::Text("Please rename if you want to keep it.");
+        ImGui::Spacing();
+        ImGui::Text("Continue?");
+        ImGui::Spacing();
+
+        if (ImGui::Button("ok")) {
+          dctx.cmd(std::make_unique<dcmd_save>());
+          ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("cancel"))
+          ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+      }
+    }
+    ImGui::PopStyleVar(2);
+
+    if (open_save_modal) {
+      ImGui::OpenPopup("save");
+      vctx.cmd(make_window_view_command(
+        *this, [](auto& w) { w.open_save_modal = false; }));
+    }
+  }
+
+  void root_window::_draw_load_modal(
+    const editor::data_context& dctx,
+    const editor::view_context& vctx) const
+  {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.f, 10.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 5.f);
+    {
+      auto flags = ImGuiWindowFlags_NoResize;
+      if (ImGui::BeginPopupModal("load", nullptr, flags)) {
+        ImGui::Text("Load node grpah from 'yave.json'.");
+        ImGui::Text("This overwrites current project.");
+        ImGui::Spacing();
+        ImGui::Text("Continue?");
+
+        if (ImGui::Button("ok")) {
+          dctx.cmd(std::make_unique<dcmd_load>());
+          ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("cancel"))
+          ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+      }
+    }
+    ImGui::PopStyleVar(2);
+
+    if (open_load_modal) {
+      ImGui::OpenPopup("load");
+      vctx.cmd(make_window_view_command(
+        *this, [](auto& w) { w.open_load_modal = false; }));
+    }
   }
 
   void root_window::_draw_usage_modal(const editor::view_context& vctx) const
@@ -224,6 +311,8 @@ namespace yave::editor::imgui {
     {
       _layout_once(vctx);
       _draw_menu_bar(vctx);
+      _draw_save_modal(dctx, vctx);
+      _draw_load_modal(dctx, vctx);
       _draw_about_modal(vctx);
       _draw_usage_modal(vctx);
       _draw_imgui_demo(vctx);

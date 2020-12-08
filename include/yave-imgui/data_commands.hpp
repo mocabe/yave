@@ -233,4 +233,20 @@ namespace yave::editor::imgui {
     void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
   };
+
+  // save graph
+  struct dcmd_save : data_command
+  {
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
+    auto type() const -> data_command_type override;
+  };
+
+  // load graph
+  struct dcmd_load : data_command
+  {
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
+    auto type() const -> data_command_type override;
+  };
 }

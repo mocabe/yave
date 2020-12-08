@@ -28,6 +28,8 @@ namespace yave::editor::imgui {
     wm::window* node_canvas;
     wm::window* render_view;
 
+    bool open_save_modal  = false;
+    bool open_load_modal  = false;
     bool open_usage_modal = false;
     bool open_about_modal = false;
     bool open_demo_window = false;
@@ -44,6 +46,15 @@ namespace yave::editor::imgui {
   private:
     auto _name() const -> std::string;
     void _draw_menu_bar(const editor::view_context& vctx) const;
+
+    void _draw_save_modal(
+      const editor::data_context& dctx,
+      const editor::view_context& vctx) const;
+
+    void _draw_load_modal(
+      const editor::data_context& dctx,
+      const editor::view_context& vctx) const;
+
     void _draw_usage_modal(const editor::view_context& vctx) const;
     void _draw_about_modal(const editor::view_context& vctx) const;
     void _draw_imgui_demo(const editor::view_context& vctx) const;
