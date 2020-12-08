@@ -168,7 +168,7 @@ TEST_CASE("gruop")
       auto g    = ng.create_group({nullptr}, {});
       auto name = *ng.get_name(ng.get_group_input(g));
       ng.set_name(ng.get_group_input(g), "test");
-      REQUIRE(ng.get_name(ng.get_group_input(g)) == name);
+      REQUIRE(ng.get_name(ng.get_group_input(g)) == "test");
 
       auto gg = ng.create_group(g, {});
       ng.set_name(gg, name);

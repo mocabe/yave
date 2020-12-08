@@ -1842,6 +1842,11 @@ namespace yave {
         return;
       }
 
+      if (auto io = get_io(node)) {
+        ng.set_name(node, name);
+        return;
+      }
+
       auto call = get_call(node);
 
       if (!call) {
@@ -1858,14 +1863,16 @@ namespace yave {
       if (auto g = get_callee_group(node)) {
         // check uniqueness of group name
         for (auto&& n : g->get_defcall()->parent->nodes) {
-          if (n == node || !is_defcall(n))
+          if (n == node)
             continue;
 
-          if (ng.get_name(n) == name) {
-            Error(
-              g_logger,
-              "Cannot have multiple definitions with same name '{}' in a group",
-              name);
+          if (is_io(n) || is_defcall(n)) {
+            if (ng.get_name(n) == name) {
+              Error(
+                g_logger,
+                "Cannot have multiple definitions with same name '{}' in group",
+                name);
+            }
             return;
           }
         }
@@ -2263,8 +2270,6 @@ namespace yave {
         if (!nextg) {
 
           auto newg = add_new_callee_group();
-          ng.set_name(newg->input_handler, "In");
-          ng.set_name(newg->output_handler, "Out");
           ng.set_name(newg->node, std::string(name));
 
           auto newc = add_new_call(g, newg);
@@ -2387,8 +2392,6 @@ namespace yave {
 
       // create new group under parent
       auto newg = add_new_callee_group();
-      ng.set_name(newg->input_handler, "In");
-      ng.set_name(newg->output_handler, "Out");
 
       // create new call
       auto newc = add_new_call(g, newg, id);
