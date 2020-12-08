@@ -93,11 +93,11 @@ namespace yave {
 
       if (*r->get_value<Float>() != val.r)
         ret.push_back({r, make_object<Float>(val.r)});
-      if (*r->get_value<Float>() != val.g)
+      if (*g->get_value<Float>() != val.g)
         ret.push_back({g, make_object<Float>(val.g)});
-      if (*r->get_value<Float>() != val.b)
+      if (*b->get_value<Float>() != val.b)
         ret.push_back({b, make_object<Float>(val.b)});
-      if (*r->get_value<Float>() != val.a)
+      if (*a->get_value<Float>() != val.a)
         ret.push_back({a, make_object<Float>(val.a)});
       return ret;
     }
