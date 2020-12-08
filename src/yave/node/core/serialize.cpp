@@ -268,7 +268,7 @@ namespace yave {
             [&](std::string s) {
               // need std::string -> data::string conversion
               return make_object<PropertyTreeNode>(
-                p.name, make_object<String>());
+                p.name, make_object<String>(s));
             },
             [&]<class T>(T x) {
               // for int64_t, double, bool
