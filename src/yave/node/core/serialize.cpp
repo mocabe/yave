@@ -88,22 +88,7 @@ namespace yave {
       std::string name;
       std::optional<pdata> data;
       std::optional<ptype> type;
-      std::vector<std::unique_ptr<pnode>> children;
-
-      pnode() = default;
-
-      pnode(std::string n, pdata d)
-        : name {n}
-        , data {d}
-      {
-      }
-
-      pnode(std::string n, ptype t, std::vector<std::unique_ptr<pnode>> cs)
-        : name {n}
-        , type {t}
-        , children {std::move(cs)}
-      {
-      }
+      std::vector<pnode> children;
 
       template <class Archive>
       void serialize(Archive& ar)
@@ -115,6 +100,16 @@ namespace yave {
           CEREAL_NVP(children));
       }
     };
+
+    auto make_pnode(std::string n, pdata d)
+    {
+      return pnode {.name = n, .data = d, .type = {}, .children = {}};
+    }
+
+    auto make_pnode(std::string n, ptype t, std::vector<pnode> cs)
+    {
+      return pnode {.name = n, .data = {}, .type = t, .children = cs};
+    }
 
     enum class ntype
     {
@@ -140,7 +135,7 @@ namespace yave {
       ctype ctp;
       std::vector<sid> iss;
       std::vector<sid> oss;
-      std::vector<std::pair<std::string, std::unique_ptr<pnode>>> props;
+      std::vector<std::pair<std::string, pnode>> props;
 
       template <class Archive>
       void serialize(Archive& ar)
@@ -162,7 +157,7 @@ namespace yave {
       sid id;
       nid parent;
       std::string name;
-      std::vector<std::pair<std::string, std::unique_ptr<pnode>>> props;
+      std::vector<std::pair<std::string, pnode>> props;
 
       template <class Archive>
       void serialize(Archive& ar)
@@ -218,8 +213,7 @@ namespace yave {
     }
 
     // convert property tree to serializable message
-    auto save_property_tree(const object_ptr<PropertyTreeNode>& p)
-      -> std::unique_ptr<pnode>
+    auto save_property_tree(const object_ptr<PropertyTreeNode>& p) -> pnode
     {
       if (p->is_value()) {
 
@@ -239,7 +233,7 @@ namespace yave {
             unreachable();
         }
 
-        return std::make_unique<pnode>(p->name(), data);
+        return make_pnode(p->name(), data);
       }
 
       ptype type;
@@ -259,44 +253,41 @@ namespace yave {
                 | rv::transform([](auto&& c) { return save_property_tree(c); })
                 | rs::to_vector;
 
-      return std::make_unique<pnode>(p->name(), type, std::move(cs));
+      return make_pnode(p->name(), type, std::move(cs));
     }
 
     // reconstruct property tree form serialized data
-    auto load_property_tree(const std::unique_ptr<pnode>& p)
-      -> object_ptr<PropertyTreeNode>
+    auto load_property_tree(const pnode& p) -> object_ptr<PropertyTreeNode>
     {
       // value node
-      if (p->children.empty()) {
+      if (p.children.empty()) {
         return std::visit(
           overloaded {
             [&](std::string s) {
               // need std::string -> data::string conversion
               return make_object<PropertyTreeNode>(
-                p->name, make_object<String>());
+                p.name, make_object<String>());
             },
             [&]<class T>(T x) {
               // for int64_t, double, bool
               return make_object<PropertyTreeNode>(
-                p->name, make_object<Box<T>>(x));
+                p.name, make_object<Box<T>>(x));
             }},
-          p->data.value());
+          p.data.value());
       }
 
       // FIXME: do not use implementation detail of rts!
       auto tp = make_object<Type>(tcon_type {
-        load_uuid(p->type.value().uuid),
+        load_uuid(p.type.value().uuid),
         detail::kind_address<kstar>(),
         "(deserialized value type)"});
 
-      auto&& children = p->children;
-
-      auto cs = children //
+      auto cs = p.children //
                 | rv::transform([](auto&& c) { return load_property_tree(c); })
                 | rs::to_vector;
 
       return make_object<PropertyTreeNode>(
-        p->name, std::move(tp), std::move(cs));
+        p.name, std::move(tp), std::move(cs));
     }
 
     [[nodiscard]] auto save_node_data(
@@ -327,7 +318,7 @@ namespace yave {
 
       // convert property map
       auto cvt_props = [&](auto&& h) {
-        auto r = std::vector<std::pair<std::string, std::unique_ptr<pnode>>>();
+        auto r = std::vector<std::pair<std::string, pnode>>();
         for (auto&& [name, obj] : ng.get_properties(h)) {
           r.emplace_back(name, save_property_tree(obj));
         }
