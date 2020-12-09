@@ -102,13 +102,21 @@ TEST_CASE("node_compiler V2")
 
   // clang-format on
 
-  defs.add(add_defs);
-  defs.add(int_defs);
-  defs.add(float_defs);
-  defs.add(bool_defs);
-  defs.add(if_defs);
-  defs.add(nil_defs);
-  defs.add(cons_defs);
+  decls.add(int_decl);
+  decls.add(bool_decl);
+  decls.add(float_decl);
+  decls.add(if_decl);
+  decls.add(nil_decl);
+  decls.add(cons_decl);
+  decls.add(add_decl);
+
+  REQUIRE(defs.add(add_defs));
+  REQUIRE(defs.add(int_defs));
+  REQUIRE(defs.add(float_defs));
+  REQUIRE(defs.add(bool_defs));
+  REQUIRE(defs.add(if_defs));
+  REQUIRE(defs.add(nil_defs));
+  REQUIRE(defs.add(cons_defs));
 
   auto int_func   = create_declaration(ng, std::make_shared<node_declaration>(int_decl));
   auto add_func   = create_declaration(ng, std::make_shared<node_declaration>(add_decl));
