@@ -1872,8 +1872,8 @@ namespace yave {
                 g_logger,
                 "Cannot have multiple definitions with same name '{}' in group",
                 name);
-            }
             return;
+            }
           }
         }
         // set name to group
