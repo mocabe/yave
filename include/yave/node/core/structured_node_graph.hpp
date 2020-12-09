@@ -8,7 +8,7 @@
 #include <yave/node/core/structured_node_info.hpp>
 #include <yave/node/core/structured_socket_info.hpp>
 #include <yave/node/core/structured_connection_info.hpp>
-#include <yave/node/core/node_declaration.hpp>
+#include <yave/obj/property/property.hpp>
 
 #include <glm/glm.hpp>
 
@@ -87,89 +87,62 @@ namespace yave {
     /// set name of socket
     void set_name(const socket_handle& socket, const std::string& name);
 
-  private:
-    // clang-format off
-    auto _get_property(const node_handle&,   const std::string&) const -> object_ptr<Object>;
-    auto _get_property(const socket_handle&, const std::string&) const -> object_ptr<Object>;
-    auto _get_shared_property(const node_handle&,   const std::string&) const -> object_ptr<Object>;
-    auto _get_shared_property(const socket_handle&, const std::string&) const -> object_ptr<Object>;
-    // clang-format on
-
   public:
     /// get property
-    /// \param T expected type of property
-    /// \returns nullptr on not found or invalid type
-    template <class T>
+    /// \returns nullptr on not found
     [[nodiscard]] auto get_property(
       const node_handle& node,
-      const std::string& name) const -> object_ptr<T>
-    {
-      return value_cast_if<T>(_get_property(node, name));
-    }
+      const std::string& name) const -> object_ptr<PropertyTreeNode>;
 
     /// get property
-    /// \param T expected type of property
-    /// \returns nullptr on not found or invalid type
-    template <class T>
+    /// \returns nullptr on not found
     [[nodiscard]] auto get_property(
       const socket_handle& socket,
-      const std::string& name) const -> object_ptr<T>
-    {
-      return value_cast_if<T>(_get_property(socket, name));
-    }
+      const std::string& name) const -> object_ptr<PropertyTreeNode>;
+
+    /// get all properties
+    [[nodiscard]] auto get_properties(const node_handle& h) const
+      -> std::vector<std::pair<std::string, object_ptr<PropertyTreeNode>>>;
+
+    /// get all properties
+    [[nodiscard]] auto get_properties(const socket_handle& h) const
+      -> std::vector<std::pair<std::string, object_ptr<PropertyTreeNode>>>;
 
     /// set property
     void set_property(
-      const node_handle&,
-      const std::string&,
-      object_ptr<Object>);
+      const node_handle& h,
+      const std::string& name,
+      object_ptr<PropertyTreeNode> prop);
 
     /// set property
     void set_property(
-      const socket_handle&,
-      const std::string&,
-      object_ptr<Object>);
+      const socket_handle& h,
+      const std::string& name,
+      object_ptr<PropertyTreeNode> prop);
 
     /// remove property
-    void remove_property(const node_handle&, const std::string&);
+    void remove_property(const node_handle& h, const std::string& name);
 
     /// remove property
-    void remove_property(const socket_handle&, const std::string&);
+    void remove_property(const socket_handle& h, const std::string& name);
 
   public:
     /// get shared property
-    /// \param T expected type of property
-    /// \returns nullptr on not found or invalid type
-    template <class T>
+    /// \returns nullptr on not found
     [[nodiscard]] auto get_shared_property(
       const node_handle& node,
-      const std::string& name) const -> object_ptr<T>
-    {
-      return value_cast_if<T>(_get_shared_property(node, name));
-    }
+      const std::string& name) const -> object_ptr<PropertyTreeNode>;
 
     /// set shared property
     void set_shared_property(
-      const node_handle&,
-      const std::string&,
-      object_ptr<Object>);
+      const node_handle& h,
+      const std::string& name,
+      object_ptr<PropertyTreeNode> prop);
 
     /// remove shared property
-    void remove_shared_property(const node_handle&, const std::string&);
+    void remove_shared_property(const node_handle& h, const std::string& name);
 
   public:
-    /// get node pos
-    [[nodiscard]] auto get_pos(const node_handle& node) const
-      -> std::optional<glm::dvec2>;
-    /// set node pos
-    void set_pos(const node_handle& node, const glm::dvec2& newpos);
-
-    /// get socket arg
-    [[nodiscard]] auto get_arg(const socket_handle& socke) const
-      -> object_ptr<Object>;
-    /// set socket arg
-    void set_arg(const socket_handle& socket, object_ptr<Object> data);
-
     /// get source id
     [[nodiscard]] auto get_source_id(const node_handle& h) const -> uid;
     /// get source id
@@ -178,10 +151,6 @@ namespace yave {
     void set_source_id(const node_handle& h, uid id);
     /// set source id
     void set_source_id(const socket_handle& h, uid id);
-
-    /// get declaration
-    [[nodiscard]] auto get_node_declaration(const node_handle& n) const
-      -> std::shared_ptr<node_declaration>;
 
   public:
     /// get socket index
@@ -236,12 +205,26 @@ namespace yave {
       -> std::vector<connection_handle>;
 
   public:
-    /// Create new declaration
-    /// \param decl new function declaration
-    /// \note decl should have unique name, otherwise will fail
-    /// \returns null handle when failed
-    [[nodiscard]] auto create_declaration(
-      const std::shared_ptr<node_declaration>& decl) -> node_handle;
+    /// Create function declaration
+    auto create_function(
+      const std::string& path,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss,
+      const uid& id = uid::random_generate()) -> node_handle;
+
+    /// Create macro declaration
+    auto create_macro(
+      const std::string& path,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss,
+      const uid& id = uid::random_generate()) -> node_handle;
+
+    /// Create group declaration
+    auto create_group(
+      const std::string& path,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss,
+      const uid& id = uid::random_generate()) -> node_handle;
 
     /// Create new group
     /// \param parent_group parent group. null handle with it's global

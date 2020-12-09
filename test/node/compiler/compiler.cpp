@@ -79,6 +79,7 @@ struct yave::node_definition_traits<n::Add, test_backend>
 TEST_CASE("node_compiler V2")
 {
   structured_node_graph ng;
+  node_declaration_store decls;
   node_definition_store defs;
 
   // clang-format off
@@ -109,13 +110,13 @@ TEST_CASE("node_compiler V2")
   defs.add(nil_defs);
   defs.add(cons_defs);
 
-  auto int_func   = ng.create_declaration(std::make_shared<node_declaration>(int_decl));
-  auto add_func   = ng.create_declaration(std::make_shared<node_declaration>(add_decl));
-  auto float_func = ng.create_declaration(std::make_shared<node_declaration>(float_decl));
-  auto bool_func  = ng.create_declaration(std::make_shared<node_declaration>(bool_decl));
-  auto if_func    = ng.create_declaration(std::make_shared<node_declaration>(if_decl));
-  auto nil_func   = ng.create_declaration(std::make_shared<node_declaration>(nil_decl));
-  auto cons_func  = ng.create_declaration(std::make_shared<node_declaration>(cons_decl));
+  auto int_func   = create_declaration(ng, std::make_shared<node_declaration>(int_decl));
+  auto add_func   = create_declaration(ng, std::make_shared<node_declaration>(add_decl));
+  auto float_func = create_declaration(ng, std::make_shared<node_declaration>(float_decl));
+  auto bool_func  = create_declaration(ng, std::make_shared<node_declaration>(bool_decl));
+  auto if_func    = create_declaration(ng, std::make_shared<node_declaration>(if_decl));
+  auto nil_func   = create_declaration(ng, std::make_shared<node_declaration>(nil_decl));
+  auto cons_func  = create_declaration(ng, std::make_shared<node_declaration>(cons_decl));
 
   REQUIRE(int_func);
   REQUIRE(add_func);
@@ -132,13 +133,20 @@ TEST_CASE("node_compiler V2")
   auto test_compile = [&] {
     auto _ng  = ng.clone();
     auto _os  = _ng.socket(out.id());
-    auto _def = defs;
+
+    auto _def   = defs.get_map();
+    auto _decls = decls.get_map();
 
     auto pipe = compiler::init_pipeline();
 
     pipe
       .and_then([&](auto& p) {
-        compiler::input(p, std::move(_ng), std::move(_os), std::move(_def));
+        compiler::input(
+          p,
+          std::move(_ng),
+          std::move(_os),
+          std::move(_decls),
+          std::move(_def));
       })
       .and_then([](auto& p) { compiler::parse(p); })
       .and_then([](auto& p) { compiler::sema(p); });

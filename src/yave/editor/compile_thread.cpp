@@ -107,10 +107,15 @@ namespace yave::editor {
                                ? socket_handle()
                                : _ng.output_sockets(_root)[0];
 
-                  auto _defs = data.node_definitions();
+                  auto _decls = data.node_declarations().get_map();
+                  auto _defs  = data.node_definitions().get_map();
 
                   compiler::input(
-                    pipeline, std::move(_ng), std::move(_os), std::move(_defs));
+                    pipeline,
+                    std::move(_ng),
+                    std::move(_os),
+                    std::move(_decls),
+                    std::move(_defs));
                 };
 
                 // compiler stages

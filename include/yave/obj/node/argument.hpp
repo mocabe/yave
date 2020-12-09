@@ -11,7 +11,7 @@
 namespace yave {
 
   /// node default argument data
-  using NodeArgument = Box<node_argument_object_data>;
+  using NodeArgument = Box<node_argument_object_value>;
 
 } // namespace yave
 

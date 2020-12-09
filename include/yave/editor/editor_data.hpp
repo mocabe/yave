@@ -83,5 +83,9 @@ namespace yave::editor {
     /// update channel
     auto update_channel() -> node_argument_update_channel &;
     auto update_channel() const -> const node_argument_update_channel &;
+
+  public:
+    void save() const;
+    void load();
   };
 } // namespace yave::editor

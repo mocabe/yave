@@ -30,6 +30,73 @@ namespace yave {
     }
   } // namespace
 
+  ////////////////////////////////////////
+  // node_declaration_map
+
+  void node_declaration_map::add(
+    const std::shared_ptr<const node_declaration>& pdecl)
+  {
+    auto [it, succ] = m_map.emplace(pdecl->full_name(), pdecl);
+
+    if (!succ) {
+      auto& name = it->second->full_name();
+      auto& iss  = it->second->input_sockets();
+      auto& oss  = it->second->output_sockets();
+
+      if (iss != pdecl->input_sockets() || oss != pdecl->output_sockets())
+        Warning(
+          g_logger,
+          "Declaration of {} conflicting. Existing declaration will be used.",
+          pdecl->full_name());
+    }
+  }
+
+  void node_declaration_map::remove(const std::string& full_name)
+  {
+    auto iter = m_map.find(full_name);
+
+    if (iter == m_map.end())
+      return;
+
+    Info(g_logger, "Removed declaration: {}", full_name);
+    m_map.erase(iter);
+  }
+
+  bool node_declaration_map::exists(const std::string& name) const
+  {
+    auto iter = m_map.find(name);
+    return iter != m_map.end();
+  }
+
+  auto node_declaration_map::find(const std::string& name) const
+    -> std::shared_ptr<const node_declaration>
+  {
+    auto iter = m_map.find(name);
+
+    if (iter == m_map.end())
+      return nullptr;
+
+    return iter->second;
+  }
+
+  auto node_declaration_map::size() const -> size_t
+  {
+    return m_map.size();
+  }
+
+  bool node_declaration_map::empty() const
+  {
+    return m_map.empty();
+  }
+
+  void node_declaration_map::clear()
+  {
+    m_map.clear();
+  }
+
+  ////////////////////////////////////////
+  // node_declaration_tree
+
   struct node_declaration_tree::node
   {
     /// parent node
@@ -37,7 +104,7 @@ namespace yave {
     /// name
     std::string name = "";
     /// decl (nullable)
-    std::shared_ptr<node_declaration> pdecl = nullptr;
+    std::shared_ptr<const node_declaration> pdecl = nullptr;
     /// children
     std::list<node> children = {};
 
@@ -80,8 +147,7 @@ namespace yave {
       return n->pdecl;
     }
 
-  public:
-    auto insert(const std::shared_ptr<node_declaration>& pdecl) -> node*
+    void add(const std::shared_ptr<const node_declaration>& pdecl)
     {
       assert(pdecl);
       auto& decl = *pdecl;
@@ -109,23 +175,22 @@ namespace yave {
           // leaf
           if (idx == names.size() - 1) {
             n->pdecl = pdecl;
-            return n;
+            return;
           }
           continue;
         }
 
         // already exists
         if (idx == names.size() - 1) {
-          return nullptr;
+          return;
         }
 
         // set next
         n = &*it;
       }
-      return nullptr;
     }
 
-    void remove(const std::shared_ptr<node_declaration>& pdecl)
+    void remove(const std::shared_ptr<const node_declaration>& pdecl)
     {
       assert(pdecl);
 
@@ -143,7 +208,7 @@ namespace yave {
       n->parent->children.erase(it);
     }
 
-    auto find(const std::shared_ptr<node_declaration>& pdecl) -> node*
+    auto find(const std::shared_ptr<const node_declaration>& pdecl) -> node*
     {
       assert(pdecl);
       auto names = split_path_name(pdecl->full_name());
@@ -165,6 +230,11 @@ namespace yave {
         return n;
 
       return nullptr;
+    }
+
+    void clear()
+    {
+      tree = {};
     }
   };
 
@@ -192,35 +262,77 @@ namespace yave {
   }
 
   auto node_declaration_tree::decl(const node* n) const
-    -> std::shared_ptr<node_declaration>
+    -> std::shared_ptr<const node_declaration>
   {
     return m_pimpl->decl(n);
   }
 
-  auto node_declaration_tree::insert(
-    const std::shared_ptr<node_declaration>& pdecl) -> node*
+  void node_declaration_tree::add(
+    const std::shared_ptr<const node_declaration>& pdecl)
   {
-    return m_pimpl->insert(pdecl);
+    m_pimpl->add(pdecl);
   }
 
   void node_declaration_tree::remove(
-    const std::shared_ptr<node_declaration>& pdecl)
+    const std::shared_ptr<const node_declaration>& pdecl)
   {
     m_pimpl->remove(pdecl);
   }
 
   auto node_declaration_tree::find(
-    const std::shared_ptr<node_declaration>& pdecl) -> node*
+    const std::shared_ptr<const node_declaration>& pdecl) -> node*
   {
     return m_pimpl->find(pdecl);
   }
 
+  void node_declaration_tree::clear()
+  {
+    m_pimpl->clear();
+  }
+
+  ////////////////////////////////////////
+  // node_declaration_list
+
+  void node_declaration_list::add(
+    const std::shared_ptr<const node_declaration>& pdecl)
+  {
+    auto lb = std::lower_bound(
+      m_list.begin(), m_list.end(), pdecl, [](auto& l, auto& r) {
+        return l->full_name() < r->full_name();
+      });
+
+    assert(lb == m_list.end() || *lb != pdecl);
+    m_list.insert(lb, pdecl);
+  }
+
+  void node_declaration_list::remove(
+    const std::shared_ptr<const node_declaration>& pdecl)
+  {
+    auto lb = std::lower_bound(
+      m_list.begin(), m_list.end(), pdecl, [](auto& l, auto& r) {
+        return l->full_name() < r->full_name();
+      });
+
+    if (lb != m_list.end() && *lb == pdecl)
+      m_list.erase(lb);
+  }
+
+  void node_declaration_list::clear()
+  {
+    m_list.clear();
+  }
+
+  ////////////////////////////////////////
+  // node_declaration_store
+
   class node_declaration_store::impl
   {
     /// decl map
-    std::map<std::string, std::shared_ptr<node_declaration>> m_map = {};
+    node_declaration_map m_map;
     /// decl tree
     node_declaration_tree m_pub_tree;
+    /// decl list
+    node_declaration_list m_list;
 
   public:
     impl()
@@ -229,105 +341,27 @@ namespace yave {
     }
 
   public:
-    bool add(const node_declaration& decl)
+    void add(const node_declaration& decl)
     {
-      auto [it, succ] = m_map.emplace(
-        decl.full_name(), std::make_shared<node_declaration>(decl));
-
-      if (succ) {
-        Info(g_logger, "Added new declaration: {}", decl.full_name());
-
-        if (decl.is_public())
-          m_pub_tree.insert(it->second);
-
-        return true;
-      }
-
-      auto& name = it->second->full_name();
-      auto& iss  = it->second->input_sockets();
-      auto& oss  = it->second->output_sockets();
-
-      // validate duplication
-      if (
-        name == decl.full_name() &&    //
-        iss == decl.input_sockets() && //
-        oss == decl.output_sockets()) {
-        Info(
-          g_logger,
-          "Node declaration {} already exists, ignored.",
-          decl.full_name());
-        return true;
-      }
-
-      Error(g_logger, "Failed to add declaration: {}", decl.full_name());
-      return false;
+      auto pdecl = std::make_shared<node_declaration>(decl);
+      m_map.add(pdecl);
+      m_pub_tree.add(pdecl);
+      m_list.add(pdecl);
     }
 
-    bool add(const std::vector<node_declaration>& decls)
+    void add(const std::vector<node_declaration>& decls)
     {
-      std::vector<std::string> added;
-
-      for (auto&& decl : decls) {
-        if (add(decl)) {
-          added.push_back(decl.full_name());
-        } else {
-          for (auto&& name : added) {
-            remove(name);
-          }
-          return false;
-        }
-      }
-      return true;
-    }
-
-    bool exists(const std::string& name) const
-    {
-      auto iter = m_map.find(name);
-      return iter != m_map.end();
-    }
-
-    auto find(const std::string& name) const
-      -> std::shared_ptr<const node_declaration>
-    {
-      auto iter = m_map.find(name);
-
-      if (iter == m_map.end())
-        return nullptr;
-
-      return iter->second;
-    }
-
-    auto size() const -> size_t
-    {
-      return m_map.size();
-    }
-
-    auto enumerate() const -> std::vector<std::shared_ptr<node_declaration>>
-    {
-      std::vector<std::shared_ptr<node_declaration>> ret;
-      for (auto&& [key, decl] : m_map) {
-        (void)key;
-        ret.push_back(decl);
-      }
-      return ret;
-    }
-
-    auto& get_pub_tree() const
-    {
-      return m_pub_tree;
+      for (auto&& decl : decls)
+        add(decl);
     }
 
     void remove(const std::string& name)
     {
-      auto iter = m_map.find(name);
-
-      if (iter == m_map.end())
-        return;
-
-      Info(g_logger, "Removed declaration: {}", name);
-
-      m_pub_tree.remove(iter->second);
-      m_map.erase(iter);
+      if (auto pdecl = m_map.find(name)) {
+        m_list.remove(pdecl);
+        m_pub_tree.remove(pdecl);
+        m_map.remove(name);
+      }
     }
 
     void remove(const std::vector<std::string>& names)
@@ -336,14 +370,47 @@ namespace yave {
         remove(name);
     }
 
-    void clear()
+    bool exists(const std::string& name) const
     {
-      m_map.clear();
+      return m_map.exists(name);
+    }
+
+    auto find(const std::string& name) const
+      -> std::shared_ptr<const node_declaration>
+    {
+      return m_map.find(name);
+    }
+
+    auto& get_map() const
+    {
+      return m_map;
+    }
+
+    auto& get_pub_tree() const
+    {
+      return m_pub_tree;
+    }
+
+    auto& get_list() const
+    {
+      return m_list;
+    }
+
+    auto size() const -> size_t
+    {
+      return m_map.size();
     }
 
     bool empty() const
     {
       return m_map.empty();
+    }
+
+    void clear()
+    {
+      m_map.clear();
+      m_pub_tree.clear();
+      m_list.clear();
     }
   };
 
@@ -367,12 +434,12 @@ namespace yave {
     return *this;
   }
 
-  bool node_declaration_store::add(const node_declaration& decl)
+  void node_declaration_store::add(const node_declaration& decl)
   {
     return m_pimpl->add(decl);
   }
 
-  bool node_declaration_store::add(const std::vector<node_declaration>& decls)
+  void node_declaration_store::add(const std::vector<node_declaration>& decls)
   {
     return m_pimpl->add(decls);
   }
@@ -393,16 +460,20 @@ namespace yave {
     return m_pimpl->size();
   }
 
-  auto node_declaration_store::enumerate() const
-    -> std::vector<std::shared_ptr<node_declaration>>
+  auto node_declaration_store::get_list() const -> const node_declaration_list&
   {
-    return m_pimpl->enumerate();
+    return m_pimpl->get_list();
   }
 
   auto node_declaration_store::get_pub_tree() const
     -> const node_declaration_tree&
   {
     return m_pimpl->get_pub_tree();
+  }
+
+  auto node_declaration_store::get_map() const -> const node_declaration_map&
+  {
+    return m_pimpl->get_map();
   }
 
   void node_declaration_store::remove(const std::string& name)

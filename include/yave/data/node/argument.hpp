@@ -8,189 +8,103 @@
 #include <yave/rts/object_ptr.hpp>
 #include <yave/node/core/function.hpp>
 
+#include <yave/data/vector/vector.hpp>
+#include <yave/data/string/string.hpp>
+#include <yave/obj/property/property.hpp>
+
 namespace yave {
 
-  /// abstract node argument interface
-  class node_argument_holder
+  // fwd
+  class node_argument_object_value;
+  using NodeArgument = Box<node_argument_object_value>;
+
+  class node_argument_object_value
   {
-  public:
-    virtual ~node_argument_holder() noexcept = default;
+    /// property tree
+    object_ptr<PropertyTreeNode> m_tree;
 
-    /// get current data
-    virtual auto data() const -> object_ptr<const Object> = 0;
-    /// get current property
-    virtual auto property() const -> object_ptr<const Object> = 0;
-    /// create runtime representation
-    virtual auto on_compile() const -> object_ptr<const Object> = 0;
-
-    /// set new data
-    virtual void set_data(object_ptr<const Object> new_data) = 0;
-    /// clone holder
-    virtual auto clone() -> std::unique_ptr<node_argument_holder> = 0;
-  };
-
-  /// data holder which contains data and property for node arguments.
-  class node_argument_object_data
-  {
-    std::unique_ptr<node_argument_holder> m_holder;
+    /// generator function of (NodeArgument -> T)
+    object_ptr<const Object> m_func;
 
   public:
-    node_argument_object_data(std::unique_ptr<node_argument_holder> holder)
-      : m_holder {std::move(holder)}
-    {
-    }
+    /// \param tree property variables tree
+    /// \param func generator function
+    node_argument_object_value(
+      object_ptr<PropertyTreeNode> tree,
+      object_ptr<const Object> func);
 
-    node_argument_object_data(const node_argument_object_data& other)
-      : m_holder {other.m_holder->clone()}
-    {
-    }
+    node_argument_object_value(const node_argument_object_value& other);
 
-    /// get current data
-    auto data() const
-    {
-      return m_holder->data();
-    }
+    /// get variable tree
+    auto property() const -> object_ptr<PropertyTreeNode>;
 
-    /// get property
-    auto property() const
-    {
-      return m_holder->property();
-    }
+    /// get generator
+    auto generator() const -> object_ptr<const Object>;
 
-    /// set new data
-    void set_data(object_ptr<const Object> new_data)
-    {
-      return m_holder->set_data(std::move(new_data));
-    }
-
-    /// get object
-    auto on_compile() const
-    {
-      return m_holder->on_compile();
-    }
+    /// generate executable object
+    auto generate(object_ptr<const NodeArgument> self) const
+      -> object_ptr<const Object>;
   };
 
-  /// node default argument data
-  using NodeArgument = Box<node_argument_object_data>;
-
-  /// Customization point for data type holder property
+  /// traits of node argument types
   template <class T>
-  struct node_argument_property_traits
+  struct node_argument_traits
   {
-    // value type of data (for example, Float and Int).
-    // using value_type = ...;
-
-    // propert type of data.
-    // property_type must have `initial_value()` to get initial value_type
-    // object which will be modified by GUI by user.
-    // using property_type = ...;
   };
-
-#define YAVE_DECL_NODE_ARGUMENT_PROPERTY(Type, ValueType, PropType) \
-  template <>                                                       \
-  struct node_argument_property_traits<Type>                        \
-  {                                                                 \
-    using value_type    = ValueType;                                \
-    using property_type = PropType;                                 \
-  }
-
-  namespace detail {
-
-    struct node_argument_ctor_arg
-    {
-      object_ptr<const Object> data;
-    };
-
-    // internal
-    using NodeArgumentCtorArg = Box<node_argument_ctor_arg>;
-
-    // Constructor for node arguments.
-    template <class ValueT>
-    struct NodeArgumentCtor : Function<
-                                NodeArgumentCtor<ValueT>,
-                                NodeArgumentCtorArg,
-                                FrameDemand,
-                                ValueT>
-    {
-      auto code() const -> typename NodeArgumentCtor::return_type
-      {
-        auto argument = this->template eval_arg<0>();
-        return value_cast<ValueT>(argument->data);
-      }
-    };
-
-    // node argument which generate data constructor
-    template <class T>
-    class data_node_argument : public node_argument_holder
-    {
-      // property of data
-      const object_ptr<const Object> m_property;
-      // constructor func
-      const object_ptr<const Object> m_ctor;
-      // current data
-      object_ptr<NodeArgumentCtorArg> m_arg;
-
-    public:
-      data_node_argument(
-        object_ptr<const Object> prop,
-        object_ptr<const Object> ctor,
-        object_ptr<const Object> data)
-        : m_property {std::move(prop)}
-        , m_ctor {std::move(ctor)}
-        , m_arg {make_object<NodeArgumentCtorArg>(std::move(data))}
-      {
-      }
-
-      data_node_argument(const data_node_argument&) = delete;
-
-      void set_data(object_ptr<const Object> new_data) override
-      {
-        assert(m_arg->data);
-        assert(same_type(get_type(m_arg->data), get_type(new_data)));
-        m_arg->data = std::move(new_data);
-      }
-
-      auto data() const -> object_ptr<const Object> override
-      {
-        return m_arg->data;
-      }
-
-      auto property() const -> object_ptr<const Object> override
-      {
-        return m_property;
-      }
-
-      auto clone() -> std::unique_ptr<node_argument_holder> override
-      {
-        return std::make_unique<data_node_argument>(
-          m_property, m_ctor, m_arg->data.clone());
-      }
-
-      auto on_compile() const -> object_ptr<const Object> override
-      {
-        return m_ctor << m_arg;
-      }
-    };
-  } // namespace detail
 
   /// Create new node argument
   template <class T, class... Args>
   [[nodiscard]] auto make_node_argument(Args&&... args)
+    -> object_ptr<NodeArgument>
   {
-    using traits        = node_argument_property_traits<T>;
-    using value_type    = typename traits::value_type;
-    using property_type = typename traits::property_type;
+    return node_argument_traits<T>::create(std::forward<Args>(args)...);
+  }
 
-    auto prop = make_object<property_type>(std::forward<Args>(args)...);
-    auto ctor = make_object<detail::NodeArgumentCtor<value_type>>();
+  /// Create new node argument property tree
+  template <class T, class... Ts>
+  [[nodiscard]] auto make_node_argument_prop_tree(Ts&&... args)
+    -> object_ptr<PropertyTreeNode>
+  {
+    return node_argument_traits<T>::create_prop_tree(std::forward<Ts>(args)...);
+  }
 
-    return make_object<NodeArgument>(
-      std::make_unique<detail::data_node_argument<T>>(
-        prop, ctor, prop->initial_value().clone()));
+  /// Get value from argument
+  template <class T>
+  [[nodiscard]] auto get_node_argument_value(
+    const object_ptr<const PropertyTreeNode>& arg)
+  {
+    assert(same_type(arg->type(), object_type<T>()));
+    return node_argument_traits<T>::get_value(arg);
+  }
+
+  struct node_argument_diff
+  {
+    /// value node
+    object_ptr<PropertyTreeNode> node;
+    /// new value
+    object_ptr<const Object> value;
+  };
+
+  /// Get diff from current value.
+  /// \returns list of (value node, new value) pairs
+  template <class T, class U>
+  [[nodiscard]] auto get_node_argument_diff(
+    const object_ptr<PropertyTreeNode>& arg,
+    const U& val) -> std::vector<node_argument_diff>
+  {
+    assert(same_type(arg->type(), object_type<T>()));
+    return node_argument_traits<T>::get_diff(arg, val);
+  }
+
+  /// Set value to argument
+  /// \param args implementation specific value(s) to set
+  template <class T, class... Ts>
+  void set_node_argument_value(
+    const object_ptr<PropertyTreeNode>& arg,
+    Ts&&... args)
+  {
+    assert(same_type(arg->type(), object_type<T>()));
+    node_argument_traits<T>::set_value(arg, std::forward<Ts>(args)...);
   }
 
 } // namespace yave
-
-YAVE_DECL_TYPE(
-  yave::detail::NodeArgumentCtorArg,
-  "e4060e95-ed9e-4610-98ba-97823c09e3f5");

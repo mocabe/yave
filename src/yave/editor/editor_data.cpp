@@ -5,6 +5,12 @@
 
 #include <yave/editor/editor_data.hpp>
 
+#include <yave/node/core/serialize.hpp>
+#include <sstream>
+#include <fstream>
+#include <cereal/archives/json.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+
 namespace yave::editor {
 
   class editor_data::impl
@@ -165,7 +171,7 @@ namespace yave::editor {
     }
 
     // add declarations
-    auto decls  = node_decls.enumerate();
+    auto decls  = node_decls.get_list();
     auto remain = decls.size();
     while (true) {
 
@@ -181,7 +187,7 @@ namespace yave::editor {
         auto& decl = decls[i];
 
         // create one decl and remove from queue
-        if (node_graph.create_declaration(decl)) {
+        if (create_declaration(node_graph, decl)) {
           decl = nullptr;
           std::swap(decl, decls[--remain]);
           break;
@@ -351,6 +357,36 @@ namespace yave::editor {
     -> const node_argument_update_channel&
   {
     return m_pimpl->updates;
+  }
+
+  void editor_data::save() const
+  {
+    auto& ng   = m_pimpl->node_graph;
+    auto& root = m_pimpl->root_group;
+
+    auto path = boost::dll::program_location().remove_filename() / "yave.json";
+    auto fs   = std::ofstream(path.string());
+    {
+      cereal::JSONOutputArchive ar(fs);
+      save_user_node_graph(ar, root, ng);
+    }
+  }
+
+  void editor_data::load()
+  {
+    auto& ng   = m_pimpl->node_graph;
+    auto& root = m_pimpl->root_group;
+
+    // clear current user data
+    ng.destroy(root);
+    root = {};
+
+    auto path = boost::dll::program_location().remove_filename() / "yave.json";
+    auto fs   = std::ifstream(path.string());
+    {
+      cereal::JSONInputArchive ar(fs);
+      load_user_node_graph(ar, root, ng);
+    }
   }
 
 } // namespace yave::editor

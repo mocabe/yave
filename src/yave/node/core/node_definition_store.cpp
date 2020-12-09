@@ -10,39 +10,10 @@ YAVE_DECL_G_LOGGER(node_definition_store)
 
 namespace yave {
 
-  node_definition_store::node_definition_store()
-    : m_map {}
-  {
-    init_logger();
-  }
+  ////////////////////////////////////////
+  // node_definition_map
 
-  node_definition_store::node_definition_store(
-    const node_definition_store& other)
-    : m_map {other.m_map}
-  {
-  }
-
-  node_definition_store::node_definition_store(
-    node_definition_store&& other) noexcept
-    : m_map {std::move(other.m_map)}
-  {
-  }
-
-  node_definition_store& node_definition_store::operator=(
-    const node_definition_store& other)
-  {
-    m_map = other.m_map;
-    return *this;
-  }
-
-  node_definition_store& node_definition_store::operator=(
-    node_definition_store&& other) noexcept
-  {
-    m_map = std::move(other.m_map);
-    return *this;
-  }
-
-  bool node_definition_store::add(const node_definition& def)
+  bool node_definition_map::add(const node_definition& def)
   {
     m_map.emplace(def.full_name(), std::make_shared<node_definition>(def));
 
@@ -55,15 +26,7 @@ namespace yave {
     return true;
   }
 
-  bool node_definition_store::add(const std::vector<node_definition>& defs)
-  {
-    for (auto&& def : defs)
-      add(def);
-
-    return true;
-  }
-
-  void node_definition_store::remove(const std::string& name)
+  void node_definition_map::remove(const std::string& name)
   {
     auto [b, e] = m_map.equal_range(name);
 
@@ -72,19 +35,13 @@ namespace yave {
     }
   }
 
-  void node_definition_store::remove(const std::vector<std::string>& names)
-  {
-    for (auto&& name : names)
-      remove(name);
-  }
-
-  bool node_definition_store::exists(const std::string& name) const
+  bool node_definition_map::exists(const std::string& name) const
   {
     auto iter = m_map.find(name);
     return iter != m_map.end();
   }
 
-  bool node_definition_store::exists(const std::string& name, const size_t& os)
+  bool node_definition_map::exists(const std::string& name, const size_t& os)
     const
   {
     auto [b, e] = m_map.equal_range(name);
@@ -95,7 +52,7 @@ namespace yave {
     return false;
   }
 
-  auto node_definition_store::find(const std::string& name) const
+  auto node_definition_map::find(const std::string& name) const
     -> std::vector<std::shared_ptr<const node_definition>>
   {
     std::vector<std::shared_ptr<const node_definition>> ret;
@@ -108,10 +65,8 @@ namespace yave {
     return ret;
   }
 
-  auto node_definition_store::get_binds(
-    const std::string& name,
-    const size_t& os) const
-    -> std::vector<std::shared_ptr<const node_definition>>
+  auto node_definition_map::get_binds(const std::string& name, const size_t& os)
+    const -> std::vector<std::shared_ptr<const node_definition>>
   {
     std::vector<std::shared_ptr<const node_definition>> ret;
 
@@ -122,6 +77,76 @@ namespace yave {
         ret.push_back(iter->second);
     }
     return ret;
+  }
+
+  auto node_definition_map::size() const -> size_t
+  {
+    return m_map.size();
+  }
+
+  bool node_definition_map::empty() const
+  {
+    return m_map.empty();
+  }
+
+  void node_definition_map::clear()
+  {
+    m_map.clear();
+  }
+
+  ////////////////////////////////////////
+  // node_definition_store
+
+  node_definition_store::node_definition_store()
+    : m_map {}
+  {
+    init_logger();
+  }
+
+  bool node_definition_store::add(const node_definition& def)
+  {
+    return m_map.add(def);
+  }
+
+  bool node_definition_store::add(const std::vector<node_definition>& defs)
+  {
+    for (auto&& def : defs)
+      add(def);
+
+    return true;
+  }
+
+  void node_definition_store::remove(const std::string& name)
+  {
+    m_map.remove(name);
+  }
+
+  void node_definition_store::remove(const std::vector<std::string>& names)
+  {
+    for (auto&& name : names)
+      remove(name);
+  }
+
+  bool node_definition_store::exists(const std::string& name) const
+  {
+    return m_map.exists(name);
+  }
+
+  bool node_definition_store::exists(const std::string& name, const size_t& os)
+    const
+  {
+    return m_map.exists(name, os);
+  }
+
+  auto node_definition_store::find(const std::string& name) const
+    -> std::vector<std::shared_ptr<const node_definition>>
+  {
+    return m_map.find(name);
+  }
+
+  auto node_definition_store::get_map() const -> const node_definition_map&
+  {
+    return m_map;
   }
 
   auto node_definition_store::size() const -> size_t

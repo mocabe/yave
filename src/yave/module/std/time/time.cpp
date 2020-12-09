@@ -21,8 +21,7 @@ namespace yave {
       "or creates FrameTime object which represents current time applied.",
       node_declaration_visibility::_public,
       {"value"},
-      {"value"},
-      {{0, make_object<modules::_std::core::GetCurrentTime>()}});
+      {"value"});
   }
 
   auto node_declaration_traits<node::Time::Seconds>::get_node_declaration()
@@ -33,8 +32,7 @@ namespace yave {
       "Get float seconds from time",
       node_declaration_visibility::_public,
       {"time"},
-      {"seconds"},
-      {{0, make_object<modules::_std::core::GetCurrentTime>()}});
+      {"seconds"});
   }
 
   auto node_declaration_traits<node::Time::FromSeconds>::get_node_declaration()

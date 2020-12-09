@@ -5,6 +5,7 @@
 
 #include <yave/node/core/structured_node_graph.hpp>
 #include <yave/node/core/node_graph.hpp>
+#include <yave/node/core/node_declaration.hpp>
 #include <yave/rts/to_string.hpp>
 #include <yave/rts/value_cast.hpp>
 #include <yave/obj/vec/vec.hpp>
@@ -383,6 +384,16 @@ namespace yave {
         });
       }
 
+      auto get_properties() const
+      {
+        return visit([](auto& x) {
+          return x.properties //
+                 | rv::transform(
+                   [](auto& p) { return std::make_pair(p.first, p.second); })
+                 | rn::to_vector;
+        });
+      }
+
       void set_property(const std::string& name, object_ptr<Object> obj)
       {
         visit([&](auto& x) {
@@ -408,6 +419,14 @@ namespace yave {
           return it->second;
 
         return nullptr;
+      }
+
+      auto get_properties() const
+      {
+        return properties //
+               | rv::transform(
+                 [](auto& p) { return std::make_pair(p.first, p.second); })
+               | rn::to_vector;
       }
 
       void set_property(const std::string& name, object_ptr<Object> data)
@@ -565,7 +584,7 @@ namespace yave {
       return fmt::format("Group{}", to_string(id).substr(0, 4));
     }
 
-    using NodeDeclData = Box<std::shared_ptr<node_declaration>>;
+    using NodeDeclData = Box<std::shared_ptr<const node_declaration>>;
 
   } // namespace
 
@@ -815,6 +834,18 @@ namespace yave {
     {
       assert(is_caller(get_node(s)));
       return get_data(s)->get_property(name);
+    }
+
+    auto get_caller_properties(const node_handle& n)
+    {
+      assert(is_caller(n));
+      return get_data(n)->get_properties();
+    }
+
+    auto get_caller_properties(const socket_handle& s)
+    {
+      assert(is_caller(get_node(s)));
+      return get_data(s)->get_properties();
     }
 
     void set_caller_property(
@@ -1811,6 +1842,11 @@ namespace yave {
         return;
       }
 
+      if (auto io = get_io(node)) {
+        ng.set_name(node, name);
+        return;
+      }
+
       auto call = get_call(node);
 
       if (!call) {
@@ -1827,14 +1863,16 @@ namespace yave {
       if (auto g = get_callee_group(node)) {
         // check uniqueness of group name
         for (auto&& n : g->get_defcall()->parent->nodes) {
-          if (n == node || !is_defcall(n))
+          if (n == node)
             continue;
 
-          if (ng.get_name(n) == name) {
-            Error(
-              g_logger,
-              "Cannot have multiple definitions with same name '{}' in a group",
-              name);
+          if (is_io(n) || is_defcall(n)) {
+            if (ng.get_name(n) == name) {
+              Error(
+                g_logger,
+                "Cannot have multiple definitions with same name '{}' in group",
+                name);
+            }
             return;
           }
         }
@@ -2232,8 +2270,6 @@ namespace yave {
         if (!nextg) {
 
           auto newg = add_new_callee_group();
-          ng.set_name(newg->input_handler, "In");
-          ng.set_name(newg->output_handler, "Out");
           ng.set_name(newg->node, std::string(name));
 
           auto newc = add_new_call(g, newg);
@@ -2251,56 +2287,73 @@ namespace yave {
       return nullptr;
     }
 
+    bool check_decl_path(const std::string& path) const
+    {
+      static const auto re = std::regex(path_name_regex);
+      return std::regex_match(path, re);
+    }
+
+    auto get_decl_path_name(const std::string_view& path) const
+    {
+      return std::string(path.substr(path.find_last_of('.') + 1, path.npos));
+    }
+
   public:
     auto create_function_declaration(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
     {
-      auto full_name = node_path + "." + node_name;
+      Info(g_logger, "Creating new function: {}", path);
 
-      Info(g_logger, "Creating new function declaration: {}", full_name);
+      if (!check_decl_path(path))
+        return {};
 
-      if (auto p = create_declaration_path(full_name)) {
-        auto func = check(add_new_callee_function(node_name, iss, oss));
-        auto call = check(add_new_call(p, func));
+      if (auto p = create_declaration_path(path)) {
+        auto name = get_decl_path_name(path);
+        auto func = check(add_new_callee_function(name, iss, oss));
+        auto call = check(add_new_call(p, func, id));
         return call->node;
       }
       return {};
     }
 
     auto create_macro_declaration(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
     {
-      auto full_name = node_path + "." + node_name;
+      Info(g_logger, "Creating new macro: {}", path);
 
-      Info(g_logger, "Creating new macro declaration: {}", full_name);
+      if (!check_decl_path(path))
+        return {};
 
-      if (auto p = create_declaration_path(full_name)) {
-        auto func = check(add_new_callee_macro(node_name, iss, oss));
-        auto call = check(add_new_call(p, func));
+      if (auto p = create_declaration_path(path)) {
+        auto name = get_decl_path_name(path);
+        auto func = check(add_new_callee_macro(name, iss, oss));
+        auto call = check(add_new_call(p, func, id));
         return call->node;
       }
       return {};
     }
 
     auto create_group_declaration(
-      const std::string& node_path,
-      const std::string& node_name,
+      const std::string& path,
       const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_handle
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
     {
-      auto full_name = node_path + "." + node_name;
+      Info(g_logger, "Creating new group: {}", path);
 
-      Info(g_logger, "Creating new group declaration: {}", full_name);
+      if (!check_decl_path(path))
+        return {};
 
-      if (auto p = create_declaration_path(full_name)) {
-        auto func = check(add_new_callee_group(node_name, iss, oss));
-        auto call = check(add_new_call(p, func));
+      if (auto p = create_declaration_path(path)) {
+        auto name = get_decl_path_name(path);
+        auto func = check(add_new_callee_group(name, iss, oss));
+        auto call = check(add_new_call(p, func, id));
         return call->node;
       }
       return {};
@@ -2339,8 +2392,6 @@ namespace yave {
 
       // create new group under parent
       auto newg = add_new_callee_group();
-      ng.set_name(newg->input_handler, "In");
-      ng.set_name(newg->output_handler, "Out");
 
       // create new call
       auto newc = add_new_call(g, newg, id);
@@ -2697,51 +2748,6 @@ namespace yave {
       m_impl.set_name(h, name);
     }
 
-    auto get_pos(const node_handle& node) const -> std::optional<glm::dvec2>
-    {
-      if (!exists(node))
-        return std::nullopt;
-
-      if (auto prop = m_impl.get_caller_property(node, "__pos"))
-        if (auto vec = value_cast_if<Vec2>(prop))
-          return *vec;
-
-      return glm::dvec2();
-    }
-
-    void set_pos(const node_handle& node, const glm::dvec2& newpos)
-    {
-      if (!exists(node))
-        return;
-
-      if (auto prop = m_impl.get_caller_property(node, "__pos")) {
-        if (auto vec = value_cast_if<Vec2>(prop)) {
-          *vec = newpos;
-          return;
-        }
-      }
-
-      // add new prop
-      auto vec = make_object<Vec2>(newpos);
-      m_impl.set_caller_property(node, "__pos", vec);
-    }
-
-    auto get_arg(const socket_handle& socket) const -> object_ptr<Object>
-    {
-      if (!exists(socket))
-        return {};
-
-      return m_impl.get_caller_property(socket, "__arg");
-    }
-
-    void set_arg(const socket_handle& socket, object_ptr<Object> data)
-    {
-      if (!exists(socket))
-        return;
-
-      m_impl.set_caller_property(socket, "__arg", std::move(data));
-    }
-
     template <class Handle>
     auto get_source_id(const Handle& h) -> uid
     {
@@ -2768,33 +2774,41 @@ namespace yave {
       m_impl.set_caller_property(h, "__src", make_object<UInt64>(id.data));
     }
 
-    auto get_node_declaration(const node_handle& n) const
-      -> std::shared_ptr<node_declaration>
+    template <class Handle>
+    auto get_property(const Handle& h, const std::string& name) const
+      -> object_ptr<PropertyTreeNode>
     {
-      if (!exists(n))
+      if (!exists(h))
         return nullptr;
 
-      if (auto prop = m_impl.get_callee_property(n, "__decl"))
-        return *value_cast<NodeDeclData>(prop);
+      if (auto p = m_impl.get_caller_property(h, name))
+        return value_cast<PropertyTreeNode>(p);
 
       return nullptr;
     }
 
     template <class Handle>
-    auto _get_property(const Handle& h, const std::string& name) const
-      -> object_ptr<Object>
+    auto get_properties(const Handle& h)
+      -> std::vector<std::pair<std::string, object_ptr<PropertyTreeNode>>>
     {
       if (!exists(h))
-        return nullptr;
+        return {};
 
-      return m_impl.get_caller_property(h, name);
+      auto ps = m_impl.get_caller_properties(h);
+
+      return ps //
+             | rv::transform([](auto&& p) {
+                 return std::make_pair(
+                   p.first, value_cast<PropertyTreeNode>(p.second));
+               })
+             | rn::to_vector;
     }
 
     template <class Handle>
     void set_property(
       const Handle& h,
       const std::string& name,
-      object_ptr<Object> data)
+      object_ptr<PropertyTreeNode> data)
     {
       if (!exists(h))
         return;
@@ -2808,19 +2822,22 @@ namespace yave {
       m_impl.remove_caller_property(h, name);
     }
 
-    auto _get_shared_property(const node_handle& h, const std::string& name)
-      const -> object_ptr<Object>
+    auto get_shared_property(const node_handle& h, const std::string& name)
+      const -> object_ptr<PropertyTreeNode>
     {
       if (!exists(h))
         return nullptr;
 
-      return m_impl.get_callee_property(h, name);
+      if (auto p = m_impl.get_callee_property(h, name))
+        return value_cast<PropertyTreeNode>(p);
+
+      return nullptr;
     }
 
     void set_shared_property(
       const node_handle& h,
       const std::string& name,
-      object_ptr<Object> data)
+      object_ptr<PropertyTreeNode> data)
     {
       if (!exists(h))
         return;
@@ -3076,68 +3093,31 @@ namespace yave {
       m_impl.bring_back(node);
     }
 
-    auto create_declaration(
-      const std::shared_ptr<node_declaration>& decl,
-      structured_node_graph& ng) -> node_handle
+    auto create_function(
+      const std::string& path,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
     {
-      return decl->visit( //
-        overloaded        //
-        {[&](composed_node_declaration& d) {
-           auto n = m_impl.create_group_declaration(
-             d.node_path(),
-             d.node_name(),
-             d.input_sockets(),
-             d.output_sockets());
+      return m_impl.create_function_declaration(path, iss, oss, id);
+    }
 
-           if (n) {
+    auto create_macro(
+      const std::string& path,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
+    {
+      return m_impl.create_macro_declaration(path, iss, oss, id);
+    }
 
-             // init composed group
-             if (!d.init_composed(ng, n)) {
-               destroy(n);
-               return node_handle();
-             }
-
-             // set default args (init time only)
-             for (auto&& [idx, arg] : d.default_args()) {
-               set_arg(input_sockets(n)[idx], arg.clone());
-             }
-
-             m_impl.set_callee_property(
-               n, "__decl", make_object<NodeDeclData>(decl));
-           }
-           return n;
-         },
-         [&](function_node_declaration& d) {
-           auto n = m_impl.create_function_declaration(
-             d.node_path(),
-             d.node_name(),
-             d.input_sockets(),
-             d.output_sockets());
-
-           if (n) {
-             // set default args
-             for (auto&& [idx, arg] : d.default_args()) {
-               set_arg(input_sockets(n)[idx], arg.clone());
-             }
-
-             m_impl.set_callee_property(
-               n, "__decl", make_object<NodeDeclData>(decl));
-           }
-           return n;
-         },
-         [&](macro_node_declaration& d) {
-           auto n = m_impl.create_macro_declaration(
-             d.node_path(),
-             d.node_name(),
-             d.input_sockets(),
-             d.output_sockets());
-
-           if (n) {
-             m_impl.set_callee_property(
-               n, "__decl", make_object<NodeDeclData>(decl));
-           }
-           return n;
-         }});
+    auto create_group(
+      const std::string& path,
+      const std::vector<std::string>& iss,
+      const std::vector<std::string>& oss,
+      const uid& id) -> node_handle
+    {
+      return m_impl.create_group_declaration(path, iss, oss, id);
     }
 
     auto create_group(
@@ -3324,24 +3304,36 @@ namespace yave {
     m_pimpl->set_name(socket, name);
   }
 
-  auto structured_node_graph::_get_property(
+  auto structured_node_graph::get_property(
     const node_handle& h,
-    const std::string& name) const -> object_ptr<Object>
+    const std::string& name) const -> object_ptr<PropertyTreeNode>
   {
-    return m_pimpl->_get_property(h, name);
+    return m_pimpl->get_property(h, name);
   }
 
-  auto structured_node_graph::_get_property(
+  auto structured_node_graph::get_property(
     const socket_handle& h,
-    const std::string& name) const -> object_ptr<Object>
+    const std::string& name) const -> object_ptr<PropertyTreeNode>
   {
-    return m_pimpl->_get_property(h, name);
+    return m_pimpl->get_property(h, name);
+  }
+
+  auto structured_node_graph::get_properties(const node_handle& h) const
+    -> std::vector<std::pair<std::string, object_ptr<PropertyTreeNode>>>
+  {
+    return m_pimpl->get_properties(h);
+  }
+
+  auto structured_node_graph::get_properties(const socket_handle& h) const
+    -> std::vector<std::pair<std::string, object_ptr<PropertyTreeNode>>>
+  {
+    return m_pimpl->get_properties(h);
   }
 
   void structured_node_graph::set_property(
     const node_handle& h,
     const std::string& name,
-    object_ptr<Object> data)
+    object_ptr<PropertyTreeNode> data)
   {
     m_pimpl->set_property(h, name, std::move(data));
   }
@@ -3349,7 +3341,7 @@ namespace yave {
   void structured_node_graph::set_property(
     const socket_handle& h,
     const std::string& name,
-    object_ptr<Object> data)
+    object_ptr<PropertyTreeNode> data)
   {
     m_pimpl->set_property(h, name, std::move(data));
   }
@@ -3368,17 +3360,17 @@ namespace yave {
     m_pimpl->remove_property(h, name);
   }
 
-  auto structured_node_graph::_get_shared_property(
+  auto structured_node_graph::get_shared_property(
     const node_handle& h,
-    const std::string& name) const -> object_ptr<Object>
+    const std::string& name) const -> object_ptr<PropertyTreeNode>
   {
-    return m_pimpl->_get_shared_property(h, name);
+    return m_pimpl->get_shared_property(h, name);
   }
 
   void structured_node_graph::set_shared_property(
     const node_handle& h,
     const std::string& name,
-    object_ptr<Object> data)
+    object_ptr<PropertyTreeNode> data)
   {
     m_pimpl->set_shared_property(h, name, std::move(data));
   }
@@ -3388,32 +3380,6 @@ namespace yave {
     const std::string& name)
   {
     m_pimpl->remove_shared_property(h, name);
-  }
-
-  auto structured_node_graph::get_pos(const node_handle& node) const
-    -> std::optional<glm::dvec2>
-  {
-    return m_pimpl->get_pos(node);
-  }
-
-  void structured_node_graph::set_pos(
-    const node_handle& node,
-    const glm::dvec2& newpos)
-  {
-    return m_pimpl->set_pos(node, newpos);
-  }
-
-  auto structured_node_graph::get_arg(const socket_handle& socket) const
-    -> object_ptr<Object>
-  {
-    return m_pimpl->get_arg(socket);
-  }
-
-  void structured_node_graph::set_arg(
-    const socket_handle& socket,
-    object_ptr<Object> data)
-  {
-    m_pimpl->set_arg(socket, std::move(data));
   }
 
   auto structured_node_graph::get_source_id(const node_handle& h) const -> uid
@@ -3434,12 +3400,6 @@ namespace yave {
   void structured_node_graph::set_source_id(const socket_handle& h, uid id)
   {
     m_pimpl->set_source_id(h, id);
-  }
-
-  auto structured_node_graph::get_node_declaration(const node_handle& n) const
-    -> std::shared_ptr<node_declaration>
-  {
-    return m_pimpl->get_node_declaration(n);
   }
 
   auto structured_node_graph::get_index(const socket_handle& socket) const
@@ -3626,10 +3586,31 @@ namespace yave {
     m_pimpl->bring_back(node);
   }
 
-  auto structured_node_graph::create_declaration(
-    const std::shared_ptr<node_declaration>& decl) -> node_handle
+  auto structured_node_graph::create_function(
+    const std::string& path,
+    const std::vector<std::string>& iss,
+    const std::vector<std::string>& oss,
+    const uid& id) -> node_handle
   {
-    return m_pimpl->create_declaration(decl, *this);
+    return m_pimpl->create_function(path, iss, oss, id);
+  }
+
+  auto structured_node_graph::create_macro(
+    const std::string& path,
+    const std::vector<std::string>& iss,
+    const std::vector<std::string>& oss,
+    const uid& id) -> node_handle
+  {
+    return m_pimpl->create_macro(path, iss, oss, id);
+  }
+
+  auto structured_node_graph::create_group(
+    const std::string& path,
+    const std::vector<std::string>& iss,
+    const std::vector<std::string>& oss,
+    const uid& id) -> node_handle
+  {
+    return m_pimpl->create_group(path, iss, oss, id);
   }
 
   auto structured_node_graph::create_group(

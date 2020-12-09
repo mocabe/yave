@@ -9,6 +9,7 @@
 #include <yave/node/core/node_handle.hpp>
 #include <yave/node/core/socket_handle.hpp>
 #include <yave/lib/util/variant_mixin.hpp>
+#include <yave/obj/node/argument.hpp>
 
 #include <functional>
 #include <memory>
@@ -33,7 +34,7 @@ namespace yave {
     /// index of input socket
     size_t idx;
     /// node argument data
-    object_ptr<Object> arg;
+    object_ptr<NodeArgument> arg;
   };
 
   /// node declaration for builtin functions
@@ -315,5 +316,14 @@ namespace yave {
       return visibility() == node_declaration_visibility::_private;
     }
   };
+
+  /// Create new declaration
+  /// \param ng node graph
+  /// \param decl new function declaration
+  /// \note decl should have unique name, otherwise will fail
+  /// \returns null handle when failed
+  [[nodiscard]] auto create_declaration(
+    structured_node_graph& ng,
+    const std::shared_ptr<const node_declaration>& decl) -> node_handle;
 
 } // namespace yave

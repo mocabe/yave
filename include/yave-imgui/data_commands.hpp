@@ -15,12 +15,10 @@ namespace yave::editor::imgui {
   /// push update
   struct dcmd_push_update : data_command
   {
-    object_ptr<NodeArgument> arg;
-    object_ptr<const Object> data;
+    std::vector<node_argument_diff> m_diffs;
 
-    dcmd_push_update(object_ptr<NodeArgument> a, object_ptr<const Object> d)
-      : arg {std::move(a)}
-      , data {std::move(d)}
+    dcmd_push_update(std::vector<node_argument_diff> diffs)
+      : m_diffs {std::move(diffs)}
     {
     }
 
@@ -231,6 +229,22 @@ namespace yave::editor::imgui {
 
     dcmd_sadd(node_handle n, socket_type stype, size_t index);
 
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
+    auto type() const -> data_command_type override;
+  };
+
+  // save graph
+  struct dcmd_save : data_command
+  {
+    void exec(data_context& ctx) override;
+    void undo(data_context& ctx) override;
+    auto type() const -> data_command_type override;
+  };
+
+  // load graph
+  struct dcmd_load : data_command
+  {
     void exec(data_context& ctx) override;
     void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;

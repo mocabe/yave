@@ -10,6 +10,7 @@
 #include <yave-imgui/node_window.hpp>
 #include <yave-imgui/data_type_socket.hpp>
 
+#include <yave/node/core/properties.hpp>
 #include <yave/editor/editor_data.hpp>
 #include <yave/module/std/primitive/primitive.hpp>
 #include <yave/module/std/color/color.hpp>
@@ -33,19 +34,16 @@ namespace yave::editor::imgui {
   template <class T, class... Ts>
   auto create_data_type_socket(
     meta_tuple<T, Ts...>,
-    const object_ptr<NodeArgument>& holder,
+    const object_ptr<PropertyTreeNode>& arg,
     const socket_handle& s,
     const structured_node_graph& g,
     const node_window& nw) -> std::unique_ptr<socket_drawable>
   {
-    using property_type =
-      typename node_argument_property_traits<T>::property_type;
-
-    if (auto p = value_cast_if<property_type>(holder->property()))
-      return std::make_unique<data_type_socket<T>>(holder, p, s, g, nw);
+    if (same_type(arg->type(), object_type<T>()))
+      return std::make_unique<data_type_socket<T>>(arg, s, g, nw);
 
     if constexpr (sizeof...(Ts) > 0)
-      return create_data_type_socket<Ts...>(tuple_c<Ts...>, holder, s, g, nw);
+      return create_data_type_socket<Ts...>(tuple_c<Ts...>, arg, s, g, nw);
     else
       return nullptr;
   }
@@ -59,7 +57,7 @@ namespace yave::editor::imgui {
     constexpr auto data_types = tuple_c<Int, Float, Bool, String, Color, Vec2>;
 
     // check data types
-    if (auto arg = value_cast_if<NodeArgument>(g.get_arg(s)))
+    if (auto arg = get_arg_property(s, g))
       if (auto ds = create_data_type_socket(data_types, arg, s, g, nw))
         return ds;
 

@@ -1,5 +1,5 @@
 YAVE_Test(node_graph node yave::node::core)
 YAVE_Test(function node yave::node::core)
-YAVE_Test(generator node yave::node::core)
+YAVE_Test(generator node yave::node::core yave::data::node)
 YAVE_Test(structured_node_graph node yave::node::core yave::module::std)
 YAVE_Test(node_declaration_store node yave::node::core yave::module::std)
