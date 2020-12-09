@@ -37,68 +37,6 @@ namespace yave {
       return std::forward<decltype(arg)>(arg);
     };
 
-    // internal node tag types
-    namespace node {
-      /// Interface node which represents node group
-      class NodeGroupInterface;
-      /// Node dependency
-      class NodeDependency;
-      /// Interface node which represents node input
-      class NodeGroupInput;
-      /// Interface node which represents node output
-      class NodeGroupOutput;
-      /// Node group I/O socket node
-      class NodeGroupIOBit;
-    } // namespace node
-
-    // internal node parameter
-    auto get_declaration(meta_type<node::NodeGroupInterface>)
-    {
-      return composed_node_declaration(
-        "_.NodeGroupInterface",
-        "",
-        node_declaration_visibility::_private,
-        {},
-        {},
-        [](auto&, auto) { return true; });
-    }
-
-    // internal node parameter
-    auto get_declaration(meta_type<node::NodeDependency>)
-    {
-      return function_node_declaration(
-        "_.NodeGroupDependency",
-        "",
-        node_declaration_visibility::_private,
-        {""},
-        {""});
-    }
-
-    // internal node parameter
-    auto get_declaration(meta_type<node::NodeGroupIOBit>)
-    {
-      return function_node_declaration(
-        "_.NodeGroupIOBit",
-        "",
-        node_declaration_visibility::_private,
-        {""},  // will change dynamically
-        {""}); // will change dynamically
-    }
-
-    // internal node parameter
-    auto get_declaration(meta_type<node::NodeGroupInput>)
-    {
-      return function_node_declaration(
-        "_.NodeGroupInput", "", node_declaration_visibility::_private, {}, {});
-    }
-
-    // internal node parameter
-    auto get_declaration(meta_type<node::NodeGroupOutput>)
-    {
-      return function_node_declaration(
-        "_.NodeGroupOutput", "", node_declaration_visibility::_private, {}, {});
-    }
-
     // fwd
     struct node_group;
     struct node_function;
@@ -578,12 +516,6 @@ namespace yave {
       parent  = &std::get<node_group>(*value_cast<NodeData>(ng.get_data(pn)));
     }
 
-    /// get default name of node group
-    auto get_default_new_group_name(uid id)
-    {
-      return fmt::format("Group{}", to_string(id).substr(0, 4));
-    }
-
     using NodeDeclData = Box<std::shared_ptr<const node_declaration>>;
 
   } // namespace
@@ -1034,11 +966,10 @@ namespace yave {
     }
 
   private:
-    auto create_io_bit(const std::string& name)
+    // add io bit node
+    auto add_io_bit(const std::string& name)
     {
-      auto decl = get_declaration(type_c<node::NodeGroupIOBit>);
-      auto bit  = ng.add(decl.node_name(), {name}, {name}, node_type::normal);
-
+      auto bit = ng.add("GruopIOBit", {name}, {name}, node_type::normal);
       assert(bit);
 
       set_data(ng.input_sockets(bit)[0], make_object<SocketData>());
@@ -1047,28 +978,41 @@ namespace yave {
       return bit;
     }
 
+    // add dep bit
+    auto add_dependency_bit()
+    {
+      return check(ng.add("GroupDependency", {""}, {""}, node_type::normal));
+    }
+
+    // add group input interface node
+    auto add_group_interface(const std::string& name)
+    {
+      return check(ng.add(name, {}, {}, node_type::interface));
+    }
+
+    // add group input interface
+    auto add_input_interface()
+    {
+      return check(ng.add("GroupInput", {}, {}, node_type::interface));
+    }
+
+    // add group output interface
+    auto add_output_interface()
+    {
+      return check(ng.add("GroupOutput", {}, {}, node_type::interface));
+    }
+
   private:
     /// create new group callee
     auto add_new_callee_group(
-      const std::string& name,
-      const std::vector<std::string>& iss,
-      const std::vector<std::string>& oss) -> node_group*
+      const std::string& name             = "NodeGruop",
+      const std::vector<std::string>& iss = {},
+      const std::vector<std::string>& oss = {}) -> node_group*
     {
-      auto d_decl = get_declaration(type_c<node::NodeDependency>);
-      auto i_decl = get_declaration(type_c<node::NodeGroupInput>);
-      auto o_decl = get_declaration(type_c<node::NodeGroupOutput>);
-
-      // dependency
-      auto d = check(ng.add(
-        d_decl.node_name(),
-        d_decl.input_sockets(),
-        d_decl.output_sockets(),
-        node_type::normal));
-
-      // group interface
-      auto g = check(ng.add(name, {}, {}, node_type::interface));
-      auto i = check(ng.add(i_decl.node_name(), {}, {}, node_type::interface));
-      auto o = check(ng.add(o_decl.node_name(), {}, {}, node_type::interface));
+      auto d = add_dependency_bit();
+      auto g = add_group_interface(name);
+      auto i = add_input_interface();
+      auto o = add_output_interface();
 
       auto gdata = make_node_data(node_group {
         .node           = g,
@@ -1090,14 +1034,14 @@ namespace yave {
       set_data(o, odata);
 
       for (auto&& s : iss) {
-        auto bit = create_io_bit(s);
+        auto bit = add_io_bit(s);
         check(ng.attach_interface(g, ng.input_sockets(bit)[0]));
         check(ng.attach_interface(i, ng.output_sockets(bit)[0]));
         pgdata->input_bits.push_back(bit);
       }
 
       for (auto&& s : oss) {
-        auto bit = create_io_bit(s);
+        auto bit = add_io_bit(s);
         check(ng.attach_interface(g, ng.output_sockets(bit)[0]));
         check(ng.attach_interface(o, ng.input_sockets(bit)[0]));
         pgdata->output_bits.push_back(bit);
@@ -1112,28 +1056,13 @@ namespace yave {
       return pgdata;
     }
 
-    /// helper to create empty node group callee
-    auto add_new_callee_group() -> node_group*
-    {
-      auto decl = get_declaration(type_c<node::NodeGroupInterface>);
-      return add_new_callee_group(
-        decl.node_name(), decl.input_sockets(), decl.output_sockets());
-    }
-
     /// create new function callee
     auto add_new_callee_function(
       const std::string& name,
       const std::vector<std::string>& iss,
       const std::vector<std::string>& oss) -> node_function*
     {
-      auto d_decl = get_declaration(type_c<node::NodeDependency>);
-
-      auto dep = ng.add(
-        d_decl.node_name(),
-        d_decl.input_sockets(),
-        d_decl.output_sockets(),
-        node_type::normal);
-
+      auto dep  = add_dependency_bit();
       auto body = ng.add(name, iss, oss, node_type::normal);
 
       assert(body && dep);
@@ -1165,14 +1094,7 @@ namespace yave {
       const std::vector<std::string>& iss,
       const std::vector<std::string>& oss) -> node_macro*
     {
-      auto d_decl = get_declaration(type_c<node::NodeDependency>);
-
-      auto dep = ng.add(
-        d_decl.node_name(),
-        d_decl.input_sockets(),
-        d_decl.output_sockets(),
-        node_type::normal);
-
+      auto dep  = add_dependency_bit();
       auto body = ng.add(name, iss, oss, node_type::normal);
 
       assert(body && dep);
@@ -1272,13 +1194,7 @@ namespace yave {
     {
       assert(parent);
 
-      auto d_decl = get_declaration(type_c<node::NodeDependency>);
-
-      auto dep = check(ng.add(
-        d_decl.node_name(),
-        d_decl.input_sockets(),
-        d_decl.output_sockets(),
-        node_type::normal));
+      auto dep = add_dependency_bit();
 
       // check dependency (ignore when it's root call)
       auto valid = callee.visit([&](auto* p) {
@@ -1336,13 +1252,13 @@ namespace yave {
       obits.reserve(info->output_sockets().size());
 
       for (auto&& s : info->input_sockets()) {
-        auto bit = create_io_bit(*ng.get_name(s));
+        auto bit = add_io_bit(*ng.get_name(s));
         check(ng.attach_interface(n, ng.input_sockets(bit)[0]));
         ibits.push_back(bit);
       }
 
       for (auto&& s : info->output_sockets()) {
-        auto bit = create_io_bit(*ng.get_name(s));
+        auto bit = add_io_bit(*ng.get_name(s));
         check(ng.attach_interface(n, ng.output_sockets(bit)[0]));
         obits.push_back(bit);
       }
@@ -1497,13 +1413,13 @@ namespace yave {
       obits.reserve(info->output_sockets().size());
 
       for (auto&& s : info->input_sockets()) {
-        auto bit = create_io_bit(*ng.get_name(s));
+        auto bit = add_io_bit(*ng.get_name(s));
         check(ng.attach_interface(n, ng.input_sockets(bit)[0]));
         ibits.push_back(bit);
       }
 
       for (auto&& s : info->output_sockets()) {
-        auto bit = create_io_bit(*ng.get_name(s));
+        auto bit = add_io_bit(*ng.get_name(s));
         check(ng.attach_interface(n, ng.output_sockets(bit)[0]));
         obits.push_back(bit);
       }
@@ -1872,7 +1788,7 @@ namespace yave {
                 g_logger,
                 "Cannot have multiple definitions with same name '{}' in group",
                 name);
-            return;
+              return;
             }
           }
         }
@@ -1987,7 +1903,7 @@ namespace yave {
         ng.detach_interface(call->node, bit_outer_socket(bit));
 
       // insert new bit
-      auto newbit = create_io_bit(name);
+      auto newbit = add_io_bit(name);
       bits.insert(bits.begin() + index, newbit);
 
       // attach bits
@@ -2050,7 +1966,7 @@ namespace yave {
       }
 
       // insert new bit
-      auto newbit = create_io_bit(name);
+      auto newbit = add_io_bit(name);
       bits.insert(bits.begin() + index, newbit);
 
       // attach interfaces
@@ -2401,9 +2317,6 @@ namespace yave {
         remove_callee(newg);
         return {};
       }
-
-      // set default name
-      set_name(newc->node, get_default_new_group_name(newc->node.id()));
 
       // collect outbound connections
       std::vector<connection_handle> ocs, ics;
