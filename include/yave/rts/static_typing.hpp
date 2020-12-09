@@ -259,17 +259,14 @@ namespace yave {
   // ------------------------------------------
   // subst_term
 
-  namespace detail {
-
-    template <class From, class To, class... Ts>
-    constexpr auto subst_term_impl(
-      meta_type<From> from,
-      meta_type<To> to,
-      meta_type<tm_closure<Ts...>>)
-    {
-      return make_tm_closure(subst_term(from, to, type_c<Ts>)...);
-    }
-  } // namespace detail
+  template <class From, class To, class Term>
+  constexpr auto subst_term_impl(
+    meta_type<From>,
+    meta_type<To>,
+    meta_type<Term>)
+  {
+    static_assert(false_v<From, To, Term>, "Invalid type");
+  }
 
   /// Replace type `From` with `To` in a `Term` tree.
   /// \param from a type going to be replaced
@@ -281,238 +278,348 @@ namespace yave {
     meta_type<To> to,
     meta_type<Term> term)
   {
-    (void)from;
-    (void)to;
-    (void)term;
-
-    if constexpr (from == term) {
+    if constexpr (from == term)
       return to;
-    } else if constexpr (is_tm_closure(term)) {
-      return detail::subst_term_impl(from, to, term);
-    } else if constexpr (is_tm_apply(term)) {
-      return make_tm_apply(
-        subst_term(from, to, term.t1()), subst_term(from, to, term.t2()));
-    } else if constexpr (is_tm_value(term)) {
-      return term;
-    } else if constexpr (is_tm_varvalue(term)) {
-      return term;
-    } else if constexpr (is_tm_var(term)) {
-      return term;
-    } else if constexpr (is_tm_list(term)) {
-      return make_tm_list(subst_term(from, to, term.t()));
-    } else if constexpr (is_tm_maybe(term)) {
-      return make_tm_maybe(subst_term(from, to, term.t()));
-    } else
-      static_assert(false_v<Term>, "Invalid type");
+    else
+      return subst_term_impl(from, to, term);
+  }
+
+  template <class From, class To, class Tag>
+  constexpr auto subst_term_impl(
+    meta_type<From>,
+    meta_type<To>,
+    meta_type<tm_value<Tag>> term)
+  {
+    return term;
+  }
+
+  template <class From, class To, class Tag>
+  constexpr auto subst_term_impl(
+    meta_type<From>,
+    meta_type<To>,
+    meta_type<tm_varvalue<Tag>> term)
+  {
+    return term;
+  }
+
+  template <class From, class To, class Tag>
+  constexpr auto subst_term_impl(
+    meta_type<From>,
+    meta_type<To>,
+    meta_type<tm_var<Tag>> term)
+  {
+    return term;
+  }
+
+  template <class From, class To, class... Ts>
+  constexpr auto subst_term_impl(
+    meta_type<From> from,
+    meta_type<To> to,
+    meta_type<tm_closure<Ts...>>)
+  {
+    return make_tm_closure(subst_term(from, to, type_c<Ts>)...);
+  }
+
+  template <class From, class To, class T1, class T2>
+  constexpr auto subst_term_impl(
+    meta_type<From> from,
+    meta_type<To> to,
+    meta_type<tm_apply<T1, T2>> term)
+  {
+    return make_tm_apply(
+      subst_term(from, to, term.t1()), subst_term(from, to, term.t2()));
+  }
+
+  template <class From, class To, class T>
+  constexpr auto subst_term_impl(
+    meta_type<From> from,
+    meta_type<To> to,
+    meta_type<tm_list<T>> term)
+  {
+    return make_tm_list(subst_term(from, to, term.t()));
   }
 
   // ------------------------------------------
   // genpoly
 
-  namespace detail {
+  template <class Term, class Gen, class Target>
+  constexpr auto genpoly_impl(
+    meta_type<Term> term,
+    meta_type<Gen> gen,
+    meta_type<Target> target)
+  {
+    (void)term;
+    (void)gen;
+    (void)target;
+    static_assert(false_v<Term, Gen, Target>);
+  }
 
-    /// Recursively traverse term tree and replace tm_var with new one.
-    /// \param term a point on term tree currently being processed
-    /// \param gen generator
-    /// \param target current result of procedure
-    template <class Term, class Gen, class Target>
-    constexpr auto genpoly_impl(
-      meta_type<Term> term,
-      meta_type<Gen> gen,
-      meta_type<Target> target)
-    {
-      if constexpr (is_tm_closure(term)) {
-        if constexpr (empty(to_tuple(term))) {
-          return make_pair(target, gen);
-        } else {
-          auto h  = head(term);
-          auto t  = tail(term);
-          auto p1 = genpoly_impl(h, gen, target);
-          auto t1 = p1.first();
-          auto g1 = p1.second();
-          return genpoly_impl(t, g1, t1);
-        }
-      } else if constexpr (is_tm_apply(term)) {
-        auto p1 = genpoly_impl(term.t1(), gen, target);
-        auto t1 = p1.first();
-        auto g1 = p1.second();
-
-        auto p2 = genpoly_impl(term.t2(), g1, t1);
-        auto t2 = p2.first();
-        auto g2 = p2.second();
-        return make_pair(make_tm_apply(t1, t2), g2);
-      } else if constexpr (is_tm_list(term)) {
-        return genpoly_impl(term.t(), gen, target);
-      } else if constexpr (is_tm_var(term)) {
-        return make_pair(
-          subst_term(term, make_tm_var(gen), target), nextgen(gen));
-      } else
-        return make_pair(target, gen);
+  template <class... Ts, class Gen, class Target>
+  constexpr auto genpoly_impl(
+    meta_type<tm_closure<Ts...>> term,
+    meta_type<Gen> gen,
+    meta_type<Target> target)
+  {
+    if constexpr (empty(to_tuple(term))) {
+      return make_pair(target, gen);
+    } else {
+      auto h  = head(term);
+      auto t  = tail(term);
+      auto p1 = genpoly_impl(h, gen, target);
+      auto t1 = p1.first();
+      auto g1 = p1.second();
+      return genpoly_impl(t, g1, t1);
     }
-  } // namespace detail
+  }
 
-  /// create fresh polymorphoc closure
+  template <class T1, class T2, class Gen, class Target>
+  constexpr auto genpoly_impl(
+    meta_type<tm_apply<T1, T2>> term,
+    meta_type<Gen> gen,
+    meta_type<Target> target)
+  {
+    auto p1 = genpoly_impl(term.t1(), gen, target);
+    auto t1 = p1.first();
+    auto g1 = p1.second();
+
+    auto p2 = genpoly_impl(term.t2(), g1, t1);
+    auto t2 = p2.first();
+    auto g2 = p2.second();
+    return make_pair(make_tm_apply(t1, t2), g2);
+  }
+
+  template <class Tag, class Gen, class Target>
+  constexpr auto genpoly_impl(
+    meta_type<tm_value<Tag>>,
+    meta_type<Gen> gen,
+    meta_type<Target> target)
+  {
+    return make_pair(target, gen);
+  }
+
+  template <class Tag, class Gen, class Target>
+  constexpr auto genpoly_impl(
+    meta_type<tm_varvalue<Tag>>,
+    meta_type<Gen> gen,
+    meta_type<Target> target)
+  {
+    return make_pair(target, gen);
+  }
+
+  template <class Tag, class Gen, class Target>
+  constexpr auto genpoly_impl(
+    meta_type<tm_var<Tag>> term,
+    meta_type<Gen> gen,
+    meta_type<Target> target)
+  {
+    return make_pair(subst_term(term, make_tm_var(gen), target), nextgen(gen));
+  }
+
+  template <class T, class Gen, class Target>
+  constexpr auto genpoly_impl(
+    meta_type<tm_list<T>> term,
+    meta_type<Gen> gen,
+    meta_type<Target> target)
+  {
+    return genpoly_impl(term.t(), gen, target);
+  }
+
+  /// Recursively traverse term tree and replace tm_var with new one.
+  /// \param term a point on term tree currently being processed
+  /// \param gen generator
   template <class Term, class Gen>
   [[nodiscard]] constexpr auto genpoly(meta_type<Term> term, meta_type<Gen> gen)
   {
-    return detail::genpoly_impl(term, gen, term);
+    return genpoly_impl(term, gen, term);
   }
 
   // ------------------------------------------
   // type_of
 
-  namespace detail {
+  // fwd
+  template <class Term, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<Term> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert);
 
-    // fwd
-    template <class Term, class Gen, bool Assert>
-    constexpr auto type_of_impl(
-      meta_type<Term> term,
-      meta_type<Gen> gen,
-      std::bool_constant<Assert> enable_assert);
+  // fwd
+  template <class T, class Gen, bool Assert>
+  constexpr auto type_of_impl_closure(
+    meta_type<T> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert);
 
-    // fwd
-    template <class T, class Gen, bool Assert>
-    constexpr auto type_of_impl_closure(
-      meta_type<T> term,
-      meta_type<Gen> gen,
-      std::bool_constant<Assert> enable_assert);
+  template <class T, class Gen, bool Assert>
+  constexpr auto type_of_impl_closure_1(
+    meta_type<tm_closure<T>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    return type_of_impl_closure(head(term), gen, enable_assert);
+  }
 
-    template <class T, class Gen, bool Assert>
-    constexpr auto type_of_impl_closure_1(
-      meta_type<tm_closure<T>> term,
-      meta_type<Gen> gen,
-      std::bool_constant<Assert> enable_assert)
-    {
-      return type_of_impl_closure(head(term), gen, enable_assert);
-    }
+  template <class... Ts, class Gen, bool Assert>
+  constexpr auto type_of_impl_closure_n(
+    meta_type<tm_closure<Ts...>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    auto h = head(term);
+    auto t = tail(term);
 
-    template <class... Ts, class Gen, bool Assert>
-    constexpr auto type_of_impl_closure_n(
-      meta_type<tm_closure<Ts...>> term,
-      meta_type<Gen> gen,
-      std::bool_constant<Assert> enable_assert)
-    {
-      auto h = head(term);
-      auto t = tail(term);
+    // head
+    auto p1 = type_of_impl_closure(h, gen, enable_assert);
+    auto t1 = p1.first();
+    auto g1 = p1.second();
+    // tail
+    auto p2 = type_of_impl_closure(t, g1, enable_assert);
+    auto t2 = p2.first();
+    auto g2 = p2.second();
 
-      // head
-      auto p1 = type_of_impl_closure(h, gen, enable_assert);
+    // No need for error check (as far as tm_closure is used just for
+    // type declaration).
+
+    return make_pair(make_ty_arrow(t1, t2), g2);
+  }
+
+  /// Convert `tm_closure<T1, T2...>` to `arrow<T1, arrow<T2, ...>>`.
+  /// \param term term
+  /// \param gen generator
+  /// \param enable_assert an option to control static_assert
+  template <class T, class Gen, bool Assert>
+  constexpr auto type_of_impl_closure(
+    meta_type<T> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    if constexpr (is_tm_closure(term)) {
+      // Workaround for VS2019 16.4 Preview 2.
+      // SFINAE-out branches not taken.
+      if constexpr (term.size() <= 1) {
+        return type_of_impl_closure_1(term, gen, enable_assert);
+      } else {
+        return type_of_impl_closure_n(term, gen, enable_assert);
+      }
+    } else
+      return type_of_impl(term, gen, enable_assert);
+  }
+
+  /// Create fresh polymorphic type on tm_closure, otherwise fallback to
+  /// type_of_impl.
+  template <class Term, class Gen, bool Assert>
+  constexpr auto type_of_impl_app(
+    meta_type<Term> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    if constexpr (is_tm_closure(term)) {
+      // generate fresh polymorphoc type
+      auto p1 = genpoly(term, gen);
       auto t1 = p1.first();
       auto g1 = p1.second();
-      // tail
-      auto p2 = type_of_impl_closure(t, g1, enable_assert);
+      // create arrow type from tm_closure
+      return type_of_impl_closure(t1, g1, enable_assert);
+    } else {
+      return type_of_impl(term, gen, enable_assert);
+    }
+  }
+
+  /// Infer a type of term tree.
+  /// \param term term
+  /// \param gen generator
+  /// \param enable_assert an option to control static_assert
+  template <class Term, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<Term> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    (void)term;
+    (void)gen;
+    (void)enable_assert;
+    static_assert(false_v<Term, Gen, Assert>, "Invalid term");
+  }
+
+  template <class T1, class T2, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<tm_apply<T1, T2>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    // app
+    auto p1 = type_of_impl_app(term.t1(), gen, enable_assert);
+    auto t1 = p1.first();
+    auto g1 = p1.second();
+    if constexpr (is_tyerror(t1)) {
+      return make_pair(t1, g1);
+    } else {
+      // arg
+      auto p2 = type_of_impl(term.t2(), g1, enable_assert);
       auto t2 = p2.first();
       auto g2 = p2.second();
-
-      // No need for error check (as far as tm_closure is used just for
-      // type declaration).
-
-      return make_pair(make_ty_arrow(t1, t2), g2);
-    }
-
-    /// Convert `tm_closure<T1, T2...>` to `arrow<T1, arrow<T2, ...>>`.
-    /// \param term term
-    /// \param gen generator
-    /// \param enable_assert an option to control static_assert
-    template <class T, class Gen, bool Assert>
-    constexpr auto type_of_impl_closure(
-      meta_type<T> term,
-      meta_type<Gen> gen,
-      std::bool_constant<Assert> enable_assert)
-    {
-      if constexpr (is_tm_closure(term)) {
-        // Workaround for VS2019 16.4 Preview 2.
-        // SFINAE-out branches not taken.
-        if constexpr (term.size() <= 1) {
-          return type_of_impl_closure_1(term, gen, enable_assert);
-        } else {
-          return type_of_impl_closure_n(term, gen, enable_assert);
-        }
-      } else
-        return type_of_impl(term, gen, enable_assert);
-    }
-
-    /// Create fresh polymorphic type on tm_closure, otherwise fallback to
-    /// type_of_impl.
-    template <class Term, class Gen, bool Assert>
-    constexpr auto type_of_impl_app(
-      meta_type<Term> term,
-      meta_type<Gen> gen,
-      std::bool_constant<Assert> enable_assert)
-    {
-      if constexpr (is_tm_closure(term)) {
-        // generate fresh polymorphoc type
-        auto p1 = genpoly(term, gen);
-        auto t1 = p1.first();
-        auto g1 = p1.second();
-        // create arrow type from tm_closure
-        return type_of_impl_closure(t1, g1, enable_assert);
+      if constexpr (is_tyerror(t2)) {
+        return make_pair(t2, g2);
       } else {
-        return type_of_impl(term, gen, enable_assert);
+        // type check subtree
+        auto var = make_ty_var(g2);
+        auto g3  = nextgen(g2);
+        auto s   = unify(t1, make_ty_arrow(t2, var), enable_assert);
+        if constexpr (is_tyerror(s))
+          return make_pair(s, g3);
+        else
+          return make_pair(apply_subst(s, var), g3);
       }
     }
+  }
 
-    /// Infer a type of term tree.
-    /// \param term term
-    /// \param gen generator
-    /// \param enable_assert an option to control static_assert
-    template <class Term, class Gen, bool Assert>
-    constexpr auto type_of_impl(
-      meta_type<Term> term,
-      meta_type<Gen> gen,
-      std::bool_constant<Assert> enable_assert)
-    {
-      (void)term;
-      (void)gen;
-      (void)enable_assert;
+  template <class Tag, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<tm_value<Tag>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert>)
+  {
+    return make_pair(make_ty_value(term.tag()), gen);
+  }
 
-      if constexpr (is_tm_apply(term)) {
-        // app
-        auto p1 = type_of_impl_app(term.t1(), gen, enable_assert);
-        auto t1 = p1.first();
-        auto g1 = p1.second();
-        if constexpr (is_tyerror(t1)) {
-          return make_pair(t1, g1);
-        } else {
-          // arg
-          auto p2 = type_of_impl(term.t2(), g1, enable_assert);
-          auto t2 = p2.first();
-          auto g2 = p2.second();
-          if constexpr (is_tyerror(t2)) {
-            return make_pair(t2, g2);
-          } else {
-            // type check subtree
-            auto var = make_ty_var(g2);
-            auto g3  = nextgen(g2);
-            auto s   = unify(t1, make_ty_arrow(t2, var), enable_assert);
-            if constexpr (is_tyerror(s))
-              return make_pair(s, g3);
-            else
-              return make_pair(apply_subst(s, var), g3);
-          }
-        }
-      } else if constexpr (is_tm_list(term)) {
-        auto p = type_of_impl(term.t(), gen, enable_assert);
-        auto t = p.first();
-        auto g = p.second();
-        return make_pair(make_ty_list(t), g);
-      } else if constexpr (is_tm_maybe(term)) {
-        auto p = type_of_impl(term.t(), gen, enable_assert);
-        auto t = p.first();
-        auto g = p.second();
-        return make_pair(make_ty_maybe(t), g);
-      } else if constexpr (is_tm_closure(term)) {
-        return type_of_impl_closure(term, gen, enable_assert);
-      } else if constexpr (is_tm_value(term)) {
-        return make_pair(make_ty_value(term.tag()), gen);
-      } else if constexpr (is_tm_varvalue(term)) {
-        return make_pair(make_ty_varvalue(term.tag()), gen);
-      } else if constexpr (is_tm_var(term)) {
-        return make_pair(make_ty_var(term.tag()), gen);
-      } else
-        static_assert(false_v<Term>, "Invalid term");
-    }
-  } // namespace detail
+  template <class Tag, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<tm_varvalue<Tag>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert>)
+  {
+    return make_pair(make_ty_varvalue(term.tag()), gen);
+  }
+
+  template <class Tag, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<tm_var<Tag>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert>)
+  {
+    return make_pair(make_ty_var(term.tag()), gen);
+  }
+
+  template <class T, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<tm_list<T>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    auto p = type_of_impl(term.t(), gen, enable_assert);
+    auto t = p.first();
+    auto g = p.second();
+    return make_pair(make_ty_list(t), g);
+  }
+
+  template <class... Ts, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<tm_closure<Ts...>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    return type_of_impl_closure(term, gen, enable_assert);
+  }
 
   /// Infer type of term tree
   /// \param term term
@@ -522,11 +629,14 @@ namespace yave {
     meta_type<Term> term,
     std::bool_constant<Assert> enable_assert = {})
   {
-    auto p = detail::type_of_impl(term, gen_c<0>, enable_assert);
+    auto p = type_of_impl(term, gen_c<0>, enable_assert);
     auto t = p.first(); // type
     // return result type
     return t;
   }
+
+  // ------------------------------------------
+  // check_type_static
 
   /// check type at compile time
   template <class T, class U>

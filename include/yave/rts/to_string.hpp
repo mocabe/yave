@@ -39,13 +39,6 @@ namespace yave {
                "]";                     //
       }
 
-      if (is_maybe_type(type)) {
-        auto ap = is_tap_type_if(type);
-        return "(?" +                   //
-               to_string_impl(ap->t2) + //
-               ")";                     //
-      }
-
       if (auto con = is_tcon_type_if(type)) {
         return to_string(*con);
       }

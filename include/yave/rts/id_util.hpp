@@ -15,57 +15,57 @@ namespace yave {
   // ------------------------------------------
   // 128bit UUID
 
-  namespace detail {
+  /// read UUID from constexpr char array
+  [[nodiscard]] constexpr auto read_uuid_from_constexpr_string(
+    char const (&str)[37]) -> std::array<char, 16>
+  {
+    // ex) 707186a4-f043-4a08-8223-e03fe9c1b0ea\0
 
-    /// read UUID from constexpr char array
-    [[nodiscard]] constexpr auto read_uuid_from_constexpr_string(
-      char const (&str)[37]) -> std::array<char, 16>
-    {
-      // ex) 707186a4-f043-4a08-8223-e03fe9c1b0ea\0
+    char hex[32] {};
+    size_t hex_idx = 0;
 
-      char hex[32] {};
-      size_t hex_idx = 0;
+    // for gcc constexpr bug workaround
+    bool fail = false;
 
-      // for gcc constexpr bug workaround
-      bool fail = false;
-
-      // read hex
-      for (auto&& c : str) {
-        if (c == '-' || c == '\0') {
-          continue;
-        }
-        if ('0' <= c && c <= '9') {
-          hex[hex_idx] = static_cast<char>(c - '0');
-          ++hex_idx;
-          continue;
-        }
-        if ('a' <= c && c <= 'f') {
-          hex[hex_idx] = static_cast<char>(c - 'a' + 10);
-          ++hex_idx;
-          continue;
-        }
-        if ('A' <= c && c <= 'F') {
-          hex[hex_idx] = static_cast<char>(c - 'A' + 10);
-          ++hex_idx;
-          continue;
-        }
-        fail = true;
-        break; // failed to parse UUID
+    // read hex
+    for (auto&& c : str) {
+      if (c == '-' || c == '\0') {
+        continue;
       }
-
-      if (fail)
-        throw;
-
-      std::array<char, 16> ret {};
-
-      // convert to value
-      for (size_t i = 0; i < 16; ++i) {
-        auto upper = 2 * i;
-        auto lower = 2 * i + 1;
-        ret[i]     = static_cast<char>(hex[upper] * 16 + hex[lower]);
+      if ('0' <= c && c <= '9') {
+        hex[hex_idx] = static_cast<char>(c - '0');
+        ++hex_idx;
+        continue;
       }
-      return ret;
+      if ('a' <= c && c <= 'f') {
+        hex[hex_idx] = static_cast<char>(c - 'a' + 10);
+        ++hex_idx;
+        continue;
+      }
+      if ('A' <= c && c <= 'F') {
+        hex[hex_idx] = static_cast<char>(c - 'A' + 10);
+        ++hex_idx;
+        continue;
+      }
+      fail = true;
+      break; // failed to parse UUID
     }
+
+    if (fail)
+      throw;
+
+    std::array<char, 16> ret {};
+
+    // convert to value
+    for (size_t i = 0; i < 16; ++i) {
+      auto upper = 2 * i;
+      auto lower = 2 * i + 1;
+      ret[i]     = static_cast<char>(hex[upper] * 16 + hex[lower]);
+    }
+    return ret;
+  }
+
+  namespace detail {
 
     // Convert UUID to string.
     // full : n=16

@@ -5,9 +5,216 @@
 
 #pragma once
 
-#include <yave/rts/box.hpp>
+#include <yave/rts/dynamic_typing.hpp>
 
 namespace yave {
+
+  //
+  // Implementation of Maybe type constructor.
+  // This might be a good example for extending RTS static type system without
+  // modifying existing headers.
+  //
+
+  /// maybe term
+  template <class T>
+  struct tm_maybe;
+
+  /// maybe specifier
+  template <class T>
+  struct maybe;
+
+  /// maybe tcon tag
+  struct maybe_tcon_tag;
+
+  /// maybe type
+  template <class T>
+  using ty_maybe = tap<tcon<maybe_tcon_tag, kfun<kstar, kstar>>, T>;
+
+  /// maybe proxy object
+  template <class T>
+  struct MaybeProxy;
+
+  // ------------------------------------------
+  // meta_type
+
+  template <class T>
+  struct meta_type<tm_maybe<T>>
+  {
+    using type = tm_maybe<T>;
+
+    constexpr auto t() const
+    {
+      return type_c<T>;
+    }
+  };
+
+  template <class T>
+  struct meta_type<maybe<T>>
+  {
+    using type = maybe<T>;
+
+    constexpr auto t() const
+    {
+      return type_c<T>;
+    }
+  };
+
+  // ------------------------------------------
+  // helper
+
+  template <class T>
+  [[nodiscard]] constexpr auto make_tm_maybe(meta_type<T>)
+  {
+    return type_c<tm_maybe<T>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto make_ty_maybe(meta_type<T>)
+  {
+    return type_c<ty_maybe<T>>;
+  }
+
+  // ------------------------------------------
+  // generalize_tm_varvalue
+
+  template <class T, class Target>
+  constexpr auto generalize_tm_varvalue_impl(
+    meta_type<tm_maybe<T>> term,
+    meta_type<Target> target)
+  {
+    return generalize_tm_varvalue_impl(term.t(), target);
+  }
+
+  // ------------------------------------------
+  // subst_term_impl
+
+  template <class From, class To, class T>
+  constexpr auto subst_term_impl(
+    meta_type<From> from,
+    meta_type<To> to,
+    meta_type<tm_maybe<T>> term)
+  {
+    return make_tm_maybe(subst_term(from, to, term.t()));
+  }
+
+  // ------------------------------------------
+  // genpoly_impl
+
+  template <class T, class Gen, class Target>
+  constexpr auto genpoly_impl(
+    meta_type<tm_maybe<T>> term,
+    meta_type<Gen> gen,
+    meta_type<Target> target)
+  {
+    return genpoly_impl(term.t(), gen, target);
+  }
+
+  // ------------------------------------------
+  // type_of_impl
+
+  template <class T, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<tm_maybe<T>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    auto p = type_of_impl(term.t(), gen, enable_assert);
+    auto t = p.first();
+    auto g = p.second();
+    return make_pair(make_ty_maybe(t), g);
+  }
+
+  // ------------------------------------------
+  // specifier
+
+  template <class T>
+  [[nodiscard]] constexpr auto is_specifier(meta_type<maybe<T>>)
+  {
+    return true_c;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto normalize_specifier(meta_type<maybe<T>> m)
+  {
+    return type_c<maybe<typename decltype(normalize_specifier(m.t()))::type>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_proxy_type(meta_type<maybe<T>> m)
+  {
+    return type_c<MaybeProxy<typename decltype(get_proxy_type(m.t()))::type>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<maybe<T>> m)
+  {
+    return get_proxy_type(m);
+  }
+
+  // ------------------------------------------
+  // get_maybe_object_type
+
+  template <class T>
+  struct maybe_object_value;
+
+  template <class T>
+  using Maybe = Box<maybe_object_value<T>>;
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_maybe_object_type(meta_type<ty_maybe<T>>)
+  {
+    return type_c<Maybe<T>>;
+  }
+
+  // ------------------------------------------
+  // type gen
+
+  /// proxy type of maybe
+  template <class T>
+  struct MaybeProxy : Object
+  {
+    /// term
+    static constexpr auto term = make_tm_maybe(get_term<T>());
+  };
+
+  constexpr auto maybe_type_uuid()
+  {
+    return read_uuid_from_constexpr_string(
+      "6b8bcbb1-6283-46c1-8b68-6e8ad6c99d46");
+  }
+
+  constexpr auto maybe_type_name()
+  {
+    return "?";
+  }
+
+  template <>
+  struct tcon_traits<maybe_tcon_tag>
+  {
+    static constexpr auto id   = maybe_type_uuid();
+    static constexpr auto name = maybe_type_name();
+  };
+
+  template <class T>
+  struct term_to_type<tm_maybe<T>>
+  {
+    using type = ty_maybe<term_to_type_t<T>>;
+  };
+
+  /// for maybe type
+  [[nodiscard]] inline auto maybe_type_tcon() -> object_ptr<const Type>
+  {
+    return &type_initializer<tcon<maybe_tcon_tag, kfun<kstar, kstar>>>::type;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_maybe<T>>)
+  {
+    return get_maybe_object_type(make_ty_maybe(guess_object_type(type_c<T>)));
+  }
+
+  // ------------------------------------------
+  // object value
 
   template <class T>
   struct maybe_object_value;
@@ -145,4 +352,21 @@ namespace yave {
   {
     return make_object<Maybe<T>>(std::move(v));
   }
-}
+
+  // ------------------------------------------
+  // dynamc typing
+
+  [[nodiscard]] inline auto make_maybe_type(const object_ptr<const Type>& t)
+  {
+    return make_object<const Type>(tap_type {maybe_type_tcon(), t});
+  }
+
+  [[nodiscard]] inline auto is_maybe_type(const object_ptr<const Type>& t)
+  {
+    if (auto tap = is_tap_type_if(t))
+      if (same_type(tap->t1, maybe_type_tcon()))
+        return true;
+
+    return false;
+  }
+} // namespace yave

@@ -50,12 +50,6 @@ namespace yave {
   {
   };
 
-  /// tm_maybe
-  template <class T>
-  struct tm_maybe
-  {
-  };
-
   // ------------------------------------------
   // Term accessors
 
@@ -117,16 +111,6 @@ namespace yave {
   struct meta_type<tm_list<T>>
   {
     using type = tm_list<T>;
-    constexpr auto t() const
-    {
-      return type_c<T>;
-    }
-  };
-
-  template <class T>
-  struct meta_type<tm_maybe<T>>
-  {
-    using type = tm_maybe<T>;
     constexpr auto t() const
     {
       return type_c<T>;
@@ -301,26 +285,6 @@ namespace yave {
     return is_tm_list(get_term<T>());
   }
 
-  // ------------------------------------------
-  // is_tm_maybe
-
-  template <class T>
-  [[nodiscard]] constexpr auto is_tm_maybe(meta_type<tm_maybe<T>>)
-  {
-    return true_c;
-  }
-
-  template <class T>
-  [[nodiscard]] constexpr auto is_tm_maybe(meta_type<T>)
-  {
-    return false_c;
-  }
-
-  template <class T>
-  [[nodiscard]] constexpr auto has_tm_maybe()
-  {
-    return is_tm_maybe(get_term<T>());
-  }
 
   // ------------------------------------------
   // to_tuple
@@ -377,15 +341,6 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // make_tm_maybe
-
-  template <class T>
-  [[nodiscard]] constexpr auto make_tm_maybe(meta_type<T>)
-  {
-    return type_c<tm_maybe<T>>;
-  }
-
-  // ------------------------------------------
   // head
 
   template <class T, class... Ts>
@@ -409,44 +364,75 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // polymorphic_term_export
+  // generalize_tm_varvalue
 
-  namespace detail {
+  template <class Term, class Target>
+  constexpr auto generalize_tm_varvalue_impl(meta_type<Term>, meta_type<Target>)
+  {
+    static_assert(false_v<Term, Target>);
+  }
 
-    template <class Term, class Target>
-    constexpr auto polymorphic_term_export_impl(
-      meta_type<Term> term,
-      meta_type<Target> target)
-    {
-      if constexpr (is_tm_varvalue(term)) {
-        return subst_term(term, make_tm_var(term.tag()), target);
-      } else if constexpr (is_tm_closure(term)) {
-        if constexpr (term.size() == 0) {
-          return target;
-        } else if constexpr (term.size() == 1) {
-          return polymorphic_term_export_impl(head(term), target);
-        } else {
-          return polymorphic_term_export_impl(
-            tail(term), polymorphic_term_export_impl(head(term), target));
-        }
-      } else if constexpr (is_tm_apply(term)) {
-        return polymorphic_term_export_impl(
-          term.t2(), polymorphic_term_export_impl(term.t1(), target));
-      } else if constexpr (is_tm_list(term)) {
-        return polymorphic_term_export_impl(term.t(), target);
-      } else if constexpr (is_tm_maybe(term)) {
-        return polymorphic_term_export_impl(term.t(), target);
-      } else
-        return target;
+  template <class Tag, class Target>
+  constexpr auto generalize_tm_varvalue_impl(
+    meta_type<tm_value<Tag>>,
+    meta_type<Target> target)
+  {
+    return target;
+  }
+
+  template <class Tag, class Target>
+  constexpr auto generalize_tm_varvalue_impl(
+    meta_type<tm_var<Tag>>,
+    meta_type<Target> target)
+  {
+    return target;
+  }
+
+  template <class Tag, class Target>
+  constexpr auto generalize_tm_varvalue_impl(
+    meta_type<tm_varvalue<Tag>> term,
+    meta_type<Target> target)
+  {
+    return subst_term(term, make_tm_var(term.tag()), target);
+  }
+
+  template <class... Ts, class Target>
+  constexpr auto generalize_tm_varvalue_impl(
+    meta_type<tm_closure<Ts...>> term,
+    meta_type<Target> target)
+  {
+    if constexpr (term.size() == 0) {
+      return target;
+    } else if constexpr (term.size() == 1) {
+      return generalize_tm_varvalue_impl(head(term), target);
+    } else {
+      return generalize_tm_varvalue_impl(
+        tail(term), generalize_tm_varvalue_impl(head(term), target));
     }
+  }
 
-  } // namespace detail
+  template <class T1, class T2, class Target>
+  constexpr auto generalize_tm_varvalue_impl(
+    meta_type<tm_apply<T1, T2>> term,
+    meta_type<Target> target)
+  {
+    return generalize_tm_varvalue_impl(
+      term.t2(), generalize_tm_varvalue_impl(term.t1(), target));
+  }
+
+  template <class T, class Target>
+  constexpr auto generalize_tm_varvalue_impl(
+    meta_type<tm_list<T>> term,
+    meta_type<Target> target)
+  {
+    return generalize_tm_varvalue_impl(term.t(), target);
+  }
 
   /// convert varvalue to var
   template <class Term>
-  [[nodiscard]] constexpr auto polymorphic_term_export(meta_type<Term> term)
+  [[nodiscard]] constexpr auto generalize_tm_varvalue(meta_type<Term> term)
   {
-    return detail::polymorphic_term_export_impl(term, term);
+    return generalize_tm_varvalue_impl(term, term);
   }
 
 } // namespace yave

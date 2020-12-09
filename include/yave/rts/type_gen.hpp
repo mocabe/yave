@@ -37,7 +37,7 @@ namespace yave {
   {
     /// term
     static constexpr auto term =
-      polymorphic_term_export(make_tm_closure(get_term<Ts>()...));
+      generalize_tm_varvalue(make_tm_closure(get_term<Ts>()...));
   };
 
   /// proxy type of argument closure type
@@ -64,14 +64,6 @@ namespace yave {
     static constexpr auto term = make_tm_list(get_term<T>());
   };
 
-  /// proxy type of maybe
-  template <class T>
-  struct MaybeProxy : Object
-  {
-    /// term
-    static constexpr auto term = make_tm_maybe(get_term<T>());
-  };
-
   /// proxy type of named objec type
   template <class T>
   struct ObjectProxy : Object
@@ -80,232 +72,193 @@ namespace yave {
     static constexpr auto term = get_term<T>();
   };
 
-  namespace detail {
+  // fwd
+  template <class>
+  struct type_initializer;
 
-    // fwd
-    template <class>
-    struct type_initializer;
+  // fwd
+  template <class>
+  struct term_to_type;
 
-    // fwd
-    template <class>
-    struct term_to_type;
+  template <class T>
+  using term_to_type_t = typename term_to_type<T>::type;
 
-    template <class T>
-    using term_to_type_t = typename term_to_type<T>::type;
+  // ------------------------------------------
+  // tcon type
 
-    // ------------------------------------------
-    // tcon type
+  template <class Tag>
+  struct tcon_traits;
 
-    template <class Tag>
-    struct tcon_traits;
+  template <class Tag, class Kind>
+  struct type_initializer<tcon<Tag, Kind>>
+  {
+    inline static const Type type //
+      {static_construct,
+       tcon_type {
+         tcon_traits<Tag>::id,
+         detail::kind_address<Kind>(),
+         tcon_traits<Tag>::name}};
+  };
 
-    template <class Tag, class Kind>
-    struct type_initializer<tcon<Tag, Kind>>
-    {
-      inline static const Type type //
-        {static_construct,
-         tcon_type {tcon_traits<Tag>::id,
-                    kind_address<Kind>(),
-                    tcon_traits<Tag>::name}};
-    };
+  // ------------------------------------------
+  // tap type
 
-    // ------------------------------------------
-    // tap type
+  template <class T1, class T2>
+  struct type_initializer<tap<T1, T2>>
+  {
+    inline static const Type type //
+      {static_construct,
+       tap_type {&type_initializer<T1>::type, &type_initializer<T2>::type}};
+  };
 
-    template <class T1, class T2>
-    struct type_initializer<tap<T1, T2>>
-    {
-      inline static const Type type //
-        {static_construct,
-         tap_type {&type_initializer<T1>::type, &type_initializer<T2>::type}};
-    };
+  // ------------------------------------------
+  // tvar type
 
-    // ------------------------------------------
-    // tvar type
+  template <class Tag>
+  struct type_initializer<tvar<Tag, kstar>>
+  {
+    inline static const Type type //
+      {static_construct, tvar_type::random_generate()};
+  };
 
-    template <class Tag>
-    struct type_initializer<tvar<Tag, kstar>>
-    {
-      inline static const Type type //
-        {static_construct, tvar_type::random_generate()};
-    };
+  // ------------------------------------------
+  // value type
 
-    // ------------------------------------------
-    // value type
+  /// get buffer for value type
+  template <class Tag>
+  constexpr auto value_type_uuid() -> std::array<char, 16>
+  {
+    return read_uuid_from_constexpr_string(object_type_traits<Tag>::uuid);
+  }
 
-    /// get buffer for value type
-    template <class Tag>
-    constexpr auto value_type_uuid() -> std::array<char, 16>
-    {
-      return detail::read_uuid_from_constexpr_string(
-        object_type_traits<Tag>::uuid);
-    }
+  /// get friendly name of value type.
+  template <class Tag>
+  constexpr auto value_type_name() -> const char*
+  {
+    return object_type_traits<Tag>::name;
+  }
 
-    /// get friendly name of value type.
-    template <class Tag>
-    constexpr auto value_type_name() -> const char*
-    {
-      return object_type_traits<Tag>::name;
-    }
+  template <class Tag>
+  struct tcon_traits<value_tcon_tag<Tag>>
+  {
+    static constexpr auto id   = value_type_uuid<Tag>();
+    static constexpr auto name = value_type_name<Tag>();
+  };
 
-    template <class Tag>
-    struct tcon_traits<value_tcon_tag<Tag>>
-    {
-      static constexpr auto id   = value_type_uuid<Tag>();
-      static constexpr auto name = value_type_name<Tag>();
-    };
+  template <class Tag>
+  struct term_to_type<tm_value<Tag>>
+  {
+    using type = ty_value<Tag>;
+  };
 
-    template <class Tag>
-    struct term_to_type<tm_value<Tag>>
-    {
-      using type = ty_value<Tag>;
-    };
+  // ------------------------------------------
+  // arrow type
 
-    // ------------------------------------------
-    // arrow type
+  constexpr auto arrow_type_uuid()
+  {
+    return read_uuid_from_constexpr_string(
+      "c41c249c-4bb1-4fe7-80c8-f9e0c9780f45");
+  }
 
-    constexpr auto arrow_type_uuid()
-    {
-      return read_uuid_from_constexpr_string(
-        "c41c249c-4bb1-4fe7-80c8-f9e0c9780f45");
-    }
+  constexpr auto arrow_type_name()
+  {
+    return "->";
+  }
 
-    constexpr auto arrow_type_name()
-    {
-      return "->";
-    }
+  template <>
+  struct tcon_traits<arrow_tcon_tag>
+  {
+    static constexpr auto id   = arrow_type_uuid();
+    static constexpr auto name = arrow_type_name();
+  };
 
-    template <>
-    struct tcon_traits<arrow_tcon_tag>
-    {
-      static constexpr auto id   = arrow_type_uuid();
-      static constexpr auto name = arrow_type_name();
-    };
+  template <class T1, class... Ts>
+  struct term_to_type<tm_closure<T1, Ts...>>
+  {
+    using type =
+      ty_arrow<term_to_type_t<T1>, term_to_type_t<tm_closure<Ts...>>>;
+  };
 
-    template <class T1, class... Ts>
-    struct term_to_type<tm_closure<T1, Ts...>>
-    {
-      using type =
-        ty_arrow<term_to_type_t<T1>, term_to_type_t<tm_closure<Ts...>>>;
-    };
+  template <class T>
+  struct term_to_type<tm_closure<T>>
+  {
+    using type = term_to_type_t<T>;
+  };
 
-    template <class T>
-    struct term_to_type<tm_closure<T>>
-    {
-      using type = term_to_type_t<T>;
-    };
+  // ------------------------------------------
+  // var type
 
-    // ------------------------------------------
-    // var type
+  template <class Tag>
+  struct term_to_type<tm_var<Tag>>
+  {
+    using type = ty_var<Tag>;
+  };
 
-    template <class Tag>
-    struct term_to_type<tm_var<Tag>>
-    {
-      using type = ty_var<Tag>;
-    };
+  // ------------------------------------------
+  // varvalue type
 
-    // ------------------------------------------
-    // varvalue type
+  template <class Tag>
+  struct term_to_type<tm_varvalue<Tag>>
+  {
+    // fallback to var type
+    using type = ty_var<Tag>;
+  };
 
-    template <class Tag>
-    struct term_to_type<tm_varvalue<Tag>>
-    {
-      // fallback to var type
-      using type = ty_var<Tag>;
-    };
+  // ------------------------------------------
+  // list type
 
-    // ------------------------------------------
-    // list type
+  constexpr auto list_type_uuid()
+  {
+    return read_uuid_from_constexpr_string(
+      "d14b9346-a02d-4a53-aaa5-64cdf3f2e4b3");
+  }
 
-    constexpr auto list_type_uuid()
-    {
-      return read_uuid_from_constexpr_string(
-        "d14b9346-a02d-4a53-aaa5-64cdf3f2e4b3");
-    }
+  constexpr auto list_type_name()
+  {
+    return "[]";
+  }
 
-    constexpr auto list_type_name()
-    {
-      return "[]";
-    }
+  template <>
+  struct tcon_traits<list_tcon_tag>
+  {
+    static constexpr auto id   = list_type_uuid();
+    static constexpr auto name = list_type_name();
+  };
 
-    template <>
-    struct tcon_traits<list_tcon_tag>
-    {
-      static constexpr auto id   = list_type_uuid();
-      static constexpr auto name = list_type_name();
-    };
+  template <class T>
+  struct term_to_type<tm_list<T>>
+  {
+    using type = ty_list<term_to_type_t<T>>;
+  };
 
-    template <class T>
-    struct term_to_type<tm_list<T>>
-    {
-      using type = ty_list<term_to_type_t<T>>;
-    };
+  // ------------------------------------------
+  // constexpr version of object_type type
 
-    // ------------------------------------------
-    // maybe type
-
-    constexpr auto maybe_type_uuid()
-    {
-      return read_uuid_from_constexpr_string(
-        "6b8bcbb1-6283-46c1-8b68-6e8ad6c99d46");
-    }
-
-    constexpr auto maybe_type_name()
-    {
-      return "?";
-    }
-
-    template <>
-    struct tcon_traits<maybe_tcon_tag>
-    {
-      static constexpr auto id   = maybe_type_uuid();
-      static constexpr auto name = maybe_type_name();
-    };
-
-    template <class T>
-    struct term_to_type<tm_maybe<T>>
-    {
-      using type = ty_maybe<term_to_type_t<T>>;
-    };
-
-    // ------------------------------------------
-    // constexpr version of object_type type
-
-    template <class Term>
-    constexpr auto object_type_impl(meta_type<Term>)
-    {
-      return &type_initializer<term_to_type_t<Term>>::type;
-    }
-
-  } // namespace detail
+  template <class Term>
+  constexpr auto object_type_impl(meta_type<Term>)
+  {
+    return &type_initializer<term_to_type_t<Term>>::type;
+  }
 
   /// object type generator
   template <class T>
   [[nodiscard]] auto object_type() noexcept -> object_ptr<const Type>
   {
-    constexpr auto ptr = detail::object_type_impl(get_term(type_c<T>));
+    constexpr auto ptr = object_type_impl(get_term(type_c<T>));
     return ptr;
   }
 
   /// for arrow type
   [[nodiscard]] inline auto arrow_type_tcon() -> object_ptr<const Type>
   {
-    return &detail::type_initializer<
+    return &type_initializer<
       tcon<arrow_tcon_tag, kfun<kstar, kfun<kstar, kstar>>>>::type;
   }
 
   /// for list type
   [[nodiscard]] inline auto list_type_tcon() -> object_ptr<const Type>
   {
-    return &detail::type_initializer<
-      tcon<list_tcon_tag, kfun<kstar, kstar>>>::type;
-  }
-
-  /// for maybe type
-  [[nodiscard]] inline auto maybe_type_tcon() -> object_ptr<const Type>
-  {
-    return &detail::type_initializer<
-      tcon<maybe_tcon_tag, kfun<kstar, kstar>>>::type;
+    return &type_initializer<tcon<list_tcon_tag, kfun<kstar, kstar>>>::type;
   }
 
   // ------------------------------------------
@@ -334,12 +287,6 @@ namespace yave {
   [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_list<T>>)
   {
     return get_list_object_type(make_ty_list(guess_object_type(type_c<T>)));
-  }
-
-  template <class T>
-  [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_maybe<T>>)
-  {
-    return get_maybe_object_type(make_ty_maybe(guess_object_type(type_c<T>)));
   }
 
   template <class T1, class T2>

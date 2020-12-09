@@ -692,7 +692,7 @@ void test_genpoly()
 {
   {
     // Double -> Var<X> -> Var<X>
-    constexpr auto term = polymorphic_term_export(
+    constexpr auto term = generalize_tm_varvalue(
       type_c<tm_closure<
         tm_closure<tm_value<double>, tm_varvalue<class X>>,
         tm_varvalue<class X>>>);
