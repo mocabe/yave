@@ -280,9 +280,7 @@ namespace yave {
 
       // FIXME: do not use implementation detail of rts!
       auto tp = make_object<Type>(tcon_type {
-        load_uuid(p.type.value().uuid),
-        detail::kind_address<kstar>(),
-        "(deserialized value type)"});
+        load_uuid(p.type.value().uuid), detail::kind_address<kstar>(), ""});
 
       auto cs = p.children //
                 | rv::transform([](auto&& c) { return load_property_tree(c); })
@@ -299,8 +297,7 @@ namespace yave {
       auto ret = ngdata();
       ret.root = nid(root);
 
-      if (!ng.exists(root))
-        throw std::runtime_error("Invalid root specified on serialization");
+      assert(ng.exists(root));
 
       std::vector<uid> marks;
 
