@@ -201,7 +201,6 @@ namespace yave {
     using type = ty_maybe<term_to_type_t<T>>;
   };
 
-  /// for maybe type
   [[nodiscard]] inline auto maybe_type_tcon() -> object_ptr<const Type>
   {
     return &type_initializer<tcon<maybe_tcon_tag, kfun<kstar, kstar>>>::type;
@@ -212,15 +211,6 @@ namespace yave {
   {
     return get_maybe_object_type(make_ty_maybe(guess_object_type(type_c<T>)));
   }
-
-  // ------------------------------------------
-  // object value
-
-  template <class T>
-  struct maybe_object_value;
-
-  template <class T>
-  using Maybe = Box<maybe_object_value<T>>;
 
   template <class T>
   struct object_type_traits<Maybe<T>>

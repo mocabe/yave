@@ -330,15 +330,6 @@ namespace yave {
       subst_term(from, to, term.t1()), subst_term(from, to, term.t2()));
   }
 
-  template <class From, class To, class T>
-  constexpr auto subst_term_impl(
-    meta_type<From> from,
-    meta_type<To> to,
-    meta_type<tm_list<T>> term)
-  {
-    return make_tm_list(subst_term(from, to, term.t()));
-  }
-
   // ------------------------------------------
   // genpoly
 
@@ -413,15 +404,6 @@ namespace yave {
     meta_type<Target> target)
   {
     return make_pair(subst_term(term, make_tm_var(gen), target), nextgen(gen));
-  }
-
-  template <class T, class Gen, class Target>
-  constexpr auto genpoly_impl(
-    meta_type<tm_list<T>> term,
-    meta_type<Gen> gen,
-    meta_type<Target> target)
-  {
-    return genpoly_impl(term.t(), gen, target);
   }
 
   /// Recursively traverse term tree and replace tm_var with new one.
@@ -598,18 +580,6 @@ namespace yave {
     std::bool_constant<Assert>)
   {
     return make_pair(make_ty_var(term.tag()), gen);
-  }
-
-  template <class T, class Gen, bool Assert>
-  constexpr auto type_of_impl(
-    meta_type<tm_list<T>> term,
-    meta_type<Gen> gen,
-    std::bool_constant<Assert> enable_assert)
-  {
-    auto p = type_of_impl(term.t(), gen, enable_assert);
-    auto t = p.first();
-    auto g = p.second();
-    return make_pair(make_ty_list(t), g);
   }
 
   template <class... Ts, class Gen, bool Assert>

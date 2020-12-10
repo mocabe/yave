@@ -5,9 +5,138 @@
 
 #pragma once
 
-#include <yave/rts/box.hpp>
+#include <yave/rts/dynamic_typing.hpp>
 
 namespace yave {
+
+  /// list term
+  template <class T>
+  struct tm_list;
+
+  /// list specifier
+  template <class T>
+  struct list;
+
+  /// list tcon tag
+  struct list_tcon_tag;
+
+  /// list type
+  template <class T>
+  using ty_list = tap<tcon<list_tcon_tag, kfun<kstar, kstar>>, T>;
+
+  /// list proxy object
+  template <class T>
+  struct ListProxy;
+
+  // ------------------------------------------
+  // meta_type
+
+  template <class T>
+  struct meta_type<tm_list<T>>
+  {
+    using type = tm_list<T>;
+    constexpr auto t() const
+    {
+      return type_c<T>;
+    }
+  };
+
+  // ------------------------------------------
+  // helper
+
+  template <class T>
+  [[nodiscard]] constexpr auto make_tm_list(meta_type<T>)
+  {
+    return type_c<tm_list<T>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto make_ty_list(meta_type<T>)
+  {
+    return type_c<ty_list<T>>;
+  }
+
+  // ------------------------------------------
+  // generalize_tm_varvalue
+
+  template <class T, class Target>
+  constexpr auto generalize_tm_varvalue_impl(
+    meta_type<tm_list<T>> term,
+    meta_type<Target> target)
+  {
+    return generalize_tm_varvalue_impl(term.t(), target);
+  }
+
+  // ------------------------------------------
+  // subst_term_impl
+
+  template <class From, class To, class T>
+  constexpr auto subst_term_impl(
+    meta_type<From> from,
+    meta_type<To> to,
+    meta_type<tm_list<T>> term)
+  {
+    return make_tm_list(subst_term(from, to, term.t()));
+  }
+
+  // ------------------------------------------
+  // genpoly_impl
+
+  template <class T, class Gen, class Target>
+  constexpr auto genpoly_impl(
+    meta_type<tm_list<T>> term,
+    meta_type<Gen> gen,
+    meta_type<Target> target)
+  {
+    return genpoly_impl(term.t(), gen, target);
+  }
+
+  // ------------------------------------------
+  // type_of_impl
+
+  template <class T, class Gen, bool Assert>
+  constexpr auto type_of_impl(
+    meta_type<tm_list<T>> term,
+    meta_type<Gen> gen,
+    std::bool_constant<Assert> enable_assert)
+  {
+    auto p = type_of_impl(term.t(), gen, enable_assert);
+    auto t = p.first();
+    auto g = p.second();
+    return make_pair(make_ty_list(t), g);
+  }
+
+  // ------------------------------------------
+  // specifier
+
+  template <class T>
+  [[nodiscard]] constexpr auto is_specifier(meta_type<list<T>>)
+  {
+    return true_c;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto normalize_specifier(meta_type<list<T>>)
+  {
+    return type_c<
+      list<typename decltype(normalize_specifier(type_c<T>))::type>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_proxy_type(meta_type<list<T>>)
+  {
+    return type_c<
+      ListProxy<typename decltype(get_proxy_type(type_c<T>))::type>>;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<list<T>> l)
+  {
+    return get_proxy_type(l);
+  }
+
+  // ------------------------------------------
+  // get_list_object_type
 
   template <class T>
   struct list_object_value;
@@ -16,10 +145,74 @@ namespace yave {
   using List = Box<list_object_value<T>>;
 
   template <class T>
+  [[nodiscard]] constexpr auto get_list_object_type(meta_type<ty_list<T>>)
+  {
+    return type_c<List<T>>;
+  }
+
+  // ------------------------------------------
+  // type gen
+
+  /// proxy type of list
+  template <class T>
+  struct ListProxy : Object
+  {
+    /// term
+    static constexpr auto term = make_tm_list(get_term<T>());
+  };
+
+  constexpr auto list_type_uuid()
+  {
+    return read_uuid_from_constexpr_string(
+      "d14b9346-a02d-4a53-aaa5-64cdf3f2e4b3");
+  }
+
+  constexpr auto list_type_name()
+  {
+    return "[]";
+  }
+
+  template <>
+  struct tcon_traits<list_tcon_tag>
+  {
+    static constexpr auto id   = list_type_uuid();
+    static constexpr auto name = list_type_name();
+  };
+
+  template <class T>
+  struct term_to_type<tm_list<T>>
+  {
+    using type = ty_list<term_to_type_t<T>>;
+  };
+
+  [[nodiscard]] inline auto list_type_tcon() -> object_ptr<const Type>
+  {
+    return &type_initializer<tcon<list_tcon_tag, kfun<kstar, kstar>>>::type;
+  }
+
+  template <class T>
+  [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_list<T>>)
+  {
+    return get_list_object_type(make_ty_list(guess_object_type(type_c<T>)));
+  }
+
+  template <class T>
   struct object_type_traits<List<T>>
   {
     static constexpr const char name[] = "List<T>";
   };
+
+  // ------------------------------------------
+  // has_type
+
+  template <class Type, class Term, class U>
+  bool has_type_impl(
+    meta_type<Type>,
+    meta_type<tm_list<Term>>,
+    const object_ptr<U>& obj)
+  {
+    return same_type(get_type(obj), object_type<Type>());
+  }
 
   // ------------------------------------------
   // list_storage
@@ -234,6 +427,23 @@ namespace yave {
       return detail::make_list_impl<T>(std::move(args)...);
     else
       static_assert(false_v<T>, "Inalid argument type. Should reuslt T");
+  }
+
+  // ------------------------------------------
+  // dynamic typing
+
+  [[nodiscard]] inline auto make_list_type(const object_ptr<const Type>& t)
+  {
+    return make_object<const Type>(tap_type {list_type_tcon(), t});
+  }
+
+  [[nodiscard]] inline auto is_list_type(const object_ptr<const Type>& t)
+  {
+    if (auto tap = is_tap_type_if(t))
+      if (same_type(tap->t1, list_type_tcon()))
+        return true;
+
+    return false;
   }
 
 } // namespace yave

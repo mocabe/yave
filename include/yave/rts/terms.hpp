@@ -44,12 +44,6 @@ namespace yave {
   {
   };
 
-  /// tm_list
-  template <class T>
-  struct tm_list
-  {
-  };
-
   // ------------------------------------------
   // Term accessors
 
@@ -104,16 +98,6 @@ namespace yave {
     constexpr size_t size() const
     {
       return sizeof...(Ts);
-    }
-  };
-
-  template <class T>
-  struct meta_type<tm_list<T>>
-  {
-    using type = tm_list<T>;
-    constexpr auto t() const
-    {
-      return type_c<T>;
     }
   };
 
@@ -265,28 +249,6 @@ namespace yave {
   }
 
   // ------------------------------------------
-  // is_tm_list
-
-  template <class T>
-  [[nodiscard]] constexpr auto is_tm_list(meta_type<tm_list<T>>)
-  {
-    return true_c;
-  }
-
-  template <class T>
-  [[nodiscard]] constexpr auto is_tm_list(meta_type<T>)
-  {
-    return false_c;
-  }
-
-  template <class T>
-  [[nodiscard]] constexpr auto has_tm_list()
-  {
-    return is_tm_list(get_term<T>());
-  }
-
-
-  // ------------------------------------------
   // to_tuple
 
   template <class... Ts>
@@ -329,15 +291,6 @@ namespace yave {
   [[nodiscard]] constexpr auto make_tm_var(meta_type<Tag>)
   {
     return type_c<tm_var<Tag>>;
-  }
-
-  // ------------------------------------------
-  // make_tm_list
-
-  template <class T>
-  [[nodiscard]] constexpr auto make_tm_list(meta_type<T>)
-  {
-    return type_c<tm_list<T>>;
   }
 
   // ------------------------------------------
@@ -418,14 +371,6 @@ namespace yave {
   {
     return generalize_tm_varvalue_impl(
       term.t2(), generalize_tm_varvalue_impl(term.t1(), target));
-  }
-
-  template <class T, class Target>
-  constexpr auto generalize_tm_varvalue_impl(
-    meta_type<tm_list<T>> term,
-    meta_type<Target> target)
-  {
-    return generalize_tm_varvalue_impl(term.t(), target);
   }
 
   /// convert varvalue to var

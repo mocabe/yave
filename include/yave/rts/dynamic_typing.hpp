@@ -13,7 +13,6 @@
 #include <yave/rts/undefined.hpp>
 #include <yave/rts/object_util.hpp>
 #include <yave/rts/closure.hpp>
-#include <yave/rts/list.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -207,24 +206,6 @@ namespace yave {
           return true;
     return false;
   }
-
-  // ------------------------------------------
-  // list type
-
-  [[nodiscard]] inline auto make_list_type(const object_ptr<const Type>& t)
-  {
-    return make_object<const Type>(tap_type {list_type_tcon(), t});
-  }
-
-  [[nodiscard]] inline auto is_list_type(const object_ptr<const Type>& t)
-  {
-    if (auto tap = is_tap_type_if(t))
-      if (same_type(tap->t1, list_type_tcon()))
-        return true;
-
-    return false;
-  }
-
 
   // ------------------------------------------
   // var type
@@ -867,32 +848,36 @@ namespace yave {
   // ------------------------------------------
   // has_type
 
-  namespace detail {
+  template <class Type, class Term, class U>
+  bool has_type_impl(meta_type<Type>, meta_type<Term>, const object_ptr<U>&)
+  {
+    static_assert(
+      false_v<Type, Term, U>, "Invalid type or missing specialization");
+  }
 
-    template <class T, class U>
-    bool has_type_impl(const object_ptr<U>& obj)
-    {
-      if constexpr (is_tm_value(get_term<T>()) || has_tm_list<T>()) {
+  // for value types
+  template <class Type, class Tag, class U>
+  bool has_type_impl(
+    meta_type<Type>,
+    meta_type<tm_value<Tag>>,
+    const object_ptr<U>& obj)
+  {
+    static_assert(std::is_same_v<std::decay_t<Type>, Tag>);
 
-        if constexpr (detail::has_info_table_tag<T>())
-          // optimize type check on certain types
-          return likely(obj)
-                 && _get_storage(obj).template match_info_table_tag<T>();
-        else
-          // normal type check
-          return same_type(get_type(obj), object_type<T>());
-
-      } else
-        static_assert(false_v<T>, "T is not value type");
-    }
-
-  } // namespace detail
+    if constexpr (detail::has_info_table_tag<Type>())
+      // optimize type check on certain types
+      return likely(obj)
+             && _get_storage(obj).template match_info_table_tag<Type>();
+    else
+      // normal type check
+      return same_type(get_type(obj), object_type<Type>());
+  }
 
   /// has_type
   template <class T, class U>
   [[nodiscard]] bool has_type(const object_ptr<U>& obj)
   {
-    return detail::has_type_impl<T>(obj);
+    return has_type_impl(type_c<T>, get_term<T>(), obj);
   }
 
   // ------------------------------------------

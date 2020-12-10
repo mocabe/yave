@@ -56,14 +56,6 @@ namespace yave {
     static constexpr auto term = type_c<tm_varvalue<Tag>>;
   };
 
-  /// proxy type of list
-  template <class T>
-  struct ListProxy : Object
-  {
-    /// term
-    static constexpr auto term = make_tm_list(get_term<T>());
-  };
-
   /// proxy type of named objec type
   template <class T>
   struct ObjectProxy : Object
@@ -205,33 +197,6 @@ namespace yave {
   };
 
   // ------------------------------------------
-  // list type
-
-  constexpr auto list_type_uuid()
-  {
-    return read_uuid_from_constexpr_string(
-      "d14b9346-a02d-4a53-aaa5-64cdf3f2e4b3");
-  }
-
-  constexpr auto list_type_name()
-  {
-    return "[]";
-  }
-
-  template <>
-  struct tcon_traits<list_tcon_tag>
-  {
-    static constexpr auto id   = list_type_uuid();
-    static constexpr auto name = list_type_name();
-  };
-
-  template <class T>
-  struct term_to_type<tm_list<T>>
-  {
-    using type = ty_list<term_to_type_t<T>>;
-  };
-
-  // ------------------------------------------
   // constexpr version of object_type type
 
   template <class Term>
@@ -253,12 +218,6 @@ namespace yave {
   {
     return &type_initializer<
       tcon<arrow_tcon_tag, kfun<kstar, kfun<kstar, kstar>>>>::type;
-  }
-
-  /// for list type
-  [[nodiscard]] inline auto list_type_tcon() -> object_ptr<const Type>
-  {
-    return &type_initializer<tcon<list_tcon_tag, kfun<kstar, kstar>>>::type;
   }
 
   // ------------------------------------------
@@ -284,9 +243,9 @@ namespace yave {
   /// Guess C++ type of a type.
   /// Unknown types will be converted into proxy.
   template <class T>
-  [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_list<T>>)
+  [[nodiscard]] constexpr auto guess_object_type(meta_type<T>)
   {
-    return get_list_object_type(make_ty_list(guess_object_type(type_c<T>)));
+    static_assert(false_v<T>, "Invalid type or missing specialization");
   }
 
   template <class T1, class T2>

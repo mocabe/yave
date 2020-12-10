@@ -123,10 +123,6 @@ namespace yave {
   using ty_arrow =
     tap<tap<tcon<arrow_tcon_tag, kfun<kstar, kfun<kstar, kstar>>>, T1>, T2>;
 
-  // ty_list
-  template <class T>
-  using ty_list = tap<tcon<list_tcon_tag, kfun<kstar, kstar>>, T>;
-
   // ------------------------------------------
   // kind_of
 
@@ -263,12 +259,6 @@ namespace yave {
   [[nodiscard]] constexpr auto make_ty_varvalue(meta_type<Tag>)
   {
     return type_c<ty_varvalue<Tag>>;
-  }
-
-  template <class T>
-  [[nodiscard]] constexpr auto make_ty_list(meta_type<T>)
-  {
-    return type_c<ty_list<T>>;
   }
 
   template <class T1, class T2, class Other = meta_tuple<>>

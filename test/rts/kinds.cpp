@@ -8,6 +8,7 @@
 #include <yave/rts/kinds.hpp>
 #include <yave/rts/types.hpp>
 #include <yave/rts/type_gen.hpp>
+#include <yave/rts/list.hpp>
 
 using namespace yave;
 

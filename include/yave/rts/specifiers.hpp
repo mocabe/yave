@@ -75,12 +75,6 @@ namespace yave {
     return true_c;
   }
 
-  template <class T>
-  [[nodiscard]] constexpr auto is_specifier(meta_type<list<T>>)
-  {
-    return true_c;
-  }
-
   // ------------------------------------------
   // normalize_specifier
 
@@ -115,12 +109,6 @@ namespace yave {
       closure<typename decltype(normalize_specifier(type_c<Ts>))::type...>>;
   }
 
-  template <class T>
-  [[nodiscard]] constexpr auto normalize_specifier(meta_type<list<T>>)
-  {
-    return type_c<
-      list<typename decltype(normalize_specifier(type_c<T>))::type>>;
-  }
 
   // ------------------------------------------
   // get_proxy_type
@@ -142,13 +130,6 @@ namespace yave {
   [[nodiscard]] constexpr auto get_proxy_type(meta_type<object<T>>)
   {
     return type_c<ObjectProxy<T>>;
-  }
-
-  template <class T>
-  [[nodiscard]] constexpr auto get_proxy_type(meta_type<list<T>>)
-  {
-    return type_c<
-      ListProxy<typename decltype(get_proxy_type(type_c<T>))::type>>;
   }
 
   // ------------------------------------------
@@ -174,12 +155,6 @@ namespace yave {
     return get_proxy_type(o);
   }
 
-  template <class T>
-  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<list<T>> l)
-  {
-    return get_proxy_type(l);
-  }
-
   // ------------------------------------------
   // get_value_object_type
 
@@ -187,21 +162,6 @@ namespace yave {
   [[nodiscard]] constexpr auto get_value_object_type(meta_type<ty_value<T>>)
   {
     return type_c<T>;
-  }
-
-  // ------------------------------------------
-  // get_list_object_type
-
-  template <class T>
-  struct list_object_value;
-
-  template <class T>
-  using List = Box<list_object_value<T>>;
-
-  template <class T>
-  [[nodiscard]] constexpr auto get_list_object_type(meta_type<ty_list<T>>)
-  {
-    return type_c<List<T>>;
   }
 
   // ------------------------------------------
