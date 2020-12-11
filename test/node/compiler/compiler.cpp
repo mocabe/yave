@@ -6,7 +6,7 @@
 #include <yave/compiler/compile.hpp>
 #include <yave/compiler/message.hpp>
 #include <yave/support/log.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/module/std/num/num.hpp>
 #include <yave/module/std/logic/bool.hpp>
 #include <yave/module/std/list/list.hpp>
@@ -29,7 +29,7 @@ namespace n {
 
 } // namespace n
 
-struct AddI : NodeFunction<AddI, Int, Int, Int>
+struct AddI : SignalFunction<AddI, Int, Int, Int>
 {
   return_type code() const
   {
@@ -37,7 +37,7 @@ struct AddI : NodeFunction<AddI, Int, Int, Int>
   }
 };
 
-struct AddF : NodeFunction<AddF, Float, Float, Float>
+struct AddF : SignalFunction<AddF, Float, Float, Float>
 {
   return_type code() const
   {

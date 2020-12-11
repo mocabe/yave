@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/list/list.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/rts/list.hpp>
 #include <yave/obj/primitive/property.hpp>
 #include <yave/node/core/structured_node_graph.hpp>
@@ -148,7 +148,7 @@ namespace yave {
     class ListTail_X;
     class ListAt_X;
 
-    struct ListNil : NodeFunction<ListNil, List<ListNil_X>>
+    struct ListNil : SignalFunction<ListNil, List<ListNil_X>>
     {
       return_type code() const
       {
@@ -158,22 +158,22 @@ namespace yave {
 
     struct ListCons : Function<
                         ListCons,
-                        node_closure<ListCons_X>,
-                        node_closure<List<node_closure<ListCons_X>>>,
+                        signal<ListCons_X>,
+                        signal<List<signal<ListCons_X>>>,
                         FrameDemand,
-                        List<node_closure<ListCons_X>>>
+                        List<signal<ListCons_X>>>
     {
       return_type code() const
       {
         auto fd = eval_arg<2>();
         auto e  = eval_arg<0>();
         auto l  = eval(arg<1>() << fd);
-        return make_object<List<node_closure<ListCons_X>>>(e, l);
+        return make_object<List<signal<ListCons_X>>>(e, l);
       }
     };
 
     struct ListHead
-      : NodeFunction<ListHead, List<node_closure<ListHead_X>>, ListHead_X>
+      : SignalFunction<ListHead, List<signal<ListHead_X>>, ListHead_X>
     {
       auto code() const -> return_type
       {
@@ -181,7 +181,7 @@ namespace yave {
       }
     };
 
-    struct ListTail : NodeFunction<
+    struct ListTail : SignalFunction<
                         ListTail,
                         List<forall<ListTail_X>>,
                         List<forall<ListTail_X>>>
@@ -193,7 +193,7 @@ namespace yave {
     };
 
     struct ListAt
-      : NodeFunction<ListAt, List<node_closure<ListAt_X>>, Int, ListAt_X>
+      : SignalFunction<ListAt, List<signal<ListAt_X>>, Int, ListAt_X>
     {
       return_type code() const
       {

@@ -4,8 +4,7 @@
 //
 
 #include <yave/module/std/math/trigonometric.hpp>
-#include <yave/node/core/function.hpp>
-#include <yave/node/core/generator.hpp>
+#include <yave/signal/generator.hpp>
 
 #include <cmath>
 

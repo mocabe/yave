@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/num/conversion.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 
 namespace yave {
 
@@ -32,7 +32,7 @@ namespace yave {
 
   namespace modules::_std::prim {
 
-    struct IntToFloat : NodeFunction<IntToFloat, Int, Float>
+    struct IntToFloat : SignalFunction<IntToFloat, Int, Float>
     {
       auto code() const -> return_type
       {
@@ -40,7 +40,7 @@ namespace yave {
       }
     };
 
-    struct FloatToInt : NodeFunction<FloatToInt, Float, Int>
+    struct FloatToInt : SignalFunction<FloatToInt, Float, Int>
     {
       auto code() const -> return_type
       {

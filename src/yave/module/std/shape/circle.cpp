@@ -9,6 +9,7 @@
 #include <yave/obj/color/color.hpp>
 #include <yave/obj/vec/property.hpp>
 #include <yave/obj/primitive/property.hpp>
+#include <yave/signal/function.hpp>
 
 namespace yave {
 
@@ -26,7 +27,7 @@ namespace yave {
 
   namespace modules::_std::shape {
 
-    struct CircleShapeCtor : NodeFunction<CircleShapeCtor, Vec2, Float, Shape>
+    struct CircleShapeCtor : SignalFunction<CircleShapeCtor, Vec2, Float, Shape>
     {
       auto code() const -> return_type
       {

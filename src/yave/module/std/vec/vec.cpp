@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/vec/vec.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/obj/vec/property.hpp>
 #include <yave/obj/primitive/property.hpp>
 
@@ -53,7 +53,7 @@ namespace yave {
 
   namespace modules::_std::geometry {
 
-    struct Vec2Constructor : NodeFunction<Vec2Constructor, Float, Float, Vec2>
+    struct Vec2Constructor : SignalFunction<Vec2Constructor, Float, Float, Vec2>
     {
       return_type code() const
       {
@@ -62,7 +62,7 @@ namespace yave {
     };
 
     struct Vec3Constructor
-      : NodeFunction<Vec3Constructor, Float, Float, Float, Vec3>
+      : SignalFunction<Vec3Constructor, Float, Float, Float, Vec3>
     {
       return_type code() const
       {
@@ -72,7 +72,7 @@ namespace yave {
     };
 
     struct Vec4Constructor
-      : NodeFunction<Vec4Constructor, Float, Float, Float, Float, Vec4>
+      : SignalFunction<Vec4Constructor, Float, Float, Float, Float, Vec4>
     {
       return_type code() const
       {

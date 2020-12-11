@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/time/retime.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/obj/frame_demand/frame_demand.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/obj/primitive/property.hpp>
@@ -53,8 +53,8 @@ namespace yave {
 
     struct ReTime : Function<
                       ReTime,
-                      node_closure<forall<ReTime_X>>,
-                      node_closure<FrameTime>,
+                      signal<forall<ReTime_X>>,
+                      signal<FrameTime>,
                       FrameDemand,
                       forall<ReTime_X>>
     {
@@ -68,8 +68,8 @@ namespace yave {
 
     struct DelayTime : Function<
                          DelayTime,
-                         node_closure<forall<Delay_X>>,
-                         node_closure<FrameTime>,
+                         signal<forall<Delay_X>>,
+                         signal<FrameTime>,
                          FrameDemand,
                          forall<Delay_X>>
     {
@@ -88,8 +88,8 @@ namespace yave {
 
     struct ScaleTime : Function<
                          ScaleTime,
-                         node_closure<forall<Delay_X>>,
-                         node_closure<Float>,
+                         signal<forall<Delay_X>>,
+                         signal<Float>,
                          FrameDemand,
                          forall<Delay_X>>
     {

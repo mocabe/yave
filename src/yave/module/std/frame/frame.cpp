@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/frame/frame.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/obj/color/property.hpp>
 
@@ -25,7 +25,7 @@ namespace yave {
   namespace modules::_std::frame {
 
     struct FrameBufferColored
-      : NodeFunction<FrameBufferColored, Color, FrameBuffer>
+      : SignalFunction<FrameBufferColored, Color, FrameBuffer>
     {
       data::frame_buffer_manager& m_fbm;
       vulkan::rgba32f_offscreen_render_pass& m_render_pass;

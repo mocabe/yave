@@ -5,19 +5,19 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/obj/primitive/primitive.hpp>
 
 using namespace yave;
 
-TEST_CASE("NodeFunction")
+TEST_CASE("SignalFunction")
 {
   using Float  = Float32;
   using Double = Float64;
 
   SECTION("simple")
   {
-    struct F : NodeFunction<F, Int, Float, Double>
+    struct F : SignalFunction<F, Int, Float, Double>
     {
       return_type code() const
       {
@@ -30,7 +30,7 @@ TEST_CASE("NodeFunction")
 
   SECTION("Higher-order")
   {
-    struct F : NodeFunction<F, closure<Int, Double>, Int, Double>
+    struct F : SignalFunction<F, closure<Int, Double>, Int, Double>
     {
       return_type code() const
       {
@@ -49,7 +49,7 @@ TEST_CASE("NodeFunction")
   SECTION("poly")
   {
     class X;
-    struct F : NodeFunction<F, Bool, forall<X>, forall<X>, forall<X>>
+    struct F : SignalFunction<F, Bool, forall<X>, forall<X>, forall<X>>
     {
       return_type code() const
       {

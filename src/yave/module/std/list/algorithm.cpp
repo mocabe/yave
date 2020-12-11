@@ -5,7 +5,7 @@
 
 #include <yave/module/std/list/algorithm.hpp>
 #include <yave/rts/list.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/obj/primitive/property.hpp>
 
 namespace yave {
@@ -67,10 +67,10 @@ namespace yave {
     // (FD->[FD->X]) -> ((FD->X)->(FD->Y)) -> (FD->[FD->Y])
     struct LazyListMap : Function<
                            LazyListMap,
-                           node_closure<List<node_closure<ListMap_X>>>,
-                           node_closure<ListMap_X, ListMap_Y>,
+                           signal<List<signal<ListMap_X>>>,
+                           signal<ListMap_X, ListMap_Y>,
                            FrameDemand,
-                           List<node_closure<ListMap_Y>>>
+                           List<signal<ListMap_Y>>>
     {
       auto code() const -> return_type
       {
@@ -81,13 +81,13 @@ namespace yave {
         auto f = eval_arg<1>();
 
         if (l->is_nil())
-          return make_object<List<node_closure<ListMap_Y>>>();
+          return make_object<List<signal<ListMap_Y>>>();
 
         struct ListMapH : Function<
                             ListMapH,
-                            List<node_closure<ListMap_X>>,
+                            List<signal<ListMap_X>>,
                             FrameDemand,
-                            List<node_closure<ListMap_X>>>
+                            List<signal<ListMap_X>>>
         {
           auto code() const -> return_type
           {
@@ -95,7 +95,7 @@ namespace yave {
           }
         };
 
-        return make_object<List<node_closure<ListMap_Y>>>(
+        return make_object<List<signal<ListMap_Y>>>(
           f << l->head(),
           make_object<LazyListMap>()
             << (make_object<ListMapH>() << l->tail()) << f << fd);
@@ -104,10 +104,10 @@ namespace yave {
 
     struct StrictListMap : Function<
                              StrictListMap,
-                             node_closure<List<node_closure<ListMap_X>>>,
-                             node_closure<ListMap_X, ListMap_Y>,
+                             signal<List<signal<ListMap_X>>>,
+                             signal<ListMap_X, ListMap_Y>,
                              FrameDemand,
-                             List<node_closure<ListMap_Y>>>
+                             List<signal<ListMap_Y>>>
     {
       auto code() const -> return_type
       {
@@ -115,12 +115,11 @@ namespace yave {
         auto l  = eval(arg<0>() << fd);
         auto f  = eval_arg<1>();
 
-        auto ret = make_object<List<node_closure<ListMap_Y>>>();
+        auto ret = make_object<List<signal<ListMap_Y>>>();
 
         while (!l->is_nil()) {
-          ret = make_object<List<node_closure<ListMap_Y>>>(
-            eval(f << l->head()), ret);
-          l = eval(l->tail());
+          ret = make_object<List<signal<ListMap_Y>>>(eval(f << l->head()), ret);
+          l   = eval(l->tail());
         }
 
         return ret;
@@ -131,10 +130,10 @@ namespace yave {
 
     struct ListRepeat : Function<
                           ListRepeat,
-                          node_closure<ListRepeat_X>,
-                          node_closure<Int>,
+                          signal<ListRepeat_X>,
+                          signal<Int>,
                           FrameDemand,
-                          List<node_closure<ListRepeat_X>>>
+                          List<signal<ListRepeat_X>>>
     {
       auto code() const -> return_type
       {
@@ -142,13 +141,13 @@ namespace yave {
         auto e  = eval_arg<0>();
         auto n  = eval(arg<1>() << fd);
 
-        auto ret = make_object<List<node_closure<ListRepeat_X>>>();
+        auto ret = make_object<List<signal<ListRepeat_X>>>();
 
         if (*n < 0)
           return ret;
 
         for (auto i = 0; i < *n; ++i)
-          ret = make_object<List<node_closure<ListRepeat_X>>>(e, ret);
+          ret = make_object<List<signal<ListRepeat_X>>>(e, ret);
 
         return ret;
       }
@@ -159,10 +158,10 @@ namespace yave {
 
     struct ListEnumerate : Function<
                              ListEnumerate,
-                             node_closure<List<node_closure<ListEnum_X>>>,
-                             node_closure<Int, ListEnum_X, ListEnum_Y>,
+                             signal<List<signal<ListEnum_X>>>,
+                             signal<Int, ListEnum_X, ListEnum_Y>,
                              FrameDemand,
-                             List<node_closure<ListEnum_Y>>>
+                             List<signal<ListEnum_Y>>>
     {
       auto code() const -> return_type
       {
@@ -170,10 +169,10 @@ namespace yave {
         auto l  = eval(arg<0>() << fd);
         auto f  = eval_arg<1>();
 
-        auto ret = make_object<List<node_closure<ListEnum_Y>>>();
+        auto ret = make_object<List<signal<ListEnum_Y>>>();
 
         // \fd.idx
-        struct ListEnumerateH : NodeFunction<ListEnumerateH, Int>
+        struct ListEnumerateH : SignalFunction<ListEnumerateH, Int>
         {
           int m_idx;
 
@@ -190,7 +189,7 @@ namespace yave {
 
         auto idx = 0;
         while (!l->is_nil()) {
-          ret = make_object<List<node_closure<ListEnum_Y>>>(
+          ret = make_object<List<signal<ListEnum_Y>>>(
             eval(f << make_object<ListEnumerateH>(idx) << l->head()), ret);
           l = eval(l->tail());
           ++idx;
@@ -205,9 +204,9 @@ namespace yave {
 
     struct ListFold : Function<
                         ListFold,
-                        node_closure<List<node_closure<ListFold_X>>>,
-                        node_closure<ListFold_Y, ListFold_X, ListFold_Y>,
-                        node_closure<ListFold_Y>,
+                        signal<List<signal<ListFold_X>>>,
+                        signal<ListFold_Y, ListFold_X, ListFold_Y>,
+                        signal<ListFold_Y>,
                         FrameDemand,
                         ListFold_Y>
     {

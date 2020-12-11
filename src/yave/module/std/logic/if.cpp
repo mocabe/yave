@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/logic/if.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 
 namespace yave {
 
@@ -25,7 +25,7 @@ namespace yave {
     struct If_X;
 
     /// If
-    struct If : NodeFunction<If, Bool, If_X, If_X, If_X>
+    struct If : SignalFunction<If, Bool, If_X, If_X, If_X>
     {
       return_type code() const
       {
