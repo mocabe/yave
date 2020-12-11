@@ -92,6 +92,14 @@ jobs:
     displayName: 'Show vcpkg logs'
     condition: always()
 
+  - script: |
+      ctest -V -C $(BuildType) -L rts
+      ctest -V -C $(BuildType) -L node
+      ctest -V -C $(BuildType) -L parser
+      ctest -V -C $(BuildType) -L compiler
+    displayName: 'Run tests'
+    workingDirectory: $(Build.SourcesDirectory)/build
+
   - task: DeleteFiles@1
     displayName: 'Remove tmp files for vcpkg'
     inputs:
