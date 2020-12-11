@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/time/time.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/obj/frame_demand/frame_demand.hpp>
 #include <yave/obj/frame_time/frame_time.hpp>
 #include <yave/obj/primitive/property.hpp>
@@ -49,7 +49,8 @@ namespace yave {
 
   namespace modules::_std::time {
     /// FrameTime -> FrameTime
-    struct TimeConstructor : NodeFunction<TimeConstructor, FrameTime, FrameTime>
+    struct TimeConstructor
+      : SignalFunction<TimeConstructor, FrameTime, FrameTime>
     {
       auto code() const -> return_type
       {
@@ -57,7 +58,7 @@ namespace yave {
       }
     };
 
-    struct Seconds : NodeFunction<Seconds, FrameTime, Float>
+    struct Seconds : SignalFunction<Seconds, FrameTime, Float>
     {
       auto code() const -> return_type
       {
@@ -66,7 +67,7 @@ namespace yave {
       }
     };
 
-    struct FromSeconds : NodeFunction<FromSeconds, Float, FrameTime>
+    struct FromSeconds : SignalFunction<FromSeconds, Float, FrameTime>
     {
       auto code() const -> return_type
       {

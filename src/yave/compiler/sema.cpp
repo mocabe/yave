@@ -20,7 +20,6 @@
 #include <yave/rts/unit.hpp>
 #include <yave/obj/node/argument.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
-#include <yave/node/core/function.hpp>
 #include <yave/node/core/node_definition_store.hpp>
 
 #include <functional>

@@ -6,7 +6,8 @@
 #include <yave/editor/execute_thread.hpp>
 #include <yave/editor/editor_data.hpp>
 #include <yave/obj/frame_demand/frame_demand.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/specifier.hpp>
+#include <yave/rts/to_string.hpp>
 #include <yave/lib/image/image.hpp>
 
 #include <yave/support/log.hpp>
@@ -155,7 +156,7 @@ namespace yave::editor {
                 assert(exe && time);
 
                 assert(same_type(
-                  exe->type(), object_type<node_closure<FrameBuffer>>()));
+                  exe->type(), object_type<signal<FrameBuffer>>()));
 
                 auto bgn = std::chrono::high_resolution_clock::now();
 

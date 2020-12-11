@@ -7,7 +7,7 @@
 #include <yave/module/std/num/num.hpp>
 #include <yave/module/std/string/string.hpp>
 #include <yave/module/std/logic/bool.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/obj/primitive/property.hpp>
 
 namespace yave {
@@ -28,7 +28,7 @@ namespace yave {
   namespace modules::_std::prim {
 
     template <class T>
-    struct PrimitiveCtor : NodeFunction<PrimitiveCtor<T>, T, T>
+    struct PrimitiveCtor : SignalFunction<PrimitiveCtor<T>, T, T>
     {
       auto code() const -> typename PrimitiveCtor::return_type
       {

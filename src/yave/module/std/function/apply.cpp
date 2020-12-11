@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/function/apply.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 
 namespace yave {
 

@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/mat/mat.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/obj/mat/mat.hpp>
 #include <yave/obj/vec/vec.hpp>
 #include <yave/obj/primitive/property.hpp>
@@ -87,7 +87,7 @@ namespace yave {
   namespace modules::_std::geometry {
 
     // Mat4 constructor
-    struct Mat4Ctor : NodeFunction<Mat4Ctor, Mat4>
+    struct Mat4Ctor : SignalFunction<Mat4Ctor, Mat4>
     {
       return_type code() const
       {
@@ -96,7 +96,7 @@ namespace yave {
     };
 
     // Mat4 Rotate
-    struct Mat4Rotate : NodeFunction<Mat4Rotate, Mat4, Float, Vec3, Mat4>
+    struct Mat4Rotate : SignalFunction<Mat4Rotate, Mat4, Float, Vec3, Mat4>
     {
       auto code() const -> return_type
       {
@@ -116,7 +116,7 @@ namespace yave {
     };
 
     // Mat4 RotateX
-    struct Mat4RotateX : NodeFunction<Mat4RotateX, Mat4, Float, Mat4>
+    struct Mat4RotateX : SignalFunction<Mat4RotateX, Mat4, Float, Mat4>
     {
       auto code() const -> return_type
       {
@@ -129,7 +129,7 @@ namespace yave {
     };
 
     // Mat4 RotateY
-    struct Mat4RotateY : NodeFunction<Mat4RotateY, Mat4, Float, Mat4>
+    struct Mat4RotateY : SignalFunction<Mat4RotateY, Mat4, Float, Mat4>
     {
       auto code() const -> return_type
       {
@@ -142,7 +142,7 @@ namespace yave {
     };
 
     // Mat4 RotateZ
-    struct Mat4RotateZ : NodeFunction<Mat4RotateZ, Mat4, Float, Mat4>
+    struct Mat4RotateZ : SignalFunction<Mat4RotateZ, Mat4, Float, Mat4>
     {
       auto code() const -> return_type
       {
@@ -155,7 +155,7 @@ namespace yave {
     };
 
     // Mat4 Transform
-    struct Mat4Translate : NodeFunction<Mat4Translate, Mat4, Vec3, Mat4>
+    struct Mat4Translate : SignalFunction<Mat4Translate, Mat4, Vec3, Mat4>
     {
       auto code() const -> return_type
       {

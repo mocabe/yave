@@ -6,7 +6,8 @@
 #pragma once
 
 #include <yave/rts/value_cast.hpp>
-#include <yave/rts/function.hpp>
+#include <yave/rts/closure.hpp>
+#include <yave/rts/static_typing.hpp>
 #include <yave/rts/result_error.hpp>
 #include <yave/rts/lambda.hpp>
 
@@ -55,6 +56,10 @@ namespace yave {
   }
 
   namespace detail {
+
+    // fwd
+    inline auto eval_obj(const object_ptr<const Object>& obj)
+      -> object_ptr<const Object>;
 
     /// Get spine depth and bottom closure
     inline auto inspect_spine(const object_ptr<const Object>& obj)

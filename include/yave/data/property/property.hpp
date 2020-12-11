@@ -6,8 +6,9 @@
 #pragma once
 
 #include <yave/rts/object_ptr.hpp>
-#include <yave/node/core/function.hpp>
-#include <yave/data/string/string.hpp>
+#include <yave/rts/dynamic_typing.hpp>
+#include <yave/rts/value_cast.hpp>
+#include <yave/obj/string/string.hpp>
 #include <yave/data/vector/vector.hpp>
 #include <yave/obj/primitive/primitive.hpp>
 

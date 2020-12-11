@@ -4,8 +4,6 @@
 //
 
 #include <yave/module/std/ops/ops.hpp>
-#include <yave/node/core/function.hpp>
-#include <yave/node/core/generator.hpp>
 
 namespace yave {
 

@@ -6,6 +6,7 @@
 #include <yave/module/std/color/color.hpp>
 #include <yave/obj/color/property.hpp>
 #include <yave/obj/primitive/property.hpp>
+#include <yave/signal/function.hpp>
 
 namespace yave {
 
@@ -38,7 +39,7 @@ namespace yave {
 
   namespace modules::_std::color {
 
-    struct ColorCtor : NodeFunction<ColorCtor, Color, Color>
+    struct ColorCtor : SignalFunction<ColorCtor, Color, Color>
     {
       auto code() const -> return_type
       {
@@ -47,7 +48,7 @@ namespace yave {
     };
 
     struct ColorFloat
-      : NodeFunction<ColorFloat, Float, Float, Float, Float, Color>
+      : SignalFunction<ColorFloat, Float, Float, Float, Float, Color>
     {
       auto code() const -> return_type
       {

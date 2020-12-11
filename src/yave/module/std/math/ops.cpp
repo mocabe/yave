@@ -4,8 +4,8 @@
 //
 
 #include <yave/module/std/math/ops.hpp>
-#include <yave/node/core/function.hpp>
-#include <yave/node/core/generator.hpp>
+#include <yave/signal/function.hpp>
+#include <yave/signal/generator.hpp>
 
 #include <functional>
 

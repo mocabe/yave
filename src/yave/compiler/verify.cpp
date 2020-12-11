@@ -6,7 +6,7 @@
 #include <yave/compiler/compile.hpp>
 #include <yave/compiler/message.hpp>
 #include <yave/compiler/executable.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/specifier.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 
 namespace yave::compiler {
@@ -20,7 +20,7 @@ namespace yave::compiler {
     auto& exe     = pipe.get_data<executable>("exe");
 
     // check output type
-    auto out_type = object_type<node_closure<FrameBuffer>>();
+    auto out_type = object_type<signal<FrameBuffer>>();
     if (!same_type(exe.type(), out_type)) {
       msg_map.add(invalid_output_type(out_type, exe.type()));
       pipe.set_failed();

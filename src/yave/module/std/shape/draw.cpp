@@ -10,6 +10,7 @@
 #include <yave/obj/color/property.hpp>
 #include <yave/obj/primitive/property.hpp>
 #include <yave/obj/vec/vec.hpp>
+#include <yave/signal/function.hpp>
 
 namespace yave {
 
@@ -53,7 +54,7 @@ namespace yave {
 
   namespace modules::_std::shape {
 
-    struct FillShape : NodeFunction<FillShape, Shape, Color, Shape>
+    struct FillShape : SignalFunction<FillShape, Shape, Color, Shape>
     {
       auto code() const -> return_type
       {
@@ -68,7 +69,7 @@ namespace yave {
       }
     };
 
-    struct StrokeShape : NodeFunction<StrokeShape, Shape, Color, Float, Shape>
+    struct StrokeShape : SignalFunction<StrokeShape, Shape, Color, Float, Shape>
     {
       auto code() const -> return_type
       {
@@ -84,7 +85,7 @@ namespace yave {
       }
     };
 
-    struct DrawShape : NodeFunction<DrawShape, Shape, FrameBuffer>
+    struct DrawShape : SignalFunction<DrawShape, Shape, FrameBuffer>
     {
       data::frame_buffer_manager& m_fbm;
       vulkan::rgba32f_offscreen_compositor& m_compositor;

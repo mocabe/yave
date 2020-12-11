@@ -7,6 +7,7 @@
 
 #include <yave/obj/primitive/primitive.hpp>
 #include <yave/obj/node/argument.hpp>
+#include <yave/obj/frame_demand/frame_demand.hpp>
 #include <yave/rts/function.hpp>
 
 #include <limits>

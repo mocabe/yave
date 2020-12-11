@@ -6,7 +6,6 @@
 #include <yave/editor/compile_thread.hpp>
 #include <yave/editor/editor_data.hpp>
 #include <yave/compiler/message.hpp>
-#include <yave/node/core/function.hpp>
 #include <yave/support/log.hpp>
 
 #include <yave/compiler/compile.hpp>

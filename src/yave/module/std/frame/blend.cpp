@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/frame/blend.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
 #include <yave/lib/vulkan/offscreen_compositor.hpp>
 
@@ -24,7 +24,7 @@ namespace yave {
   namespace modules::_std::frame {
 
     struct BlendFrame
-      : NodeFunction<BlendFrame, FrameBuffer, FrameBuffer, FrameBuffer>
+      : SignalFunction<BlendFrame, FrameBuffer, FrameBuffer, FrameBuffer>
     {
       data::frame_buffer_manager& m_fbm;
       vulkan::rgba32f_offscreen_compositor& m_compositor;

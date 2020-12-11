@@ -4,7 +4,7 @@
 //
 
 #include <yave/module/std/shape/transform.hpp>
-#include <yave/node/core/function.hpp>
+#include <yave/signal/function.hpp>
 #include <yave/obj/shape/shape.hpp>
 #include <yave/obj/vec/vec.hpp>
 #include <yave/obj/mat/mat.hpp>
@@ -49,7 +49,7 @@ namespace yave {
 
   namespace modules::_std::shape {
 
-    struct Translate : NodeFunction<Translate, Shape, Vec2, Shape>
+    struct Translate : SignalFunction<Translate, Shape, Vec2, Shape>
     {
       auto code() const -> return_type
       {
@@ -63,7 +63,7 @@ namespace yave {
       }
     };
 
-    struct Rotate : NodeFunction<Rotate, Shape, Float, Vec2, Shape>
+    struct Rotate : SignalFunction<Rotate, Shape, Float, Vec2, Shape>
     {
       auto code() const -> return_type
       {
@@ -78,7 +78,7 @@ namespace yave {
       }
     };
 
-    struct Scale : NodeFunction<Scale, Shape, Float, Vec2, Shape>
+    struct Scale : SignalFunction<Scale, Shape, Float, Vec2, Shape>
     {
       auto code() const -> return_type
       {

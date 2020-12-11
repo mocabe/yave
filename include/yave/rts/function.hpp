@@ -15,6 +15,7 @@
 #include <yave/rts/result_error.hpp>
 #include <yave/rts/type_error.hpp>
 #include <yave/rts/value_cast.hpp>
+#include <yave/rts/eval.hpp>
 
 #include <yave/obj/string/string.hpp>
 #include <yave/support/offset_of_member.hpp>
@@ -22,10 +23,6 @@
 namespace yave {
 
   namespace detail {
-
-    // fwd
-    inline auto eval_obj(const object_ptr<const Object>& obj)
-      -> object_ptr<const Object>;
 
     // ------------------------------------------
     // vtbl_code_func
