@@ -15,6 +15,8 @@ add_executable(yave-imgui
   main.cpp
 )
 
+set_target_properties(yave-imgui PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 target_link_libraries(yave-imgui PRIVATE yave::config)
 target_link_libraries(yave-imgui PRIVATE yave::lib::imgui)
 target_link_libraries(yave-imgui PRIVATE yave::support)
