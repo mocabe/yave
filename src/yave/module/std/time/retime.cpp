@@ -16,7 +16,7 @@ namespace yave {
   {
     return function_node_declaration(
       "Time.ReTime",
-      "Assign new time to subtree",
+      "Apply new time to input signal",
       node_declaration_visibility::_public,
       {"any", "time"},
       {"any"});
@@ -27,7 +27,7 @@ namespace yave {
   {
     return function_node_declaration(
       "Time.Delay",
-      "Delay time",
+      "Delay time of input signal",
       node_declaration_visibility::_public,
       {"any", "time"},
       {"any"});
@@ -38,7 +38,7 @@ namespace yave {
   {
     return function_node_declaration(
       "Time.Scale",
-      "Scale time",
+      "Scale time of input signal",
       node_declaration_visibility::_public,
       {"any", "scaling"},
       {"any"},
@@ -47,59 +47,35 @@ namespace yave {
 
   namespace modules::_std::time {
 
-    class ReTime_X;
-    class Delay_X;
-    class Scale_X;
+    class X;
 
-    struct ReTime : Function<
-                      ReTime,
-                      signal<forall<ReTime_X>>,
-                      signal<FrameTime>,
-                      FrameDemand,
-                      forall<ReTime_X>>
+    struct ReTime : SignalFunction<ReTime, X, FrameTime, X>
     {
-      return_type code() const
+      auto code() const -> return_type
       {
-        auto fd = eval_arg<2>();
-        auto t  = eval(arg<1>() << fd);
-        return arg<0>() << make_object<FrameDemand>(std::move(t));
+        return arg_signal<0>() << make_object<FrameDemand>(eval_arg<1>());
       }
     };
 
-    struct DelayTime : Function<
-                         DelayTime,
-                         signal<forall<Delay_X>>,
-                         signal<FrameTime>,
-                         FrameDemand,
-                         forall<Delay_X>>
+    struct DelayTime : SignalFunction<DelayTime, X, FrameTime, X>
     {
-      return_type code() const
+      auto code() const -> return_type
       {
-        auto fd    = eval_arg<2>();
-        auto delay = eval(arg<1>() << fd);
-
         // t - delay
-        auto delayed = *fd->time - *delay;
-
-        auto t = make_object<FrameTime>(delayed);
-        return arg<0>() << make_object<FrameDemand>(std::move(t));
+        auto t = *arg_demand()->time - *eval_arg<1>();
+        return arg_signal<0>()
+               << make_object<FrameDemand>(make_object<FrameTime>(t));
       }
     };
 
-    struct ScaleTime : Function<
-                         ScaleTime,
-                         signal<forall<Delay_X>>,
-                         signal<Float>,
-                         FrameDemand,
-                         forall<Delay_X>>
+    struct ScaleTime : SignalFunction<ScaleTime, X, Float, X>
     {
-      return_type code() const
+      auto code() const -> return_type
       {
-        auto fd    = eval_arg<2>();
-        auto scale = eval(arg<1>() << fd);
-
-        auto t = make_object<FrameTime>(*fd->time * *scale);
-        return arg<0>() << make_object<FrameDemand>(std::move(t));
+        // t * scale
+        auto t = *arg_time() * *eval_arg<1>();
+        return arg_signal<0>()
+               << make_object<FrameDemand>(make_object<FrameTime>(t));
       }
     };
 

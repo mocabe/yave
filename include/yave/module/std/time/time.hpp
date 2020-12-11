@@ -30,15 +30,4 @@ namespace yave {
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Time::Seconds, modules::_std::tag);
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Time::FromSeconds, modules::_std::tag);
 
-  namespace modules::_std::core {
-    /// Get time from demand
-    struct GetCurrentTime : Function<GetCurrentTime, FrameDemand, FrameTime>
-    {
-      return_type code() const
-      {
-        return eval_arg<0>()->time;
-      }
-    };
-  } // namespace modules::_std::core
-
 } // namespace yave
