@@ -82,6 +82,9 @@ namespace yave {
     auto expand = [](
                     structured_node_graph& ng,
                     const node_handle& n) noexcept -> node_handle {
+      // ensure result
+      auto check = []([[maybe_unused]] auto&& x) { assert(x); };
+
       // List.Cons
       auto cons = ng.search_path(
         yave::get_node_declaration<node::List::Cons>().full_name())[0];
@@ -89,42 +92,46 @@ namespace yave {
       auto nil = ng.search_path(
         yave::get_node_declaration<node::List::Nil>().full_name())[0];
 
-      assert(cons && nil);
+      if (!cons || !nil)
+        return {};
 
       auto g   = ng.get_parent_group(n);
       auto iss = ng.input_sockets(n);
 
-      auto cells =
-        iss
-        // make cons cell
-        | rv::transform([&](auto&& s) {
-            // cons cell to return
-            auto cell = ng.create_copy(g, cons);
-            // set source for input sockets
-            ng.set_source_id(ng.input_sockets(cell)[0], s.id());
-            // connect input
-            if (auto ics = ng.connections(s); !ics.empty()) {
-              auto c    = ics[0];
-              auto info = ng.get_info(c);
-              ng.connect(info->src_socket(), ng.input_sockets(cell)[0]);
-            }
-            return cell;
-          })
-        // add nil to last
-        | rn::to_vector //
-        | ra::push_back(ng.create_copy(g, nil));
+      // create cons cell for input socket
+      auto make_cons = [&](auto&& s) {
+        // cell to return
+        auto cell = ng.create_copy(g, cons);
+        // set source for input sockets
+        ng.set_source_id(ng.input_sockets(cell)[0], s.id());
+        // connect input
+        if (auto ics = ng.connections(s); !ics.empty()) {
+          auto c    = ics[0];
+          auto info = ng.get_info(c);
+          check(ng.connect(info->src_socket(), ng.input_sockets(cell)[0]));
+        }
+        return cell;
+      };
+
+      // list cells
+      auto cells = iss                                                     //
+                   | rv::transform([&](auto&& s) { return make_cons(s); }) //
+                   | rn::to_vector                                         //
+                   | ra::push_back(ng.create_copy(g, nil));
 
       // connect cells
-      for (size_t i = 0; i < cells.size() - 1; ++i)
-        ng.connect(
-          ng.output_sockets(cells[i + 1])[0], ng.input_sockets(cells[i])[1]);
+      for (size_t i = 0; i < cells.size() - 1; ++i) {
+        auto src = ng.output_sockets(cells[i + 1])[0];
+        auto dst = ng.input_sockets(cells[i])[1];
+        check(ng.connect(src, dst));
+      }
 
       // replace macro node with cons tree
       auto ret = cells[0];
       for (auto&& c : ng.output_connections(n)) {
         auto info = ng.get_info(c);
         ng.disconnect(c);
-        ng.connect(ng.output_sockets(ret)[0], info->dst_socket());
+        check(ng.connect(ng.output_sockets(ret)[0], info->dst_socket()));
       }
       ng.destroy(n);
 
@@ -136,44 +143,34 @@ namespace yave {
       "(Macro) Make list from arguments",
       node_declaration_visibility::_public,
       {},
-      {"[a]"},
+      {"[...]"},
       expand);
   }
 
   namespace modules::_std::list {
 
-    class ListNil_X;
-    class ListCons_X;
-    class ListHead_X;
-    class ListTail_X;
-    class ListAt_X;
+    class X;
 
-    struct ListNil : SignalFunction<ListNil, List<ListNil_X>>
+    struct ListNil : SignalFunction<ListNil, List<X>>
     {
-      return_type code() const
+      auto code() const -> return_type
       {
-        return make_list<VarValueProxy<ListNil_X>>();
+        return make_list<VarValueProxy<X>>();
       }
     };
 
-    struct ListCons : Function<
-                        ListCons,
-                        signal<ListCons_X>,
-                        signal<List<signal<ListCons_X>>>,
-                        FrameDemand,
-                        List<signal<ListCons_X>>>
+    struct ListCons
+      : SignalFunction<ListCons, X, List<signal<X>>, List<signal<X>>>
     {
-      return_type code() const
+      auto code() const -> return_type
       {
-        auto fd = eval_arg<2>();
-        auto e  = eval_arg<0>();
-        auto l  = eval(arg<1>() << fd);
-        return make_object<List<signal<ListCons_X>>>(e, l);
+        auto e = arg_signal<0>();
+        auto l = eval_arg<1>();
+        return make_object<List<signal<X>>>(e, l);
       }
     };
 
-    struct ListHead
-      : SignalFunction<ListHead, List<signal<ListHead_X>>, ListHead_X>
+    struct ListHead : SignalFunction<ListHead, List<signal<X>>, X>
     {
       auto code() const -> return_type
       {
@@ -181,21 +178,17 @@ namespace yave {
       }
     };
 
-    struct ListTail : SignalFunction<
-                        ListTail,
-                        List<forall<ListTail_X>>,
-                        List<forall<ListTail_X>>>
+    struct ListTail : SignalFunction<ListTail, List<forall<X>>, List<forall<X>>>
     {
-      return_type code() const
+      auto code() const -> return_type
       {
         return eval_arg<0>()->tail();
       }
     };
 
-    struct ListAt
-      : SignalFunction<ListAt, List<signal<ListAt_X>>, Int, ListAt_X>
+    struct ListAt : SignalFunction<ListAt, List<signal<X>>, Int, X>
     {
-      return_type code() const
+      auto code() const -> return_type
       {
         auto l   = eval_arg<0>();
         auto idx = eval_arg<1>();

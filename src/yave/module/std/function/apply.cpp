@@ -21,10 +21,10 @@ namespace yave {
 
   namespace modules::_std::function {
 
-    class Apply_X;
-    class Apply_Y;
+    class X;
+    class Y;
 
-    struct Apply : Function<Apply, closure<Apply_X, Apply_Y>, Apply_X, Apply_Y>
+    struct Apply : Function<Apply, closure<X, Y>, X, Y>
     {
       return_type code() const
       {

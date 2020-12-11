@@ -22,12 +22,11 @@ namespace yave {
 
   namespace modules::_std::logic {
 
-    struct If_X;
+    class X;
 
-    /// If
-    struct If : SignalFunction<If, Bool, If_X, If_X, If_X>
+    struct If : SignalFunction<If, Bool, X, X, X>
     {
-      return_type code() const
+      auto code() const -> return_type
       {
         if (*eval_arg<0>())
           return arg<1>();

@@ -15,10 +15,10 @@ namespace yave {
   {
     return function_node_declaration(
       "List.Algo.Map",
-      "[a] -> (a -> b) -> [b]\n"
+      "[a]->(a->b)->[b]\n"
       "Apply transform to list elements",
       node_declaration_visibility::_public,
-      {"[a]", "a -> b"},
+      {"[a]", "a->b"},
       {"[b]"});
   }
 
@@ -27,7 +27,7 @@ namespace yave {
   {
     return function_node_declaration(
       "List.Algo.Repeat",
-      "a -> Int -> [a]\n"
+      "a->Int->[a]\n"
       "Repeat elements in list",
       node_declaration_visibility::_public,
       {"a", "Int"},
@@ -40,10 +40,10 @@ namespace yave {
   {
     return function_node_declaration(
       "List.Algo.Enumerate",
-      "[a] -> (Int -> a -> b) -> [b]\n"
+      "[a]->(Int->a->b)->[b]\n"
       "Enumerate list elements",
       node_declaration_visibility::_public,
-      {"[a]", "Int -> a -> b"},
+      {"[a]", "Int->a->b"},
       {"[b]"});
   }
 
@@ -52,25 +52,25 @@ namespace yave {
   {
     return function_node_declaration(
       "List.Algo.Fold",
-      "[a] -> (b -> a -> b) -> b -> b\n"
+      "[a]->(b->a->b)->b->b\n"
       "Left fold list",
       node_declaration_visibility::_public,
-      {"[a]", "b -> a -> b", "b"},
+      {"[a]", "b->a->b", "b"},
       {"b"});
   }
 
   namespace modules::_std::list {
 
-    class ListMap_X;
-    class ListMap_Y;
+    class X;
+    class Y;
 
     // (FD->[FD->X]) -> ((FD->X)->(FD->Y)) -> (FD->[FD->Y])
     struct LazyListMap : Function<
                            LazyListMap,
-                           signal<List<signal<ListMap_X>>>,
-                           signal<ListMap_X, ListMap_Y>,
+                           signal<List<signal<X>>>,
+                           signal<X, Y>,
                            FrameDemand,
-                           List<signal<ListMap_Y>>>
+                           List<signal<Y>>>
     {
       auto code() const -> return_type
       {
@@ -81,13 +81,10 @@ namespace yave {
         auto f = eval_arg<1>();
 
         if (l->is_nil())
-          return make_object<List<signal<ListMap_Y>>>();
+          return make_object<List<signal<Y>>>();
 
-        struct ListMapH : Function<
-                            ListMapH,
-                            List<signal<ListMap_X>>,
-                            FrameDemand,
-                            List<signal<ListMap_X>>>
+        struct ListMapH
+          : Function<ListMapH, List<signal<X>>, FrameDemand, List<signal<X>>>
         {
           auto code() const -> return_type
           {
@@ -95,7 +92,7 @@ namespace yave {
           }
         };
 
-        return make_object<List<signal<ListMap_Y>>>(
+        return make_object<List<signal<Y>>>(
           f << l->head(),
           make_object<LazyListMap>()
             << (make_object<ListMapH>() << l->tail()) << f << fd);
@@ -104,10 +101,10 @@ namespace yave {
 
     struct StrictListMap : Function<
                              StrictListMap,
-                             signal<List<signal<ListMap_X>>>,
-                             signal<ListMap_X, ListMap_Y>,
+                             signal<List<signal<X>>>,
+                             signal<X, Y>,
                              FrameDemand,
-                             List<signal<ListMap_Y>>>
+                             List<signal<Y>>>
     {
       auto code() const -> return_type
       {
@@ -115,10 +112,10 @@ namespace yave {
         auto l  = eval(arg<0>() << fd);
         auto f  = eval_arg<1>();
 
-        auto ret = make_object<List<signal<ListMap_Y>>>();
+        auto ret = make_object<List<signal<Y>>>();
 
         while (!l->is_nil()) {
-          ret = make_object<List<signal<ListMap_Y>>>(eval(f << l->head()), ret);
+          ret = make_object<List<signal<Y>>>(eval(f << l->head()), ret);
           l   = eval(l->tail());
         }
 
@@ -126,14 +123,12 @@ namespace yave {
       }
     };
 
-    class ListRepeat_X;
-
     struct ListRepeat : Function<
                           ListRepeat,
-                          signal<ListRepeat_X>,
+                          signal<X>,
                           signal<Int>,
                           FrameDemand,
-                          List<signal<ListRepeat_X>>>
+                          List<signal<X>>>
     {
       auto code() const -> return_type
       {
@@ -141,27 +136,24 @@ namespace yave {
         auto e  = eval_arg<0>();
         auto n  = eval(arg<1>() << fd);
 
-        auto ret = make_object<List<signal<ListRepeat_X>>>();
+        auto ret = make_object<List<signal<X>>>();
 
         if (*n < 0)
           return ret;
 
         for (auto i = 0; i < *n; ++i)
-          ret = make_object<List<signal<ListRepeat_X>>>(e, ret);
+          ret = make_object<List<signal<X>>>(e, ret);
 
         return ret;
       }
     };
 
-    class ListEnum_X;
-    class ListEnum_Y;
-
     struct ListEnumerate : Function<
                              ListEnumerate,
-                             signal<List<signal<ListEnum_X>>>,
-                             signal<Int, ListEnum_X, ListEnum_Y>,
+                             signal<List<signal<X>>>,
+                             signal<Int, X, Y>,
                              FrameDemand,
-                             List<signal<ListEnum_Y>>>
+                             List<signal<Y>>>
     {
       auto code() const -> return_type
       {
@@ -169,7 +161,7 @@ namespace yave {
         auto l  = eval(arg<0>() << fd);
         auto f  = eval_arg<1>();
 
-        auto ret = make_object<List<signal<ListEnum_Y>>>();
+        auto ret = make_object<List<signal<Y>>>();
 
         // \fd.idx
         struct ListEnumerateH : SignalFunction<ListEnumerateH, Int>
@@ -189,7 +181,7 @@ namespace yave {
 
         auto idx = 0;
         while (!l->is_nil()) {
-          ret = make_object<List<signal<ListEnum_Y>>>(
+          ret = make_object<List<signal<Y>>>(
             eval(f << make_object<ListEnumerateH>(idx) << l->head()), ret);
           l = eval(l->tail());
           ++idx;
@@ -199,16 +191,13 @@ namespace yave {
       }
     };
 
-    class ListFold_X;
-    class ListFold_Y;
-
     struct ListFold : Function<
                         ListFold,
-                        signal<List<signal<ListFold_X>>>,
-                        signal<ListFold_Y, ListFold_X, ListFold_Y>,
-                        signal<ListFold_Y>,
+                        signal<List<signal<X>>>,
+                        signal<Y, X, Y>,
+                        signal<Y>,
                         FrameDemand,
-                        ListFold_Y>
+                        Y>
     {
       auto code() const -> return_type
       {
