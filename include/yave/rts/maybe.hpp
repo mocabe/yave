@@ -185,7 +185,7 @@ namespace yave {
 
   constexpr auto maybe_type_name()
   {
-    return "?";
+    return "Maybe";
   }
 
   template <>

@@ -169,7 +169,7 @@ namespace yave {
 
   constexpr auto list_type_name()
   {
-    return "[]";
+    return "List";
   }
 
   template <>
