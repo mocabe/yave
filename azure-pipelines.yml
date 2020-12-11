@@ -105,7 +105,7 @@ jobs:
   - task: CopyFiles@2
     displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
     inputs:
-      SourceFolder: '$(Build.SourcesDirectory)/build'
+      SourceFolder: '$(Build.SourcesDirectory)/build/bin'
       Contents: '**'
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
