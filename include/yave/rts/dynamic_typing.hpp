@@ -853,6 +853,7 @@ namespace yave {
   {
     static_assert(
       false_v<Type, Term, U>, "Invalid type or missing specialization");
+    return false;
   }
 
   // for value types

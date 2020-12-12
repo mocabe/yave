@@ -142,11 +142,11 @@ namespace yave {
 
     /// Add declaration
     /// \requires `decl` should not be interface node
-    [[nodiscard]] void add(const node_declaration& decl);
+    void add(const node_declaration& decl);
 
     /// Add declarations
     /// \requires `decls` should not contain interface node
-    [[nodiscard]] void add(const std::vector<node_declaration>& decls);
+    void add(const std::vector<node_declaration>& decls);
 
     /// Exists?
     [[nodiscard]] bool exists(const std::string& name) const;
