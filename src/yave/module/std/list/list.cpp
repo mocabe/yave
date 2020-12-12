@@ -5,6 +5,7 @@
 
 #include <yave/module/std/list/list.hpp>
 #include <yave/signal/function.hpp>
+#include <yave/signal/list.hpp>
 #include <yave/rts/list.hpp>
 #include <yave/obj/primitive/property.hpp>
 #include <yave/node/core/structured_node_graph.hpp>
@@ -159,18 +160,17 @@ namespace yave {
       }
     };
 
-    struct ListCons
-      : SignalFunction<ListCons, X, List<signal<X>>, List<signal<X>>>
+    struct ListCons : SignalFunction<ListCons, X, SList<X>, SList<X>>
     {
       auto code() const -> return_type
       {
         auto e = arg_signal<0>();
         auto l = eval_arg<1>();
-        return make_object<List<signal<X>>>(e, l);
+        return make_object<SList<X>>(e, l);
       }
     };
 
-    struct ListHead : SignalFunction<ListHead, List<signal<X>>, X>
+    struct ListHead : SignalFunction<ListHead, SList<X>, X>
     {
       auto code() const -> return_type
       {
@@ -178,7 +178,7 @@ namespace yave {
       }
     };
 
-    struct ListTail : SignalFunction<ListTail, List<forall<X>>, List<forall<X>>>
+    struct ListTail : SignalFunction<ListTail, List<X>, List<X>>
     {
       auto code() const -> return_type
       {
@@ -186,7 +186,7 @@ namespace yave {
       }
     };
 
-    struct ListAt : SignalFunction<ListAt, List<signal<X>>, Int, X>
+    struct ListAt : SignalFunction<ListAt, SList<X>, Int, X>
     {
       auto code() const -> return_type
       {

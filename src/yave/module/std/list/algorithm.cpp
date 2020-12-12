@@ -6,6 +6,7 @@
 #include <yave/module/std/list/algorithm.hpp>
 #include <yave/rts/list.hpp>
 #include <yave/signal/function.hpp>
+#include <yave/signal/list.hpp>
 #include <yave/obj/primitive/property.hpp>
 
 namespace yave {
@@ -65,26 +66,20 @@ namespace yave {
     class Y;
 
     // (FD->[FD->X]) -> ((FD->X)->(FD->Y)) -> (FD->[FD->Y])
-    struct LazyListMap : Function<
-                           LazyListMap,
-                           signal<List<signal<X>>>,
-                           signal<X, Y>,
-                           FrameDemand,
-                           List<signal<Y>>>
+    struct LazyListMap
+      : SignalFunction<LazyListMap, SList<X>, sf<X, Y>, SList<Y>>
     {
       auto code() const -> return_type
       {
-        auto fd = eval_arg<2>();
         // [FD->X]
-        auto l = eval(arg<0>() << fd);
+        auto l = eval_arg<0>();
         // (FD->X) -> (FD->Y)
-        auto f = eval_arg<1>();
+        auto f = arg_signal<1>();
 
         if (l->is_nil())
-          return make_object<List<signal<Y>>>();
+          return make_object<SList<Y>>();
 
-        struct ListMapH
-          : Function<ListMapH, List<signal<X>>, FrameDemand, List<signal<X>>>
+        struct ListMapH : Function<ListMapH, SList<X>, FrameDemand, SList<X>>
         {
           auto code() const -> return_type
           {
@@ -92,76 +87,59 @@ namespace yave {
           }
         };
 
-        return make_object<List<signal<Y>>>(
+        return make_object<SList<Y>>(
           f << l->head(),
           make_object<LazyListMap>()
-            << (make_object<ListMapH>() << l->tail()) << f << fd);
+            << (make_object<ListMapH>() << l->tail()) << f << arg_demand());
       }
     };
 
-    struct StrictListMap : Function<
-                             StrictListMap,
-                             signal<List<signal<X>>>,
-                             signal<X, Y>,
-                             FrameDemand,
-                             List<signal<Y>>>
+    struct StrictListMap
+      : SignalFunction<StrictListMap, SList<X>, sf<X, Y>, SList<Y>>
     {
       auto code() const -> return_type
       {
-        auto fd = eval_arg<2>();
-        auto l  = eval(arg<0>() << fd);
-        auto f  = eval_arg<1>();
+        auto l = eval_arg<0>();
+        auto f = arg_signal<1>();
 
-        auto ret = make_object<List<signal<Y>>>();
+        auto ret = make_object<SList<Y>>();
 
         while (!l->is_nil()) {
-          ret = make_object<List<signal<Y>>>(eval(f << l->head()), ret);
+          ret = make_object<SList<Y>>(eval(f << l->head()), ret);
           l   = eval(l->tail());
         }
-
         return ret;
       }
     };
 
-    struct ListRepeat : Function<
-                          ListRepeat,
-                          signal<X>,
-                          signal<Int>,
-                          FrameDemand,
-                          List<signal<X>>>
+    struct ListRepeat : SignalFunction<ListRepeat, X, Int, SList<X>>
     {
       auto code() const -> return_type
       {
-        auto fd = eval_arg<2>();
-        auto e  = eval_arg<0>();
-        auto n  = eval(arg<1>() << fd);
+        auto e = arg_signal<0>();
+        auto n = eval_arg<1>();
 
-        auto ret = make_object<List<signal<X>>>();
+        auto ret = make_object<SList<X>>();
 
         if (*n < 0)
           return ret;
 
         for (auto i = 0; i < *n; ++i)
-          ret = make_object<List<signal<X>>>(e, ret);
+          ret = make_object<SList<X>>(e, ret);
 
         return ret;
       }
     };
 
-    struct ListEnumerate : Function<
-                             ListEnumerate,
-                             signal<List<signal<X>>>,
-                             signal<Int, X, Y>,
-                             FrameDemand,
-                             List<signal<Y>>>
+    struct ListEnumerate
+      : SignalFunction<ListEnumerate, SList<X>, sf<Int, X, Y>, SList<Y>>
     {
       auto code() const -> return_type
       {
-        auto fd = eval_arg<2>();
-        auto l  = eval(arg<0>() << fd);
-        auto f  = eval_arg<1>();
+        auto l = eval_arg<0>();
+        auto f = arg_signal<1>();
 
-        auto ret = make_object<List<signal<Y>>>();
+        auto ret = make_object<SList<Y>>();
 
         // \fd.idx
         struct ListEnumerateH : SignalFunction<ListEnumerateH, Int>
@@ -181,37 +159,28 @@ namespace yave {
 
         auto idx = 0;
         while (!l->is_nil()) {
-          ret = make_object<List<signal<Y>>>(
+          ret = make_object<SList<Y>>(
             eval(f << make_object<ListEnumerateH>(idx) << l->head()), ret);
           l = eval(l->tail());
           ++idx;
         }
-
         return ret;
       }
     };
 
-    struct ListFold : Function<
-                        ListFold,
-                        signal<List<signal<X>>>,
-                        signal<Y, X, Y>,
-                        signal<Y>,
-                        FrameDemand,
-                        Y>
+    struct ListFold : SignalFunction<ListFold, SList<X>, sf<Y, X, Y>, Y, Y>
     {
       auto code() const -> return_type
       {
-        auto fd = eval_arg<3>();
-        auto l  = eval(arg<0>() << fd);
-        auto f  = eval_arg<1>();
-        auto v  = eval_arg<2>();
+        auto l = eval_arg<0>();
+        auto f = arg_signal<1>();
+        auto v = eval(arg_signal<2>());
 
         while (!l->is_nil()) {
           v = eval(f << v << l->head());
           l = eval(l->tail());
         }
-
-        return v << fd;
+        return v << arg_demand();
       }
     };
 
