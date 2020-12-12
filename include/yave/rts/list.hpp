@@ -129,12 +129,6 @@ namespace yave {
       ListProxy<typename decltype(get_proxy_type(type_c<T>))::type>>;
   }
 
-  template <class T>
-  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<list<T>> l)
-  {
-    return get_proxy_type(l);
-  }
-
   // ------------------------------------------
   // get_list_object_type
 
@@ -357,7 +351,7 @@ namespace yave {
         throw std::out_of_range("head() on nil list");
 
       using To = std::add_const_t<typename decltype(
-        get_argument_proxy_type(normalize_specifier(type_c<T>)))::type>;
+        get_proxy_type(normalize_specifier(type_c<T>)))::type>;
 
       // cast to proxy type
       return static_object_cast<To>(storage.car);

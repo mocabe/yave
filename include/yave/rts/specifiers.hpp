@@ -36,9 +36,6 @@ namespace yave {
   template <class... Ts>
   struct ClosureProxy;
 
-  template <class... Ts>
-  struct ClosureArgumentProxy;
-
   template <class Tag>
   struct VarValueProxy;
 
@@ -130,29 +127,6 @@ namespace yave {
   [[nodiscard]] constexpr auto get_proxy_type(meta_type<object<T>>)
   {
     return type_c<ObjectProxy<T>>;
-  }
-
-  // ------------------------------------------
-  // get_argument_proxy_type
-
-  template <class... Ts>
-  [[nodiscard]] constexpr auto get_argument_proxy_type(
-    meta_type<closure<Ts...>>)
-  {
-    return type_c<ClosureArgumentProxy<typename decltype(
-      get_argument_proxy_type(type_c<Ts>))::type...>>;
-  }
-
-  template <class Tag>
-  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<forall<Tag>> v)
-  {
-    return get_proxy_type(v);
-  }
-
-  template <class T>
-  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<object<T>> o)
-  {
-    return get_proxy_type(o);
   }
 
   // ------------------------------------------

@@ -153,7 +153,8 @@ namespace yave {
       "Closure should have argument and return type");
 
     /// term
-    static constexpr auto term = get_term<closure<Ts...>>();
+    static constexpr auto term =
+      generalize_tm_varvalue(get_term<closure<Ts...>>());
 
     /// Ctor
     Function() noexcept
@@ -213,9 +214,8 @@ namespace yave {
   protected:
     /// argument proxy type
     template <size_t N>
-    using argument_proxy_t =
-      std::add_const_t<typename decltype(get_argument_proxy_type(
-        normalize_specifier(get<N>(tuple_c<Ts...>))))::type>;
+    using argument_proxy_t = std::add_const_t<typename decltype(
+      get_proxy_type(normalize_specifier(get<N>(tuple_c<Ts...>))))::type>;
 
     /// return type for code()
     using return_type =

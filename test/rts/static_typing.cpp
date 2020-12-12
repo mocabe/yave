@@ -719,10 +719,10 @@ void test_guess_object_type()
       == type_c<VarValueProxy<class Tag>>);
   }
   {
-    // ty_var<T> -> VarValurProxy<T>
+    // ty_var<T> -> VarProxy<T>
     static_assert(
       guess_object_type(type_c<ty_var<class Tag>>)
-      == type_c<VarValueProxy<class Tag>>);
+      == type_c<VarProxy<class Tag>>);
   }
   {
     // arrow<S, T> -> closure<S, T>

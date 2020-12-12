@@ -58,9 +58,8 @@ TEST_CASE("higher order function test")
       return_type code() const
       {
         static_assert(
-          type_c<argument_proxy_t<0>> ==
-          type_c<
-            const ClosureArgumentProxy<ObjectProxy<Int>, ObjectProxy<Int>>>);
+          type_c<argument_proxy_t<
+            0>> == type_c<const ClosureProxy<ObjectProxy<Int>, ObjectProxy<Int>>>);
         return arg<0>();
         return eval_arg<0>();
         return eval(arg<0>());
@@ -109,9 +108,8 @@ TEST_CASE("polymorphic function test")
       return_type code() const
       {
         static_assert(
-          type_c<argument_proxy_t<1>> ==
-          type_c<
-            const ClosureArgumentProxy<ObjectProxy<Int>, VarValueProxy<X>>>);
+          type_c<argument_proxy_t<
+            1>> == type_c<const ClosureProxy<ObjectProxy<Int>, VarValueProxy<X>>>);
         return arg<1>() << arg<0>();
       }
     };
@@ -126,9 +124,8 @@ TEST_CASE("polymorphic function test")
       return_type code() const
       {
         static_assert(
-          type_c<argument_proxy_t<1>> ==
-          type_c<
-            const ClosureArgumentProxy<ObjectProxy<Int>, VarValueProxy<X>>>);
+          type_c<argument_proxy_t<
+            1>> == type_c<const ClosureProxy<ObjectProxy<Int>, VarValueProxy<X>>>);
         return arg<1>() << arg<0>();
       }
     };
@@ -165,6 +162,7 @@ TEST_CASE("polymorphic function test")
           auto b   = make_object<Bool>();
           auto i   = make_object<Int>();
           return _if << b << i << i; // Bool->X->X->X Bool Int Int
+          return eval(_if) << b << i << i; // Bool->X->X->X Bool Int Int
         }
       };
       auto f = make_object<F>();

@@ -145,12 +145,6 @@ namespace yave {
     return type_c<MaybeProxy<typename decltype(get_proxy_type(m.t()))::type>>;
   }
 
-  template <class T>
-  [[nodiscard]] constexpr auto get_argument_proxy_type(meta_type<maybe<T>> m)
-  {
-    return get_proxy_type(m);
-  }
-
   // ------------------------------------------
   // get_maybe_object_type
 
@@ -298,7 +292,7 @@ namespace yave {
         throw std::runtime_error("bad Maybe access");
 
       using To = std::add_const_t<typename decltype(
-        get_argument_proxy_type(normalize_specifier(type_c<T>)))::type>;
+        get_proxy_type(normalize_specifier(type_c<T>)))::type>;
 
       // cast to proxy type
       return static_object_cast<To>(_get_storage(*this).value);

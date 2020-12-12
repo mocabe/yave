@@ -36,15 +36,6 @@ namespace yave {
   struct ClosureProxy : Object
   {
     /// term
-    static constexpr auto term =
-      generalize_tm_varvalue(make_tm_closure(get_term<Ts>()...));
-  };
-
-  /// proxy type of argument closure type
-  template <class... Ts>
-  struct ClosureArgumentProxy : Object
-  {
-    /// term
     static constexpr auto term = make_tm_closure(get_term<Ts>()...);
   };
 
@@ -54,6 +45,12 @@ namespace yave {
   {
     /// term
     static constexpr auto term = type_c<tm_varvalue<Tag>>;
+  };
+
+  template <class Tag>
+  struct VarProxy : Object
+  {
+    static constexpr auto term = type_c<tm_var<Tag>>;
   };
 
   /// proxy type of named objec type
@@ -270,7 +267,7 @@ namespace yave {
   template <class T>
   [[nodiscard]] constexpr auto guess_object_type(meta_type<ty_var<T>>)
   {
-    return type_c<VarValueProxy<T>>;
+    return type_c<VarProxy<T>>;
   }
 
 } // namespace yave
