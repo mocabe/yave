@@ -11,9 +11,6 @@
 #include <range/v3/view.hpp>
 #include <range/v3/action.hpp>
 
-YAVE_DECL_G_LOGGER(node_graph)
-
-
 namespace yave {
 
   using namespace ranges;
@@ -46,7 +43,6 @@ namespace yave {
     impl()
       : g {}
     {
-      init_logger();
     }
 
     impl(graph_t&& gg) noexcept
@@ -324,12 +320,6 @@ namespace yave {
 
       auto handle = node_handle(node, g.id(node));
 
-      Info(
-        g_logger,
-        "Created Node: name=\"{}\", id={}",
-        name,
-        to_string(handle.id()));
-
       return handle;
     }
 
@@ -337,12 +327,6 @@ namespace yave {
     {
       if (!exists(node))
         return;
-
-      Info(
-        g_logger,
-        "Removing Node: name=\"{}\", id={}",
-        g[node.descriptor()].name(),
-        to_string(node.id()));
 
       for (auto&& s : g.sockets(node.descriptor())) {
         // detach
@@ -363,32 +347,19 @@ namespace yave {
       const node_handle& interface,
       const socket_handle& socket)
     {
-      if (!g[interface.descriptor()].is_interface()) {
-        Error(g_logger, "attach_interface(): Not interface node");
+      if (!g[interface.descriptor()].is_interface())
         return false;
-      }
 
       auto info = get_info(socket);
 
       for (auto&& s : g.sockets(interface.descriptor())) {
         if (socket.id().data == g.id(s)) {
-          Warning(g_logger, "attach_interface(): already attached");
           return true; // already attached
         }
       }
 
-      if (!g.attach_socket(interface.descriptor(), socket.descriptor())) {
-        Error(g_logger, "attach_interface(): Failed to attach socket!");
+      if (!g.attach_socket(interface.descriptor(), socket.descriptor()))
         return false;
-      }
-
-      Info(
-        g_logger,
-        "Attached interface: node={}({}), socket={}({})",
-        get_name(info.node()),
-        to_string(info.node().id()),
-        info.name(),
-        to_string(socket.id()));
 
       return true;
     }
@@ -400,19 +371,8 @@ namespace yave {
       auto info = get_info(socket);
 
       for (auto&& s : g.sockets(interface.descriptor())) {
-
         if (socket.id().data == g.id(s)) {
-
-          // detach
           g.detach_socket(interface.descriptor(), s);
-
-          Info(
-            g_logger,
-            "Detached interface: node={}({}), socket={}({})",
-            get_name(info.node()),
-            to_string(info.node().id()),
-            info.name(),
-            to_string(socket.id()));
           return;
         }
       }
@@ -437,18 +397,12 @@ namespace yave {
       auto dst_node = node_handle(dn, g.id(dn));
 
       // check socket type
-      if (!g[s].is_output() || !g[d].is_input()) {
-        Error(g_logger, "Failed to connect sockets: Invalid socket type");
+      if (!g[s].is_output() || !g[d].is_input())
         return connection_handle();
-      }
 
       // already exists
       for (auto&& e : g.dst_edges(d)) {
         if (g.src(e) == s) {
-          Warning(
-            g_logger,
-            "Connection already exists. Return existing connection "
-            "handle.");
           return connection_handle(e, g.id(e));
         }
       }
@@ -461,29 +415,9 @@ namespace yave {
 
       // closed loop check
       if (find_loop(src_node)) {
-        Error(
-          g_logger,
-          "Failed to connect: src='{}'({})::{}, dst='{}'({})::{}",
-          get_name(src_node),
-          to_string(src_node.id()),
-          get_name(src_socket),
-          get_name(dst_node),
-          to_string(dst_node.id()),
-          get_name(dst_socket));
-        Error(g_logger, "Closed loop is not allowed");
         g.remove_edge(new_edge);
         return connection_handle();
       }
-
-      Info(
-        g_logger,
-        "Connected socket: src=\"{}\"({})::{}, dst=\"{}\"({})::{}",
-        get_name(src_node),
-        to_string(src_node.id()),
-        get_name(src_socket),
-        get_name(dst_node),
-        to_string(dst_node.id()),
-        get_name(dst_socket));
 
       return connection_handle(new_edge, g.id(new_edge));
     }
@@ -491,18 +425,6 @@ namespace yave {
     void disconnect(const connection_handle& h)
     {
       auto info = get_info(h);
-
-      Info(
-        g_logger,
-        "Disconnecting: src='{}'({})::{} dst='{}'({})::{}",
-        get_name(info.src_node()),
-        to_string(info.src_node().id()),
-        get_name(info.src_socket()),
-        get_name(info.dst_node()),
-        to_string(info.dst_node().id()),
-        get_name(info.dst_socket()));
-
-      // remove edge
       g.remove_edge(h.descriptor());
     }
 
@@ -597,26 +519,11 @@ namespace yave {
 
     void set_data(const socket_handle& h, object_ptr<Object> data)
     {
-      if (!g[h.descriptor()].has_data())
-        Info(
-          g_logger, "Enable custom data on socket: id={}", to_string(h.id()));
-
-      if (!data)
-        Info(
-          g_logger, "Clearing custom data on socket: id={}", to_string(h.id()));
-
       g[h.descriptor()].set_data(std::move(data));
     }
 
     void set_data(const node_handle& h, object_ptr<Object> data)
     {
-      if (!g[h.descriptor()].has_data())
-        Info(g_logger, "Enable custom data on node: id={}", to_string(h.id()));
-
-      if (!data)
-        Info(
-          g_logger, "Clearing custom data on socket: id={}", to_string(h.id()));
-
       g[h.descriptor()].set_data(std::move(data));
     }
 
@@ -882,23 +789,16 @@ namespace yave {
     const socket_handle& dst_socket,
     const uid& id) -> connection_handle
   {
-    if (!exists(src_socket) || !exists(dst_socket)) {
-      Error(g_logger, "Failed to connect sockets: Invalid socket descriptor");
+    if (!exists(src_socket) || !exists(dst_socket))
       return {};
-    }
 
     return m_pimpl->connect(src_socket, dst_socket, id);
   }
 
   void node_graph::disconnect(const connection_handle& h)
   {
-    if (!exists(h)) {
-      Warning(
-        g_logger,
-        "node_graph::disconnect() on invalid node handle: id={}",
-        to_string(h.id()));
+    if (!exists(h))
       return;
-    }
 
     m_pimpl->disconnect(h);
   }
@@ -985,20 +885,16 @@ namespace yave {
 
   bool node_graph::is_input_socket(const socket_handle& h) const
   {
-    if (!exists(h)) {
-      Warning(g_logger, "node_graph::is_input_socket on invalid handle.");
+    if (!exists(h)) 
       return false;
-    }
 
     return m_pimpl->is_input_socket(h);
   }
 
   bool node_graph::is_output_socket(const socket_handle& h) const
   {
-    if (!exists(h)) {
-      Warning(g_logger, "node_graph::is_output_socket on invalid handle.");
+    if (!exists(h)) 
       return false;
-    }
 
     return m_pimpl->is_output_socket(h);
   }
@@ -1023,10 +919,8 @@ namespace yave {
 
   bool node_graph::has_connection(const socket_handle& h) const
   {
-    if (!exists(h)) {
-      Warning(g_logger, "node_graph::has_connection() on invalid node handle.");
+    if (!exists(h))
       return false;
-    }
 
     return m_pimpl->has_connection(h);
   }
@@ -1042,10 +936,8 @@ namespace yave {
   auto node_graph::input_sockets(const node_handle& h) const
     -> std::vector<socket_handle>
   {
-    if (!exists(h)) {
-      Warning(g_logger, "node_graph::input_sockets() on invalid node handle.");
+    if (!exists(h))
       return {};
-    }
 
     return m_pimpl->input_sockets(h);
   }
@@ -1053,20 +945,16 @@ namespace yave {
   auto node_graph::output_sockets(const node_handle& h) const
     -> std::vector<socket_handle>
   {
-    if (!exists(h)) {
-      Warning(g_logger, "node_graph::outupt_sockets() on invalid node handle.");
+    if (!exists(h))
       return {};
-    }
 
     return m_pimpl->output_sockets(h);
   }
 
   bool node_graph::is_normal(const node_handle& h) const
   {
-    if (!exists(h)) {
-      Warning(g_logger, "node_graph::is_primitive() on invalid node handle.");
+    if (!exists(h))
       return false;
-    }
 
     return m_pimpl->is_normal(h);
   }
@@ -1135,10 +1023,8 @@ namespace yave {
   auto node_graph::root_of(const node_handle& node) const
     -> std::vector<node_handle>
   {
-    if (!exists(node)) {
-      Warning(g_logger, "node_graph::root_of() on invalid node handle.");
+    if (!exists(node))
       return {};
-    }
 
     return m_pimpl->root_of(node);
   }
