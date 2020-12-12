@@ -15,17 +15,31 @@ namespace yave {
 
   namespace detail {
 
+    template <class T>
+    struct lift_sf_arg
+    {
+      using type = signal<T>;
+    };
+
+    template <class... Ts>
+    struct lift_sf_arg<sf<Ts...>>
+    {
+      using type = sf<Ts...>;
+    };
+
+    template <class T>
+    using lift_sf_arg_t = typename lift_sf_arg<T>::type;
+
     template <class...>
     struct SignalFunctionImpl;
 
     // Lifted signal function
     template <class Derived, class R, class... Ts>
     struct SignalFunctionImpl<Derived, meta_tuple<Ts...>, meta_type<R>>
-      : Function<Derived, closure<FrameDemand, Ts>..., FrameDemand, R>
+      : Function<Derived, lift_sf_arg_t<Ts>..., FrameDemand, R>
     {
     private:
-      using base =
-        Function<Derived, closure<FrameDemand, Ts>..., FrameDemand, R>;
+      using base = Function<Derived, lift_sf_arg_t<Ts>..., FrameDemand, R>;
 
     public:
       /// Get argument demand
@@ -52,6 +66,8 @@ namespace yave {
       template <uint64_t N>
       [[nodiscard]] auto arg() const noexcept
       {
+        using ArgT = typename decltype(get<N>(tuple_c<Ts...>))::type;
+        static_assert(is_signal_v<lift_sf_arg_t<ArgT>>, "Invalid signal type");
         return arg_signal<N>() << arg_demand();
       }
 
@@ -59,7 +75,7 @@ namespace yave {
       template <uint64_t N>
       [[nodiscard]] auto eval_arg() const noexcept
       {
-        return eval(this->template arg<N>());
+        return eval(arg<N>());
       }
     };
   } // namespace detail

@@ -10,22 +10,30 @@
 
 namespace yave {
 
-  namespace detail {
+  /// signal value
+  template <class T>
+  using signal = closure<FrameDemand, T>;
 
-    template <class...>
-    struct signal_impl;
-
-    template <class R, class... Ts>
-    struct signal_impl<meta_tuple<Ts...>, meta_type<R>>
-    {
-      using type = closure<closure<FrameDemand, Ts>..., FrameDemand, R>;
-    };
-  } // namespace detail
-
-  /// signal closure specifier
+  /// signal function
   template <class... Ts>
-  using signal = typename detail::signal_impl<
-    decltype(remove_last(tuple_c<Ts...>)),
-    decltype(last(tuple_c<Ts...>))>::type;
+  using sf = closure<signal<Ts>...>;
+
+  // ------------------------------------------
+  // is_signal_v
+
+  template <class T>
+  constexpr bool is_signal_v = false;
+
+  template <class T>
+  constexpr bool is_signal_v<signal<T>> = true;
+
+  // ------------------------------------------
+  // is_sf_v
+
+  template <class T>
+  constexpr bool is_sf_v = false;
+
+  template <class... Ts>
+  constexpr bool is_sf_v<sf<Ts...>> = true;
 
 } // namespace yave
