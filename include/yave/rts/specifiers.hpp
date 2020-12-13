@@ -23,10 +23,6 @@ namespace yave {
   template <class T>
   struct object;
 
-  /// list specifier
-  template <class T>
-  struct list;
-
   // ------------------------------------------
   // proxy types (forward decl)
 
@@ -41,9 +37,6 @@ namespace yave {
 
   template <class T>
   struct ObjectProxy;
-
-  template <class T>
-  struct ListProxy;
 
   // ------------------------------------------
   // is_specifier
