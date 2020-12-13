@@ -43,20 +43,20 @@ namespace yave {
 
     public:
       /// Get argument demand
-      [[nodiscard]] auto arg_demand() const noexcept
+      [[nodiscard]] auto arg_demand() const
       {
         return base::template eval_arg<sizeof...(Ts)>();
       }
 
       /// Get argument time
-      [[nodiscard]] auto arg_time() const noexcept
+      [[nodiscard]] auto arg_time() const
       {
         return arg_demand()->time;
       }
 
       /// Get argument signal value
       template <uint64_t N>
-      [[nodiscard]] auto arg_signal() const noexcept
+      [[nodiscard]] auto arg_signal() const
       {
         static_assert(N < sizeof...(Ts), "Invalid argument index");
         return base::template arg<N>();
@@ -64,7 +64,7 @@ namespace yave {
 
       /// Get value of input as thunk
       template <uint64_t N>
-      [[nodiscard]] auto arg() const noexcept
+      [[nodiscard]] auto arg() const
       {
         using ArgT = typename decltype(get<N>(tuple_c<Ts...>))::type;
         static_assert(is_signal_v<lift_sf_arg_t<ArgT>>, "Invalid signal type");
@@ -73,7 +73,7 @@ namespace yave {
 
       /// Get value of input by forced evaluation
       template <uint64_t N>
-      [[nodiscard]] auto eval_arg() const noexcept
+      [[nodiscard]] auto eval_arg() const
       {
         return eval(arg<N>());
       }
