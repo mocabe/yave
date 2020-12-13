@@ -8,18 +8,18 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::Function::Apply>::get_node_declaration()
+  auto node_declaration_traits<node::Functional::Apply>::get_node_declaration()
     -> node_declaration
   {
     return function_node_declaration(
-      "Function.Apply",
+      "Functional.Apply",
       "Apply argument to function",
       node_declaration_visibility::_public,
       {"fn", "arg"},
       {"fn"});
   }
 
-  namespace modules::_std::function {
+  namespace modules::_std::functional {
 
     class X;
     class Y;
@@ -31,13 +31,13 @@ namespace yave {
         return arg<0>() << arg<1>();
       }
     };
-  } // namespace modules::_std::function
+  } // namespace modules::_std::functional
 
-  auto node_definition_traits<node::Function::Apply, modules::_std::tag>::
+  auto node_definition_traits<node::Functional::Apply, modules::_std::tag>::
     get_node_definitions() -> std::vector<node_definition>
   {
-    auto info = get_node_declaration<node::Function::Apply>();
+    auto info = get_node_declaration<node::Functional::Apply>();
     return {node_definition(
-      info.full_name(), 0, make_object<modules::_std::function::Apply>())};
+      info.full_name(), 0, make_object<modules::_std::functional::Apply>())};
   }
 } // namespace yave

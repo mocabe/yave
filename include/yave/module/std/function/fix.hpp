@@ -11,11 +11,11 @@
 namespace yave {
 
   namespace node::Functional {
-    /// Apply
-    struct Apply;
-  } // namespace node
+    /// Fix
+    struct Fix;
+  } // namespace node::Functional
 
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Functional::Apply);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Functional::Apply, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Functional::Fix);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Functional::Fix, modules::_std::tag);
 
 } // namespace yave
