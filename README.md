@@ -4,13 +4,13 @@
 [![Gitter](https://badges.gitter.im/mocabe-yave/community.svg)](https://gitter.im/mocabe-yave/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 `YAVE` is node based visual programming environment with functional reactive programming (FRP).  
-Aiming for research on animation/video editing software which bridges gaps between traditonal (declarative) editing paradigm and generative methods.
+Aiming for research on animation software which bridges gaps between declarative editing paradigm and generative methods.
 
 *Disclaimer: This project is still in very early stage!*
 
 To play around with `YAVE`, you can also build from source with standard CMake on Win/Linux.  
-I'm also preparing binary release of develop builds soon<sup>TM</sup>.  
-If you have any question, feel free to ask on gitter.
+There are also CI compiled binary artifacts, but they might not work on some environments.  
+If you have any problem, feel free to report or ask on gitter.
 
 ## Motivation
 
@@ -19,7 +19,7 @@ With node based languages, you specify how data will be transformed into final o
 However, once you start to compose values which *change over time* (like animations), things will get complicated quickly. This is because you need to calculate *how* current time maps to value rather than *what* kind of operation you want to apply on time related to values. This is different from traditional editing softwares which are usually based on *declarative* time manipulation.
 This is well known problem in functional programming community, and they found elegant solution by using higher-order functions which commonly known as `Functional Reactive Programming (FRP)`.  
 Even though FRP is very popular in FP (mainly Haskell) community, implementations as visual programming language are almost non-existent<sup>1</sup>.
-This project is currently aiming for static content creation tools like animation or video editing (not for making GUI or games at this point). 
+This project is currently aiming for static content creation tools like animation or video editing (not for making GUI or games). 
 
 <sup>1</sup> I actually haven't seen any other working implementation yet (although there are few concept-ish stuff).
 
@@ -28,19 +28,22 @@ This project is currently aiming for static content creation tools like animatio
 * Functional programming
   * `YAVE` supports various functional programming features, including higher-order functions and currying.
   * Each 'sub-grahps' can be used as function when there's no input.
+  * Recursion is currently not supported to avoid infinite loops. It is recommended to implement your recursive algorithm in C++ (which is much faster) or use higher-order combinators.
 
 * Reactivity and declarative time manipulation
   * `YAVE` is based on *functional reactive programming (FRP)*. All node functions are internally represented as *signal function (`SF a b`)*.
   * FRP enables you to transform any value over time from caller side. For example, you can make single animation and combine them with different time scales/delays without modifying original animation.
+  * For example, `Time.ReTime` sets new time to input value.
 
 * Type system
   * `YAVE` is statically typed language.
   * Type system of `YAVE` is based on classic Hindly-Milner type inference, with some extension to support ad-hoc overloading.
+  * Type errors are currently displayed very poorly. I'm planning to improve that.
 
 * Fully interoperable with C++
-  * Functional programming languages tend to lack support of GUI and high performance graphics, which is a must to implement visual programming languages. `YAVE` avoids this limitation by implementing functional runtime system as EDSL (embedded domain specific language) on C++. 
-  * You can easily add new datat ypes or implement your own node function from C++. 
-
+  * Functional programming languages tend to lack support of GUI and high performance graphics, which are must for practical visual scripting environment. `YAVE` avoids this limitation by implementing functional runtime system as EDSL (embedded domain specific language) on C++. 
+  * You add new data types or implement your own node functions from C++. Object system of `YAVE` is designed to support plugin style extensions in the future.
+  
 ### Nodes 101
 
 * Function node
