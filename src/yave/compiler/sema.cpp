@@ -9,7 +9,6 @@
 #include <yave/compiler/location.hpp>
 #include <yave/compiler/typecheck.hpp>
 #include <yave/compiler/argument_holder.hpp>
-#include <yave/support/log.hpp>
 #include <yave/node/core/socket_instance_manager.hpp>
 #include <yave/node/core/node_definition.hpp>
 #include <yave/node/core/node_declaration.hpp>
@@ -28,8 +27,6 @@
 #include <range/v3/view.hpp>
 #include <boost/uuid/uuid_hash.hpp>
 #include <tl/optional.hpp>
-
-YAVE_DECL_G_LOGGER(sema)
 
 namespace yave::compiler {
 
@@ -171,8 +168,6 @@ namespace yave::compiler {
 
         auto defcall = ng.get_definition(f);
 
-        Info(g_logger, "get_function_body(): {}", *ng.get_path(defcall));
-
         // check if already added
         if (auto overloaded = env.find_overloaded(defcall.id()))
           return overloaded;
@@ -197,8 +192,6 @@ namespace yave::compiler {
                      const auto& os,
                      const auto& in) -> object_ptr<const Object> {
         assert(ng.is_group(g));
-
-        Info(g_logger, "rec_g: {}, os={}", *ng.get_name(g), to_string(os.id()));
 
         // inputs
         std::vector<object_ptr<const Object>> ins;
@@ -248,8 +241,6 @@ namespace yave::compiler {
                      const auto& in) -> object_ptr<const Object> {
         (void)os;
         assert(ng.is_function(f));
-
-        Info(g_logger, "rec_f: {}, os={}", *ng.get_name(f), to_string(os.id()));
 
         auto body = get_function_body(f, os);
         loc.add_location(body, os);
@@ -357,8 +348,6 @@ namespace yave::compiler {
 
   void sema(pipeline& pipe)
   {
-    init_logger();
-
     assert(pipe.get_data_if<message_map>("msg_map"));
     assert(pipe.get_data_if<structured_node_graph>("ng"));
     assert(pipe.get_data_if<socket_handle>("os"));
