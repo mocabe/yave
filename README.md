@@ -14,14 +14,13 @@ If you have any problem, feel free to report or ask on gitter.
 
 ## Motivation
 
-Procedural content creation with node based visual programming languages are quite popular in audio and graphics domain because of its flexibility and usability for artists.  
-With node based languages, you specify how data will be transformed into final output by using data flow graph, which is quite easy to understand even for non-programmers.  
-However, once you start to compose values which *change over time* (like animations), things will get complicated quickly. This is because you need to calculate *how* current time maps to value rather than *what* kind of operation you want to apply on time related to values. This is different from traditional editing software which are usually based on *declarative* time manipulation.
-This is well known problem in functional programming community, and they found elegant solution by using higher-order functions which commonly known as `Functional Reactive Programming (FRP)`.  
-Even though FRP is very popular in FP (mainly Haskell) community, implementations as visual programming language are almost non-existent<sup>1</sup>.
-This project is currently aiming for static content creation tools like animation or video editing (not for making GUI or games). 
-
-<sup>1</sup> I actually haven't seen any other working implementation yet. So this might be the first one.
+Procedural content creation with node based visual programming languages are becoming popular in audio and graphics domain because of its flexibility and usability for artists.  
+In node based languages, you need to define how data will be transformed into final output by using data flow graph, which is quite easy to understand even for non-programmers.  
+However, composing values which *change over time* (like animations) in node based languages is not trivial task. This is because you need to manually calculate *how* current time maps to value rather than *what* kind of operation you want to apply to time related to values. This is different from popular editing paradigm based on *declarative* time manipulation, which allows you to compose values in the time domain easily.
+This has been a known problem in functional programming community, and they found elegant solution by using higher-order functions which commonly known as `Functional Reactive Programming (FRP)`.  
+FRP was introduced for declarative programming paradigm for animations, then its target was shifted to real time applications like GUIs.  
+Even though FRP is popular in FP (mainly Haskell) community, incorporating FRP into visual programming language has not been done yet.  
+This project is focused on implementing static content creation tools like animation editor with functional reactive visual programming language. 
 
 ## Features
 
