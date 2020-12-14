@@ -14,20 +14,20 @@ If you have any problem, feel free to report or ask on gitter.
 
 ## Motivation
 
-Procedual content creation with node based visual programming languages are quite popular in audio and graphics domain because of its flexibility and usability for artists.  
+Procedural content creation with node based visual programming languages are quite popular in audio and graphics domain because of its flexibility and usability for artists.  
 With node based languages, you specify how data will be transformed into final output by using data flow graph, which is quite easy to understand even for non-programmers.  
-However, once you start to compose values which *change over time* (like animations), things will get complicated quickly. This is because you need to calculate *how* current time maps to value rather than *what* kind of operation you want to apply on time related to values. This is different from traditional editing softwares which are usually based on *declarative* time manipulation.
+However, once you start to compose values which *change over time* (like animations), things will get complicated quickly. This is because you need to calculate *how* current time maps to value rather than *what* kind of operation you want to apply on time related to values. This is different from traditional editing software which are usually based on *declarative* time manipulation.
 This is well known problem in functional programming community, and they found elegant solution by using higher-order functions which commonly known as `Functional Reactive Programming (FRP)`.  
 Even though FRP is very popular in FP (mainly Haskell) community, implementations as visual programming language are almost non-existent<sup>1</sup>.
 This project is currently aiming for static content creation tools like animation or video editing (not for making GUI or games). 
 
-<sup>1</sup> I actually haven't seen any other working implementation yet (although there are few concept-ish stuff).
+<sup>1</sup> I actually haven't seen any other working implementation yet. So this might be the first one.
 
 ## Features
 
 * Functional programming
   * `YAVE` supports various functional programming features, including higher-order functions and currying.
-  * Each 'sub-grahps' can be used as function when there's no input.
+  * Each 'sub-graph' can be used as function when there's no input.
   * Recursion is currently not supported to avoid infinite loops. It is recommended to implement your recursive algorithm in C++ (which is much faster) or use higher-order combinators.
 
 * Reactivity and declarative time manipulation
@@ -62,7 +62,7 @@ Groups can be used as user-defined functions (same as function nodes), and it al
 
 * Macro node
 
-Macro nodes are used to procedually generate nodes from arbitary number of inputs. For example, `List.List` is macro node which generates tree by `List.Cons` and `List.Nil`. Macro nodes will be expanded in parser stage.
+Macro nodes are used to procedurally generate nodes from arbitrary number of inputs. For example, `List.List` is macro node which generates tree by `List.Cons` and `List.Nil`. Macro nodes will be expanded in parser stage.
 
 ## Implementation
 
@@ -82,26 +82,27 @@ This project is still in very early stage. There are still lots of things to be 
 
 To-Do list:
 
-* Type system improvements
-  - Improve error message
-  - Display principal types on GUI
-  - Replace current hacky type inference implementation..
-
+* Proper engineering as GUI application
+  - There are tons of terrible codes/designs in the codebase, which I eager to rewrite.
+  - Current GUI frontend is prototype with ImGui which has some limitations.
+    + Qt or custom UI framework with Vulkan might be better for future development.
+  
 * Runtime improvements
+  - Introducing evaluation context
   - Optimization paths
   - Parallel scheduling support
   - Multi output support
   - Dynamic caching
-
+  
+* Type system improvements
+  - Improve error message
+  - Display principal types on GUI
+  - Replace current hacky type inference implementation..
+  
 * Nodes
-  - Add more useful nodes!
+  - Always add more useful nodes!
   - Improve vector graphics support
   - GLSL, Python script nodes
-
-* Develop as proper application
-  - Current GUI frontend is prototype with ImGui.
-    + Qt or custom UI framework with Vulkan might be better for future development.
-  - There are also tons of terrible codes in the codebase, which I want to rewrite.
 
 ### Building
 
@@ -118,6 +119,10 @@ First build may take longer time to build dependencies.
 ## License
 
 LGPLv3  
+
+## Contributors
+
++ Atsushi Nagaoka (@mocabe)
 
 ## Gallery
 
