@@ -11,11 +11,12 @@
 
 namespace yave {
 
-  /// UnaryFunction
+  /// UnarySignalFunction
   template <class T1, class TR, class E>
-  struct UnaryFunction : SignalFunction<UnaryFunction<T1, TR, E>, T1, TR>
+  struct UnarySignalFunction
+    : SignalFunction<UnarySignalFunction<T1, TR, E>, T1, TR>
   {
-    typename UnaryFunction::return_type code() const
+    typename UnarySignalFunction::return_type code() const
     {
       auto v0 = this->template eval_arg<0>();
       E e;
@@ -23,12 +24,12 @@ namespace yave {
     }
   };
 
-  /// BinaryFunction
+  /// BinarySignalFunction
   template <class T1, class T2, class TR, class E>
-  struct BinaryFunction
-    : SignalFunction<BinaryFunction<T1, T2, TR, E>, T1, T2, TR>
+  struct BinarySignalFunction
+    : SignalFunction<BinarySignalFunction<T1, T2, TR, E>, T1, T2, TR>
   {
-    typename BinaryFunction::return_type code() const
+    typename BinarySignalFunction::return_type code() const
     {
       auto v0 = this->template eval_arg<0>();
       auto v1 = this->template eval_arg<1>();
@@ -37,12 +38,12 @@ namespace yave {
     }
   };
 
-  /// TernaryFunction
+  /// TernarySignalFunction
   template <class T1, class T2, class T3, class TR, class E>
-  struct TernaryFunction
-    : SignalFunction<TernaryFunction<T1, T2, T3, TR, E>, T1, T2, T3, TR>
+  struct TernarySignalFunction
+    : SignalFunction<TernarySignalFunction<T1, T2, T3, TR, E>, T1, T2, T3, TR>
   {
-    typename TernaryFunction::return_type code() const
+    typename TernarySignalFunction::return_type code() const
     {
       auto v0 = this->template eval_arg<0>();
       auto v1 = this->template eval_arg<1>();
@@ -52,18 +53,18 @@ namespace yave {
     }
   };
 
-  /// QuaternaryFunction
+  /// QuaternarySignalFunction
   template <class T1, class T2, class T3, class T4, class TR, class E>
-  struct QuaternaryFunction //
+  struct QuaternarySignalFunction //
     : SignalFunction<
-        QuaternaryFunction<T1, T2, T3, T4, TR, E>,
+        QuaternarySignalFunction<T1, T2, T3, T4, TR, E>,
         T1,
         T2,
         T3,
         T4,
         TR>
   {
-    typename QuaternaryFunction::return_type code() const
+    typename QuaternarySignalFunction::return_type code() const
     {
       auto v0 = this->template eval_arg<0>();
       auto v1 = this->template eval_arg<1>();

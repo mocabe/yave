@@ -14,16 +14,16 @@ namespace yave {
   namespace modules::_std::math {
 
     template <class T>
-    using TAdd = BinaryFunction<T, T, T, std::plus<>>;
+    using TAdd = BinarySignalFunction<T, T, T, std::plus<>>;
 
     template <class T>
-    using TSub = BinaryFunction<T, T, T, std::minus<>>;
+    using TSub = BinarySignalFunction<T, T, T, std::minus<>>;
 
     template <class T>
-    using TMul = BinaryFunction<T, T, T, std::multiplies<>>;
+    using TMul = BinarySignalFunction<T, T, T, std::multiplies<>>;
 
     template <class T>
-    using TDiv = BinaryFunction<T, T, T, std::divides<>>;
+    using TDiv = BinarySignalFunction<T, T, T, std::divides<>>;
 
   } // namespace modules::_std::math
 

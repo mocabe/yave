@@ -50,13 +50,13 @@ namespace yave {
     constexpr auto ttan = [](auto x) { return std::tan(x); };
 
     template <class T>
-    using TSin = UnaryFunction<T, T, decltype(tsin)>;
+    using TSin = UnarySignalFunction<T, T, decltype(tsin)>;
 
     template <class T>
-    using TCos = UnaryFunction<T, T, decltype(tcos)>;
+    using TCos = UnarySignalFunction<T, T, decltype(tcos)>;
 
     template <class T>
-    using TTan = UnaryFunction<T, T, decltype(ttan)>;
+    using TTan = UnarySignalFunction<T, T, decltype(ttan)>;
 
   } // namespace modules::_std::math
 
