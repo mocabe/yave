@@ -16,11 +16,17 @@ namespace yave {
   {
     return function_node_declaration(
       "List.Algo.Map",
-      "[a]->(a->b)->[b]\n"
-      "Apply transform to list elements",
+      "Apply transform to all list elements.\n"
+      "\n"
+      "param:\n"
+      "  list: List of type a\n"
+      "  fn  : Mapping function of (a->b)\n"
+      "\n"
+      "return:\n"
+      "  List of type b\n",
       node_declaration_visibility::_public,
-      {"[a]", "a->b"},
-      {"[b]"});
+      {"list", "fn"},
+      {"list"});
   }
 
   auto node_declaration_traits<node::List::Algo::Repeat>::get_node_declaration()
@@ -28,11 +34,17 @@ namespace yave {
   {
     return function_node_declaration(
       "List.Algo.Repeat",
-      "a->Int->[a]\n"
-      "Repeat elements in list",
+      "Repeat elements in list\n"
+      "\n"
+      "param:\n"
+      "  a  : Value of type a\n"
+      "  num: Number of copies to create\n"
+      "\n"
+      "return:\n"
+      "  List of type a\n",
       node_declaration_visibility::_public,
-      {"a", "Int"},
-      {"[a]"},
+      {"a", "num"},
+      {"list"},
       {{1, make_node_argument<Int>(1)}});
   }
 
@@ -41,11 +53,17 @@ namespace yave {
   {
     return function_node_declaration(
       "List.Algo.Enumerate",
-      "[a]->(Int->a->b)->[b]\n"
-      "Enumerate list elements",
+      "Traverse list elements with index argument\n"
+      "\n"
+      "param:\n"
+      "  list: List of type a\n"
+      "  fn  : Mapping function of (Int -> a -> b)\n"
+      "\n"
+      "return:\n"
+      "  List of type b\n",
       node_declaration_visibility::_public,
-      {"[a]", "Int->a->b"},
-      {"[b]"});
+      {"list", "fn"},
+      {"list"});
   }
 
   auto node_declaration_traits<node::List::Algo::Fold>::get_node_declaration()
@@ -53,10 +71,16 @@ namespace yave {
   {
     return function_node_declaration(
       "List.Algo.Fold",
-      "[a]->(b->a->b)->b->b\n"
-      "Left fold list",
+      "Left fold list\n"
+      "\n"
+      "param:\n"
+      "  list: List of type a\n"
+      "  fn  : Fold function of (b -> a -> b)\n"
+      "\n"
+      "return:\n"
+      "  Folded value of type b\n",
       node_declaration_visibility::_public,
-      {"[a]", "b->a->b", "b"},
+      {"list", "fn", "init"},
       {"b"});
   }
 
@@ -105,7 +129,7 @@ namespace yave {
         auto ret = make_object<SList<Y>>();
 
         while (!l->is_nil()) {
-          ret = make_object<SList<Y>>(eval(f << l->head()), ret);
+          ret = make_object<SList<Y>>(f << l->head(), ret);
           l   = eval(l->tail());
         }
         return ret;
