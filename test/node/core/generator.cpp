@@ -26,7 +26,7 @@ TEST_CASE("generators")
           return 42;
         }
       };
-      using Func = UnaryFunction<Int, Int, func>;
+      using Func = UnarySignalFunction<Int, Int, func>;
       auto v     = make_object<Func>();
     }
   }
@@ -40,7 +40,7 @@ TEST_CASE("generators")
           return 42;
         }
       };
-      using Func              = BinaryFunction<Int, Float, Float, func>;
+      using Func              = BinarySignalFunction<Int, Float, Float, func>;
       [[maybe_unused]] auto v = make_object<Func>();
     }
   }
@@ -54,7 +54,7 @@ TEST_CASE("generators")
           return 42;
         }
       };
-      using Func = TernaryFunction<Int, Float, Double, Float, func>;
+      using Func = TernarySignalFunction<Int, Float, Double, Float, func>;
       [[maybe_unused]] auto v = make_object<Func>();
     }
   }
@@ -68,7 +68,7 @@ TEST_CASE("generators")
           return 42;
         }
       };
-      using Func = QuaternaryFunction<Int, Float, Double, Int, Float, func>;
+      using Func = QuaternarySignalFunction<Int, Float, Double, Int, Float, func>;
       [[maybe_unused]] auto v = make_object<Func>();
     }
   }
