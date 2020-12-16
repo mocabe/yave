@@ -18,7 +18,7 @@
 #include <fstream>
 #include <map>
 
-YAVE_DECL_G_LOGGER(imgui)
+YAVE_DECL_LOCAL_LOGGER(imgui)
 
 namespace {
 
@@ -644,8 +644,7 @@ namespace {
 
         if (
           cmd.ClipRect.z < cmd.ClipRect.x && cmd.ClipRect.w < cmd.ClipRect.y) {
-          Error(
-            g_logger,
+          log_error(
             "Detected invalid ClipRect in draw data. This ca be caused by bug "
             "in ImGui. ClipRect: {},{},{},{}",
             cmd.ClipRect.x,
@@ -897,8 +896,6 @@ namespace yave::imgui {
     , windowCtx {vulkanCtx, glfwWindow}
     , imCtx {ImGui::CreateContext()}
   {
-    init_logger();
-
     /* init ImGui */
     {
       IMGUI_CHECKVERSION();
@@ -912,7 +909,7 @@ namespace yave::imgui {
       /* setup vulkan binding */
       io.BackendRendererName = "yave::imgui_context";
 
-      Info(g_logger, "Initialized ImGui context");
+      log_info( "Initialized ImGui context");
     }
 
     /* setup GLFW input binding */
@@ -937,14 +934,14 @@ namespace yave::imgui {
     /* prepare uploading font texture */
     {
       fontSampler = createImGuiFontSampler(windowCtx.device());
-      Info(g_logger, "Created ImGui font sampler");
+      log_info( "Created ImGui font sampler");
     }
 
     {
       descriptorPool = createImGuiDescriptorPool(windowCtx.device());
       descriptorSetLayout =
         createImGuiDescriptorSetLayout(fontSampler.get(), windowCtx.device());
-      Info(g_logger, "Created ImGui descriptor set");
+      log_info( "Created ImGui descriptor set");
     }
 
     {
@@ -958,7 +955,7 @@ namespace yave::imgui {
         pipelineLayout.get(),
         windowCtx.device());
 
-      Info(g_logger, "Created ImGui pipeline");
+      log_info( "Created ImGui pipeline");
     }
 
     /* upload font texture */
@@ -970,7 +967,7 @@ namespace yave::imgui {
       fontImage       = std::move(image);
       fontImageView   = std::move(imageView);
 
-      Info(g_logger, "Uploaded ImGui font texture");
+      log_info( "Uploaded ImGui font texture");
     }
 
     /* create default descriptor set (font texture) */
@@ -985,7 +982,7 @@ namespace yave::imgui {
       // set font texture ID
       ImGui::GetIO().Fonts->TexID = toImTextureId(&descriptorSet.get());
 
-      Info(g_logger, "Updated ImGui descriptor set");
+      log_info( "Updated ImGui descriptor set");
     }
 
     // texture staging buffer
@@ -1004,7 +1001,7 @@ namespace yave::imgui {
 
   imgui_context::impl::~impl() noexcept
   {
-    Info(g_logger, "Destroying ImGui context");
+    log_info( "Destroying ImGui context");
     // wait idle
     windowCtx.device().waitIdle();
     // unbind GLFW

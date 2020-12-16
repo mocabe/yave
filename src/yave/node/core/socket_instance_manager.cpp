@@ -6,7 +6,7 @@
 #include <yave/node/core/socket_instance_manager.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(socket_instance_manager)
+YAVE_DECL_LOCAL_LOGGER(socket_instance_manager)
 
 namespace yave {
 
@@ -14,7 +14,6 @@ namespace yave {
     : m_map {}
     , m_mtx {}
   {
-    init_logger();
   }
 
   socket_instance_manager::socket_instance_manager(

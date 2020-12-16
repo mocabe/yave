@@ -7,129 +7,89 @@
 
 #include <spdlog/spdlog.h>
 
-#define YAVE_DECL_G_LOGGER(NAME)                 \
-  namespace {                                    \
-                                                 \
-    std::shared_ptr<spdlog::logger> g_logger;    \
-                                                 \
-    void init_logger()                           \
-    {                                            \
-      [[maybe_unused]] static auto init = []() { \
-        g_logger = yave::add_logger(#NAME);      \
-        return 1;                                \
-      }();                                       \
-    }                                            \
+/// Macro to create local logger definition
+#define YAVE_DECL_LOCAL_LOGGER(NAME)                                       \
+  namespace yave {                                                         \
+    namespace {                                                            \
+      [[nodiscard]] auto local_logger()                                    \
+      {                                                                    \
+        static auto logger = yave::get_logger(#NAME);                      \
+        return logger;                                                     \
+      }                                                                    \
+                                                                           \
+      template <class... Args>                                             \
+      void log_info(const char* msg, Args&&... args)                       \
+      {                                                                    \
+        return yave::log_info(                                             \
+          local_logger(), msg, std::forward<Args>(args)...);               \
+      }                                                                    \
+                                                                           \
+      template <class... Args>                                             \
+      void log_warning(const char* msg, Args&&... args)                    \
+      {                                                                    \
+        return yave::log_warning(                                          \
+          local_logger(), msg, std::forward<Args>(args)...);               \
+      }                                                                    \
+                                                                           \
+      template <class... Args>                                             \
+      void log_error(const char* msg, Args&&... args)                      \
+      {                                                                    \
+        yave::log_error(local_logger(), msg, std::forward<Args>(args)...); \
+      }                                                                    \
+    }                                                                      \
   }
 
 namespace yave {
 
-  /// Get default logger named "yave".
-  [[nodiscard]] std::shared_ptr<spdlog::logger> get_default_logger();
+  using logger_t = std::shared_ptr<spdlog::logger>;
 
-  /// Add new logger.
-  /// If a logger with the name already existed, return it.
-  [[nodiscard]] std::shared_ptr<spdlog::logger> add_logger(const char* name);
+  /// Get logger from name or create new one
+  [[nodiscard]] auto get_logger(const char* name) -> logger_t;
 
-  /// Get logger from name.
-  [[nodiscard]] std::shared_ptr<spdlog::logger> get_logger(const char* name);
+  /// Disable logger
+  void disable_logger(const logger_t& logger);
 
-  /// Log level
-  enum class LogLevel
-  {
-    Info,
-    Warning,
-    Error,
-  };
+  /// Enable logger disabled
+  void enable_logger(const logger_t& logger);
 
-  /// Set loglevel
-  void set_level(const std::shared_ptr<spdlog::logger>& logger, LogLevel level);
+  namespace detail {
 
-  /// Log formatted text on a logger.
-  /// \param logger a logger
-  /// \param level log level
-  /// \param args fmtlib style format arguments
+    /// Log
+    template <class... Args>
+    void log(
+      const logger_t& logger,
+      spdlog::level::level_enum level,
+      const char* msg,
+      Args&&... args)
+    {
+      assert(logger);
+      logger->log(level, msg, std::forward<Args>(args)...);
+    }
+
+  } // namespace detail
+
+  /// log info
   template <class... Args>
-  void Log(
-    const std::shared_ptr<spdlog::logger>& logger,
-    LogLevel level,
-    const char* msg,
-    Args&&... args)
+  void log_info(const logger_t& logger, const char* msg, Args&&... args)
   {
-    auto lvl = [&]() {
-      switch (level) {
-        case LogLevel::Warning:
-          return spdlog::level::warn;
-        case LogLevel::Error:
-          return spdlog::level::err;
-        default:
-          return spdlog::level::info;
-      }
-    }();
-    logger->log(lvl, msg, std::forward<Args>(args)...);
+    return detail::log(
+      logger, spdlog::level::info, msg, std::forward<Args>(args)...);
   }
 
-  /// Log information to a logger.
-  /// \param logger a logger
-  /// \param args format arguments
+  /// log warning
   template <class... Args>
-  void Info(
-    const std::shared_ptr<spdlog::logger>& logger,
-    const char* msg,
-    Args&&... args)
+  void log_warning(const logger_t& logger, const char* msg, Args&&... args)
   {
-    Log(logger, LogLevel::Info, msg, std::forward<Args>(args)...);
+    return detail::log(
+      logger, spdlog::level::warn, msg, std::forward<Args>(args)...);
   }
 
-  /// Log information to default logger.
-  /// \param args format arguments
+  /// log error
   template <class... Args>
-  void Info(const char* msg, Args&&... args)
+  void log_error(const logger_t& logger, const char* msg, Args&&... args)
   {
-    Log(get_default_logger(), LogLevel::Info, msg, std::forward<Args>(args)...);
+    return detail::log(
+      logger, spdlog::level::err, msg, std::forward<Args>(args)...);
   }
 
-  /// Log warning to a logger.
-  /// \param logger a logger
-  /// \param args format arguments
-  template <class... Args>
-  void Warning(
-    const std::shared_ptr<spdlog::logger>& logger,
-    const char* msg,
-    Args&&... args)
-  {
-    Log(logger, LogLevel::Warning, msg, std::forward<Args>(args)...);
-  }
-
-  /// Log warning to default logger.
-  /// \param args format arguments
-  template <class... Args>
-  void Warning(const char* msg, Args&&... args)
-  {
-    Log(
-      get_default_logger(),
-      LogLevel::Warning,
-      msg,
-      std::forward<Args>(args)...);
-  }
-
-  /// Log error to a logger.
-  /// \param logger a logger
-  /// \param args format arguments
-  template <class... Args>
-  void Error(
-    const std::shared_ptr<spdlog::logger>& logger,
-    const char* msg,
-    Args&&... args)
-  {
-    Log(logger, LogLevel::Error, msg, std::forward<Args>(args)...);
-  }
-
-  /// Log error to default logger.
-  /// \param args format arguments
-  template <class... Args>
-  void Error(const char* msg, Args&&... args)
-  {
-    Log(
-      get_default_logger(), LogLevel::Error, msg, std::forward<Args>(args)...);
-  }
 } // namespace yave

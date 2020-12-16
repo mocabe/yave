@@ -6,7 +6,7 @@
 #include <yave/lib/scene/scene_config.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(scene_config)
+YAVE_DECL_LOCAL_LOGGER(scene_config)
 
 namespace yave {
 
@@ -27,15 +27,8 @@ namespace yave {
     yave::image_format frame_format,
     yave::audio_format audio_format)
   {
-    init_logger();
-
     if (width == 0 || height == 0) {
-      Error(
-        g_logger,
-        "Invalid frame buffer size: width{}, height:{}",
-        width,
-        height);
-
+      log_error("Invalid frame buffer size: width{}, height:{}", width, height);
       throw std::invalid_argument("Invalid frame buffer size");
     }
 
@@ -43,13 +36,12 @@ namespace yave {
     m_height = height;
 
     if (frame_rate == 0) {
-      Error(g_logger, "Invalid frame rate: {}", frame_rate);
+      log_error("Invalid frame rate: {}", frame_rate);
       throw std::invalid_argument("Invalid frame rate");
     }
 
     if (!time::is_compatible_rate(frame_rate)) {
-      Warning(
-        g_logger,
+      log_warning(
         "Specified frame rate is not compatible with internal time resolution. "
         "This may cause innaccurate time mapping.");
     }

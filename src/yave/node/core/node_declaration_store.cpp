@@ -11,7 +11,7 @@
 #include <range/v3/view.hpp>
 #include <range/v3/algorithm.hpp>
 
-YAVE_DECL_G_LOGGER(node_declaration_store)
+YAVE_DECL_LOCAL_LOGGER(node_declaration_store)
 
 namespace yave {
 
@@ -44,8 +44,7 @@ namespace yave {
       auto& oss  = it->second->output_sockets();
 
       if (iss != pdecl->input_sockets() || oss != pdecl->output_sockets())
-        Warning(
-          g_logger,
+        log_warning(
           "Declaration of {} conflicting. Existing declaration will be used.",
           pdecl->full_name());
     }
@@ -58,7 +57,7 @@ namespace yave {
     if (iter == m_map.end())
       return;
 
-    Info(g_logger, "Removed declaration: {}", full_name);
+    log_info("Removed declaration: {}", full_name);
     m_map.erase(iter);
   }
 
@@ -337,7 +336,6 @@ namespace yave {
   public:
     impl()
     {
-      init_logger();
     }
 
   public:

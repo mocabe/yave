@@ -8,7 +8,7 @@
 #include <yave/lib/vulkan/vulkan_context.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(vulkan)
+YAVE_DECL_LOCAL_LOGGER(vulkan)
 
 /* Global definitions */
 
@@ -61,17 +61,15 @@ namespace {
     (void)pLayerPrefix;
     (void)pUserData;
 
-    init_logger();
-
     switch (flags) {
       case VK_DEBUG_REPORT_INFORMATION_BIT_EXT:
-        Info(g_logger, "{}", pMessage);
+        log_info( "{}", pMessage);
         break;
       case VK_DEBUG_REPORT_WARNING_BIT_EXT:
-        Warning(g_logger, "{}", pMessage);
+        log_warning( "{}", pMessage);
         break;
       case VK_DEBUG_REPORT_ERROR_BIT_EXT:
-        Error(g_logger, "{}", pMessage);
+        log_error( "{}", pMessage);
         break;
     }
     return VK_FALSE;
@@ -219,7 +217,7 @@ namespace {
     // for validation layer
     constexpr const char* debugReportExtension = DebugReportExtensionName;
 
-    Info(g_logger, "Debug spec version: {}", DebugReportSpecVersion);
+    log_info( "Debug spec version: {}", DebugReportSpecVersion);
 
     // collect enabling extensions
 
@@ -323,13 +321,13 @@ namespace {
     auto extensions = getInstanceExtensions(enableValidationLayer);
     checkInstanceExtensionSupport(extensions);
 
-    Info(g_logger, "Following instance extensions will be enabled:");
+    log_info( "Following instance extensions will be enabled:");
     for (auto&& e : extensions)
-      Info(g_logger, " {}", e);
+      log_info( " {}", e);
 
-    Info(g_logger, "Following instance layers will be enabled:");
+    log_info( "Following instance layers will be enabled:");
     for (auto&& l : layers)
-      Info(g_logger, "  {}", l);
+      log_info( "  {}", l);
 
     std::vector<const char*> lNames;
     std::vector<const char*> eNames;
@@ -507,8 +505,6 @@ namespace yave::vulkan {
   public:
     impl(create_info info)
     {
-      init_logger();
-
       /* instance */
 
       bool enableValidationLayer = info.enable_validation;
@@ -524,7 +520,7 @@ namespace yave::vulkan {
       physicalDeviceQueueFamilyProperties =
         physicalDevice.getQueueFamilyProperties();
 
-      Info(g_logger, "Initialized Vulkan context");
+      log_info( "Initialized Vulkan context");
     }
 
     bool check_physical_device_extension_support(
@@ -623,7 +619,7 @@ namespace yave::vulkan {
 
   vulkan_context::~vulkan_context() noexcept
   {
-    Info(g_logger, "Destroying Vulkan context");
+    log_info( "Destroying Vulkan context");
   }
 
   auto vulkan_context::instance() const -> vk::Instance

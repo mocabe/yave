@@ -11,7 +11,7 @@
 #include <map>
 #include <algorithm>
 
-YAVE_DECL_G_LOGGER(window_manager)
+YAVE_DECL_LOCAL_LOGGER(window_manager)
 
 namespace yave::wm {
 
@@ -33,7 +33,6 @@ namespace yave::wm {
     impl(wm::window_manager& wmngr)
       : wm {wmngr}
     {
-      init_logger();
       init();
     }
 

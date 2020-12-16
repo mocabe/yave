@@ -6,7 +6,7 @@
 #include <yave/node/core/node_definition_store.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(node_definition_store)
+YAVE_DECL_LOCAL_LOGGER(node_definition_store)
 
 namespace yave {
 
@@ -17,8 +17,7 @@ namespace yave {
   {
     m_map.emplace(def.full_name(), std::make_shared<node_definition>(def));
 
-    Info(
-      g_logger,
+    log_info(
       "Added new definition: name={}, os={}",
       def.full_name(),
       def.output_socket());
@@ -100,7 +99,6 @@ namespace yave {
   node_definition_store::node_definition_store()
     : m_map {}
   {
-    init_logger();
   }
 
   bool node_definition_store::add(const node_definition& def)

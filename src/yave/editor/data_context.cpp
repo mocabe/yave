@@ -20,7 +20,7 @@
 #include <typeinfo>
 #include <typeindex>
 
-YAVE_DECL_G_LOGGER(data_context)
+YAVE_DECL_LOCAL_LOGGER(data_context)
 
 namespace yave::editor {
 
@@ -48,7 +48,6 @@ namespace yave::editor {
     impl(data_context* _this_ptr)
       : _this {_this_ptr}
     {
-      init_logger();
       thread_run();
     }
 
@@ -286,7 +285,7 @@ namespace yave::editor {
 
     void thread_run()
     {
-      Info(g_logger, "Start running data thread");
+      log_info("Start running data thread");
 
       thread = std::thread([&] {
         try {
@@ -297,9 +296,9 @@ namespace yave::editor {
             while (cmd_size())
               exec_one();
           }
-          Info(g_logger, "Terminating data thread");
+          log_info("Terminating data thread");
         } catch (...) {
-          Error(g_logger, "Exception detected in data thread");
+          log_error("Exception detected in data thread");
           exception = std::current_exception();
         }
       });

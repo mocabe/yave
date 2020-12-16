@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <regex>
 
-YAVE_DECL_G_LOGGER(structured_node_graph)
+YAVE_DECL_LOCAL_LOGGER(structured_node_graph)
 
 namespace yave {
 
@@ -543,7 +543,6 @@ namespace yave {
 
     impl()
     {
-      init_logger();
       init();
     }
 
@@ -897,7 +896,7 @@ namespace yave {
       static const auto re = std::regex(path_search_regex);
 
       if (!std::regex_match(path, re)) {
-        Error(g_logger, "Invalid path format: {}", path);
+        log_error("Invalid path format: {}", path);
         return {};
       }
 
@@ -1047,11 +1046,8 @@ namespace yave {
         pgdata->output_bits.push_back(bit);
       }
 
-      Info(
-        g_logger,
-        "Added new group: {}, id={}",
-        *ng.get_name(g),
-        to_string(g.id()));
+      log_info(
+        "Added new group: {}, id={}", *ng.get_name(g), to_string(g.id()));
 
       return pgdata;
     }
@@ -1079,8 +1075,7 @@ namespace yave {
       for (auto&& s : ng.output_sockets(body))
         set_data(s, make_object<SocketData>());
 
-      Info(
-        g_logger,
+      log_info(
         "Added new function: name={}, id={}",
         *ng.get_name(body),
         to_string(body.id()));
@@ -1110,8 +1105,7 @@ namespace yave {
       for (auto&& s : ng.output_sockets(body))
         set_data(s, make_object<SocketData>());
 
-      Info(
-        g_logger,
+      log_info(
         "Added new macro node: name={}, id={}",
         *ng.get_name(body),
         to_string(body.id()));
@@ -1130,10 +1124,10 @@ namespace yave {
     {
       assert(group);
 
-      Info(g_logger, "Removing node group: id={}", to_string(group->node.id()));
+      log_info("Removing node group: id={}", to_string(group->node.id()));
 
       for (auto&& m : group->members)
-        Info(g_logger, "  {}", to_string(m.id()));
+        log_info("  {}", to_string(m.id()));
 
       // assume callers are already removed
       assert(group->callers.empty());
@@ -1162,7 +1156,7 @@ namespace yave {
     {
       assert(func);
 
-      Info(g_logger, "Removing function: id={}", to_string(func->node.id()));
+      log_info("Removing function: id={}", to_string(func->node.id()));
 
       // assume callers are already removed
       assert(func->callers.empty());
@@ -1176,7 +1170,7 @@ namespace yave {
     {
       assert(macro);
 
-      Info(g_logger, "Removing macro: id={}", to_string(macro->node.id()));
+      log_info("Removing macro: id={}", to_string(macro->node.id()));
 
       // assume callers are already removed
       assert(macro->callers.empty());
@@ -1209,8 +1203,7 @@ namespace yave {
 
       // closed loop
       if (!valid) {
-        Error(
-          g_logger, "Failed to add node call: recursive call is not allowed");
+        log_error("Failed to add node call: recursive call is not allowed");
         ng.remove(dep);
         return {};
       }
@@ -1316,8 +1309,7 @@ namespace yave {
         ng.set_name(p->node, name);
       });
 
-      Info(
-        g_logger,
+      log_info(
         "Added new call: name={}, id={}, def={}",
         *ng.get_name(n),
         to_string(n.id()),
@@ -1335,20 +1327,20 @@ namespace yave {
       assert(call->parent);
       assert(ng.exists(call->node));
 
-      Info(g_logger, "Removing node call: id={}", to_string(call->node.id()));
+      log_info("Removing node call: id={}", to_string(call->node.id()));
 
       if (is_defcall(call->node)) {
 
-        Info(g_logger, "Node {} is a defcall", to_string(call->node.id()));
+        log_info("Node {} is a defcall", to_string(call->node.id()));
 
         auto callers = get_caller_nodes(call->node);
 
         if (callers.size() > 1)
-          Info(g_logger, "Following calls will also be removed: ");
+          log_info("Following calls will also be removed: ");
 
         for (auto&& caller : callers)
           if (caller != call->node)
-            Info(g_logger, "  {}", to_string(caller.id()));
+            log_info("  {}", to_string(caller.id()));
 
         // remove normal calls before deleting defcall
         for (auto&& caller : callers)
@@ -1522,7 +1514,7 @@ namespace yave {
       node_group* callee,
       uid id) -> node_call*
     {
-      Info(g_logger, "Cloning node group {}", *ng.get_name(callee->node));
+      log_info("Cloning node group {}", *ng.get_name(callee->node));
 
       // fallback to copy
       if (!call->is_defcall())
@@ -1754,7 +1746,7 @@ namespace yave {
       static const auto re = std::regex(node_name_regex);
 
       if (!std::regex_match(name, re)) {
-        Error(g_logger, "Invalid node name: {}", name);
+        log_error("Invalid node name: {}", name);
         return;
       }
 
@@ -1766,13 +1758,13 @@ namespace yave {
       auto call = get_call(node);
 
       if (!call) {
-        Info(g_logger, "Cannot change name of non-call nodes");
+        log_info("Cannot change name of non-call nodes");
         return;
       }
 
       // for legacy
       if (!call->is_defcall()) {
-        Info(g_logger, "Cannot change name of node from non-definition call");
+        log_info("Cannot change name of node from non-definition call");
         return;
       }
 
@@ -1784,8 +1776,7 @@ namespace yave {
 
           if (is_io(n) || is_defcall(n)) {
             if (ng.get_name(n) == name) {
-              Error(
-                g_logger,
+              log_error(
                 "Cannot have multiple definitions with same name '{}' in group",
                 name);
               return;
@@ -1811,7 +1802,7 @@ namespace yave {
       static const auto re = std::regex(socket_name_regex);
 
       if (!std::regex_match(name, re)) {
-        Error(g_logger, "Invalid socket name: {}", name);
+        log_error("Invalid socket name: {}", name);
         return;
       }
 
@@ -1991,7 +1982,7 @@ namespace yave {
             add_output_socket(io->parent->get_defcall()->node, socket, index);
           return ng.input_sockets(node)[get_index(outer)];
         }
-        Error(g_logger, "Cannot add input socket to input handler");
+        log_error("Cannot add input socket to input handler");
         return {};
       }
 
@@ -2016,7 +2007,7 @@ namespace yave {
         return ng.input_sockets(node)[index];
       }
 
-      Error(g_logger, "Tried to add socket to non-group");
+      log_error("Tried to add socket to non-group");
       return {};
     }
 
@@ -2034,7 +2025,7 @@ namespace yave {
             add_input_socket(io->parent->get_defcall()->node, socket, index);
           return ng.output_sockets(node)[get_index(outer)];
         }
-        Error(g_logger, "Cannot output socket to output handler");
+        log_error("Cannot output socket to output handler");
         return {};
       }
 
@@ -2059,14 +2050,14 @@ namespace yave {
         return ng.output_sockets(node)[index];
       }
 
-      Error(g_logger, "Tried to add socket to non-group");
+      log_error("Tried to add socket to non-group");
       return {};
     }
 
     void remove_socket(const socket_handle& socket)
     {
       assert(ng.exists(socket));
-      Info(g_logger, "Removing socket {}", to_string(socket.id()));
+      log_info("Removing socket {}", to_string(socket.id()));
 
       auto node = get_node(socket);
       auto idx  = get_index(node, socket);
@@ -2109,7 +2100,7 @@ namespace yave {
           rm_bit(caller, type, idx);
         return;
       }
-      Error(g_logger, "Tried to remove socket of non-group, ignored.");
+      log_error("Tried to remove socket of non-group, ignored.");
     }
 
   private:
@@ -2138,10 +2129,8 @@ namespace yave {
             // name collision!
             if (is_defcall(n) && *ng.get_name(n) == name) {
 
-              Error(
-                g_logger,
-                "Failed to create declaration: Node {} already exists",
-                name);
+              log_error(
+                "Failed to create declaration: Node {} already exists", name);
 
               // cleanup
               for (auto&& c : new_group_calls)
@@ -2168,10 +2157,8 @@ namespace yave {
             // name collision with non group!
             if (!nextg) {
 
-              Error(
-                g_logger,
-                "Failed to create declaration: Node {} is not group",
-                name);
+              log_error(
+                "Failed to create declaration: Node {} is not group", name);
 
               // cleanup
               for (auto&& c : new_group_calls)
@@ -2221,7 +2208,7 @@ namespace yave {
       const std::vector<std::string>& oss,
       const uid& id) -> node_handle
     {
-      Info(g_logger, "Creating new function: {}", path);
+      log_info("Creating new function: {}", path);
 
       if (!check_decl_path(path))
         return {};
@@ -2241,7 +2228,7 @@ namespace yave {
       const std::vector<std::string>& oss,
       const uid& id) -> node_handle
     {
-      Info(g_logger, "Creating new macro: {}", path);
+      log_info("Creating new macro: {}", path);
 
       if (!check_decl_path(path))
         return {};
@@ -2261,7 +2248,7 @@ namespace yave {
       const std::vector<std::string>& oss,
       const uid& id) -> node_handle
     {
-      Info(g_logger, "Creating new group: {}", path);
+      log_info("Creating new group: {}", path);
 
       if (!check_decl_path(path))
         return {};
@@ -2281,7 +2268,7 @@ namespace yave {
       const uid& id) -> node_handle
     {
       if (!parent && !nodes.empty()) {
-        Error(g_logger, "Failed to gruop nodes: Cannot group global nodes");
+        log_error("Failed to gruop nodes: Cannot group global nodes");
         return {};
       }
 
@@ -2289,22 +2276,22 @@ namespace yave {
 
       // check parent
       if (!g) {
-        Error(g_logger, "Failed to group nodes: Parent is not group");
+        log_error("Failed to group nodes: Parent is not group");
         return {};
       }
 
       // check members
       for (auto&& n : nodes) {
         if (!g->has_member(n)) {
-          Error(g_logger, "Failed to group nodes: Includes invalid node");
+          log_error("Failed to group nodes: Includes invalid node");
           return {};
         }
       }
 
-      Info(g_logger, "Creating group: parent={}", to_string(parent.id()));
-      Info(g_logger, "Following nodes will be moved into new group:");
+      log_info("Creating group: parent={}", to_string(parent.id()));
+      log_info("Following nodes will be moved into new group:");
       for (auto&& n : nodes)
-        Info(g_logger, "  {}", to_string(n.id()));
+        log_info("  {}", to_string(n.id()));
 
       // create new group under parent
       auto newg = add_new_callee_group();
@@ -2398,7 +2385,7 @@ namespace yave {
         parent_group ? get_callee_group(parent_group) : get_group(root);
 
       if (!g) {
-        Error(g_logger, "Failed to copy node: Invalid parent group");
+        log_error("Failed to copy node: Invalid parent group");
         return {};
       }
 
@@ -2424,7 +2411,7 @@ namespace yave {
         parent_group ? get_callee_group(parent_group) : get_group(root);
 
       if (!g) {
-        Error(g_logger, "Failed to clone node: Invalid parent group");
+        log_error("Failed to clone node: Invalid parent group");
         return {};
       }
 
@@ -2442,7 +2429,7 @@ namespace yave {
       if (auto call = get_call(node))
         return remove_call(call);
 
-      Error(g_logger, "This node cannot be removed");
+      log_error("This node cannot be removed");
     }
 
     auto connect(
@@ -2460,12 +2447,12 @@ namespace yave {
       auto dstp = get_parent(dstn);
 
       if (srcp != dstp) {
-        Error(g_logger, "Failed to connect: Not in same group");
+        log_error("Failed to connect: Not in same group");
         return {};
       }
 
       if (srcp == get_group(root)) {
-        Error(g_logger, "Failed to connect: Global nodes cannot be connected");
+        log_error("Failed to connect: Global nodes cannot be connected");
         return {};
       }
 
@@ -2475,7 +2462,7 @@ namespace yave {
       if (cs.size() > 1) {
         assert(cs[1] == c);
         ng.disconnect(c);
-        Error(g_logger, "Failed to connect: Multiple inputs are not allowed");
+        log_error("Failed to connect: Multiple inputs are not allowed");
         return {};
       }
       return c;
@@ -2512,8 +2499,7 @@ namespace yave {
 
     auto clone() const
     {
-      Info(
-        g_logger,
+      log_info(
         "clone(): n={}, s={}, c={}",
         ng.nodes().size(),
         ng.sockets().size(),

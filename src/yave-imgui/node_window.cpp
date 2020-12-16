@@ -11,7 +11,7 @@
 
 #include <imgui_internal.h>
 
-YAVE_DECL_G_LOGGER(node_window)
+YAVE_DECL_LOCAL_LOGGER(node_window)
 
 namespace yave::editor::imgui {
 
@@ -39,8 +39,6 @@ namespace yave::editor::imgui {
     : window {"node_window"}
     , imgui_ctx {im}
   {
-    init_logger();
-
     current_state   = state::neutral;
     scroll_pos      = {0, 0};
     drag_source_pos = {0, 0};
@@ -116,7 +114,7 @@ namespace yave::editor::imgui {
     auto& g    = data.node_graph();
 
     if (!g.exists(current_group) || !g.is_group(current_group)) {
-      Info(g_logger, "Current group is no longer valid, reset to root group");
+      log_info( "Current group is no longer valid, reset to root group");
       current_group = data.root_group();
     }
     current_group_path = *g.get_path(current_group);
@@ -514,7 +512,7 @@ namespace yave::editor::imgui {
   void node_window::begin_background_drag(const glm::fvec2& drag_src_pos)
   {
     if (current_state != state::neutral) {
-      Warning("current_state != state::neutral");
+      log_warning("current_state != state::neutral");
       return;
     }
     current_state   = state::background;
@@ -524,7 +522,7 @@ namespace yave::editor::imgui {
   void node_window::end_background_drag()
   {
     if (current_state != state::background) {
-      Warning("current_state != state::background");
+      log_warning("current_state != state::background");
       return;
     }
     current_state   = state::neutral;
@@ -534,7 +532,7 @@ namespace yave::editor::imgui {
   void node_window::begin_node_drag(const glm::fvec2& drag_src_pos)
   {
     if (current_state != state::neutral) {
-      Warning("current_state != state::neutral");
+      log_warning("current_state != state::neutral");
       return;
     }
     current_state   = state::node;
@@ -544,7 +542,7 @@ namespace yave::editor::imgui {
   void node_window::end_node_drag()
   {
     if (current_state != state::node) {
-      Warning("current_state != state::node");
+      log_warning("current_state != state::node");
       return;
     }
     current_state   = state::neutral;
@@ -554,7 +552,7 @@ namespace yave::editor::imgui {
   void node_window::begin_socket_drag(const glm::fvec2& drag_src_pos)
   {
     if (current_state != state::neutral) {
-      Warning("current_state != state::neutral");
+      log_warning("current_state != state::neutral");
       return;
     }
     current_state   = state::socket;
@@ -564,7 +562,7 @@ namespace yave::editor::imgui {
   void node_window::end_socket_drag()
   {
     if (current_state != state::socket) {
-      Warning("current_state != state::socket");
+      log_warning("current_state != state::socket");
       return;
     }
     current_state   = state::neutral;

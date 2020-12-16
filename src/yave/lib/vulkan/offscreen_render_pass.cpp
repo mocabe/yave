@@ -8,7 +8,7 @@
 #include <yave/lib/vulkan/vulkan_util.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(composition_pass)
+YAVE_DECL_LOCAL_LOGGER(composition_pass)
 
 namespace {
 
@@ -150,8 +150,6 @@ namespace yave::vulkan {
       : offscreen_ctx {ctx}
       , vulkan_ctx {ctx.vulkan_ctx()}
     {
-      init_logger();
-
       auto extent = vk::Extent2D {width, height};
       auto format = convert_to_format(image_format::rgba32f);
 

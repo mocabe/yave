@@ -8,7 +8,7 @@
 
 #include <map>
 
-YAVE_DECL_G_LOGGER(glfw)
+YAVE_DECL_LOCAL_LOGGER(glfw)
 
 namespace yave::glfw {
 
@@ -41,12 +41,11 @@ namespace yave::glfw {
     auto r = m_map.emplace(key, data);
 
     if (!r.second) {
-      Error(g_logger, "Failed to set window data: key {} already exists", key);
+      log_error("Failed to set window data: key {} already exists", key);
       return false;
     }
 
-    Info(g_logger, "Set new window data: key={}", key);
-
+    log_info("Set new window data: key={}", key);
     return true;
   }
 
@@ -85,7 +84,7 @@ namespace yave::glfw {
     // should delete window data in destructor.
     glfwSetWindowUserPointer(m_window, new glfw_window_data());
 
-    Info(g_logger, "Created user data for window");
+    log_info("Created user data for window");
   }
 
   glfw_window::glfw_window(glfw_window&& other) noexcept
@@ -223,24 +222,19 @@ namespace yave::glfw {
 
   glfw_context::glfw_context(create_info info)
   {
-    init_logger();
-
-    g_logger->set_level(spdlog::level::off);
-
-    glfwSetErrorCallback([](int error, const char* msg) {
-      Error(g_logger, "{}: {}", error, msg);
-    });
+    glfwSetErrorCallback(
+      [](int error, const char* msg) { log_error("{}: {}", error, msg); });
 
     if (!glfwInit())
       throw std::runtime_error("Failed to initialize GLFW");
 
-    Info(g_logger, "Initialized GLFW");
+    log_info("Initialized GLFW");
   }
 
   glfw_context::~glfw_context() noexcept
   {
     glfwTerminate();
-    Info(g_logger, "Terminated GLFW");
+    log_info("Terminated GLFW");
   }
 
   auto glfw_context::create_window(
@@ -253,7 +247,7 @@ namespace yave::glfw {
     // create new window
     auto window = glfw_window(*this, title, width, height);
 
-    Info(g_logger, "Created new window: {}({}*{})", title, width, height);
+    log_info("Created new window: {}({}*{})", title, width, height);
 
     return window;
   }

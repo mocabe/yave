@@ -9,7 +9,7 @@
 #include <StandAlone/ResourceLimits.h>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(glslang)
+YAVE_DECL_LOCAL_LOGGER(glslang)
 
 namespace yave::vulkan {
 
@@ -18,9 +18,7 @@ namespace yave::vulkan {
     auto compileShader(const char* code, EShLanguage stage)
       -> std::vector<uint32_t>
     {
-      init_logger();
-
-      Info(g_logger, "compiling shader...");
+      log_info( "compiling shader...");
 
       EShMessages msg = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
 
@@ -31,16 +29,16 @@ namespace yave::vulkan {
         glslang::TShader shader {stage};
         shader.setStrings(&code, 1);
         if (!shader.parse(&glslang::DefaultTBuiltInResource, 110, false, msg)) {
-          Error(g_logger, "{}", shader.getInfoLog());
-          Error(g_logger, "{}", shader.getInfoDebugLog());
+          log_error( "{}", shader.getInfoLog());
+          log_error( "{}", shader.getInfoDebugLog());
           throw std::runtime_error("Failed to compile shader: parse failed");
         }
 
         glslang::TProgram prog;
         prog.addShader(&shader);
         if (!prog.link(msg)) {
-          Error(g_logger, "{}", prog.getInfoLog());
-          Error(g_logger, "{}", shader.getInfoDebugLog());
+          log_error( "{}", prog.getInfoLog());
+          log_error( "{}", shader.getInfoDebugLog());
           throw std::runtime_error("Failed to compile shader: link failed");
         }
 

@@ -12,7 +12,7 @@
 #include <yave/support/log.hpp>
 #include <imgui_internal.h>
 
-YAVE_DECL_G_LOGGER(im_root_window)
+YAVE_DECL_LOCAL_LOGGER(im_root_window)
 
 namespace yave::editor::imgui {
 
@@ -20,8 +20,6 @@ namespace yave::editor::imgui {
     : window("editor::imgui::root_window")
     , imgui_ctx {im}
   {
-    init_logger();
-
     layout_init = false;
 
     { // node canvas
