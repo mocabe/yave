@@ -83,10 +83,17 @@ namespace yave::editor::imgui {
     {
       auto prop = get_current_argument_data<Float>(m_arg, dctx);
 
-      auto val  = (float)prop.value;
-      auto min  = (float)prop.min;
-      auto max  = (float)prop.max;
-      auto step = (float)prop.step;
+      auto clamp_to_float = [](double val) {
+        return static_cast<float>(std::clamp(
+          val,
+          static_cast<double>(std::numeric_limits<float>::lowest()),
+          static_cast<double>(std::numeric_limits<float>::max())));
+      };
+
+      auto val  = clamp_to_float(prop.value);
+      auto min  = clamp_to_float(prop.min);
+      auto max  = clamp_to_float(prop.max);
+      auto step = clamp_to_float(prop.step);
 
       ImGui::DragFloat("", &val, step, min, max, (name + ":%.3f").c_str());
 
@@ -157,10 +164,17 @@ namespace yave::editor::imgui {
     {
       auto prop = get_current_argument_data<Int>(m_arg, dctx);
 
-      auto val  = (int)prop.value;
-      auto min  = (int)prop.min;
-      auto max  = (int)prop.max;
-      auto step = (int)prop.step;
+      auto clamp_to_int = [](int64_t val) {
+        return static_cast<int>(std::clamp(
+          val,
+          static_cast<int64_t>(std::numeric_limits<int>::lowest()),
+          static_cast<int64_t>(std::numeric_limits<int>::max())));
+      };
+
+      auto val  = clamp_to_int(prop.value);
+      auto min  = clamp_to_int(prop.min);
+      auto max  = clamp_to_int(prop.max);
+      auto step = clamp_to_int(prop.step);
 
       ImGui::DragInt("", &val, step, min, max, (name + ":%.3f").c_str());
 
