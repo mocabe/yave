@@ -14,7 +14,7 @@
 
 #include <map>
 
-YAVE_DECL_G_LOGGER(parse)
+YAVE_DECL_LOCAL_LOGGER(parse)
 
 namespace yave::compiler {
 
@@ -368,8 +368,6 @@ namespace yave::compiler {
 
   void parse(pipeline& pipe)
   {
-    init_logger();
-
     assert(pipe.get_data_if<message_map>("msg_map"));
     assert(pipe.get_data_if<structured_node_graph>("ng"));
     assert(pipe.get_data_if<socket_handle>("os"));

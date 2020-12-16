@@ -8,7 +8,7 @@
 
 #include <map>
 
-YAVE_DECL_G_LOGGER(compiler_pipeline)
+YAVE_DECL_LOCAL_LOGGER(compiler_pipeline)
 
 namespace yave::compiler {
 
@@ -22,7 +22,6 @@ namespace yave::compiler {
   public:
     impl()
     {
-      init_logger();
     }
 
   public:
@@ -32,7 +31,7 @@ namespace yave::compiler {
       (void)it;
 
       if (!succ) {
-        Warning(g_logger, "Could not add data: already exists");
+        log_warning( "Could not add data: already exists");
       }
     }
 

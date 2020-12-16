@@ -8,7 +8,7 @@
 #include <yave/lib/vulkan/window_context.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_G_LOGGER(vulkan)
+YAVE_DECL_LOCAL_LOGGER(vulkan)
 
 namespace {
 
@@ -38,7 +38,7 @@ namespace {
       return graphicsQueueIndex;
     }
 
-    Warning(g_logger, "Graphics queue does not support presentation.");
+    log_warning( "Graphics queue does not support presentation.");
 
     auto queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
     for (uint32_t index = 0; index < queueFamilyProperties.size(); ++index) {
@@ -129,8 +129,7 @@ namespace {
         return default_format;
     }
 
-    Warning(
-      g_logger,
+    log_warning(
       "Default surface format is not avalable. Return first format "
       "avalable.");
 
@@ -590,9 +589,7 @@ namespace yave::vulkan {
     : vulkan_ctx {ctx}
     , glfw_win {win}
   {
-    init_logger();
-
-    Info(g_logger, "Initializing window context");
+    log_info("Initializing window context");
 
     if (!glfwVulkanSupported())
       throw std::runtime_error("GLFW could not find Vulkan");
@@ -627,11 +624,11 @@ namespace yave::vulkan {
     // get queue index
 
     graphics_queue_index = getGraphicsQueueIndex(ctx.physical_device());
-    Info(g_logger, "Graphs queue index: {}", graphics_queue_index);
+    log_info("Graphs queue index: {}", graphics_queue_index);
 
     present_queue_index = getPresentQueueIndex(
       graphics_queue_index, ctx.instance(), ctx.physical_device());
-    Info(g_logger, "Presentation queue index: {}", present_queue_index);
+    log_info("Presentation queue index: {}", present_queue_index);
 
     // create logical device
     device = ctx.create_device(
@@ -696,13 +693,13 @@ namespace yave::vulkan {
 
     acquire_fence = createFence(device.get(), vk::FenceCreateFlags());
 
-    Info(g_logger, "Initialized window context");
+    log_info("Initialized window context");
   }
 
   window_context::impl::~impl() noexcept
   {
     device->waitIdle();
-    Info(g_logger, "Destroying window context");
+    log_info("Destroying window context");
   }
 
   void window_context::impl::rebuild_frame_buffers()

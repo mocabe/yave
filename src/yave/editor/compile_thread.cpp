@@ -14,7 +14,7 @@
 #include <mutex>
 #include <atomic>
 
-YAVE_DECL_G_LOGGER(compile_thread)
+YAVE_DECL_LOCAL_LOGGER(compile_thread)
 
 namespace yave::editor {
 
@@ -50,7 +50,6 @@ namespace yave::editor {
       compile_thread(data_context& dctx)
         : data_ctx {dctx}
       {
-        init_logger();
       }
 
       bool is_running() const
@@ -134,7 +133,7 @@ namespace yave::editor {
 
                   if (pipeline.success()) {
 
-                    Info(g_logger, "Compile Success");
+                    log_info("Compile Success");
 
                     auto& exe = pipeline.get_data<compiler::executable>("exe");
 
@@ -144,7 +143,7 @@ namespace yave::editor {
                     data.execute_thread().notify_execute();
 
                   } else {
-                    Info(g_logger, "Compile Failed");
+                    log_info("Compile Failed");
 
                     compiler.set_results({.messages = std::move(msgs)});
                   }
@@ -162,7 +161,7 @@ namespace yave::editor {
               }
             }
           } catch (...) {
-            Error(g_logger, "Exception detected in compile thread");
+            log_error("Exception detected in compile thread");
             exception = std::current_exception();
           }
         });

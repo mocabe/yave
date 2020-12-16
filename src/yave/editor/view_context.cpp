@@ -12,7 +12,7 @@
 #include <thread>
 #include <iostream>
 
-YAVE_DECL_G_LOGGER(view_context)
+YAVE_DECL_LOCAL_LOGGER(view_context)
 
 namespace yave::editor {
 
@@ -32,7 +32,6 @@ namespace yave::editor {
       view_data()
         : wm {}
       {
-        init_logger();
       }
     };
 

@@ -39,7 +39,7 @@
 
 #include <optional>
 
-YAVE_DECL_G_LOGGER(modules::std::core)
+YAVE_DECL_LOCAL_LOGGER(modules::std::core)
 
 namespace yave::modules::_std {
 
@@ -93,7 +93,6 @@ namespace yave::modules::_std {
 
   module::module(vulkan::vulkan_context& vulkan_ctx)
   {
-    init_logger();
     m_pimpl = std::make_unique<impl>(vulkan_ctx);
   }
 

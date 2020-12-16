@@ -16,7 +16,7 @@
 #include <mutex>
 #include <atomic>
 
-YAVE_DECL_G_LOGGER(execute_thread);
+YAVE_DECL_LOCAL_LOGGER(execute_thread);
 
 namespace yave::editor {
 
@@ -54,7 +54,6 @@ namespace yave::editor {
       execute_thread(data_context& dctx)
         : data_ctx {dctx}
       {
-        init_logger();
       }
 
       bool is_running()
@@ -79,21 +78,19 @@ namespace yave::editor {
           auto msg  = eo->message();
           auto erro = eo->error();
 
-          Error(g_logger, "Failed to execute frame output: {}", msg);
+          log_error("Failed to execute frame output: {}", msg);
 
           // print additional info
 
           if (auto err = value_cast_if<BadValueCast>(erro)) {
-            Error(
-              g_logger,
+            log_error(
               "  BadValueCast: from:{}, to:{}",
               to_string(err->from),
               to_string(err->to));
           }
 
           if (auto err = value_cast_if<TypeError>(erro)) {
-            Error(
-              g_logger,
+            log_error(
               "  TypeError: type:{}, t1:{}, t2:{}",
               err->error_type,
               to_string(err->t1),
@@ -101,11 +98,11 @@ namespace yave::editor {
           }
 
           if (auto err = value_cast_if<ResultError>(erro)) {
-            Error(g_logger, "  ResultError: type:{}", err->error_type);
+            log_error("  ResultError: type:{}", err->error_type);
           }
 
         } catch (...) {
-          Error(g_logger, "unknown exception detected during execution!");
+          log_error("unknown exception detected during execution!");
         }
         return std::nullopt;
       }
@@ -155,8 +152,8 @@ namespace yave::editor {
 
                 assert(exe && time);
 
-                assert(same_type(
-                  exe->type(), object_type<signal<FrameBuffer>>()));
+                assert(
+                  same_type(exe->type(), object_type<signal<FrameBuffer>>()));
 
                 auto bgn = std::chrono::high_resolution_clock::now();
 

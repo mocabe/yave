@@ -12,7 +12,7 @@
 #include <boost/gil.hpp>
 #include <map>
 
-YAVE_DECL_G_LOGGER(frame_buffer_manager);
+YAVE_DECL_LOCAL_LOGGER(frame_buffer_manager);
 
 namespace yave::data {
 
@@ -132,14 +132,14 @@ namespace yave::data {
           std::forward_as_tuple(std::move(data)));
 
         if (!succ) {
-          Error(g_logger, "Failed to insert new frame buffer id");
+          log_error( "Failed to insert new frame buffer id");
           return uid();
         }
 
         return id;
 
       } catch (...) {
-        Error(g_logger, "Failed to create empty frame by exception");
+        log_error( "Failed to create empty frame by exception");
         return uid();
       }
     }
@@ -176,8 +176,6 @@ namespace yave::data {
       , fb_height {height}
       , fb_format {format}
     {
-      init_logger();
-
       if (format != image_format::rgba32f)
         throw std::runtime_error("Unsupported image format for frame buffer");
 
@@ -218,7 +216,7 @@ namespace yave::data {
         return create_from(empty_frame);
 
       } catch (...) {
-        Error(g_logger, "Failed to create new frame by exception");
+        log_error( "Failed to create new frame by exception");
         return uid();
       }
     }
@@ -229,7 +227,7 @@ namespace yave::data {
         auto entry = find_entry(id);
 
         if (!entry) {
-          Error(g_logger, "Invalid frame id");
+          log_error( "Invalid frame id");
           return uid();
         }
 
@@ -241,13 +239,13 @@ namespace yave::data {
           std::forward_as_tuple(entry->data));
 
         if (!succ) {
-          Error(g_logger, "Failed to insert new frame buffer id");
+          log_error( "Failed to insert new frame buffer id");
           return uid();
         }
 
         return new_id;
       } catch (...) {
-        Info(g_logger, "Failed to clone frame by exception");
+        log_info( "Failed to clone frame by exception");
         return uid();
       }
     }
@@ -280,7 +278,7 @@ namespace yave::data {
         auto entry = find_entry(id);
 
         if (!entry) {
-          Error(g_logger, "Invalid frame id");
+          log_error( "Invalid frame id");
           return;
         }
 
@@ -317,7 +315,7 @@ namespace yave::data {
         auto entry = find_entry(id);
 
         if (!entry) {
-          Error(g_logger, "Invalid frame id");
+          log_error( "Invalid frame id");
           return;
         }
 
