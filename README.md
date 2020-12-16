@@ -4,35 +4,34 @@
 [![Gitter](https://badges.gitter.im/mocabe-yave/community.svg)](https://gitter.im/mocabe-yave/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 `YAVE` is node based visual programming environment with functional reactive programming (FRP).  
-Aiming for research on animation software which bridges gaps between declarative editing paradigm and generative methods.
 
 *Disclaimer: This project is still in very early stage!*
 
 To play around with `YAVE`, you can also build from source with standard CMake on Win/Linux.  
-There are also CI compiled binary artifacts, but they might not work on some environments.  
-If you have any problem, feel free to report or ask on gitter.
+There are also CI compiled binary artifacts, but these might not work on some environments.  
+If you have any problem, report issue or ask on gitter.
 
 ## Motivation
 
 Procedural content creation with node based visual programming languages are becoming popular in audio and graphics domain because of its flexibility and usability for artists.  
 In node based languages, you need to define how data will be transformed into final output by using data flow graph, which is quite easy to understand even for non-programmers.  
-However, composing values which *change over time* (like animations) in node based languages is not trivial task. This is because you need to manually calculate *how* current time maps to value rather than *what* kind of operation you want to apply to time related to values. This is different from popular editing paradigm based on *declarative* time manipulation, which allows you to compose values in the time domain easily.
+However, composing values which *change over time* (like animations) in node based languages is not trivial. This is because you need to calculate *how* current time maps to value rather than *what* kind of operation you want to apply to time related to values. This is different from popular editing paradigm based on *declarative* time manipulation, which allows you to compose values in the time domain easily.  
 This has been a known problem in functional programming community, and they found elegant solution by using higher-order functions which commonly known as `Functional Reactive Programming (FRP)`.  
-FRP was introduced for declarative programming paradigm for animations, then its target was shifted to real time applications like GUIs.  
-Even though FRP is popular in FP (mainly Haskell) community, incorporating FRP into visual programming language has not been done yet.  
-This project is focused on implementing static content creation tools like animation editor with functional reactive visual programming language. 
+FRP was introduced for declarative programming paradigm for animations, then its target was shifted to real time applications like GUI.  
+This project is aiming for incorporating core concept of FRP into end user programming environment.
 
 ## Features
 
 * Functional programming
   * `YAVE` supports various functional programming features, including higher-order functions and currying.
-  * Each 'sub-graph' can be used as function when there's no input.
+  * Each 'sub-graph' can be used as function value when there's no input.
   * Recursion is currently not supported to avoid infinite loops. It is recommended to implement your recursive algorithm in C++ (which is much faster) or use higher-order combinators.
 
 * Reactivity and declarative time manipulation
   * `YAVE` is based on *functional reactive programming (FRP)*. All node functions are internally represented as *signal function (`SF a b`)*.
   * FRP enables you to transform any value over time from caller side. For example, you can make single animation and combine them with different time scales/delays without modifying original animation.
-  * For example, `Time.ReTime` sets new time to input value.
+  * For example, `Time.ReTime` is low-level primitive which transform *time* of value.
+  * Another example is `Animation` nodes, which provide abstraction for values with time interval. You can apply various temporal transformations like scale, extend, concat, merge, etc. 
 
 * Type system
   * `YAVE` is statically typed language.
@@ -44,6 +43,8 @@ This project is focused on implementing static content creation tools like anima
   * You add new data types or implement your own node functions from C++. Object system of `YAVE` is designed to support plugin style extensions in the future.
   
 ### Nodes 101
+
+Note: Nodes in `YAVE` takes input from right side and returns to left.
 
 * Function node
 
