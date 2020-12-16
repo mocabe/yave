@@ -9,6 +9,7 @@ add_library(yave-module-std
   function/apply.cpp
   function/fix.cpp
   logic/if.cpp
+  logic/ops.cpp
   primitive/primitive.cpp
   num/num.cpp
   num/conversion.cpp
