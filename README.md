@@ -40,7 +40,7 @@ This project is aiming for incorporating core concept of FRP into end user progr
 
 * Fully interoperable with C++
   * Functional programming languages tend to lack support of GUI and high performance graphics, which are must for practical visual scripting environment. `YAVE` avoids this limitation by implementing functional runtime system as EDSL (embedded domain specific language) on C++. 
-  * You add new data types or implement your own node functions from C++. Object system of `YAVE` is designed to support plugin style extensions in the future.
+  * You can add new data types or implement your own node functions from C++. Object system of `YAVE` is designed to support plugin style extensions in the future.
   
 ### Nodes 101
 
