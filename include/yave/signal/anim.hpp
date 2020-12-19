@@ -8,7 +8,8 @@
 #include <yave/rts/box.hpp>
 
 #include <yave/obj/frame_time/frame_time.hpp>
-#include <yave/signal/specifier.hpp>
+#include <yave/signal/function.hpp>
+#include <yave/signal/maybe.hpp>
 
 namespace yave {
 
@@ -214,8 +215,8 @@ namespace yave {
 
   struct anim_storage
   {
-    /// any signal value.
-    /// null when blank
+    /// any signal maybe value.
+    /// never null (but can return nothing)
     object_ptr<const Object> value;
     /// length of animation.
     /// never null
@@ -245,11 +246,23 @@ namespace yave {
       return *reinterpret_cast<anim_storage*>(&(v.m_storage));
     }
 
+  private:
+    class X;
+    struct Blank : SignalFunction<Blank, SMaybe<X>>
+    {
+      using base = SignalFunction<Blank, SMaybe<X>>;
+      auto code() const -> typename base::return_type
+      {
+        return make_object<SMaybe<X>>();
+      }
+    };
+
+  public:
     /// construct blank animation
     /// \param l length of animation
     template <class L>
     anim_object_value(object_ptr<L> l)
-      : m_storage {nullptr, std::move(l)}
+      : m_storage {make_object<Blank>(), std::move(l)}
     {
       if (m_storage.length == nullptr)
         throw std::invalid_argument("Length of Anim<T> cannot be null");
@@ -278,12 +291,12 @@ namespace yave {
         throw std::invalid_argument("Length of Anim<T> cannot be null");
 
       {
-        constexpr auto lhs = type_of(get_term<signal<T>>());
+        constexpr auto lhs = type_of(get_term<signal<smaybe<T>>>());
         constexpr auto rhs = type_of(get_term<V>());
 
         static_assert(
           match(lhs, rhs).is_succ(),
-          "Invalid argument type. Should result signal of T");
+          "Invalid argument type. Should result signal of Maybe<T>");
       }
 
       {
@@ -296,19 +309,11 @@ namespace yave {
       }
     }
 
-    /// blank?
-    [[nodiscard]] auto is_blank() const
-    {
-      return _get_storage(*this).value == nullptr;
-    }
-
     /// get signal value
     [[nodiscard]] auto value() const
     {
-      assert(!is_blank());
-
       constexpr auto proxy =
-        get_proxy_type(normalize_specifier(type_c<signal<T>>));
+        get_proxy_type(normalize_specifier(type_c<signal<smaybe<T>>>));
 
       using To = std::add_const_t<typename decltype(proxy)::type>;
 

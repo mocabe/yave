@@ -104,42 +104,18 @@ namespace yave {
       {"anim"});
   }
 
-  auto node_declaration_traits<node::Animation::MergeOr>::get_node_declaration()
+  auto node_declaration_traits<node::Animation::Merge>::get_node_declaration()
     -> node_declaration
   {
     return function_node_declaration(
-      "Animation.MergeOr",
-      "Parallel OR merge animations.\n"
+      "Animation.Merge",
+      "Parallel merge animations.\n"
       "\n"
       "pseudocode:\n"
       "(match (a1.value , a2.value)\n"
       "  | (a, blank) or (blank, a) => a \n"
       "  | (a, b) => fn a b,\n"
       " max a1.len a2.len)\n"
-      "\n"
-      "param:\n"
-      "  a1, a2: Animation of type a\n"
-      "  fn    : Function of (a -> a -> a)\n"
-      "\n"
-      "return:\n"
-      "  Animation of a",
-      node_declaration_visibility::_public,
-      {"a1", "a2", "fn"},
-      {"anim"});
-  }
-
-  auto node_declaration_traits<
-    node::Animation::MergeAnd>::get_node_declaration() -> node_declaration
-  {
-    return function_node_declaration(
-      "Animation.MergeAnd",
-      "Parallel AND merge animations.\n"
-      "\n"
-      "pseudocode:\n"
-      "(match (a1.value , a2.value)\n"
-      "  | (a, blank) OR (blank, a) => blank \n"
-      "  | (a, b) => fn a b,\n"
-      " min a1.len a2.len)\n"
       "\n"
       "param:\n"
       "  a1, a2: Animation of type a\n"
@@ -193,6 +169,11 @@ namespace yave {
 
   namespace node::Animation::detail {
 
+    // TODO: Convert some nodes to composed declaration
+
+    class X;
+    class Y;
+
     // helper: lift constant length to signal
     struct ConstLen : SignalFunction<ConstLen, FrameTime>
     {
@@ -209,8 +190,61 @@ namespace yave {
       }
     };
 
-    class X;
-    class Y;
+    // helper: make just
+    struct Just : SignalFunction<Just, X, SMaybe<X>>
+    {
+      auto code() const -> return_type
+      {
+        return make_object<SMaybe<X>>(arg_signal<0>());
+      }
+    };
+
+    // helper: make nothing
+    struct Nothing : SignalFunction<Nothing, SMaybe<X>>
+    {
+      auto code() const -> return_type
+      {
+        return make_object<SMaybe<X>>();
+      }
+    };
+
+    // helper: delay signal time
+    struct Delay : SignalFunction<Delay, X, X>
+    {
+      time m_delay;
+
+      Delay(time delay)
+        : m_delay {delay}
+      {
+      }
+
+      auto code() const -> return_type
+      {
+        // t = t - delay
+        auto t = *arg_demand()->time - m_delay;
+        return arg_signal<0>()
+               << make_object<FrameDemand>(make_object<FrameTime>(t));
+      }
+    };
+
+    // helper: scale signal time
+    struct Scale : SignalFunction<Scale, X, X>
+    {
+      double m_scale;
+
+      Scale(double scale)
+        : m_scale {scale}
+      {
+      }
+
+      auto code() const -> return_type
+      {
+        // t * scale
+        auto t = *arg_time() * m_scale;
+        return arg_signal<0>()
+               << make_object<FrameDemand>(make_object<FrameTime>(t));
+      }
+    };
 
     struct Animation : SignalFunction<Animation, X, FrameTime, Anim<X>>
     {
@@ -219,7 +253,8 @@ namespace yave {
         auto v = arg_signal<0>();
         auto l = arg_signal<1>();
         assert(v && l);
-        return make_object<Anim<X>>(std::move(v), std::move(l));
+        return make_object<Anim<X>>(
+          make_object<Just>() << std::move(v), std::move(l));
       }
     };
 
@@ -228,7 +263,7 @@ namespace yave {
       auto code() const -> return_type
       {
         auto l = arg_signal<0>();
-        return make_object<Anim<VarValueProxy<X>>>(std::move(l));
+        return make_object<Anim<X>>(std::move(l));
       }
     };
 
@@ -239,15 +274,20 @@ namespace yave {
         auto v = eval_arg<0>();
         auto b = make_object<Bool>(true);
 
-        if (v->is_blank())
-          return b;
-
         auto l = eval(v->length() << arg_demand());
 
+        // zero length
         if (*l == time::zero())
           return b;
 
-        if (*l < *arg_time())
+        auto t = arg_time();
+
+        // out of range
+        if (*t < time::zero() || *l < *t)
+          return b;
+
+        // nothing
+        if (eval(v->value() << arg_demand())->is_nothing())
           return b;
 
         *b = false;
@@ -259,15 +299,21 @@ namespace yave {
     {
       auto code() const -> return_type
       {
-        auto l = eval_arg<0>();
+        auto a = eval_arg<0>();
+        auto t = arg_time();
 
-        if (l->is_blank())
-          throw std::runtime_error("Animation is blank");
-
-        if (*eval(l->length() << arg_demand()) < *arg_time())
+        // check length
+        auto l = eval(a->length() << arg_demand());
+        if (*t < time::zero() || *l < *t)
           throw std::runtime_error("Animation out of range");
 
-        return l->value() << arg_demand();
+        // check value
+        auto v = eval(a->value() << arg_demand());
+
+        if (v->is_nothing())
+          throw std::runtime_error("Animation is blank");
+
+        return v->value() << arg_demand();
       }
     };
 
@@ -281,33 +327,60 @@ namespace yave {
 
     struct Map : SignalFunction<Map, Anim<X>, sf<X, Y>, Anim<Y>>
     {
+      struct Thunk : SignalFunction<Thunk, SMaybe<X>, sf<X, Y>, SMaybe<Y>>
+      {
+        auto code() const -> return_type
+        {
+          auto v = eval_arg<0>();
+
+          if (v->is_nothing())
+            return make_object<SMaybe<Y>>();
+
+          auto r = arg_signal<1>() << v->value();
+          return make_object<SMaybe<Y>>(r);
+        }
+      };
+
       auto code() const -> return_type
       {
         auto a = eval_arg<0>();
-
-        if (a->is_blank())
-          return make_object<Anim<Y>>(a->length());
-
         auto f = arg_signal<1>();
-        return make_object<Anim<Y>>(std::move(f) << a->value(), a->length());
+        return make_object<Anim<Y>>(
+          make_object<Thunk>() << a->value() << f, a->length());
       }
     };
 
     struct Concat : SignalFunction<Concat, Anim<X>, Anim<X>, Anim<X>>
     {
-      struct DelayedValue : SignalFunction<DelayedValue, X, X>
+      struct Thunk : SignalFunction<Thunk, SMaybe<X>, SMaybe<X>, SMaybe<X>>
       {
-        time m_delay;
+        // length of first animation
+        time m_len;
 
-        DelayedValue(time delay)
-          : m_delay {delay}
+        Thunk(time len)
+          : m_len {len}
         {
         }
 
         auto code() const -> return_type
         {
-          return arg_signal<0>() << make_object<FrameDemand>(
-                   make_object<FrameTime>(*arg_time() - m_delay));
+          auto t = arg_time();
+
+          // first animation
+          if (*t < m_len)
+            return arg<0>();
+
+          // delay operator
+          auto delay = make_object<Delay>(m_len);
+
+          // delayed Maybe value
+          auto v = eval((delay << arg_signal<1>()) << arg_demand());
+
+          if (v->is_nothing())
+            return v;
+
+          // delay wrapped signal
+          return make_object<SMaybe<X>>(delay << v->value());
         }
       };
 
@@ -319,32 +392,37 @@ namespace yave {
         auto l1 = eval(a1->length() << arg_demand());
         auto l2 = eval(a2->length() << arg_demand());
 
-        // first animation
-        if (*arg_time() <= *l1)
-          return a1;
-
-        auto lout = make_object<ConstLen>(*l1 + *l2);
-
-        if (a2->is_blank())
-          return make_object<Anim<X>>(lout);
-
         return make_object<Anim<X>>(
-          make_object<DelayedValue>(*l1) << a2->value(), lout);
+          make_object<Thunk>(*l1) << a1->value() << a2->value(),
+          make_object<ConstLen>(*l1 + *l2));
       }
     };
 
-    struct MergeOr
-      : SignalFunction<MergeOr, Anim<X>, Anim<X>, sf<X, X, X>, Anim<X>>
+    struct Merge : SignalFunction<Merge, Anim<X>, Anim<X>, sf<X, X, X>, Anim<X>>
     {
+      struct Thunk
+        : SignalFunction<Thunk, SMaybe<X>, SMaybe<X>, sf<X, X, X>, SMaybe<X>>
+      {
+        auto code() const -> return_type
+        {
+          auto v1 = eval_arg<0>();
+          auto v2 = eval_arg<1>();
+          auto f  = arg_signal<2>();
+
+          if (v1->is_nothing())
+            return v2;
+
+          if (v2->is_nothing())
+            return v1;
+
+          return make_object<SMaybe<X>>(f << v1->value() << v2->value());
+        }
+      };
+
       auto code() const -> return_type
       {
         auto a1 = eval_arg<0>();
         auto a2 = eval_arg<1>();
-
-        if (a1->is_blank())
-          return a2;
-        if (a2->is_blank())
-          return a1;
 
         // max(a1.len, a2.len) is used for new length
         auto l1  = eval(a1->length() << arg_demand());
@@ -352,41 +430,19 @@ namespace yave {
         auto len = *l1 > *l2 ? a1->length() : a2->length();
 
         return make_object<Anim<X>>(
-          arg_signal<2>() << a1->value() << a2->value(), len);
-      }
-    };
-
-    struct MergeAnd
-      : SignalFunction<MergeAnd, Anim<X>, Anim<X>, sf<X, X, X>, Anim<X>>
-    {
-      auto code() const -> return_type
-      {
-        auto a1 = eval_arg<0>();
-        auto a2 = eval_arg<1>();
-
-        if (a1->is_blank())
-          return a1;
-        if (a2->is_blank())
-          return a2;
-
-        // min(a1.len, a2.len) is used for new length
-        auto l1  = eval(a1->length() << arg_demand());
-        auto l2  = eval(a2->length() << arg_demand());
-        auto len = *l1 > *l2 ? a2->length() : a1->length();
-
-        return make_object<Anim<X>>(
-          arg_signal<2>() << a1->value() << a2->value(), len);
+          make_object<Thunk>() << a1->value() << a2->value() << arg_signal<2>(),
+          len);
       }
     };
 
     struct Stretch : SignalFunction<Stretch, Anim<X>, FrameTime, Anim<X>>
     {
       // remapper
-      struct Remap : SignalFunction<Remap, X, X>
+      struct Thunk : SignalFunction<Thunk, SMaybe<X>, SMaybe<X>>
       {
         time m_old, m_new;
 
-        Remap(time o, time n)
+        Thunk(time o, time n)
           : m_old {o}
           , m_new {n}
         {
@@ -398,9 +454,20 @@ namespace yave {
             return arg<0>();
 
           auto r = m_old.seconds() / m_new.seconds();
+
+          // scale operator
+          auto scale = make_object<Scale>(r);
+
           auto t = make_object<FrameTime>(*arg_time() * r);
 
-          return arg_signal<0>() << make_object<FrameDemand>(std::move(t));
+          // get maybe
+          auto v = eval((scale << arg_signal<0>()) << arg_demand());
+
+          if (v->is_nothing())
+            return v;
+
+          // scale wrapped signal
+          return make_object<SMaybe<X>>(scale << v->value());
         }
       };
 
@@ -414,38 +481,48 @@ namespace yave {
         if (newlen < data::frame_time::zero())
           newlen = data::frame_time::zero();
 
-        auto lout = make_object<ConstLen>(newlen);
-
-        if (a->is_blank())
-          return make_object<Anim<X>>(lout);
-
         return make_object<Anim<X>>(
-          make_object<Remap>(oldlen, newlen) << a->value(), lout);
+          make_object<Thunk>(oldlen, newlen) << a->value(),
+          make_object<ConstLen>(newlen));
       }
     };
 
     struct Extend : SignalFunction<Extend, Anim<X>, FrameTime, Anim<X>>
     {
+      struct Thunk : SignalFunction<Thunk, SMaybe<X>, SMaybe<X>>
+      {
+        time m_old_len, m_new_len;
+
+        Thunk(time old_len, time new_len)
+          : m_old_len {old_len}
+          , m_new_len {new_len}
+        {
+        }
+
+        auto code() const -> return_type
+        {
+          auto v = eval_arg<0>();
+
+          if (m_old_len >= *arg_time())
+            return v;
+
+          return make_object<SMaybe<X>>();
+        }
+      };
+
       auto code() const -> return_type
       {
-        auto a    = eval_arg<0>();
-        auto alen = eval(a->length() << arg_demand());
-        auto l    = eval_arg<1>();
+        auto a = eval_arg<0>();
 
-        auto len = *l;
+        auto old_len = *eval(a->length() << arg_demand());
+        auto new_len = *eval_arg<1>();
 
-        if (len < time::zero())
-          len = time::zero();
+        if (new_len < time::zero())
+          new_len = time::zero();
 
-        auto lout = make_object<ConstLen>(len);
-
-        if (a->is_blank())
-          return make_object<Anim<X>>(lout);
-
-        if (*alen >= *arg_time())
-          return make_object<Anim<X>>(a->value(), lout);
-
-        return make_object<Anim<X>>(lout);
+        return make_object<Anim<X>>(
+          make_object<Thunk>(old_len, new_len) << a->value(),
+          make_object<ConstLen>(new_len));
       }
     };
 
@@ -468,8 +545,7 @@ namespace yave {
   ANIM_NODE_DEFINITION(GetLength);
   ANIM_NODE_DEFINITION(Map);
   ANIM_NODE_DEFINITION(Concat);
-  ANIM_NODE_DEFINITION(MergeOr);
-  ANIM_NODE_DEFINITION(MergeAnd);
+  ANIM_NODE_DEFINITION(Merge);
   ANIM_NODE_DEFINITION(Stretch);
   ANIM_NODE_DEFINITION(Extend);
 
