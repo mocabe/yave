@@ -194,8 +194,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::Animation::GetLength>(),
             get_node_declaration<node::Animation::Map>(),
             get_node_declaration<node::Animation::Concat>(),
-            get_node_declaration<node::Animation::MergeOr>(),
-            get_node_declaration<node::Animation::MergeAnd>(),
+            get_node_declaration<node::Animation::Merge>(),
             get_node_declaration<node::Animation::Stretch>(),
             get_node_declaration<node::Animation::Extend>()};
   }
@@ -277,8 +276,7 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Animation::GetLength, _std::tag>());
     add(yave::get_node_definitions<node::Animation::Map, _std::tag>());
     add(yave::get_node_definitions<node::Animation::Concat, _std::tag>());
-    add(yave::get_node_definitions<node::Animation::MergeOr, _std::tag>());
-    add(yave::get_node_definitions<node::Animation::MergeAnd, _std::tag>());
+    add(yave::get_node_definitions<node::Animation::Merge, _std::tag>());
     add(yave::get_node_definitions<node::Animation::Stretch, _std::tag>());
     add(yave::get_node_definitions<node::Animation::Extend, _std::tag>());
 

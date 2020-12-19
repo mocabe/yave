@@ -19,8 +19,7 @@ namespace yave {
     class GetLength;
     class Map;
     class Concat;
-    class MergeOr;
-    class MergeAnd;
+    class Merge;
     class Stretch;
     class Extend;
 
@@ -35,8 +34,7 @@ namespace yave {
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Animation::GetLength);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Animation::Map);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Animation::Concat);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Animation::MergeOr);
-  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Animation::MergeAnd);
+  YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Animation::Merge);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Animation::Stretch);
   YAVE_DECL_DEFAULT_NODE_DECLARATION(node::Animation::Extend);
 
@@ -47,8 +45,7 @@ namespace yave {
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Animation::GetLength, modules::_std::tag);
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Animation::Map, modules::_std::tag);
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Animation::Concat, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Animation::MergeOr, modules::_std::tag);
-  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Animation::MergeAnd, modules::_std::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Animation::Merge, modules::_std::tag);
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Animation::Stretch, modules::_std::tag);
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Animation::Extend, modules::_std::tag);
 
