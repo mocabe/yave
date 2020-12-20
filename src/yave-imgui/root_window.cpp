@@ -11,6 +11,7 @@
 
 #include <yave/support/log.hpp>
 #include <imgui_internal.h>
+#include <imgui_stdlib.h>
 
 YAVE_DECL_LOCAL_LOGGER(im_root_window)
 
@@ -87,16 +88,19 @@ namespace yave::editor::imgui {
       auto flags = ImGuiWindowFlags_NoResize;
       if (ImGui::BeginPopupModal("save", nullptr, flags)) {
 
-        ImGui::Text("Save current nodes into 'yave.json'.");
+        ImGui::Text("Save current project");
         ImGui::Separator();
-        ImGui::Text("This overwrites previous content of the file.");
-        ImGui::Text("Please rename if you want to keep it.");
-        ImGui::Spacing();
-        ImGui::Text("Continue?");
-        ImGui::Spacing();
+
+        ImGui::Text("filename:");
+        ImGui::SetNextItemWidth(300);
+        std::string tmp = filename;
+        if (ImGui::InputText("", &tmp)) {
+          vctx.cmd(make_window_view_command(
+            *this, [=](auto& w) { w.filename = tmp; }));
+        }
 
         if (ImGui::Button("ok")) {
-          dctx.cmd(std::make_unique<dcmd_save>());
+          dctx.cmd(std::make_unique<dcmd_save>(filename));
           ImGui::CloseCurrentPopup();
         }
 
@@ -126,13 +130,20 @@ namespace yave::editor::imgui {
     {
       auto flags = ImGuiWindowFlags_NoResize;
       if (ImGui::BeginPopupModal("load", nullptr, flags)) {
-        ImGui::Text("Load node grpah from 'yave.json'.");
-        ImGui::Text("This overwrites current project.");
+
+        ImGui::Text("Load node grpah");
         ImGui::Spacing();
-        ImGui::Text("Continue?");
+
+        ImGui::Text("filename:");
+        ImGui::SetNextItemWidth(300);
+        std::string tmp = filename;
+        if (ImGui::InputText("", &tmp)) {
+          vctx.cmd(make_window_view_command(
+            *this, [=](auto& w) { w.filename = tmp; }));
+        }
 
         if (ImGui::Button("ok")) {
-          dctx.cmd(std::make_unique<dcmd_load>());
+          dctx.cmd(std::make_unique<dcmd_load>(filename));
           ImGui::CloseCurrentPopup();
         }
 
