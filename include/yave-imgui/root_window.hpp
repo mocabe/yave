@@ -34,6 +34,9 @@ namespace yave::editor::imgui {
     bool open_about_modal = false;
     bool open_demo_window = false;
 
+    // for save/load
+    std::string filename = "yave.json";
+
   public:
     root_window(yave::imgui::imgui_context& im);
     ~root_window() noexcept;

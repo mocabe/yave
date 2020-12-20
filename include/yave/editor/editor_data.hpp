@@ -69,7 +69,8 @@ namespace yave::editor {
     auto node_graph() const -> const structured_node_graph &;
     auto node_graph() -> structured_node_graph &;
     /// node group
-    auto root_group() const -> node_handle;
+    auto root_group() const -> const node_handle &;
+    auto root_group() -> node_handle &;
 
   public:
     /// compiler interface
@@ -83,9 +84,5 @@ namespace yave::editor {
     /// update channel
     auto update_channel() -> node_argument_update_channel &;
     auto update_channel() const -> const node_argument_update_channel &;
-
-  public:
-    void save() const;
-    void load();
   };
 } // namespace yave::editor

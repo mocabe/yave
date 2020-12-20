@@ -9,6 +9,7 @@ add_library(yave-editor
   execute_thread.cpp
   update_channel.cpp
   editor_data.cpp
+  serialize.cpp
 )
 
 add_library(yave::editor ALIAS yave-editor)

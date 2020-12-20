@@ -10,6 +10,8 @@
 #include <yave/node/core/structured_node_graph.hpp>
 #include <yave/obj/node/argument.hpp>
 
+#include <filesystem>
+
 namespace yave::editor::imgui {
 
   /// push update
@@ -237,6 +239,8 @@ namespace yave::editor::imgui {
   // save graph
   struct dcmd_save : data_command
   {
+    std::filesystem::path m_path;
+    dcmd_save(std::string path);
     void exec(data_context& ctx) override;
     void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
@@ -245,6 +249,8 @@ namespace yave::editor::imgui {
   // load graph
   struct dcmd_load : data_command
   {
+    std::filesystem::path m_path;
+    dcmd_load(std::string path);
     void exec(data_context& ctx) override;
     void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;

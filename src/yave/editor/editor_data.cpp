@@ -95,7 +95,7 @@ namespace yave::editor {
     scene_config = yave::scene_config();
 
     root_group = node_graph.create_group({}, {});
-    node_graph.set_name(root_group, "ProjectRoot");
+    node_graph.set_name(root_group, "Project");
     node_graph.add_output_socket(root_group, "frame_out");
   }
 
@@ -323,7 +323,12 @@ namespace yave::editor {
     return m_pimpl->node_graph;
   }
 
-  auto editor_data::root_group() const -> node_handle
+  auto editor_data::root_group() const -> const node_handle&
+  {
+    return m_pimpl->root_group;
+  }
+
+  auto editor_data::root_group() -> node_handle&
   {
     return m_pimpl->root_group;
   }
@@ -357,36 +362,6 @@ namespace yave::editor {
     -> const node_argument_update_channel&
   {
     return m_pimpl->updates;
-  }
-
-  void editor_data::save() const
-  {
-    auto& ng   = m_pimpl->node_graph;
-    auto& root = m_pimpl->root_group;
-
-    auto path = boost::dll::program_location().remove_filename() / "yave.json";
-    auto fs   = std::ofstream(path.string());
-    {
-      cereal::JSONOutputArchive ar(fs);
-      save_user_node_graph(ar, root, ng);
-    }
-  }
-
-  void editor_data::load()
-  {
-    auto& ng   = m_pimpl->node_graph;
-    auto& root = m_pimpl->root_group;
-
-    // clear current user data
-    ng.destroy(root);
-    root = {};
-
-    auto path = boost::dll::program_location().remove_filename() / "yave.json";
-    auto fs   = std::ifstream(path.string());
-    {
-      cereal::JSONInputArchive ar(fs);
-      load_user_node_graph(ar, root, ng);
-    }
   }
 
 } // namespace yave::editor

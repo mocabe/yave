@@ -5,7 +5,7 @@
 
 #include <yave-imgui/data_commands.hpp>
 #include <yave/editor/data_context.hpp>
-#include <yave/editor/editor_data.hpp>
+#include <yave/editor/serialize.hpp>
 #include <yave/node/core/properties.hpp>
 
 namespace yave::editor::imgui {
@@ -552,10 +552,16 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // dcmd_save
 
+  dcmd_save::dcmd_save(std::string path)
+    : m_path {path}
+  {
+  }
+
   void dcmd_save::exec(data_context& ctx)
   {
     auto lck = ctx.get_data<editor_data>();
-    lck.ref().save();
+
+    (void)save(lck.ref(), m_path);
   }
 
   void dcmd_save::undo(data_context& ctx)
@@ -571,11 +577,18 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // dcmd_load
 
+  dcmd_load::dcmd_load(std::string path)
+    : m_path {path}
+  {
+  }
+
   void dcmd_load::exec(data_context& ctx)
   {
     auto lck = ctx.get_data<editor_data>();
-    lck.ref().load();
-    lck.ref().compile_thread().notify_recompile();
+
+    if (load(lck.ref(), m_path)) {
+      lck.ref().compile_thread().notify_recompile();
+    }
   }
 
   void dcmd_load::undo(data_context& ctx)
