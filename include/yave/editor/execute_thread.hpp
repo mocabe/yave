@@ -90,7 +90,7 @@ namespace yave::editor {
     struct result_data
     {
       time arg_time;
-      std::optional<image> image;
+      std::optional<yave::image> image;
       std::chrono::milliseconds compute_time;
       std::chrono::steady_clock::time_point begin_time;
       std::chrono::steady_clock::time_point end_time;
