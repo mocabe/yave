@@ -307,7 +307,7 @@ namespace yave::editor::imgui {
     ImGui::SetNextWindowSize(root_size);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, {0.1, 0.1, 0.1, 1.f});
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, {0.1f, 0.1f, 0.1f, 1.f});
 
     auto root_flags = ImGuiWindowFlags_NoTitleBar |  //
                       ImGuiWindowFlags_NoScrollbar | //

@@ -17,6 +17,8 @@ YAVE_DECL_LOCAL_LOGGER(node_window)
 namespace yave::editor::imgui {
 
   using namespace yave::imgui;
+  namespace rn = ranges;
+  namespace rv = ranges::views;
 
   void draw_connection_line(
     const ImVec2& p1,
