@@ -32,15 +32,28 @@ namespace yave::editor {
     ImVec2 tex_scroll = {0, 0};
     float tex_scale   = 1.f;
 
-    yave::time current_time;
+    // for execution
+    yave::time arg_time                                 = {};
+    yave::time last_arg_time                            = {};
+    std::chrono::steady_clock::time_point last_exec_bgn = {};
+    std::chrono::steady_clock::time_point last_exec_end = {};
+    std::chrono::nanoseconds last_compute_time          = {};
 
-    std::chrono::steady_clock::time_point last_timestamp;
-
-    std::chrono::nanoseconds exec_time = {};
+    // for continuout execution
+    uint32_t current_fps;
+    bool continuous_execution = false;
+    bool loop_execution       = false;
+    yave::time loop_time_min  = yave::time::zero();
+    yave::time loop_time_max  = yave::time::max();
 
   public:
     render_view_window(yave::imgui::imgui_context& imctx);
     ~render_view_window() noexcept;
+
+  public:
+    void set_continuous_execution(bool b);
+    void set_loop_execution(bool b);
+    void set_loop_execution_range(time min, time max);
 
   public:
     void update(editor::data_context& data_ctx, editor::view_context& view_ctx)

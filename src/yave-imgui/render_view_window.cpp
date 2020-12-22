@@ -4,6 +4,7 @@
 //
 
 #include <yave-imgui/render_view_window.hpp>
+#include <yave-imgui/data_commands.hpp>
 
 #include <yave/lib/image/image.hpp>
 #include <yave/lib/image/image_view.hpp>
@@ -12,7 +13,7 @@
 
 namespace yave::editor {
 
-  render_view_window::render_view_window(imgui::imgui_context& imctx)
+  render_view_window::render_view_window(yave::imgui::imgui_context& imctx)
     : wm::window("render_view")
     , imgui_ctx {imctx}
     , res_tex_id {0}
@@ -34,6 +35,22 @@ namespace yave::editor {
     imgui_ctx.unbind_texture(bg_tex_data);
   }
 
+  void render_view_window::set_continuous_execution(bool b)
+  {
+    continuous_execution = b;
+  }
+
+  void render_view_window::set_loop_execution(bool b)
+  {
+    loop_execution = b;
+  }
+
+  void render_view_window::set_loop_execution_range(time min, time max)
+  {
+    loop_time_min = min;
+    loop_time_max = max;
+  }
+
   void render_view_window::update(
     editor::data_context& data_ctx,
     editor::view_context& view_ctx)
@@ -43,20 +60,20 @@ namespace yave::editor {
     auto lck   = data_ctx.get_data<editor_data>();
     auto& data = lck.ref();
 
-    auto& executor     = data.execute_thread();
+    auto& executor     = data.executor_data();
     auto& scene_config = data.scene_config();
 
     width        = scene_config.width();
     height       = scene_config.height();
     frame_format = scene_config.frame_format();
-    current_time = executor.arg_time();
+    current_fps  = data.scene_config().frame_rate();
 
     // no update
-    if (executor.exec_timestamp() <= last_timestamp)
+    if (executor.last_end_time() <= last_exec_end)
       return;
 
     // take execution result
-    if (auto& fb = executor.exec_result()) {
+    if (auto&& fb = executor.last_result_image()) {
 
       if (!res_tex_id) {
         res_tex_data = imgui_ctx.create_texture(
@@ -67,8 +84,10 @@ namespace yave::editor {
       imgui_ctx.write_texture(
         res_tex_data, {0, 0}, res_tex_data.extent, fb->data());
 
-      last_timestamp = executor.exec_timestamp();
-      exec_time      = executor.exec_duration();
+      last_arg_time     = executor.last_arg_time();
+      last_exec_bgn     = executor.last_begin_time();
+      last_exec_end     = executor.last_end_time();
+      last_compute_time = executor.last_compute_time();
     }
   }
 
@@ -76,6 +95,7 @@ namespace yave::editor {
     const editor::data_context& data_ctx,
     const editor::view_context& view_ctx) const
   {
+    using namespace std::chrono;
     const_image_view view(width, height, frame_format);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));
@@ -122,7 +142,7 @@ namespace yave::editor {
       // scale
       if (ImGui::IsWindowHovered()) {
         // single tick = 10% zoom
-        scale *= 1.0 + ImGui::GetIO().MouseWheel / 10.f;
+        scale *= 1.f + ImGui::GetIO().MouseWheel / 10.f;
       }
 
       ImGui::SetCursorPos({0, 0});
@@ -130,29 +150,53 @@ namespace yave::editor {
       ImGui::Text("scroll: %f %f", scroll.x, scroll.y);
       ImGui::Text("scale: %f", scale * 100);
 
-      auto ms =
-        std::chrono::duration_cast<std::chrono::milliseconds>(exec_time);
+      auto ms = duration_cast<milliseconds>(last_compute_time);
       ImGui::Text("%ld ms", ms.count());
 
       ImGui::EndChild();
       ImGui::PopStyleColor();
 
-      float sec = current_time.seconds().count();
+      auto fargt = static_cast<float>(arg_time.seconds().count());
       ImGui::PushItemWidth(-1);
-      ImGui::SliderFloat("s", &sec, 0, 100);
+      ImGui::SliderFloat("s", &fargt, 0, 30);
       ImGui::PopItemWidth();
 
-      data_ctx.cmd(make_data_command([t = yave::time::seconds(sec)](auto& ctx) {
-        auto lck       = ctx.template get_data<editor_data>();
-        auto& data     = lck.ref();
-        auto& executor = data.execute_thread();
-        if (executor.arg_time() != t) {
-          executor.set_arg_time(t);
-          executor.notify_execute();
+      // new arg time
+      auto argt = time::seconds(fargt);
+
+      data_ctx.cmd(make_data_command([=](auto& ctx) {
+        auto lck = ctx.template get_data<editor_data>();
+
+        // render new frame
+        if (argt != last_arg_time) {
+          ctx.cmd(std::make_unique<imgui::dcmd_notify_execute>(argt));
+          return;
+        }
+
+        // next frame for continuous execution
+        if (continuous_execution) {
+
+          auto delta = time::seconds(1) / static_cast<double>(current_fps);
+          auto since = steady_clock::now() - last_exec_bgn;
+
+          // fps limit re-execution
+          if (since < delta) {
+            return;
+          }
+
+          auto next_time = last_arg_time + delta;
+
+          // loop back to min
+          if (loop_execution) {
+            if (loop_time_max < next_time)
+              next_time = loop_time_min;
+          }
+          ctx.cmd(std::make_unique<imgui::dcmd_notify_execute>(next_time));
         }
       }));
 
       view_ctx.cmd(make_window_view_command(*this, [=](auto& w) {
+        w.arg_time   = argt;
         w.tex_scroll = scroll;
         w.tex_scale  = scale;
       }));

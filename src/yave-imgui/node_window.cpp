@@ -9,6 +9,7 @@
 #include <yave/editor/data_command.hpp>
 #include <yave/support/log.hpp>
 
+#include <range/v3/view.hpp>
 #include <imgui_internal.h>
 
 YAVE_DECL_LOCAL_LOGGER(node_window)
@@ -174,16 +175,21 @@ namespace yave::editor::imgui {
     ImGui::Text("path: %s", current_group_path.c_str());
     ImGui::Text("scroll: %f, %f", scroll.x, scroll.y);
 
-    // show compile errors
+    // compiler errors
     auto compile_errors = [&] {
-      auto lck   = dctx.get_data<editor_data>();
-      auto& data = lck.ref();
-      return data.compile_thread().messages().get_errors();
+      auto&& lck  = dctx.get_data<editor_data>();
+      auto&& data = lck.ref();
+      auto&& msgs = data.compiler_data().last_message().get_errors();
+
+      return msgs //
+             | rv::transform([&](auto&& msg) { return msg.get_text(); })
+             | rv::filter([](auto&& opt) { return opt.has_value(); })
+             | rv::transform([](auto&& opt) { return opt.value(); })
+             | rn::to_vector;
     }();
 
     for (auto&& e : compile_errors) {
-      if (auto&& msg = e.get_text())
-        ImGui::TextColored({255, 0, 0, 255}, "%s", msg->c_str());
+      ImGui::TextColored({255, 0, 0, 255}, "%s", e.c_str());
     }
 
     // handle scrolling
