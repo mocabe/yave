@@ -15,6 +15,8 @@ namespace yave::editor {
 
   class editor_data::impl
   {
+    data_context& data_ctx;
+
   public: /* main */
     /// name
     std::string name;
@@ -39,9 +41,9 @@ namespace yave::editor {
 
   public:
     /// compiler interface
-    compile_thread_data compiler;
+    compile_thread_data compiler_data;
     /// executor interface
-    execute_thread_data executor;
+    execute_thread_data executor_data;
 
   public:
     /// update channel
@@ -49,8 +51,7 @@ namespace yave::editor {
 
   public:
     impl(data_context& dctx)
-      : compiler {dctx}
-      , executor {dctx}
+      : data_ctx {dctx}
     {
       init();
     }
@@ -81,11 +82,6 @@ namespace yave::editor {
     void update_modules(const yave::scene_config& sfg);
     /// deinit moudles
     void deinit_modules();
-
-    /// init task threads
-    void init_threads();
-    /// deinit task threads
-    void deinit_threads();
   };
 
   void editor_data::impl::init()
@@ -227,18 +223,6 @@ namespace yave::editor {
     // leave scene_config as-is
   }
 
-  void editor_data::impl::init_threads()
-  {
-    compiler.init();
-    executor.init();
-  }
-
-  void editor_data::impl::deinit_threads()
-  {
-    compiler.deinit();
-    executor.deinit();
-  }
-
   editor_data::editor_data(data_context& dctx)
     : m_pimpl {std::make_unique<impl>(dctx)}
   {
@@ -276,16 +260,6 @@ namespace yave::editor {
   void editor_data::deinit_modules()
   {
     m_pimpl->deinit_modules();
-  }
-
-  void editor_data::init_threads()
-  {
-    m_pimpl->init_threads();
-  }
-
-  void editor_data::deinit_threads()
-  {
-    m_pimpl->deinit_threads();
   }
 
   auto editor_data::name() const -> const std::string&
@@ -333,24 +307,24 @@ namespace yave::editor {
     return m_pimpl->root_group;
   }
 
-  auto editor_data::compile_thread() -> compile_thread_data&
+  auto editor_data::compiler_data() -> compile_thread_data&
   {
-    return m_pimpl->compiler;
+    return m_pimpl->compiler_data;
   }
 
-  auto editor_data::compile_thread() const -> const compile_thread_data&
+  auto editor_data::compiler_data() const -> const compile_thread_data&
   {
-    return m_pimpl->compiler;
+    return m_pimpl->compiler_data;
   }
 
-  auto editor_data::execute_thread() -> execute_thread_data&
+  auto editor_data::executor_data() -> execute_thread_data&
   {
-    return m_pimpl->executor;
+    return m_pimpl->executor_data;
   }
 
-  auto editor_data::execute_thread() const -> const execute_thread_data&
+  auto editor_data::executor_data() const -> const execute_thread_data&
   {
-    return m_pimpl->executor;
+    return m_pimpl->executor_data;
   }
 
   auto editor_data::update_channel() -> node_argument_update_channel&

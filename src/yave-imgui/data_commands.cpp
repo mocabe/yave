@@ -35,10 +35,19 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // dcmd_notify_execute
 
+  dcmd_notify_execute::dcmd_notify_execute(std::optional<time> time)
+    : m_time {time}
+  {
+  }
+
   void dcmd_notify_execute::exec(data_context& ctx)
   {
-    auto lck = ctx.get_data<editor_data>();
-    lck.ref().execute_thread().notify_execute();
+    auto lck = ctx.get_data<execute_thread>();
+
+    if (m_time)
+      lck.ref().notify_execute(*m_time);
+    else
+      lck.ref().notify_execute();
   }
 
   void dcmd_notify_execute::undo(data_context& /*ctx*/)
@@ -47,6 +56,25 @@ namespace yave::editor::imgui {
   }
 
   auto dcmd_notify_execute::type() const -> data_command_type
+  {
+    return data_command_type::single_time;
+  }
+
+  // ------------------------------------------
+  // dcmd_notify_compile
+
+  void dcmd_notify_compile::exec(data_context& ctx)
+  {
+    auto lck = ctx.get_data<compile_thread>();
+    lck.ref().notify_compile();
+  }
+
+  void dcmd_notify_compile::undo(data_context& ctx)
+  {
+    assert(false);
+  }
+
+  auto dcmd_notify_compile::type() const -> data_command_type
   {
     return data_command_type::single_time;
   }
@@ -148,7 +176,7 @@ namespace yave::editor::imgui {
     for (auto&& n : nodes)
       ng.destroy(n);
 
-    data.compile_thread().notify_recompile();
+    ctx.cmd(std::make_unique<dcmd_notify_compile>());
   }
 
   void dcmd_ndestroy::undo(data_context& /*ctx*/)
@@ -187,7 +215,7 @@ namespace yave::editor::imgui {
     avg_pos /= nodes.size();
     set_pos(avg_pos, newg, ng);
 
-    data.compile_thread().notify_recompile();
+    ctx.cmd(std::make_unique<dcmd_notify_compile>());
   }
 
   void dcmd_ngroup::undo(data_context& /*ctx*/)
@@ -248,7 +276,7 @@ namespace yave::editor::imgui {
 
     connection = ng.connect(src, dst, id);
 
-    data.compile_thread().notify_recompile();
+    ctx.cmd(std::make_unique<dcmd_notify_compile>());
   }
 
   void dcmd_connect::undo(data_context& ctx)
@@ -271,7 +299,7 @@ namespace yave::editor::imgui {
       (void)ng.connect(src, dst, old_id);
     }
 
-    data.compile_thread().notify_recompile();
+    ctx.cmd(std::make_unique<dcmd_notify_compile>());
   }
 
   auto dcmd_connect::type() const -> data_command_type
@@ -309,7 +337,7 @@ namespace yave::editor::imgui {
     ng.disconnect(connection);
     connection = {};
 
-    data.compile_thread().notify_recompile();
+    ctx.cmd(std::make_unique<dcmd_notify_compile>());
   }
 
   void dcmd_disconnect::undo(data_context& ctx)
@@ -331,7 +359,7 @@ namespace yave::editor::imgui {
     auto dst   = ng.input_sockets(dst_node)[dst_idx];
     connection = ng.connect(src, dst, id);
 
-    data.compile_thread().notify_recompile();
+    ctx.cmd(std::make_unique<dcmd_notify_compile>());
   }
 
   auto dcmd_disconnect::type() const -> data_command_type
@@ -495,7 +523,7 @@ namespace yave::editor::imgui {
     auto lck   = ctx.get_data<editor_data>();
     auto& data = lck.ref();
     data.node_graph().remove_socket(socket);
-    data.compile_thread().notify_recompile();
+    ctx.cmd(std::make_unique<dcmd_notify_compile>());
   }
 
   void dcmd_sremove::undo(data_context& /*ctx*/)
@@ -535,7 +563,7 @@ namespace yave::editor::imgui {
     }();
 
     if (new_s)
-      data.compile_thread().notify_recompile();
+      ctx.cmd(std::make_unique<dcmd_notify_compile>());
   }
 
   void dcmd_sadd::undo(data_context& /*ctx*/)
@@ -587,7 +615,7 @@ namespace yave::editor::imgui {
     auto lck = ctx.get_data<editor_data>();
 
     if (load(lck.ref(), m_path)) {
-      lck.ref().compile_thread().notify_recompile();
+      ctx.cmd(std::make_unique<dcmd_notify_compile>());
     }
   }
 

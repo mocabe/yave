@@ -20,190 +20,229 @@ YAVE_DECL_LOCAL_LOGGER(execute_thread);
 
 namespace yave::editor {
 
-  namespace {
+  /// internal task thread for execution
+  class execute_thread::impl
+  {
+  private:
+    data_context& data_ctx;
 
-    /// internal task thread for execution
-    class execute_thread
+  private:
+    std::thread thread;
+    std::mutex mtx;
+    std::condition_variable cond;
+
+  private:
+    std::atomic<bool> terminate_flag = false;
+    std::atomic<bool> execute_flag   = false;
+
+  private:
+    std::exception_ptr exception;
+
+  private:
+    time arg_time;
+
+    void check_failure()
     {
-    private:
-      data_context& data_ctx;
-
-    private:
-      std::thread thread;
-      std::mutex mtx;
-      std::condition_variable cond;
-
-    private:
-      std::atomic<bool> terminate_flag = false;
-      std::atomic<bool> execute_flag   = false;
-
-    private:
-      std::exception_ptr exception;
-
-      void check_failure()
-      {
-        if (!thread.joinable()) {
-          if (exception != nullptr) {
-            // exception thrown inside thread
-            throw execute_thread_failure(exception);
-          }
+      if (!thread.joinable()) {
+        if (exception != nullptr) {
+          // exception thrown inside thread
+          throw execute_thread_failure(exception);
         }
       }
+    }
 
-    public:
-      execute_thread(data_context& dctx)
-        : data_ctx {dctx}
-      {
+  public:
+    impl(data_context& dctx)
+      : data_ctx {dctx}
+    {
+    }
+
+    bool is_running()
+    {
+      return thread.joinable();
+    }
+
+  public:
+    static auto exec_frame_output(compiler::executable&& exe, yave::time t)
+      -> std::optional<image>
+    {
+      try {
+        auto r = value_cast<FrameBuffer>(exe.execute(t));
+        // load result to host memory
+        auto img = image(r->width(), r->height(), r->format());
+        r->read_data(0, 0, r->width(), r->height(), img.data());
+        return img;
+      } catch (const exception_result& e) {
+
+        // exception object
+        auto eo   = e.exception();
+        auto msg  = eo->message();
+        auto erro = eo->error();
+
+        log_error("Failed to execute frame output: {}", msg);
+
+        // print additional info
+
+        if (auto err = value_cast_if<BadValueCast>(erro)) {
+          log_error(
+            "  BadValueCast: from:{}, to:{}",
+            to_string(err->from),
+            to_string(err->to));
+        }
+
+        if (auto err = value_cast_if<TypeError>(erro)) {
+          log_error(
+            "  TypeError: type:{}, t1:{}, t2:{}",
+            err->error_type,
+            to_string(err->t1),
+            to_string(err->t2));
+        }
+
+        if (auto err = value_cast_if<ResultError>(erro)) {
+          log_error("  ResultError: type:{}", err->error_type);
+        }
+
+      } catch (...) {
+        log_error("unknown exception detected during execution!");
       }
+      return std::nullopt;
+    }
 
-      bool is_running()
-      {
-        return thread.joinable();
-      }
+    void start()
+    {
+      using namespace std::chrono;
+      check_failure();
 
-    public:
-      static auto exec_frame_output(compiler::executable&& exe, yave::time t)
-        -> std::optional<image>
-      {
+      thread = std::thread([&] {
         try {
-          auto r = value_cast<FrameBuffer>(exe.execute(t));
-          // load result to host memory
-          auto img = image(r->width(), r->height(), r->format());
-          r->read_data(0, 0, r->width(), r->height(), img.data());
-          return img;
-        } catch (const exception_result& e) {
+          while (true) {
 
-          // exception object
-          auto eo   = e.exception();
-          auto msg  = eo->message();
-          auto erro = eo->error();
+            {
+              std::unique_lock lck {mtx};
+              cond.wait(lck, [&] { return terminate_flag || execute_flag; });
+            }
 
-          log_error("Failed to execute frame output: {}", msg);
+            if (terminate_flag)
+              break;
 
-          // print additional info
+            if (execute_flag) {
 
-          if (auto err = value_cast_if<BadValueCast>(erro)) {
-            log_error(
-              "  BadValueCast: from:{}, to:{}",
-              to_string(err->from),
-              to_string(err->to));
-          }
+              execute_flag = false;
 
-          if (auto err = value_cast_if<TypeError>(erro)) {
-            log_error(
-              "  TypeError: type:{}, t1:{}, t2:{}",
-              err->error_type,
-              to_string(err->t1),
-              to_string(err->t2));
-          }
+              auto run_bgn = steady_clock::now();
 
-          if (auto err = value_cast_if<ResultError>(erro)) {
-            log_error("  ResultError: type:{}", err->error_type);
-          }
+              std::optional<compiler::executable> exe;
+              {
+                auto lck = data_ctx.get_data<editor_data>();
 
-        } catch (...) {
-          log_error("unknown exception detected during execution!");
-        }
-        return std::nullopt;
-      }
+                // process pending updates
+                {
+                  auto& update_ch = lck.ref().update_channel();
+                  update_ch.apply_updates();
+                }
 
-      void start()
-      {
-        check_failure();
+                // get compiled result
+                {
+                  auto& compiler_data = lck.ref().compiler_data();
+                  if (auto&& r = compiler_data.last_executable()) {
+                    exe = r->clone();
+                  }
+                }
+              }
 
-        thread = std::thread([&] {
-          try {
-            while (true) {
+              // no compile result
+              if (!exe)
+                continue;
+
+              assert(
+                same_type(exe->type(), object_type<signal<FrameBuffer>>()));
+
+              auto bgn = high_resolution_clock::now();
+
+              // execute app tree.
+              auto img = exec_frame_output(std::move(*exe), arg_time);
+
+              auto end = high_resolution_clock::now();
+
+              auto run_end = steady_clock::now();
 
               {
-                std::unique_lock lck {mtx};
-                cond.wait(lck, [&] { return terminate_flag || execute_flag; });
-              }
+                auto lck       = data_ctx.get_data<editor_data>();
+                auto& executor = lck.ref().executor_data();
 
-              if (terminate_flag)
-                break;
-
-              if (execute_flag) {
-
-                execute_flag = false;
-
-                std::optional<compiler::executable> exe;
-                std::optional<time> time;
-                {
-                  auto lck       = data_ctx.get_data<editor_data>();
-                  auto& data     = lck.ref();
-                  auto& executor = data.execute_thread();
-                  auto& compiler = data.compile_thread();
-                  auto& updates  = data.update_channel();
-
-                  // process pending updates
-                  updates.apply_updates();
-
-                  // get compiled result
-                  if (auto&& r = compiler.executable())
-                    exe = r->clone();
-
-                  time = executor.arg_time();
-                }
-
-                // no compile result
-                if (!exe)
-                  continue;
-
-                assert(exe && time);
-
-                assert(
-                  same_type(exe->type(), object_type<signal<FrameBuffer>>()));
-
-                auto bgn = std::chrono::high_resolution_clock::now();
-
-                // execute app tree.
-                auto img = exec_frame_output(std::move(*exe), *time);
-
-                auto end = std::chrono::high_resolution_clock::now();
-
-                {
-                  auto lck       = data_ctx.get_data<editor_data>();
-                  auto& data     = lck.ref();
-                  auto& executor = data.execute_thread();
-
-                  using namespace std::chrono;
-
-                  executor.set_exec_results(
-                    {.img       = std::move(img),
-                     .duration  = duration_cast<milliseconds>(end - bgn),
-                     .timestamp = steady_clock::now()});
-                }
+                executor.set_result(
+                  {.arg_time     = arg_time,
+                   .image        = std::move(img),
+                   .compute_time = duration_cast<milliseconds>(end - bgn),
+                   .begin_time   = run_bgn,
+                   .end_time     = run_end});
               }
             }
-          } catch (...) {
-            exception = std::current_exception();
           }
-        });
-      }
+          log_info("Stopped executor thread");
+        } catch (...) {
+          log_error("Exception detected in executor thread");
+          exception = std::current_exception();
+        }
+      });
+    }
 
-      void stop()
-      {
-        check_failure();
-        terminate_flag = true;
-        cond.notify_one();
-        thread.join();
-      }
+    void stop()
+    {
+      check_failure();
+      terminate_flag = true;
+      cond.notify_one();
+      thread.join();
+    }
 
-      void notify_execute()
+    void notify_execute()
+    {
+      notify_execute(arg_time);
+    }
+
+    void notify_execute(time arg)
+    {
+      check_failure();
       {
-        check_failure();
+        auto lck     = std::unique_lock {mtx};
+        arg_time     = arg;
         execute_flag = true;
         cond.notify_one();
       }
-    };
+    }
+  };
 
-  } // namespace
+  execute_thread::execute_thread(data_context& dctx)
+    : m_pimpl {std::make_unique<impl>(dctx)}
+  {
+  }
+
+  execute_thread::execute_thread(execute_thread&&) noexcept = default;
+
+  execute_thread::~execute_thread() noexcept = default;
+
+  void execute_thread::start()
+  {
+    m_pimpl->start();
+  }
+
+  void execute_thread::stop()
+  {
+    m_pimpl->stop();
+  }
+
+  void execute_thread::notify_execute()
+  {
+    m_pimpl->notify_execute();
+  }
+
+  void execute_thread::notify_execute(time time)
+  {
+    m_pimpl->notify_execute(time);
+  }
 
   class execute_thread_data::impl
   {
-    /// execute thread
-    execute_thread m_thread;
     /// result image
     std::optional<yave::image> m_result;
     /// arg time
@@ -211,123 +250,85 @@ namespace yave::editor {
     /// duration of run
     std::chrono::milliseconds m_exec_duration;
     /// timestamp of run
-    std::chrono::steady_clock::time_point m_exec_timestamp;
+    std::chrono::steady_clock::time_point m_begin_time;
+    std::chrono::steady_clock::time_point m_end_time;
 
   public:
-    impl(data_context& dctx)
-      : m_thread {dctx}
-    {
-    }
-
-    bool is_thread_running()
-    {
-      return m_thread.is_running();
-    }
-
-    void init()
-    {
-      m_thread.start();
-    }
-
-    void deinit()
-    {
-      m_thread.stop();
-    }
-
-    void notify_execute()
-    {
-      m_thread.notify_execute();
-    }
-
-  public:
-    auto arg_time() const
+    auto last_arg_time() const
     {
       return m_arg_time;
     }
 
-    void set_arg_time(yave::time t)
-    {
-      m_arg_time = t;
-    }
-
-    auto exec_duration() const
+    auto last_compute_time() const
     {
       return m_exec_duration;
     }
 
-    auto exec_timestamp() const
+    auto last_begin_time() const
     {
-      return m_exec_timestamp;
+      return m_begin_time;
     }
 
-    auto& exec_result()
+    auto last_end_time() const
+    {
+      return m_end_time;
+    }
+
+    auto& last_result_image()
     {
       return m_result;
     }
 
-    void set_exec_results(exec_results results)
+    void set_exec_results(result_data results)
     {
-      m_result         = std::move(results.img);
-      m_exec_duration  = results.duration;
-      m_exec_timestamp = results.timestamp;
+      m_arg_time      = results.arg_time;
+      m_result        = std::move(results.image);
+      m_exec_duration = results.compute_time;
+      m_begin_time    = results.begin_time;
+      m_end_time      = results.end_time;
     }
   };
 
-  execute_thread_data::execute_thread_data(data_context& dctx)
-    : m_pimpl {std::make_unique<impl>(dctx)}
+  execute_thread_data::execute_thread_data()
+    : m_pimpl {std::make_unique<impl>()}
   {
-    // call init() to start
-    assert(!m_pimpl->is_thread_running());
   }
 
-  execute_thread_data::~execute_thread_data() noexcept
+  execute_thread_data::execute_thread_data(execute_thread_data&&) noexcept =
+    default;
+
+  execute_thread_data::~execute_thread_data() noexcept = default;
+
+  auto execute_thread_data::last_arg_time() const -> yave::time
   {
-    // deinit() should be called
-    assert(!m_pimpl->is_thread_running());
+    return m_pimpl->last_arg_time();
   }
 
-  void execute_thread_data::init()
+  auto execute_thread_data::last_compute_time() const
+    -> std::chrono::milliseconds
   {
-    m_pimpl->init();
+    return m_pimpl->last_compute_time();
   }
 
-  void execute_thread_data::deinit()
-  {
-    m_pimpl->deinit();
-  }
-
-  void execute_thread_data::notify_execute()
-  {
-    m_pimpl->notify_execute();
-  }
-
-  auto execute_thread_data::arg_time() const -> yave::time
-  {
-    return m_pimpl->arg_time();
-  }
-
-  void execute_thread_data::set_arg_time(yave::time t)
-  {
-    return m_pimpl->set_arg_time(t);
-  }
-
-  auto execute_thread_data::exec_duration() const -> std::chrono::milliseconds
-  {
-    return m_pimpl->exec_duration();
-  }
-
-  auto execute_thread_data::exec_timestamp() const
+  auto execute_thread_data::last_begin_time() const
     -> std::chrono::steady_clock::time_point
   {
-    return m_pimpl->exec_timestamp();
+    return m_pimpl->last_begin_time();
   }
 
-  auto execute_thread_data::exec_result() -> std::optional<yave::image>&
+  auto execute_thread_data::last_end_time() const
+    -> std::chrono::steady_clock::time_point
   {
-    return m_pimpl->exec_result();
+    return m_pimpl->last_end_time();
   }
 
-  void execute_thread_data::set_exec_results(exec_results results)
+  auto execute_thread_data::last_result_image() const
+    -> const std::optional<yave::image>&
+  {
+    return m_pimpl->last_result_image();
+  }
+
+  void execute_thread_data::set_result(result_data results)
   {
     m_pimpl->set_exec_results(std::move(results));
   }

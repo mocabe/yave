@@ -18,51 +18,50 @@ YAVE_DECL_LOCAL_LOGGER(compile_thread)
 
 namespace yave::editor {
 
-  namespace {
+  class compile_thread::impl
+  {
+  private:
+    data_context& data_ctx;
 
-    class compile_thread
+  private:
+    std::thread thread;
+    std::mutex mtx;
+    std::condition_variable cond;
+
+  private:
+    std::atomic<bool> terminate_flag = false;
+    std::atomic<bool> recompile_flag = false;
+
+  private:
+    std::exception_ptr exception;
+
+    void check_failure()
     {
-    private:
-      data_context& data_ctx;
-
-    private:
-      std::thread thread;
-      std::mutex mtx;
-      std::condition_variable cond;
-
-    private:
-      std::atomic<bool> terminate_flag = false;
-      std::atomic<bool> recompile_flag = false;
-
-    private:
-      std::exception_ptr exception;
-
-      void check_failure()
-      {
-        if (!thread.joinable()) {
-          if (exception != nullptr) {
-            throw compile_thread_failure(exception);
-          }
+      if (!thread.joinable()) {
+        if (exception != nullptr) {
+          throw compile_thread_failure(exception);
         }
       }
+    }
 
-    public:
-      compile_thread(data_context& dctx)
-        : data_ctx {dctx}
-      {
-      }
+  public:
+    impl(data_context& dctx)
+      : data_ctx {dctx}
+    {
+    }
 
-      bool is_running() const
-      {
-        return thread.joinable();
-      }
+    bool is_running() const
+    {
+      return thread.joinable();
+    }
 
-    public:
-      void start()
-      {
-        check_failure();
+  public:
+    void start()
+    {
+      check_failure();
 
-        thread = std::thread([&]() {
+      thread =
+        std::thread([&]() {
           try {
             while (true) {
 
@@ -81,11 +80,10 @@ namespace yave::editor {
 
                 // initialize compiler pipeilne
                 auto init_pipeline = [&] {
-                  auto lck       = data_ctx.get_data<editor_data>();
-                  auto& data     = lck.ref();
-                  auto& compiler = data.compile_thread();
+                  auto lck   = data_ctx.get_data<editor_data>();
+                  auto& data = lck.ref().compiler_data();
 
-                  compiler.clear_results();
+                  data.clear_results();
 
                   auto pipeline = compiler::init_pipeline();
 
@@ -124,9 +122,8 @@ namespace yave::editor {
 
                 // process compiler output
                 auto process_output = [&](compiler::pipeline& pipeline) {
-                  auto lck       = data_ctx.get_data<editor_data>();
-                  auto& data     = lck.ref();
-                  auto& compiler = data.compile_thread();
+                  auto lck   = data_ctx.get_data<editor_data>();
+                  auto& data = lck.ref().compiler_data();
 
                   auto& msgs =
                     pipeline.get_data<compiler::message_map>("msg_map");
@@ -137,16 +134,21 @@ namespace yave::editor {
 
                     auto& exe = pipeline.get_data<compiler::executable>("exe");
 
-                    compiler.set_results(
-                      {.messages = std::move(msgs), .exe = std::move(exe)});
-
-                    data.execute_thread().notify_execute();
+                    data.set_results(
+                      {.last_msg = std::move(msgs),
+                       .last_exe = std::move(exe)});
 
                   } else {
                     log_info("Compile Failed");
 
-                    compiler.set_results({.messages = std::move(msgs)});
+                    data.set_results(
+                      {.last_msg = std::move(msgs), .last_exe = {}});
                   }
+                };
+
+                auto notify_execute = [&](auto&) {
+                  auto lck = data_ctx.get_data<execute_thread>();
+                  lck.ref().notify_execute();
                 };
 
                 auto pipeline = init_pipeline();
@@ -157,136 +159,118 @@ namespace yave::editor {
                   .and_then(sema)
                   .and_then(verify)
                   .and_then(optimize)
-                  .apply(process_output);
+                  .apply(process_output)
+                  .and_then(notify_execute);
               }
             }
+            log_info("Stopped compiler thread");
           } catch (...) {
             log_error("Exception detected in compile thread");
             exception = std::current_exception();
           }
         });
-      }
+    }
 
-      void stop()
-      {
-        check_failure();
-        terminate_flag = true;
-        cond.notify_one();
-        thread.join();
-      }
+    void stop()
+    {
+      check_failure();
+      terminate_flag = true;
+      cond.notify_one();
+      thread.join();
+    }
 
-      void notify_recompile()
-      {
-        check_failure();
-        recompile_flag = true;
-        cond.notify_one();
-      }
-    };
-  } // namespace
+    void notify_compile()
+    {
+      check_failure();
+      recompile_flag = true;
+      cond.notify_one();
+    }
+  };
+
+  compile_thread::compile_thread(data_context& dctx)
+    : m_pimpl {std::make_unique<impl>(dctx)}
+  {
+  }
+
+  compile_thread::compile_thread(compile_thread&&) noexcept = default;
+
+  compile_thread::~compile_thread() noexcept = default;
+
+  void compile_thread::start()
+  {
+    m_pimpl->start();
+  }
+
+  void compile_thread::stop()
+  {
+    m_pimpl->stop();
+  }
+
+  void compile_thread::notify_compile()
+  {
+    m_pimpl->notify_compile();
+  }
 
   class compile_thread_data::impl
   {
-    /// thread
-    compile_thread m_thread;
     /// compile result
-    compiler::message_map m_messages;
+    compiler::message_map m_last_msg;
     /// result
-    std::optional<compiler::executable> m_exe;
+    std::optional<compiler::executable> m_last_exe;
 
   public:
-    impl(data_context& dctx)
-      : m_thread {dctx}
+    auto& last_message() const
     {
+      return m_last_msg;
     }
 
-    bool is_thread_running() const
+    auto& last_executable()
     {
-      return m_thread.is_running();
-    }
-
-  public:
-    void init()
-    {
-      m_thread.start();
-    }
-
-    void deinit()
-    {
-      m_thread.stop();
-    }
-
-    void notify_recompile()
-    {
-      m_thread.notify_recompile();
-    }
-
-    auto& messages() const
-    {
-      return m_messages;
-    }
-
-    auto& executable()
-    {
-      return m_exe;
+      return m_last_exe;
     }
 
     void clear_results()
     {
-      m_messages = {};
-      m_exe      = std::nullopt;
+      m_last_msg = {};
+      m_last_exe = std::nullopt;
     }
 
     void set_results(compile_results results)
     {
-      m_messages = std::move(results.messages);
-      m_exe      = std::move(results.exe);
+      m_last_msg = std::move(results.last_msg);
+      m_last_exe = std::move(results.last_exe);
     }
   };
 
-  compile_thread_data::compile_thread_data(data_context& dctx)
-    : m_pimpl {std::make_unique<impl>(dctx)}
+  compile_thread_data::compile_thread_data()
+    : m_pimpl {std::make_unique<impl>()}
   {
-    assert(!m_pimpl->is_thread_running());
   }
 
-  compile_thread_data::~compile_thread_data() noexcept
+  compile_thread_data::compile_thread_data(compile_thread_data&&) noexcept =
+    default;
+
+  compile_thread_data::~compile_thread_data() noexcept = default;
+
+  auto compile_thread_data::last_message() const -> const compiler::message_map&
   {
-    assert(!m_pimpl->is_thread_running());
+    return m_pimpl->last_message();
   }
 
-  void compile_thread_data::init()
+  auto compile_thread_data::last_executable() const
+    -> const std::optional<compiler::executable>&
   {
-    m_pimpl->init();
-  }
-
-  void compile_thread_data::deinit()
-  {
-    m_pimpl->deinit();
-  }
-
-  void compile_thread_data::notify_recompile()
-  {
-    m_pimpl->notify_recompile();
-  }
-
-  auto compile_thread_data::messages() const -> const compiler::message_map&
-  {
-    return m_pimpl->messages();
-  }
-
-  auto compile_thread_data::executable() -> std::optional<compiler::executable>&
-  {
-    return m_pimpl->executable();
-  }
-
-  void compile_thread_data::clear_results()
-  {
-    m_pimpl->clear_results();
+    return m_pimpl->last_executable();
   }
 
   void compile_thread_data::set_results(compile_results results)
   {
     m_pimpl->set_results(std::move(results));
+  }
+
+  void compile_thread_data::clear_results()
+  {
+    m_pimpl->clear_results();
   }
 
 } // namespace yave::editor

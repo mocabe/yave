@@ -33,47 +33,58 @@ namespace yave::editor {
     }
   };
 
-  /// compile thread
+  /// compile thread interface
+  class compile_thread
+  {
+    class impl;
+    std::unique_ptr<impl> m_pimpl;
+
+  public:
+    compile_thread(data_context& dctx);
+    compile_thread(compile_thread&&) noexcept;
+    ~compile_thread() noexcept;
+
+  public:
+    /// initialize compile thread.
+    /// should be called after constructing related data.
+    void start();
+
+    /// deinit compile thread.
+    /// should be called before destructing related data.
+    void stop();
+
+    /// recompile graph
+    void notify_compile();
+  };
+
+  /// compile thread data
   class compile_thread_data
   {
     class impl;
     std::unique_ptr<impl> m_pimpl;
 
   public:
-    compile_thread_data(data_context& dctx);
+    compile_thread_data();
+    compile_thread_data(compile_thread_data&&) noexcept;
     ~compile_thread_data() noexcept;
 
   public:
-    /// initialize compile thread.
-    /// should be called after constructing related data.
-    void init();
-
-    /// deinit compile thread.
-    /// should be called before destructing related data.
-    void deinit();
-
-  public:
-    /// recompile graph
-    void notify_recompile();
-
     /// get compile message
-    auto messages() const -> const compiler::message_map&;
+    auto last_message() const -> const compiler::message_map&;
 
     /// get executable
-    auto executable() -> std::optional<compiler::executable>&;
+    auto last_executable() const -> const std::optional<compiler::executable>&;
 
-  public:
-    /// clear compile results
-    void clear_results();
+  private:
+    friend class compile_thread;
 
     struct compile_results
     {
-      compiler::message_map messages;
-      std::optional<compiler::executable> exe;
+      compiler::message_map last_msg;
+      std::optional<compiler::executable> last_exe;
     };
-
-    /// set results
     void set_results(compile_results results);
+    void clear_results();
   };
 
 } // namespace yave::editor

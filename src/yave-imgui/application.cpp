@@ -42,6 +42,8 @@ namespace yave::editor::imgui {
 
   public:
     void init_data();
+    void init_threads();
+    void deinit_threads();
     void deinit_data();
   };
 
@@ -58,17 +60,40 @@ namespace yave::editor::imgui {
 
     data.load_modules({{modules::_std::module_name}});
     data.init_modules(data.scene_config());
-    data.init_threads();
+  }
 
-    data.compile_thread().notify_recompile();
+  void application::impl::init_threads()
+  {
+    data_ctx.add_data(compile_thread(data_ctx));
+    data_ctx.add_data(execute_thread(data_ctx));
+
+    {
+      auto lck = data_ctx.get_data<execute_thread>();
+      lck.ref().start();
+    }
+    {
+      auto lck = data_ctx.get_data<compile_thread>();
+      lck.ref().start();
+      lck.ref().notify_compile();
+    }
+  }
+
+  void application::impl::deinit_threads()
+  {
+    {
+      auto lck = data_ctx.get_data<compile_thread>();
+      lck.ref().stop();
+    }
+    {
+      auto lck = data_ctx.get_data<execute_thread>();
+      lck.ref().stop();
+    }
   }
 
   void application::impl::deinit_data()
   {
     auto lck   = data_ctx.get_data<editor_data>();
     auto& data = lck.ref();
-
-    data.deinit_threads();
     data.deinit_modules();
     data.unload_modules();
   }
@@ -80,6 +105,7 @@ namespace yave::editor::imgui {
     , view_ctx {data_ctx}
   {
     init_data();
+    init_threads();
 
     // root window
     view_ctx.window_manager().root()->add_window(
@@ -88,6 +114,7 @@ namespace yave::editor::imgui {
 
   application::impl::~impl() noexcept
   {
+    deinit_threads();
     deinit_data();
   }
 

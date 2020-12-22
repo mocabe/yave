@@ -68,7 +68,7 @@ namespace yave::editor::imgui {
       auto& data = lck.ref();
       auto& ng   = data.node_graph();
 
-      auto& msgs = data.compile_thread().messages();
+      auto& msgs = data.compiler_data().last_message();
 
       for (auto&& msg : msgs.get_results(ng, s)) {
 

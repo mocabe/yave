@@ -29,7 +29,7 @@ namespace yave::editor {
     std::unique_ptr<impl> m_pimpl;
 
   public:
-    editor_data(data_context& dctx);
+    editor_data(data_context &dctx);
     ~editor_data() noexcept;
     editor_data(editor_data &&) noexcept;
     editor_data(const editor_data &) = delete;
@@ -47,10 +47,6 @@ namespace yave::editor {
     void update_modules(const yave::scene_config &sfg);
     /// deinit moudles
     void deinit_modules();
-    /// init task threads
-    void init_threads();
-    /// deinit task threads
-    void deinit_threads();
 
   public: /* main */
     /// name
@@ -73,12 +69,12 @@ namespace yave::editor {
     auto root_group() -> node_handle &;
 
   public:
-    /// compiler interface
-    auto compile_thread() -> compile_thread_data &;
-    auto compile_thread() const -> const compile_thread_data &;
-    /// executor interface
-    auto execute_thread() -> execute_thread_data &;
-    auto execute_thread() const -> const execute_thread_data &;
+    /// compiler data
+    auto compiler_data() -> compile_thread_data &;
+    auto compiler_data() const -> const compile_thread_data &;
+    /// executor data
+    auto executor_data() -> execute_thread_data &;
+    auto executor_data() const -> const execute_thread_data &;
 
   public:
     /// update channel
