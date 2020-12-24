@@ -14,7 +14,7 @@ If you have any problem, report issue or ask on gitter.
 ## Motivation
 
 Procedural content creation with node based visual programming languages are becoming popular in audio and graphics domain because of its flexibility and usability for artists.  
-In node based languages, you need to define how data will be transformed into final output by using data flow graph, which is quite easy to understand even for non-programmers.  
+In node based languages, you can define how data will be transformed into final output by using data flow graph, which is quite easy to understand even for non-programmers.  
 However, composing values which *change over time* (like animations) in node based languages is not trivial. This is because you need to calculate *how* current time maps to value rather than *what* kind of operation you want to apply to time related to values. This is different from popular editing paradigm based on *declarative* time manipulation, which allows you to compose values in the time domain easily.  
 This has been a known problem in functional programming community, and they found elegant solution by using higher-order functions which commonly known as `Functional Reactive Programming (FRP)`.  
 FRP was introduced for declarative programming paradigm for animations, then its target was shifted to real time applications like GUI.  
@@ -28,14 +28,14 @@ This project is aiming for incorporating core concept of FRP into end user progr
   * Recursion is currently not supported to avoid infinite loops. It is recommended to implement your recursive algorithm in C++ (which is much faster) or use higher-order combinators.
 
 * Reactivity and declarative time manipulation
-  * `YAVE` is based on *functional reactive programming (FRP)*. All node functions are internally represented as *signal function (`SF a b`)*.
+  * `YAVE` is based on *functional reactive programming (FRP)*. All node functions are internally represented as function over *Behaviours* (time-varying values).
   * FRP enables you to transform any value over time from caller side. For example, you can make single animation and combine them with different time scales/delays without modifying original animation.
   * For example, `Time.ReTime` is low-level primitive which transform *time* of value.
   * Another example is `Animation` nodes, which provide abstraction for values with time interval. You can apply various temporal transformations like scale, extend, concat, merge, etc. 
 
 * Type system
   * `YAVE` is statically typed language.
-  * Type system of `YAVE` is based on classic Hindly-Milner type inference, with some extension to support ad-hoc overloading.
+  * Type system of `YAVE` is based on classic Hindley-Milner type inference, with some extension to support ad-hoc overloading.
   * Type errors are currently displayed very poorly. I'm planning to improve that.
 
 * Fully interoperable with C++
