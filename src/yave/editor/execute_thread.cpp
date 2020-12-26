@@ -20,11 +20,13 @@ YAVE_DECL_LOCAL_LOGGER(execute_thread);
 
 namespace yave::editor {
 
+  using namespace std::chrono;
+
   /// internal task thread for execution
   class execute_thread::impl
   {
   private:
-    data_context& data_ctx;
+    data_context& dctx;
 
   private:
     std::thread thread;
@@ -38,9 +40,6 @@ namespace yave::editor {
   private:
     std::exception_ptr exception;
 
-  private:
-    time arg_time;
-
     void check_failure()
     {
       if (!thread.joinable()) {
@@ -53,7 +52,7 @@ namespace yave::editor {
 
   public:
     impl(data_context& dctx)
-      : data_ctx {dctx}
+      : dctx {dctx}
     {
     }
 
@@ -64,14 +63,18 @@ namespace yave::editor {
 
   public:
     static auto exec_frame_output(compiler::executable&& exe, yave::time t)
-      -> std::optional<image>
+      -> std::shared_ptr<const image>
     {
       try {
+
         auto r = value_cast<FrameBuffer>(exe.execute(t));
         // load result to host memory
-        auto img = image(r->width(), r->height(), r->format());
-        r->read_data(0, 0, r->width(), r->height(), img.data());
+        auto img =
+          std::make_shared<image>(r->width(), r->height(), r->format());
+        r->read_data(0, 0, r->width(), r->height(), img->data());
+
         return img;
+
       } catch (const exception_result& e) {
 
         // exception object
@@ -105,12 +108,11 @@ namespace yave::editor {
       } catch (...) {
         log_error("unknown exception detected during execution!");
       }
-      return std::nullopt;
+      return nullptr;
     }
 
     void start()
     {
-      using namespace std::chrono;
       check_failure();
 
       thread = std::thread([&] {
@@ -131,51 +133,97 @@ namespace yave::editor {
 
               auto run_bgn = steady_clock::now();
 
-              std::optional<compiler::executable> exe;
-              {
-                auto lck = data_ctx.get_data<editor_data>();
+              // time argument
+              auto arg_time = yave::time();
+              // end of continuous exec time window
+              auto end_limit = steady_clock::time_point();
+
+              auto exe = [&]() -> std::optional<compiler::executable> {
+                auto lck       = dctx.get_data<editor_data>();
+                auto& updater  = lck.ref().update_channel();
+                auto& compiler = lck.ref().compiler_data();
+                auto& executor = lck.ref().executor_data();
+                auto& scene    = lck.ref().scene_config();
 
                 // process pending updates
-                {
-                  auto& update_ch = lck.ref().update_channel();
-                  update_ch.apply_updates();
+                updater.apply_updates();
+
+                // get next arg time
+                arg_time = executor.arg_time();
+
+                // handle continuous/loop execution
+                if (executor.continuous_execution()) {
+
+                  if (arg_time == executor.last_arg_time()) {
+
+                    // advance arg time
+                    auto fps = scene.frame_rate();
+                    auto dt  = time::seconds(1) / fps;
+                    arg_time += dt;
+
+                    assert(time::is_compatible_rate(fps));
+
+                    // set wait time for next run
+                    end_limit =
+                      executor.last_end_time()
+                      + duration_cast<steady_clock::duration>(seconds(1)) / fps;
+                  }
+
+                  // loop range
+                  if (executor.loop_execution()) {
+                    if (arg_time < executor.loop_range_min())
+                      arg_time = executor.loop_range_min();
+                    if (arg_time > executor.loop_range_max())
+                      arg_time = executor.loop_range_min();
+                  }
                 }
 
                 // get compiled result
-                {
-                  auto& compiler_data = lck.ref().compiler_data();
-                  if (auto&& r = compiler_data.last_executable()) {
-                    exe = r->clone();
-                  }
+                if (auto&& r = compiler.last_executable()) {
+                  executor.set_arg_time(arg_time);
+                  return r->clone();
                 }
-              }
+
+                return std::nullopt;
+              }();
 
               // no compile result
-              if (!exe)
+              if (!exe) {
                 continue;
+              }
 
               assert(
                 same_type(exe->type(), object_type<signal<FrameBuffer>>()));
 
-              auto bgn = high_resolution_clock::now();
-
               // execute app tree.
               auto img = exec_frame_output(std::move(*exe), arg_time);
 
-              auto end = high_resolution_clock::now();
-
               auto run_end = steady_clock::now();
+              auto compute_time =
+                duration_cast<milliseconds>(run_end - run_bgn);
+
+              // continuous: limit frame rate.
+              // TODO: use more accurate timer, or busy loop
+              if (run_end < end_limit) {
+                std::this_thread::sleep_for(end_limit - run_end);
+                run_end = end_limit;
+              }
 
               {
-                auto lck       = data_ctx.get_data<editor_data>();
+                auto lck       = dctx.get_data<editor_data>();
                 auto& executor = lck.ref().executor_data();
+                auto& scene    = lck.ref().scene_config();
 
                 executor.set_result(
                   {.arg_time     = arg_time,
-                   .image        = std::move(img),
-                   .compute_time = duration_cast<milliseconds>(end - bgn),
+                   .image        = img,
+                   .compute_time = compute_time,
                    .begin_time   = run_bgn,
                    .end_time     = run_end});
+
+                if (executor.continuous_execution()) {
+                  execute_flag = true;
+                }
               }
             }
           }
@@ -197,18 +245,9 @@ namespace yave::editor {
 
     void notify_execute()
     {
-      notify_execute(arg_time);
-    }
-
-    void notify_execute(time arg)
-    {
       check_failure();
-      {
-        auto lck     = std::unique_lock {mtx};
-        arg_time     = arg;
-        execute_flag = true;
-        cond.notify_one();
-      }
+      execute_flag = true;
+      cond.notify_one();
     }
   };
 
@@ -236,57 +275,20 @@ namespace yave::editor {
     m_pimpl->notify_execute();
   }
 
-  void execute_thread::notify_execute(time time)
-  {
-    m_pimpl->notify_execute(time);
-  }
-
   class execute_thread_data::impl
   {
-    /// result image
-    std::optional<yave::image> m_result;
-    /// arg time
-    yave::time m_arg_time;
-    /// duration of run
-    std::chrono::milliseconds m_exec_duration;
-    /// timestamp of run
-    std::chrono::steady_clock::time_point m_begin_time;
-    std::chrono::steady_clock::time_point m_end_time;
-
   public:
-    auto last_arg_time() const
-    {
-      return m_arg_time;
-    }
+    yave::time arg_time;
+    yave::time loop_range_min;
+    yave::time loop_range_max;
+    bool continuous_execution = false;
+    bool loop_execution       = false;
 
-    auto last_compute_time() const
-    {
-      return m_exec_duration;
-    }
-
-    auto last_begin_time() const
-    {
-      return m_begin_time;
-    }
-
-    auto last_end_time() const
-    {
-      return m_end_time;
-    }
-
-    auto& last_result_image()
-    {
-      return m_result;
-    }
-
-    void set_exec_results(result_data results)
-    {
-      m_arg_time      = results.arg_time;
-      m_result        = std::move(results.image);
-      m_exec_duration = results.compute_time;
-      m_begin_time    = results.begin_time;
-      m_end_time      = results.end_time;
-    }
+    std::shared_ptr<const yave::image> last_image;
+    yave::time last_arg_time;
+    std::chrono::milliseconds last_compute_time;
+    std::chrono::steady_clock::time_point last_begin_time;
+    std::chrono::steady_clock::time_point last_end_time;
   };
 
   execute_thread_data::execute_thread_data()
@@ -299,38 +301,94 @@ namespace yave::editor {
 
   execute_thread_data::~execute_thread_data() noexcept = default;
 
+  auto execute_thread_data::arg_time() const -> yave::time
+  {
+    return m_pimpl->arg_time;
+  }
+
+  void execute_thread_data::set_arg_time(yave::time t)
+  {
+    if (time::zero() <= t) {
+      m_pimpl->arg_time = t;
+    }
+  }
+
+  bool execute_thread_data::continuous_execution() const
+  {
+    return m_pimpl->continuous_execution;
+  }
+
+  void execute_thread_data::set_continuous_execution(bool b)
+  {
+    m_pimpl->continuous_execution = b;
+  }
+
+  auto execute_thread_data::loop_range_min() const -> yave::time
+  {
+    return m_pimpl->loop_range_min;
+  }
+
+  auto execute_thread_data::loop_range_max() const -> yave::time
+  {
+    return m_pimpl->loop_range_max;
+  }
+
+  void execute_thread_data::set_loop_range(yave::time min, yave::time max)
+  {
+    if (time::zero() <= min && min <= max) {
+      m_pimpl->loop_range_min = min;
+      m_pimpl->loop_range_max = max;
+    }
+  }
+
+  bool execute_thread_data::loop_execution() const
+  {
+    return m_pimpl->loop_execution;
+  }
+
+  void execute_thread_data::set_loop_execution(bool b)
+  {
+    m_pimpl->loop_execution = b;
+  }
+
   auto execute_thread_data::last_arg_time() const -> yave::time
   {
-    return m_pimpl->last_arg_time();
+    return m_pimpl->last_arg_time;
   }
 
   auto execute_thread_data::last_compute_time() const
     -> std::chrono::milliseconds
   {
-    return m_pimpl->last_compute_time();
+    return m_pimpl->last_compute_time;
   }
 
   auto execute_thread_data::last_begin_time() const
     -> std::chrono::steady_clock::time_point
   {
-    return m_pimpl->last_begin_time();
+    return m_pimpl->last_begin_time;
   }
 
   auto execute_thread_data::last_end_time() const
     -> std::chrono::steady_clock::time_point
   {
-    return m_pimpl->last_end_time();
+    return m_pimpl->last_end_time;
   }
 
   auto execute_thread_data::last_result_image() const
-    -> const std::optional<yave::image>&
+    -> std::shared_ptr<const yave::image>
   {
-    return m_pimpl->last_result_image();
+    return m_pimpl->last_image;
   }
 
   void execute_thread_data::set_result(result_data results)
   {
-    m_pimpl->set_exec_results(std::move(results));
+    auto& impl = *m_pimpl;
+
+    impl.last_arg_time     = results.arg_time;
+    impl.last_image        = results.image;
+    impl.last_compute_time = results.compute_time;
+    impl.last_begin_time   = results.begin_time;
+    impl.last_end_time     = results.end_time;
   }
 
 } // namespace yave::editor

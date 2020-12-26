@@ -10,7 +10,7 @@
 #include <yave/lib/time/time.hpp>
 #include <yave/lib/image/image.hpp>
 
-#include <optional>
+#include <memory>
 
 namespace yave::editor {
 
@@ -55,9 +55,6 @@ namespace yave::editor {
 
     /// async execute with current arg time.
     void notify_execute();
-
-    /// async execute with new arg time.
-    void notify_execute(time time);
   };
 
   /// Execute thread data
@@ -71,11 +68,33 @@ namespace yave::editor {
     execute_thread_data(execute_thread_data&&) noexcept;
     ~execute_thread_data() noexcept;
 
+    /// get current argument time
+    auto arg_time() const -> yave::time;
+    /// set current argument time
+    void set_arg_time(yave::time t);
+
+    /// is continuous execution enabled?
+    bool continuous_execution() const;
+    /// set continuous execution flag
+    void set_continuous_execution(bool b);
+
+    /// get loop range
+    auto loop_range_min() const -> yave::time;
+    /// get loop range
+    auto loop_range_max() const -> yave::time;
+    /// set loop range
+    void set_loop_range(yave::time min, yave::time max);
+
+    /// is loop execution enabled?
+    bool loop_execution() const;
+    /// set loop execution flag
+    void set_loop_execution(bool b);
+
     /// get time argument to execute.
     auto last_arg_time() const -> yave::time;
 
     /// get result of last execution
-    auto last_result_image() const -> const std::optional<image>&;
+    auto last_result_image() const -> std::shared_ptr<const image>;
 
     /// get timestamp of last execution begin
     auto last_begin_time() const -> std::chrono::steady_clock::time_point;
@@ -90,7 +109,7 @@ namespace yave::editor {
     struct result_data
     {
       time arg_time;
-      std::optional<yave::image> image;
+      std::shared_ptr<const yave::image> image;
       std::chrono::milliseconds compute_time;
       std::chrono::steady_clock::time_point begin_time;
       std::chrono::steady_clock::time_point end_time;
