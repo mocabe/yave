@@ -42,12 +42,15 @@ namespace yave::editor::imgui {
 
   void dcmd_notify_execute::exec(data_context& ctx)
   {
-    auto lck = ctx.get_data<execute_thread>();
+    if (m_time) {
+      auto lck = ctx.get_data<editor_data>();
+      lck.ref().executor_data().set_arg_time(*m_time);
+    }
 
-    if (m_time)
-      lck.ref().notify_execute(*m_time);
-    else
+    {
+      auto lck = ctx.get_data<execute_thread>();
       lck.ref().notify_execute();
+    }
   }
 
   void dcmd_notify_execute::undo(data_context& /*ctx*/)
