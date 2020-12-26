@@ -11,6 +11,7 @@
 #include <yave/lib/imgui/imgui_context.hpp>
 #include <yave/lib/image/image_format.hpp>
 #include <yave/lib/time/time.hpp>
+#include <yave/lib/image/image.hpp>
 
 namespace yave::editor {
 
@@ -35,6 +36,7 @@ namespace yave::editor {
     // for execution
     yave::time arg_time                                 = {};
     yave::time last_arg_time                            = {};
+    std::shared_ptr<const yave::image> last_result      = {};
     std::chrono::steady_clock::time_point last_exec_bgn = {};
     std::chrono::steady_clock::time_point last_exec_end = {};
     std::chrono::nanoseconds last_compute_time          = {};

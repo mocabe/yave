@@ -57,37 +57,51 @@ namespace yave::editor {
   {
     (void)view_ctx;
 
-    auto lck   = data_ctx.get_data<editor_data>();
-    auto& data = lck.ref();
+    bool updated = false;
+    {
+      auto lck   = data_ctx.get_data<editor_data>();
+      auto& data = lck.ref();
 
-    auto& executor     = data.executor_data();
-    auto& scene_config = data.scene_config();
+      auto& executor     = data.executor_data();
+      auto& scene_config = data.scene_config();
 
-    width        = scene_config.width();
-    height       = scene_config.height();
-    frame_format = scene_config.frame_format();
-    current_fps  = data.scene_config().frame_rate();
+      width        = scene_config.width();
+      height       = scene_config.height();
+      frame_format = scene_config.frame_format();
+      current_fps  = data.scene_config().frame_rate();
 
-    // no update
-    if (executor.last_end_time() <= last_exec_end)
-      return;
+      arg_time = executor.arg_time();
 
-    // take execution result
-    if (auto&& fb = executor.last_result_image()) {
+      // no update
+      if (executor.last_end_time() <= last_exec_end)
+        return;
+
+      // take execution result
+      if (auto&& fb = executor.last_result_image()) {
+        last_result       = executor.last_result_image();
+        last_arg_time     = executor.last_arg_time();
+        last_exec_bgn     = executor.last_begin_time();
+        last_exec_end     = executor.last_end_time();
+        last_compute_time = executor.last_compute_time();
+        updated           = true;
+      }
+    }
+
+    // make texture for result
+    // TODO: reuse Vulkan texture output from executor (requires unified frame
+    // buffer handling).
+    if (updated) {
+
+      auto& img = *last_result;
 
       if (!res_tex_id) {
         res_tex_data = imgui_ctx.create_texture(
-          {fb->width(), fb->height()}, vk::Format::eR32G32B32A32Sfloat);
+          {img.width(), img.height()}, vk::Format::eR32G32B32A32Sfloat);
         res_tex_id = imgui_ctx.bind_texture(res_tex_data);
       }
 
       imgui_ctx.write_texture(
-        res_tex_data, {0, 0}, res_tex_data.extent, fb->data());
-
-      last_arg_time     = executor.last_arg_time();
-      last_exec_bgn     = executor.last_begin_time();
-      last_exec_end     = executor.last_end_time();
-      last_compute_time = executor.last_compute_time();
+        res_tex_data, {0, 0}, res_tex_data.extent, img.data());
     }
   }
 
@@ -156,47 +170,19 @@ namespace yave::editor {
       ImGui::EndChild();
       ImGui::PopStyleColor();
 
-      auto fargt = static_cast<float>(arg_time.seconds().count());
+      auto farg_time       = static_cast<float>(arg_time.seconds().count());
+      auto farg_time_input = farg_time;
       ImGui::PushItemWidth(-1);
-      ImGui::SliderFloat("s", &fargt, 0, 30);
+      ImGui::SliderFloat("s", &farg_time_input, 0, 30);
       ImGui::PopItemWidth();
 
-      // new arg time
-      auto argt = time::seconds(fargt);
-
-      data_ctx.cmd(make_data_command([=](auto& ctx) {
-        auto lck = ctx.template get_data<editor_data>();
-
-        // render new frame
-        if (argt != last_arg_time) {
-          ctx.cmd(std::make_unique<imgui::dcmd_notify_execute>(argt));
-          return;
-        }
-
-        // next frame for continuous execution
-        if (continuous_execution) {
-
-          auto delta = time::seconds(1) / static_cast<double>(current_fps);
-          auto since = steady_clock::now() - last_exec_bgn;
-
-          // fps limit re-execution
-          if (since < delta) {
-            return;
-          }
-
-          auto next_time = last_arg_time + delta;
-
-          // loop back to min
-          if (loop_execution) {
-            if (loop_time_max < next_time)
-              next_time = loop_time_min;
-          }
-          ctx.cmd(std::make_unique<imgui::dcmd_notify_execute>(next_time));
-        }
-      }));
+      // render new frame
+      if (farg_time_input != farg_time) {
+        data_ctx.cmd(std::make_unique<imgui::dcmd_notify_execute>(
+          time::seconds(farg_time_input)));
+      }
 
       view_ctx.cmd(make_window_view_command(*this, [=](auto& w) {
-        w.arg_time   = argt;
         w.tex_scroll = scroll;
         w.tex_scale  = scale;
       }));
