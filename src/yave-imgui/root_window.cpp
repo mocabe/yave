@@ -6,6 +6,7 @@
 #include <yave-imgui/root_window.hpp>
 #include <yave-imgui/node_window.hpp>
 #include <yave-imgui/render_view_window.hpp>
+#include <yave-imgui/info_window.hpp>
 
 #include <yave-imgui/data_commands.hpp>
 
@@ -32,6 +33,12 @@ namespace yave::editor::imgui {
     { // render view
       auto w      = std::make_unique<render_view_window>(im);
       render_view = w.get();
+      add_any_window(children().end(), std::move(w));
+    }
+
+    { // info view
+      auto w    = std::make_unique<info_window>();
+      info_view = w.get();
       add_any_window(children().end(), std::move(w));
     }
   }
@@ -261,27 +268,33 @@ namespace yave::editor::imgui {
       return;
     }
 
-    auto dockid = ImGui::GetID("root_dockspace");
+    auto dock_root = ImGui::GetID("root_dockspace");
 
-    ImGui::DockBuilderRemoveNode(dockid);
-    ImGui::DockBuilderAddNode(dockid, ImGuiDockNodeFlags_DockSpace);
-    ImGui::DockBuilderSetNodeSize(dockid, ImGui::GetWindowSize());
+    ImGui::DockBuilderRemoveNode(dock_root);
+    ImGui::DockBuilderAddNode(dock_root, ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dock_root, ImGui::GetWindowSize());
 
-    auto dock_main = dockid;
+    ImGuiID dock_node;
+    ImGuiID dock_render;
+    ImGuiID dock_info;
 
-    auto dock_bottom = ImGui::DockBuilderSplitNode(
-      dock_main, ImGuiDir_Down, 0.5f, nullptr, &dock_main);
+    ImGui::DockBuilderSplitNode(
+      dock_root, ImGuiDir_Down, 0.5f, &dock_node, &dock_render);
 
-    // windows
-    ImGui::DockBuilderDockWindow(node_canvas->name().c_str(), dock_bottom);
-    ImGui::DockBuilderDockWindow(render_view->name().c_str(), dock_main);
-    ImGui::DockBuilderFinish(dockid);
+    ImGui::DockBuilderSplitNode(
+      dock_render, ImGuiDir_Left, 0.2f, &dock_info, &dock_render);
 
-    ImGui::DockSpace(dockid);
+    // layout windows
+    ImGui::DockBuilderDockWindow(node_canvas->name().c_str(), dock_node);
+    ImGui::DockBuilderDockWindow(render_view->name().c_str(), dock_render);
+    ImGui::DockBuilderDockWindow(info_view->name().c_str(), dock_info);
+    ImGui::DockBuilderFinish(dock_root);
 
-    vctx.cmd(make_window_view_command(*this, [dockid](auto& w) {
+    ImGui::DockSpace(dock_root);
+
+    vctx.cmd(make_window_view_command(*this, [=](auto& w) {
       w.layout_init  = true;
-      w.dockspace_id = dockid;
+      w.dockspace_id = dock_root;
     }));
   }
 

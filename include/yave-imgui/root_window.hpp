@@ -27,6 +27,7 @@ namespace yave::editor::imgui {
     // child window refs
     wm::window* node_canvas;
     wm::window* render_view;
+    wm::window* info_view;
 
     bool open_save_modal  = false;
     bool open_load_modal  = false;
