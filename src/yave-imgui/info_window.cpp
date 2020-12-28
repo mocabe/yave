@@ -41,7 +41,7 @@ namespace yave::editor::imgui {
   {
     ImGui::Begin(name().c_str());
     {
-      ImGui::Text("t=%lf", m_arg_time.seconds());
+      ImGui::Text("t=%lf", m_arg_time.seconds().count());
       ImGui::Text("scene: w=%d, h=%d", m_width, m_height);
       ImGui::Text("format: %s", to_string(m_format).c_str());
       ImGui::Text("fps: %d", m_fps);
@@ -52,12 +52,12 @@ namespace yave::editor::imgui {
       auto cont = m_continuous;
       if (ImGui::Checkbox("play", &cont)) {
 
-        dctx.cmd(make_data_command([=](auto& ctx) {
+        dctx.cmd(make_data_command([=](data_context& ctx) {
           auto lck = ctx.get_data<editor_data>();
           lck.ref().executor_data().set_continuous_execution(cont);
         }));
 
-        if (cont && m_arg_time_min != m_arg_time_max) {
+        if (cont) {
           dctx.cmd(std::make_unique<dcmd_notify_execute>());
         }
       }
@@ -66,7 +66,7 @@ namespace yave::editor::imgui {
 
       static bool loop = false;
       if (ImGui::Checkbox("loop", &loop)) {
-        dctx.cmd(make_data_command([=](auto& ctx) {
+        dctx.cmd(make_data_command([=](data_context& ctx) {
           auto lck = ctx.get_data<editor_data>();
           lck.ref().executor_data().set_loop_execution(loop);
         }));
@@ -82,7 +82,7 @@ namespace yave::editor::imgui {
         ImGui::DragFloat("##max", &fmax_input, 0.5, 0, 0, "loop max: %.3f");
 
         if (fmin_input != fmin || fmax_input != fmax)
-          dctx.cmd(make_data_command([=](auto& ctx) {
+          dctx.cmd(make_data_command([=](data_context& ctx) {
             auto lck = ctx.get_data<editor_data>();
             lck.ref().executor_data().set_loop_range(
               time::seconds(fmin_input), time::seconds(fmax_input));
