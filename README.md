@@ -5,6 +5,8 @@
 
 `YAVE` is node based visual programming environment with functional reactive programming (FRP).  
 
+![](assets/0.png)
+
 *Disclaimer: This project is still in very early stage!*
 
 To play around with `YAVE`, you can also build from source with standard CMake on Win/Linux.  
