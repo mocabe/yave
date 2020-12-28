@@ -160,7 +160,6 @@ namespace yave::editor {
       }
 
       ImGui::SetCursorPos({0, 0});
-      ImGui::Text("sz: %f %f", wsize.x, wsize.y);
       ImGui::Text("scroll: %f %f", scroll.x, scroll.y);
       ImGui::Text("scale: %f", scale * 100);
 
