@@ -68,7 +68,12 @@ namespace yave::compiler {
 
     [[nodiscard]] auto text() const
     {
-      return std::string("internal compile error: " + m_str);
+      return "internal compile error: " + m_str;
+    }
+
+    [[nodiscard]] auto pretty_print(const structured_node_graph&) const
+    {
+      return text();
     }
 
   private:
@@ -83,7 +88,16 @@ namespace yave::compiler {
     {
     }
 
-    [[nodiscard]] auto text() const -> std::string;
+    [[nodiscard]] auto text() const -> std::string
+    {
+      return "Unexpected parse error occured: " + m_str;
+    }
+
+    [[nodiscard]] auto pretty_print(const structured_node_graph&) const
+      -> std::string
+    {
+      return text();
+    }
 
   private:
     std::string m_str;
@@ -98,16 +112,19 @@ namespace yave::compiler {
     {
     }
 
-    /// Error message
-    [[nodiscard]] auto text() const -> std::string;
+    [[nodiscard]] auto text() const -> std::string
+    {
+      return "Missing input connection";
+    }
 
-    /// Get node ID
+    [[nodiscard]] auto pretty_print(const structured_node_graph&) const
+      -> std::string;
+
     [[nodiscard]] auto node_id() const -> const auto&
     {
       return m_node_id;
     }
 
-    /// Get socket ID
     [[nodiscard]] auto socket_id() const -> const auto&
     {
       return m_socket_id;
@@ -127,16 +144,19 @@ namespace yave::compiler {
     {
     }
 
-    /// Error message
-    [[nodiscard]] auto text() const -> std::string;
+    [[nodiscard]] auto text() const -> std::string
+    {
+      return "Missing output connection";
+    }
 
-    /// Get node ID
+    [[nodiscard]] auto pretty_print(const structured_node_graph&) const
+      -> std::string;
+
     [[nodiscard]] auto node_id() const -> const auto&
     {
       return m_node_id;
     }
 
-    /// Get socket ID
     [[nodiscard]] auto socket_id() const -> const auto&
     {
       return m_socket_id;
@@ -156,13 +176,11 @@ namespace yave::compiler {
     {
     }
 
-    /// Get node ID
     [[nodiscard]] auto node_id() const -> const auto&
     {
       return m_node_id;
     }
 
-    /// Get socket ID
     [[nodiscard]] auto socket_id() const -> const auto&
     {
       return m_socket_id;
@@ -182,13 +200,11 @@ namespace yave::compiler {
     {
     }
 
-    /// Get node ID
     [[nodiscard]] auto node_id() const -> const auto&
     {
       return m_node_id;
     }
 
-    /// Get socket ID
     [[nodiscard]] auto socket_id() const -> const auto&
     {
       return m_socket_id;
@@ -208,13 +224,11 @@ namespace yave::compiler {
     {
     }
 
-    /// Get node ID
     [[nodiscard]] auto node_id() const -> const auto&
     {
       return m_node_id;
     }
 
-    /// Get socket ID
     [[nodiscard]] auto socket_id() const -> const auto&
     {
       return m_socket_id;
@@ -233,7 +247,6 @@ namespace yave::compiler {
     {
     }
 
-    /// Get node ID
     [[nodiscard]] auto node_id() const -> const auto&
     {
       return m_node_id;
@@ -250,7 +263,16 @@ namespace yave::compiler {
     {
     }
 
-    [[nodiscard]] auto text() const -> std::string;
+    [[nodiscard]] auto text() const -> std::string
+    {
+      return "Unexpected type error: " + m_str;
+    }
+
+    [[nodiscard]] auto pretty_print(const structured_node_graph&) const
+      -> std::string
+    {
+      return text();
+    }
 
   private:
     std::string m_str;
@@ -264,10 +286,14 @@ namespace yave::compiler {
     {
     }
 
-    /// Get error message
-    [[nodiscard]] auto text() const -> std::string;
+    [[nodiscard]] auto text() const -> std::string
+    {
+      return "No valid orverloading";
+    }
 
-    /// Get socket
+    [[nodiscard]] auto pretty_print(const structured_node_graph&) const
+      -> std::string;
+
     [[nodiscard]] auto& socket_id() const
     {
       return m_socket_id;
@@ -293,28 +319,29 @@ namespace yave::compiler {
     {
     }
 
-    /// Get error message
-    [[nodiscard]] auto text() const -> std::string;
+    [[nodiscard]] auto text() const -> std::string
+    {
+      return "Type missmatch";
+    }
 
-    /// Get socket
+    [[nodiscard]] auto pretty_print(const structured_node_graph&) const
+      -> std::string;
+
     [[nodiscard]] auto& socket_id_expected() const
     {
       return m_socket_expected_id;
     }
 
-    /// Get socket
     [[nodiscard]] auto& socket_id_provided() const
     {
       return m_socket_expected_id;
     }
 
-    /// Get expected type
     [[nodiscard]] auto& expected_type() const
     {
       return m_expected;
     }
 
-    /// Get provided type
     [[nodiscard]] auto& provided_type() const
     {
       return m_provided;
@@ -346,8 +373,13 @@ namespace yave::compiler {
     {
     }
 
-    /// Get error message
-    [[nodiscard]] auto text() const -> std::string;
+    [[nodiscard]] auto text() const -> std::string
+    {
+      return "Unsolvable constraint";
+    }
+
+    [[nodiscard]] auto pretty_print(const structured_node_graph&) const
+      -> std::string;
 
     /// socket of t1
     [[nodiscard]] auto& socket_id_lhs() const
@@ -394,8 +426,13 @@ namespace yave::compiler {
     {
     }
 
-    /// Get error message
-    [[nodiscard]] auto text() const -> std::string;
+    [[nodiscard]] auto text() const -> std::string
+    {
+      return "Invalid program output";
+    }
+
+    [[nodiscard]] auto pretty_print(const structured_node_graph&) const
+      -> std::string;
 
     auto& expected_type() const
     {
@@ -420,6 +457,8 @@ namespace yave::compiler {
   concept _msg_has_node_id = requires(T x) { x.node_id(); };
   template <class T>
   concept _msg_has_socket_id = requires(T x) { x.socket_id(); };
+  template <class T> 
+  concept _msg_has_pretty_print = requires(T x, const structured_node_graph& ng) { x.pretty_print(ng); };
   // clang-format on
 
   /// compiler message
@@ -481,6 +520,15 @@ namespace yave::compiler {
       return visit([](auto&& x) -> std::optional<uid> {
         if constexpr (_msg_has_socket_id<decltype(x)>)
           return x.socket_id();
+        return std::nullopt;
+      });
+    }
+
+    [[nodiscard]] auto pretty_print(const structured_node_graph& ng)
+    {
+      return visit([&](auto&& x) -> std::optional<std::string> {
+        if constexpr (_msg_has_pretty_print<decltype(x)>)
+          return x.pretty_print(ng);
         return std::nullopt;
       });
     }
