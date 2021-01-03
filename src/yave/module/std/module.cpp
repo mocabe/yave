@@ -29,6 +29,7 @@
 #include <yave/module/std/shape/rect.hpp>
 #include <yave/module/std/shape/draw.hpp>
 #include <yave/module/std/shape/transform.hpp>
+#include <yave/module/std/shape/merge.hpp>
 #include <yave/module/std/ops/ops.hpp>
 #include <yave/module/std/math/ops.hpp>
 #include <yave/module/std/math/trigonometric.hpp>
@@ -180,6 +181,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::Shape::Translate>(),
             get_node_declaration<node::Shape::Rotate>(),
             get_node_declaration<node::Shape::Scale>(),
+            get_node_declaration<node::Shape::Merge>(),
             get_node_declaration<node::Ops::Add>(),
             get_node_declaration<node::Ops::Sub>(),
             get_node_declaration<node::Ops::Mul>(),
@@ -262,6 +264,7 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Shape::Translate, _std::tag>());
     add(yave::get_node_definitions<node::Shape::Rotate, _std::tag>());
     add(yave::get_node_definitions<node::Shape::Scale, _std::tag>());
+    add(yave::get_node_definitions<node::Shape::Merge, _std::tag>());
     add(yave::get_node_definitions<node::Ops::Add, _std::math::tag>());
     add(yave::get_node_definitions<node::Ops::Sub, _std::math::tag>());
     add(yave::get_node_definitions<node::Ops::Mul, _std::math::tag>());
