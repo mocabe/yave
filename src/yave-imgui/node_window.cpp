@@ -181,10 +181,11 @@ namespace yave::editor::imgui {
     auto compile_errors = [&] {
       auto&& lck  = dctx.get_data<editor_data>();
       auto&& data = lck.ref();
+      auto&& ng   = data.node_graph();
       auto&& msgs = data.compiler_data().last_message().get_errors();
 
       return msgs //
-             | rv::transform([&](auto&& msg) { return msg.get_text(); })
+             | rv::transform([&](auto&& msg) { return msg.pretty_print(ng); })
              | rv::filter([](auto&& opt) { return opt.has_value(); })
              | rv::transform([](auto&& opt) { return opt.value(); })
              | rn::to_vector;
