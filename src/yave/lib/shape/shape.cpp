@@ -85,4 +85,15 @@ namespace yave {
     auto s  = glm::fmat3(glm::scale(glm::fmat3(1.f), glm::vec2(sx, sy)));
     transform(t2 * s * t1);
   }
+
+  void shape::merge(const shape& other)
+  {
+    m_paths.insert(m_paths.end(), other.m_paths.begin(), other.m_paths.end());
+
+    auto base = m_commands.size();
+    m_commands.reserve(base + other.m_commands.size());
+    for (auto&& c : other.m_commands) {
+      m_commands.emplace_back(c).path_idx += base;
+    }
+  }
 }
