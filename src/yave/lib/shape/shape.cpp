@@ -88,10 +88,10 @@ namespace yave {
 
   void shape::merge(const shape& other)
   {
+    auto base = m_paths.size();
     m_paths.insert(m_paths.end(), other.m_paths.begin(), other.m_paths.end());
 
-    auto base = m_commands.size();
-    m_commands.reserve(base + other.m_commands.size());
+    m_commands.reserve(m_commands.size() + other.m_commands.size());
     for (auto&& c : other.m_commands) {
       m_commands.emplace_back(c).path_idx += base;
     }

@@ -73,6 +73,7 @@ namespace yave::data {
     // should match yave::shape::merge.
     void merge(const data::shape& other)
     {
+      auto base = m_paths.size();
       {
         auto ps = std::vector<object_ptr<const Path>>();
         ps.reserve(m_paths.size() + other.m_paths.size());
@@ -84,7 +85,6 @@ namespace yave::data {
         auto cs = std::vector<object_ptr<const ShapeCmd>>();
         cs.reserve(m_commands.size() + other.m_commands.size());
         cs.insert(cs.end(), m_commands.begin(), m_commands.end());
-        auto base = cs.size();
         for (auto&& c : other.m_commands) {
           auto tmp = c.clone();
           tmp->path_idx += base;
