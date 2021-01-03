@@ -99,6 +99,10 @@ namespace yave {
     void rotate(float degree, const glm::fvec2& center = {0, 0});
     /// scale all paths
     void scale(float sx, float sy, const glm::fvec2& center = {0, 0});
+
+  public:
+    /// merge other shape
+    void merge(const shape& other);
   };
 
 } // namespace yave
