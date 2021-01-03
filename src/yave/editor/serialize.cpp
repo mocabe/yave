@@ -85,14 +85,11 @@ namespace yave::editor {
           return false;
         }
 
-        // reset current node graph
+        // reomve current node graph
         {
           auto& ng = data.node_graph();
           ng.destroy(data.root_group());
-          auto n = ng.create_group({}, {});
-          ng.set_name(n, "Project");
-          (void)ng.add_output_socket(n, "frame_out");
-          data.root_group() = n;
+          data.root_group() = {};
         }
 
         {
@@ -104,6 +101,7 @@ namespace yave::editor {
         return true;
 
       } catch (...) {
+        // TODO: find better ways to fallback on failure
         log_error("Failed to save file");
         return false;
       }
