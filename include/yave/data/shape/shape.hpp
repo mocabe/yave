@@ -16,16 +16,16 @@ namespace yave::data {
   class shape
   {
     /// path list
-    vector<object_ptr<Path>> m_paths;
+    vector<object_ptr<const Path>> m_paths;
     /// command list
-    vector<object_ptr<ShapeCmd>> m_commands;
+    vector<object_ptr<const ShapeCmd>> m_commands;
 
   public:
     shape(const yave::shape& s)
     {
       // path
       {
-        auto tmp = std::vector<object_ptr<Path>>();
+        auto tmp = std::vector<object_ptr<const Path>>();
         tmp.reserve(s.paths().size());
 
         for (auto&& p : s.paths())
@@ -36,7 +36,7 @@ namespace yave::data {
 
       // cmd
       {
-        auto tmp = std::vector<object_ptr<ShapeCmd>>();
+        auto tmp = std::vector<object_ptr<const ShapeCmd>>();
         tmp.reserve(s.commands().size());
 
         for (auto&& c : s.commands())
@@ -67,6 +67,31 @@ namespace yave::data {
       }
 
       return {std::move(pths), std::move(cmds)};
+    }
+
+  public:
+    // should match yave::shape::merge.
+    void merge(const data::shape& other)
+    {
+      {
+        auto ps = std::vector<object_ptr<const Path>>();
+        ps.reserve(m_paths.size() + other.m_paths.size());
+        ps.insert(ps.end(), m_paths.begin(), m_paths.end());
+        ps.insert(ps.end(), other.m_paths.begin(), other.m_paths.end());
+        m_paths = ps;
+      }
+      {
+        auto cs = std::vector<object_ptr<const ShapeCmd>>();
+        cs.reserve(m_commands.size() + other.m_commands.size());
+        cs.insert(cs.end(), m_commands.begin(), m_commands.end());
+        auto base = cs.size();
+        for (auto&& c : other.m_commands) {
+          auto tmp = c.clone();
+          tmp->path_idx += base;
+          cs.push_back(std::move(tmp));
+        }
+        m_commands = cs;
+      }
     }
   };
 } // namespace yave::data
