@@ -22,6 +22,7 @@ add_library(yave-module-std
   shape/rect.cpp
   shape/draw.cpp
   shape/transform.cpp
+  shape/merge.cpp
   ops/ops.cpp
   math/ops.cpp
   math/trigonometric.cpp
