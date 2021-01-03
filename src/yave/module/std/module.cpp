@@ -33,6 +33,7 @@
 #include <yave/module/std/ops/ops.hpp>
 #include <yave/module/std/math/ops.hpp>
 #include <yave/module/std/math/trigonometric.hpp>
+#include <yave/module/std/random/random.hpp>
 #include <yave/module/std/animation/animation.hpp>
 
 #include <yave/lib/vulkan/offscreen_compositor.hpp>
@@ -189,6 +190,8 @@ namespace yave::modules::_std {
             get_node_declaration<node::Math::Sin>(),
             get_node_declaration<node::Math::Cos>(),
             get_node_declaration<node::Math::Tan>(),
+            get_node_declaration<node::Random::Uniform>(),
+            get_node_declaration<node::Random::Normal>(),
             get_node_declaration<node::Animation::Animation>(),
             get_node_declaration<node::Animation::Blank>(),
             get_node_declaration<node::Animation::IsBlank>(),
@@ -272,6 +275,8 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Math::Sin, _std::tag>());
     add(yave::get_node_definitions<node::Math::Cos, _std::tag>());
     add(yave::get_node_definitions<node::Math::Tan, _std::tag>());
+    add(yave::get_node_definitions<node::Random::Uniform, _std::tag>());
+    add(yave::get_node_definitions<node::Random::Normal, _std::tag>());
     add(yave::get_node_definitions<node::Animation::Animation, _std::tag>());
     add(yave::get_node_definitions<node::Animation::Blank, _std::tag>());
     add(yave::get_node_definitions<node::Animation::IsBlank, _std::tag>());

@@ -26,6 +26,7 @@ add_library(yave-module-std
   ops/ops.cpp
   math/ops.cpp
   math/trigonometric.cpp
+  random/random.cpp
   animation/animation.cpp
   module.cpp
   module_loader.cpp
