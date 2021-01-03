@@ -11,62 +11,107 @@
 
 namespace yave::compiler {
 
-  auto missing_input::text() const -> std::string
+  namespace {
+
+    auto default_pp(
+      const structured_node_graph& ng,
+      const node_handle& n,
+      const socket_handle& s,
+      const std::string& t)
+    {
+      auto ret = std::string();
+
+      if (ng.exists(n)) {
+        ret += fmt::format("[{}]", *ng.get_path(n));
+      }
+
+      if (ng.exists(s)) {
+        ret += fmt::format("[{}]", *ng.get_name(s));
+      }
+
+      if (ret.empty())
+        return t;
+
+      ret += fmt::format(" {}", t);
+      return ret;
+    }
+  } // namespace
+
+  auto missing_input::pretty_print(const structured_node_graph& ng) const
+    -> std::string
+  {
+    auto n = ng.node(m_node_id);
+    auto s = ng.socket(m_socket_id);
+    auto t = text();
+    return default_pp(ng, n, s, t);
+  }
+
+  auto missing_output::pretty_print(const structured_node_graph& ng) const
+    -> std::string
+  {
+    auto n = ng.node(m_node_id);
+    auto s = ng.socket(m_socket_id);
+    auto t = text();
+    return default_pp(ng, n, s, t);
+  }
+
+  auto no_valid_overloading::pretty_print(const structured_node_graph& ng) const
+    -> std::string
+  {
+    auto s = ng.socket(m_socket_id);
+    auto n = ng.node(s);
+    auto t = text();
+    return default_pp(ng, n, s, t);
+  }
+
+  auto type_missmatch::pretty_print(const structured_node_graph& ng) const
+    -> std::string
+  {
+    auto t  = text();
+    auto s1 = ng.socket(m_socket_expected_id);
+    auto n1 = ng.node(s1);
+    auto s2 = ng.socket(m_socket_provided_id);
+    auto n2 = ng.node(s2);
+
+    auto ret = fmt::format(
+      "{}: T1={}, T2={}", t, to_string(m_expected), to_string(m_provided));
+
+    if (ng.exists(n1)) {
+      ret += fmt::format("\n {}", default_pp(ng, n1, s1, "T1 requested here"));
+    }
+    if (ng.exists(n2)) {
+      ret += fmt::format("\n {}", default_pp(ng, n2, s2, "T2 requested here"));
+    }
+    return ret;
+  }
+
+  auto unsolvable_constraints::pretty_print(
+    const structured_node_graph& ng) const -> std::string
+  {
+    auto t  = text();
+    auto s1 = ng.socket(m_lhs_id);
+    auto n1 = ng.node(s1);
+    auto s2 = ng.socket(m_rhs_id);
+    auto n2 = ng.node(s2);
+
+    auto ret = fmt::format(
+      "{}: T1={}, T2={}", t, to_string(m_lhs_type), to_string(m_rhs_type));
+
+    if (ng.exists(n2)) {
+      ret += fmt::format("\n {}", default_pp(ng, n1, s1, "T1 requested here"));
+    }
+    if (ng.exists(n2)) {
+      ret += fmt::format("\n {}", default_pp(ng, n2, s2, "T2 requested here"));
+    }
+    return ret;
+  }
+
+  auto invalid_output_type::pretty_print(const structured_node_graph& ng) const
+    -> std::string
   {
     return fmt::format(
-      "Missing input connections: n={}, s={}",
-      to_string(m_node_id),
-      to_string(m_socket_id));
-  }
-
-  auto missing_output::text() const -> std::string
-  {
-    return fmt::format(
-      "Missing output connections: n={}, s={}",
-      to_string(m_node_id),
-      to_string(m_socket_id));
-  }
-
-  auto unexpected_parse_error::text() const -> std::string
-  {
-    return fmt::format("Unexpected parse error occured: {}", m_str);
-  }
-
-  auto no_valid_overloading::text() const -> std::string
-  {
-    return fmt::format(
-      "No valid overloading: socket={}", to_string(m_socket_id));
-  }
-
-  auto unexpected_type_error::text() const -> std::string
-  {
-    return fmt::format("Unexpected type error occured: {}", m_str);
-  }
-
-  auto type_missmatch::text() const -> std::string
-  {
-    return fmt::format(
-      "Type missmatch: expected={} s={}, provided={} s={}",
-      to_string(m_expected),
-      to_string(m_socket_expected_id),
-      to_string(m_provided),
-      to_string(m_socket_provided_id));
-  }
-
-  auto unsolvable_constraints::text() const -> std::string
-  {
-    return fmt::format(
-      "Unsolvable constraint: t1={}, s1={}, t2={}, s2={}",
-      to_string(m_lhs_type),
-      to_string(m_lhs_id),
-      to_string(m_rhs_type),
-      to_string(m_rhs_id));
-  }
-
-  auto invalid_output_type::text() const -> std::string
-  {
-    return fmt::format(
-      "Invalid program output: should output {}, but the program returns {}",
+      "{}: expected type {} but program returns {}",
+      text(),
       to_string(m_expected),
       to_string(m_provided));
   }
