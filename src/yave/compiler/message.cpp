@@ -97,7 +97,7 @@ namespace yave::compiler {
     auto ret = fmt::format(
       "{}: T1={}, T2={}", t, to_string(m_lhs_type), to_string(m_rhs_type));
 
-    if (ng.exists(n2)) {
+    if (ng.exists(n1)) {
       ret += fmt::format("\n {}", default_pp(ng, n1, s1, "T1 requested here"));
     }
     if (ng.exists(n2)) {
