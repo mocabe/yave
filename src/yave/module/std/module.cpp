@@ -25,8 +25,7 @@
 #include <yave/module/std/frame/blend.hpp>
 #include <yave/module/std/time/retime.hpp>
 #include <yave/module/std/time/time.hpp>
-#include <yave/module/std/shape/circle.hpp>
-#include <yave/module/std/shape/rect.hpp>
+#include <yave/module/std/shape/shape.hpp>
 #include <yave/module/std/shape/draw.hpp>
 #include <yave/module/std/shape/transform.hpp>
 #include <yave/module/std/shape/merge.hpp>
@@ -174,6 +173,7 @@ namespace yave::modules::_std {
             get_node_declaration<node::Time::Time>(),
             get_node_declaration<node::Time::Seconds>(),
             get_node_declaration<node::Time::FromSeconds>(),
+            get_node_declaration<node::Shape::Shape>(),
             get_node_declaration<node::Shape::Circle>(),
             get_node_declaration<node::Shape::Rect>(),
             get_node_declaration<node::Shape::Fill>(),
@@ -259,6 +259,7 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Time::ReTime, _std::tag>());
     add(yave::get_node_definitions<node::Time::Delay, _std::tag>());
     add(yave::get_node_definitions<node::Time::Scale, _std::tag>());
+    add(yave::get_node_definitions<node::Shape::Shape, _std::tag>());
     add(yave::get_node_definitions<node::Shape::Circle, _std::tag>());
     add(yave::get_node_definitions<node::Shape::Rect, _std::tag>());
     add(yave::get_node_definitions<node::Shape::Fill, _std::tag>());
