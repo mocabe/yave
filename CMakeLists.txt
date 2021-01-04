@@ -11,6 +11,16 @@ set(YAVE_TEST_DIR ${YAVE_DIR}/test)
 set(YAVE_TOOL_DIR ${YAVE_DIR}/tools)
 
 # ------------------------------------------
+# Build type
+
+if (NOT CMAKE_BUILD_TYPE) 
+  set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
+set(BUILD_SHARED_LIBS OFF)
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+# ------------------------------------------
 # Git
 
 find_package(Git REQUIRED)
@@ -18,24 +28,17 @@ find_package(Git REQUIRED)
 # ------------------------------------------
 # Package manager
 
-# select appropriate triplet and toolchain
-function(_select_vcpkg_triplet_and_toolchain) 
-  if(WIN32)
-    # dynamic CRT, static libs
-    set(VCPKG_TARGET_TRIPLET x64-windows-static-md CACHE STRING "")
-  endif()
-  set(CMAKE_TOOLCHAIN_FILE ${VCPKG_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake CACHE STRING "")
-endfunction()
-
-# configure vcpkg
-function(vcpkg_configure)
-  execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init ${VCPKG_SOURCE_DIR})
-  _select_vcpkg_triplet_and_toolchain()
-endfunction()
-
-# do configure
+execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init ${VCPKG_SOURCE_DIR})
 set(VCPKG_SOURCE_DIR ${YAVE_EXTERNAL_DIR}/vcpkg)
-vcpkg_configure()
+
+# select appropriate triplet and toolchain
+if(WIN32)
+  # dynamic CRT, static libs
+  set(VCPKG_TARGET_TRIPLET x64-windows-static-md CACHE STRING "")
+endif()
+
+# set toolchain
+set(CMAKE_TOOLCHAIN_FILE ${VCPKG_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake CACHE STRING "")
 
 # ------------------------------------------
 # Project
@@ -46,14 +49,8 @@ project(yave CXX)
 # Options
 
 option(YAVE_BUILD_TESTS "Build tests" ON)
-option(YAVE_CLANG_TIDY "Enabe clang-tidy" OFF)
-
-# ------------------------------------------
-# Build type
-
-set(CMAKE_BUILD_TYPE "Debug")
-set(BUILD_SHARED_LIBS OFF)
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+option(YAVE_ADDRESS_SANITIZER "Enable address sanitizer" OFF)
+option(YAVE_THREAD_SANITIZER "Enable thread sanitizer" OFF)
 
 # ------------------------------------------
 # Compilers
@@ -91,11 +88,12 @@ include(${YAVE_EXTERNAL_DIR}/external.cmake)
 
 if(YAVE_COMPILER_MSVC)
   # Remove /RTC1 from default set of compile flags.
-  set(CMAKE_CXX_FLAGS_DEBUG "/MDd /Zi /Ob0 /Od" CACHE STRING "" FORCE)
+  STRING (REGEX REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
   set(YAVE_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4 /Zc:__cplusplus)
   set(YAVE_LINK_FLAGS )
 else()
-  set(YAVE_COMPILE_FLAGS -O0 -Wall -Wextra -g -pedantic)
+  STRING (REGEX REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+  set(YAVE_COMPILE_FLAGS -Wall -Wextra -g -pedantic)
   set(YAVE_LINK_FLAGS )
 endif()
 
@@ -106,8 +104,13 @@ if(YAVE_COMPILER_LLVM)
     set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fcolor-diagnostics)
   endif()
   if(UNIX AND (NOT CYGWIN))
-    set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=address)
-    set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=address)
+    if(YAVE_ADDRESS_SANITIZER)
+      set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=address)
+      set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=address)
+    elseif(YAVE_THREAD_SANITIZER)
+      set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=thread)
+      set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=thread)
+    endif()
   endif()
 endif()
 
@@ -117,8 +120,13 @@ if(YAVE_COMPILER_GNU)
     set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fdiagnostics-color=always)
   endif()
   if(UNIX AND (NOT CYGWIN))
-    set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=address -fuse-ld=gold)
-    set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=address -fuse-ld=gold)
+    if(YAVE_ADDRESS_SANITIZER)
+      set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=address -fuse-ld=gold)
+      set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=address -fuse-ld=gold)
+    elseif(YAVE_THREAD_SANITIZER)
+      set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=thread -fuse-ld=gold)
+      set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=thread -fuse-ld=gold)
+    endif()
   endif()
 endif()
 
