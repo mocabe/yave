@@ -16,4 +16,10 @@ namespace yave {
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Ops::Sub, modules::_std::math::tag);
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Ops::Mul, modules::_std::math::tag);
   YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Ops::Div, modules::_std::math::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Ops::Eq, modules::_std::math::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Ops::Neq, modules::_std::math::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Ops::Less, modules::_std::math::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Ops::LessEq, modules::_std::math::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Ops::Greater, modules::_std::math::tag);
+  YAVE_DECL_DEFAULT_NODE_DEFINITION(node::Ops::GreaterEq, modules::_std::math::tag);
 }

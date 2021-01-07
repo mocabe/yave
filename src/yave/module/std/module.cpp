@@ -279,6 +279,12 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Ops::Sub, _std::math::tag>());
     add(yave::get_node_definitions<node::Ops::Mul, _std::math::tag>());
     add(yave::get_node_definitions<node::Ops::Div, _std::math::tag>());
+    add(yave::get_node_definitions<node::Ops::Eq, _std::math::tag>());
+    add(yave::get_node_definitions<node::Ops::Neq, _std::math::tag>());
+    add(yave::get_node_definitions<node::Ops::Less, _std::math::tag>());
+    add(yave::get_node_definitions<node::Ops::LessEq, _std::math::tag>());
+    add(yave::get_node_definitions<node::Ops::Greater, _std::math::tag>());
+    add(yave::get_node_definitions<node::Ops::GreaterEq, _std::math::tag>());
     add(yave::get_node_definitions<node::Math::Sin, _std::tag>());
     add(yave::get_node_definitions<node::Math::Cos, _std::tag>());
     add(yave::get_node_definitions<node::Math::Tan, _std::tag>());
