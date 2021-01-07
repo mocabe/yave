@@ -18,6 +18,7 @@ add_library(yave-module-std
   frame/blend.cpp
   time/retime.cpp 
   time/time.cpp
+  time/ops.cpp
   shape/shape.cpp
   shape/draw.cpp
   shape/transform.cpp
