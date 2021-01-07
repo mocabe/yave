@@ -25,6 +25,7 @@
 #include <yave/module/std/frame/blend.hpp>
 #include <yave/module/std/time/retime.hpp>
 #include <yave/module/std/time/time.hpp>
+#include <yave/module/std/time/ops.hpp>
 #include <yave/module/std/shape/shape.hpp>
 #include <yave/module/std/shape/draw.hpp>
 #include <yave/module/std/shape/transform.hpp>
@@ -265,6 +266,14 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::Time::ReTime, _std::tag>());
     add(yave::get_node_definitions<node::Time::Delay, _std::tag>());
     add(yave::get_node_definitions<node::Time::Scale, _std::tag>());
+    add(yave::get_node_definitions<node::Ops::Add, _std::time::tag>());
+    add(yave::get_node_definitions<node::Ops::Sub, _std::time::tag>());
+    add(yave::get_node_definitions<node::Ops::Eq, _std::time::tag>());
+    add(yave::get_node_definitions<node::Ops::Neq, _std::time::tag>());
+    add(yave::get_node_definitions<node::Ops::Less, _std::time::tag>());
+    add(yave::get_node_definitions<node::Ops::LessEq, _std::time::tag>());
+    add(yave::get_node_definitions<node::Ops::Greater, _std::time::tag>());
+    add(yave::get_node_definitions<node::Ops::GreaterEq, _std::time::tag>());
     add(yave::get_node_definitions<node::Shape::Shape, _std::tag>());
     add(yave::get_node_definitions<node::Shape::Circle, _std::tag>());
     add(yave::get_node_definitions<node::Shape::Rect, _std::tag>());
