@@ -1046,9 +1046,6 @@ namespace yave {
         pgdata->output_bits.push_back(bit);
       }
 
-      log_info(
-        "Added new group: {}, id={}", *ng.get_name(g), to_string(g.id()));
-
       return pgdata;
     }
 
@@ -1075,11 +1072,6 @@ namespace yave {
       for (auto&& s : ng.output_sockets(body))
         set_data(s, make_object<SocketData>());
 
-      log_info(
-        "Added new function: name={}, id={}",
-        *ng.get_name(body),
-        to_string(body.id()));
-
       return &bdata->get<node_function>();
     }
 
@@ -1104,11 +1096,6 @@ namespace yave {
 
       for (auto&& s : ng.output_sockets(body))
         set_data(s, make_object<SocketData>());
-
-      log_info(
-        "Added new macro node: name={}, id={}",
-        *ng.get_name(body),
-        to_string(body.id()));
 
       return std::get_if<node_macro>(&*bdata);
     }
@@ -1308,12 +1295,6 @@ namespace yave {
         ng.set_name(n, name);
         ng.set_name(p->node, name);
       });
-
-      log_info(
-        "Added new call: name={}, id={}, def={}",
-        *ng.get_name(n),
-        to_string(n.id()),
-        is_defcall(n));
 
       return std::get_if<node_call>(&*ndata);
     }
@@ -2208,8 +2189,6 @@ namespace yave {
       const std::vector<std::string>& oss,
       const uid& id) -> node_handle
     {
-      log_info("Creating new function: {}", path);
-
       if (!check_decl_path(path))
         return {};
 
@@ -2228,8 +2207,6 @@ namespace yave {
       const std::vector<std::string>& oss,
       const uid& id) -> node_handle
     {
-      log_info("Creating new macro: {}", path);
-
       if (!check_decl_path(path))
         return {};
 
@@ -2248,8 +2225,6 @@ namespace yave {
       const std::vector<std::string>& oss,
       const uid& id) -> node_handle
     {
-      log_info("Creating new group: {}", path);
-
       if (!check_decl_path(path))
         return {};
 
@@ -2287,11 +2262,6 @@ namespace yave {
           return {};
         }
       }
-
-      log_info("Creating group: parent={}", to_string(parent.id()));
-      log_info("Following nodes will be moved into new group:");
-      for (auto&& n : nodes)
-        log_info("  {}", to_string(n.id()));
 
       // create new group under parent
       auto newg = add_new_callee_group();
@@ -2499,12 +2469,6 @@ namespace yave {
 
     auto clone() const
     {
-      log_info(
-        "clone(): n={}, s={}, c={}",
-        ng.nodes().size(),
-        ng.sockets().size(),
-        ng.connections().size());
-
       impl ret(nullptr);
 
       // clone node graph

@@ -16,12 +16,6 @@ namespace yave {
   bool node_definition_map::add(const node_definition& def)
   {
     m_map.emplace(def.full_name(), std::make_shared<node_definition>(def));
-
-    log_info(
-      "Added new definition: name={}, os={}",
-      def.full_name(),
-      def.output_socket());
-
     return true;
   }
 
