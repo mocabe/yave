@@ -34,7 +34,7 @@ namespace yave {
     auto info = get_node_declaration<node::Ops::NAME>();                   \
                                                                            \
     return {node_definition(                                               \
-      info.full_name(), 0, make_object<modules::_std::time::##NAME>())};   \
+      info.full_name(), 0, make_object<modules::_std::time::NAME>())};     \
   }
 
   TIME_BINOP_DEF(Add);
