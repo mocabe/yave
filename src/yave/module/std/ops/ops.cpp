@@ -7,31 +7,27 @@
 
 namespace yave {
 
-  auto node_declaration_traits<node::Ops::Add>::get_node_declaration()
-    -> node_declaration
-  {
-    return function_node_declaration(
-      "Ops.Add", "", node_declaration_visibility::_public, {"x", "y"}, {"x+y"});
+#define BINOP_DECL_DEF(NAME, IS1, IS2, OS, DESC)                        \
+  auto node_declaration_traits<node::Ops::NAME>::get_node_declaration() \
+    ->node_declaration                                                  \
+  {                                                                     \
+    return function_node_declaration(                                   \
+      "Ops." #NAME,                                                     \
+      DESC,                                                             \
+      node_declaration_visibility::_public,                             \
+      {IS1, IS2},                                                       \
+      {OS});                                                            \
   }
 
-  auto node_declaration_traits<node::Ops::Sub>::get_node_declaration()
-    -> node_declaration
-  {
-    return function_node_declaration(
-      "Ops.Sub", "", node_declaration_visibility::_public, {"x", "y"}, {"x-y"});
-  }
+  BINOP_DECL_DEF(Add, "x", "y", "x+y", "");
+  BINOP_DECL_DEF(Sub, "x", "y", "x-y", "");
+  BINOP_DECL_DEF(Mul, "x", "y", "x*y", "");
+  BINOP_DECL_DEF(Div, "x", "y", "x/y", "");
+  BINOP_DECL_DEF(Eq, "x", "y", "x==y", "");
+  BINOP_DECL_DEF(Neq, "x", "y", "x!=y", "");
+  BINOP_DECL_DEF(Less, "x", "y", "x<y", "");
+  BINOP_DECL_DEF(LessEq, "x", "y", "x<=y", "");
+  BINOP_DECL_DEF(Greater, "x", "y", "x>y", "");
+  BINOP_DECL_DEF(GreaterEq, "x", "y", "x>=y", "");
 
-  auto node_declaration_traits<node::Ops::Mul>::get_node_declaration()
-    -> node_declaration
-  {
-    return function_node_declaration(
-      "Ops.Mul", "", node_declaration_visibility::_public, {"x", "y"}, {"x*y"});
-  }
-
-  auto node_declaration_traits<node::Ops::Div>::get_node_declaration()
-    -> node_declaration
-  {
-    return function_node_declaration(
-      "Ops.Div", "", node_declaration_visibility::_public, {"x", "y"}, {"x/y"});
-  }
 } // namespace yave
