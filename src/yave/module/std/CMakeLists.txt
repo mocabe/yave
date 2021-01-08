@@ -6,6 +6,7 @@ add_library(yave-module-std
   mat/mat.cpp
   list/list.cpp
   list/algorithm.cpp
+  maybe/maybe.cpp
   function/apply.cpp
   function/fix.cpp
   logic/if.cpp

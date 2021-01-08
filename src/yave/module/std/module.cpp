@@ -12,6 +12,7 @@
 #include <yave/module/std/mat/mat.hpp>
 #include <yave/module/std/list/list.hpp>
 #include <yave/module/std/list/algorithm.hpp>
+#include <yave/module/std/maybe/maybe.hpp>
 #include <yave/module/std/function/apply.hpp>
 #include <yave/module/std/function/fix.hpp>
 #include <yave/module/std/logic/if.hpp>
@@ -153,6 +154,12 @@ namespace yave::modules::_std {
             get_node_declaration<node::List::Algo::Repeat>(),
             get_node_declaration<node::List::Algo::Enumerate>(),
             get_node_declaration<node::List::Algo::Fold>(),
+            get_node_declaration<node::Maybe::Just>(),
+            get_node_declaration<node::Maybe::Nothing>(),
+            get_node_declaration<node::Maybe::IsJust>(),
+            get_node_declaration<node::Maybe::IsNothing>(),
+            get_node_declaration<node::Maybe::GetValue>(),
+            get_node_declaration<node::Maybe::Map>(),
             get_node_declaration<node::Functional::Apply>(),
             get_node_declaration<node::Functional::Fix>(),
             get_node_declaration<node::Logic::Bool>(),
@@ -246,6 +253,12 @@ namespace yave::modules::_std {
     add(yave::get_node_definitions<node::List::Algo::Repeat, _std::tag>());
     add(yave::get_node_definitions<node::List::Algo::Enumerate, _std::tag>());
     add(yave::get_node_definitions<node::List::Algo::Fold, _std::tag>());
+    add(yave::get_node_definitions<node::Maybe::Just, _std::tag>());
+    add(yave::get_node_definitions<node::Maybe::Nothing, _std::tag>());
+    add(yave::get_node_definitions<node::Maybe::IsJust, _std::tag>());
+    add(yave::get_node_definitions<node::Maybe::IsNothing, _std::tag>());
+    add(yave::get_node_definitions<node::Maybe::GetValue, _std::tag>());
+    add(yave::get_node_definitions<node::Maybe::Map, _std::tag>());
     add(yave::get_node_definitions<node::Logic::Bool, _std::tag>());
     add(yave::get_node_definitions<node::Logic::If, _std::tag>());
     add(yave::get_node_definitions<node::Logic::And, _std::tag>());
