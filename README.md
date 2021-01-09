@@ -9,18 +9,30 @@
 
 *Disclaimer: This project is still in very early stage!*
 
-To play around with `YAVE`, you can also build from source with standard CMake on Win/Linux.  
+To play around with `YAVE`, you can build from source with standard CMake on Win/Linux.  
 There are also CI compiled binary artifacts, but these might not work on some environments.  
 If you have any problem, report issue or ask on gitter.
+
+### Building
+
+To build `YAVE`, you need compilers which support some features of C++20.
+Currently following compilers are used for development:
+
+- VS2019 Preview (Win)
+- Clang 10 (Linux)
+- GCC 10 (Linux)
+
+`CMake` is required as build system. `VulkanSDK` is also required for graphics.  
+You should be able to build it with standard `CMake` commands.  
+First build may take much longer to build dependencies.  
 
 ## Motivation
 
 Procedural content creation with node based visual programming languages are becoming popular in audio and graphics domain because of its flexibility and usability for artists.  
 In node based languages, you can define how data will be transformed into final output by using data flow graph, which is quite easy to understand even for non-programmers.  
 However, composing values which *change over time* (like animations) in node based languages is not trivial. This is because you need to calculate *how* current time maps to value rather than *what* kind of operation you want to apply to time related to values. This is different from popular editing paradigm based on *declarative* time manipulation, which allows you to compose values in the time domain easily.  
-This has been a known problem in functional programming community, and they found elegant solution by using higher-order functions which commonly known as `Functional Reactive Programming (FRP)`.  
-FRP was introduced for declarative programming paradigm for animations, then its target was shifted to real time applications like GUI.  
-This project is aiming for incorporating core concept of FRP into end user programming environment.
+This has been a known problem in functional programming community, and they found elegant solution by using higher-order functions which commonly known as `Functional Reactive Programming (FRP)`. FRP was introduced for declarative programming paradigm for animations, then its target was shifted to real time applications like GUI.  
+This project is aiming for incorporating original concept of FRP into end user programming environment.
 
 ## Features
 
@@ -42,7 +54,8 @@ This project is aiming for incorporating core concept of FRP into end user progr
 
 * Fully interoperable with C++
   * Functional programming languages tend to lack support of GUI and high performance graphics, which are must for practical visual scripting environment. `YAVE` avoids this limitation by implementing functional runtime system as EDSL (embedded domain specific language) on C++. 
-  * You can add new data types or implement your own node functions from C++. Object system of `YAVE` is designed to support plugin style extensions in the future.
+  * Template metaprogranning is heavily abused to generate runtime information and verify program at compile time. This allows us to extend dynamic functional language from C++ without breaking type safety.
+  * You can add custom data types (and type constructors like `List a`) and implement your own node functions from C++.
   
 ### Nodes 101
 
@@ -70,10 +83,9 @@ Macro nodes are used to procedurally generate nodes from arbitrary number of inp
 
 `YAVE` is implemented in C++20 (moving from C++17).    
 
-This project heavily exploits metaprogramming capability of modern C++. For example, runtime representation of node functions (including runtime type information) are generated through templates. It event has compile time type checker to verify usage of runtime typed objects inside node functions.  
-
-`YAVE`'s node compiler translates node graph into small functional runtime implemented in C++.  
+`YAVE`'s node compiler translates node graph into AST of small functional runtime implemented in C++.  
 There's no code generation or caching optimizations yet.  
+
 Vulkan API is used for graphics backend and user interface.
 
 ## Development
@@ -106,25 +118,13 @@ To-Do list:
   - Improve vector graphics support
   - GLSL, Python script nodes
 
-### Building
-
-To build `YAVE`, you need compilers which support some features of C++20.
-Currently following compilers are used for development:
-
-- VS2019 Preview (Win)
-- Clang 10 (Linux)
-- GCC 10 (Linux)
-
-You also need CMake and VulkanSDK.  
-First build may take longer time to build dependencies. 
-
 ## License
 
 LGPLv3  
 
 ## Contributors
 
-+ Atsushi Nagaoka (@mocabe)
++ mocabe (Atsushi Nagaoka)
 
 ## Gallery
 
