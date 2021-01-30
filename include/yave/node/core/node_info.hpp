@@ -34,20 +34,12 @@ namespace yave {
     /// name
     [[nodiscard]] auto name() const -> const std::string&;
 
-    /// input sockets
-    [[nodiscard]] auto input_sockets() const
-      -> const std::vector<socket_handle>&;
-
-    /// output sockets
-    [[nodiscard]] auto output_sockets() const
-      -> const std::vector<socket_handle>&;
-
-    /// normal?
-    [[nodiscard]] bool is_normal() const;
-    /// interface?
-    [[nodiscard]] bool is_interface() const;
-    /// node type
+    /// type
     [[nodiscard]] auto type() const -> node_type;
+
+    /// get sockets
+    [[nodiscard]] auto sockets(socket_type) const
+      -> const std::vector<socket_handle>&;
 
     /// set name
     void set_name(std::string name);

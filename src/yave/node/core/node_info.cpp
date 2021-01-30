@@ -27,34 +27,26 @@ namespace yave {
     return m_name;
   }
 
+  auto node_info::type() const -> node_type
+  {
+    return m_type;
+  }
+
   void node_info::set_name(std::string name)
   {
     m_name = std::move(name);
   }
 
-  auto node_info::input_sockets() const -> const std::vector<socket_handle>&
+  auto node_info::sockets(socket_type type) const
+    -> const std::vector<socket_handle>&
   {
-    return m_input_sockets;
-  }
-
-  auto node_info::output_sockets() const -> const std::vector<socket_handle>&
-  {
-    return m_output_sockets;
-  }
-
-  bool node_info::is_normal() const
-  {
-    return m_type == node_type::normal;
-  }
-
-  bool node_info::is_interface() const
-  {
-    return m_type == node_type::interface;
-  }
-
-  auto node_info::type() const -> node_type
-  {
-    return m_type;
+    switch (type) {
+      case socket_type::input:
+        return m_input_sockets;
+      case socket_type::output:
+        return m_output_sockets;
+    }
+    unreachable();
   }
 
 } // namespace yave

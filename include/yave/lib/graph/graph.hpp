@@ -643,13 +643,13 @@ namespace yave::graph {
     graph(const graph &) = delete;
 
     /// Move constructor
-    graph(graph &&other) = default;
+    graph(graph &&other) noexcept = default;
 
     /// Copy assignment is deleted. use clone().
     graph &operator=(const graph &) = delete;
 
     /// Move assignment.
-    graph &operator=(graph &&other) = default;
+    graph &operator=(graph &&other) noexcept = default;
 
     /// Add node with id.
     /// \param id Unique ID of new node.
@@ -1354,7 +1354,6 @@ namespace yave::graph {
     }
 
     /// id generator
-    [[no_unique_address]] //
     id_generator m_idgen;
     /// list of node descriptors
     node_container_type m_nodes;

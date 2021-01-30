@@ -908,6 +908,9 @@ TEST_CASE("composed")
       REQUIRE(ng.exists(i));
       REQUIRE(ng.exists(o));
 
+      assert(ng.output_sockets(i).size() == ng.input_sockets(g).size());
+      assert(ng.input_sockets(o).size() == ng.output_sockets(g).size());
+
       REQUIRE(ng.input_sockets(i).size() == 0);
       REQUIRE(ng.output_sockets(i).size() == 2);
 
