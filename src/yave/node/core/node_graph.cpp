@@ -13,41 +13,25 @@
 
 namespace yave {
 
-  using namespace ranges;
+  namespace {
 
-  constexpr auto to_node_handles = [](const graph_t& graph) {
-    return views::transform(
-             [&](auto&& n) { return node_handle(n, graph.id(n)); })
-           | to_vector;
-  };
+    namespace rn = ranges;
+    namespace rv = rn::views;
+    namespace ra = rn::actions;
 
-  constexpr auto to_socket_handles = [](const graph_t& graph) {
-    return views::transform(
-             [&](auto&& s) { return socket_handle(s, graph.id(s)); })
-           | to_vector;
-  };
+    // convert descriptors to handles
+    constexpr auto to_handles = [](const graph_t& graph) {
+      return rv::transform(
+               [&](auto&& n) { return descriptor_handle(n, graph.id(n)); })
+             | rn::to_vector;
+    };
 
-  constexpr auto to_connection_handles = [](const graph_t& graph) {
-    return views::transform(
-             [&](auto&& e) { return connection_handle(e, graph.id(e)); })
-           | to_vector;
-  };
+  } // namespace
 
-  node_graph::node_graph() 
-    : g {}
-  {
-  }
-  
   node_graph::node_graph(graph_t&& gg) noexcept
     : g {std::move(gg)}
   {
   }
-
-  node_graph::~node_graph() noexcept = default;
-
-  node_graph::node_graph(node_graph&& other) noexcept = default;
-
-  node_graph& node_graph::operator=(node_graph&& other) noexcept = default;
 
   bool node_graph::exists(const node_handle& h) const
   {
@@ -85,18 +69,18 @@ namespace yave {
   auto node_graph::get_info(const node_handle& h) const
     -> std::optional<node_info>
   {
-    if(!exists(h))
+    if (!exists(h))
       return std::nullopt;
 
     auto&& ss = g.sockets(h.descriptor());
 
     auto iss = ss //
-               | views::filter([&](auto s) { return g[s].is_input(); })
-               | to_socket_handles(g);
+               | rv::filter([&](auto s) { return g[s].is_input(); })
+               | to_handles(g);
 
     auto oss = ss //
-               | views::filter([&](auto s) { return g[s].is_output(); })
-               | to_socket_handles(g);
+               | rv::filter([&](auto s) { return g[s].is_output(); })
+               | to_handles(g);
 
     auto&& n = g[h.descriptor()];
 
@@ -106,14 +90,14 @@ namespace yave {
   auto node_graph::get_info(const socket_handle& h) const
     -> std::optional<socket_info>
   {
-    if(!exists(h))
+    if (!exists(h))
       return std::nullopt;
 
     auto&& ns = g.nodes(h.descriptor());
 
-    auto nodes      = ns | to_node_handles(g);
+    auto nodes      = ns | to_handles(g);
     auto node       = nodes.front();
-    auto interfaces = nodes | move | actions::drop(1);
+    auto interfaces = nodes | rn::move | ra::drop(1);
 
     auto s = g[h.descriptor()];
 
@@ -123,7 +107,7 @@ namespace yave {
   auto node_graph::get_info(const connection_handle& h) const
     -> std::optional<connection_info>
   {
-    if(!exists(h))
+    if (!exists(h))
       return std::nullopt;
 
     auto src = g.src(h.descriptor());
@@ -138,13 +122,13 @@ namespace yave {
     assert(!g[src_nodes[0]].is_interface());
     assert(!g[dst_nodes[0]].is_interface());
 
-    auto src_handles    = src_nodes | to_node_handles(g);
+    auto src_handles    = src_nodes | to_handles(g);
     auto src_node       = src_handles.front();
-    auto src_interfaces = src_handles | move | actions::drop(1);
+    auto src_interfaces = src_handles | rn::move | ra::drop(1);
 
-    auto dst_handles    = dst_nodes | to_node_handles(g);
+    auto dst_handles    = dst_nodes | to_handles(g);
     auto dst_node       = dst_handles.front();
-    auto dst_interfaces = dst_handles | move | actions::drop(1);
+    auto dst_interfaces = dst_handles | rn::move | ra::drop(1);
 
     return connection_info(
       src_node,
@@ -158,7 +142,7 @@ namespace yave {
   auto node_graph::get_name(const node_handle& h) const
     -> std::optional<std::string>
   {
-    if(!exists(h))
+    if (!exists(h))
       return std::nullopt;
 
     return g[h.descriptor()].name();
@@ -167,22 +151,24 @@ namespace yave {
   auto node_graph::get_name(const socket_handle& h) const
     -> std::optional<std::string>
   {
-    if(!exists(h))
+    if (!exists(h))
       return std::nullopt;
 
     return g[h.descriptor()].name();
   }
 
-  void node_graph:: set_name(const node_handle& h, const std::string& name)
+  void node_graph::set_name(const node_handle& h, const std::string& name)
   {
-    if(exists(h))
-      g[h.descriptor()].set_name(name);
+    if (!exists(h))
+      return;
+    g[h.descriptor()].set_name(name);
   }
 
-  void  node_graph::set_name(const socket_handle& h, const std::string& name)
+  void node_graph::set_name(const socket_handle& h, const std::string& name)
   {
-    if(exists(h))
-      g[h.descriptor()].set_name(name);
+    if (!exists(h))
+      return;
+    g[h.descriptor()].set_name(name);
   }
 
   auto node_graph::add(
@@ -250,7 +236,7 @@ namespace yave {
     const node_handle& interface,
     const socket_handle& socket)
   {
-    if(!exists(interface) || !exists(socket))
+    if (!exists(interface) || !exists(socket))
       return false;
 
     if (!g[interface.descriptor()].is_interface())
@@ -274,7 +260,7 @@ namespace yave {
     const node_handle& interface,
     const socket_handle& socket)
   {
-    if(!exists(interface) || !exists(socket))
+    if (!exists(interface) || !exists(socket))
       return;
 
     auto info = get_info(socket);
@@ -290,9 +276,9 @@ namespace yave {
   auto node_graph::connect(
     const socket_handle& src_socket,
     const socket_handle& dst_socket,
-    const uid& id) -> connection_handle 
+    const uid& id) -> connection_handle
   {
-    if(!exists(src_socket) || !exists(dst_socket))
+    if (!exists(src_socket) || !exists(dst_socket))
       return {};
 
     // socket descriptors
@@ -319,8 +305,8 @@ namespace yave {
     // add new edge to graph
     auto new_edge = g.add_edge_with_id(s, d, id.data);
 
-    if (!new_edge)
-      {};
+    if (!new_edge) {
+    };
 
     // closed loop check
     if (_find_loop(src_node)) {
@@ -333,15 +319,14 @@ namespace yave {
 
   void node_graph::disconnect(const connection_handle& h)
   {
-    if(!exists(h)) 
+    if (!exists(h))
       return;
 
     auto info = get_info(h);
     g.remove_edge(h.descriptor());
   }
 
-  auto node_graph::node(const uid& id) const
-    -> node_handle
+  auto node_graph::node(const uid& id) const -> node_handle
   {
     auto dsc = g.node(id.data);
 
@@ -351,10 +336,9 @@ namespace yave {
     return node_handle(dsc, id);
   }
 
-  auto node_graph::node(const socket_handle& socket) const
-    -> node_handle
+  auto node_graph::node(const socket_handle& socket) const -> node_handle
   {
-    if(!exists(socket))
+    if (!exists(socket))
       return {};
 
     auto dsc = socket.descriptor();
@@ -362,11 +346,10 @@ namespace yave {
     return node_handle(n, g.id(n));
   }
 
-  auto node_graph::nodes() const
-    -> std::vector<node_handle>
+  auto node_graph::nodes() const -> std::vector<node_handle>
   {
     auto&& ns = g.nodes();
-    return ns | to_node_handles(g);
+    return ns | to_handles(g);
   }
 
   auto node_graph::nodes(const std::string& name) const
@@ -375,22 +358,21 @@ namespace yave {
     auto&& ns = g.nodes();
 
     return ns //
-           | views::filter([&](auto n) { return g[n].name() == name; })
-           | to_node_handles(g);
+           | rv::filter([&](auto n) { return g[n].name() == name; })
+           | to_handles(g);
   }
 
   auto node_graph::interfaces(const socket_handle& h) const
     -> std::vector<node_handle>
   {
-    if(!exists(h))
+    if (!exists(h))
       return {};
 
     auto&& ns = g.nodes(h.descriptor());
-    return ns | views::drop(1) | to_node_handles(g);
+    return ns | rv::drop(1) | to_handles(g);
   }
 
-  auto node_graph::socket(const uid& id) const
-    -> socket_handle
+  auto node_graph::socket(const uid& id) const -> socket_handle
   {
     auto dsc = g.socket(id.data);
 
@@ -400,38 +382,36 @@ namespace yave {
     return socket_handle(dsc, id);
   }
 
-  auto node_graph::sockets() const
-    -> std::vector<socket_handle>
+  auto node_graph::sockets() const -> std::vector<socket_handle>
   {
     auto&& ss = g.sockets();
-    return ss | to_socket_handles(g);
+    return ss | to_handles(g);
   }
 
-  auto node_graph:: sockets(const node_handle& h) const
+  auto node_graph::sockets(const node_handle& h) const
     -> std::vector<socket_handle>
   {
-    if(!exists(h))
+    if (!exists(h))
       return {};
 
     auto&& ss = g.sockets(h.descriptor());
-    return ss | to_socket_handles(g);
+    return ss | to_handles(g);
   }
 
   auto node_graph::sockets(const node_handle& h, socket_type type) const
     -> std::vector<socket_handle>
   {
-    if(!exists(h))
+    if (!exists(h))
       return {};
 
     auto&& sockets = g.sockets(h.descriptor());
 
     return sockets //
-           | views::filter([&](auto s) { return g[s].type() == type; })
-           | to_socket_handles(g);
+           | rv::filter([&](auto s) { return g[s].type() == type; })
+           | to_handles(g);
   }
 
-  auto  node_graph::connection(const uid& id) const
-    -> connection_handle
+  auto node_graph::connection(const uid& id) const -> connection_handle
   {
     auto dsc = g.edge(id.data);
 
@@ -441,62 +421,61 @@ namespace yave {
     return connection_handle(dsc, id);
   }
 
-  auto node_graph::connections() const
-    -> std::vector<connection_handle>
+  auto node_graph::connections() const -> std::vector<connection_handle>
   {
     auto&& es = g.edges();
-    return es | to_connection_handles(g);
+    return es | to_handles(g);
   }
 
   auto node_graph::connections(const node_handle& h) const
     -> std::vector<connection_handle>
   {
-    if(!exists(h))
+    if (!exists(h))
       return {};
 
     auto&& ss = g.sockets(h.descriptor());
 
-    auto es = views::concat(
-                ss | views::transform([&](auto s) { return g.src_edges(s); }),
-                ss | views::transform([&](auto s) { return g.dst_edges(s); }))
-              | actions::join;
+    auto es = rv::concat(
+                ss | rv::transform([&](auto s) { return g.src_edges(s); }),
+                ss | rv::transform([&](auto s) { return g.dst_edges(s); }))
+              | ra::join;
 
-    return es | to_connection_handles(g);
+    return es | to_handles(g);
   }
 
-  auto node_graph:: connections(const socket_handle& h) const
+  auto node_graph::connections(const socket_handle& h) const
     -> std::vector<connection_handle>
   {
-    if(!exists(h))
+    if (!exists(h))
       return {};
 
     auto&& se = g.src_edges(h.descriptor());
     auto&& de = g.dst_edges(h.descriptor());
 
-    return views::concat(se, de) | to_connection_handles(g);
+    return rv::concat(se, de) | to_handles(g);
   }
 
-  auto node_graph:: connections(const node_handle& h, socket_type type) const
+  auto node_graph::connections(const node_handle& h, socket_type type) const
     -> std::vector<connection_handle>
   {
-    if(!exists(h))
+    if (!exists(h))
       return {};
 
     auto&& ss = g.sockets(h.descriptor());
 
-    auto sss = ss | views::filter([&](auto s) { return g[s].type() == type; });
+    auto sss = ss | rv::filter([&](auto s) { return g[s].type() == type; });
 
-    auto es = views::concat(
-                sss | views::transform([&](auto s) { return g.src_edges(s); }),
-                sss | views::transform([&](auto s) { return g.dst_edges(s); }))
-              | actions::join;
+    auto es = rv::concat(
+                sss | rv::transform([&](auto s) { return g.src_edges(s); }),
+                sss | rv::transform([&](auto s) { return g.dst_edges(s); }))
+              | ra::join;
 
-    return es | to_connection_handles(g);
+    return es | to_handles(g);
   }
 
   bool node_graph::has_connection(const socket_handle& h) const
   {
-    if(!exists(h))
+    if (!exists(h))
       return false;
 
     if (!g.src_edges(h.descriptor()).empty()) {
@@ -510,35 +489,34 @@ namespace yave {
     return false;
   }
 
-  auto node_graph:: type(const socket_handle& h) const
+  auto node_graph::type(const socket_handle& h) const
     -> std::optional<socket_type>
   {
-    if(!exists(h))
+    if (!exists(h))
       return std::nullopt;
 
     return g[h.descriptor()].type();
   }
 
-  auto node_graph:: type(const node_handle& h) const
-    -> std::optional<node_type>
+  auto node_graph::type(const node_handle& h) const -> std::optional<node_type>
   {
-    if(!exists(h))
+    if (!exists(h))
       return std::nullopt;
 
     return g[h.descriptor()].type();
   }
 
-  bool node_graph:: has_type(const socket_handle& h, socket_type type) const
+  bool node_graph::has_type(const socket_handle& h, socket_type type) const
   {
-    if(!exists(h))
+    if (!exists(h))
       return false;
 
     return g[h.descriptor()].type() == type;
   }
 
-  bool node_graph:: has_type(const node_handle& h, node_type type) const
+  bool node_graph::has_type(const node_handle& h, node_type type) const
   {
-    if(!exists(h))
+    if (!exists(h))
       return false;
 
     return g[h.descriptor()].type() == type;
@@ -546,7 +524,7 @@ namespace yave {
 
   bool node_graph::has_data(const socket_handle& h) const
   {
-    if(!exists(h))
+    if (!exists(h))
       return false;
 
     return g[h.descriptor()].has_data();
@@ -554,26 +532,24 @@ namespace yave {
 
   bool node_graph::has_data(const node_handle& h) const
   {
-    if(!exists(h))
+    if (!exists(h))
       return false;
 
     return g[h.descriptor()].has_data();
   }
 
-  auto node_graph::get_data(const socket_handle& h) const
-    -> object_ptr<Object>
+  auto node_graph::get_data(const socket_handle& h) const -> object_ptr<Object>
   {
-    if(!exists(h))
+    if (!exists(h))
       return {};
 
     auto data = g[h.descriptor()].get_data();
     return data ? *data : object_ptr();
   }
 
-  auto node_graph::get_data(const node_handle& h) const
-    -> object_ptr<Object>
+  auto node_graph::get_data(const node_handle& h) const -> object_ptr<Object>
   {
-    if(!exists(h))
+    if (!exists(h))
       return {};
 
     auto data = g[h.descriptor()].get_data();
@@ -582,7 +558,7 @@ namespace yave {
 
   void node_graph::set_data(const socket_handle& h, object_ptr<Object> data)
   {
-    if(!exists(h))
+    if (!exists(h))
       return;
 
     g[h.descriptor()].set_data(std::move(data));
@@ -590,16 +566,16 @@ namespace yave {
 
   void node_graph::set_data(const node_handle& h, object_ptr<Object> data)
   {
-    if(!exists(h))
+    if (!exists(h))
       return;
 
     g[h.descriptor()].set_data(std::move(data));
   }
 
-  auto node_graph:: root_of(const node_handle& node) const
+  auto node_graph::root_of(const node_handle& node) const
     -> std::vector<node_handle>
   {
-    if(!exists(node))
+    if (!exists(node))
       return {};
 
     std::vector<node_handle> ret;
@@ -637,8 +613,7 @@ namespace yave {
     return ret;
   }
 
-  auto node_graph:: roots() const
-    -> std::vector<node_handle>
+  auto node_graph::roots() const -> std::vector<node_handle>
   {
     std::vector<node_handle> ret;
 
@@ -657,18 +632,17 @@ namespace yave {
     return ret;
   }
 
-  void node_graph:: clear()
+  void node_graph::clear()
   {
     g.clear();
   }
 
-  bool node_graph:: empty() const
+  bool node_graph::empty() const
   {
     return g.empty();
   }
 
-  auto node_graph::clone() const
-    -> node_graph
+  auto node_graph::clone() const -> node_graph
   {
     return node_graph(g.clone());
   }
@@ -718,7 +692,6 @@ namespace yave {
 
     endloop:;
     }
-
     return false;
   }
 

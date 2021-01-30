@@ -46,6 +46,7 @@ namespace yave {
       case socket_type::output:
         return m_output_sockets;
     }
+    unreachable();
   }
 
 } // namespace yave

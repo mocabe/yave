@@ -21,24 +21,31 @@ namespace yave {
   /// Node graph.
   class node_graph
   {
+    /// data
+    graph_t g;
+
+    // helpers
+    node_graph(graph_t&&) noexcept;
+    bool _find_loop(const node_handle&) const;
+
   public:
     /// Constructor
-    node_graph();
+    node_graph() = default;
 
     /// Destructor
-    ~node_graph() noexcept;
+    ~node_graph() noexcept = default;
 
     /// Copy
     node_graph(const node_graph&) = delete;
 
     /// Move constructor
-    node_graph(node_graph&&) noexcept;
+    node_graph(node_graph&&) noexcept = default;
 
     /// Copy assignment
     node_graph& operator=(const node_graph& other) = delete;
 
     /// Move assignment
-    node_graph& operator=(node_graph&& other) noexcept;
+    node_graph& operator=(node_graph&& other) noexcept = default;
 
     /// exists
     [[nodiscard]] bool exists(const node_handle& node) const;
@@ -185,15 +192,18 @@ namespace yave {
       -> std::optional<socket_type>;
 
     /// Get node type
-    [[nodiscard]] auto type(const node_handle& h) const -> std::optional<node_type>;
+    [[nodiscard]] auto type(const node_handle& h) const
+      -> std::optional<node_type>;
 
     /// Check socket type.
     /// \returns false when the socket does not exist.
-    [[nodiscard]] bool has_type(const socket_handle& socket, socket_type type) const;
+    [[nodiscard]] bool has_type(const socket_handle& socket, socket_type type)
+      const;
 
     /// Check node type.
     /// \returns false when the node does not exist.
-    [[nodiscard]] bool has_type(const node_handle& socket, node_type type) const;
+    [[nodiscard]] bool has_type(const node_handle& socket, node_type type)
+      const;
 
     /// Check if connection exists.
     [[nodiscard]] bool has_connection(const socket_handle& socket) const;
@@ -237,13 +247,6 @@ namespace yave {
     /// \note cloning node does not change IDs of elements, but invalidates
     /// descriptor handles since it changes address of elements.
     [[nodiscard]] auto clone() const -> node_graph;
-
-  private:
-    graph_t g;
-
-  private:
-    node_graph(graph_t&&) noexcept;
-    bool _find_loop(const node_handle& node) const;
   };
 
 } // namespace yave
