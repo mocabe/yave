@@ -91,6 +91,12 @@ namespace yave {
       const node_type& type,
       const uid& id = uid::random_generate()) -> node_handle;
 
+    /// Remove node from graph.
+    /// Destroy the node, all sockets connected to the node, and all edges
+    /// connected to these sockets.
+    /// \throws should not throw exception.
+    void remove(const node_handle& node);
+
     /// Attach interface socket.
     /// When attached socket is destroyed, it will also be removed from
     /// interface node.
@@ -102,12 +108,6 @@ namespace yave {
     void detach_interface(
       const node_handle& interface,
       const socket_handle& socket);
-
-    /// Remove node from graph.
-    /// Destroy the node, all sockets connected to the node, and all edges
-    /// connected to these sockets.
-    /// \throws should not throw exception.
-    void remove(const node_handle& node);
 
     /// Connect sockets.
     /// When connection already exists, return handle of existing connection.
@@ -128,22 +128,8 @@ namespace yave {
     /// \returns Null handle when not found
     [[nodiscard]] auto node(const uid& id) const -> node_handle;
 
-    /// Find socket from ID.
-    /// \param id id
-    /// \returns Null handle when not found.
-    [[nodiscard]] auto socket(const uid& id) const -> socket_handle;
-
-    /// Find connection handle from ID.
-    /// \param id id
-    /// \returns Null handle when not found
-    [[nodiscard]] auto connection(const uid& id) const -> connection_handle;
-
     /// Get node attached to the socket
     [[nodiscard]] auto node(const socket_handle& socket) const -> node_handle;
-
-    /// Get list of interfaces nodes attached to the socket
-    [[nodiscard]] auto interfaces(const socket_handle& socket) const
-      -> std::vector<node_handle>;
 
     /// Get all nodes.
     [[nodiscard]] auto nodes() const -> std::vector<node_handle>;
@@ -151,6 +137,15 @@ namespace yave {
     /// Get nodes
     [[nodiscard]] auto nodes(const std::string& name) const
       -> std::vector<node_handle>;
+
+    /// Get list of interfaces nodes attached to the socket
+    [[nodiscard]] auto interfaces(const socket_handle& socket) const
+      -> std::vector<node_handle>;
+
+    /// Find socket from ID.
+    /// \param id id
+    /// \returns Null handle when not found.
+    [[nodiscard]] auto socket(const uid& id) const -> socket_handle;
 
     /// Get all sockets.
     [[nodiscard]] auto sockets() const -> std::vector<socket_handle>;
@@ -163,6 +158,11 @@ namespace yave {
     /// \param type type of sockets to get handles
     [[nodiscard]] auto sockets(const node_handle& node, socket_type type) const
       -> std::vector<socket_handle>;
+
+    /// Find connection handle from ID.
+    /// \param id id
+    /// \returns Null handle when not found
+    [[nodiscard]] auto connection(const uid& id) const -> connection_handle;
 
     /// Get all connections.
     [[nodiscard]] auto connections() const -> std::vector<connection_handle>;
@@ -220,10 +220,6 @@ namespace yave {
     /// Set custom data
     void set_data(const node_handle& h, object_ptr<Object> data);
 
-    /// Get owner node of socket.
-    [[nodiscard]] auto get_owner(const socket_handle& socket) const
-      -> node_handle;
-
     /// Get list of root nodes.
     [[nodiscard]] auto roots() const -> std::vector<node_handle>;
 
@@ -243,9 +239,11 @@ namespace yave {
     [[nodiscard]] auto clone() const -> node_graph;
 
   private:
-    class impl;
-    std::unique_ptr<impl> m_pimpl;
-    node_graph(std::unique_ptr<impl>&&) noexcept;
+    graph_t g;
+
+  private:
+    node_graph(graph_t&&) noexcept;
+    bool _find_loop(const node_handle& node) const;
   };
 
 } // namespace yave
