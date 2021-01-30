@@ -159,6 +159,11 @@ namespace yave {
     [[nodiscard]] auto sockets(const node_handle& node) const
       -> std::vector<socket_handle>;
 
+    /// Get sockets
+    /// \param type type of sockets to get handles
+    [[nodiscard]] auto sockets(const node_handle& node, socket_type type) const
+      -> std::vector<socket_handle>;
+
     /// Get all connections.
     [[nodiscard]] auto connections() const -> std::vector<connection_handle>;
 
@@ -170,38 +175,28 @@ namespace yave {
     [[nodiscard]] auto connections(const socket_handle& socket) const
       -> std::vector<connection_handle>;
 
-    /// Check if socket type is input.
+    /// Get connections
+    /// \param type type of sockets to get connections
+    [[nodiscard]] auto connections(const node_handle& socket, socket_type type)
+      const -> std::vector<connection_handle>;
+
+    /// Get socket type
+    [[nodiscard]] auto type(const socket_handle& h) const
+      -> std::optional<socket_type>;
+
+    /// Get node type
+    [[nodiscard]] auto type(const node_handle& h) const -> std::optional<node_type>;
+
+    /// Check socket type.
     /// \returns false when the socket does not exist.
-    [[nodiscard]] bool is_input_socket(const socket_handle& socket) const;
+    [[nodiscard]] bool has_type(const socket_handle& socket, socket_type type) const;
 
-    /// Check if socket type is output.
-    /// \returns false when the socket does not exist.
-    [[nodiscard]] bool is_output_socket(const socket_handle& socket) const;
-
-    /// Get list of input connections to the node.
-    [[nodiscard]] auto input_connections(const node_handle& node) const
-      -> std::vector<connection_handle>;
-
-    /// Get list of output connections from the node.
-    [[nodiscard]] auto output_connections(const node_handle& node) const
-      -> std::vector<connection_handle>;
+    /// Check node type.
+    /// \returns false when the node does not exist.
+    [[nodiscard]] bool has_type(const node_handle& socket, node_type type) const;
 
     /// Check if connection exists.
     [[nodiscard]] bool has_connection(const socket_handle& socket) const;
-
-    /// Get list of input sockets attached to the node.
-    [[nodiscard]] auto input_sockets(const node_handle& node) const
-      -> std::vector<socket_handle>;
-
-    /// Get list of output sockets attached to the node.
-    [[nodiscard]] auto output_sockets(const node_handle& node) const
-      -> std::vector<socket_handle>;
-
-    /// Normal node?
-    [[nodiscard]] bool is_normal(const node_handle& node) const;
-
-    /// Interface node?
-    [[nodiscard]] bool is_interface(const node_handle& node) const;
 
     /// Has data?
     [[nodiscard]] bool has_data(const socket_handle& h) const;

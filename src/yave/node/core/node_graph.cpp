@@ -155,6 +155,15 @@ namespace yave {
       return ss | to_socket_handles(g);
     }
 
+    auto sockets(const node_handle& h, socket_type type) const
+    {
+      auto&& sockets = g.sockets(h.descriptor());
+
+      return sockets //
+             | views::filter([&](auto s) { return g[s].type() == type; })
+             | to_socket_handles(g);
+    }
+
     auto connections() const
     {
       auto&& es = g.edges();
@@ -179,6 +188,41 @@ namespace yave {
       auto&& de = g.dst_edges(socket.descriptor());
 
       return views::concat(se, de) | to_connection_handles(g);
+    }
+
+    auto connections(const node_handle& node, socket_type type) const
+    {
+      auto&& ss = g.sockets(node.descriptor());
+
+      auto sss = ss | views::filter([&](auto s) { return g[s].type() == type; });
+
+      auto es = views::concat(
+                  sss | views::transform([&](auto s) { return g.src_edges(s); }),
+                  sss | views::transform([&](auto s) { return g.dst_edges(s); }))
+                | actions::join;
+
+      return es | to_connection_handles(g);
+    }
+
+public:
+    auto type(const socket_handle& h) const
+    {
+      return g[h.descriptor()].type();
+    }
+
+    auto type(const node_handle& h) const
+    {
+      return g[h.descriptor()].type();
+    }
+
+    bool has_type(const socket_handle& h, socket_type type) const
+    {
+      return g[h.descriptor()].type() == type;
+    }
+
+    bool has_type(const node_handle& h, node_type type) const
+    {
+      return g[h.descriptor()].type() == type;
     }
 
   public:
@@ -259,25 +303,6 @@ namespace yave {
     void set_name(const socket_handle& h, const std::string& name)
     {
       g[h.descriptor()].set_name(name);
-    }
-
-  public:
-    auto input_sockets(const node_handle& h) const
-    {
-      auto&& sockets = g.sockets(h.descriptor());
-
-      return sockets //
-             | views::filter([&](auto s) { return g[s].is_input(); })
-             | to_socket_handles(g);
-    }
-
-    auto output_sockets(const node_handle& h) const
-    {
-      auto&& sockets = g.sockets(h.descriptor());
-
-      return sockets //
-             | views::filter([&](auto s) { return g[s].is_output(); })
-             | to_socket_handles(g);
     }
 
   public:
@@ -429,40 +454,6 @@ namespace yave {
     }
 
   public:
-    bool is_input_socket(const socket_handle& h) const
-    {
-      return g[h.descriptor()].is_input();
-    }
-
-    bool is_output_socket(const socket_handle& h) const
-    {
-      return g[h.descriptor()].is_output();
-    }
-
-    auto input_connections(const node_handle& node) const
-    {
-      auto&& ss = g.sockets(node.descriptor());
-
-      auto es = ss //
-                | views::filter([&](auto s) { return g[s].is_input(); })
-                | views::transform([&](auto s) { return g.dst_edges(s); })
-                | actions::join;
-
-      return es | to_connection_handles(g);
-    }
-
-    auto output_connections(const node_handle& node) const
-    {
-      auto&& ss = g.sockets(node.descriptor());
-
-      auto es = ss //
-                | views::filter([&](auto s) { return g[s].is_output(); })
-                | views::transform([&](auto s) { return g.src_edges(s); })
-                | actions::join;
-
-      return es | to_connection_handles(g);
-    }
-
     bool has_connection(const socket_handle& h) const
     {
       if (!g.src_edges(h.descriptor()).empty()) {
@@ -483,16 +474,6 @@ namespace yave {
       assert(!g.nodes(socket.descriptor()).empty());
       auto n = g.nodes(socket.descriptor())[0];
       return node_handle(n, g.id(n));
-    }
-
-    bool is_normal(const node_handle& h) const
-    {
-      return g[h.descriptor()].is_normal();
-    }
-
-    bool is_interface(const node_handle& node) const
-    {
-      return g[node.descriptor()].is_interface();
     }
 
     bool has_data(const socket_handle& h) const
@@ -623,7 +604,7 @@ namespace yave {
 
       g[topd].set_flags(visited_bit | on_path_bit);
 
-      for (auto&& s : input_sockets(top)) {
+      for (auto&& s : sockets(top, socket_type::input)) {
         for (auto&& c : connections(s)) {
           auto src    = get_info(c).src_node();
           auto srcd   = src.descriptor();
@@ -860,6 +841,15 @@ namespace yave {
     return m_pimpl->sockets(node);
   }
 
+  auto node_graph::sockets(const node_handle& node, socket_type type) const
+    -> std::vector<socket_handle>
+  {
+    if (!exists(node))
+      return {};
+
+    return m_pimpl->sockets(node, type);
+  }
+
   auto node_graph::connections() const -> std::vector<connection_handle>
   {
     return m_pimpl->connections();
@@ -883,38 +873,47 @@ namespace yave {
     return m_pimpl->connections(socket);
   }
 
-  bool node_graph::is_input_socket(const socket_handle& h) const
-  {
-    if (!exists(h)) 
-      return false;
-
-    return m_pimpl->is_input_socket(h);
-  }
-
-  bool node_graph::is_output_socket(const socket_handle& h) const
-  {
-    if (!exists(h)) 
-      return false;
-
-    return m_pimpl->is_output_socket(h);
-  }
-
-  auto node_graph::input_connections(const node_handle& node) const
+  auto node_graph::connections(const node_handle& node, socket_type type) const
     -> std::vector<connection_handle>
   {
     if (!exists(node))
       return {};
 
-    return m_pimpl->input_connections(node);
+    return m_pimpl->connections(node, type);
   }
 
-  auto node_graph::output_connections(const node_handle& node) const
-    -> std::vector<connection_handle>
+  auto node_graph::type(const socket_handle& h) const
+    -> std::optional<socket_type>
   {
-    if (!exists(node))
-      return {};
+    if (!exists(h))
+      return std::nullopt;
 
-    return m_pimpl->output_connections(node);
+    return m_pimpl->type(h);
+  }
+ 
+  auto node_graph::type(const node_handle& h) const 
+    -> std::optional<node_type>
+  {
+    if (!exists(h))
+      return std::nullopt;
+
+    return m_pimpl->type(h);
+  }
+
+  bool node_graph::has_type(const socket_handle& h, socket_type type) const
+  {
+    if(!exists(h))
+      return false;
+    
+    return m_pimpl->has_type(h, type);
+  }
+
+  bool node_graph::has_type(const node_handle& h, node_type type) const
+  {
+    if(!exists(h))
+      return false;
+    
+    return m_pimpl->has_type(h, type);
   }
 
   bool node_graph::has_connection(const socket_handle& h) const
@@ -931,40 +930,6 @@ namespace yave {
       return {};
 
     return m_pimpl->get_owner(socket);
-  }
-
-  auto node_graph::input_sockets(const node_handle& h) const
-    -> std::vector<socket_handle>
-  {
-    if (!exists(h))
-      return {};
-
-    return m_pimpl->input_sockets(h);
-  }
-
-  auto node_graph::output_sockets(const node_handle& h) const
-    -> std::vector<socket_handle>
-  {
-    if (!exists(h))
-      return {};
-
-    return m_pimpl->output_sockets(h);
-  }
-
-  bool node_graph::is_normal(const node_handle& h) const
-  {
-    if (!exists(h))
-      return false;
-
-    return m_pimpl->is_normal(h);
-  }
-
-  bool node_graph::is_interface(const node_handle& h) const
-  {
-    if (!exists(h))
-      return false;
-
-    return m_pimpl->is_interface(h);
   }
 
   bool node_graph::has_data(const socket_handle& h) const
