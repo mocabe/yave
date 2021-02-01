@@ -5,22 +5,28 @@
 
 #pragma once
 
-#include <yave/node/core/graph_definition.hpp>
 #include <yave/node/core/node_handle.hpp>
 #include <yave/node/core/socket_handle.hpp>
 #include <yave/node/core/connection_handle.hpp>
 #include <yave/node/core/node_info.hpp>
 #include <yave/node/core/socket_info.hpp>
 #include <yave/node/core/connection_info.hpp>
+#include <yave/node/core/node_property.hpp>
+#include <yave/node/core/socket_property.hpp>
+#include <yave/node/core/edge_property.hpp>
+#include <yave/lib/graph/graph.hpp>
 
 #include <optional>
 #include <memory>
 
 namespace yave {
 
-  /// Node graph.
+  /// flat node graph data
   class node_graph
   {
+    /// internal graph type
+    using graph_t = graph::graph<node_property, socket_property, edge_property>;
+
     /// data
     graph_t g;
 

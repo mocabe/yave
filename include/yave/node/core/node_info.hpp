@@ -6,7 +6,9 @@
 #pragma once
 
 #include <yave/node/core/node_property.hpp>
+#include <yave/node/core/socket_property.hpp>
 #include <yave/node/core/socket_handle.hpp>
+
 #include <string>
 #include <vector>
 

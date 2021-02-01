@@ -8,6 +8,8 @@
 #include <yave/node/core/node_handle.hpp>
 #include <yave/node/core/socket_handle.hpp>
 
+#include <vector>
+
 namespace yave {
 
   /// Socket connect info

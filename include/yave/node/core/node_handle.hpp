@@ -5,12 +5,13 @@
 
 #pragma once
 
-#include <yave/node/core/graph_definition.hpp>
 #include <yave/node/core/descriptor_handle.hpp>
 
 namespace yave {
 
+  using opaque_node_descriptor_type = struct opaque_node_type *;
+
   /// Node handle
-  using node_handle = descriptor_handle<graph_t::node_descriptor_type>;
+  using node_handle = descriptor_handle<opaque_node_descriptor_type>;
 
 } // namespace yave

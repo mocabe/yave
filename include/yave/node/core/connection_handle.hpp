@@ -5,12 +5,13 @@
 
 #pragma once
 
-#include <yave/node/core/graph_definition.hpp>
 #include <yave/node/core/descriptor_handle.hpp>
 
 namespace yave {
 
+  using opaque_edge_descriptor_type = struct opaque_edge_type *;
+
   /// Handle of socket connection
-  using connection_handle = descriptor_handle<graph_t::edge_descriptor_type>;
+  using connection_handle = descriptor_handle<opaque_edge_descriptor_type>;
 
 } // namespace yave
