@@ -9,6 +9,7 @@
 #include <yave/node/core/node_handle.hpp>
 #include <yave/node/core/socket_handle.hpp>
 #include <yave/lib/util/variant_mixin.hpp>
+#include <yave/rts/type_value.hpp>
 
 #include <variant>
 #include <string>
