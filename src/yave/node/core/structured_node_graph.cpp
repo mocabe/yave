@@ -1106,12 +1106,6 @@ namespace yave {
     void remove_callee(node_group* group)
     {
       assert(group);
-
-      log_info("Removing node group: id={}", to_string(group->node.id()));
-
-      for (auto&& m : group->members)
-        log_info("  {}", to_string(m.id()));
-
       // assume callers are already removed
       assert(group->callers.empty());
 
@@ -1139,8 +1133,6 @@ namespace yave {
     {
       assert(func);
 
-      log_info("Removing function: id={}", to_string(func->node.id()));
-
       // assume callers are already removed
       assert(func->callers.empty());
 
@@ -1152,8 +1144,6 @@ namespace yave {
     void remove_callee(node_macro* macro)
     {
       assert(macro);
-
-      log_info("Removing macro: id={}", to_string(macro->node.id()));
 
       // assume callers are already removed
       assert(macro->callers.empty());
@@ -1307,20 +1297,9 @@ namespace yave {
       assert(call->parent);
       assert(ng.exists(call->node));
 
-      log_info("Removing node call: id={}", to_string(call->node.id()));
-
       if (is_defcall(call->node)) {
 
-        log_info("Node {} is a defcall", to_string(call->node.id()));
-
         auto callers = get_caller_nodes(call->node);
-
-        if (callers.size() > 1)
-          log_info("Following calls will also be removed: ");
-
-        for (auto&& caller : callers)
-          if (caller != call->node)
-            log_info("  {}", to_string(caller.id()));
 
         // remove normal calls before deleting defcall
         for (auto&& caller : callers)
@@ -1494,8 +1473,6 @@ namespace yave {
       node_group* callee,
       uid id) -> node_call*
     {
-      log_info("Cloning node group {}", *ng.get_name(callee->node));
-
       // fallback to copy
       if (!call->is_defcall())
         return copy_call(parent, call, id);
@@ -1739,13 +1716,13 @@ namespace yave {
       auto call = get_call(node);
 
       if (!call) {
-        log_info("Cannot change name of non-call nodes");
+        log_error("Cannot change name of non-call nodes");
         return;
       }
 
       // for legacy
       if (!call->is_defcall()) {
-        log_info("Cannot change name of node from non-definition call");
+        log_error("Cannot change name of node from non-definition call");
         return;
       }
 
@@ -1995,7 +1972,6 @@ namespace yave {
     void remove_socket(const socket_handle& socket)
     {
       assert(ng.exists(socket));
-      log_info("Removing socket {}", to_string(socket.id()));
 
       auto node = get_node(socket);
       auto idx  = get_index(node, socket);
