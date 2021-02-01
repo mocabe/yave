@@ -61,7 +61,7 @@ namespace yave {
     template <class Descriptor>
     [[nodiscard]] auto hndl(Descriptor dsc, const graph_t& g)
     {
-      return hndl(dsc, uid(g.id(dsc)));
+      return hndl(dsc, uid {g.id(dsc)});
     }
 
     // convert descriptors to handles
