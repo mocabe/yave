@@ -543,7 +543,10 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // dcmd_sadd
 
-  dcmd_sadd::dcmd_sadd(node_handle n, socket_type stype, size_t index)
+  dcmd_sadd::dcmd_sadd(
+    node_handle n,
+    structured_socket_type stype,
+    size_t index)
     : node {n}
     , stype {stype}
     , index {index}
@@ -557,9 +560,9 @@ namespace yave::editor::imgui {
     auto& ng   = data.node_graph();
 
     auto new_s = [&] {
-      if (stype == socket_type::input)
+      if (stype == structured_socket_type::input)
         return ng.add_input_socket(node, std::to_string(index));
-      if (stype == socket_type::output)
+      if (stype == structured_socket_type::output)
         return ng.add_output_socket(node, std::to_string(index));
 
       return socket_handle();

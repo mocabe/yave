@@ -237,10 +237,10 @@ namespace yave::editor::imgui {
   struct dcmd_sadd : data_command
   {
     node_handle node;
-    socket_type stype;
+    structured_socket_type stype;
     size_t index;
 
-    dcmd_sadd(node_handle n, socket_type stype, size_t index);
+    dcmd_sadd(node_handle n, structured_socket_type stype, size_t index);
 
     void exec(data_context& ctx) override;
     void undo(data_context& ctx) override;
