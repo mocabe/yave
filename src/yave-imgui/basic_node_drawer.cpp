@@ -271,7 +271,7 @@ namespace yave::editor::imgui {
 
         if (ImGui::Selectable("add new output socket"))
           dctx.cmd(std::make_unique<dcmd_sadd>(
-            n, socket_type::output, info.output_sockets().size()));
+            n, structured_socket_type::output, info.output_sockets().size()));
       }
 
       if (info.is_group() || info.is_macro() || info.is_group_output()) {
@@ -306,7 +306,7 @@ namespace yave::editor::imgui {
 
         if (ImGui::Selectable("add new input socket"))
           dctx.cmd(std::make_unique<dcmd_sadd>(
-            n, socket_type::input, info.input_sockets().size()));
+            n, structured_socket_type::input, info.input_sockets().size()));
       }
 
       ImGui::EndPopup();
