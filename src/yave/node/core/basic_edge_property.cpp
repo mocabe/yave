@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/core/edge_property.hpp>
+#include <yave/node/core/basic_edge_property.hpp>
 
 namespace yave {
 }

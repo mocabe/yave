@@ -1,13 +1,13 @@
 # yave::node::core
 
 add_library(yave-node-core 
-  node_info.cpp
-  socket_info.cpp
-  connection_info.cpp
-  edge_property.cpp
-  node_property.cpp
-  socket_property.cpp
-  node_graph.cpp
+  basic_node_info.cpp
+  basic_socket_info.cpp
+  basic_connection_info.cpp
+  basic_edge_property.cpp
+  basic_node_property.cpp
+  basic_socket_property.cpp
+  basic_node_graph.cpp
   socket_instance_manager.cpp
   node_initializer.cpp
   node_declaration.cpp

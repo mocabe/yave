@@ -13,19 +13,19 @@
 namespace yave {
 
   /// Socket connect info
-  class connection_info
+  class basic_connection_info
   {
   public:
-    connection_info()                       = delete;
-    connection_info(const connection_info&) = default;
-    connection_info(connection_info&&)      = default;
-    connection_info(
+    basic_connection_info()                             = delete;
+    basic_connection_info(const basic_connection_info&) = default;
+    basic_connection_info(basic_connection_info&&)      = default;
+    basic_connection_info(
       const node_handle& src_node,
       const socket_handle& src_socket,
       const node_handle& dst_node,
       const socket_handle& dst_socket);
 
-    connection_info(
+    basic_connection_info(
       const node_handle& src_node,
       const socket_handle& src_socket,
       const node_handle& dst_node,

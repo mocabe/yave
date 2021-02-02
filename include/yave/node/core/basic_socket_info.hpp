@@ -5,23 +5,23 @@
 
 #pragma once
 
-#include <yave/node/core/socket_property.hpp>
 #include <yave/node/core/node_handle.hpp>
+#include <yave/node/core/basic_socket_property.hpp>
 
 namespace yave {
 
-  class socket_info
+  class basic_socket_info
   {
   public:
-    socket_info()                   = delete;
-    socket_info(const socket_info&) = default;
-    socket_info(socket_info&&)      = default;
-    socket_info& operator=(const socket_info&) = default;
-    socket_info& operator=(socket_info&&) = default;
+    basic_socket_info()                         = delete;
+    basic_socket_info(const basic_socket_info&) = default;
+    basic_socket_info(basic_socket_info&&)      = default;
+    basic_socket_info& operator=(const basic_socket_info&) = default;
+    basic_socket_info& operator=(basic_socket_info&&) = default;
 
-    socket_info(
+    basic_socket_info(
       std::string name,
-      socket_type type,
+      basic_socket_type type,
       node_handle node,
       std::vector<node_handle> interfaces);
 
@@ -29,7 +29,7 @@ namespace yave {
     [[nodiscard]] auto name() const -> const std::string&;
 
     /// socket type
-    [[nodiscard]] auto type() const -> socket_type;
+    [[nodiscard]] auto type() const -> basic_socket_type;
 
     /// Get node
     [[nodiscard]] auto node() const -> const node_handle&;
@@ -39,8 +39,8 @@ namespace yave {
 
   private:
     std::string m_name;
-    socket_type m_type;
+    basic_socket_type m_type;
     node_handle m_node;
     std::vector<node_handle> m_interfaces;
   };
-}
+} // namespace yave

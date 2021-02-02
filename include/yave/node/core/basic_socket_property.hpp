@@ -14,21 +14,21 @@
 namespace yave {
 
   /// Socket type
-  enum class socket_type
+  enum class basic_socket_type
   {
     input,
     output,
   };
 
   /// Socket property class for node graph.
-  class socket_property
+  class basic_socket_property
   {
   public:
     /// Ctor
-    socket_property(std::string name, socket_type type);
+    basic_socket_property(std::string name, basic_socket_type type);
 
     /// Copy ctor
-    socket_property(const socket_property&);
+    basic_socket_property(const basic_socket_property&);
 
     /// Check input.
     [[nodiscard]] bool is_input() const;
@@ -37,7 +37,7 @@ namespace yave {
     [[nodiscard]] bool is_output() const;
 
     /// Get socket type
-    [[nodiscard]] auto type() const -> socket_type;
+    [[nodiscard]] auto type() const -> basic_socket_type;
 
     /// Get name of socket.
     [[nodiscard]] auto name() const -> const std::string&;
@@ -58,7 +58,7 @@ namespace yave {
     /// name of socket
     std::string m_name;
     /// input or output
-    const socket_type m_type;
+    const basic_socket_type m_type;
 
   private:
     std::optional<object_ptr<Object>> m_data;

@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include <yave/node/core/node_info.hpp>
-
-#include <glm/glm.hpp>
+#include <yave/node/core/basic_node_info.hpp>
 
 namespace yave {
 

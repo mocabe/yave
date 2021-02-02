@@ -3,13 +3,13 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/core/socket_info.hpp>
+#include <yave/node/core/basic_socket_info.hpp>
 
 namespace yave {
 
-  socket_info::socket_info(
+  basic_socket_info::basic_socket_info(
     std::string name,
-    socket_type type,
+    basic_socket_type type,
     node_handle node,
     std::vector<node_handle> interfaces)
     : m_name {std::move(name)}
@@ -19,22 +19,22 @@ namespace yave {
   {
   }
 
-  auto socket_info::name() const -> const std::string&
+  auto basic_socket_info::name() const -> const std::string&
   {
     return m_name;
   }
 
-  auto socket_info::type() const -> socket_type
+  auto basic_socket_info::type() const -> basic_socket_type
   {
     return m_type;
   }
 
-  auto socket_info::node() const -> const node_handle&
+  auto basic_socket_info::node() const -> const node_handle&
   {
     return m_node;
   }
 
-  auto socket_info::interfaces() const -> const std::vector<node_handle>&
+  auto basic_socket_info::interfaces() const -> const std::vector<node_handle>&
   {
     return m_interfaces;
   }

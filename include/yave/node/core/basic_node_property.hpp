@@ -14,20 +14,20 @@
 namespace yave {
 
   /// Node type
-  enum class node_type
+  enum class basic_node_type
   {
     normal,    // normal node
     interface, // interface node
   };
 
   /// Node property class for node graph.
-  class node_property
+  class basic_node_property
   {
   public:
     /// Non-primitive ctor.
-    node_property(const std::string& name, node_type type);
+    basic_node_property(const std::string& name, basic_node_type type);
     /// Copy ctor
-    node_property(const node_property&);
+    basic_node_property(const basic_node_property&);
 
     /// Normal node?
     [[nodiscard]] bool is_normal() const;
@@ -36,7 +36,7 @@ namespace yave {
     /// Get node name.
     [[nodiscard]] auto name() const -> const std::string&;
     /// Get node type
-    [[nodiscard]] auto type() const -> node_type;
+    [[nodiscard]] auto type() const -> basic_node_type;
     /// Has data?
     [[nodiscard]] bool has_data() const;
     /// Get data
@@ -52,12 +52,12 @@ namespace yave {
     /// Name of node.
     std::string m_name;
     /// Node type
-    const node_type m_type;
+    const basic_node_type m_type;
     /// Custom data
     std::optional<object_ptr<Object>> m_data;
 
   private: /* for node_graph */
-    friend class node_graph;
+    friend class basic_node_graph;
     auto get_flags() const -> uint8_t;
     void set_flags(uint8_t bits) const;
     mutable uint8_t m_flags;
