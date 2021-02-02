@@ -43,6 +43,9 @@ namespace yave {
     [[nodiscard]] auto sockets(basic_socket_type) const
       -> const std::vector<socket_handle>&;
 
+    [[nodiscard]] auto i_sockets() const -> const std::vector<socket_handle>&;
+    [[nodiscard]] auto o_sockets() const -> const std::vector<socket_handle>&;
+
     /// set name
     void set_name(std::string name);
 

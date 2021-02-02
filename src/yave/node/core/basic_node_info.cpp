@@ -49,4 +49,14 @@ namespace yave {
     unreachable();
   }
 
+  auto basic_node_info::i_sockets() const -> const std::vector<socket_handle>&
+  {
+    return sockets(basic_socket_type::input);
+  }
+
+  auto basic_node_info::o_sockets() const -> const std::vector<socket_handle>&
+  {
+    return sockets(basic_socket_type::output);
+  }
+
 } // namespace yave
