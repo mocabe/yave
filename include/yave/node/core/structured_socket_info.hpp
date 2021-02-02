@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <yave/node/core/socket_info.hpp>
 #include <yave/node/core/connection_handle.hpp>
+#include <yave/node/core/basic_socket_info.hpp>
 
 namespace yave {
 

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/node/core/connection_info.hpp>
+#include <yave/node/core/basic_connection_info.hpp>
 
 namespace yave {
 

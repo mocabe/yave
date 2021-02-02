@@ -8,12 +8,12 @@
 #include <yave/node/core/node_handle.hpp>
 #include <yave/node/core/socket_handle.hpp>
 #include <yave/node/core/connection_handle.hpp>
-#include <yave/node/core/node_info.hpp>
-#include <yave/node/core/socket_info.hpp>
-#include <yave/node/core/connection_info.hpp>
-#include <yave/node/core/node_property.hpp>
-#include <yave/node/core/socket_property.hpp>
-#include <yave/node/core/edge_property.hpp>
+#include <yave/node/core/basic_node_info.hpp>
+#include <yave/node/core/basic_socket_info.hpp>
+#include <yave/node/core/basic_connection_info.hpp>
+#include <yave/node/core/basic_node_property.hpp>
+#include <yave/node/core/basic_socket_property.hpp>
+#include <yave/node/core/basic_edge_property.hpp>
 #include <yave/lib/graph/graph.hpp>
 
 #include <optional>
@@ -21,37 +21,38 @@
 
 namespace yave {
 
-  /// flat node graph data
-  class node_graph
+  /// Monolayer node graph
+  class basic_node_graph
   {
     /// internal graph type
-    using graph_t = graph::graph<node_property, socket_property, edge_property>;
+    using graph_t = graph::
+      graph<basic_node_property, basic_socket_property, basic_edge_property>;
 
     /// data
     graph_t g;
 
     // helpers
-    node_graph(graph_t&&) noexcept;
+    basic_node_graph(graph_t&&) noexcept;
     bool _find_loop(const node_handle&) const;
 
   public:
     /// Constructor
-    node_graph() = default;
+    basic_node_graph() = default;
 
     /// Destructor
-    ~node_graph() noexcept = default;
+    ~basic_node_graph() noexcept = default;
 
     /// Copy
-    node_graph(const node_graph&) = delete;
+    basic_node_graph(const basic_node_graph&) = delete;
 
     /// Move constructor
-    node_graph(node_graph&&) noexcept = default;
+    basic_node_graph(basic_node_graph&&) noexcept = default;
 
     /// Copy assignment
-    node_graph& operator=(const node_graph& other) = delete;
+    basic_node_graph& operator=(const basic_node_graph& other) = delete;
 
     /// Move assignment
-    node_graph& operator=(node_graph&& other) noexcept = default;
+    basic_node_graph& operator=(basic_node_graph&& other) noexcept = default;
 
     /// exists
     [[nodiscard]] bool exists(const node_handle& node) const;
@@ -65,17 +66,17 @@ namespace yave {
     /// Get node info from handle.
     /// \returns std::nullopt when the node did not exist.
     [[nodiscard]] auto get_info(const node_handle& node) const
-      -> std::optional<node_info>;
+      -> std::optional<basic_node_info>;
 
     /// Get socket info from handle.
     /// \returns std::nullopt when the socket did not exist.
     [[nodiscard]] auto get_info(const socket_handle& node) const
-      -> std::optional<socket_info>;
+      -> std::optional<basic_socket_info>;
 
     /// Get connection info of all connections from/to the node.
     /// \returns std::nullopt when connection doesn't exist.
     [[nodiscard]] auto get_info(const connection_handle& node) const
-      -> std::optional<connection_info>;
+      -> std::optional<basic_connection_info>;
 
     /// Get node name from handle.
     /// \returns std::nullopt when the node did not exist.
@@ -101,7 +102,7 @@ namespace yave {
       const std::string& name,
       const std::vector<std::string>& input_sockets,
       const std::vector<std::string>& output_sockets,
-      const node_type& type,
+      const basic_node_type& type,
       const uid& id = uid::random_generate()) -> node_handle;
 
     /// Remove node from graph.
@@ -169,8 +170,8 @@ namespace yave {
 
     /// Get sockets
     /// \param type type of sockets to get handles
-    [[nodiscard]] auto sockets(const node_handle& node, socket_type type) const
-      -> std::vector<socket_handle>;
+    [[nodiscard]] auto sockets(const node_handle& node, basic_socket_type type)
+      const -> std::vector<socket_handle>;
 
     /// Find connection handle from ID.
     /// \param id id
@@ -190,25 +191,27 @@ namespace yave {
 
     /// Get connections
     /// \param type type of sockets to get connections
-    [[nodiscard]] auto connections(const node_handle& socket, socket_type type)
-      const -> std::vector<connection_handle>;
+    [[nodiscard]] auto connections(
+      const node_handle& socket,
+      basic_socket_type type) const -> std::vector<connection_handle>;
 
     /// Get socket type
     [[nodiscard]] auto type(const socket_handle& h) const
-      -> std::optional<socket_type>;
+      -> std::optional<basic_socket_type>;
 
     /// Get node type
     [[nodiscard]] auto type(const node_handle& h) const
-      -> std::optional<node_type>;
+      -> std::optional<basic_node_type>;
 
     /// Check socket type.
     /// \returns false when the socket does not exist.
-    [[nodiscard]] bool has_type(const socket_handle& socket, socket_type type)
-      const;
+    [[nodiscard]] bool has_type(
+      const socket_handle& socket,
+      basic_socket_type type) const;
 
     /// Check node type.
     /// \returns false when the node does not exist.
-    [[nodiscard]] bool has_type(const node_handle& socket, node_type type)
+    [[nodiscard]] bool has_type(const node_handle& socket, basic_node_type type)
       const;
 
     /// Check if connection exists.
@@ -249,10 +252,10 @@ namespace yave {
     /// empty?
     [[nodiscard]] bool empty() const;
 
-    /// clone node_graph.
+    /// clone basic_node_graph.
     /// \note cloning node does not change IDs of elements, but invalidates
     /// descriptor handles since it changes address of elements.
-    [[nodiscard]] auto clone() const -> node_graph;
+    [[nodiscard]] auto clone() const -> basic_node_graph;
   };
 
 } // namespace yave

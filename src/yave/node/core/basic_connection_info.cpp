@@ -3,11 +3,11 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/node/core/connection_info.hpp>
+#include <yave/node/core/basic_connection_info.hpp>
 
 namespace yave {
 
-  connection_info::connection_info(
+  basic_connection_info::basic_connection_info(
     const node_handle& src_node,
     const socket_handle& src_socket,
     const node_handle& dst_node,
@@ -19,7 +19,7 @@ namespace yave {
   {
   }
 
-  connection_info::connection_info(
+  basic_connection_info::basic_connection_info(
     const node_handle& src_node,
     const socket_handle& src_socket,
     const node_handle& dst_node,
@@ -35,33 +35,33 @@ namespace yave {
   {
   }
 
-  auto connection_info::src_node() const -> const node_handle&
+  auto basic_connection_info::src_node() const -> const node_handle&
   {
     return m_src_node;
   }
 
-  auto connection_info::src_socket() const -> const socket_handle&
+  auto basic_connection_info::src_socket() const -> const socket_handle&
   {
     return m_src_socket;
   }
 
-  auto connection_info::dst_node() const -> const node_handle&
+  auto basic_connection_info::dst_node() const -> const node_handle&
   {
     return m_dst_node;
   }
 
-  auto connection_info::dst_socket() const -> const socket_handle&
+  auto basic_connection_info::dst_socket() const -> const socket_handle&
   {
     return m_dst_socket;
   }
 
-  auto connection_info::src_interfaces() const
+  auto basic_connection_info::src_interfaces() const
     -> const std::vector<node_handle>&
   {
     return m_src_interfaces;
   }
 
-  auto connection_info::dst_interfaces() const
+  auto basic_connection_info::dst_interfaces() const
     -> const std::vector<node_handle>&
   {
     return m_dst_interfaces;
