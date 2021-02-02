@@ -71,13 +71,13 @@ namespace yave {
 
       bool has_member(const node_handle& n)
       {
+        assert(members.size() + 2 == nodes.size());
         return rn::find(members, n) != members.end();
       }
 
       void add_member(const node_handle& n)
       {
         assert(!has_member(n));
-        assert(members.size() + 2 == nodes.size());
         members.push_back(n);
         nodes.push_back(n);
       }
@@ -85,41 +85,26 @@ namespace yave {
       void remove_member(const node_handle& n)
       {
         assert(has_member(n));
-        assert(members.size() + 2 == nodes.size());
         members.erase(rn::find(members, n));
         nodes.erase(rn::find(nodes, n));
       }
 
       void bring_front(const node_handle& n)
       {
-        assert(has_member(n) || n == input_handler || n == output_handler);
-        assert(members.size() + 2 == nodes.size());
-
         auto _bring_front = [](auto&& ns, auto&& n) {
-          auto it = rn::remove(ns, n);
-          if (it != ns.end()) {
-            ns.erase(it, ns.end());
-            ns.insert(ns.end(), n);
-          }
+          if (auto m = rn::find(ns, n); m != ns.end())
+            std::rotate(m, m + 1, ns.end());
         };
-
         _bring_front(members, n);
         _bring_front(nodes, n);
       }
 
       void bring_back(const node_handle& n)
       {
-        assert(has_member(n) || n == input_handler || n == output_handler);
-        assert(members.size() + 2 == nodes.size());
-
         auto _bring_back = [](auto&& ns, auto&& n) {
-          auto it = rn::remove(ns, n);
-          if (it != ns.end()) {
-            ns.erase(it, ns.end());
-            ns.insert(ns.begin(), n);
-          }
+          if (auto m = rn::find(ns, n); m != ns.end())
+            std::rotate(ns.begin(), m, m + 1);
         };
-
         _bring_back(members, n);
         _bring_back(nodes, n);
       }
