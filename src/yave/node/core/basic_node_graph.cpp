@@ -460,6 +460,18 @@ namespace yave {
            | to_handles(g);
   }
 
+  auto basic_node_graph::i_sockets(const node_handle& node) const
+    -> std::vector<socket_handle>
+  {
+    return sockets(node, basic_socket_type::input);
+  }
+
+  auto basic_node_graph::o_sockets(const node_handle& node) const
+    -> std::vector<socket_handle>
+  {
+    return sockets(node, basic_socket_type::output);
+  }
+
   auto basic_node_graph::connection(const uid& id) const -> connection_handle
   {
     auto dsc = g.edge(id.data);
@@ -521,6 +533,18 @@ namespace yave {
               | ra::join;
 
     return es | to_handles(g);
+  }
+
+  auto basic_node_graph::i_connections(const node_handle& socket) const
+    -> std::vector<connection_handle>
+  {
+    return connections(socket, basic_socket_type::input);
+  }
+
+  auto basic_node_graph::o_connections(const node_handle& socket) const
+    -> std::vector<connection_handle>
+  {
+    return connections(socket, basic_socket_type::output);
   }
 
   bool basic_node_graph::has_connection(const socket_handle& h) const

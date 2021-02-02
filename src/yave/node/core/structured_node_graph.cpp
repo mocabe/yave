@@ -950,12 +950,8 @@ namespace yave {
       auto bit = ng.add("GruopIOBit", {name}, {name}, basic_node_type::normal);
       assert(bit);
 
-      set_data(
-        ng.sockets(bit, basic_socket_type::input)[0],
-        make_object<SocketData>());
-      set_data(
-        ng.sockets(bit, basic_socket_type::output)[0],
-        make_object<SocketData>());
+      set_data(ng.i_sockets(bit)[0], make_object<SocketData>());
+      set_data(ng.o_sockets(bit)[0], make_object<SocketData>());
 
       return bit;
     }
@@ -1018,19 +1014,15 @@ namespace yave {
 
       for (auto&& s : iss) {
         auto bit = add_io_bit(s);
-        check(
-          ng.attach_interface(g, ng.sockets(bit, basic_socket_type::input)[0]));
-        check(ng.attach_interface(
-          i, ng.sockets(bit, basic_socket_type::output)[0]));
+        check(ng.attach_interface(g, ng.i_sockets(bit)[0]));
+        check(ng.attach_interface(i, ng.o_sockets(bit)[0]));
         pgdata->input_bits.push_back(bit);
       }
 
       for (auto&& s : oss) {
         auto bit = add_io_bit(s);
-        check(ng.attach_interface(
-          g, ng.sockets(bit, basic_socket_type::output)[0]));
-        check(
-          ng.attach_interface(o, ng.sockets(bit, basic_socket_type::input)[0]));
+        check(ng.attach_interface(g, ng.o_sockets(bit)[0]));
+        check(ng.attach_interface(o, ng.i_sockets(bit)[0]));
         pgdata->output_bits.push_back(bit);
       }
 
@@ -1054,10 +1046,10 @@ namespace yave {
 
       set_data(body, bdata);
 
-      for (auto&& s : ng.sockets(body, basic_socket_type::input))
+      for (auto&& s : ng.i_sockets(body))
         set_data(s, make_object<SocketData>());
 
-      for (auto&& s : ng.sockets(body, basic_socket_type::output))
+      for (auto&& s : ng.o_sockets(body))
         set_data(s, make_object<SocketData>());
 
       return &bdata->get<node_function>();
@@ -1079,10 +1071,10 @@ namespace yave {
 
       set_data(body, bdata);
 
-      for (auto&& s : ng.sockets(body, basic_socket_type::input))
+      for (auto&& s : ng.i_sockets(body))
         set_data(s, make_object<SocketData>());
 
-      for (auto&& s : ng.sockets(body, basic_socket_type::output))
+      for (auto&& s : ng.o_sockets(body))
         set_data(s, make_object<SocketData>());
 
       return std::get_if<node_macro>(&*bdata);
@@ -1160,12 +1152,9 @@ namespace yave {
         assert(p);
         // call -> parent group
         check(ng.connect(
-          ng.sockets(dep, basic_socket_type::output)[0],
-          ng.sockets(parent->dependency, basic_socket_type::input)[0]));
+          ng.o_sockets(dep)[0], ng.i_sockets(parent->dependency)[0]));
         // caleee -> call
-        return ng.connect(
-          ng.sockets(p->dependency, basic_socket_type::output)[0],
-          ng.sockets(dep, basic_socket_type::input)[0]);
+        return ng.connect(ng.o_sockets(p->dependency)[0], ng.i_sockets(dep)[0]);
       });
 
       // closed loop
@@ -1208,29 +1197,25 @@ namespace yave {
       std::vector<node_handle> ibits;
       std::vector<node_handle> obits;
 
-      ibits.reserve(info->sockets(basic_socket_type::input).size());
-      obits.reserve(info->sockets(basic_socket_type::output).size());
+      ibits.reserve(info->i_sockets().size());
+      obits.reserve(info->o_sockets().size());
 
-      for (auto&& s : info->sockets(basic_socket_type::input)) {
+      for (auto&& s : info->i_sockets()) {
         auto bit = add_io_bit(*ng.get_name(s));
-        check(
-          ng.attach_interface(n, ng.sockets(bit, basic_socket_type::input)[0]));
+        check(ng.attach_interface(n, ng.i_sockets(bit)[0]));
         ibits.push_back(bit);
       }
 
-      for (auto&& s : info->sockets(basic_socket_type::output)) {
+      for (auto&& s : info->o_sockets()) {
         auto bit = add_io_bit(*ng.get_name(s));
-        check(ng.attach_interface(
-          n, ng.sockets(bit, basic_socket_type::output)[0]));
+        check(ng.attach_interface(n, ng.o_sockets(bit)[0]));
         obits.push_back(bit);
       }
 
       // in-out dependency
       for (auto&& obit : obits)
         for (auto&& ibit : ibits)
-          check(ng.connect(
-            ng.sockets(ibit, basic_socket_type::output)[0],
-            ng.sockets(obit, basic_socket_type::input)[0]));
+          check(ng.connect(ng.o_sockets(ibit)[0], ng.i_sockets(obit)[0]));
 
       assert(!ng.get_data(n));
 
@@ -1354,29 +1339,25 @@ namespace yave {
       std::vector<node_handle> ibits;
       std::vector<node_handle> obits;
 
-      ibits.reserve(info->sockets(basic_socket_type::input).size());
-      obits.reserve(info->sockets(basic_socket_type::output).size());
+      ibits.reserve(info->i_sockets().size());
+      obits.reserve(info->o_sockets().size());
 
-      for (auto&& s : info->sockets(basic_socket_type::input)) {
+      for (auto&& s : info->i_sockets()) {
         auto bit = add_io_bit(*ng.get_name(s));
-        check(
-          ng.attach_interface(n, ng.sockets(bit, basic_socket_type::input)[0]));
+        check(ng.attach_interface(n, ng.i_sockets(bit)[0]));
         ibits.push_back(bit);
       }
 
-      for (auto&& s : info->sockets(basic_socket_type::output)) {
+      for (auto&& s : info->o_sockets()) {
         auto bit = add_io_bit(*ng.get_name(s));
-        check(ng.attach_interface(
-          n, ng.sockets(bit, basic_socket_type::output)[0]));
+        check(ng.attach_interface(n, ng.o_sockets(bit)[0]));
         obits.push_back(bit);
       }
 
       // in-out dependency
       for (auto&& obit : obits)
         for (auto&& ibit : ibits)
-          check(ng.connect(
-            ng.sockets(ibit, basic_socket_type::output)[0],
-            ng.sockets(obit, basic_socket_type::input)[0]));
+          check(ng.connect(ng.o_sockets(ibit)[0], ng.i_sockets(obit)[0]));
 
       assert(!ng.get_data(n));
 
@@ -1401,8 +1382,8 @@ namespace yave {
       assert(call->input_bits.size() == newc->input_bits.size());
       assert(call->output_bits.size() == newc->output_bits.size());
 
-      auto iss = ng.sockets(call->node, basic_socket_type::input);
-      auto oss = ng.sockets(call->node, basic_socket_type::output);
+      auto iss = ng.i_sockets(call->node);
+      auto oss = ng.o_sockets(call->node);
 
       assert(iss.size() == newc->input_bits.size());
       assert(oss.size() == newc->output_bits.size());
@@ -1415,20 +1396,14 @@ namespace yave {
       // clone socket property
       for (auto&& [idx, s] : iss | rv::enumerate) {
         for (auto&& [key, v] : get_data(s)->properties) {
-          set_caller_property(
-            ng.sockets(newc->node, basic_socket_type::input)[idx],
-            key,
-            v.clone());
+          set_caller_property(ng.i_sockets(newc->node)[idx], key, v.clone());
         }
       }
 
       // clone socket property
       for (auto&& [idx, s] : oss | rv::enumerate) {
         for (auto&& [key, v] : get_data(s)->properties) {
-          set_caller_property(
-            ng.sockets(newc->node, basic_socket_type::output)[idx],
-            key,
-            v.clone());
+          set_caller_property(ng.o_sockets(newc->node)[idx], key, v.clone());
         }
       }
       return newc;
@@ -1495,10 +1470,10 @@ namespace yave {
         auto newn = clone_call(newg, get_call(n))->node;
         assert(is_caller(newn));
 
-        auto oldis = ng.sockets(n, basic_socket_type::input);
-        auto oldos = ng.sockets(n, basic_socket_type::output);
-        auto newis = ng.sockets(newn, basic_socket_type::input);
-        auto newos = ng.sockets(newn, basic_socket_type::output);
+        auto oldis = ng.i_sockets(n);
+        auto oldos = ng.o_sockets(n);
+        auto newis = ng.i_sockets(newn);
+        auto newos = ng.o_sockets(newn);
 
         assert(oldis.size() == newis.size());
         assert(oldos.size() == newos.size());
@@ -1525,14 +1500,14 @@ namespace yave {
         for (auto&& [key, v] : call->properties)
           set_caller_property(newc->node, key, v.clone());
 
-        for (auto&& s : ng.sockets(call->node, basic_socket_type::input)) {
+        for (auto&& s : ng.i_sockets(call->node)) {
           auto news =
             check(add_input_socket(newc->node, *ng.get_name(s), size_t(-1)));
           for (auto&& [key, v] : get_data(s)->properties)
             set_caller_property(news, key, v.clone());
         }
 
-        for (auto&& s : ng.sockets(call->node, basic_socket_type::output)) {
+        for (auto&& s : ng.o_sockets(call->node)) {
           auto news =
             check(add_output_socket(newc->node, *ng.get_name(s), size_t(-1)));
           for (auto&& [key, v] : get_data(s)->properties)
@@ -1541,12 +1516,10 @@ namespace yave {
       }
 
       { // map sockets of IO handler
-        auto oldis =
-          ng.sockets(callee->output_handler, basic_socket_type::input);
-        auto oldos =
-          ng.sockets(callee->input_handler, basic_socket_type::output);
-        auto newis = ng.sockets(newg->output_handler, basic_socket_type::input);
-        auto newos = ng.sockets(newg->input_handler, basic_socket_type::output);
+        auto oldis = ng.i_sockets(callee->output_handler);
+        auto oldos = ng.o_sockets(callee->input_handler);
+        auto newis = ng.i_sockets(newg->output_handler);
+        auto newos = ng.o_sockets(newg->input_handler);
 
         assert(oldis.size() == newis.size());
         assert(oldos.size() == newos.size());
@@ -1566,7 +1539,7 @@ namespace yave {
 
       // copy connections
       for (auto&& n : callee->members) {
-        for (auto&& c : ng.connections(n, basic_socket_type::input)) {
+        for (auto&& c : ng.i_connections(n)) {
           auto info = ng.get_info(c);
           auto srcs = maps(info->src_socket());
           auto dsts = maps(info->dst_socket());
@@ -1769,8 +1742,8 @@ namespace yave {
       }
 
       auto set_bit_name = [&](auto&& bit, auto&& name) {
-        ng.set_name(ng.sockets(bit, basic_socket_type::input)[0], name);
-        ng.set_name(ng.sockets(bit, basic_socket_type::output)[0], name);
+        ng.set_name(ng.i_sockets(bit)[0], name);
+        ng.set_name(ng.o_sockets(bit)[0], name);
       };
 
       // macro
@@ -1788,10 +1761,10 @@ namespace yave {
         auto group = io->parent->callers[0]->node;
         switch (type) {
           case basic_socket_type::input:
-            set_name(ng.sockets(group, basic_socket_type::output)[idx], name);
+            set_name(ng.o_sockets(group)[idx], name);
             break;
           case basic_socket_type::output:
-            set_name(ng.sockets(group, basic_socket_type::input)[idx], name);
+            set_name(ng.i_sockets(group)[idx], name);
             break;
         }
         return;
@@ -1844,15 +1817,11 @@ namespace yave {
       switch (type) {
         case basic_socket_type::input:
           for (auto&& obit : call->output_bits)
-            check(ng.connect(
-              ng.sockets(newbit, basic_socket_type::output)[0],
-              ng.sockets(obit, basic_socket_type::input)[0]));
+            check(ng.connect(ng.o_sockets(newbit)[0], ng.i_sockets(obit)[0]));
           break;
         case basic_socket_type::output:
           for (auto&& ibit : call->input_bits)
-            check(ng.connect(
-              ng.sockets(ibit, basic_socket_type::output)[0],
-              ng.sockets(newbit, basic_socket_type::input)[0]));
+            check(ng.connect(ng.o_sockets(ibit)[0], ng.i_sockets(newbit)[0]));
           break;
       }
     }
@@ -1872,9 +1841,9 @@ namespace yave {
       auto bit_inner_socket = [&](auto bit) {
         switch (type) {
           case basic_socket_type::input:
-            return ng.sockets(bit, basic_socket_type::output)[0];
+            return ng.o_sockets(bit)[0];
           case basic_socket_type::output:
-            return ng.sockets(bit, basic_socket_type::input)[0];
+            return ng.i_sockets(bit)[0];
         }
         unreachable();
       };
@@ -1987,10 +1956,10 @@ namespace yave {
         auto group = io->parent->callers[0]->node;
         switch (type) {
           case basic_socket_type::input:
-            remove_socket(ng.sockets(group, basic_socket_type::output)[idx]);
+            remove_socket(ng.o_sockets(group)[idx]);
             break;
           case basic_socket_type::output:
-            remove_socket(ng.sockets(group, basic_socket_type::input)[idx]);
+            remove_socket(ng.i_sockets(group)[idx]);
             break;
         }
         return;
@@ -2222,13 +2191,13 @@ namespace yave {
       };
 
       for (auto&& n : nodes) {
-        for (auto&& c : ng.connections(n, basic_socket_type::input)) {
+        for (auto&& c : ng.i_connections(n)) {
           auto info = ng.get_info(c);
           assert(info->src_interfaces().size() == 1);
           if (rn::find(nodes, info->src_interfaces()[0]) == nodes.end())
             addc(ics, c);
         }
-        for (auto&& c : ng.connections(n, basic_socket_type::output)) {
+        for (auto&& c : ng.o_connections(n)) {
           auto info = ng.get_info(c);
           assert(info->dst_interfaces().size() == 1);
           if (rn::find(nodes, info->dst_interfaces()[0]) == nodes.end())
@@ -2247,8 +2216,7 @@ namespace yave {
         ng.disconnect(c);
         check(ng.connect(info->src_socket(), news));
         check(ng.connect(
-          ng.sockets(newg->input_handler, basic_socket_type::output).back(),
-          info->dst_socket()));
+          ng.o_sockets(newg->input_handler).back(), info->dst_socket()));
       }
       for (auto&& c : ocs) {
         auto info = ng.get_info(c);
@@ -2259,8 +2227,7 @@ namespace yave {
           size_t(-1)));
         ng.disconnect(c);
         check(ng.connect(
-          info->src_socket(),
-          ng.sockets(newg->output_handler, basic_socket_type::input).back()));
+          info->src_socket(), ng.i_sockets(newg->output_handler).back()));
         check(ng.connect(news, info->dst_socket()));
       }
 
@@ -2276,14 +2243,11 @@ namespace yave {
         call->parent = newg;
 
         // fix dependency
-        assert(
-          ng.connections(call->dependency, basic_socket_type::output).size()
-          == 1);
-        ng.disconnect(
-          ng.connections(call->dependency, basic_socket_type::output)[0]);
+        assert(ng.o_connections(call->dependency).size() == 1);
+        ng.disconnect(ng.o_connections(call->dependency)[0]);
         check(ng.connect(
-          ng.sockets(call->dependency, basic_socket_type::output)[0],
-          ng.sockets(newg->dependency, basic_socket_type::input)[0]));
+          ng.o_sockets(call->dependency)[0],
+          ng.i_sockets(newg->dependency)[0]));
       }
 
       return newc->node;
@@ -2429,10 +2393,10 @@ namespace yave {
         if (auto data = ret.ng.get_data(n))
           ret.ng.set_data(n, data.clone());
         // clone socket data
-        for (auto&& s : ret.ng.sockets(n, basic_socket_type::input))
+        for (auto&& s : ret.ng.i_sockets(n))
           if (auto data = ret.ng.get_data(s))
             ret.ng.set_data(s, data.clone());
-        for (auto&& s : ret.ng.sockets(n, basic_socket_type::output))
+        for (auto&& s : ret.ng.o_sockets(n))
           if (auto data = ret.ng.get_data(s))
             ret.ng.set_data(s, data.clone());
       }
@@ -2502,11 +2466,7 @@ namespace yave {
       auto ctype = m_impl.get_call_type(node);
 
       return structured_node_info(
-        info->name(),
-        info->sockets(basic_socket_type::input),
-        info->sockets(basic_socket_type::output),
-        ntype,
-        ctype);
+        info->name(), info->i_sockets(), info->o_sockets(), ntype, ctype);
     }
 
     auto get_info(const socket_handle& socket) const
@@ -2710,25 +2670,25 @@ namespace yave {
     auto input_sockets(const node_handle& node) const
       -> std::vector<socket_handle>
     {
-      return m_impl.ng.sockets(node, basic_socket_type::input);
+      return m_impl.ng.i_sockets(node);
     }
 
     auto output_sockets(const node_handle& node) const
       -> std::vector<socket_handle>
     {
-      return m_impl.ng.sockets(node, basic_socket_type::output);
+      return m_impl.ng.o_sockets(node);
     }
 
     auto input_connections(const node_handle& node) const
       -> std::vector<connection_handle>
     {
-      return m_impl.ng.connections(node, basic_socket_type::input);
+      return m_impl.ng.i_connections(node);
     }
 
     auto output_connections(const node_handle& node) const
       -> std::vector<connection_handle>
     {
-      return m_impl.ng.connections(node, basic_socket_type::output);
+      return m_impl.ng.o_connections(node);
     }
 
     auto connections(const socket_handle& socket) const

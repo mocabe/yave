@@ -173,6 +173,16 @@ namespace yave {
     [[nodiscard]] auto sockets(const node_handle& node, basic_socket_type type)
       const -> std::vector<socket_handle>;
 
+    /// Get input sockets.
+    /// \note equivalent to `sockets(n, basic_socket_type::input)`
+    [[nodiscard]] auto i_sockets(const node_handle& node) const
+      -> std::vector<socket_handle>;
+
+    /// Get output sockets.
+    /// \note equivalent to `sockets(n, basic_socket_type::output)`
+    [[nodiscard]] auto o_sockets(const node_handle& node) const
+      -> std::vector<socket_handle>;
+
     /// Find connection handle from ID.
     /// \param id id
     /// \returns Null handle when not found
@@ -194,6 +204,16 @@ namespace yave {
     [[nodiscard]] auto connections(
       const node_handle& socket,
       basic_socket_type type) const -> std::vector<connection_handle>;
+
+    /// Get input connections.
+    /// \note equivalent to `connections(s, basic_socket_type::input)`
+    [[nodiscard]] auto i_connections(const node_handle& socket) const
+      -> std::vector<connection_handle>;
+
+    /// Get outupt connections.
+    /// \note equivalent to `connections(s, basic_socket_type::output)`
+    [[nodiscard]] auto o_connections(const node_handle& socket) const
+      -> std::vector<connection_handle>;
 
     /// Get socket type
     [[nodiscard]] auto type(const socket_handle& h) const
