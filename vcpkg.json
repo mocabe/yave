@@ -9,6 +9,7 @@
     "boost-filesystem",
     "boost-dll",
     "boost-gil",
+    "boost-signals2",
     "spdlog",
     "fmt",
     "glm",
