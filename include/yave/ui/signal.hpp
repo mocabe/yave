@@ -13,9 +13,9 @@
 
 namespace yave::ui {
 
-  template <class>
+  template <class...>
   class signal;
-  template <class>
+  template <class...>
   class slot;
   class scoped_connection;
 
@@ -23,7 +23,7 @@ namespace yave::ui {
   {
     boost::signals2::connection m_c;
 
-    template <class>
+    template <class...>
     friend class signal;
     friend class scoped_connection;
 
@@ -134,11 +134,11 @@ namespace yave::ui {
 
   /// Slot type
   template <class... ArgTypes>
-  class slot<ArgTypes...>
+  class slot
   {
     boost::signals2::slot<void(ArgTypes...)> m_slot;
 
-    template <class>
+    template <class...>
     friend class signal;
 
     template <class T>
@@ -190,7 +190,7 @@ namespace yave::ui {
 
   /// Signal type
   template <class... ArgTypes>
-  class signal<ArgTypes...>
+  class signal
   {
     boost::signals2::signal<void(ArgTypes...)> m_signal;
 
