@@ -5,25 +5,11 @@
 
 #pragma once
 
-#include <yave/ui/memory.hpp>
+#include <memory>
+#include <mutex>
+#include <concepts> 
 
 #include <boost/signals2.hpp>
-
-namespace boost::signals2 {
-
-  template <class T>
-  struct weak_ptr_traits<yave::ui::weak<T>>
-  {
-    using shared_type = yave::ui::shared<T>;
-  };
-
-  template <class T>
-  struct shared_ptr_traits<yave::ui::shared<T>>
-  {
-    using weak_type = yave::ui::weak<T>;
-  };
-
-} // namespace boost::signals2
 
 namespace yave::ui {
 
@@ -31,16 +17,18 @@ namespace yave::ui {
   class signal;
   template <class>
   class slot;
+  class scoped_connection;
 
   class connection
   {
-    boost::signals2::connection m_conn;
+    boost::signals2::connection m_c;
 
-    template <class T>
+    template <class>
     friend class signal;
+    friend class scoped_connection;
 
     connection(boost::signals2::connection conn)
-      : m_conn {conn}
+      : m_c {conn}
     {
     }
 
@@ -53,32 +41,95 @@ namespace yave::ui {
 
     void disconnect()
     {
-      return m_conn.disconnect();
+      return m_c.disconnect();
     }
 
     bool connected() const
     {
-      return m_conn.connected();
+      return m_c.connected();
     }
 
     void swap(connection& other) noexcept
     {
-      return m_conn.swap(other.m_conn);
+      return m_c.swap(other.m_c);
     }
 
-    auto operator<=>(const connection&) const = default;
+    auto operator<=>(const connection&) const -> std::strong_ordering = default;
   };
 
-  template <class SharedPtr>
-  concept slot_trackable_shared_ptr = requires
+  class scoped_connection
   {
-    typename boost::signals2::shared_ptr_traits<SharedPtr>::weak_type;
+    boost::signals2::scoped_connection m_c;
+
+  public:
+    scoped_connection()                             = default;
+    scoped_connection(const scoped_connection&)     = delete;
+    scoped_connection(scoped_connection&&) noexcept = default;
+    scoped_connection& operator=(const scoped_connection&) = delete;
+    scoped_connection& operator=(scoped_connection&&) noexcept = default;
+
+    scoped_connection(const connection& c)
+      : m_c {c.m_c}
+    {
+    }
+
+    scoped_connection& operator=(const connection& c)
+    {
+      m_c = c.m_c;
+      return *this;
+    }
+
+    auto release() -> connection
+    {
+      return connection(m_c.release());
+    }
+
+    void swap(scoped_connection& other) noexcept
+    {
+      return m_c.swap(other.m_c);
+    }
   };
 
-  template <class WeakPtr>
-  concept slot_trackable_weak_ptr = requires
+  /// signal/slot trackable base
+  class trackable
   {
-    typename boost::signals2::weak_ptr_traits<WeakPtr>::shared_type;
+    struct data
+    {
+    };
+
+    mutable std::shared_ptr<data> m_ptr;
+    mutable std::mutex m_mtx;
+
+  public:
+    /// get weak pointer of trackable
+    auto get_weak() const -> std::weak_ptr<const void>
+    {
+      auto lck = std::unique_lock(m_mtx);
+      if (!m_ptr) {
+        m_ptr = std::make_shared<data>();
+      }
+      return std::weak_ptr(m_ptr);
+    }
+
+  protected:
+    /// disconnect all current connections
+    void expire()
+    {
+      auto lck = std::unique_lock(m_mtx);
+      m_ptr    = nullptr;
+    }
+
+  public:
+    trackable() = default;
+
+    trackable(const trackable&) noexcept
+    {
+    }
+
+    trackable& operator=(const trackable&) noexcept
+    {
+      return *this;
+    }
   };
 
   /// Slot type
@@ -87,12 +138,41 @@ namespace yave::ui {
   {
     boost::signals2::slot<void(ArgTypes...)> m_slot;
 
-    template <class T>
+    template <class>
     friend class signal;
+
+    template <class T>
+    void track1(const std::shared_ptr<T>& sp)
+    {
+      m_slot.track_foreign(sp);
+    }
+
+    template <class T>
+    void track1(const std::weak_ptr<T>& wp)
+    {
+      m_slot.track_foreign(wp);
+    }
+
+    void track1(const trackable& t)
+    {
+      track(t.get_weak());
+    }
 
   public:
     using result_type    = void;
     using signature_type = void(ArgTypes...);
+
+    slot()                = default;
+    slot(const slot&)     = default;
+    slot(slot&&) noexcept = default;
+    slot& operator=(const slot&) = default;
+    slot& operator=(slot&&) noexcept = default;
+
+    template <class F>
+    requires !std::same_as<std::decay_t<F>, slot> slot(F && f)
+      : m_slot {std::forward<F>(f)}
+    {
+    }
 
     template <class... Args>
     void operator()(Args&&... args)
@@ -100,16 +180,11 @@ namespace yave::ui {
       return m_slot(std::forward<Args>(args)...);
     }
 
-    template <slot_trackable_shared_ptr SharedPtr>
-    auto track(const SharedPtr& sp) -> slot&
+    template <class... Args>
+    auto track(Args&&... args) -> slot&
     {
-      return m_slot.track_foreign(sp);
-    }
-
-    template <slot_trackable_weak_ptr WeakPtr>
-    auto track(const WeakPtr& wp) -> slot&
-    {
-      return m_slot.track_foreign(wp);
+      [](int...) {}((track1(std::forward<Args>(args)), 0)...);
+      return *this;
     }
   };
 
@@ -133,6 +208,11 @@ namespace yave::ui {
     auto connect(const slot_type& slot) -> connection
     {
       return connection(m_signal.connect(slot.m_slot));
+    }
+
+    auto connect_scoped(const slot_type& slot) -> scoped_connection
+    {
+      return scoped_connection(connect(slot));
     }
 
     void disconnect(const slot_type& slot)
