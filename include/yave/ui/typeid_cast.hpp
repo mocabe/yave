@@ -10,7 +10,7 @@
 namespace yave::ui {
 
   /// cast to derived type by comparing typeids
-  template <class Base, class Derived>
+  template <class Derived, class Base>
   auto typeid_cast_if(Base* b) noexcept -> Derived*
   {
     static_assert(std::is_base_of_v<Base, Derived>);
@@ -22,7 +22,7 @@ namespace yave::ui {
   }
 
   /// cast to derived type by comparing typeids
-  template <class Base, class Derived>
+  template <class Derived, class Base>
   auto typeid_cast_if(const Base* b) noexcept -> const Derived*
   {
     static_assert(std::is_base_of_v<Base, Derived>);
@@ -34,7 +34,7 @@ namespace yave::ui {
   }
 
   /// cast to derived type by comparing typeids
-  template <class Base, class Derived>
+  template <class Derived, class Base>
   auto typeid_cast(Base* b) -> Derived*
   {
     if (auto p = typeid_cast_if<Derived>(b))
@@ -44,7 +44,7 @@ namespace yave::ui {
   }
 
   /// cast to derived type by comparing typeids
-  template <class Base, class Derived>
+  template <class Derived, class Base>
   auto typeid_cast(const Base* b) -> const Derived*
   {
     if (auto p = typeid_cast_if<Derived>(b))
