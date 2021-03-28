@@ -8,7 +8,7 @@
 
 #include <yave/support/log.hpp>
 
-YAVE_DECL_LOCAL_LOGGER(ui::vulkan_surface);
+YAVE_DECL_LOCAL_LOGGER(ui::vulkan_surface)
 
 namespace {
 
@@ -37,19 +37,12 @@ namespace {
     default_format.format     = vk::Format::eB8G8R8A8Unorm;
     default_format.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
 
-    if (formats.size() == 1 && formats[0].format == vk::Format::eUndefined) {
-      // use default format
-      return default_format;
-    }
-
     for (auto&& format : formats) {
-      // find default format
       if (format == default_format)
         return default_format;
     }
 
-    // fallback to first format
-    return formats[0];
+    throw std::runtime_error("Unsupported Vulkan surface format");
   }
 
   auto choosePresentMode(const std::vector<vk::PresentModeKHR>& modes)
@@ -58,9 +51,8 @@ namespace {
     for (auto&& mode : modes) {
       if (mode == vk::PresentModeKHR::eMailbox)
         return mode;
-      if (mode == vk::PresentModeKHR::eImmediate)
-        return mode;
     }
+    // guaranteed to be available
     return vk::PresentModeKHR::eFifo;
   }
 
@@ -99,15 +91,6 @@ namespace {
     -> vk::CompositeAlphaFlagBitsKHR
   {
     auto supported = capabilities.supportedCompositeAlpha;
-
-    if (supported & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied)
-      return vk::CompositeAlphaFlagBitsKHR::ePreMultiplied;
-
-    if (supported & vk::CompositeAlphaFlagBitsKHR::ePostMultiplied)
-      return vk::CompositeAlphaFlagBitsKHR::ePostMultiplied;
-
-    if (supported & vk::CompositeAlphaFlagBitsKHR::eInherit)
-      return vk::CompositeAlphaFlagBitsKHR::eInherit;
 
     if (supported & vk::CompositeAlphaFlagBitsKHR::eOpaque)
       return vk::CompositeAlphaFlagBitsKHR::eOpaque;
@@ -174,7 +157,7 @@ namespace {
     if (graphicsQueueIndex == presentQueueIndex) {
       info.setImageSharingMode(vk::SharingMode::eExclusive);
     } else {
-      info.setImageSharingMode(vk::SharingMode::eExclusive);
+      info.setImageSharingMode(vk::SharingMode::eConcurrent);
       info.setQueueFamilyIndices(queueFamilyIndicies);
     }
 
@@ -455,13 +438,6 @@ namespace yave::ui {
 
   void vulkan_surface::rebuild()
   {
-    // FIXME: ????
-    // Windows: minimized window have zero extent. Wait until next event. 
-    // while (vk::Extent2D(newWindowExtent) == vk::Extent2D(0, 0)) {
-    //   glfwWaitEvents();
-    //   newWindowExtent = window_extent.load();
-    // }
-
     // wait idle
     m_device.wait_idle();
 

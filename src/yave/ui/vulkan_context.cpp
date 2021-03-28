@@ -8,7 +8,7 @@
 
 #include <ranges>
 
-YAVE_DECL_LOCAL_LOGGER(ui::vulkan_context);
+YAVE_DECL_LOCAL_LOGGER(ui::vulkan_context)
 
 // Vulkan debug callback API
 static PFN_vkCreateDebugReportCallbackEXT pfn_vkCreateDebugReportCallbackEXT;
@@ -114,15 +114,6 @@ namespace yave::ui {
       VK_KHR_SURFACE_EXTENSION_NAME;
 #endif
 
-    // validation layer name
-    constexpr const char* ValidationLayerName = "VK_LAYER_KHRONOS_validation";
-
-    // debug report extension
-    constexpr const char* DebugReportExtensionName =
-      VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
-    constexpr uint32_t DebugReportSpecVersion =
-      VK_EXT_DEBUG_REPORT_SPEC_VERSION;
-
     /// Check vk::PhysicalDeviceFeatures compatibility
     bool checkPhysicalDeviceFeatureSupport(
       const vk::PhysicalDeviceFeatures& required,
@@ -195,9 +186,9 @@ namespace yave::ui {
     auto getInstanceExtensions()
     {
       auto requiredExtensions = std::array {
-        VK_KHR_SURFACE_EXTENSION_NAME, // for surface
-        PlatformSurfaceExtensionName,  // for surface
-        DebugReportExtensionName       // for validation
+        VK_KHR_SURFACE_EXTENSION_NAME,     // for surface
+        PlatformSurfaceExtensionName,      // for surface
+        VK_EXT_DEBUG_REPORT_EXTENSION_NAME // for validation
       };
       auto supportedExtensions = vk::enumerateInstanceExtensionProperties();
 
@@ -215,7 +206,7 @@ namespace yave::ui {
 
     auto getInstanceLayers()
     {
-      auto requiredLayers  = std::array {ValidationLayerName};
+      auto requiredLayers  = std::array {"VK_LAYER_KHRONOS_validation"};
       auto supportedLayers = vk::enumerateInstanceLayerProperties();
 
       for (auto&& l : requiredLayers) {
