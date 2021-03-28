@@ -4,8 +4,6 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#pragma once
-
 #include <yave/ui/data_context.hpp>
 
 #include <mutex>

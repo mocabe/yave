@@ -13,11 +13,12 @@
 #include <yave/ui/render_scope.hpp>
 #include <yave/ui/signal.hpp>
 
+#include <range/v3/view.hpp>
+
 #include <vector>
 #include <memory>
 #include <typeinfo>
 #include <span>
-#include <ranges>
 
 namespace yave::ui {
 
@@ -44,11 +45,11 @@ namespace yave::ui {
   class window : trackable
   {
     /// window manager ref
-    window_manager* m_wm = nullptr;
+    ui::window_manager* m_wm = nullptr;
     /// unique id for this window
-    wid m_id = wid::random();
+    ui::wid m_id = wid::random();
     /// non-owning pointer to parent
-    window* m_parent = nullptr;
+    ui::window* m_parent = nullptr;
     /// list of owning children pointers.
     std::list<std::unique_ptr<window>> m_children;
     /// list of owning event controllers.
@@ -161,14 +162,14 @@ namespace yave::ui {
     template <class T>
     auto make_raw_pointer_view(const T& ps) const
     {
-      using namespace std::ranges;
+      using namespace ranges;
       return subrange(ps) | views::transform([](auto&& p) { return p.get(); });
     }
 
     template <class T>
     auto make_raw_pointer_view(T& ps)
     {
-      using namespace std::ranges;
+      using namespace ranges;
       return subrange(ps) | views::transform([](auto&& p) { return p.get(); });
     }
 

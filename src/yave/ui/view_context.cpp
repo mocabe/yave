@@ -3,8 +3,6 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#pragma once
-
 #include <yave/ui/view_context.hpp>
 #include <yave/ui/view_command_queue.hpp>
 #include <yave/ui/main_context.hpp>
@@ -13,11 +11,38 @@
 #include <yave/ui/render_context.hpp>
 #include <yave/support/log.hpp>
 
-#include <semaphore>
-
 YAVE_DECL_LOCAL_LOGGER(ui::view_context);
 
 namespace yave::ui {
+
+  namespace {
+
+    // TODO: Replace this with C++20 std::binary_semaphore
+    class binary_semaphore 
+    {
+      bool m_open = true;
+      std::mutex m_mtx;
+      std::condition_variable m_cond;
+
+    public:
+      void acquire() 
+      {
+        auto lck = std::unique_lock(m_mtx);
+        m_cond.wait(lck, [=]{ return m_open; });
+        m_open = false;
+      }
+
+      void release() 
+      {
+        auto lck = std::unique_lock(m_mtx);
+        if (!m_open) {
+          m_open = true;
+          m_cond.notify_one();
+        }
+      }
+    };
+
+  }  
 
   class view_context::impl
   {
@@ -33,7 +58,7 @@ namespace yave::ui {
     /// exit flag
     bool m_exit_thread = true;
     /// refresh semaphore
-    std::binary_semaphore m_refresh_semaphore;
+    binary_semaphore m_refresh_semaphore;
 
   private:
     ui::layout_context m_lctx;
@@ -70,7 +95,6 @@ namespace yave::ui {
       , m_lctx {}
       , m_rctx {mctx}
       , m_wm {self}
-      , m_refresh_semaphore{1}
     {
       m_mctx.set_view_ctx(self, {});
       m_dctx.set_view_ctx(self, {});
@@ -110,8 +134,8 @@ namespace yave::ui {
       m_rctx.do_render(m_wm, {});
       // clear invalidated flags
       m_wm.clear_invalidated({});
-      // notify refresh is finished
-      end_refresh();
+      // notify main thread
+      notify_refresh_completion();
     }
 
     bool is_thread_running() const
@@ -190,19 +214,13 @@ namespace yave::ui {
     }
 
   public:
-    void begin_refresh()
-    {
-      m_refresh_semaphore.acquire();
-    }
-
-    void end_refresh()
-    {
-      m_refresh_semaphore.release();
-    }
-
     void wait_previous_refresh()
     {
       m_refresh_semaphore.acquire();
+    }
+
+    void notify_refresh_completion()
+    {
       m_refresh_semaphore.release();
     }
   };
@@ -310,10 +328,7 @@ namespace yave::ui {
     // window (which causes visual artifacts), we block on refresh callback to
     // wait previous refresh cycle to be completed.
     m_pimpl->wait_previous_refresh();
-    post([=](auto& ctx) {
-      ctx.window_manager().push_refresh_event(win);
-      m_pimpl->begin_refresh();
-    });
+    post([=](auto& ctx) { ctx.window_manager().push_refresh_event(win); });
   }
 
   void view_context::post_window_focus_event(GLFWwindow* win, bool focused)

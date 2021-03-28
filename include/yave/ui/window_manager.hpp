@@ -33,7 +33,7 @@ namespace yave::ui {
       /// will be called just after invalidated window
       signal<window*> on_invalidate;
       /// will be called when all windows are closed
-      signal<void> on_last_window_close;
+      signal<> on_last_window_close;
     };
     /// mostly for internal use
     _signals signals;

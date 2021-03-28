@@ -12,29 +12,20 @@
 #include <yave/ui/vulkan_surface.hpp>
 #include <yave/ui/render_context.hpp>
 
-#include <yave/support/log.hpp>
-
-YAVE_DECL_LOCAL_LOGGER(ui::native_window);
-
 namespace yave::ui {
 
   class native_window::impl
   {
-    native_window& m_self;
-    view_context& m_vctx;
     ui::viewport* m_vp;
     glfw_window m_win;
     vulkan_surface m_surface;
 
   public:
     impl(
-      native_window& self,
       view_context& vctx,
       std::u8string name,
       ui::size size)
-      : m_self {self}
-      , m_vctx {vctx}
-      , m_win {vctx.main_ctx().glfw_ctx(), std::move(name), size}
+      : m_win {vctx.main_ctx().glfw_ctx(), std::move(name), size}
       , m_surface {vctx.render_ctx().vulkan_device(), m_win}
     {
     }
@@ -120,7 +111,7 @@ namespace yave::ui {
     std::u8string name,
     ui::size size,
     passkey<ui::viewport>)
-    : m_pimpl {std::make_unique<impl>(*this, vctx, name, size)}
+    : m_pimpl {std::make_unique<impl>(vctx, name, size)}
   {
   }
 

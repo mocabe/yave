@@ -43,7 +43,7 @@ namespace yave::ui {
     /// get viewports
     auto viewports() const
     {
-      using namespace std::ranges;
+      using namespace ranges;
       return children() | views::transform([](auto* w) {
                return static_cast<const viewport*>(w);
              });
@@ -52,7 +52,7 @@ namespace yave::ui {
     /// get viewports
     auto viewports()
     {
-      using namespace std::ranges;
+      using namespace ranges;
       return children() | views::transform([](auto* w) {
                return static_cast<viewport*>(w);
              });

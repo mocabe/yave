@@ -169,7 +169,7 @@ namespace yave::ui {
     slot& operator=(slot&&) noexcept = default;
 
     template <class F>
-    requires !std::same_as<std::decay_t<F>, slot> slot(F && f)
+    requires (!std::same_as<std::decay_t<F>, slot>) slot(F && f)
       : m_slot {std::forward<F>(f)}
     {
     }

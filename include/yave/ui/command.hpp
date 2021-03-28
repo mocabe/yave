@@ -63,7 +63,7 @@ namespace yave::ui {
   public:
     template <std::invocable<Context&> F>
     command(F&& f)
-      : m_fun {fake_copyable(std::forward<F>(f))}
+      : m_fun {fake_copyable<F>(std::forward<F>(f))}
     {
     }
 

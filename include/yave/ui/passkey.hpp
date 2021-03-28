@@ -13,7 +13,6 @@ namespace yave::ui {
   {
     friend T;
     passkey()               = default;
-    ~passkey()              = default;
     passkey(const passkey&) = default;
     passkey& operator=(const passkey&) = delete;
     passkey& operator=(passkey&&) = delete;

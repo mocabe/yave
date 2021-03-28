@@ -3,8 +3,6 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#pragma once
-
 #include <yave/ui/layout_scope.hpp>
 #include <yave/ui/layout_context.hpp>
 #include <yave/ui/window.hpp>

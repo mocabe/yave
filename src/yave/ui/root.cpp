@@ -19,12 +19,12 @@ namespace yave::ui {
     return children().empty();
   }
 
-  void root::layout(layout_scope ctx) const
+  void root::layout(layout_scope) const
   {
     assert(false);
   }
 
-  void root::render(render_scope ctx) const
+  void root::render(render_scope) const
   {
     assert(false);
   }

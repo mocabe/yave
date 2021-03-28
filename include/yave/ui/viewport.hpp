@@ -18,8 +18,6 @@ namespace yave::ui {
   /// Toplevel surface
   class viewport : public window
   {
-    // ref to window manager
-    ui::window_manager& m_wm;
     // ref to layout context
     ui::layout_context& m_lctx;
     /// ref to render context

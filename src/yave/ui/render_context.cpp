@@ -10,12 +10,9 @@
 #include <yave/ui/root.hpp>
 #include <yave/ui/viewport_renderer.hpp>
 #include <yave/ui/main_context.hpp>
+#include <yave/ui/native_window.hpp>
 #include <yave/ui/vulkan_device.hpp>
 #include <yave/ui/vulkan_surface.hpp>
-
-#include <yave/support/log.hpp>
-
-YAVE_DECL_LOCAL_LOGGER(ui::render_context);
 
 namespace yave::ui {
 
@@ -25,14 +22,12 @@ namespace yave::ui {
   class render_context::impl
   {
     render_context& m_self;
-    main_context& m_mctx;
 
     ui::vulkan_device m_device;
 
   public:
     impl(render_context& self, main_context& mctx)
       : m_self {self}
-      , m_mctx {mctx}
       , m_device {mctx.vulkan_ctx(), mctx.glfw_ctx()}
     {
     }

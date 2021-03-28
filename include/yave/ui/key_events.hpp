@@ -8,7 +8,7 @@
 #include <yave/ui/event.hpp>
 #include <yave/support/enum_flag.hpp>
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 #include <vector>
 #include <algorithm>
 

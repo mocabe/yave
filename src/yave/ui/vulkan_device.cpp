@@ -6,9 +6,8 @@
 #include <yave/ui/vulkan_device.hpp>
 #include <yave/ui/glfw_context.hpp>
 
-#include <yave/support/log.hpp>
-
 #include <ranges>
+#include <span>
 
 namespace {
 

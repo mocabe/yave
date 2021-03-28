@@ -22,8 +22,7 @@ namespace yave::ui {
     std::u8string name,
     ui::size size,
     passkey<root>)
-    : m_wm {wm}
-    , m_lctx {lctx}
+    : m_lctx {lctx}
     , m_rctx {rctx}
     , m_nw {std::make_unique<native_window>(
         wm.view_ctx(),

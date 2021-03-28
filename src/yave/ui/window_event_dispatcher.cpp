@@ -61,16 +61,14 @@ namespace yave::ui {
 
   class window_event_dispatcher::impl
   {
-    window_event_dispatcher& m_self;
     window_manager& m_wm;
     view_context& m_vctx;
 
     std::queue<event_data> m_queue;
 
   public:
-    impl(window_event_dispatcher& self, window_manager& wm, view_context& vctx)
-      : m_self {self}
-      , m_wm {wm}
+    impl(window_manager& wm, view_context& vctx)
+      : m_wm {wm}
       , m_vctx {vctx}
     {
     }
@@ -210,7 +208,7 @@ namespace yave::ui {
   window_event_dispatcher::window_event_dispatcher(
     window_manager& wm,
     view_context& vctx)
-    : m_pimpl {std::make_unique<impl>(*this, wm, vctx)}
+    : m_pimpl {std::make_unique<impl>(wm, vctx)}
   {
   }
 

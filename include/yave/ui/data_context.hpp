@@ -8,6 +8,8 @@
 #include <yave/ui/command.hpp>
 #include <yave/ui/passkey.hpp>
 
+#include <memory>
+
 namespace yave::ui {
 
   class view_context;
