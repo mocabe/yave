@@ -13,6 +13,8 @@ namespace yave::ui {
   {
   }
 
+  event::~event() noexcept = default;
+
   auto event::target() const -> const window*
   {
     return m_target;
