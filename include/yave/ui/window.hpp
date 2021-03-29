@@ -75,19 +75,16 @@ namespace yave::ui {
     virtual ~window() noexcept;
 
   public:
-    // for window manager
     void set_parent(window*, passkey<ui::window_manager>);
     void set_registered(bool, ui::window_manager&, passkey<ui::window_manager>);
     void set_invalidated(bool, passkey<ui::window_manager>);
     void set_visible(bool, passkey<ui::window_manager>);
 
   public:
-    // for layout
-    auto get_window_layout_data(passkey<layout_context>) const
-      -> window_layout_data*;
-    // for render
-    auto get_window_render_data(passkey<render_context>) const
-      -> window_render_data*;
+    auto window_layout_data(passkey<layout_context>) const
+      -> ui::window_layout_data&;
+    auto window_render_data(passkey<render_context>) const
+      -> ui::window_render_data&;
 
   public:
     /// Registered to window manager?
@@ -174,37 +171,44 @@ namespace yave::ui {
     }
 
   public:
+    /// Get range view of child windows
     auto children() const
     {
       return make_raw_pointer_view(m_children);
     }
 
+    /// Get range view of child windows
     auto children()
     {
       return make_raw_pointer_view(m_children);
     }
 
+    /// Get range view of controllers
     auto controllers() const
     {
       return make_raw_pointer_view(m_controllers);
     }
 
+    /// Get range view of controllers
     auto controllers()
     {
       return make_raw_pointer_view(m_controllers);
     }
 
   public:
+    /// Get ID of this window
     auto id() const -> wid
     {
       return m_id;
     }
 
+    /// Get parent window
     auto parent() const -> const ui::window*
     {
       return m_parent;
     }
 
+    /// Get parent window
     auto parent() -> ui::window*
     {
       return m_parent;

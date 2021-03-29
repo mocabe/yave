@@ -66,6 +66,17 @@ namespace yave::ui {
       }
     };
 
+    /// Window close event
+    /// \note This event will not buuble.
+    class close : public window_event
+    {
+    public:
+      close(window* target)
+        : window_event(target, event_phase::bubble)
+      {
+      }
+    };
+
   } // namespace events
 
   namespace controllers {
@@ -99,6 +110,32 @@ namespace yave::ui {
       signal<view_context&> on_show;
       /// signaled before window become invisible
       signal<view_context&> on_hide;
+    };
+
+    /// Viewport close
+    class close : public controller
+    {
+    public:
+      close()
+        : controller(event_phase::bubble)
+      {
+      }
+
+      bool event(ui::event& e, view_context& vctx) override
+      {
+        if (e.phase() == phase()) {
+          if (auto closeEvent = typeid_cast<events::close>(&e)) {
+            assert(closeEvent->target() == window());
+            closeEvent->accept();
+            // slots can intercept and ignore close event
+            on_close(*closeEvent, vctx);
+          }
+        }
+        return false;
+      }
+
+      /// signaled before viewport close
+      signal<events::close&, view_context&> on_close;
     };
 
   } // namespace controllers

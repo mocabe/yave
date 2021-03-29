@@ -48,22 +48,22 @@ namespace yave::ui {
   public:
     auto get_size(const window* w) const
     {
-      return w->get_window_layout_data({})->geom.size();
+      return w->window_layout_data({}).geom.size();
     }
 
     auto get_offset(const window* w) const
     {
-      return w->get_window_layout_data({})->geom.offset();
+      return w->window_layout_data({}).geom.offset();
     }
 
     void set_size(const window* w, ui::size s)
     {
-      w->get_window_layout_data({})->geom.set_size(s);
+      w->window_layout_data({}).geom.set_size(s);
     }
 
     void set_offset(const window* w, ui::vec o)
     {
-      w->get_window_layout_data({})->geom.set_offset(o);
+      w->window_layout_data({}).geom.set_offset(o);
     }
 
     void do_layout(window_manager& wm)
@@ -72,10 +72,10 @@ namespace yave::ui {
 
       // init root
       if (root->is_invalidated()) {
-        auto data = root->get_window_layout_data({});
-        auto inf  = std::numeric_limits<f32>::infinity();
-        data->geom.set_offset({0, 0});
-        data->geom.set_size({inf, inf});
+        auto& data = root->window_layout_data({});
+        auto inf   = std::numeric_limits<f32>::infinity();
+        data.geom.set_offset({0, 0});
+        data.geom.set_size({inf, inf});
       }
 
       // layout viewports
@@ -85,7 +85,6 @@ namespace yave::ui {
 
     auto layout_window(const window* w, const box_constraints& c)
     {
-      assert(w->get_window_layout_data({}));
       w->layout(layout_scope(self, w, c));
       return get_size(w);
     }

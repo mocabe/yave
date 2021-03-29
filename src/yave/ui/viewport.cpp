@@ -3,11 +3,13 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
+#include "yave/ui/window_events.hpp"
 #include <yave/ui/viewport.hpp>
 #include <yave/ui/native_window.hpp>
 #include <yave/ui/window_manager.hpp>
 #include <yave/ui/layout_context.hpp>
 #include <yave/ui/render_context.hpp>
+#include <yave/ui/window_events.hpp>
 
 #include <yave/support/log.hpp>
 
@@ -32,9 +34,17 @@ namespace yave::ui {
   {
     // setup native window
     m_nw->set_viewport(this, {});
+
     // init viewport
     m_lctx.init_viewport(this, {});
     m_rctx.init_viewport(this, {});
+
+    // init close controller
+    {
+      auto closeController = std::make_unique<controllers::close>();
+      m_close_controller   = closeController.get();
+      add_controller(std::move(closeController));
+    }
   }
 
   viewport::~viewport() noexcept = default;

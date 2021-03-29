@@ -9,6 +9,10 @@
 
 namespace yave::ui {
 
+  namespace controllers {
+    class close;
+  }
+
   class root;
   class native_window;
   class window_manager;
@@ -24,6 +28,8 @@ namespace yave::ui {
     ui::render_context& m_rctx;
     // native window handler
     std::unique_ptr<native_window> m_nw;
+    // close controller
+    controllers::close* m_close_controller;
 
   public:
     viewport(
@@ -44,6 +50,12 @@ namespace yave::ui {
   public:
     void layout(layout_scope ctx) const override;
     void render(render_scope ctx) const override;
+
+  public:
+    auto& close_controller()
+    {
+      return *m_close_controller;
+    }
   };
 
 } // namespace yave::ui

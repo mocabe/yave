@@ -112,8 +112,8 @@ namespace yave::ui {
   void render_context::do_render_viewport(viewport* vp)
   {
     auto dl = render_window(vp, draw_list());
-    assert(vp->get_window_render_data({})->renderer);
-    vp->get_window_render_data({})->renderer->render(std::move(dl));
+    assert(vp->window_render_data({}).renderer);
+    vp->window_render_data({}).renderer->render(std::move(dl));
   }
 
   bool render_context::do_render_required(const window* w)
@@ -150,7 +150,7 @@ namespace yave::ui {
   void render_context::init_viewport(viewport* vp, passkey<viewport>)
   {
     assert(vp);
-    auto& data = *vp->get_window_render_data({});
+    auto& data = vp->window_render_data({});
     // init renderer
     data.renderer = std::make_unique<viewport_renderer>(*vp, *this);
   }

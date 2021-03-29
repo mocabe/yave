@@ -181,10 +181,19 @@ namespace yave::ui {
     {
       log_info("close event");
       if (auto native = find_native_from_handle(data.win)) {
-        // hide viewport before close
-        native->viewport()->hide();
-        // destroy viewport and backing window
-        m_wm.root()->remove_viewport(native->viewport());
+
+        auto viewport = native->viewport();
+
+        // send close event
+        auto event = std::make_unique<events::close>(viewport);
+        dispatch_over_window(viewport, *event);
+
+        if (event->accepted()) {
+          // hide viewport before close
+          viewport->hide();
+          // destroy viewport and backing window
+          m_wm.root()->remove_viewport(viewport);
+        }
       }
     }
 

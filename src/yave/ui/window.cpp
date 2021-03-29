@@ -28,8 +28,8 @@ namespace yave::ui {
   window::window()
   {
     // TODO: move these somewhere else?
-    m_ldata = std::make_unique<window_layout_data>();
-    m_rdata = std::make_unique<window_render_data>();
+    m_ldata = std::make_unique<ui::window_layout_data>();
+    m_rdata = std::make_unique<ui::window_render_data>();
   }
 
   window::~window() noexcept
@@ -62,16 +62,16 @@ namespace yave::ui {
     m_visible = b;
   }
 
-  auto window::get_window_layout_data(passkey<layout_context>) const
-    -> window_layout_data*
+  auto window::window_layout_data(passkey<layout_context>) const
+    -> ui::window_layout_data&
   {
-    return m_ldata.get();
+    return *m_ldata;
   }
 
-  auto window::get_window_render_data(passkey<render_context>) const
-    -> window_render_data*
+  auto window::window_render_data(passkey<render_context>) const
+    -> ui::window_render_data&
   {
-    return m_rdata.get();
+    return *m_rdata;
   }
 
   bool window::is_registered() const
