@@ -49,4 +49,9 @@ namespace yave::ui {
   {
     set_accepted(true);
   }
+
+  void event::ignore()
+  {
+    set_accepted(false);
+  }
 }

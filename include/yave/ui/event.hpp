@@ -58,6 +58,8 @@ namespace yave::ui {
   public:
     /// accept event
     void accept();
+    /// ignore event
+    void ignore();
   };
 
 } // namespace yave::ui
