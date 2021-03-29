@@ -47,17 +47,17 @@ namespace yave::ui {
     /// window manager ref
     ui::window_manager* m_wm = nullptr;
     /// unique id for this window
-    ui::wid m_id = wid::random();
+    ui::wid m_id = ui::wid::random();
     /// non-owning pointer to parent
     ui::window* m_parent = nullptr;
     /// list of owning children pointers.
-    std::list<std::unique_ptr<window>> m_children;
+    std::list<std::unique_ptr<ui::window>> m_children;
     /// list of owning event controllers.
-    std::list<std::unique_ptr<controller>> m_controllers;
+    std::list<std::unique_ptr<ui::controller>> m_controllers;
     /// per window layout data
-    std::unique_ptr<window_layout_data> m_ldata;
+    std::unique_ptr<ui::window_layout_data> m_ldata;
     /// per window render data
-    std::unique_ptr<window_render_data> m_rdata;
+    std::unique_ptr<ui::window_render_data> m_rdata;
     /// registered?
     /// \note will be applied recursively
     bool m_registered : 1 = false;
