@@ -7,8 +7,7 @@
 
 #include <yave/ui/passkey.hpp>
 #include <yave/ui/draw_list.hpp>
-
-#include <glm/glm.hpp>
+#include <yave/ui/vulkan_device.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -35,25 +34,63 @@ namespace yave::ui {
 
   class render_context
   {
-    class impl;
-    std::unique_ptr<impl> m_pimpl;
+    // Vulkan logical device
+    ui::vulkan_device m_device;
+
+  private:
+    vk::UniqueSampler m_image_sampler;
+    vk::UniqueDescriptorSetLayout m_descriptor_set_layout;
+    vk::UniqueDescriptorPool m_descriptor_pool;
+    vk::UniquePipelineCache m_pipeline_cache;
+    vk::UniquePipelineLayout m_pipeline_layout;
+
+    bool do_render_required(const window*);
+    void do_render_viewport(viewport*);
 
   public:
     render_context(main_context& mctx);
+
     ~render_context() noexcept;
 
     // get vulkan device
-    auto vulkan_device() -> ui::vulkan_device&;
+    auto& vulkan_device()
+    {
+      return m_device;
+    }
 
   public:
     /// Process render stage
     void do_render(window_manager& wm, passkey<view_context>);
     /// Render window
     auto render_window(const window* w, draw_list dl) -> draw_list;
-
-  public:
     /// Setup viewport window
     void init_viewport(viewport* vp, passkey<viewport>);
+
+  public:
+    auto image_sampler() const
+    {
+      return m_image_sampler.get();
+    }
+
+    auto descriptor_set_layout() const
+    {
+      return m_descriptor_set_layout.get();
+    }
+
+    auto descriptor_pool() const
+    {
+      return m_descriptor_pool.get();
+    }
+
+    auto pipeline_cache() const
+    {
+      return m_pipeline_cache.get();
+    }
+
+    auto pipeline_layout() const
+    {
+      return m_pipeline_layout.get();
+    }
   };
 
 } // namespace yave::ui

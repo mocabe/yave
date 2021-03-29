@@ -5,6 +5,7 @@
 
 #include <yave/ui/vulkan_device.hpp>
 #include <yave/ui/glfw_context.hpp>
+#include <yave/ui/draw_list.hpp> 
 
 #include <ranges>
 #include <span>
@@ -12,7 +13,6 @@
 namespace {
 
   namespace rn = std::ranges;
-  namespace rv = std::ranges::views;
 
   auto getGraphicsQueueIndex(const vk::PhysicalDevice& phyDev)
   {

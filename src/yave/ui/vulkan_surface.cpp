@@ -3,8 +3,9 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
+#include "yave/ui/render_context.hpp"
 #include <yave/ui/vulkan_surface.hpp>
-#include <yave/ui/glfw_window.hpp>
+#include <yave/ui/native_window.hpp>
 
 #include <yave/support/log.hpp>
 
@@ -350,11 +351,13 @@ namespace {
 
 namespace yave::ui {
 
-  vulkan_surface::vulkan_surface(vulkan_device& device, glfw_window& win)
-    : m_device {device}
+  vulkan_surface::vulkan_surface(render_context& rctx, native_window& win)
+    : m_rctx {rctx}
     , m_win {win}
   {
-    m_surface = createWindowSurface(m_win.handle(), m_device.instance());
+    auto& device = m_rctx.vulkan_device();
+
+    m_surface = createWindowSurface(m_win.handle(), device.instance());
 
     auto fbSize = m_win.fb_size();
 
@@ -362,10 +365,10 @@ namespace yave::ui {
       m_surface.get(),
       vk::Extent2D {
         static_cast<uint32_t>(fbSize.w), static_cast<uint32_t>(fbSize.h)},
-      m_device.graphics_queue_index(),
-      m_device.present_queue_index(),
-      m_device.physical_device(),
-      m_device.device(),
+      device.graphics_queue_index(),
+      device.present_queue_index(),
+      device.physical_device(),
+      device.device(),
       m_swapchain.get(),
       &m_swapchain_format,
       &m_swapchain_present_mode,
@@ -373,29 +376,29 @@ namespace yave::ui {
       &m_swapchain_image_count);
 
     m_swapchain_images =
-      m_device.device().getSwapchainImagesKHR(m_swapchain.get());
+      device.device().getSwapchainImagesKHR(m_swapchain.get());
 
     m_swapchain_image_views = createSwapchainImageViews(
-      m_swapchain_images, m_swapchain_format, m_device.device());
+      m_swapchain_images, m_swapchain_format, device.device());
 
     assert(m_swapchain_images.size() == m_swapchain_image_views.size());
     assert(m_swapchain_images.size() == m_swapchain_image_count);
 
-    m_render_pass = createRenderPass(m_swapchain_format, m_device.device());
+    m_render_pass = createRenderPass(m_swapchain_format, device.device());
     m_command_pool =
-      createCommandPool(m_device.graphics_queue_index(), m_device.device());
+      createCommandPool(device.graphics_queue_index(), device.device());
 
     m_command_buffers = createCommandBuffers(
       m_swapchain_image_count,
       vk::CommandBufferLevel::ePrimary,
       m_command_pool.get(),
-      m_device.device());
+      device.device());
 
     m_frame_buffers = createFrameBuffers(
       m_swapchain_image_views,
       m_render_pass.get(),
       m_swapchain_extent,
-      m_device.device());
+      device.device());
 
     assert(m_command_buffers.size() == m_frame_buffers.size());
 
@@ -415,17 +418,12 @@ namespace yave::ui {
 
   vulkan_surface::~vulkan_surface() noexcept
   {
-    m_device.wait_idle();
+    m_rctx.vulkan_device().wait_idle();
   }
 
   void vulkan_surface::set_clear_color(float r, float g, float b, float a)
   {
     m_clear_color.setFloat32({r, g, b, a});
-  }
-
-  auto vulkan_surface::swapchain_extent() const -> vk::Extent2D
-  {
-    return m_swapchain_extent;
   }
 
   bool vulkan_surface::rebuild_required() const
@@ -438,8 +436,10 @@ namespace yave::ui {
 
   void vulkan_surface::rebuild()
   {
+    auto& device = m_rctx.vulkan_device();
+
     // wait idle
-    m_device.wait_idle();
+    device.wait_idle();
 
     /* destroy swapchain resources */
     m_in_flight_fences.clear();
@@ -459,18 +459,15 @@ namespace yave::ui {
     // load extent to get accurate value at this point
     auto windowSize = m_win.fb_size();
 
-    log_info(
-      "*** rebuilding frame buffers {},{} ***", windowSize.w, windowSize.h);
-
     m_swapchain = createSwapchain(
       m_surface.get(),
       vk::Extent2D {
         static_cast<uint32_t>(windowSize.w),
         static_cast<uint32_t>(windowSize.h)},
-      m_device.graphics_queue_index(),
-      m_device.present_queue_index(),
-      m_device.physical_device(),
-      m_device.device(),
+      device.graphics_queue_index(),
+      device.present_queue_index(),
+      device.physical_device(),
+      device.device(),
       m_swapchain.get(),
       &m_swapchain_format,
       &m_swapchain_present_mode,
@@ -478,32 +475,32 @@ namespace yave::ui {
       &m_swapchain_image_count);
 
     m_swapchain_images =
-      m_device.device().getSwapchainImagesKHR(m_swapchain.get());
+      device.device().getSwapchainImagesKHR(m_swapchain.get());
 
     m_swapchain_image_views = createSwapchainImageViews(
-      m_swapchain_images, m_swapchain_format, m_device.device());
+      m_swapchain_images, m_swapchain_format, device.device());
 
     m_command_buffers = createCommandBuffers(
       m_swapchain_image_count,
       vk::CommandBufferLevel::ePrimary,
       m_command_pool.get(),
-      m_device.device());
+      device.device());
 
     m_frame_buffers = createFrameBuffers(
       m_swapchain_image_views,
       m_render_pass.get(),
       m_swapchain_extent,
-      m_device.device());
+      device.device());
 
     m_acquire_semaphores =
-      createSemaphores(m_swapchain_image_count, m_device.device());
+      createSemaphores(m_swapchain_image_count, device.device());
 
     m_complete_semaphores =
-      createSemaphores(m_swapchain_image_count, m_device.device());
+      createSemaphores(m_swapchain_image_count, device.device());
 
     m_in_flight_fences = createFences(
       m_swapchain_image_count,
-      m_device.device(),
+      device.device(),
       vk::FenceCreateFlagBits::eSignaled);
   }
 
@@ -512,7 +509,7 @@ namespace yave::ui {
     // set next frame index
     m_frame_index = (m_frame_index + 1) % m_swapchain_image_count;
 
-    auto device = m_device.device();
+    auto device = m_rctx.vulkan_device().device();
 
     {
       // acquire next image, get next image_index.
@@ -580,6 +577,8 @@ namespace yave::ui {
 
   void vulkan_surface::end_frame()
   {
+    auto& device = m_rctx.vulkan_device();
+
     auto waitSemaphores =
       std::array {m_acquire_semaphores[m_frame_index].get()};
 
@@ -600,7 +599,7 @@ namespace yave::ui {
                           .setCommandBuffers(commandBuffers);
 
       // submit
-      auto err = m_device.graphics_queue().submit(
+      auto err = device.graphics_queue().submit(
         1, &submitInfo, m_in_flight_fences[m_frame_index].get());
 
       if (err != vk::Result::eSuccess)
@@ -618,7 +617,7 @@ namespace yave::ui {
                            .setSwapchains(swapchain)
                            .setImageIndices(imageIndex);
 
-      auto err = m_device.present_queue().presentKHR(&presentInfo);
+      auto err = device.present_queue().presentKHR(&presentInfo);
 
       // Surface is not longer compatible with current frame buffer.
       if (err == vk::Result::eErrorOutOfDateKHR) {

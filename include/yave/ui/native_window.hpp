@@ -41,9 +41,6 @@ namespace yave::ui {
     // for viewport
     void set_viewport(viewport* vp, passkey<viewport>);
 
-    // surface
-    auto surface() -> vulkan_surface&;
-
   public:
     /// native handle
     auto handle() const -> GLFWwindow*;
@@ -51,8 +48,10 @@ namespace yave::ui {
     auto name() const -> const std::u8string&;
     /// window size
     auto size() const -> ui::size;
-    /// wwinow pos
+    /// winow pos
     auto pos() const -> ui::vec;
+    /// framebuffer size
+    auto fb_size() const -> ui::size;
 
   public:
     /// change name of window

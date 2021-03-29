@@ -11,7 +11,7 @@
 
 #include <yave/support/log.hpp>
 
-YAVE_DECL_LOCAL_LOGGER(ui::viewport);
+YAVE_DECL_LOCAL_LOGGER(ui::viewport)
 
 namespace yave::ui {
 

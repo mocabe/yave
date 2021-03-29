@@ -16,8 +16,6 @@
 #include <mutex>
 #include <optional>
 
-YAVE_DECL_LOCAL_LOGGER(ui::main_context);
-
 namespace yave::ui {
 
   class main_context::impl

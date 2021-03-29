@@ -20,6 +20,7 @@ add_library(yave-ui
   vulkan_context.cpp
   vulkan_device.cpp
   vulkan_surface.cpp
+  viewport_renderer.cpp
 )
 
 add_library(yave::ui ALIAS yave-ui)

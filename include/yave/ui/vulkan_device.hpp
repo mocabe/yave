@@ -16,6 +16,8 @@ namespace yave::ui {
   {
     vulkan_context& m_vulkan;
     vk::UniqueDevice m_device;
+
+  private:
     uint32_t m_graphics_queue_index;
     uint32_t m_present_queue_index;
     vk::Queue m_graphics_queue;
@@ -40,6 +42,12 @@ namespace yave::ui {
       return m_device.get();
     }
 
+    void wait_idle()
+    {
+      return m_device->waitIdle();
+    }
+
+  public:
     auto graphics_queue_index() const
     {
       return m_graphics_queue_index;
@@ -60,10 +68,6 @@ namespace yave::ui {
       return m_present_queue;
     }
 
-    void wait_idle()
-    {
-      return m_device->waitIdle();
-    }
   };
 
 } // namespace yave::ui

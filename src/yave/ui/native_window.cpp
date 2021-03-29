@@ -9,8 +9,6 @@
 #include <yave/ui/main_context.hpp>
 #include <yave/ui/glfw_context.hpp>
 #include <yave/ui/glfw_window.hpp>
-#include <yave/ui/vulkan_surface.hpp>
-#include <yave/ui/render_context.hpp>
 
 namespace yave::ui {
 
@@ -18,21 +16,16 @@ namespace yave::ui {
   {
     ui::viewport* m_vp;
     glfw_window m_win;
-    vulkan_surface m_surface;
 
   public:
-    impl(
-      view_context& vctx,
-      std::u8string name,
-      ui::size size)
+    impl(view_context& vctx, std::u8string name, ui::size size)
       : m_win {vctx.main_ctx().glfw_ctx(), std::move(name), size}
-      , m_surface {vctx.render_ctx().vulkan_device(), m_win}
     {
     }
 
-    auto& surface()
+    auto& glfw_win()
     {
-      return m_surface;
+      return m_win;
     }
 
     auto handle() const
@@ -55,6 +48,11 @@ namespace yave::ui {
       return m_win.pos();
     }
 
+    auto fb_size() const
+    {
+      return m_win.fb_size();
+    }
+
     void set_name(std::u8string name)
     {
       m_win.set_name(std::move(name));
@@ -72,17 +70,17 @@ namespace yave::ui {
 
     void update_pos(u32 x, u32 y)
     {
-      m_win.update_pos(x, y);
+      m_win.update_pos(x, y, {});
     }
 
     void update_size(u32 w, u32 h)
     {
-      m_win.update_size(w, h);
+      m_win.update_size(w, h, {});
     }
 
     void update_fb_size(u32 w, u32 h)
     {
-      m_win.update_fb_size(w, h);
+      m_win.update_fb_size(w, h, {});
     }
 
     auto get_viewport() -> ui::viewport*
@@ -122,11 +120,6 @@ namespace yave::ui {
     return m_pimpl->set_viewport(vp);
   }
 
-  auto native_window::surface() -> vulkan_surface&
-  {
-    return m_pimpl->surface();
-  }
-
   auto native_window::handle() const -> GLFWwindow*
   {
     return m_pimpl->handle();
@@ -145,6 +138,11 @@ namespace yave::ui {
   auto native_window::pos() const -> ui::vec
   {
     return m_pimpl->pos();
+  }
+
+  auto native_window::fb_size() const -> ui::size
+  {
+    return m_pimpl->fb_size();
   }
 
   void native_window::set_name(std::u8string name)

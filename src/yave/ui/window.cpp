@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <random>
 
-YAVE_DECL_LOCAL_LOGGER(ui::window);
+YAVE_DECL_LOCAL_LOGGER(ui::window)
 
 namespace yave::ui {
 

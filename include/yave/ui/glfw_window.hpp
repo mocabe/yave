@@ -5,10 +5,12 @@
 
 #pragma once
 
+#include "yave/ui/window_manager.hpp"
 #include <yave/ui/glfw_context.hpp>
 
 namespace yave::ui {
 
+  class native_window;
   class main_context;
 
   class glfw_window
@@ -69,20 +71,17 @@ namespace yave::ui {
 
     void hide();
 
-    // for callback
-    void update_pos(u32 x, u32 y)
+    void update_pos(u32 x, u32 y, passkey<native_window>)
     {
       m_pos = ui::vec(x, y);
     }
 
-    // for callback
-    void update_size(u32 w, u32 h)
+    void update_size(u32 w, u32 h, passkey<native_window>)
     {
       m_size = ui::size(w, h);
     }
 
-    // for callback
-    void update_fb_size(u32 w, u32 h)
+    void update_fb_size(u32 w, u32 h, passkey<native_window>)
     {
       m_fb_size = ui::size(w, h);
     }

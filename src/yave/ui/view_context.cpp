@@ -11,28 +11,28 @@
 #include <yave/ui/render_context.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_LOCAL_LOGGER(ui::view_context);
+YAVE_DECL_LOCAL_LOGGER(ui::view_context)
 
 namespace yave::ui {
 
   namespace {
 
     // TODO: Replace this with C++20 std::binary_semaphore
-    class binary_semaphore 
+    class binary_semaphore
     {
       bool m_open = true;
       std::mutex m_mtx;
       std::condition_variable m_cond;
 
     public:
-      void acquire() 
+      void acquire()
       {
         auto lck = std::unique_lock(m_mtx);
-        m_cond.wait(lck, [=]{ return m_open; });
+        m_cond.wait(lck, [=] { return m_open; });
         m_open = false;
       }
 
-      void release() 
+      void release()
       {
         auto lck = std::unique_lock(m_mtx);
         if (!m_open) {
@@ -42,7 +42,7 @@ namespace yave::ui {
       }
     };
 
-  }  
+  } // namespace
 
   class view_context::impl
   {
@@ -189,7 +189,6 @@ namespace yave::ui {
         m_exit_thread = false;
         while (!thread_exit_requested()) {
           wait();      // wait new command
-          log_info("exec");
           exec();      // execute posted commands
           event();     // dispatch events, layout and draw
           exec_swap(); // process posted commands, swap queue

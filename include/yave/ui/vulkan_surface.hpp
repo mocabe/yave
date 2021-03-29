@@ -9,13 +9,14 @@
 
 namespace yave::ui {
 
-  class glfw_window;
+  class render_context;
+  class native_window;
 
   /// Vulkan window surface
   class vulkan_surface
   {
-    vulkan_device& m_device;
-    glfw_window& m_win;
+    render_context& m_rctx;
+    native_window& m_win;
 
     // clang-format off
 
@@ -45,13 +46,21 @@ namespace yave::ui {
     // clang-format on
 
   public:
-    vulkan_surface(vulkan_device& device, glfw_window& win);
+    vulkan_surface(render_context& rctx, native_window& win);
     ~vulkan_surface() noexcept;
 
     /// Set clear color
     void set_clear_color(float r, float g, float b, float a);
 
-    auto swapchain_extent() const -> vk::Extent2D;
+    auto swapchain_extent() const
+    {
+      return m_swapchain_extent;
+    }
+
+    auto render_pass() const
+    {
+      return m_render_pass.get();
+    }
 
   public:
     /// Surface size is outdated

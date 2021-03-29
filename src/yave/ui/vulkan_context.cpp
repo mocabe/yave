@@ -40,7 +40,6 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyDebugReportCallbackEXT(
 namespace yave::ui {
 
   namespace rn = std::ranges;
-  namespace rv = std::ranges::views;
 
   namespace {
 

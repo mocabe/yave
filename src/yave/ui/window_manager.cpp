@@ -17,8 +17,6 @@
 #include <optional>
 #include <variant>
 
-YAVE_DECL_LOCAL_LOGGER(window_manager)
-
 namespace yave::ui {
 
   namespace {
@@ -139,7 +137,6 @@ namespace yave::ui {
       assert(w->is_registered());
 
       if (!w->is_invalidated()) {
-        log_info("inval");
         m_self.signals.on_invalidate(w);
         w->set_invalidated(true, {});
         m_dmap.emplace(w->id(), w);

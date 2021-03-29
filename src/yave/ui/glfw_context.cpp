@@ -7,7 +7,7 @@
 #include <yave/ui/view_context.hpp>
 #include <yave/support/log.hpp>
 
-YAVE_DECL_LOCAL_LOGGER(ui::glfw_context);
+YAVE_DECL_LOCAL_LOGGER(ui::glfw_context)
 
 namespace yave::ui {
 

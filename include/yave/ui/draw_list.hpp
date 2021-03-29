@@ -13,6 +13,13 @@
 
 namespace yave::ui {
 
+  /// push constants
+  struct draw_pc
+  {
+    glm::vec2 translate;
+    glm::vec2 scale;
+  };
+
   /// draw command index
   struct draw_idx
   {
