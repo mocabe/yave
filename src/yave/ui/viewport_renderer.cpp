@@ -16,11 +16,11 @@ namespace {
   using namespace yave::ui;
 
   auto createShaderModule(
-    const std::span<const uint32_t>& code,
+    const std::span<const u32>& code,
     const vk::Device& device)
   {
     auto info = vk::ShaderModuleCreateInfo()
-                  .setCodeSize(code.size() * sizeof(uint32_t))
+                  .setCodeSize(code.size() * sizeof(u32))
                   .setPCode(code.data());
 
     return device.createShaderModuleUnique(info);

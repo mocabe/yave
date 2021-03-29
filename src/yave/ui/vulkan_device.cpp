@@ -6,12 +6,14 @@
 #include <yave/ui/vulkan_device.hpp>
 #include <yave/ui/glfw_context.hpp>
 #include <yave/ui/draw_list.hpp> 
+#include <yave/ui/typedefs.hpp>
 
 #include <ranges>
 #include <span>
 
 namespace {
 
+  using namespace yave::ui;
   namespace rn = std::ranges;
 
   auto getGraphicsQueueIndex(const vk::PhysicalDevice& phyDev)
@@ -24,13 +26,13 @@ namespace {
 
     // assume vulkan_context already checked this
     assert(it != props.end());
-    return static_cast<uint32_t>(std::distance(props.begin(), it));
+    return static_cast<u32>(std::distance(props.begin(), it));
   }
 
   auto getPresentQueueIndex(
-    uint32_t graphicsQueue,
+    u32 graphicsQueue,
     const vk::Instance& inst,
-    const vk::PhysicalDevice& phyDev) -> uint32_t
+    const vk::PhysicalDevice& phyDev) -> u32
   {
     // when graphics queue supports presentation, use graphics queue.
     if (glfwGetPhysicalDevicePresentationSupport(inst, phyDev, graphicsQueue)) {
@@ -39,7 +41,7 @@ namespace {
 
     // present queue is independent
     auto props = phyDev.getQueueFamilyProperties();
-    for (uint32_t idx = 0; idx < props.size(); ++idx) {
+    for (u32 idx = 0; idx < props.size(); ++idx) {
       if (glfwGetPhysicalDevicePresentationSupport(inst, phyDev, idx)) {
         return idx;
       }
@@ -81,8 +83,8 @@ namespace {
 
   auto createDevice(
     const vk::PhysicalDevice& phyDev,
-    uint32_t graphicsQueue,
-    uint32_t presentQueue) -> vk::UniqueDevice
+    u32 graphicsQueue,
+    u32 presentQueue) -> vk::UniqueDevice
   {
     float queuePriority = 0.f;
 

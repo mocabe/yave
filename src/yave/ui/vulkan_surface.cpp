@@ -13,6 +13,8 @@ YAVE_DECL_LOCAL_LOGGER(ui::vulkan_surface)
 
 namespace {
 
+  using namespace yave::ui;
+
   auto createWindowSurface(GLFWwindow* window, const vk::Instance& instance)
     -> vk::UniqueSurfaceKHR
   {
@@ -63,14 +65,14 @@ namespace {
   {
     vk::Extent2D extent = capabilities.currentExtent;
 
-    if (extent.width == std::numeric_limits<uint32_t>::max()) {
+    if (extent.width == std::numeric_limits<u32>::max()) {
       extent.width = std::clamp(
         windowSize.width,
         capabilities.minImageExtent.width,
         capabilities.maxImageExtent.width);
     }
 
-    if (extent.height == std::numeric_limits<uint32_t>::max()) {
+    if (extent.height == std::numeric_limits<u32>::max()) {
       extent.height = std::clamp(
         windowSize.height,
         capabilities.minImageExtent.height,
@@ -102,15 +104,15 @@ namespace {
   auto createSwapchain(
     const vk::SurfaceKHR& surface,
     const vk::Extent2D windowExtent,
-    uint32_t graphicsQueueIndex,
-    uint32_t presentQueueIndex,
+    u32 graphicsQueueIndex,
+    u32 presentQueueIndex,
     const vk::PhysicalDevice& physicalDevice,
     const vk::Device& logicalDevice,
     const vk::SwapchainKHR& oldSwapchain,
     vk::SurfaceFormatKHR* out_format,
     vk::PresentModeKHR* out_present_mode,
     vk::Extent2D* out_extent,
-    uint32_t* out_image_count) -> vk::UniqueSwapchainKHR
+    u32* out_image_count) -> vk::UniqueSwapchainKHR
   {
     if (!physicalDevice.getSurfaceSupportKHR(presentQueueIndex, surface)) {
       throw std::runtime_error(
@@ -131,7 +133,7 @@ namespace {
     auto imageCount = std::clamp(
       capabilities.minImageCount + 1,
       capabilities.minImageCount,
-      capabilities.maxImageCount == 0 ? std::numeric_limits<uint32_t>::max()
+      capabilities.maxImageCount == 0 ? std::numeric_limits<u32>::max()
                                       : capabilities.maxImageCount);
 
     auto preTransform   = chooseSwapchainPreTransform(capabilities);
@@ -259,7 +261,7 @@ namespace {
     return device.createRenderPassUnique(info);
   }
 
-  auto createCommandPool(uint32_t graphicsQueueIndex, const vk::Device& device)
+  auto createCommandPool(u32 graphicsQueueIndex, const vk::Device& device)
     -> vk::UniqueCommandPool
   {
     auto info = vk::CommandPoolCreateInfo()
@@ -272,7 +274,7 @@ namespace {
   }
 
   auto createCommandBuffers(
-    uint32_t size,
+    u32 size,
     const vk::CommandBufferLevel& level,
     const vk::CommandPool& commandPool,
     const vk::Device& device) -> std::vector<vk::UniqueCommandBuffer>
@@ -316,12 +318,12 @@ namespace {
     return device.createSemaphoreUnique(info);
   }
 
-  auto createSemaphores(uint32_t size, const vk::Device& device)
+  auto createSemaphores(u32 size, const vk::Device& device)
     -> std::vector<vk::UniqueSemaphore>
   {
     std::vector<vk::UniqueSemaphore> ret;
     ret.reserve(size);
-    for (uint32_t i = 0; i < size; ++i) {
+    for (u32 i = 0; i < size; ++i) {
       ret.push_back(createSemaphore(device));
     }
     return ret;
@@ -335,13 +337,13 @@ namespace {
   }
 
   auto createFences(
-    uint32_t size,
+    u32 size,
     const vk::Device& device,
     const vk::FenceCreateFlags& flags) -> std::vector<vk::UniqueFence>
   {
     std::vector<vk::UniqueFence> ret;
     ret.reserve(size);
-    for (uint32_t i = 0; i < size; ++i) {
+    for (u32 i = 0; i < size; ++i) {
       ret.push_back(createFence(device, flags));
     }
     return ret;
@@ -363,8 +365,7 @@ namespace yave::ui {
 
     m_swapchain = createSwapchain(
       m_surface.get(),
-      vk::Extent2D {
-        static_cast<uint32_t>(fbSize.w), static_cast<uint32_t>(fbSize.h)},
+      vk::Extent2D {static_cast<u32>(fbSize.w), static_cast<u32>(fbSize.h)},
       device.graphics_queue_index(),
       device.present_queue_index(),
       device.physical_device(),
@@ -428,9 +429,9 @@ namespace yave::ui {
 
   bool vulkan_surface::rebuild_required() const
   {
-    auto wSize   = m_win.fb_size();
-    auto wExtent = vk::Extent2D {
-      static_cast<uint32_t>(wSize.w), static_cast<uint32_t>(wSize.h)};
+    auto wSize = m_win.fb_size();
+    auto wExtent =
+      vk::Extent2D {static_cast<u32>(wSize.w), static_cast<u32>(wSize.h)};
     return m_swapchain_extent != wExtent;
   }
 
@@ -462,8 +463,7 @@ namespace yave::ui {
     m_swapchain = createSwapchain(
       m_surface.get(),
       vk::Extent2D {
-        static_cast<uint32_t>(windowSize.w),
-        static_cast<uint32_t>(windowSize.h)},
+        static_cast<u32>(windowSize.w), static_cast<u32>(windowSize.h)},
       device.graphics_queue_index(),
       device.present_queue_index(),
       device.physical_device(),
@@ -664,22 +664,22 @@ namespace yave::ui {
     buffer.end();
   }
 
-  auto vulkan_surface::swapchain_index() const -> uint32_t
+  auto vulkan_surface::swapchain_index() const -> u32
   {
     return m_image_index;
   }
 
-  auto vulkan_surface::swapchain_index_count() const -> uint32_t
+  auto vulkan_surface::swapchain_index_count() const -> u32
   {
     return m_swapchain_image_count;
   }
 
-  auto vulkan_surface::frame_index() const -> uint32_t
+  auto vulkan_surface::frame_index() const -> u32
   {
     return m_frame_index;
   }
 
-  auto vulkan_surface::frame_index_count() const -> uint32_t
+  auto vulkan_surface::frame_index_count() const -> u32
   {
     return m_swapchain_image_count;
   }

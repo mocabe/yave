@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/ui/vulkan_device.hpp>
+#include <yave/ui/typedefs.hpp>
 
 namespace yave::ui {
 
@@ -25,7 +26,7 @@ namespace yave::ui {
     vk::SurfaceFormatKHR             m_swapchain_format;
     vk::PresentModeKHR               m_swapchain_present_mode;
     vk::Extent2D                     m_swapchain_extent;
-    uint32_t                         m_swapchain_image_count;
+    u32                              m_swapchain_image_count;
     std::vector<vk::Image>           m_swapchain_images; // owned by swapchain
     std::vector<vk::UniqueImageView> m_swapchain_image_views;
 
@@ -40,8 +41,8 @@ namespace yave::ui {
     vk::UniqueFence                      m_acquire_fence;
     vk::ClearColorValue                  m_clear_color;
 
-    uint32_t m_image_index = 0;
-    uint32_t m_frame_index = 0;
+    u32 m_image_index = 0;
+    u32 m_frame_index = 0;
 
     // clang-format on
 
@@ -89,18 +90,18 @@ namespace yave::ui {
     /// specifying swapchain resources like image or frame buffer.
     /// \note: Maximum value of swapchain index is swapchain_image_count()-1
     /// or swapchain_index_count()-1;
-    auto swapchain_index() const -> uint32_t;
+    auto swapchain_index() const -> u32;
 
     /// Get number of swapchain index.
     /// \returns swapchain_image_count()
-    auto swapchain_index_count() const -> uint32_t;
+    auto swapchain_index_count() const -> u32;
 
     /// Get current frame index. This index can be used for resources for each
     /// render operation.
-    auto frame_index() const -> uint32_t;
+    auto frame_index() const -> u32;
 
     /// Get number of frame index. This value also represents maximum number
     /// of in-flight render operations.
-    auto frame_index_count() const -> uint32_t;
+    auto frame_index_count() const -> u32;
   };
 } // namespace yave::ui
