@@ -261,18 +261,6 @@ namespace {
     return device.createRenderPassUnique(info);
   }
 
-  auto createCommandPool(u32 graphicsQueueIndex, const vk::Device& device)
-    -> vk::UniqueCommandPool
-  {
-    auto info = vk::CommandPoolCreateInfo()
-                  // allow vkResetCommandBuffer
-                  .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
-                  // use graphics queue
-                  .setQueueFamilyIndex(graphicsQueueIndex);
-
-    return device.createCommandPoolUnique(info);
-  }
-
   auto createCommandBuffers(
     u32 size,
     const vk::CommandBufferLevel& level,
@@ -366,8 +354,8 @@ namespace yave::ui {
     m_swapchain = createSwapchain(
       m_surface.get(),
       vk::Extent2D {static_cast<u32>(fbSize.w), static_cast<u32>(fbSize.h)},
-      device.graphics_queue_index(),
-      device.present_queue_index(),
+      device.graphics_queue_family(),
+      device.present_queue_family(),
       device.physical_device(),
       device.device(),
       m_swapchain.get(),
@@ -386,13 +374,11 @@ namespace yave::ui {
     assert(m_swapchain_images.size() == m_swapchain_image_count);
 
     m_render_pass = createRenderPass(m_swapchain_format, device.device());
-    m_command_pool =
-      createCommandPool(device.graphics_queue_index(), device.device());
 
     m_command_buffers = createCommandBuffers(
       m_swapchain_image_count,
       vk::CommandBufferLevel::ePrimary,
-      m_command_pool.get(),
+      device.graphics_command_pool(),
       device.device());
 
     m_frame_buffers = createFrameBuffers(
@@ -464,8 +450,8 @@ namespace yave::ui {
       m_surface.get(),
       vk::Extent2D {
         static_cast<u32>(windowSize.w), static_cast<u32>(windowSize.h)},
-      device.graphics_queue_index(),
-      device.present_queue_index(),
+      device.graphics_queue_family(),
+      device.present_queue_family(),
       device.physical_device(),
       device.device(),
       m_swapchain.get(),
@@ -483,7 +469,7 @@ namespace yave::ui {
     m_command_buffers = createCommandBuffers(
       m_swapchain_image_count,
       vk::CommandBufferLevel::ePrimary,
-      m_command_pool.get(),
+      device.graphics_command_pool(),
       device.device());
 
     m_frame_buffers = createFrameBuffers(

@@ -30,9 +30,7 @@ namespace yave::ui {
     std::vector<vk::Image>           m_swapchain_images; // owned by swapchain
     std::vector<vk::UniqueImageView> m_swapchain_image_views;
 
-    vk::UniqueRenderPass    m_render_pass;
-    vk::UniqueCommandPool   m_command_pool;
-
+    vk::UniqueRenderPass                 m_render_pass;
     std::vector<vk::UniqueCommandBuffer> m_command_buffers;
     std::vector<vk::UniqueFramebuffer>   m_frame_buffers;
     std::vector<vk::UniqueSemaphore>     m_acquire_semaphores;
