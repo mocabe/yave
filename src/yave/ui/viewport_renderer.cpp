@@ -171,7 +171,7 @@ namespace yave::ui {
   viewport_renderer::viewport_renderer(viewport& vp, render_context& rctx)
     : m_vp {vp}
     , m_rctx {rctx}
-    , m_surface {rctx, *vp.get_native()}
+    , m_surface {rctx, vp.native_window()}
   {
     auto& device = rctx.vulkan_device();
 

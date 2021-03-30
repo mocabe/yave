@@ -68,6 +68,7 @@ namespace yave::ui {
     ensure_on_main();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
     auto width  = static_cast<int>(size.w);
     auto height = static_cast<int>(size.h);

@@ -108,7 +108,7 @@ namespace yave::ui {
     auto find_native_from_handle(GLFWwindow* w) -> native_window*
     {
       for (auto&& vp : m_wm.root()->viewports()) {
-        auto native = vp->get_native();
+        auto native = &vp->native_window();
         if (native->handle() == w)
           return native;
       }
@@ -189,8 +189,8 @@ namespace yave::ui {
         dispatch_over_window(viewport, *event);
 
         if (event->accepted()) {
-          // hide viewport before close
-          viewport->hide();
+          // hide window before close
+          native->hide();
           // destroy viewport and backing window
           m_wm.root()->remove_viewport(viewport);
         }

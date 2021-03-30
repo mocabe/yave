@@ -27,7 +27,7 @@ namespace yave::ui {
     /// ref to render context
     ui::render_context& m_rctx;
     // native window handler
-    std::unique_ptr<native_window> m_nw;
+    std::unique_ptr<ui::native_window> m_nw;
     // close controller
     controllers::close* m_close_controller;
 
@@ -44,8 +44,8 @@ namespace yave::ui {
 
   public:
     /// get native window
-    auto get_native() -> native_window*;
-    auto get_native() const -> const native_window*;
+    auto native_window() -> ui::native_window&;
+    auto native_window() const -> const ui::native_window&;
 
   public:
     void layout(layout_scope ctx) const override;

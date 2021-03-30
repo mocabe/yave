@@ -26,7 +26,7 @@ namespace yave::ui {
     passkey<root>)
     : m_lctx {lctx}
     , m_rctx {rctx}
-    , m_nw {std::make_unique<native_window>(
+    , m_nw {std::make_unique<ui::native_window>(
         wm.view_ctx(),
         std::move(name),
         size,
@@ -49,28 +49,28 @@ namespace yave::ui {
 
   viewport::~viewport() noexcept = default;
 
-  auto viewport::get_native() -> native_window*
+  auto viewport::native_window() -> ui::native_window&
   {
-    return m_nw.get();
+    return *m_nw;
   }
 
-  auto viewport::get_native() const -> const native_window*
+  auto viewport::native_window() const -> const ui::native_window&
   {
-    return m_nw.get();
+    return *m_nw;
   }
 
   void viewport::layout(layout_scope ctx) const
   {
-    auto native = get_native();
+    auto& native = native_window();
     // set new window size
-    ctx.set_size(native->size());
-    ctx.set_offset(native->pos());
+    ctx.set_size(native.size());
+    ctx.set_offset(native.pos());
 
-    log_info("new layout: {}, {}", native->size().w, native->size().h);
+    log_info("new layout: {}, {}", native.size().w, native.size().h);
 
     // use tight constraits for window size
     for (auto&& c : children())
-      ctx.enter_child(c, {native->size()});
+      ctx.enter_child(c, {native.size()});
   }
 
   void viewport::render(render_scope ctx) const

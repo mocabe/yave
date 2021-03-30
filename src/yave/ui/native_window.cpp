@@ -9,6 +9,7 @@
 #include <yave/ui/main_context.hpp>
 #include <yave/ui/glfw_context.hpp>
 #include <yave/ui/glfw_window.hpp>
+#include <yave/ui/viewport.hpp>
 
 namespace yave::ui {
 
@@ -96,10 +97,12 @@ namespace yave::ui {
     void show()
     {
       m_win.show();
+      m_vp->show();
     }
 
     void hide()
     {
+      m_vp->hide();
       m_win.hide();
     }
   };
