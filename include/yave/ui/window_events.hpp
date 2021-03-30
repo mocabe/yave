@@ -124,7 +124,7 @@ namespace yave::ui {
       bool event(ui::event& e, view_context& vctx) override
       {
         if (e.phase() == phase()) {
-          if (auto closeEvent = typeid_cast<events::close>(&e)) {
+          if (auto closeEvent = typeid_cast_if<events::close>(&e)) {
             assert(closeEvent->target() == window());
             closeEvent->accept();
             // slots can intercept and ignore close event
