@@ -75,6 +75,11 @@ namespace yave::ui {
       return m_graphics_queue;
     }
 
+    auto transfer_queue() const
+    {
+      return m_transfer_queue;
+    }
+
     auto present_queue() const
     {
       return m_present_queue;

@@ -155,9 +155,7 @@ namespace {
     -> vk::UniqueCommandPool
   {
     auto info = vk::CommandPoolCreateInfo()
-                  // allow vkResetCommandBuffer
                   .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
-                  // use graphics queue
                   .setQueueFamilyIndex(queueFamily);
 
     return device.createCommandPoolUnique(info);
