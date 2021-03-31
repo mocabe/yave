@@ -88,9 +88,7 @@ namespace yave::ui {
     }
   }
 
-  void texture::clear_color(
-    const vk::ClearColorValue& color,
-    vulkan_device& device)
+  void texture::clear_color(const color& color, vulkan_device& device)
   {
     auto stc = vulkan::single_time_command(
       device.device(), device.graphics_queue(), device.graphics_command_pool());
@@ -123,7 +121,10 @@ namespace yave::ui {
     {
       // requires graphics support for queue family
       cmd.clearColorImage(
-        m_image.image(), vk::ImageLayout::eTransferDstOptimal, color, range);
+        m_image.image(),
+        vk::ImageLayout::eTransferDstOptimal,
+        vk::ClearColorValue().setFloat32({color.r, color.g, color.b, color.a}),
+        range);
     }
 
     {

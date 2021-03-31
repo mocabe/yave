@@ -3,10 +3,10 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
+#pragma once
+
 #include <yave/ui/vulkan_surface.hpp>
 #include <yave/ui/draw_list.hpp>
-
-#pragma once
 
 namespace yave::ui {
 

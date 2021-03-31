@@ -44,7 +44,7 @@ namespace yave::ui {
       vulkan_allocator& allocator);
 
     /// Fill texture with color
-    void clear_color(const vk::ClearColorValue& color, vulkan_device& device);
+    void clear_color(const color& color, vulkan_device& device);
   };
 
 } // namespace yave::ui

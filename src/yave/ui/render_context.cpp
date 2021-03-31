@@ -109,8 +109,7 @@ namespace yave::ui {
     m_default_tex = std::make_unique<ui::texture>(
       1, 1, vk::Format::eR8G8B8A8Unorm, m_device, m_allocator);
 
-    m_default_tex->clear_color(
-      vk::ClearColorValue().setFloat32({1.f, 1.f, 1.f, 1.f}), m_device);
+    m_default_tex->clear_color(ui::color {1.f, 1.f, 1.f, 1.f}, m_device);
   }
 
   render_context::~render_context() noexcept = default;

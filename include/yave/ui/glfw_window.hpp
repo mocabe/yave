@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "yave/ui/window_manager.hpp"
 #include <yave/ui/glfw_context.hpp>
 
 namespace yave::ui {
