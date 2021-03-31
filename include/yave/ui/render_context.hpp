@@ -8,6 +8,8 @@
 #include <yave/ui/passkey.hpp>
 #include <yave/ui/draw_list.hpp>
 #include <yave/ui/vulkan_device.hpp>
+#include <yave/ui/vulkan_allocator.hpp>
+#include <yave/ui/texture.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -34,8 +36,8 @@ namespace yave::ui {
 
   class render_context
   {
-    // Vulkan logical device
     ui::vulkan_device m_device;
+    ui::vulkan_allocator m_allocator;
 
   private:
     vk::UniqueSampler m_image_sampler;
@@ -43,6 +45,8 @@ namespace yave::ui {
     vk::UniqueDescriptorPool m_descriptor_pool;
     vk::UniquePipelineCache m_pipeline_cache;
     vk::UniquePipelineLayout m_pipeline_layout;
+
+    std::unique_ptr<ui::texture> m_default_tex;
 
     bool do_render_required(const window*);
     void do_render_viewport(viewport*);
@@ -56,6 +60,12 @@ namespace yave::ui {
     auto& vulkan_device()
     {
       return m_device;
+    }
+
+    // get vulkan allocator
+    auto& vulkan_allocator()
+    {
+      return m_allocator;
     }
 
   public:

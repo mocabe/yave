@@ -3,7 +3,6 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <vulkan/vulkan.hpp>
 #include <yave/ui/viewport_renderer.hpp>
 #include <yave/ui/render_context.hpp>
 #include <yave/ui/viewport.hpp>

@@ -39,7 +39,7 @@ namespace yave::ui {
       return m_win.name();
     }
 
-    auto& size() const
+    auto size() const
     {
       return m_win.size();
     }

@@ -3,7 +3,6 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include "yave/lib/vulkan/texture.hpp"
 #include <yave/ui/render_context.hpp>
 #include <yave/ui/render_scope.hpp>
 #include <yave/ui/window_manager.hpp>
@@ -92,6 +91,7 @@ namespace yave::ui {
 
   render_context::render_context(main_context& mctx)
     : m_device {mctx.vulkan_ctx(), mctx.glfw_ctx()}
+    , m_allocator {m_device}
   {
     // clang-format off
 
@@ -105,6 +105,12 @@ namespace yave::ui {
     m_pipeline_layout       = createPipelineLayout(m_descriptor_set_layout.get(), dev);
 
     // clang-format on
+
+    m_default_tex = std::make_unique<ui::texture>(
+      1, 1, vk::Format::eR8G8B8A8Unorm, m_device, m_allocator);
+
+    m_default_tex->clear_color(
+      vk::ClearColorValue().setFloat32({1.f, 1.f, 1.f, 1.f}), m_device);
   }
 
   render_context::~render_context() noexcept = default;

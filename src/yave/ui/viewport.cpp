@@ -3,7 +3,6 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include "yave/ui/window_events.hpp"
 #include <yave/ui/viewport.hpp>
 #include <yave/ui/native_window.hpp>
 #include <yave/ui/window_manager.hpp>
