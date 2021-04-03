@@ -66,6 +66,12 @@ namespace yave::ui {
     {
       destroy();
     }
+
+    bool empty() const
+    {
+      return m_allocator == nullptr;
+    }
+
     auto allocator() const
     {
       return m_allocator;
@@ -86,7 +92,7 @@ namespace yave::ui {
       return vk::MemoryPropertyFlags(m_flags);
     }
 
-    auto byte_size() const
+    auto alloc_size() const
     {
       return m_size;
     }
@@ -103,18 +109,60 @@ namespace yave::ui {
         flags() & vk::MemoryPropertyFlagBits::eDeviceLocal);
     }
 
-    void load(vk::DeviceSize offset, vk::DeviceSize size, u8* dst)
+    /// Get host visible pointer of mapped memory range.
+    /// \note User must property invalidate/flush memory range on use.
+    /// \requires is_host_visible()
+    auto mapped_data() -> u8*
     {
       assert(is_host_visible());
+      return m_mapped_data;
+    }
+
+    /// Get host visible pointer of mapped memory range.
+    /// \note User must property invalidate/flush memory range on use.
+    /// \requires is_host_visible()
+    auto mapped_data() const -> const u8*
+    {
+      assert(is_host_visible());
+      return m_mapped_data;
+    }
+
+    /// Invalidate range of mapped memory.
+    /// This should be called before reading from memory range to make it
+    /// updated.
+    /// \requires is_host_visible()
+    void invalidate(vk::DeviceSize offset, vk::DeviceSize size) const
+    {
+      assert(is_host_visible() && m_mapped_data);
       vmaInvalidateAllocation(m_allocator, m_allocation, offset, size);
+    }
+
+    /// Flush range of mapped memory.
+    /// This should be called after writing to memory range to make it visible
+    /// from other memory.
+    /// \requires is_host_visible()
+    void flush(vk::DeviceSize offset, vk::DeviceSize size)
+    {
+      assert(is_host_visible() && m_mapped_data);
+      vmaFlushAllocation(m_allocator, m_allocation, offset, size);
+    }
+
+    /// Invalidate and read memory range
+    /// \requires is_host_visible()
+    void load(vk::DeviceSize offset, vk::DeviceSize size, u8* dst) const
+    {
+      assert(offset + size <= m_size);
+      invalidate(offset, size);
       std::memcpy(dst, m_mapped_data + offset, size);
     }
 
+    /// Write and flush memory range
+    /// \requires is_host_visible()
     void store(vk::DeviceSize offset, vk::DeviceSize size, const u8* src)
     {
-      assert(is_host_visible());
+      assert(offset + size <= m_size);
       std::memcpy(m_mapped_data + offset, src, size);
-      vmaFlushAllocation(m_allocator, m_allocation, offset, size);
+      flush(offset, size);
     }
   };
 
@@ -173,6 +221,11 @@ namespace yave::ui {
       destroy();
     }
 
+    bool empty() const
+    {
+      return m_allocator == nullptr;
+    }
+
     auto allocator() const
     {
       return m_allocator;
@@ -193,7 +246,7 @@ namespace yave::ui {
       return vk::MemoryPropertyFlags(m_flags);
     }
 
-    auto byte_size() const
+    auto alloc_size() const
     {
       return vk::DeviceSize(m_size);
     }
@@ -210,18 +263,58 @@ namespace yave::ui {
         flags() & vk::MemoryPropertyFlagBits::eDeviceLocal);
     }
 
-    void load(vk::DeviceSize offset, vk::DeviceSize size, u8* dst)
+    /// Get host visible pointer of mapped memory range.
+    /// \note User must property invalidate/flush memory range on use.
+    /// \requires is_host_visible()
+    auto mapped_data() -> u8*
+    {
+      assert(is_host_visible());
+      return m_mapped_data;
+    }
+
+    /// Get host visible pointer of mapped memory range.
+    /// \note User must property invalidate/flush memory range on use.
+    /// \requires is_host_visible()
+    auto mapped_data() const -> const u8*
+    {
+      assert(is_host_visible());
+      return m_mapped_data;
+    }
+
+    /// Invalidate range of mapped memory.
+    /// This should be called before reading from memory range to make it
+    /// updated.
+    /// \requires is_host_visible()
+    void invalidate(vk::DeviceSize offset, vk::DeviceSize size) const
     {
       assert(is_host_visible() && m_mapped_data);
       vmaInvalidateAllocation(m_allocator, m_allocation, offset, size);
+    }
+
+    /// Flush range of mapped memory.
+    /// This should be called after writing to memory range to make it visible
+    /// from other memory.
+    /// \requires is_host_visible()
+    void flush(vk::DeviceSize offset, vk::DeviceSize size)
+    {
+      assert(is_host_visible() && m_mapped_data);
+      vmaFlushAllocation(m_allocator, m_allocation, offset, size);
+    }
+
+    /// Invalidate and read memory range
+    /// \requires is_host_visible()
+    void load(vk::DeviceSize offset, vk::DeviceSize size, u8* dst) const
+    {
+      invalidate(offset, size);
       std::memcpy(dst, m_mapped_data + offset, size);
     }
 
+    /// Write and flush memory range
+    /// \requires is_host_visible()
     void store(vk::DeviceSize offset, vk::DeviceSize size, const u8* src)
     {
-      assert(is_host_visible() && m_mapped_data);
       std::memcpy(m_mapped_data + offset, src, size);
-      vmaFlushAllocation(m_allocator, m_allocation, offset, size);
+      flush(offset, size);
     }
   };
 
@@ -236,14 +329,14 @@ namespace yave::ui {
     vulkan_allocator(const vulkan_allocator&) = delete;
     ~vulkan_allocator() noexcept;
 
-    auto device() const
+    auto& device()
     {
-      return m_device.device();
+      return m_device;
     }
 
-    auto physical_device() const
+    auto& device() const
     {
-      return m_device.physical_device();
+      return m_device;
     }
 
   public:

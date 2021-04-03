@@ -22,9 +22,11 @@ namespace yave::ui {
     u32 width,
     u32 height,
     vk::Format format,
-    vulkan_device& device,
     vulkan_allocator& allocator)
+    : m_allocator {allocator}
   {
+    auto& device = allocator.device();
+
     {
       auto info = vk::ImageCreateInfo()
                     .setExtent({width, height, 1})
@@ -55,7 +57,7 @@ namespace yave::ui {
                     .setFormat(format)
                     .setSubresourceRange(range);
 
-      allocator.device().createImageViewUnique(info);
+      device.device().createImageViewUnique(info);
     }
 
     {
@@ -88,8 +90,10 @@ namespace yave::ui {
     }
   }
 
-  void texture::clear_color(const color& color, vulkan_device& device)
+  void texture::clear_color(const color& color)
   {
+    auto& device = m_allocator.device();
+
     auto stc = vulkan::single_time_command(
       device.device(), device.graphics_queue(), device.graphics_command_pool());
 

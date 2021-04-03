@@ -107,9 +107,9 @@ namespace yave::ui {
     // clang-format on
 
     m_default_tex = std::make_unique<ui::texture>(
-      1, 1, vk::Format::eR8G8B8A8Unorm, m_device, m_allocator);
+      1, 1, vk::Format::eR8G8B8A8Unorm, m_allocator);
 
-    m_default_tex->clear_color(ui::color {1.f, 1.f, 1.f, 1.f}, m_device);
+    m_default_tex->clear_color(ui::color {1.f, 1.f, 1.f, 1.f});
   }
 
   render_context::~render_context() noexcept = default;
