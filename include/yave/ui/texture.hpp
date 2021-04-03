@@ -6,8 +6,11 @@
 #pragma once
 
 #include <yave/ui/vulkan_allocator.hpp>
+#include <yave/ui/staging_buffer.hpp>
 #include <yave/ui/typedefs.hpp>
 #include <yave/ui/color.hpp>
+
+#include <span>
 
 namespace yave::ui {
 
@@ -32,6 +35,15 @@ namespace yave::ui {
     /// image view
     vk::UniqueImageView m_image_view;
 
+    void layout_transition(
+      vk::CommandBuffer cmd,
+      vk::ImageLayout oldLayout,
+      vk::ImageLayout newLayout,
+      vk::AccessFlags srcAccessMask,
+      vk::AccessFlags dstAccessMask,
+      vk::PipelineStageFlags srcStage,
+      vk::PipelineStageFlags dstStage);
+
   public:
     // Non-copiable and movable. Expected to be used with smart pointers.
     texture(const texture&)           = delete;
@@ -46,6 +58,20 @@ namespace yave::ui {
 
     /// Fill texture with color
     void clear_color(const color& color);
+
+    /// Store data using staging buffer
+    void store(
+      staging_buffer& staging,
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent,
+      std::span<const u8> src);
+
+    /// Load data using staging buffer
+    void load(
+      staging_buffer& staging,
+      const vk::Offset2D& offset,
+      const vk::Extent2D& extent,
+      std::span<u8> dst);
 
   public:
     auto image_view() const
