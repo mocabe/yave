@@ -20,15 +20,12 @@ namespace yave::ui {
 
   private:
     u32 m_graphics_queue_family;
-    u32 m_transfer_queue_family;
     u32 m_present_queue_family;
     vk::Queue m_graphics_queue;
-    vk::Queue m_transfer_queue;
     vk::Queue m_present_queue;
 
   private:
     vk::UniqueCommandPool m_graphics_command_pool;
-    vk::UniqueCommandPool m_transfer_command_pool;
 
   public:
     vulkan_device(vulkan_context& vulkan, glfw_context& glfw);
@@ -60,11 +57,6 @@ namespace yave::ui {
       return m_graphics_queue_family;
     }
 
-    auto transfer_queue_family() const
-    {
-      return m_transfer_queue_family;
-    }
-
     auto present_queue_family() const
     {
       return m_present_queue_family;
@@ -75,10 +67,6 @@ namespace yave::ui {
       return m_graphics_queue;
     }
 
-    auto transfer_queue() const
-    {
-      return m_transfer_queue;
-    }
 
     auto present_queue() const
     {
@@ -88,16 +76,6 @@ namespace yave::ui {
     auto graphics_command_pool() const
     {
       return m_graphics_command_pool.get();
-    }
-
-    auto transfer_command_pool() const
-    {
-      if (transfer_queue_family() != graphics_queue_family()) {
-        assert(m_transfer_command_pool);
-        return m_transfer_command_pool.get();
-      }
-      assert(!m_transfer_command_pool);
-      return graphics_command_pool();
     }
   };
 

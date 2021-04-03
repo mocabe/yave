@@ -50,35 +50,6 @@ namespace {
     throw std::runtime_error("Presentation is not supported on this device");
   }
 
-  auto getTransferQueueFamily(
-    u32 graphicsQueueFamily,
-    const vk::PhysicalDevice& physDev) -> u32
-  {
-    auto props       = physDev.getQueueFamilyProperties();
-    auto transferBit = vk::QueueFlagBits::eTransfer;
-    auto graphicsBit = vk::QueueFlagBits::eGraphics;
-    auto computeBit  = vk::QueueFlagBits::eCompute;
-
-    // find dedicated transfer queue
-    for (u32 idx = 0; idx < props.size(); ++idx) {
-      auto flags = props[idx].queueFlags;
-      if ((flags & transferBit) && !(flags & (graphicsBit | computeBit)))
-        return idx;
-    }
-
-    // when graphics queue supports transfer, use it
-    if (props[graphicsQueueFamily].queueFlags & transferBit)
-      return graphicsQueueFamily;
-
-    // find any queue which supports transfer
-    for (u32 idx = 0; idx < props.size(); ++idx) {
-      auto flags = props[idx].queueFlags;
-      if (flags & transferBit)
-        return idx;
-    }
-    throw std::runtime_error("Transfer is not supported on this device");
-  }
-
   bool checkDeviceExtensionSupport(
     std::span<const char*> required,
     const vk::PhysicalDevice& physDev)
@@ -114,13 +85,11 @@ namespace {
   auto createDevice(
     const vk::PhysicalDevice& phyDev,
     u32 graphicsQueueFamily,
-    u32 transferQueueFamily,
     u32 presentQueueFamily) -> vk::UniqueDevice
   {
     float queuePriority = 0.f;
 
-    auto queueFamilies =
-      std::array {graphicsQueueFamily, transferQueueFamily, presentQueueFamily};
+    auto queueFamilies = std::array {graphicsQueueFamily, presentQueueFamily};
 
     std::sort(queueFamilies.begin(), queueFamilies.end());
     auto end = std::unique(queueFamilies.begin(), queueFamilies.end());
@@ -176,20 +145,15 @@ namespace yave::ui {
     auto phyDev = vulkan.physical_device();
 
     m_graphics_queue_family = getGraphicsQueueFamily(phyDev);
-    m_transfer_queue_family = getTransferQueueFamily(m_graphics_queue_family,phyDev);
     m_present_queue_family  = getPresentQueueFamily(m_graphics_queue_family, inst, phyDev);
 
     // init 1 queue for each
-    m_device         = createDevice(phyDev, m_graphics_queue_family, m_transfer_queue_family, m_present_queue_family);
+    m_device         = createDevice(phyDev, m_graphics_queue_family, m_present_queue_family);
     m_graphics_queue = m_device->getQueue(m_graphics_queue_family, 0);
-    m_transfer_queue = m_device->getQueue(m_transfer_queue_family, 0);
     m_present_queue  = m_device->getQueue(m_present_queue_family, 0);
 
     // init command queue
     m_graphics_command_pool = createCommandPool(m_graphics_queue_family, m_device.get());
-
-    if (m_graphics_queue_family != m_transfer_queue_family)
-      m_transfer_command_pool = createCommandPool(m_transfer_queue_family, m_device.get());
 
     // clang-format on
   }
