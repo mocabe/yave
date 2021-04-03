@@ -13,7 +13,8 @@
 #include <yave/ui/render_scope.hpp>
 #include <yave/ui/signal.hpp>
 
-#include <range/v3/view.hpp>
+#include <range/v3/view/subrange.hpp>
+#include <range/v3/view/transform.hpp>
 
 #include <vector>
 #include <memory>
