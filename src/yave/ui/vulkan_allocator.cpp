@@ -16,7 +16,7 @@ namespace {
     vk::Device device)
   {
     VmaAllocatorCreateInfo info {};
-    info.vulkanApiVersion = VK_VERSION_1_2;
+    info.vulkanApiVersion = VK_API_VERSION_1_1;
     info.instance         = instance;
     info.physicalDevice   = physicalDevice;
     info.device           = device;
