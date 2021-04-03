@@ -57,13 +57,18 @@ namespace yave::ui {
     vulkan_buffer buffer {};
     VmaAllocationInfo allocInfo {};
 
-    vmaCreateBuffer(
+    auto result = vmaCreateBuffer(
       m_allocator,
       &bufferCreateInfo,
       &allocCreateInfo,
       &buffer.m_buffer,
       &buffer.m_allocation,
       &allocInfo);
+
+    if (result < VK_SUCCESS) {
+      throw std::runtime_error(
+        "VMA: Failed to allocate buffer: " + to_string(vk::Result(result)));
+    }
 
     vmaGetMemoryTypeProperties(
       m_allocator, allocInfo.memoryType, &buffer.m_flags);
@@ -88,13 +93,18 @@ namespace yave::ui {
     vulkan_image image;
     VmaAllocationInfo allocInfo {};
 
-    vmaCreateImage(
+    auto result = vmaCreateImage(
       m_allocator,
       &imageCreateInfo,
       &allocCreateInfo,
       &image.m_image,
       &image.m_allocation,
       &allocInfo);
+
+    if (result < VK_SUCCESS) {
+      throw std::runtime_error(
+        "VMA: Failed to allocate image: " + to_string(vk::Result(result)));
+    }
 
     vmaGetMemoryTypeProperties(
       m_allocator, allocInfo.memoryType, &image.m_flags);
