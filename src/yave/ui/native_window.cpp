@@ -29,27 +29,27 @@ namespace yave::ui {
       return m_win;
     }
 
-    auto handle() const
+    auto handle() const -> GLFWwindow*
     {
       return m_win.handle();
     }
 
-    auto& name() const
+    auto name() const -> const std::u8string&
     {
       return m_win.name();
     }
 
-    auto size() const
+    auto size() const -> ui::size
     {
       return m_win.size();
     }
 
-    auto pos() const
+    auto pos() const -> ui::vec
     {
       return m_win.pos();
     }
 
-    auto fb_size() const
+    auto fb_size() const -> ui::size
     {
       return m_win.fb_size();
     }
