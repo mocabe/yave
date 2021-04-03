@@ -100,7 +100,7 @@ TEST_CASE("vctx")
       {
         auto& wm = vctx.window_manager();
         auto vp  = wm.root()->add_viewport(u8"テスト", size(500, 500));
-        vp->get_native()->show();
+        vp->native_window().show();
       }
     };
 
