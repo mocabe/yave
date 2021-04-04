@@ -16,6 +16,8 @@
 
 namespace {
 
+  using namespace yave::ui;
+
   auto createImageSampler(const vk::Device& device)
   {
     auto info = vk::SamplerCreateInfo()
@@ -53,7 +55,7 @@ namespace {
     auto info =
       vk::DescriptorPoolCreateInfo()
         .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
-        .setMaxSets(1000 * poolSizes.size())
+        .setMaxSets(1000 * static_cast<u32>(poolSizes.size()))
         .setPoolSizes(poolSizes);
 
     return device.createDescriptorPoolUnique(info);
@@ -80,6 +82,46 @@ namespace {
   {
     auto info = vk::PipelineCacheCreateInfo();
     return device.createPipelineCacheUnique(info);
+  }
+
+  auto bindTexture(
+    const vk::ImageView& tex,
+    const vk::DescriptorPool& pool,
+    const vk::DescriptorSetLayout& layout,
+    const vk::DescriptorType& type,
+    const vk::Device& device)
+  {
+    auto layouts = std::array {layout};
+
+    auto dscInfo = vk::DescriptorSetAllocateInfo()
+                     .setDescriptorPool(pool)
+                     .setDescriptorSetCount(1)
+                     .setSetLayouts(layouts);
+
+    auto set = std::move(device.allocateDescriptorSetsUnique(dscInfo)[0]);
+
+    auto imgInfo = vk::DescriptorImageInfo() //
+                     .setImageView(tex)
+                     .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
+
+    auto write = vk::WriteDescriptorSet()
+                   .setDstSet(set.get())
+                   .setDescriptorCount(1)
+                   .setDescriptorType(type)
+                   .setImageInfo(imgInfo);
+
+    device.updateDescriptorSets(write, {});
+    return set;
+  }
+
+  auto to_draw_tex(vk::DescriptorSet set)
+  {
+    return std::bit_cast<draw_tex>(set);
+  }
+
+  auto to_dsc_set(draw_tex tex)
+  {
+    return std::bit_cast<vk::DescriptorSet>(tex);
   }
 
 } // namespace
@@ -109,7 +151,14 @@ namespace yave::ui {
     m_default_tex = std::make_unique<ui::texture>(
       1, 1, vk::Format::eR8G8B8A8Unorm, m_allocator);
 
-    m_default_tex->clear_color(ui::color {1.f, 1.f, 1.f, 1.f});
+    m_default_tex->clear_color({1.f, 1.f, 1.f, 1.f});
+
+    m_default_tex_descriptor_set = bindTexture(
+      m_default_tex->image_view(),
+      m_descriptor_pool.get(),
+      m_descriptor_set_layout.get(),
+      vk::DescriptorType::eCombinedImageSampler,
+      m_device.device());
   }
 
   render_context::~render_context() noexcept = default;
@@ -158,6 +207,11 @@ namespace yave::ui {
     auto& data = vp->window_render_data({});
     // init renderer
     data.renderer = std::make_unique<viewport_renderer>(*vp, *this);
+  }
+
+  auto render_context::default_texture() const -> draw_tex
+  {
+    return to_draw_tex(m_default_tex_descriptor_set.get());
   }
 
 } // namespace yave::ui

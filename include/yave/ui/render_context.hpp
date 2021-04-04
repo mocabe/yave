@@ -47,6 +47,7 @@ namespace yave::ui {
     vk::UniquePipelineLayout m_pipeline_layout;
 
     std::unique_ptr<ui::texture> m_default_tex;
+    vk::UniqueDescriptorSet m_default_tex_descriptor_set;
 
     bool do_render_required(const window*);
     void do_render_viewport(viewport*);
@@ -75,6 +76,10 @@ namespace yave::ui {
     auto render_window(const window* w, draw_list dl) -> draw_list;
     /// Setup viewport window
     void init_viewport(viewport* vp, passkey<viewport>);
+
+  public:
+    /// Get default texture (1x1 white image)
+    auto default_texture() const -> draw_tex;
 
   public:
     auto image_sampler() const

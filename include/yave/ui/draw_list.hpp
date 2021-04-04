@@ -174,12 +174,41 @@ namespace yave::ui {
 
   class draw_lists
   {
+    /// set of draw list
+    std::vector<draw_list> m_lists;
+
   public:
     draw_lists()                      = default;
     draw_lists(const draw_list&)      = delete;
     draw_lists(draw_lists&&) noexcept = default;
 
-  public:
-  };
+    auto lists() const
+    {
+      return std::span<const draw_list>(m_lists);
+    }
 
+    auto lists()
+    {
+      return std::span<draw_list>(m_lists);
+    }
+
+  public:
+    /// calculate total vertex
+    auto total_vtx_count() const
+    {
+      size_t sum = 0;
+      for (auto dl : m_lists)
+        sum += dl.vtx_buffer.size();
+      return sum;
+    }
+
+    /// calculate total index
+    auto total_idx_count() const
+    {
+      size_t sum = 0;
+      for (auto dl : m_lists)
+        sum += dl.idx_buffer.size();
+      return sum;
+    }
+  };
 } // namespace yave::ui

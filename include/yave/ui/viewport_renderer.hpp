@@ -7,6 +7,9 @@
 
 #include <yave/ui/vulkan_surface.hpp>
 #include <yave/ui/draw_list.hpp>
+#include <yave/ui/render_buffer.hpp>
+
+#include <memory>
 
 namespace yave::ui {
 
@@ -24,8 +27,13 @@ namespace yave::ui {
     // rendering pipeline
     vk::UniquePipeline m_pipeline;
 
+    // buffers (for each in-flight frame)
+    std::vector<std::unique_ptr<render_buffer>> m_vtx_buffers;
+    std::vector<std::unique_ptr<render_buffer>> m_idx_buffers;
+
   public:
     viewport_renderer(viewport& vp, render_context& rctx);
+    ~viewport_renderer() noexcept;
 
     auto& surface()
     {

@@ -82,7 +82,7 @@ namespace yave::ui {
                     .setFormat(format)
                     .setSubresourceRange(range);
 
-      device.device().createImageViewUnique(info);
+      m_image_view = device.device().createImageViewUnique(info);
     }
 
     {
