@@ -23,6 +23,7 @@ add_library(yave-ui
   vulkan_allocator.cpp
   texture.cpp
   staging_buffer.cpp
+  render_buffer.cpp
   viewport_renderer.cpp
 )
 
