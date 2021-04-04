@@ -56,7 +56,7 @@ namespace yave {
       return m_points;
     }
 
-    auto points() &
+    auto points() & -> std::span<path_point>
     {
       return std::span(m_points);
     }

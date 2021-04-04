@@ -10,8 +10,9 @@
 #include <yave/obj/primitive/property.hpp>
 #include <yave/node/core/structured_node_graph.hpp>
 
-#include <range/v3/view.hpp>
-#include <range/v3/action.hpp>
+#include <range/v3/view/transform.hpp>
+#include <range/v3/action/push_back.hpp>
+#include <range/v3/range/conversion.hpp>
 #include <range/v3/numeric.hpp>
 
 namespace yave {

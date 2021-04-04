@@ -12,6 +12,15 @@ namespace yave {
   /// connection_info for managed node graph
   class structured_connection_info
   {
+    /// source node
+    node_handle m_src_node;
+    /// source socket
+    socket_handle m_src_socket;
+    /// destination node
+    node_handle m_dst_node;
+    /// destination socket
+    socket_handle m_dst_socket;
+
   public:
     structured_connection_info()                                  = delete;
     structured_connection_info(const structured_connection_info&) = default;
@@ -30,37 +39,27 @@ namespace yave {
     }
 
     /// Get source node.
-    [[nodiscard]] auto& src_node() const
+    [[nodiscard]] auto src_node() const -> const node_handle&
     {
       return m_src_node;
     }
 
     /// Get socket of source node.
-    [[nodiscard]] auto& src_socket() const
+    [[nodiscard]] auto src_socket() const -> const socket_handle&
     {
       return m_src_socket;
     }
 
     /// Get dest node.
-    [[nodiscard]] auto& dst_node() const
+    [[nodiscard]] auto dst_node() const -> const node_handle&
     {
       return m_dst_node;
     }
 
     /// Get socket of dest noed.
-    [[nodiscard]] auto& dst_socket() const
+    [[nodiscard]] auto dst_socket() const -> const socket_handle&
     {
       return m_dst_socket;
     }
-
-  private:
-    /// source node
-    node_handle m_src_node;
-    /// source socket
-    socket_handle m_src_socket;
-    /// destination node
-    node_handle m_dst_node;
-    /// destination socket
-    socket_handle m_dst_socket;
   };
 } // namespace yave
