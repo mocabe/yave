@@ -153,6 +153,11 @@ namespace yave {
     void set_source_id(const socket_handle& h, uid id);
 
   public:
+    /// input socket?
+    [[nodiscard]] bool is_input(const socket_handle& socket) const;
+    /// output socket?
+    [[nodiscard]] bool is_output(const socket_handle& socket) const;
+
     /// get socket index
     [[nodiscard]] auto get_index(const socket_handle& socket) const
       -> std::optional<size_t>;

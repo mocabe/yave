@@ -2622,6 +2622,22 @@ namespace yave {
       m_impl.remove_callee_property(h, name);
     }
 
+    bool is_input(const socket_handle& socket) const
+    {
+      if (auto tp = m_impl.ng.type(socket)) {
+        return *tp == basic_socket_type::input;
+      }
+      return false;
+    }
+
+    bool is_output(const socket_handle& socket) const
+    {
+      if (auto tp = m_impl.ng.type(socket)) {
+        return *tp == basic_socket_type::output;
+      }
+      return false;
+    }
+
     auto get_index(const socket_handle& socket) const -> std::optional<size_t>
     {
       if (!exists(socket))
@@ -3172,6 +3188,16 @@ namespace yave {
   void structured_node_graph::set_source_id(const socket_handle& h, uid id)
   {
     m_pimpl->set_source_id(h, id);
+  }
+
+  bool structured_node_graph::is_input(const socket_handle& socket) const
+  {
+    return m_pimpl->is_input(socket);
+  }
+
+  bool structured_node_graph::is_output(const socket_handle& socket) const
+  {
+    return m_pimpl->is_output(socket);
   }
 
   auto structured_node_graph::get_index(const socket_handle& socket) const
