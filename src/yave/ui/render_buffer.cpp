@@ -50,7 +50,7 @@ namespace yave::ui {
       return;
     }
 
-    auto new_capacity = std::min(size_t(1), new_size);
+    auto new_capacity = std::max(size_t(1), new_size);
 
     m_buffer   = {}; // deallocate
     m_buffer   = createBuffer(new_capacity, m_usage, m_allocator);
