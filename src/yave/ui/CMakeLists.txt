@@ -25,6 +25,7 @@ add_library(yave-ui
   staging_buffer.cpp
   render_buffer.cpp
   viewport_renderer.cpp
+  draw_list.cpp
 )
 
 add_library(yave::ui ALIAS yave-ui)
