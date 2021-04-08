@@ -66,10 +66,12 @@ namespace yave::ui {
     bool rebuild_required() const;
 
     /// Rebuild resources related to frame buffer.
-    void rebuild();
+    /// \returns false when failed to create swapchain.
+    bool rebuild();
 
     /// begin new frame
-    void begin_frame();
+    /// \returns false when swapchain is not usable.
+    bool begin_frame();
 
     /// end current frame
     void end_frame();
@@ -80,7 +82,7 @@ namespace yave::ui {
 
     /// End recording command.
     /// \note should be called between begin_frame() and end_frame()
-    void end_record(const vk::CommandBuffer& buffer);
+    void end_record();
 
     /// Get current swapchain index.
     /// \note: Swapchain index is given by driver every frame, and there's no

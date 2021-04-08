@@ -327,10 +327,10 @@ namespace yave::ui {
     (void)dl;
     draw_lists lists;
 
-    m_surface.begin_frame();
-    {
-      auto cmd = m_surface.begin_record();
-      {
+    if (m_surface.begin_frame()) {
+
+      if (auto cmd = m_surface.begin_record()) {
+
         resizeRenderBuffers(
           m_vtx_buffers,
           m_surface.frame_index_count(),
@@ -358,10 +358,11 @@ namespace yave::ui {
           m_rctx.default_texture(),
           viewport,
           m_rctx.pipeline_layout());
+
+        m_surface.end_record();
       }
-      m_surface.end_record(cmd);
+      m_surface.end_frame();
     }
-    m_surface.end_frame();
   }
 
 } // namespace yave::ui

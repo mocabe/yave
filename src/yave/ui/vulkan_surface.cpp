@@ -129,6 +129,10 @@ namespace {
     auto capabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
     auto extent       = chooseSwapchainExtent(windowExtent, capabilities);
 
+    // Invalid extent
+    if (extent.width == 0 || extent.height == 0)
+      return {};
+
     // maxImageCount is 0 when infinite...
     auto imageCount = std::clamp(
       capabilities.minImageCount + 1,
@@ -415,13 +419,16 @@ namespace yave::ui {
 
   bool vulkan_surface::rebuild_required() const
   {
+    if (!m_swapchain)
+      return true;
+
     auto wSize = m_win.fb_size();
     auto wExtent =
       vk::Extent2D {static_cast<u32>(wSize.w), static_cast<u32>(wSize.h)};
     return m_swapchain_extent != wExtent;
   }
 
-  void vulkan_surface::rebuild()
+  bool vulkan_surface::rebuild()
   {
     auto& device = m_rctx.vulkan_device();
 
@@ -444,12 +451,13 @@ namespace yave::ui {
     /* create new swapchain resources */
 
     // load extent to get accurate value at this point
-    auto windowSize = m_win.fb_size();
+    auto fbSize = m_win.fb_size();
+    auto fbExtent =
+      vk::Extent2D(static_cast<u32>(fbSize.w), static_cast<u32>(fbSize.h));
 
     m_swapchain = createSwapchain(
       m_surface.get(),
-      vk::Extent2D {
-        static_cast<u32>(windowSize.w), static_cast<u32>(windowSize.h)},
+      fbExtent,
       device.graphics_queue_family(),
       device.present_queue_family(),
       device.physical_device(),
@@ -459,6 +467,10 @@ namespace yave::ui {
       &m_swapchain_present_mode,
       &m_swapchain_extent,
       &m_swapchain_image_count);
+
+    // invalid extent, etc.
+    if (!m_swapchain)
+      return false;
 
     m_swapchain_images =
       device.device().getSwapchainImagesKHR(m_swapchain.get());
@@ -488,9 +500,11 @@ namespace yave::ui {
       m_swapchain_image_count,
       device.device(),
       vk::FenceCreateFlagBits::eSignaled);
+
+    return true;
   }
 
-  void vulkan_surface::begin_frame()
+  bool vulkan_surface::begin_frame()
   {
     // set next frame index
     m_frame_index = (m_frame_index + 1) % m_swapchain_image_count;
@@ -505,7 +519,8 @@ namespace yave::ui {
 
       // check if window is resized
       if (rebuild_required())
-        rebuild();
+        if (!rebuild())
+          return false;
 
       // try without fence first time
       auto err = device.acquireNextImageKHR(
@@ -518,7 +533,8 @@ namespace yave::ui {
       // loop
       while (err == vk::Result::eErrorOutOfDateKHR) {
 
-        rebuild();
+        if (!rebuild())
+          return false;
 
         device.resetFences(m_acquire_fence.get());
 
@@ -559,6 +575,7 @@ namespace yave::ui {
       // reset fence
       device.resetFences(m_in_flight_fences[m_frame_index].get());
     }
+    return true;
   }
 
   void vulkan_surface::end_frame()
@@ -644,8 +661,9 @@ namespace yave::ui {
     return buffer;
   }
 
-  void vulkan_surface::end_record(const vk::CommandBuffer& buffer)
+  void vulkan_surface::end_record()
   {
+    auto buffer = m_command_buffers[m_frame_index].get();
     buffer.endRenderPass();
     buffer.end();
   }
