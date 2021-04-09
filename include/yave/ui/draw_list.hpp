@@ -156,6 +156,7 @@ namespace yave::ui {
       const draw_scissor& scissor,
       const draw_tex& tex);
 
+    /// add circle
     void draw_circle(
       const glm::vec2& center,
       const f32& radius,
@@ -164,6 +165,7 @@ namespace yave::ui {
       const draw_scissor& scissor,
       const draw_tex& tex);
 
+    /// add circle
     void fill_circle(
       const glm::vec2& center,
       const f32& radius,

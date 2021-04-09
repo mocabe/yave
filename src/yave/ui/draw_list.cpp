@@ -35,7 +35,7 @@ namespace {
   }
 
   /// calculate offset of line segment
-  auto line_offset(const glm::vec2& p1, const glm::vec2& p2, float d)
+  auto line_offset(const glm::vec2& p1, const glm::vec2& p2, f32 d)
     -> std::pair<glm::vec2, glm::vec2>
   {
     auto v = normalize(p2 - p1);
@@ -75,7 +75,7 @@ namespace {
   void _draw_polyline(
     draw_list& dl,
     const std::span<glm::vec2>& ps,
-    const float& width,
+    const f32& width,
     const polyline_flags& flags,
     const glm::vec4& col,
     const draw_scissor& scissor,
@@ -114,7 +114,7 @@ namespace {
     auto d = width / 2;
 
     // calcualte intersection between offset lines
-    constexpr auto _offset_intersec = [](const auto& off1, const auto& off2) {
+    auto _offset_intersec = [](const auto& off1, const auto& off2) {
       auto& [q1, q2] = off1;
       auto& [r1, r2] = off2;
       return line_intersection(q1, q2, r1, r2);
@@ -214,12 +214,12 @@ namespace {
     for (u32 i = 1; i < (closed ? sz + 1 : sz); ++i) {
       auto i1 = (i - 1) * 2;
       auto i2 = i * 2;
-      idx_buff.push_back({(uint16_t)(i1 + 1)});
-      idx_buff.push_back({(uint16_t)(i1)});
-      idx_buff.push_back({(uint16_t)(i2 + 1)});
-      idx_buff.push_back({(uint16_t)(i1)});
-      idx_buff.push_back({(uint16_t)(i2)});
-      idx_buff.push_back({(uint16_t)(i2 + 1)});
+      idx_buff.push_back({(u16)(i1 + 1)});
+      idx_buff.push_back({(u16)(i1)});
+      idx_buff.push_back({(u16)(i2 + 1)});
+      idx_buff.push_back({(u16)(i1)});
+      idx_buff.push_back({(u16)(i2)});
+      idx_buff.push_back({(u16)(i2 + 1)});
     }
   }
 
@@ -267,11 +267,11 @@ namespace {
   void _add_arc_points(
     std::vector<glm::vec2>& ps,
     glm::vec2 center,
-    float radius,
-    float theta0,
-    float theta1)
+    f32 radius,
+    f32 theta0,
+    f32 theta1)
   {
-    const auto pi   = std::numbers::pi_v<float>;
+    const auto pi   = std::numbers::pi_v<f32>;
     const auto step = 1 / radius;
     const auto x    = center.x + 0.5f;
     const auto y    = center.y + 0.5f;
@@ -289,11 +289,11 @@ namespace {
     std::vector<glm::vec2>& ps,
     glm::vec2 p1,
     glm::vec2 p2,
-    float r)
+    f32 r)
   {
     p1 += 0.5f;
     p2 -= 0.5f;
-    auto pi = std::numbers::pi_v<float>;
+    auto pi = std::numbers::pi_v<f32>;
     _add_arc_points(ps, {p2.x - r, p1.y + r}, r, 0, pi / 2);
     _add_arc_points(ps, {p2.x - r, p2.y - r}, r, pi / 2, pi);
     _add_arc_points(ps, {p1.x + r, p2.y - r}, r, pi, 3 * pi / 2);
@@ -408,7 +408,7 @@ namespace yave::ui {
     const draw_tex& tex)
   {
     std::vector<glm::vec2> ps;
-    _add_arc_points(ps, center, radius, 0, 2 * std::numbers::pi_v<float>);
+    _add_arc_points(ps, center, radius, 0, 2 * std::numbers::pi_v<f32>);
     _draw_polyline(*this, ps, width, polyline_flags::closed, col, scissor, tex);
   }
 
@@ -420,7 +420,7 @@ namespace yave::ui {
     const draw_tex& tex)
   {
     std::vector<glm::vec2> ps;
-    _add_arc_points(ps, center, radius, 0, 2 * std::numbers::pi_v<float>);
+    _add_arc_points(ps, center, radius, 0, 2 * std::numbers::pi_v<f32>);
     _fill_convex_polygon(*this, ps, col, scissor, tex);
   }
 } // namespace yave::ui
