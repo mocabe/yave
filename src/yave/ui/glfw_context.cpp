@@ -245,4 +245,26 @@ namespace yave::ui {
     ensure_on_main();
     glfwRequestWindowAttention(win);
   }
+
+  void glfw_context::set_window_max_size(GLFWwindow* win, ui::size size)
+  {
+    ensure_on_main();
+    glfwSetWindowSizeLimits(
+      win,
+      GLFW_DONT_CARE,
+      GLFW_DONT_CARE,
+      static_cast<int>(size.w),
+      static_cast<int>(size.h));
+  }
+
+  void glfw_context::set_window_min_size(GLFWwindow* win, ui::size size)
+  {
+    ensure_on_main();
+    glfwSetWindowSizeLimits(
+      win,
+      static_cast<int>(size.w),
+      static_cast<int>(size.h),
+      GLFW_DONT_CARE,
+      GLFW_DONT_CARE);
+  }
 }

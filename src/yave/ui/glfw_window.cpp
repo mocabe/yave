@@ -35,34 +35,39 @@ namespace yave::ui {
   void glfw_window::set_name(std::u8string name)
   {
     m_name = std::move(name);
-    m_mctx
-      .sync_post([&](auto&) { m_mctx.glfw_ctx().rename_window(m_win, m_name); })
-      .wait();
+    m_mctx.post([&](auto&) { m_mctx.glfw_ctx().rename_window(m_win, m_name); });
   }
 
   void glfw_window::set_size(ui::size size)
   {
-    m_mctx
-      .sync_post([&](auto&) { m_mctx.glfw_ctx().resize_window(m_win, size); })
-      .wait();
+    m_mctx.post([&](auto&) { m_mctx.glfw_ctx().resize_window(m_win, size); });
+  }
+
+  void glfw_window::set_min_size(ui::size size)
+  {
+    m_mctx.post(
+      [&](auto&) { m_mctx.glfw_ctx().set_window_min_size(m_win, size); });
+  }
+
+  void glfw_window::set_max_size(ui::size size)
+  {
+    m_mctx.post(
+      [&](auto&) { m_mctx.glfw_ctx().set_window_max_size(m_win, size); });
   }
 
   void glfw_window::set_pos(ui::vec pos)
   {
-    m_mctx.sync_post([&](auto&) { m_mctx.glfw_ctx().move_window(m_win, pos); })
-      .wait();
+    m_mctx.post([&](auto&) { m_mctx.glfw_ctx().move_window(m_win, pos); });
   }
 
   void glfw_window::show()
   {
-    m_mctx.sync_post([&](auto&) { m_mctx.glfw_ctx().show_window(m_win); })
-      .wait();
+    m_mctx.post([&](auto&) { m_mctx.glfw_ctx().show_window(m_win); });
   }
 
   void glfw_window::hide()
   {
-    m_mctx.sync_post([&](auto&) { m_mctx.glfw_ctx().hide_window(m_win); })
-      .wait();
+    m_mctx.post([&](auto&) { m_mctx.glfw_ctx().hide_window(m_win); });
   }
 
 } // namespace yave::ui

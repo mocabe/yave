@@ -58,6 +58,8 @@ namespace yave::ui {
     auto window_pos(GLFWwindow* win) -> ui::vec;
     void focus_window(GLFWwindow* win);
     void request_window_attention(GLFWwindow* win);
+    void set_window_max_size(GLFWwindow* win, ui::size size);
+    void set_window_min_size(GLFWwindow* win, ui::size size);
   };
 
 } // namespace yave::ui

@@ -64,6 +64,10 @@ namespace yave::ui {
 
     void set_size(ui::size size);
 
+    void set_min_size(ui::size size);
+
+    void set_max_size(ui::size size);
+
     void set_pos(ui::vec pos);
 
     void show();
