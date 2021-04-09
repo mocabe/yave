@@ -23,8 +23,22 @@ namespace yave::ui {
   /// draw command index
   struct draw_idx
   {
-    /// index value
-    u16 idx;
+    draw_idx(u16 idx)
+      : m_idx {idx}
+    {
+    }
+
+    draw_idx(const draw_idx&) = default;
+
+    operator bool() const
+    {
+      return m_idx != 0;
+    }
+
+    auto operator<=>(const draw_idx&) const = default;
+
+  private:
+    u16 m_idx = 0;
   };
 
   /// vertex
@@ -41,8 +55,18 @@ namespace yave::ui {
   /// texture
   struct draw_tex
   {
-    /// texture handle
-    u64 handle;
+    draw_tex()                = default;
+    draw_tex(const draw_tex&) = default;
+
+    operator bool() const
+    {
+      return m_handle != 0;
+    }
+
+    auto operator<=>(const draw_tex&) const = default;
+
+  private:
+    u64 m_handle = 0;
   };
 
   /// scissor rect

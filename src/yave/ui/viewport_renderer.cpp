@@ -5,6 +5,7 @@
 
 #include <yave/ui/viewport_renderer.hpp>
 #include <yave/ui/render_context.hpp>
+#include <yave/ui/render_buffer.hpp>
 #include <yave/ui/viewport.hpp>
 #include <yave/ui/native_window.hpp>
 #include <yave/ui/vulkan_shaders.hpp>
@@ -187,8 +188,9 @@ namespace {
     auto old_size = buffers.size();
     buffers.resize(size);
 
-    for (auto i = old_size; i < size; ++i)
+    for (auto i = old_size; i < size; ++i) {
       buffers[i] = std::make_unique<render_buffer>(usage, alloc);
+    }
   }
 
   void writeRenderBuffer(
@@ -264,11 +266,10 @@ namespace {
 
       for (auto&& dc : dl.cmd_buffer) {
 
-        // texture
+        // bind texture
         {
-          auto dsc = std::bit_cast<vk::DescriptorSet>(
-            dc.tex.handle ? dc.tex : defaultTex);
-          // bind
+          auto dsc = render_context::draw_tex_to_descriptor_set(
+            dc.tex ? dc.tex : defaultTex);
           cmd.bindDescriptorSets(
             vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, dsc, {});
         }

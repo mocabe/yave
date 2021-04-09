@@ -114,19 +114,29 @@ namespace {
     return set;
   }
 
-  auto to_draw_tex(vk::DescriptorSet set)
-  {
-    return std::bit_cast<draw_tex>(set);
-  }
-
-  auto to_dsc_set(draw_tex tex)
-  {
-    return std::bit_cast<vk::DescriptorSet>(tex);
-  }
-
 } // namespace
 
 namespace yave::ui {
+
+  static_assert(sizeof(draw_tex) == sizeof(vk::DescriptorSet));
+
+  auto render_context::draw_tex_to_descriptor_set(draw_tex tex)
+    -> vk::DescriptorSet
+  {
+    // TODO: uset bit_cast
+    vk::DescriptorSet set;
+    std::memcpy(&set, &tex, sizeof(set));
+    return set;
+  }
+
+  auto render_context::descriptor_set_to_draw_tex(vk::DescriptorSet set)
+    -> draw_tex
+  {
+    // TODO: uset bit_cast
+    draw_tex tex;
+    std::memcpy(&tex, &set, sizeof(tex));
+    return tex;
+  }
 
   window_render_data::window_render_data()           = default;
   window_render_data::~window_render_data() noexcept = default;
@@ -211,7 +221,7 @@ namespace yave::ui {
 
   auto render_context::default_texture() const -> draw_tex
   {
-    return to_draw_tex(m_default_tex_descriptor_set.get());
+    return descriptor_set_to_draw_tex(m_default_tex_descriptor_set.get());
   }
 
 } // namespace yave::ui

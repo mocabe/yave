@@ -82,6 +82,12 @@ namespace yave::ui {
     auto default_texture() const -> draw_tex;
 
   public:
+    /// Convert draw_tex to descriptor set
+    static auto draw_tex_to_descriptor_set(draw_tex tex) -> vk::DescriptorSet;
+    /// Convert descriptor set to draw_tex
+    static auto descriptor_set_to_draw_tex(vk::DescriptorSet set) -> draw_tex;
+
+  public:
     auto image_sampler() const
     {
       return m_image_sampler.get();

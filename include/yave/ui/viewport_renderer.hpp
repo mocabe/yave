@@ -7,7 +7,6 @@
 
 #include <yave/ui/vulkan_surface.hpp>
 #include <yave/ui/draw_list.hpp>
-#include <yave/ui/render_buffer.hpp>
 
 #include <memory>
 
@@ -15,6 +14,7 @@ namespace yave::ui {
 
   class viewport;
   class render_context;
+  class render_buffer;
 
   // TODO: Implement this
   class viewport_renderer
