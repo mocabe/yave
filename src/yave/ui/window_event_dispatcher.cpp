@@ -50,12 +50,19 @@ namespace yave::ui {
       u32 w, h;
     };
 
+    struct content_scale_event_data
+    {
+      GLFWwindow* win;
+      f32 xs, ys;
+    };
+
     using event_data = std::variant<
       pos_event_data,
       size_event_data,
       close_event_data,
       refresh_event_data,
-      fb_size_event_data>;
+      fb_size_event_data,
+      content_scale_event_data>;
 
   } // namespace
 
@@ -212,6 +219,14 @@ namespace yave::ui {
         native->update_fb_size(data.w, data.h, {});
       }
     }
+
+    void process(const content_scale_event_data& data)
+    {
+      log_info("content scale event");
+      if (auto native = find_native_from_handle(data.win)) {
+        native->update_content_scale(data.xs, data.ys, {});
+      }
+    }
   };
 
   window_event_dispatcher::window_event_dispatcher(
@@ -270,4 +285,14 @@ namespace yave::ui {
   {
     m_pimpl->push_window_event(fb_size_event_data {.win = win, .w = w, .h = h});
   }
+
+  void window_event_dispatcher::push_content_scale_event(
+    GLFWwindow* win,
+    f32 xs,
+    f32 ys)
+  {
+    m_pimpl->push_window_event(
+      content_scale_event_data {.win = win, .xs = xs, .ys = ys});
+  }
+
 } // namespace yave::ui

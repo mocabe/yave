@@ -56,6 +56,7 @@ namespace yave::ui {
     void move_window(GLFWwindow* w, ui::vec pos);
     auto window_size(GLFWwindow* win) -> ui::size;
     auto window_pos(GLFWwindow* win) -> ui::vec;
+    auto window_content_scale(GLFWwindow*) -> ui::vec;
     void focus_window(GLFWwindow* win);
     void request_window_attention(GLFWwindow* win);
     void set_window_max_size(GLFWwindow* win, ui::size size);

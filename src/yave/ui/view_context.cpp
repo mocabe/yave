@@ -359,7 +359,9 @@ namespace yave::ui {
     f32 xs,
     f32 ys)
   {
-    post([=](auto&) { log_info("window scale event: {}, {}", xs, ys); });
+    post([=](auto& ctx) {
+      ctx.window_manager().push_content_scale_event(win, xs, ys);
+    });
   }
 
   void view_context::post_key_event(

@@ -250,6 +250,11 @@ namespace yave::ui {
       m_event_dispatcher.push_fb_size_event(win, w, h);
     }
 
+    void push_content_scale_event(GLFWwindow* win, f32 xs, f32 ys)
+    {
+      m_event_dispatcher.push_content_scale_event(win, xs, ys);
+    }
+
     void push_close_event(GLFWwindow* win)
     {
       m_event_dispatcher.push_close_event(win);
@@ -371,6 +376,11 @@ namespace yave::ui {
   void window_manager::push_fb_size_event(GLFWwindow* win, u32 w, u32 h)
   {
     m_pimpl->push_fb_size_event(win, w, h);
+  }
+
+  void window_manager::push_content_scale_event(GLFWwindow* win, f32 xs, f32 ys)
+  {
+    m_pimpl->push_content_scale_event(win, xs, ys);
   }
 
   void window_manager::push_close_event(GLFWwindow* win)

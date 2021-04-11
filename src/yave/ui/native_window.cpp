@@ -84,6 +84,11 @@ namespace yave::ui {
       m_win.update_fb_size(w, h, {});
     }
 
+    void update_content_scale(f32 xs, f32 ys)
+    {
+      m_win.update_content_scale(xs, ys, {});
+    }
+
     auto get_viewport() -> ui::viewport*
     {
       return m_vp;
@@ -182,6 +187,14 @@ namespace yave::ui {
     passkey<window_event_dispatcher>)
   {
     m_pimpl->update_fb_size(w, h);
+  }
+
+  void native_window::update_content_scale(
+    f32 xs,
+    f32 ys,
+    passkey<window_event_dispatcher>)
+  {
+    m_pimpl->update_content_scale(xs, ys);
   }
 
   auto native_window::viewport() -> ui::viewport*

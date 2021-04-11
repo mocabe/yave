@@ -234,6 +234,14 @@ namespace yave::ui {
     return ui::vec(x, y);
   }
 
+  auto glfw_context::window_content_scale(GLFWwindow* win) -> ui::vec
+  {
+    ensure_on_main();
+    float xs, ys;
+    glfwGetWindowContentScale(win, &xs, &ys);
+    return ui::vec(xs, ys);
+  }
+
   void glfw_context::focus_window(GLFWwindow* win)
   {
     ensure_on_main();

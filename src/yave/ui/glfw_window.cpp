@@ -18,10 +18,11 @@ namespace yave::ui {
   {
     m_mctx
       .sync_post([&](auto&) {
-        auto& glfw = m_mctx.glfw_ctx();
-        m_win      = glfw.create_window(m_name, size);
-        m_size     = glfw.window_size(m_win);
-        m_pos      = glfw.window_pos(m_win);
+        auto& glfw      = m_mctx.glfw_ctx();
+        m_win           = glfw.create_window(m_name, size);
+        m_size          = glfw.window_size(m_win);
+        m_pos           = glfw.window_pos(m_win);
+        m_content_scale = glfw.window_content_scale(m_win);
       })
       .wait();
   }

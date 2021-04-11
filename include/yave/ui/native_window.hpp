@@ -52,6 +52,8 @@ namespace yave::ui {
     auto pos() const -> ui::vec;
     /// framebuffer size
     auto fb_size() const -> ui::size;
+    /// content scaling
+    auto content_scale() const -> ui::vec;
 
   public:
     /// change name of window
@@ -66,6 +68,7 @@ namespace yave::ui {
     void update_pos(u32 x, u32 y, passkey<window_event_dispatcher>);
     void update_size(u32 w, u32 h, passkey<window_event_dispatcher>);
     void update_fb_size(u32 w, u32 h, passkey<window_event_dispatcher>);
+    void update_content_scale(f32 xs, f32 ys, passkey<window_event_dispatcher>);
 
   public:
     /// get viewport

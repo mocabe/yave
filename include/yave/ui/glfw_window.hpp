@@ -27,6 +27,8 @@ namespace yave::ui {
     ui::vec m_pos;
     // current framebuffer size
     ui::size m_fb_size;
+    // scaling
+    ui::vec m_content_scale;
 
   public:
     glfw_window(glfw_context& glfw, std::u8string name, ui::size size);
@@ -60,6 +62,11 @@ namespace yave::ui {
       return m_fb_size;
     }
 
+    auto& content_scale() const
+    {
+      return m_content_scale;
+    }
+
     void set_name(std::u8string name);
 
     void set_size(ui::size size);
@@ -87,6 +94,11 @@ namespace yave::ui {
     void update_fb_size(u32 w, u32 h, passkey<native_window>)
     {
       m_fb_size = ui::size(w, h);
+    }
+
+    void update_content_scale(f32 xs, f32 ys, passkey<native_window>)
+    {
+      m_content_scale = ui::vec(xs, ys);
     }
   };
 
