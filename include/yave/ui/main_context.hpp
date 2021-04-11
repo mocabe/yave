@@ -76,14 +76,15 @@ namespace yave::ui {
       auto promise = std::promise<result_t>();
       auto future  = promise.get_future();
 
-      post(main_command(
-        [=, f = std::forward<F>(f), p = std::move(promise)](auto&) mutable {
+      auto cmd = main_command(
+        [this, f = std::forward<F>(f), p = std::move(promise)](auto&) mutable {
           if constexpr (std::is_same_v<result_t, void>) {
             f(*this);
             p.set_value();
           } else
             p.set_value(f(*this));
-        }));
+        });
+      post(std::move(cmd));
 
       return future;
     }

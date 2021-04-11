@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <optional>
 
 namespace yave::ui {
 
