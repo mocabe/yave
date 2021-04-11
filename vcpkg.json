@@ -15,6 +15,7 @@
     "glm",
     "glfw3",
     "freetype",
+    "harfbuzz",
     "libpng",
     "libjpeg-turbo",
     "tiff",
