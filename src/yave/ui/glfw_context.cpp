@@ -132,7 +132,7 @@ namespace yave::ui {
     // Input Callbacks
 
     glfwSetKeyCallback(
-      w, [](GLFWwindow* w, int key, int scancode, int action, int mods) {
+      w, [](GLFWwindow* w, int key, int /*scancode*/, int action, int mods) {
         auto k = static_cast<ui::key>(key);
         auto a = static_cast<ui::key_action>(action);
         auto m = static_cast<ui::key_modifier_flags>(mods);

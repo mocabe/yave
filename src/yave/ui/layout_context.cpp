@@ -110,7 +110,7 @@ namespace yave::ui {
     return m_pimpl->layout_window(w, c);
   }
 
-  void layout_context::init_viewport(viewport* vp, passkey<viewport>)
+  void layout_context::init_viewport(viewport* /*vp*/, passkey<viewport>)
   {
     // TODO?
   }

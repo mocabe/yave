@@ -68,13 +68,13 @@ namespace yave::ui {
     ~render_context() noexcept;
 
     // get vulkan device
-    auto& vulkan_device()
+    auto vulkan_device() -> vulkan_device&
     {
       return m_device;
     }
 
     // get vulkan allocator
-    auto& vulkan_allocator()
+    auto vulkan_allocator() -> vulkan_allocator&
     {
       return m_allocator;
     }
