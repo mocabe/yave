@@ -52,6 +52,14 @@ namespace yave::ui {
     void render(render_scope ctx) const override;
 
   public:
+    /// Set child window
+    void set_child(std::unique_ptr<window> c);
+    /// Get child window (if exists)
+    auto get_child() -> window*;
+    /// Remove child window
+    void remove_child();
+
+  public:
     auto& close_controller()
     {
       return *m_close_controller;

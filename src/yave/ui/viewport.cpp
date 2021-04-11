@@ -78,4 +78,26 @@ namespace yave::ui {
       ctx.enter_child(c);
   }
 
+  void viewport::set_child(std::unique_ptr<window> c)
+  {
+    if (!c)
+      return;
+
+    remove_child();
+    window::add_child(0, std::move(c));
+  }
+
+  auto viewport::get_child() -> window*
+  {
+    if (!children().empty())
+      return children().front();
+    return nullptr;
+  }
+
+  void viewport::remove_child()
+  {
+    if (!children().empty())
+      window::remove_child(children().front());
+  }
+
 } // namespace yave::ui
