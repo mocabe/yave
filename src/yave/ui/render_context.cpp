@@ -14,6 +14,8 @@
 #include <yave/ui/vulkan_device.hpp>
 #include <yave/ui/vulkan_surface.hpp>
 
+#include <ranges>
+
 namespace {
 
   using namespace yave::ui;
@@ -141,8 +143,9 @@ namespace yave::ui {
   window_render_data::window_render_data()           = default;
   window_render_data::~window_render_data() noexcept = default;
 
-  render_context::render_context(main_context& mctx)
-    : m_device {mctx.vulkan_ctx(), mctx.glfw_ctx()}
+  render_context::render_context(main_context& mctx, layout_context& lctx)
+    : m_lctx {lctx}
+    , m_device {mctx.vulkan_ctx(), mctx.glfw_ctx()}
     , m_allocator {m_device}
   {
     // clang-format off
@@ -175,9 +178,13 @@ namespace yave::ui {
 
   void render_context::do_render_viewport(viewport* vp)
   {
-    auto dl = render_window(vp, draw_list());
+    // draw layers
+    auto result = std::optional<ui::render_layer>();
+    vp->render(render_scope(*this, m_lctx, vp, &result));
+    assert(result.has_value());
+    // render
     assert(vp->window_render_data({}).renderer);
-    vp->window_render_data({}).renderer->render(std::move(dl));
+    vp->window_render_data({}).renderer->render(std::move(*result));
   }
 
   bool render_context::do_render_required(const window* w)
@@ -185,11 +192,8 @@ namespace yave::ui {
     if (w->is_invalidated())
       return true;
 
-    for (auto&& c : w->children()) {
-      if (do_render_required(c))
-        return true;
-    }
-    return false;
+    return std::ranges::any_of(
+      w->children(), [&](auto&& c) { return do_render_required(c); });
   }
 
   void render_context::do_render(window_manager& wm, passkey<view_context>)
@@ -202,13 +206,24 @@ namespace yave::ui {
         do_render_viewport(vp);
   }
 
-  auto render_context::render_window(const window* w, draw_list dl) -> draw_list
+  auto render_context::do_render_child_window(
+    const window* w,
+    const render_scope& parent,
+    render_layer&& rl) -> render_layer
   {
-    auto out_dl = std::optional<draw_list>();
-    w->render(render_scope(*this, std::move(dl), out_dl));
+    auto result = std::optional<ui::render_layer>();
+    w->render(render_scope(*this, m_lctx, w, parent, std::move(rl), &result));
+    assert(result.has_value());
+    return std::move(*result);
+  }
 
-    assert(out_dl.has_value());
-    return std::move(out_dl.value());
+  auto render_context::render_child_window(
+    const window* win,
+    const render_scope& parent,
+    render_layer layer,
+    passkey<render_scope>) -> render_layer
+  {
+    return do_render_child_window(win, parent, std::move(layer));
   }
 
   void render_context::init_viewport(viewport* vp, passkey<viewport>)

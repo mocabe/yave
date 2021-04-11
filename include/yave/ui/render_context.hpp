@@ -10,6 +10,7 @@
 #include <yave/ui/vulkan_device.hpp>
 #include <yave/ui/vulkan_allocator.hpp>
 #include <yave/ui/texture.hpp>
+#include <yave/ui/render_layer.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -23,6 +24,8 @@ namespace yave::ui {
   class viewport_renderer;
   class main_context;
   class vulkan_device;
+  class layout_context;
+  class render_scope;
 
   /// Per window render data
   struct window_render_data
@@ -36,6 +39,8 @@ namespace yave::ui {
 
   class render_context
   {
+    layout_context& m_lctx;
+
     ui::vulkan_device m_device;
     ui::vulkan_allocator m_allocator;
 
@@ -52,8 +57,13 @@ namespace yave::ui {
     bool do_render_required(const window*);
     void do_render_viewport(viewport*);
 
+    auto do_render_child_window(
+      const window* w,
+      const render_scope& parent,
+      render_layer&& rl) -> render_layer;
+
   public:
-    render_context(main_context& mctx);
+    render_context(main_context& mctx, layout_context& lctx);
 
     ~render_context() noexcept;
 
@@ -72,8 +82,17 @@ namespace yave::ui {
   public:
     /// Process render stage
     void do_render(window_manager& wm, passkey<view_context>);
+
     /// Render window
-    auto render_window(const window* w, draw_list dl) -> draw_list;
+    /// \param w target window
+    /// \param parent parent render scope
+    /// \param layer layer to write
+    auto render_child_window(
+      const window* win,
+      const render_scope& parent,
+      render_layer layer,
+      passkey<render_scope>) -> render_layer;
+
     /// Setup viewport window
     void init_viewport(viewport* vp, passkey<viewport>);
 

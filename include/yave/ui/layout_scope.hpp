@@ -28,17 +28,18 @@ namespace yave::ui {
       const box_constraints& c);
 
   public:
-    ~layout_scope() noexcept;
+    ~layout_scope() noexcept          = default;
     layout_scope(const layout_scope&) = delete;
     layout_scope(layout_scope&&)      = delete;
     layout_scope& operator=(const layout_scope&) = delete;
     layout_scope& operator=(layout_scope&&) = delete;
 
     /// Access global context
-    auto context() -> layout_context&;
-    auto context() const -> const layout_context&;
+    auto layout_ctx() -> layout_context&;
+
     /// Get current window
     auto window() const -> const ui::window*;
+
     /// Current constraints
     auto constraints() const -> const box_constraints&;
 
@@ -52,4 +53,5 @@ namespace yave::ui {
     void set_offset(ui::vec new_offset);
     void set_offset(const ui::window* w, ui::vec new_offset);
   };
-}
+
+} // namespace yave::ui

@@ -150,7 +150,7 @@ namespace yave::ui {
     /// Process drawing.
     ///
     /// This function computes draw commands for the window.
-    /// Created draw commands will be stored into `draw_context` then composed
+    /// Created draw commands will be stored into layer(s) then composed
     /// by parent window later if needed.
     ///
     /// \param ctx scoped context for this window

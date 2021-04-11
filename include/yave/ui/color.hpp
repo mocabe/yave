@@ -11,10 +11,10 @@ namespace yave::ui {
 
   struct color
   {
-    f32 r;
-    f32 g;
-    f32 b;
-    f32 a;
+    f32 r = 0.f;
+    f32 g = 0.f;
+    f32 b = 0.f;
+    f32 a = 0.f;
   };
 
 } // namespace yave::ui

@@ -15,6 +15,7 @@ namespace yave::ui {
   class viewport;
   class render_context;
   class render_buffer;
+  class render_layer;
 
   // TODO: Implement this
   class viewport_renderer
@@ -47,7 +48,7 @@ namespace yave::ui {
 
   public:
     // render draw commands
-    void render(draw_list&& dl);
+    void render(render_layer&& rl);
   };
 
 } // namespace yave::ui

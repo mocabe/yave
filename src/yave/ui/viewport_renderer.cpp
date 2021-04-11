@@ -10,6 +10,7 @@
 #include <yave/ui/native_window.hpp>
 #include <yave/ui/vulkan_shaders.hpp>
 #include <yave/ui/draw_list.hpp>
+#include <yave/ui/render_layer.hpp>
 
 namespace {
 
@@ -322,11 +323,9 @@ namespace yave::ui {
     m_rctx.vulkan_device().device().waitIdle();
   }
 
-  void viewport_renderer::render(draw_list&& dl)
+  void viewport_renderer::render(render_layer&& rl)
   {
-    // TODO: render dl
-    (void)dl;
-    draw_lists lists;
+    const auto& lists = rl.draw_lists({});
 
     if (m_surface.begin_frame()) {
 

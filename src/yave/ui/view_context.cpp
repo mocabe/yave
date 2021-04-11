@@ -93,7 +93,7 @@ namespace yave::ui {
       , m_mctx {mctx}
       , m_queue {self}
       , m_lctx {}
-      , m_rctx {mctx}
+      , m_rctx {mctx, m_lctx}
       , m_wm {self}
     {
       m_mctx.set_view_ctx(self, {});
@@ -126,10 +126,10 @@ namespace yave::ui {
   private:
     void event()
     {
-      // process layout stage
-      m_lctx.do_layout(m_wm, {});
       // process pending window events
       m_wm.dispatch_pending_events({});
+      // process layout stage
+      m_lctx.do_layout(m_wm, {});
       // process render stage
       m_rctx.do_render(m_wm, {});
       // clear invalidated flags

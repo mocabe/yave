@@ -218,6 +218,26 @@ namespace yave::ui {
       return std::span<draw_list>(m_lists);
     }
 
+    void append_list(draw_list&& list)
+    {
+      m_lists.push_back(std::move(list));
+    }
+
+    void prepend_list(draw_list&& list)
+    {
+      m_lists.insert(m_lists.begin(), list);
+    }
+
+    void reserve_lists(size_t size)
+    {
+      m_lists.reserve(size);
+    }
+
+    void swap(draw_lists& other) noexcept
+    {
+      std::swap(m_lists, other.m_lists);
+    }
+
   public:
     /// calculate total vertex
     auto total_vtx_count() const

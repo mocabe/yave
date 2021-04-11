@@ -19,9 +19,7 @@ namespace yave::ui {
   {
   }
 
-  layout_scope::~layout_scope() noexcept = default;
-
-  auto layout_scope::context() const -> const layout_context&
+  auto layout_scope::layout_ctx() -> layout_context&
   {
     return m_ctx;
   }
