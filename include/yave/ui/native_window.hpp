@@ -54,6 +54,8 @@ namespace yave::ui {
     auto fb_size() const -> ui::size;
     /// content scaling
     auto content_scale() const -> ui::vec;
+    /// framebuffer scale
+    auto fb_scale() const -> ui::vec;
 
   public:
     /// change name of window

@@ -54,6 +54,16 @@ namespace yave::ui {
       return m_win.fb_size();
     }
 
+    auto content_scale() const -> ui::vec
+    {
+      return m_win.content_scale();
+    }
+
+    auto fb_scale() const -> ui::vec
+    {
+      return fb_size().vec() / size().vec();
+    }
+
     void set_name(std::u8string name)
     {
       m_win.set_name(std::move(name));
@@ -151,6 +161,16 @@ namespace yave::ui {
   auto native_window::fb_size() const -> ui::size
   {
     return m_pimpl->fb_size();
+  }
+
+  auto native_window::content_scale() const -> ui::vec
+  {
+    return m_pimpl->content_scale();
+  }
+
+  auto native_window::fb_scale() const -> ui::vec
+  {
+    return m_pimpl->fb_scale();
   }
 
   void native_window::set_name(std::u8string name)
