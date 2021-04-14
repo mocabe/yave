@@ -9,7 +9,6 @@
 #include <yave/ui/signal.hpp>
 
 #include <GLFW/glfw3.h>
-#include <optional>
 #include <memory>
 
 namespace yave::ui {

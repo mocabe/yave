@@ -3,6 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
+#include <optional> // XXX: MSVC C2131
+
 #include <yave/ui/viewport_renderer.hpp>
 #include <yave/ui/render_context.hpp>
 #include <yave/ui/render_buffer.hpp>

@@ -14,7 +14,6 @@
 #include <map>
 #include <algorithm>
 #include <ranges>
-#include <optional>
 #include <variant>
 
 namespace yave::ui {

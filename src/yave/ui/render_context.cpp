@@ -15,6 +15,7 @@
 #include <yave/ui/vulkan_surface.hpp>
 
 #include <ranges>
+#include <optional>
 
 namespace {
 
