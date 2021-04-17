@@ -38,7 +38,7 @@ namespace yave::ui {
       ui::render_context& rctx,
       std::u8string name,
       ui::size size,
-      passkey<root>);
+      passkey<root>&&);
 
     ~viewport() noexcept;
 

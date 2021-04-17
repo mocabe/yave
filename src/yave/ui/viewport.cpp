@@ -22,7 +22,7 @@ namespace yave::ui {
     ui::render_context& rctx,
     std::u8string name,
     ui::size size,
-    passkey<root>)
+    passkey<root>&&)
     : m_lctx {lctx}
     , m_rctx {rctx}
     , m_nw {std::make_unique<ui::native_window>(

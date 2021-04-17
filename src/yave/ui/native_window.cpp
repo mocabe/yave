@@ -156,7 +156,7 @@ namespace yave::ui {
     view_context& vctx,
     std::u8string name,
     ui::size size,
-    passkey<ui::viewport>)
+    passkey<ui::viewport>&&)
     : m_pimpl {std::make_unique<impl>(vctx, name, size)}
   {
   }

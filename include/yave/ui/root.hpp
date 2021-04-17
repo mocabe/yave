@@ -24,7 +24,7 @@ namespace yave::ui {
 
   public:
     // initialized from wm
-    root(ui::window_manager& wm, passkey<ui::window_manager>);
+    root(ui::window_manager& wm, passkey<ui::window_manager>&&);
 
   public:
     void layout(layout_scope ctx) const override;

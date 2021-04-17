@@ -13,12 +13,9 @@ namespace yave::ui {
   {
     friend T;
     passkey()               = default;
-    passkey(const passkey&) = default;
+    passkey(const passkey&) = delete;
+    passkey(passkey&&)      = delete;
     passkey& operator=(const passkey&) = delete;
     passkey& operator=(passkey&&) = delete;
-
-  public:
-    // movable so it can be passed into forwarding functions.
-    passkey(passkey&&) = default;
   };
 } // namespace yave::ui

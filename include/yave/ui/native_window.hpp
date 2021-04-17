@@ -33,7 +33,7 @@ namespace yave::ui {
       view_context& vctx,
       std::u8string name,
       size size,
-      passkey<viewport>);
+      passkey<viewport>&&);
 
     ~native_window() noexcept;
 

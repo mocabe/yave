@@ -9,7 +9,7 @@
 
 namespace yave::ui {
 
-  root::root(ui::window_manager& wm, passkey<ui::window_manager>)
+  root::root(ui::window_manager& wm, passkey<ui::window_manager>&&)
     : m_wm {wm}
   {
   }
