@@ -29,6 +29,8 @@ namespace yave::ui {
     ui::size m_fb_size;
     // scaling
     ui::vec m_content_scale;
+    // focus
+    bool m_focused = false;
 
   public:
     glfw_window(glfw_context& glfw, std::u8string name, ui::size size);
@@ -67,6 +69,11 @@ namespace yave::ui {
       return m_content_scale;
     }
 
+    auto& focused() const
+    {
+      return m_focused;
+    }
+
     void set_name(std::u8string name);
 
     void set_size(ui::size size);
@@ -99,6 +106,11 @@ namespace yave::ui {
     void update_content_scale(f32 xs, f32 ys, passkey<native_window>)
     {
       m_content_scale = ui::vec(xs, ys);
+    }
+
+    void update_focus(bool focused, passkey<native_window>)
+    {
+      m_focused = focused;
     }
   };
 

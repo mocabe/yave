@@ -99,6 +99,11 @@ namespace yave::ui {
       m_win.update_content_scale(xs, ys, {});
     }
 
+    void update_focus(bool focused)
+    {
+      m_win.update_focus(focused, {});
+    }
+
     auto get_viewport() -> ui::viewport*
     {
       return m_vp;
@@ -215,6 +220,13 @@ namespace yave::ui {
     passkey<window_event_dispatcher>)
   {
     m_pimpl->update_content_scale(xs, ys);
+  }
+
+  void native_window::update_focus(
+    bool focused,
+    passkey<window_event_dispatcher>)
+  {
+    m_pimpl->update_focus(focused);
   }
 
   auto native_window::viewport() -> ui::viewport*

@@ -244,16 +244,6 @@ namespace yave::ui {
       m_event_dispatcher.push_size_event(win, w, h);
     }
 
-    void push_fb_size_event(GLFWwindow* win, u32 w, u32 h)
-    {
-      m_event_dispatcher.push_fb_size_event(win, w, h);
-    }
-
-    void push_content_scale_event(GLFWwindow* win, f32 xs, f32 ys)
-    {
-      m_event_dispatcher.push_content_scale_event(win, xs, ys);
-    }
-
     void push_close_event(GLFWwindow* win)
     {
       m_event_dispatcher.push_close_event(win);
@@ -264,6 +254,11 @@ namespace yave::ui {
       m_event_dispatcher.push_refresh_event(win);
     }
 
+    void push_focus_event(GLFWwindow* win, bool focused)
+    {
+      m_event_dispatcher.push_focus_event(win, focused);
+    }
+
     bool has_pending_events()
     {
       return m_event_dispatcher.has_pending_events();
@@ -272,6 +267,16 @@ namespace yave::ui {
     void dispatch_pending_events()
     {
       m_event_dispatcher.dispatch_pending_events();
+    }
+
+    void push_fb_size_event(GLFWwindow* win, u32 w, u32 h)
+    {
+      m_event_dispatcher.push_fb_size_event(win, w, h);
+    }
+
+    void push_content_scale_event(GLFWwindow* win, f32 xs, f32 ys)
+    {
+      m_event_dispatcher.push_content_scale_event(win, xs, ys);
     }
   };
 
@@ -391,4 +396,10 @@ namespace yave::ui {
   {
     m_pimpl->push_refresh_event(win);
   }
+
+  void window_manager::push_focus_event(GLFWwindow* win, bool focused)
+  {
+    m_pimpl->push_focus_event(win, focused);
+  }
+
 } // namespace yave::ui

@@ -332,7 +332,8 @@ namespace yave::ui {
 
   void view_context::post_window_focus_event(GLFWwindow* win, bool focused)
   {
-    post([=](auto&) { log_info("focus event"); });
+    post(
+      [=](auto& ctx) { ctx.window_manager().push_focus_event(win, focused); });
   }
 
   void view_context::post_window_minimize_event(GLFWwindow* win, bool minimized)

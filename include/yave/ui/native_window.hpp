@@ -71,6 +71,7 @@ namespace yave::ui {
     void update_size(u32 w, u32 h, passkey<window_event_dispatcher>);
     void update_fb_size(u32 w, u32 h, passkey<window_event_dispatcher>);
     void update_content_scale(f32 xs, f32 ys, passkey<window_event_dispatcher>);
+    void update_focus(bool focused, passkey<window_event_dispatcher>);
 
   public:
     /// get viewport

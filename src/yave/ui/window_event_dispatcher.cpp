@@ -56,13 +56,20 @@ namespace yave::ui {
       f32 xs, ys;
     };
 
+    struct focus_event_data
+    {
+      GLFWwindow* win;
+      bool focused;
+    };
+
     using event_data = std::variant<
       pos_event_data,
       size_event_data,
       close_event_data,
       refresh_event_data,
       fb_size_event_data,
-      content_scale_event_data>;
+      content_scale_event_data,
+      focus_event_data>;
 
   } // namespace
 
@@ -227,6 +234,14 @@ namespace yave::ui {
         native->update_content_scale(data.xs, data.ys, {});
       }
     }
+
+    void process(const focus_event_data& data)
+    {
+      log_info("focus event: {}", data.focused);
+      if (auto native = find_native_from_handle(data.win)) {
+        native->update_focus(data.focused, {});
+      }
+    }
   };
 
   window_event_dispatcher::window_event_dispatcher(
@@ -276,6 +291,12 @@ namespace yave::ui {
   void window_event_dispatcher::push_refresh_event(GLFWwindow* win)
   {
     m_pimpl->push_window_event(refresh_event_data {.win = win});
+  }
+
+  void window_event_dispatcher::push_focus_event(GLFWwindow* win, bool focused)
+  {
+    m_pimpl->push_window_event(
+      focus_event_data {.win = win, .focused = focused});
   }
 
   void window_event_dispatcher::push_fb_size_event(
