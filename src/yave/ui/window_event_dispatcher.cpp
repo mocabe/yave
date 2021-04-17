@@ -62,6 +62,18 @@ namespace yave::ui {
       bool focused;
     };
 
+    struct maximize_event_data
+    {
+      GLFWwindow* win;
+      bool maximized;
+    };
+
+    struct minimize_event_data
+    {
+      GLFWwindow* win;
+      bool minimized;
+    };
+
     using event_data = std::variant<
       pos_event_data,
       size_event_data,
@@ -69,7 +81,9 @@ namespace yave::ui {
       refresh_event_data,
       fb_size_event_data,
       content_scale_event_data,
-      focus_event_data>;
+      focus_event_data,
+      maximize_event_data,
+      minimize_event_data>;
 
   } // namespace
 
@@ -242,6 +256,22 @@ namespace yave::ui {
         native->update_focus(data.focused, {});
       }
     }
+
+    void process(const maximize_event_data& data)
+    {
+      log_info("maximize event: {}", data.maximized);
+      if (auto native = find_native_from_handle(data.win)) {
+        native->update_maximize(data.maximized, {});
+      }
+    }
+
+    void process(const minimize_event_data& data)
+    {
+      log_info("minimize event: {}", data.minimized);
+      if (auto native = find_native_from_handle(data.win)) {
+        native->update_minimize(data.minimized, {});
+      }
+    }
   };
 
   window_event_dispatcher::window_event_dispatcher(
@@ -314,6 +344,22 @@ namespace yave::ui {
   {
     m_pimpl->push_window_event(
       content_scale_event_data {.win = win, .xs = xs, .ys = ys});
+  }
+
+  void window_event_dispatcher::push_maximize_event(
+    GLFWwindow* win,
+    bool maximized)
+  {
+    m_pimpl->push_window_event(
+      maximize_event_data {.win = win, .maximized = maximized});
+  }
+
+  void window_event_dispatcher::push_minimize_event(
+    GLFWwindow* win,
+    bool minimized)
+  {
+    m_pimpl->push_window_event(
+      minimize_event_data {.win = win, .minimized = minimized});
   }
 
 } // namespace yave::ui

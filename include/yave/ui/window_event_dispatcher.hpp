@@ -43,10 +43,10 @@ namespace yave::ui {
     void push_close_event(GLFWwindow* win);
     void push_refresh_event(GLFWwindow* win);
     void push_focus_event(GLFWwindow* win, bool focused);
-    void push_minimize_event(GLFWwindow* win, bool minimized);
-    void push_maximize_event(GLFWwindow* win, bool maximized);
     void push_fb_size_event(GLFWwindow* win, u32 w, u32 h);
     void push_content_scale_event(GLFWwindow* win, f32 xs, f32 ys);
+    void push_minimize_event(GLFWwindow* win, bool minimized);
+    void push_maximize_event(GLFWwindow* win, bool maximized);
 
   public:
     // clang-format off

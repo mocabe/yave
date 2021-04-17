@@ -338,12 +338,16 @@ namespace yave::ui {
 
   void view_context::post_window_minimize_event(GLFWwindow* win, bool minimized)
   {
-    post([=](auto&) { log_info("minimize event: {}", minimized); });
+    post([=](auto& ctx) {
+      ctx.window_manager().push_minimize_event(win, minimized);
+    });
   }
 
   void view_context::post_window_maximize_event(GLFWwindow* win, bool maximized)
   {
-    post([=](auto&) { log_info("maximized event: {}", maximized); });
+    post([=](auto& ctx) {
+      ctx.window_manager().push_maximize_event(win, maximized);
+    });
   }
 
   void view_context::post_window_framebuffer_size_event(

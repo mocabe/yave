@@ -31,6 +31,10 @@ namespace yave::ui {
     ui::vec m_content_scale;
     // focus
     bool m_focused = false;
+    // maximize
+    bool m_maximized = false;
+    // minimize
+    bool m_minimized = false;
 
   public:
     glfw_window(glfw_context& glfw, std::u8string name, ui::size size);
@@ -74,6 +78,16 @@ namespace yave::ui {
       return m_focused;
     }
 
+    auto& maximized() const
+    {
+      return m_maximized;
+    }
+
+    auto& minimized() const
+    {
+      return m_minimized;
+    }
+
     void set_name(std::u8string name);
 
     void set_size(ui::size size);
@@ -111,6 +125,16 @@ namespace yave::ui {
     void update_focus(bool focused, passkey<native_window>)
     {
       m_focused = focused;
+    }
+
+    void update_maximize(bool maximized, passkey<native_window>)
+    {
+      m_maximized = maximized;
+    }
+
+    void update_minimize(bool minimized, passkey<native_window>)
+    {
+      m_minimized = minimized;
     }
   };
 

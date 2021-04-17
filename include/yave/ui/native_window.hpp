@@ -56,6 +56,12 @@ namespace yave::ui {
     auto content_scale() const -> ui::vec;
     /// framebuffer scale
     auto fb_scale() const -> ui::vec;
+    /// focus
+    bool focused() const;
+    /// maximize
+    bool maximized() const;
+    /// minimize
+    bool minimized() const;
 
   public:
     /// change name of window
@@ -72,6 +78,8 @@ namespace yave::ui {
     void update_fb_size(u32 w, u32 h, passkey<window_event_dispatcher>);
     void update_content_scale(f32 xs, f32 ys, passkey<window_event_dispatcher>);
     void update_focus(bool focused, passkey<window_event_dispatcher>);
+    void update_maximize(bool maximized, passkey<window_event_dispatcher>);
+    void update_minimize(bool minimized, passkey<window_event_dispatcher>);
 
   public:
     /// get viewport

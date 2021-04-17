@@ -64,6 +64,21 @@ namespace yave::ui {
       return fb_size().vec() / size().vec();
     }
 
+    bool focused() const
+    {
+      return m_win.focused();
+    }
+
+    bool maximized() const
+    {
+      return m_win.maximized();
+    }
+
+    bool minimized() const
+    {
+      return m_win.minimized();
+    }
+
     void set_name(std::u8string name)
     {
       m_win.set_name(std::move(name));
@@ -102,6 +117,16 @@ namespace yave::ui {
     void update_focus(bool focused)
     {
       m_win.update_focus(focused, {});
+    }
+
+    void update_maximize(bool maximized)
+    {
+      m_win.update_maximize(maximized, {});
+    }
+
+    void update_minimize(bool minimized)
+    {
+      m_win.update_minimize(minimized, {});
     }
 
     auto get_viewport() -> ui::viewport*
@@ -178,6 +203,21 @@ namespace yave::ui {
     return m_pimpl->fb_scale();
   }
 
+  bool native_window::focused() const
+  {
+    return m_pimpl->focused();
+  }
+
+  bool native_window::maximized() const
+  {
+    return m_pimpl->maximized();
+  }
+
+  bool native_window::minimized() const
+  {
+    return m_pimpl->minimized();
+  }
+
   void native_window::set_name(std::u8string name)
   {
     return m_pimpl->set_name(std::move(name));
@@ -227,6 +267,20 @@ namespace yave::ui {
     passkey<window_event_dispatcher>)
   {
     m_pimpl->update_focus(focused);
+  }
+
+  void native_window::update_maximize(
+    bool maximized,
+    passkey<window_event_dispatcher>)
+  {
+    m_pimpl->update_maximize(maximized);
+  }
+
+  void native_window::update_minimize(
+    bool minimized,
+    passkey<window_event_dispatcher>)
+  {
+    m_pimpl->update_minimize(minimized);
   }
 
   auto native_window::viewport() -> ui::viewport*

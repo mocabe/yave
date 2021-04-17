@@ -278,6 +278,16 @@ namespace yave::ui {
     {
       m_event_dispatcher.push_content_scale_event(win, xs, ys);
     }
+
+    void push_maximize_event(GLFWwindow* win, bool maximized)
+    {
+      m_event_dispatcher.push_maximize_event(win, maximized);
+    }
+
+    void push_minimize_event(GLFWwindow* win, bool minimized)
+    {
+      m_event_dispatcher.push_minimize_event(win, minimized);
+    }
   };
 
   window_manager::window_manager(view_context& vctx)
@@ -402,4 +412,13 @@ namespace yave::ui {
     m_pimpl->push_focus_event(win, focused);
   }
 
+  void window_manager::push_maximize_event(GLFWwindow* win, bool maximized)
+  {
+    m_pimpl->push_maximize_event(win, maximized);
+  }
+
+  void window_manager::push_minimize_event(GLFWwindow* win, bool minimized)
+  {
+    m_pimpl->push_minimize_event(win, minimized);
+  }
 } // namespace yave::ui
