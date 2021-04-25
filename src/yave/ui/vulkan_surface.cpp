@@ -3,7 +3,8 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <optional> // XXX: MSVC C2131
+#include <optional>
+#include <chrono>
 
 #include <yave/ui/vulkan_surface.hpp>
 #include <yave/ui/render_context.hpp>
