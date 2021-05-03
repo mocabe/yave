@@ -22,7 +22,15 @@ TEST_CASE("signal")
 
   SECTION("trackable")
   {
-    auto tracker = std::make_unique<trackable>();
+    struct foo : trackable, enable_tracker_from_this<foo>
+    {
+      auto get_tracker() const -> tracker
+      {
+        return tracker_from_this();
+      }
+    };
+
+    auto tracker = make_unique<foo>();
 
     signal<int> sig;
     int i = 0;
@@ -45,7 +53,7 @@ TEST_CASE("signal")
       }
     };
 
-    struct T2 : trackable
+    struct T2 : trackable, enable_tracker_from_this<T2>
     {
       int* i = nullptr;
 
@@ -54,10 +62,15 @@ TEST_CASE("signal")
         i = &p;
         t1.sig.connect(slot<int>([&](auto x) { *i += x; }).track(*this));
       }
+
+      auto get_tracker() const -> tracker
+      {
+        return tracker_from_this();
+      }
     };
 
-    auto t1 = std::make_unique<T1>();
-    auto t2 = std::make_unique<T2>();
+    auto t1 = make_unique<T1>();
+    auto t2 = make_unique<T2>();
 
     int i = 0;
     t2->init(i, *t1);
@@ -68,5 +81,58 @@ TEST_CASE("signal")
     t2 = nullptr;
     t1->foo();
     REQUIRE(i == 42);
+  }
+
+  SECTION("try_lock")
+  {
+    struct foo : trackable, enable_tracker_from_this<foo>
+    {
+      auto get_tracker() const -> tracker
+      {
+        return tracker_from_this();
+      }
+    };
+
+    auto p = make_unique<foo>();
+    auto t = p->get_tracker();
+
+    REQUIRE(!t.expired());
+
+    SECTION("")
+    {
+      bool test = false;
+      REQUIRE(t.try_lock([&] { test = true; }));
+      REQUIRE(test);
+
+      test = false;
+      p    = nullptr;
+      REQUIRE(!t.try_lock([&] { test = true; }));
+      REQUIRE(!test);
+    }
+
+    SECTION("")
+    {
+      bool test = false;
+      REQUIRE(try_lock([&] { test = true; }, t));
+      REQUIRE(test);
+
+      test = false;
+      p    = nullptr;
+      REQUIRE(!t.try_lock([&] { test = true; }));
+      REQUIRE(!test);
+    }
+
+    SECTION("")
+    {
+      auto q = make_unique<foo>();
+      auto s = q->get_tracker();
+      p      = nullptr;
+
+      bool test = false;
+      REQUIRE(!try_lock([&] { test = true; }, t, s));
+      REQUIRE(!test);
+      REQUIRE(!try_lock([&] { test = true; }, s, t));
+      REQUIRE(!test);
+    }
   }
 }
