@@ -33,7 +33,7 @@ namespace yave::ui {
   {
     assert(is_registered());
 
-    auto v = std::make_unique<ui::viewport>(
+    auto v = ui::make_unique<ui::viewport>(
       m_wm,
       m_wm.view_ctx().layout_ctx(),
       m_wm.view_ctx().render_ctx(),

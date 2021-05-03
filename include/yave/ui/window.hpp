@@ -43,7 +43,7 @@ namespace yave::ui {
   };
 
   /// Base class of GUI window and widgets
-  class window : trackable
+  class window : public trackable
   {
     /// window manager ref
     ui::window_manager* m_wm = nullptr;
@@ -52,9 +52,9 @@ namespace yave::ui {
     /// non-owning pointer to parent
     ui::window* m_parent = nullptr;
     /// list of owning children pointers.
-    std::list<std::unique_ptr<ui::window>> m_children;
+    std::list<ui::unique<ui::window>> m_children;
     /// list of owning event controllers.
-    std::list<std::unique_ptr<ui::controller>> m_controllers;
+    std::list<ui::unique<ui::controller>> m_controllers;
     /// per window layout data
     std::unique_ptr<ui::window_layout_data> m_ldata;
     /// per window render data
@@ -119,9 +119,9 @@ namespace yave::ui {
     /// utility function to add new window
     /// \param idx position of insertion. will be clamped to [0, size].
     /// \param win window to insert
-    void add_child(size_t idx, std::unique_ptr<window> win);
+    void add_child(size_t idx, ui::unique<window> win);
     /// utility function to detach child window
-    auto detach_child(const window* w) -> std::unique_ptr<window>;
+    auto detach_child(const window* w) -> ui::unique<window>;
     /// utility function to remove child window
     void remove_child(const window* w);
     /// utility function to move child window
@@ -131,9 +131,9 @@ namespace yave::ui {
 
   protected:
     /// add event controller
-    void add_controller(std::unique_ptr<controller> l);
+    void add_controller(ui::unique<controller> l);
     /// detach event controller
-    auto detach_controller(const controller* l) -> std::unique_ptr<controller>;
+    auto detach_controller(const controller* l) -> ui::unique<controller>;
     /// remove event controller
     void remove_controller(const controller* l);
 
@@ -215,5 +215,8 @@ namespace yave::ui {
       return m_parent;
     }
   };
+
+  template <class Derived>
+  using generic_window = generic_trackable<Derived, window>;
 
 } // namespace yave::ui

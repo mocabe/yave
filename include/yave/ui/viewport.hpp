@@ -20,7 +20,7 @@ namespace yave::ui {
   class render_context;
 
   /// Toplevel surface
-  class viewport : public window
+  class viewport final : public generic_window<viewport>
   {
     // ref to layout context
     ui::layout_context& m_lctx;
@@ -53,7 +53,7 @@ namespace yave::ui {
 
   public:
     /// Set child window
-    void set_child(std::unique_ptr<window> c);
+    void set_child(ui::unique<window> c);
     /// Get child window (if exists)
     auto get_child() -> window*;
     /// Remove child window

@@ -18,7 +18,7 @@ namespace yave::ui {
   /// Window manager has single instance of this class as a root of entire
   /// window tree. Root window can have multiple viewports which represent
   /// "window"s in standard desktop GUI systems.
-  class root final : public window
+  class root final : public generic_window<root>
   {
     ui::window_manager& m_wm;
 

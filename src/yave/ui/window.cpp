@@ -132,7 +132,7 @@ namespace yave::ui {
     return *m_wm;
   }
 
-  void window::add_child(size_t idx, std::unique_ptr<window> win)
+  void window::add_child(size_t idx, unique<window> win)
   {
     assert(win);
     assert(!win->m_parent);
@@ -149,7 +149,7 @@ namespace yave::ui {
       m_wm->register_window(ptr, {});
   }
 
-  auto window::detach_child(const window* w) -> std::unique_ptr<window>
+  auto window::detach_child(const window* w) -> unique<window>
   {
     auto& ws = m_children;
 
@@ -193,7 +193,7 @@ namespace yave::ui {
       std::rotate(it, std::next(it), ws.end());
   }
 
-  void window::add_controller(std::unique_ptr<controller> l)
+  void window::add_controller(unique<controller> l)
   {
     assert(l);
     assert(!l->window());
@@ -201,8 +201,7 @@ namespace yave::ui {
     m_controllers.push_back(std::move(l));
   }
 
-  auto window::detach_controller(const controller* l)
-    -> std::unique_ptr<controller>
+  auto window::detach_controller(const controller* l) -> unique<controller>
   {
     auto& ls = m_controllers;
 

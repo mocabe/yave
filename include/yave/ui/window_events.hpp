@@ -82,11 +82,11 @@ namespace yave::ui {
   namespace controllers {
 
     /// Window visibility
-    class visibility : public controller
+    class visibility final : public generic_controller<visibility>
     {
     public:
       visibility()
-        : controller(event_phase::bubble)
+        : generic_controller<visibility>(event_phase::bubble)
       {
       }
 
@@ -113,11 +113,11 @@ namespace yave::ui {
     };
 
     /// Viewport close
-    class close : public controller
+    class close final : public generic_controller<close>
     {
     public:
       close()
-        : controller(event_phase::bubble)
+        : generic_controller<close>(event_phase::bubble)
       {
       }
 

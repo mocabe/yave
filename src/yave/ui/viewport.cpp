@@ -40,7 +40,7 @@ namespace yave::ui {
 
     // init close controller
     {
-      auto closeController = std::make_unique<controllers::close>();
+      auto closeController = ui::make_unique<controllers::close>();
       m_close_controller   = closeController.get();
       add_controller(std::move(closeController));
     }
@@ -78,7 +78,7 @@ namespace yave::ui {
       ctx.enter_child(c);
   }
 
-  void viewport::set_child(std::unique_ptr<window> c)
+  void viewport::set_child(unique<window> c)
   {
     if (!c)
       return;

@@ -5,9 +5,11 @@
 
 #pragma once
 
+#include <yave/ui/memory.hpp>
+
 #include <memory>
 #include <mutex>
-#include <concepts> 
+#include <concepts>
 
 #include <boost/signals2.hpp>
 
@@ -90,48 +92,6 @@ namespace yave::ui {
     }
   };
 
-  /// signal/slot trackable base
-  class trackable
-  {
-    struct data
-    {
-    };
-
-    mutable std::shared_ptr<data> m_ptr;
-    mutable std::mutex m_mtx;
-
-  public:
-    /// get weak pointer of trackable
-    auto get_weak() const -> std::weak_ptr<const void>
-    {
-      auto lck = std::unique_lock(m_mtx);
-      if (!m_ptr) {
-        m_ptr = std::make_shared<data>();
-      }
-      return std::weak_ptr(m_ptr);
-    }
-
-  protected:
-    /// disconnect all current connections
-    void expire()
-    {
-      auto lck = std::unique_lock(m_mtx);
-      m_ptr    = nullptr;
-    }
-
-  public:
-    trackable() = default;
-
-    trackable(const trackable&) noexcept
-    {
-    }
-
-    trackable& operator=(const trackable&) noexcept
-    {
-      return *this;
-    }
-  };
-
   /// Slot type
   template <class... ArgTypes>
   class slot
@@ -155,7 +115,7 @@ namespace yave::ui {
 
     void track1(const trackable& t)
     {
-      track(t.get_weak());
+      track(t.get_tracker().get_weak());
     }
 
   public:
@@ -169,7 +129,7 @@ namespace yave::ui {
     slot& operator=(slot&&) noexcept = default;
 
     template <class F>
-    requires (!std::same_as<std::decay_t<F>, slot>) slot(F && f)
+    requires (!std::same_as<std::decay_t<F>, slot>) slot(F&& f)
       : m_slot {std::forward<F>(f)}
     {
     }

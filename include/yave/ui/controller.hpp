@@ -18,18 +18,21 @@ namespace yave::ui {
   class view_context;
 
   /// Base class of event controllers
-  class controller : trackable
+  class controller : public trackable
   {
     /// owner
     ui::window* m_window = nullptr;
     /// target phase
     event_phase m_phase;
 
+  protected:
+    /// reset target phase
+    void set_phase(event_phase p);
+
   public:
     controller(event_phase phase);
     virtual ~controller() noexcept = default;
 
-  public:
     /// handle event
     /// \param event Event object to process.
     /// \param vctx view context ref
@@ -38,20 +41,20 @@ namespace yave::ui {
     /// window. This value will be ignored when event was accepted.
     virtual bool event(ui::event& e, view_context& vctx) = 0;
 
-  public:
     // for window
     void set_window(ui::window*, passkey<ui::window>);
 
-  protected:
-    /// reset target phase
-    void set_phase(event_phase p);
-
-  public:
     /// get target phase
     auto phase() -> event_phase;
+
     /// get attached window
     auto window() -> ui::window*;
+
     /// get attached window
     auto window() const -> const ui::window*;
   };
+
+  template <class Derived>
+  using generic_controller = generic_trackable<Derived, controller>;
+
 } // namespace yave::ui
