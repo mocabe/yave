@@ -16,6 +16,7 @@ namespace yave::ui {
   class render_context;
   class render_buffer;
   class render_layer;
+  class vulkan_pipeline_draw;
 
   // TODO: Implement this
   class viewport_renderer
@@ -25,8 +26,9 @@ namespace yave::ui {
 
     // surface resources
     vulkan_surface m_surface;
-    // rendering pipeline
-    vk::UniquePipeline m_pipeline;
+
+    // rendering pipelines
+    std::unique_ptr<vulkan_pipeline_draw> m_pipeline_draw;
 
     // buffers (for each in-flight frame)
     std::vector<std::unique_ptr<render_buffer>> m_vtx_buffers;
@@ -39,11 +41,6 @@ namespace yave::ui {
     auto& surface()
     {
       return m_surface;
-    }
-
-    auto pipeline() const
-    {
-      return m_pipeline.get();
     }
 
   public:

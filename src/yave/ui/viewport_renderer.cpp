@@ -14,174 +14,11 @@
 #include <yave/ui/vulkan_shaders.hpp>
 #include <yave/ui/draw_list.hpp>
 #include <yave/ui/render_layer.hpp>
+#include <yave/ui/vulkan_pipelines.hpp>
 
 namespace {
 
   using namespace yave::ui;
-
-  auto createShaderModule(
-    const std::span<const u32>& code,
-    const vk::Device& device)
-  {
-    auto info = vk::ShaderModuleCreateInfo()
-                  .setCodeSize(code.size() * sizeof(u32))
-                  .setPCode(code.data());
-
-    return device.createShaderModuleUnique(info);
-  }
-
-  auto createPipeline(
-    const vk::RenderPass& renderPass,
-    const vk::PipelineCache& pipelineCache,
-    const vk::PipelineLayout& pipelineLayout,
-    const vk::Device& device)
-  {
-    /* shader stages */
-
-    // vertex shader
-    auto vertShaderModule = createShaderModule(shader_vert_spv, device);
-
-    auto vertShaderStageInfo //
-      = vk::PipelineShaderStageCreateInfo()
-          .setStage(vk::ShaderStageFlagBits::eVertex)
-          .setModule(*vertShaderModule)
-          .setPName("main");
-
-    // fragment shader
-    auto fragShaderModule = createShaderModule(shader_frag_spv, device);
-
-    auto fragShaderStageInfo //
-      = vk::PipelineShaderStageCreateInfo()
-          .setStage(vk::ShaderStageFlagBits::eFragment)
-          .setModule(*fragShaderModule)
-          .setPName("main");
-
-    // stages
-    std::array shaderStages = {vertShaderStageInfo, fragShaderStageInfo};
-
-    /* vertex input */
-
-    std::array vertBindingDesc = {
-      vk::VertexInputBindingDescription()
-        .setStride(sizeof(draw_vtx))
-        .setInputRate(vk::VertexInputRate::eVertex)};
-
-    std::array vertAttrDesc = {
-      vk::VertexInputAttributeDescription()
-        .setLocation(0)
-        .setBinding(vertBindingDesc[0].binding)
-        .setFormat(vk::Format::eR32G32Sfloat)
-        .setOffset(offsetof(draw_vtx, pos)),
-      vk::VertexInputAttributeDescription()
-        .setLocation(1)
-        .setBinding(vertBindingDesc[0].binding)
-        .setFormat(vk::Format::eR32G32Sfloat)
-        .setOffset(offsetof(draw_vtx, uv)),
-      vk::VertexInputAttributeDescription()
-        .setLocation(2)
-        .setBinding(vertBindingDesc[0].binding)
-        .setFormat(vk::Format::eR8G8B8A8Unorm)
-        .setOffset(offsetof(draw_vtx, col))};
-
-    auto vertInputStateInfo = vk::PipelineVertexInputStateCreateInfo()
-                                .setVertexBindingDescriptions(vertBindingDesc)
-                                .setVertexAttributeDescriptions(vertAttrDesc);
-
-    /* input assembler */
-
-    auto inputAsmStateInfo =
-      vk::PipelineInputAssemblyStateCreateInfo() //
-        .setTopology(vk::PrimitiveTopology::eTriangleList);
-
-    /* viewport */
-
-    std::array viewports = {vk::Viewport(0.f, 0.f, 1.f, 1.f, 0.f, 1.f)};
-    std::array scissors  = {vk::Rect2D({0, 0}, {1, 1})};
-
-    static_assert(viewports.size() == scissors.size());
-
-    auto viewportStateInfo = vk::PipelineViewportStateCreateInfo() //
-                               .setViewports(viewports)
-                               .setScissors(scissors);
-
-    /* rasterization */
-
-    auto rasterStateInfo = vk::PipelineRasterizationStateCreateInfo()
-                             .setPolygonMode(vk::PolygonMode::eFill)
-                             .setFrontFace(vk::FrontFace::eCounterClockwise)
-                             .setLineWidth(1.f);
-
-    /* sample */
-
-    auto multisampleStateInfo =
-      vk::PipelineMultisampleStateCreateInfo()
-        .setRasterizationSamples(vk::SampleCountFlagBits::e1)
-        .setMinSampleShading(1.f);
-
-    /* color blend */
-
-    std::array colAttachments = {
-      vk::PipelineColorBlendAttachmentState()
-        .setColorWriteMask(
-          vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | //
-          vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA)
-        .setBlendEnable(VK_TRUE)
-        .setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha)
-        .setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha)
-        .setColorBlendOp(vk::BlendOp::eAdd)
-        .setSrcAlphaBlendFactor(vk::BlendFactor::eSrcAlpha)
-        .setDstAlphaBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha)
-        .setAlphaBlendOp(vk::BlendOp::eAdd)};
-
-    auto colorBlendStateInfo =
-      vk::PipelineColorBlendStateCreateInfo().setAttachments(colAttachments);
-
-    auto depthStencilStateInfo = vk::PipelineDepthStencilStateCreateInfo()
-                                   .setDepthCompareOp(vk::CompareOp::eLess)
-                                   .setMinDepthBounds(0.f)
-                                   .setMaxDepthBounds(1.f);
-
-    /* dynamic state */
-
-    std::array dynamicStates = {
-      vk::DynamicState::eViewport, vk::DynamicState::eScissor};
-
-    auto dynamicStateInfo =
-      vk::PipelineDynamicStateCreateInfo().setDynamicStates(dynamicStates);
-
-    /* pipeline */
-
-    auto info = vk::GraphicsPipelineCreateInfo()
-                  .setStages(shaderStages)
-                  .setPVertexInputState(&vertInputStateInfo)
-                  .setPInputAssemblyState(&inputAsmStateInfo)
-                  .setPViewportState(&viewportStateInfo)
-                  .setPRasterizationState(&rasterStateInfo)
-                  .setPMultisampleState(&multisampleStateInfo)
-                  .setPColorBlendState(&colorBlendStateInfo)
-                  .setPDepthStencilState(&depthStencilStateInfo)
-                  .setPDynamicState(&dynamicStateInfo)
-                  .setRenderPass(renderPass)
-                  .setLayout(pipelineLayout);
-
-    // NOTE: ignoring vk::Result::ePipelineCompileRequiredEXT
-    return device.createGraphicsPipelineUnique(pipelineCache, info).value;
-  }
-
-  void initPipeline(
-    vk::CommandBuffer& cmd,
-    const render_buffer& vtx_buff,
-    const render_buffer& idx_buff,
-    const vk::Viewport& viewport,
-    const vk::Pipeline& pipeline)
-  {
-    // init pipeline
-    static_assert(sizeof(draw_idx) == sizeof(uint16_t));
-    cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-    cmd.bindVertexBuffers(0, vtx_buff.buffer(), {0});
-    cmd.bindIndexBuffer(idx_buff.buffer(), 0, vk::IndexType::eUint16);
-    cmd.setViewport(0, viewport);
-  }
 
   void resizeRenderBuffers(
     std::vector<std::unique_ptr<render_buffer>>& buffers,
@@ -241,61 +78,26 @@ namespace {
   }
 
   void renderDrawData(
-    vk::CommandBuffer& cmd,
+    const vk::CommandBuffer& cmd,
     const draw_lists& draw_data,
     const draw_tex& defaultTex,
     const vk::Viewport& viewport,
-    const vk::PipelineLayout& pipelineLayout)
+    const render_buffer& vtx_buff,
+    const render_buffer& idx_buff,
+    vulkan_pipeline_draw& pipeline_draw)
   {
-    // set push constant
-    {
-      // transform (0,0):(w, h) -> (-1,-1):(1,1)
-      draw_pc pc;
-      pc.scale     = glm::vec2(2.f / viewport.width, 2.f / viewport.height);
-      pc.translate = glm::vec2(-1, -1);
+    // bind drawing pipeline
+    pipeline_draw.bind(cmd, vtx_buff, idx_buff, viewport);
 
-      cmd.pushConstants(
-        pipelineLayout,
-        vk::ShaderStageFlagBits::eVertex,
-        0,
-        sizeof(draw_pc),
-        &pc);
-    }
-
-    uint32_t vtxOffset = 0;
     uint32_t idxOffset = 0;
+    uint32_t vtxOffset = 0;
 
-    // indexed render
+    // render commands
     for (auto&& dl : draw_data.lists()) {
 
-      for (auto&& dc : dl.cmd_buffer) {
+      for (auto&& dc : dl.cmd_buffer)
+        pipeline_draw.draw(dc, defaultTex, idxOffset, vtxOffset);
 
-        // bind texture
-        {
-          auto dsc = render_context::draw_tex_to_descriptor_set(
-            dc.tex ? dc.tex : defaultTex);
-          cmd.bindDescriptorSets(
-            vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, dsc, {});
-        }
-
-        {
-          // scissor rect (frame buffer coord)
-          vk::Rect2D scissor;
-          scissor.offset.x      = dc.scissor.offset.x;
-          scissor.offset.y      = dc.scissor.offset.y;
-          scissor.extent.width  = dc.scissor.extent.x;
-          scissor.extent.height = dc.scissor.extent.y;
-          cmd.setScissor(0, scissor);
-        }
-
-        // draw
-        cmd.drawIndexed(
-          dc.idx_count,
-          1,
-          idxOffset + dc.idx_offset,
-          vtxOffset + dc.vtx_offset,
-          0);
-      }
       idxOffset += dl.idx_buffer.size();
       vtxOffset += dl.vtx_buffer.size();
     }
@@ -310,15 +112,8 @@ namespace yave::ui {
     , m_rctx {rctx}
     , m_surface {rctx, vp.native_window()}
   {
-    auto& device = rctx.vulkan_device();
-
-    m_pipeline = createPipeline(
-      m_surface.render_pass(),
-      rctx.pipeline_cache(),
-      rctx.pipeline_layout(),
-      device.device());
-
     m_surface.set_clear_color(0.2, 0.2, 0.2, 1.f);
+    m_pipeline_draw = std::make_unique<vulkan_pipeline_draw>(rctx, m_surface);
   }
 
   viewport_renderer::~viewport_renderer() noexcept
@@ -351,16 +146,14 @@ namespace yave::ui {
 
         prepareDrawData(vtx_buff, idx_buff, lists);
 
-        auto extent   = m_surface.swapchain_extent();
-        auto viewport = vk::Viewport(0, 0, extent.width, extent.height, 0, 1);
-        initPipeline(cmd, vtx_buff, idx_buff, viewport, m_pipeline.get());
+        auto&& extent   = m_surface.swapchain_extent();
+        auto&& viewport = vk::Viewport(0, 0, extent.width, extent.height, 0, 1);
+
+        auto&& default_tex = m_rctx.default_texture();
+        auto&& pipeline    = *m_pipeline_draw;
 
         renderDrawData(
-          cmd,
-          lists,
-          m_rctx.default_texture(),
-          viewport,
-          m_rctx.pipeline_layout());
+          cmd, lists, default_tex, viewport, vtx_buff, idx_buff, pipeline);
 
         m_surface.end_record();
       }

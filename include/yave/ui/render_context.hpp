@@ -49,7 +49,6 @@ namespace yave::ui {
     vk::UniqueDescriptorSetLayout m_descriptor_set_layout;
     vk::UniqueDescriptorPool m_descriptor_pool;
     vk::UniquePipelineCache m_pipeline_cache;
-    vk::UniquePipelineLayout m_pipeline_layout;
 
     std::unique_ptr<ui::texture> m_default_tex;
     vk::UniqueDescriptorSet m_default_tex_descriptor_set;
@@ -125,11 +124,6 @@ namespace yave::ui {
     auto pipeline_cache() const
     {
       return m_pipeline_cache.get();
-    }
-
-    auto pipeline_layout() const
-    {
-      return m_pipeline_layout.get();
     }
   };
 

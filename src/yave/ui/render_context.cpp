@@ -64,23 +64,6 @@ namespace {
     return device.createDescriptorPoolUnique(info);
   }
 
-  auto createPipelineLayout(
-    const vk::DescriptorSetLayout& setLayout,
-    const vk::Device& device)
-  {
-    std::array pcr = {vk::PushConstantRange()
-                        .setStageFlags(vk::ShaderStageFlagBits::eVertex)
-                        .setSize(sizeof(yave::ui::draw_pc))};
-
-    std::array layout = {setLayout};
-
-    auto info = vk::PipelineLayoutCreateInfo()
-                  .setSetLayouts(layout)
-                  .setPushConstantRanges(pcr);
-
-    return device.createPipelineLayoutUnique(info);
-  }
-
   auto createPipelineCache(const vk::Device& device)
   {
     auto info = vk::PipelineCacheCreateInfo();
@@ -158,7 +141,6 @@ namespace yave::ui {
     m_descriptor_set_layout = createDescriptorSetLayout(m_image_sampler.get(), dev);
     m_descriptor_pool       = createDescriptorPool(dev);
     m_pipeline_cache        = createPipelineCache(dev);
-    m_pipeline_layout       = createPipelineLayout(m_descriptor_set_layout.get(), dev);
 
     // clang-format on
 
