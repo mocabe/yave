@@ -59,7 +59,7 @@ namespace yave::ui {
     bool try_lock(F&& f)
     {
       if (auto sp = m_weak.lock()) {
-        std::invoke(std::forward<F>(f));
+        std::forward<F>(f)();
         return true;
       }
       return false;

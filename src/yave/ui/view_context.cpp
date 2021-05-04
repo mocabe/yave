@@ -28,7 +28,7 @@ namespace yave::ui {
       void acquire()
       {
         auto lck = std::unique_lock(m_mtx);
-        m_cond.wait(lck, [=] { return m_open; });
+        m_cond.wait(lck, [&] { return m_open; });
         m_open = false;
       }
 

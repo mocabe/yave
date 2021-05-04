@@ -18,7 +18,7 @@
 
 #include <range/v3/to_container.hpp>
 
-YAVE_DECL_LOCAL_LOGGER(ui::window_event_dispatcher);
+YAVE_DECL_LOCAL_LOGGER(ui::window_event_dispatcher)
 
 namespace yave::ui {
 
@@ -104,8 +104,6 @@ namespace yave::ui {
       : m_wm {wm}
       , m_vctx {vctx}
     {
-      wm.signals.on_invalidate.connect(
-        slot<window&>([this](window& win) { process_blur_event(win); }));
     }
 
     bool has_pending_events() const
@@ -116,7 +114,7 @@ namespace yave::ui {
     // push window event data
     void push_window_event(event_data data)
     {
-      m_queue.push(std::move(data));
+      m_queue.push(data);
     }
 
     // process window event data

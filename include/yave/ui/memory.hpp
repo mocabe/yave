@@ -137,7 +137,7 @@ namespace yave::ui {
   template <class T, class U>
   auto static_pointer_cast(unique<U>&& p)
   {
-    return std::move(p).cast_static<T>();
+    return std::move(p).template cast_static<T>();
   }
 
   /// call dynamic_cast on pointer
@@ -145,7 +145,7 @@ namespace yave::ui {
   template <class T, class U>
   auto dynamic_pointer_cast(unique<U>&& p)
   {
-    return std::move(p).cast_dynamic<T>();
+    return std::move(p).template cast_dynamic<T>();
   }
 
   /// Shared pointer for UI elements
@@ -287,13 +287,13 @@ namespace yave::ui {
   template <class T, class U>
   auto static_pointer_cast(const shared<U>& p)
   {
-    return p.cast_static<T>();
+    return p.template cast_static<T>();
   }
 
   template <class T, class U>
   auto dynamic_pointer_cast(const shared<U>& p)
   {
-    return p.cast_dynamic<T>();
+    return p.template cast_dynamic<T>();
   }
 
 } // namespace yave::ui

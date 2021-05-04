@@ -57,7 +57,7 @@ namespace yave::ui {
     m_invalidated = b;
   }
 
-  void window::set_visible(bool b, passkey<ui::window_manager>)
+  void window::set_visible(bool b, passkey<ui::window_event_dispatcher>)
   {
     m_visible = b;
   }

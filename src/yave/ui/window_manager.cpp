@@ -152,14 +152,13 @@ namespace yave::ui {
     void show_window(window& w)
     {
       assert(w.is_registered());
-        m_event_dispatcher.process_show_event(w);
+      m_event_dispatcher.process_show_event(w);
     }
 
     void hide_window(window& w)
     {
       assert(w.is_registered());
-        m_event_dispatcher.process_hide_event(w);
-      }
+      m_event_dispatcher.process_hide_event(w);
     }
 
     auto find_window(wid id) const -> window*
@@ -169,7 +168,7 @@ namespace yave::ui {
       return nullptr;
     }
 
-    auto find_viewport(const window& w) -> viewport*
+    auto find_viewport(const window& w) const -> viewport*
     {
       if (!w.is_registered() || w.id() == root().id())
         return nullptr;

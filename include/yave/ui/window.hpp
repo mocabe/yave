@@ -30,6 +30,7 @@ namespace yave::ui {
   class render_context;
   struct window_layout_data;
   struct window_render_data;
+  class window_event_dispatcher;
 
   /// window ID
   struct wid
@@ -79,7 +80,7 @@ namespace yave::ui {
     void set_parent(window&, passkey<ui::window_manager>);
     void set_registered(bool, ui::window_manager&, passkey<ui::window_manager>);
     void set_invalidated(bool, passkey<ui::window_manager>);
-    void set_visible(bool, passkey<ui::window_manager>);
+    void set_visible(bool, passkey<ui::window_event_dispatcher>);
 
   public:
     auto window_layout_data(passkey<layout_context>) const
