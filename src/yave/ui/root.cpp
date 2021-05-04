@@ -29,7 +29,7 @@ namespace yave::ui {
     assert(false);
   }
 
-  auto root::add_viewport(std::u8string name, ui::size size) -> ui::viewport*
+  auto root::add_viewport(std::u8string name, ui::size size) -> ui::viewport&
   {
     assert(is_registered());
 
@@ -41,12 +41,10 @@ namespace yave::ui {
       size,
       passkey<root>());
 
-    auto ret = v.get();
-    add_child(size_t(-1), std::move(v));
-    return ret;
+    return static_cast<viewport&>(add_child(size_t(-1), std::move(v)));
   }
 
-  void root::remove_viewport(const ui::viewport* v)
+  void root::remove_viewport(const ui::viewport& v)
   {
     assert(is_registered());
     remove_child(v);

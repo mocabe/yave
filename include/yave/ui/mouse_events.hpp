@@ -49,7 +49,7 @@ namespace yave::ui {
     {
     public:
       mouse_event(
-        const window* target,
+        const window& target,
         event_phase phase,
         mouse_button button,
         vec pos)
@@ -82,7 +82,7 @@ namespace yave::ui {
     {
     public:
       mouse_click(
-        const window* target,
+        const window& target,
         event_phase phase,
         mouse_button button,
         vec pos)
@@ -97,7 +97,7 @@ namespace yave::ui {
     {
     public:
       mouse_double_click(
-        const window* target,
+        const window& target,
         event_phase phase,
         mouse_button button,
         vec pos)
@@ -112,7 +112,7 @@ namespace yave::ui {
     {
     public:
       mouse_press(
-        const window* target,
+        const window& target,
         event_phase phase,
         mouse_button button,
         vec pos)
@@ -127,7 +127,7 @@ namespace yave::ui {
     {
     public:
       mouse_release(
-        const window* target,
+        const window& target,
         event_phase phase,
         mouse_button button,
         vec pos)
@@ -142,7 +142,7 @@ namespace yave::ui {
     {
     public:
       mouse_repeat(
-        const window* target,
+        const window& target,
         event_phase phase,
         mouse_button button,
         vec pos)
@@ -158,7 +158,7 @@ namespace yave::ui {
       vec m_delta;
 
     public:
-      mouse_move(const window* target, event_phase phase, vec pos, vec delta)
+      mouse_move(const window& target, event_phase phase, vec pos, vec delta)
         : mouse_event(target, phase, mouse_button(), pos)
         , m_delta {delta}
       {
@@ -175,7 +175,7 @@ namespace yave::ui {
     class mouse_over final : public mouse_event
     {
     public:
-      mouse_over(const window* target, event_phase phase, vec pos)
+      mouse_over(const window& target, event_phase phase, vec pos)
         : mouse_event(target, phase, mouse_button(), pos)
       {
       }
@@ -186,7 +186,7 @@ namespace yave::ui {
     class mouse_out final : public mouse_event
     {
     public:
-      mouse_out(const window* target, event_phase phase, vec pos)
+      mouse_out(const window& target, event_phase phase, vec pos)
         : mouse_event(target, phase, mouse_button(), pos)
       {
       }
@@ -197,7 +197,7 @@ namespace yave::ui {
     class mouse_enter final : public mouse_event
     {
     public:
-      mouse_enter(const window* target, event_phase phase, vec pos)
+      mouse_enter(const window& target, event_phase phase, vec pos)
         : mouse_event(target, phase, mouse_button(), pos)
       {
       }
@@ -208,7 +208,7 @@ namespace yave::ui {
     class mouse_leave final : public mouse_event
     {
     public:
-      mouse_leave(const window* target, event_phase phase, vec pos)
+      mouse_leave(const window& target, event_phase phase, vec pos)
         : mouse_event(target, phase, mouse_button(), pos)
       {
       }

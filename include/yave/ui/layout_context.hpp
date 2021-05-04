@@ -45,24 +45,24 @@ namespace yave::ui {
 
     /// Process layout of each window
     auto layout_window(
-      const window*,
+      const window&,
       const box_constraints& c,
       passkey<layout_scope>) -> ui::size;
 
   public:
     /// Setup viewport
-    void init_viewport(viewport* vp, passkey<viewport>);
+    void init_viewport(viewport& vp, passkey<viewport>);
 
   public:
     /// Get window's size property
-    auto get_size(const window*) const -> ui::size;
+    auto get_size(const window&) const -> ui::size;
     /// Set size of window
-    void set_size(const window*, ui::size, passkey<layout_scope>);
+    void set_size(const window&, ui::size, passkey<layout_scope>);
 
     /// Get window's offset property
-    auto get_offset(const window*) const -> ui::vec;
+    auto get_offset(const window&) const -> ui::vec;
     /// Set offset of window
-    void set_offset(const window*, ui::vec, passkey<layout_scope>);
+    void set_offset(const window&, ui::vec, passkey<layout_scope>);
   };
 
 } // namespace yave::ui

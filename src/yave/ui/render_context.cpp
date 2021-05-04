@@ -177,49 +177,49 @@ namespace yave::ui {
 
   render_context::~render_context() noexcept = default;
 
-  void render_context::do_render_viewport(viewport* vp)
+  void render_context::do_render_viewport(viewport& vp)
   {
     // draw layers
     auto result = std::optional<ui::render_layer>();
-    vp->render(render_scope(*this, m_lctx, vp, &result));
+    vp.render(render_scope(*this, m_lctx, vp, result));
     assert(result.has_value());
     // render
-    assert(vp->window_render_data({}).renderer);
-    vp->window_render_data({}).renderer->render(std::move(*result));
+    assert(vp.window_render_data({}).renderer);
+    vp.window_render_data({}).renderer->render(std::move(*result));
   }
 
-  bool render_context::do_render_required(const window* w)
+  bool render_context::do_render_required(const window& w)
   {
-    if (w->is_invalidated())
+    if (w.is_invalidated())
       return true;
 
     return std::ranges::any_of(
-      w->children(), [&](auto&& c) { return do_render_required(c); });
+      w.children(), [&](auto&& c) { return do_render_required(c); });
   }
 
   void render_context::do_render(window_manager& wm, passkey<view_context>)
   {
-    auto root = wm.root();
+    auto& root = wm.root();
 
     // re-render invalidated viewports
-    for (auto&& vp : root->viewports())
+    for (auto&& vp : root.viewports())
       if (do_render_required(vp))
         do_render_viewport(vp);
   }
 
   auto render_context::do_render_child_window(
-    const window* w,
+    const window& w,
     const render_scope& parent,
     render_layer&& rl) -> render_layer
   {
     auto result = std::optional<ui::render_layer>();
-    w->render(render_scope(*this, m_lctx, w, parent, std::move(rl), &result));
+    w.render(render_scope(*this, m_lctx, w, parent, std::move(rl), result));
     assert(result.has_value());
     return std::move(*result);
   }
 
   auto render_context::render_child_window(
-    const window* win,
+    const window& win,
     const render_scope& parent,
     render_layer layer,
     passkey<render_scope>) -> render_layer
@@ -227,12 +227,11 @@ namespace yave::ui {
     return do_render_child_window(win, parent, std::move(layer));
   }
 
-  void render_context::init_viewport(viewport* vp, passkey<viewport>)
+  void render_context::init_viewport(viewport& vp, passkey<viewport>)
   {
-    assert(vp);
-    auto& data = vp->window_render_data({});
+    auto& data = vp.window_render_data({});
     // init renderer
-    data.renderer = std::make_unique<viewport_renderer>(*vp, *this);
+    data.renderer = std::make_unique<viewport_renderer>(vp, *this);
   }
 
   auto render_context::default_texture() const -> draw_tex

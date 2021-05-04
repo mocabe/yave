@@ -23,12 +23,12 @@ namespace yave::ui {
     class window_event : public event
     {
     public:
-      window_event(window* target, event_phase phase)
+      window_event(window& target, event_phase phase)
         : event(target, phase)
       {
       }
 
-      void set_target(window* w, passkey<window_event_dispatcher>)
+      void set_target(window& w, passkey<window_event_dispatcher>)
       {
         event::set_target(w);
       }
@@ -49,7 +49,7 @@ namespace yave::ui {
     class show : public window_event
     {
     public:
-      show(window* target)
+      show(window& target)
         : window_event(target, event_phase::bubble)
       {
       }
@@ -60,7 +60,7 @@ namespace yave::ui {
     class hide : public window_event
     {
     public:
-      hide(window* target)
+      hide(window& target)
         : window_event(target, event_phase::bubble)
       {
       }
@@ -71,7 +71,7 @@ namespace yave::ui {
     class close : public window_event
     {
     public:
-      close(window* target)
+      close(window& target)
         : window_event(target, event_phase::bubble)
       {
       }
@@ -94,11 +94,11 @@ namespace yave::ui {
       {
         if (e.phase() == phase()) {
           /*  */ if (auto s = typeid_cast_if<events::show>(&e)) {
-            assert(s->target() == window());
+            assert(&s->target() == &window());
             s->accept();
             on_show(vctx);
           } else if (auto h = typeid_cast_if<events::hide>(&e)) {
-            assert(h->target() == window());
+            assert(&h->target() == &window());
             h->accept();
             on_hide(vctx);
           }
@@ -125,7 +125,7 @@ namespace yave::ui {
       {
         if (e.phase() == phase()) {
           if (auto closeEvent = typeid_cast_if<events::close>(&e)) {
-            assert(closeEvent->target() == window());
+            assert(&closeEvent->target() == &window());
             closeEvent->accept();
             // slots can intercept and ignore close event
             on_close(*closeEvent, vctx);

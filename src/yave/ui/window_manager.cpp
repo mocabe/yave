@@ -56,7 +56,7 @@ namespace yave::ui {
       , m_event_dispatcher {self, vctx}
     {
       // register root
-      register_window(m_tree.get());
+      register_window(*m_tree);
     }
 
     auto& view_ctx()
@@ -64,65 +64,63 @@ namespace yave::ui {
       return m_vctx;
     }
 
-    auto root() const -> ui::root*
+    auto root() const -> ui::root&
     {
-      return m_tree.get();
+      return *m_tree;
     }
 
     // recursively register windows
-    void register_window_impl(window* w)
+    void register_window_impl(window& w)
     {
-      assert(w);
-      assert(!w->is_registered());
+      assert(!w.is_registered());
 
       // register
-      w->set_registered(true, m_self, {});
-      m_wmap.emplace(w->id(), w);
+      w.set_registered(true, m_self, {});
+      m_wmap.emplace(w.id(), &w);
 
       // invalidate
-      w->set_invalidated(true, {});
-      m_dmap.emplace(w->id(), w);
+      w.set_invalidated(true, {});
+      m_dmap.emplace(w.id(), &w);
 
-      for (auto&& c : w->children())
+      for (auto&& c : w.children())
         register_window_impl(c);
     }
 
-    void register_window(window* w)
+    void register_window(window& w)
     {
-      assert(w);
-      assert(!w->is_registered());
+      assert(!w.is_registered());
 
-      if (auto p = w->parent())
-        assert(p->is_registered());
+      if (w.has_parent()) {
+        auto& p = w.parent();
+        assert(p.is_registered());
+      }
 
       m_self.signals.on_register(w);
       register_window_impl(w);
 
-      if (w->is_visible())
+      if (w.is_visible())
         m_event_dispatcher.process_show_event(w);
     }
 
     // recursively unregister windows
-    void unregister_window_impl(window* w)
+    void unregister_window_impl(window& w)
     {
-      assert(w);
-      assert(w->is_registered());
+      assert(w.is_registered());
 
       // unregister
-      m_wmap.erase(w->id());
-      w->set_registered(false, m_self, {});
+      m_wmap.erase(w.id());
+      w.set_registered(false, m_self, {});
 
       // recursively mark subtree
-      for (auto&& c : w->children())
+      for (auto&& c : w.children())
         unregister_window_impl(c);
     }
 
-    void unregister_window(window* w)
+    void unregister_window(window& w)
     {
-      assert(w);
-      assert(w->is_registered());
+      assert(w.is_registered());
 
-      if (w->is_visible())
+      if (w.is_visible())
         m_event_dispatcher.process_hide_event(w);
 
       m_self.signals.on_unregister(w);
@@ -130,15 +128,14 @@ namespace yave::ui {
     }
 
     // mark window as invalidated
-    void invalidate_window(window* w)
+    void invalidate_window(window& w)
     {
-      assert(w);
-      assert(w->is_registered());
+      assert(w.is_registered());
 
-      if (!w->is_invalidated()) {
+      if (!w.is_invalidated()) {
         m_self.signals.on_invalidate(w);
-        w->set_invalidated(true, {});
-        m_dmap.emplace(w->id(), w);
+        w.set_invalidated(true, {});
+        m_dmap.emplace(w.id(), &w);
       }
     }
 
@@ -152,25 +149,16 @@ namespace yave::ui {
       m_dmap.clear();
     }
 
-    void show_window(window* w)
+    void show_window(window& w)
     {
-      assert(w);
-      assert(w->is_registered());
-
-      if (!w->is_visible()) {
+      assert(w.is_registered());
         m_event_dispatcher.process_show_event(w);
-        w->set_visible(true, {});
-      }
     }
 
-    void hide_window(window* w)
+    void hide_window(window& w)
     {
-      assert(w);
-      assert(w->is_registered());
-
-      if (w->is_visible()) {
+      assert(w.is_registered());
         m_event_dispatcher.process_hide_event(w);
-        w->set_visible(false, {});
       }
     }
 
@@ -181,22 +169,21 @@ namespace yave::ui {
       return nullptr;
     }
 
-    auto find_viewport(const window* w) -> viewport*
+    auto find_viewport(const window& w) -> viewport*
     {
-      if (!w)
+      if (!w.is_registered() || w.id() == root().id())
         return nullptr;
 
-      if (!w->is_registered() || w == root())
+      if (!w.has_parent())
         return nullptr;
 
-      assert(w->parent());
+      auto p = &w;
+      while (p->parent().has_parent())
+        p = &p->parent();
 
-      while (w->parent()->parent())
-        w = w->parent();
-
-      for (auto&& vp : root()->viewports()) {
-        if (vp == w)
-          return vp;
+      for (auto&& vp : root().viewports()) {
+        if (vp.id() == p->id())
+          return &vp;
       }
       return nullptr;
     }
@@ -208,27 +195,25 @@ namespace yave::ui {
     }
 
   public:
-    bool is_child(const window* c, const window* p) const
+    bool is_child(const window& c, const window& p) const
     {
-      if (!c || !p)
+      if (!c.is_registered() || !p.is_registered())
         return false;
 
-      if (!c->is_registered() || !p->is_registered())
+      const window* w = &c;
+
+      if (!w || !w->has_parent())
         return false;
 
-      const window* w = c;
-
-      if (!w || !w->parent())
-        return false;
-
-      while ((w = w->parent()) != nullptr)
-        if (w == p)
+      while (w->has_parent()) {
+        w = &w->parent();
+        if (w->id() == p.id())
           return true;
-
+      }
       return false;
     }
 
-    bool is_parent(const window* p, const window* c) const
+    bool is_parent(const window& p, const window& c) const
     {
       return is_child(c, p);
     }
@@ -317,12 +302,12 @@ namespace yave::ui {
     return m_pimpl->clear_invalidated_windows();
   }
 
-  auto window_manager::root() -> ui::root*
+  auto window_manager::root() -> ui::root&
   {
     return m_pimpl->root();
   }
 
-  auto window_manager::root() const -> const ui::root*
+  auto window_manager::root() const -> const ui::root&
   {
     return m_pimpl->root();
   }
@@ -342,37 +327,37 @@ namespace yave::ui {
     return m_pimpl->find_window(id);
   }
 
-  bool window_manager::is_child(const window* c, const window* p) const
+  bool window_manager::is_child(const window& c, const window& p) const
   {
     return m_pimpl->is_child(c, p);
   }
 
-  bool window_manager::is_parent(const window* p, const window* c) const
+  bool window_manager::is_parent(const window& p, const window& c) const
   {
     return m_pimpl->is_parent(p, c);
   }
 
-  void window_manager::invalidate_window(window* w, passkey<window>)
+  void window_manager::invalidate_window(window& w, passkey<window>)
   {
     m_pimpl->invalidate_window(w);
   }
 
-  void window_manager::register_window(window* w, passkey<window>)
+  void window_manager::register_window(window& w, passkey<window>)
   {
     m_pimpl->register_window(w);
   }
 
-  void window_manager::unregister_window(window* w, passkey<window>)
+  void window_manager::unregister_window(window& w, passkey<window>)
   {
     m_pimpl->unregister_window(w);
   }
 
-  void window_manager::show_window(window* w, passkey<window>)
+  void window_manager::show_window(window& w, passkey<window>)
   {
     m_pimpl->show_window(w);
   }
 
-  void window_manager::hide_window(window* w, passkey<window>)
+  void window_manager::hide_window(window& w, passkey<window>)
   {
     m_pimpl->hide_window(w);
   }

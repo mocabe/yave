@@ -34,8 +34,8 @@ namespace yave::ui {
     void dispatch_pending_events();
 
   public:
-    void process_show_event(window* w);
-    void process_hide_event(window* w);
+    void process_show_event(window& w);
+    void process_hide_event(window& w);
 
   public:
     void push_pos_event(GLFWwindow* win, u32 x, u32 y);

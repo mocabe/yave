@@ -172,7 +172,7 @@ namespace yave::ui {
     class key_event : public event
     {
     protected:
-      key_event(const window* target, event_phase phase, ui::key key)
+      key_event(const window& target, event_phase phase, ui::key key)
         : event(target, phase)
         , m_key {key}
       {
@@ -189,7 +189,7 @@ namespace yave::ui {
 
     public:
       key_press(
-        const window* target,
+        const window& target,
         event_phase phase,
         ui::key key,
         ui::key_action action,
@@ -229,7 +229,7 @@ namespace yave::ui {
     class key_release final : public key_event
     {
     public:
-      key_release(const window* target, event_phase phase, ui::key key)
+      key_release(const window& target, event_phase phase, ui::key key)
         : key_event(target, phase, key)
       {
       }
@@ -245,7 +245,7 @@ namespace yave::ui {
       std::u8string m_str;
 
     public:
-      key_char(const window* target, event_phase phase, std::u8string str)
+      key_char(const window& target, event_phase phase, std::u8string str)
         : key_event(target, phase, key::unknown)
         , m_str {str}
       {

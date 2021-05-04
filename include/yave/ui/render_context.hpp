@@ -54,11 +54,11 @@ namespace yave::ui {
     std::unique_ptr<ui::texture> m_default_tex;
     vk::UniqueDescriptorSet m_default_tex_descriptor_set;
 
-    bool do_render_required(const window*);
-    void do_render_viewport(viewport*);
+    bool do_render_required(const window&);
+    void do_render_viewport(viewport&);
 
     auto do_render_child_window(
-      const window* w,
+      const window& w,
       const render_scope& parent,
       render_layer&& rl) -> render_layer;
 
@@ -88,13 +88,13 @@ namespace yave::ui {
     /// \param parent parent render scope
     /// \param layer layer to write
     auto render_child_window(
-      const window* win,
+      const window& win,
       const render_scope& parent,
       render_layer layer,
       passkey<render_scope>) -> render_layer;
 
     /// Setup viewport window
-    void init_viewport(viewport* vp, passkey<viewport>);
+    void init_viewport(viewport& vp, passkey<viewport>);
 
   public:
     /// Get default texture (1x1 white image)

@@ -15,7 +15,7 @@ namespace yave::ui {
 
   class native_window::impl
   {
-    ui::viewport* m_vp;
+    ui::viewport* m_vp = nullptr;
     glfw_window m_win;
 
   public:
@@ -129,14 +129,16 @@ namespace yave::ui {
       m_win.update_minimize(minimized, {});
     }
 
-    auto get_viewport() -> ui::viewport*
+    auto get_viewport() -> ui::viewport&
     {
-      return m_vp;
+      assert(m_vp);
+      return *m_vp;
     }
 
-    void set_viewport(ui::viewport* vp)
+    void set_viewport(ui::viewport& vp)
     {
-      m_vp = vp;
+      assert(!m_vp);
+      m_vp = &vp;
     }
 
     void show()
@@ -163,7 +165,7 @@ namespace yave::ui {
 
   native_window::~native_window() noexcept = default;
 
-  void native_window::set_viewport(ui::viewport* vp, passkey<ui::viewport>)
+  void native_window::set_viewport(ui::viewport& vp, passkey<ui::viewport>)
   {
     return m_pimpl->set_viewport(vp);
   }
@@ -283,12 +285,12 @@ namespace yave::ui {
     m_pimpl->update_minimize(minimized);
   }
 
-  auto native_window::viewport() -> ui::viewport*
+  auto native_window::viewport() -> ui::viewport&
   {
     return m_pimpl->get_viewport();
   }
 
-  auto native_window::viewport() const -> const ui::viewport*
+  auto native_window::viewport() const -> const ui::viewport&
   {
     return m_pimpl->get_viewport();
   }

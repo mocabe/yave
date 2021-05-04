@@ -32,11 +32,11 @@ namespace yave::ui {
         passkey<viewport>())}
   {
     // setup native window
-    m_nw->set_viewport(this, {});
+    m_nw->set_viewport(*this, {});
 
     // init viewport
-    m_lctx.init_viewport(this, {});
-    m_rctx.init_viewport(this, {});
+    m_lctx.init_viewport(*this, {});
+    m_rctx.init_viewport(*this, {});
 
     // init close controller
     {
@@ -78,6 +78,11 @@ namespace yave::ui {
       ctx.enter_child(c);
   }
 
+  bool viewport::has_child() const
+  {
+    return !children().empty();
+  }
+
   void viewport::set_child(unique<window> c)
   {
     if (!c)
@@ -87,16 +92,15 @@ namespace yave::ui {
     window::add_child(0, std::move(c));
   }
 
-  auto viewport::get_child() -> window*
+  auto viewport::get_child() -> window&
   {
-    if (!children().empty())
-      return children().front();
-    return nullptr;
+    assert(has_child());
+    return children().front();
   }
 
   void viewport::remove_child()
   {
-    if (!children().empty())
+    if (has_child())
       window::remove_child(children().front());
   }
 

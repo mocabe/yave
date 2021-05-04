@@ -24,10 +24,10 @@ namespace yave::ui {
     ui::layout_context& m_lctx;
 
     // out param
-    std::optional<ui::render_layer>* m_out;
+    std::optional<ui::render_layer>& m_out;
 
     // window
-    const ui::window* m_win;
+    const ui::window& m_win;
 
     // window offset
     ui::vec m_window_offset;
@@ -47,17 +47,17 @@ namespace yave::ui {
     render_scope(
       render_context& rctx,
       layout_context& lctx,
-      const ui::viewport* vp,
-      std::optional<ui::render_layer>* out);
+      const ui::viewport& vp,
+      std::optional<ui::render_layer>& out);
 
     // child scope
     render_scope(
       render_context& rctx,
       layout_context& lctx,
-      const ui::window* win,
+      const ui::window& win,
       const render_scope& parent,
       ui::render_layer rl,
-      std::optional<ui::render_layer>* out);
+      std::optional<ui::render_layer>& out);
 
   public:
     ~render_scope() noexcept;
@@ -73,15 +73,15 @@ namespace yave::ui {
     /// enter child window scope
     /// \param layer layer object to write onto
     /// \returns draw list written in child window
-    [[nodiscard]] auto enter_child(const window*, ui::render_layer&& layer)
+    [[nodiscard]] auto enter_child(const window&, ui::render_layer&& layer)
       -> ui::render_layer;
 
     /// enter child window scope with current draw list
-    void enter_child(const window* w);
+    void enter_child(const window& w);
 
   public:
     /// get current window
-    auto window() const -> const ui::window*;
+    auto window() const -> const ui::window&;
     /// position of current window
     auto window_pos() const -> vec;
     /// offset of curernt window

@@ -16,6 +16,8 @@
 #include <yave/support/log.hpp>
 #include <queue>
 
+#include <range/v3/to_container.hpp>
+
 YAVE_DECL_LOCAL_LOGGER(ui::window_event_dispatcher);
 
 namespace yave::ui {
@@ -92,13 +94,18 @@ namespace yave::ui {
     window_manager& m_wm;
     view_context& m_vctx;
 
+    // event queue
     std::queue<event_data> m_queue;
+    // focused window
+    window* m_focused = nullptr;
 
   public:
     impl(window_manager& wm, view_context& vctx)
       : m_wm {wm}
       , m_vctx {vctx}
     {
+      wm.signals.on_invalidate.connect(
+        slot<window&>([this](window& win) { process_blur_event(win); }));
     }
 
     bool has_pending_events() const
@@ -124,19 +131,31 @@ namespace yave::ui {
 
   private:
     // dispatch event to controllers of window
-    void dispatch_over_window(window* w, event& e)
+    void dispatch_over_window(window& w, event& e)
     {
-      for (auto&& c : w->controllers()) {
-        if (c->event(e, m_vctx) || e.accepted())
+      using namespace ranges;
+      using namespace ranges::views;
+
+      auto cs = std::vector<std::pair<tracker, controller&>>();
+      cs.reserve(w.controllers().size());
+
+      for (auto&& c : w.controllers()) {
+        cs.emplace_back(c.get_tracker(), c);
+      }
+
+      for (auto&& [wp, c] : cs) {
+        if (!wp.expired()) {
+          if (c.event(e, m_vctx) || e.accepted())
           break;
       }
+    }
     }
 
     // find native window
     auto find_native_from_handle(GLFWwindow* w) -> native_window*
     {
-      for (auto&& vp : m_wm.root()->viewports()) {
-        auto native = &vp->native_window();
+      for (auto&& vp : m_wm.root().viewports()) {
+        auto native = &vp.native_window();
         if (native->handle() == w)
           return native;
       }
@@ -146,11 +165,11 @@ namespace yave::ui {
   private:
     // common implementaiton of show/hide event
     template <class Event>
-    void process_visibility_event(window* w)
+    void process_visibility_event(window& w)
     {
-      auto notify_children = [&](auto&& self, window* w, Event& e) -> void {
+      auto notify_children = [&](auto&& self, window& w, Event& e) -> void {
         // not visible
-        if (!w->is_visible())
+        if (!w.is_visible())
           return;
 
         // reset and dispatch
@@ -158,16 +177,16 @@ namespace yave::ui {
         e.set_target(w, {});
         dispatch_over_window(w, e);
 
-        for (auto&& c : w->children())
+        for (auto&& c : w.children())
           self(c, e);
       };
 
       // dispatch on target window
-      assert(w->is_registered());
+      assert(w.is_registered());
       auto e = std::make_unique<Event>(w);
       dispatch_over_window(w, *e);
 
-      for (auto&& c : w->children()) {
+      for (auto&& c : w.children()) {
         auto f = fix_lambda(notify_children);
         f(c, *e);
       }
@@ -175,17 +194,41 @@ namespace yave::ui {
 
   public:
     // send events::show
-    void process_show_event(window* w)
+    void process_show_event(window& w)
     {
-      assert(!w->is_visible());
-      return process_visibility_event<events::show>(w);
+      if (!w.is_visible()) {
+        process_visibility_event<events::show>(w);
+        w.set_visible(true, {});
+      }
     }
 
     // send events::hide
-    void process_hide_event(window* w)
+    void process_hide_event(window& w)
     {
-      assert(w->is_visible());
-      return process_visibility_event<events::hide>(w);
+      if (w.is_visible()) {
+        process_visibility_event<events::hide>(w);
+        w.set_visible(false, {});
+      }
+    }
+    bool has_focused_window() const
+    {
+      return m_focused != nullptr;
+    }
+
+    auto focused_window() const -> window&
+    {
+      return *m_focused;
+    }
+
+    void set_focused_window(window& w)
+    {
+      assert(!has_focused_window());
+      m_focused = &w;
+    }
+
+    void clear_focused_window()
+    {
+      m_focused = nullptr;
     }
 
   private:
@@ -210,7 +253,7 @@ namespace yave::ui {
       log_info("close event");
       if (auto native = find_native_from_handle(data.win)) {
 
-        auto viewport = native->viewport();
+        auto& viewport = native->viewport();
 
         // send close event
         auto event = std::make_unique<events::close>(viewport);
@@ -220,7 +263,7 @@ namespace yave::ui {
           // hide window before close
           native->hide();
           // destroy viewport and backing window
-          m_wm.root()->remove_viewport(viewport);
+          m_wm.root().remove_viewport(viewport);
         }
       }
     }
@@ -229,7 +272,7 @@ namespace yave::ui {
     {
       log_info("refresh event");
       if (auto native = find_native_from_handle(data.win)) {
-        native->viewport()->invalidate();
+        native->viewport().invalidate();
       }
     }
 
@@ -293,12 +336,12 @@ namespace yave::ui {
     m_pimpl->dispatch_pending_events();
   }
 
-  void window_event_dispatcher::process_show_event(window* w)
+  void window_event_dispatcher::process_show_event(window& w)
   {
     m_pimpl->process_show_event(w);
   }
 
-  void window_event_dispatcher::process_hide_event(window* w)
+  void window_event_dispatcher::process_hide_event(window& w)
   {
     m_pimpl->process_hide_event(w);
   }

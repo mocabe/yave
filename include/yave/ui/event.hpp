@@ -35,13 +35,13 @@ namespace yave::ui {
 
   public:
     /// ctor
-    event(const window* target, event_phase phase);
+    event(const window& target, event_phase phase);
     /// dtor
     virtual ~event() noexcept;
 
   public:
     /// target window
-    auto target() const -> const window*;
+    auto target() const -> const window&;
     /// current phase
     auto phase() const -> event_phase;
     /// accepted?
@@ -49,7 +49,7 @@ namespace yave::ui {
 
   protected:
     /// set target
-    void set_target(window* w);
+    void set_target(window& w);
     /// set phase
     void set_phase(event_phase p);
     /// set accept state

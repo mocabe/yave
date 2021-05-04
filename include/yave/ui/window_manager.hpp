@@ -26,11 +26,11 @@ namespace yave::ui {
     struct _signals
     {
       /// will be called just after registered  window
-      signal<window*> on_register;
+      signal<window&> on_register;
       /// will be called just before unregister window
-      signal<window*> on_unregister;
+      signal<window&> on_unregister;
       /// will be called just after invalidated window
-      signal<window*> on_invalidate;
+      signal<window&> on_invalidate;
       /// will be called when all windows are closed
       signal<> on_last_window_close;
     };
@@ -61,9 +61,9 @@ namespace yave::ui {
 
   public:
     /// get root window
-    auto root() -> ui::root*;
+    auto root() -> ui::root&;
     /// get root window
-    auto root() const -> const ui::root*;
+    auto root() const -> const ui::root&;
 
   public:
     /// exists?
@@ -76,18 +76,18 @@ namespace yave::ui {
   public:
     /// child?
     /// \note returns false on !exists(c) || !exists(p)
-    bool is_child(const window* c, const window* p) const;
+    bool is_child(const window& c, const window& p) const;
     /// parent?
     /// \note returns false on !exists(p) || !exists(c)
-    bool is_parent(const window* p, const window* c) const;
+    bool is_parent(const window& p, const window& c) const;
 
   public:
     // for window
-    void invalidate_window(window*, passkey<window>);
-    void register_window(window*, passkey<window>);
-    void unregister_window(window*, passkey<window>);
-    void show_window(window*, passkey<window>);
-    void hide_window(window*, passkey<window>);
+    void invalidate_window(window&, passkey<window>);
+    void register_window(window&, passkey<window>);
+    void unregister_window(window&, passkey<window>);
+    void show_window(window&, passkey<window>);
+    void hide_window(window&, passkey<window>);
 
   public:
     void push_pos_event(GLFWwindow* win, u32 x, u32 y);

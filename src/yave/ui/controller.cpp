@@ -12,9 +12,14 @@ namespace yave::ui {
   {
   }
 
-  void controller::set_window(ui::window* w, passkey<ui::window>)
+  void controller::set_window(ui::window& w, passkey<ui::window>)
   {
-    m_window = w;
+    m_window = &w;
+  }
+
+  void controller::clear_window(passkey<ui::window>)
+  {
+    m_window = nullptr;
   }
 
   void controller::set_phase(event_phase p)
@@ -27,14 +32,19 @@ namespace yave::ui {
     return m_phase;
   }
 
-  auto controller::window() -> ui::window*
+  bool controller::attached() const
   {
-    return m_window;
+    return m_window != nullptr;
   }
 
-  auto controller::window() const -> const ui::window*
+  auto controller::window() -> ui::window&
   {
-    return m_window;
+    return *m_window;
+  }
+
+  auto controller::window() const -> const ui::window&
+  {
+    return *m_window;
   }
 
 } // namespace yave::ui

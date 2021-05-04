@@ -35,12 +35,12 @@ namespace yave::ui {
   window::~window() noexcept
   {
     if (is_registered())
-      m_wm->unregister_window(this, {});
+      m_wm->unregister_window(*this, {});
   }
 
-  void window::set_parent(window* p, passkey<ui::window_manager>)
+  void window::set_parent(window& p, passkey<ui::window_manager>)
   {
-    m_parent = p;
+    m_parent = &p;
   }
 
   void window::set_registered(
@@ -83,7 +83,7 @@ namespace yave::ui {
   void window::invalidate()
   {
     if (is_registered())
-      m_wm->invalidate_window(this, {});
+      m_wm->invalidate_window(*this, {});
     else
       log_warning("invalidate() on inactive window");
   }
@@ -96,7 +96,7 @@ namespace yave::ui {
   void window::show()
   {
     if (is_registered())
-      m_wm->show_window(this, {});
+      m_wm->show_window(*this, {});
     else
       log_warning("window::show() for inactive window");
   }
@@ -104,7 +104,7 @@ namespace yave::ui {
   void window::hide()
   {
     if (is_registered())
-      m_wm->hide_window(this, {});
+      m_wm->hide_window(*this, {});
     else
       log_warning("window::hide() for inactive window");
   }
@@ -132,10 +132,10 @@ namespace yave::ui {
     return *m_wm;
   }
 
-  void window::add_child(size_t idx, unique<window> win)
+  auto window::add_child(size_t idx, unique<window> win) -> window&
   {
-    assert(win);
-    assert(!win->m_parent);
+    if (!win || win->has_parent())
+      throw std::invalid_argument("window::add_child(): invalid window");
 
     auto& ws = m_children;
 
@@ -146,14 +146,16 @@ namespace yave::ui {
     ptr->m_parent = this;
 
     if (is_registered())
-      m_wm->register_window(ptr, {});
+      m_wm->register_window(*ptr, {});
+
+    return *ptr;
   }
 
-  auto window::detach_child(const window* w) -> unique<window>
+  auto window::detach_child(const window& w) -> unique<window>
   {
     auto& ws = m_children;
 
-    auto it = std::ranges::find_if(ws, [&](auto&& x) { return x.get() == w; });
+    auto it = std::ranges::find_if(ws, [&](auto&& x) { return x.get() == &w; });
 
     if (it == ws.end())
       return nullptr;
@@ -163,60 +165,62 @@ namespace yave::ui {
     ret->m_parent = nullptr;
 
     if (is_registered())
-      m_wm->unregister_window(ret.get(), {});
+      m_wm->unregister_window(*ret, {});
 
     return ret;
   }
 
-  void window::remove_child(const window* w)
+  void window::remove_child(const window& w)
   {
     (void)detach_child(w);
   }
 
-  void window::move_child_front(const window* w)
+  void window::move_child_front(const window& w)
   {
     auto& ws = m_children;
 
-    auto it = std::ranges::find_if(ws, [&](auto&& x) { return x.get() == w; });
+    auto it = std::ranges::find_if(ws, [&](auto&& x) { return x.get() == &w; });
 
     if (it != ws.end())
       std::rotate(ws.begin(), it, std::next(it));
   }
 
-  void window::move_child_back(const window* w)
+  void window::move_child_back(const window& w)
   {
     auto& ws = m_children;
 
-    auto it = std::ranges::find_if(ws, [&](auto&& x) { return x.get() == w; });
+    auto it = std::ranges::find_if(ws, [&](auto&& x) { return x.get() == &w; });
 
     if (it != ws.end())
       std::rotate(it, std::next(it), ws.end());
   }
 
-  void window::add_controller(unique<controller> l)
+  auto window::add_controller(unique<controller> l) -> controller&
   {
-    assert(l);
-    assert(!l->window());
-    l->set_window(this, {});
-    m_controllers.push_back(std::move(l));
+    if (!l || l->attached())
+      throw std::invalid_argument(
+        "window::add_controller(): invalid controller");
+
+    l->set_window(*this, {});
+    return *m_controllers.emplace_back(std::move(l));
   }
 
-  auto window::detach_controller(const controller* l) -> unique<controller>
+  auto window::detach_controller(const controller& l) -> unique<controller>
   {
     auto& ls = m_controllers;
 
-    auto it = std::ranges::find_if(ls, [&](auto&& x) { return x.get() == l; });
+    auto it = std::ranges::find_if(ls, [&](auto&& x) { return x.get() == &l; });
 
     if (it == ls.end())
       return nullptr;
 
     auto ret = std::move(*it);
     ls.erase(it);
-    ret->set_window(nullptr, {});
+    ret->clear_window({});
     return ret;
   }
 
-  void window::remove_controller(const controller* l)
+  void window::remove_controller(const controller& l)
   {
     (void)detach_controller(l);
   }

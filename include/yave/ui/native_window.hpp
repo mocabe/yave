@@ -39,7 +39,7 @@ namespace yave::ui {
 
   public:
     // for viewport
-    void set_viewport(viewport* vp, passkey<viewport>);
+    void set_viewport(viewport& vp, passkey<viewport>);
 
   public:
     /// native handle
@@ -83,8 +83,8 @@ namespace yave::ui {
 
   public:
     /// get viewport
-    auto viewport() -> ui::viewport*;
-    auto viewport() const -> const ui::viewport*;
+    auto viewport() -> ui::viewport&;
+    auto viewport() const -> const ui::viewport&;
 
   public:
     /// show window

@@ -35,17 +35,17 @@ namespace yave::ui {
     bool should_close() const;
 
     /// add native window
-    auto add_viewport(std::u8string name, ui::size size) -> ui::viewport*;
+    auto add_viewport(std::u8string name, ui::size size) -> ui::viewport&;
 
     /// remove native window
-    void remove_viewport(const ui::viewport* v);
+    void remove_viewport(const ui::viewport& v);
 
     /// get viewports
     auto viewports() const
     {
       using namespace ranges;
-      return children() | views::transform([](auto* w) {
-               return static_cast<const viewport*>(w);
+      return children() | views::transform([](auto& w) -> auto& {
+               return static_cast<const viewport&>(w);
              });
     }
 
@@ -53,8 +53,8 @@ namespace yave::ui {
     auto viewports()
     {
       using namespace ranges;
-      return children() | views::transform([](auto* w) {
-               return static_cast<viewport*>(w);
+      return children() | views::transform([](auto& w) -> auto& {
+               return static_cast<viewport&>(w);
              });
     }
   };

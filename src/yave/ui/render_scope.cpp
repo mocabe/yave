@@ -13,8 +13,8 @@ namespace yave::ui {
   render_scope::render_scope(
     render_context& rctx,
     layout_context& lctx,
-    const ui::viewport* vp,
-    std::optional<ui::render_layer>* out)
+    const ui::viewport& vp,
+    std::optional<ui::render_layer>& out)
     : m_rctx {rctx}
     , m_lctx {lctx}
     , m_out {out}
@@ -30,10 +30,10 @@ namespace yave::ui {
   render_scope::render_scope(
     render_context& rctx,
     layout_context& lctx,
-    const ui::window* win,
+    const ui::window& win,
     const render_scope& parent,
     ui::render_layer rl,
-    std::optional<ui::render_layer>* out)
+    std::optional<ui::render_layer>& out)
     : m_rctx {rctx}
     , m_lctx {lctx}
     , m_out {out}
@@ -48,8 +48,7 @@ namespace yave::ui {
 
   render_scope::~render_scope() noexcept
   {
-    assert(m_out);
-    *m_out = std::move(m_layer);
+    m_out = std::move(m_layer);
   }
 
   auto render_scope::render_ctx() -> render_context&
@@ -62,18 +61,18 @@ namespace yave::ui {
     return m_rctx;
   }
 
-  auto render_scope::enter_child(const ui::window* w, ui::render_layer&& layer)
+  auto render_scope::enter_child(const ui::window& w, ui::render_layer&& layer)
     -> ui::render_layer
   {
     return m_rctx.render_child_window(w, *this, std::move(layer), {});
   }
 
-  void render_scope::enter_child(const ui::window* w)
+  void render_scope::enter_child(const ui::window& w)
   {
     m_layer = enter_child(w, std::move(*m_layer));
   }
 
-  auto render_scope::window() const -> const ui::window*
+  auto render_scope::window() const -> const ui::window&
   {
     return m_win;
   }

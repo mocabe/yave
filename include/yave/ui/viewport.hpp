@@ -52,10 +52,12 @@ namespace yave::ui {
     void render(render_scope ctx) const override;
 
   public:
+    /// Has child?
+    bool has_child() const;
     /// Set child window
     void set_child(ui::unique<window> c);
     /// Get child window (if exists)
-    auto get_child() -> window*;
+    auto get_child() -> window&;
     /// Remove child window
     void remove_child();
 

@@ -7,17 +7,17 @@
 
 namespace yave::ui {
 
-  event::event(const window* target, event_phase phase)
-    : m_target {target}
+  event::event(const window& target, event_phase phase)
+    : m_target {&target}
     , m_phase {phase}
   {
   }
 
   event::~event() noexcept = default;
 
-  auto event::target() const -> const window*
+  auto event::target() const -> const window&
   {
-    return m_target;
+    return *m_target;
   }
 
   auto event::phase() const -> event_phase
@@ -30,9 +30,9 @@ namespace yave::ui {
     return m_accepted;
   }
 
-  void event::set_target(window* w)
+  void event::set_target(window& w)
   {
-    m_accepted = w;
+    m_accepted = &w;
   }
 
   void event::set_phase(event_phase p)

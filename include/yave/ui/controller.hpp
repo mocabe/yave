@@ -42,16 +42,20 @@ namespace yave::ui {
     virtual bool event(ui::event& e, view_context& vctx) = 0;
 
     // for window
-    void set_window(ui::window*, passkey<ui::window>);
+    void set_window(ui::window&, passkey<ui::window>);
+    void clear_window(passkey<ui::window>);
 
     /// get target phase
     auto phase() -> event_phase;
 
-    /// get attached window
-    auto window() -> ui::window*;
+    /// attached to parent window?
+    bool attached() const;
 
     /// get attached window
-    auto window() const -> const ui::window*;
+    auto window() -> ui::window&;
+
+    /// get attached window
+    auto window() const -> const ui::window&;
   };
 
   template <class Derived>

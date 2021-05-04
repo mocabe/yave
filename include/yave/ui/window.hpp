@@ -76,7 +76,7 @@ namespace yave::ui {
     virtual ~window() noexcept;
 
   public:
-    void set_parent(window*, passkey<ui::window_manager>);
+    void set_parent(window&, passkey<ui::window_manager>);
     void set_registered(bool, ui::window_manager&, passkey<ui::window_manager>);
     void set_invalidated(bool, passkey<ui::window_manager>);
     void set_visible(bool, passkey<ui::window_manager>);
@@ -119,23 +119,23 @@ namespace yave::ui {
     /// utility function to add new window
     /// \param idx position of insertion. will be clamped to [0, size].
     /// \param win window to insert
-    void add_child(size_t idx, ui::unique<window> win);
+    auto add_child(size_t idx, ui::unique<window> win) -> window&;
     /// utility function to detach child window
-    auto detach_child(const window* w) -> ui::unique<window>;
+    auto detach_child(const window& w) -> ui::unique<window>;
     /// utility function to remove child window
-    void remove_child(const window* w);
+    void remove_child(const window& w);
     /// utility function to move child window
-    void move_child_front(const window* w);
+    void move_child_front(const window& w);
     /// utility function to move child window
-    void move_child_back(const window* w);
+    void move_child_back(const window& w);
 
   protected:
     /// add event controller
-    void add_controller(ui::unique<controller> l);
+    auto add_controller(ui::unique<controller> l) -> controller&;
     /// detach event controller
-    auto detach_controller(const controller* l) -> ui::unique<controller>;
+    auto detach_controller(const controller& l) -> ui::unique<controller>;
     /// remove event controller
-    void remove_controller(const controller* l);
+    void remove_controller(const controller& l);
 
   public:
     /// Process layout calculation.
@@ -161,14 +161,16 @@ namespace yave::ui {
     auto make_raw_pointer_view(const T& ps) const
     {
       using namespace ranges;
-      return subrange(ps) | views::transform([](auto&& p) { return p.get(); });
+      return subrange(ps)
+             | views::transform([](auto&& p) -> auto& { return *p; });
     }
 
     template <class T>
     auto make_raw_pointer_view(T& ps)
     {
       using namespace ranges;
-      return subrange(ps) | views::transform([](auto&& p) { return p.get(); });
+      return subrange(ps)
+             | views::transform([](auto&& p) -> auto& { return *p; });
     }
 
   public:
@@ -203,16 +205,24 @@ namespace yave::ui {
       return m_id;
     }
 
-    /// Get parent window
-    auto parent() const -> const ui::window*
+    /// Has parent window?
+    bool has_parent() const
     {
       return m_parent;
     }
 
     /// Get parent window
-    auto parent() -> ui::window*
+    auto parent() const -> const ui::window&
     {
-      return m_parent;
+      assert(has_parent());
+      return *m_parent;
+    }
+
+    /// Get parent window
+    auto parent() -> ui::window&
+    {
+      assert(has_parent());
+      return *m_parent;
     }
   };
 
