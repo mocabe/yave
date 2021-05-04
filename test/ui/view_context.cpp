@@ -99,8 +99,8 @@ TEST_CASE("vctx")
       void init(view_context& vctx) override
       {
         auto& wm = vctx.window_manager();
-        auto vp  = wm.root()->add_viewport(u8"テスト", size(500, 500));
-        vp->native_window().show();
+        auto& vp = wm.root().add_viewport(u8"テスト", size(500, 500));
+        vp.native_window().show();
       }
     };
 

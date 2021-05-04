@@ -90,6 +90,7 @@ namespace yave::ui {
 
     auto& operator*() const
     {
+      assert(m_ptr);
       return m_ptr.operator*();
     }
 
@@ -223,6 +224,7 @@ namespace yave::ui {
 
     auto& operator*() const noexcept
     {
+      assert(m_ptr);
       return m_ptr.operator*();
     }
 

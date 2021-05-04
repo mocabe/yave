@@ -81,7 +81,8 @@ namespace yave::ui {
   /// Call try_lock on multiple trackers.
   /// \retval true Success.
   /// \retval false Tracked object has been destroyed.
-  template <class F, std::same_as<tracker> Head, std::same_as<tracker>... Tail>
+  template <class F, class Head, class... Tail>
+    requires std::same_as<std::decay_t<Head>, tracker>
   bool try_lock(F&& f, Head&& h, Tail&&... t)
   {
     if constexpr (sizeof...(t) == 0) {
