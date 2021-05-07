@@ -50,13 +50,22 @@ namespace yave::ui {
       m_queue.push(std::move(e));
     }
 
+    auto pop_window_event() -> std::optional<glfw_event>
+    {
+      if (!m_queue.empty()) {
+        auto top = std::move(m_queue.front());
+        m_queue.pop();
+        return top;
+      }
+      return std::nullopt;
+    }
+
     // process window event data
     void dispatch_pending_events()
     {
       log_info("----- [[dispatch_pending_events]] -----");
-      while (!m_queue.empty()) {
-        std::visit([&](auto& e) { process(e); }, m_queue.front());
-        m_queue.pop();
+      while (auto event = pop_window_event()) {
+        std::visit([&](auto& e) { process(e); }, *event);
       }
     }
 
