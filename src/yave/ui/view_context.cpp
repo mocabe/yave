@@ -121,12 +121,14 @@ namespace yave::ui {
       return m_exit;
     }
 
+    bool can_poll()
+    {
+      return m_wm.has_pending_events({}) || !m_queue.empty();
+    }
+
     void wait()
     {
-      if (m_wm.has_pending_events({}) || !m_queue.empty())
-        m_glfw.poll();
-      else
-        m_glfw.wait();
+      m_glfw.wait();
     }
 
     void exec()
@@ -157,8 +159,10 @@ namespace yave::ui {
     {
       m_exit = false;
       while (!exit_requested()) {
-        wait(); // wait new command (and callbacks)
-        poll(); // run event loop
+        if (can_poll())
+          poll();
+        else
+          wait();
       }
     }
 

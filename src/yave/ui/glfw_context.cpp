@@ -98,7 +98,6 @@ namespace yave::ui {
       auto& wm   = vctx.window_manager();
       wm.push_glfw_event(
         glfw_pos_event {.win = w, .x = u32(xpos), .y = u32(ypos)}, {});
-      // Windows: handle modal event loop
       vctx.poll();
     });
 
@@ -107,7 +106,6 @@ namespace yave::ui {
       auto& wm   = vctx.window_manager();
       wm.push_glfw_event(
         glfw_size_event {.win = w, .w = u32(width), .h = u32(height)}, {});
-      /// Windows: handle modal event loop
       vctx.poll();
     });
 
@@ -115,12 +113,14 @@ namespace yave::ui {
       auto& vctx = get_window_data(w).view_ctx;
       auto& wm   = vctx.window_manager();
       wm.push_glfw_event(glfw_close_event {.win = w}, {});
+      vctx.poll();
     });
 
     glfwSetWindowRefreshCallback(w, [](GLFWwindow* w) {
       auto& vctx = get_window_data(w).view_ctx;
       auto& wm   = vctx.window_manager();
       wm.push_glfw_event(glfw_refresh_event {.win = w}, {});
+      vctx.poll();
     });
 
     glfwSetWindowFocusCallback(w, [](GLFWwindow* w, int focused) {
@@ -128,6 +128,7 @@ namespace yave::ui {
       auto& wm   = vctx.window_manager();
       wm.push_glfw_event(
         glfw_focus_event {.win = w, .focused = glfw_bool(focused)}, {});
+      vctx.poll();
     });
 
     glfwSetWindowIconifyCallback(w, [](GLFWwindow* w, int iconified) {
@@ -135,6 +136,7 @@ namespace yave::ui {
       auto& wm   = vctx.window_manager();
       wm.push_glfw_event(
         glfw_minimize_event {.win = w, .minimized = glfw_bool(iconified)}, {});
+      vctx.poll();
     });
 
     glfwSetWindowMaximizeCallback(w, [](GLFWwindow* w, int maximized) {
@@ -142,6 +144,7 @@ namespace yave::ui {
       auto& wm   = vctx.window_manager();
       wm.push_glfw_event(
         glfw_maximize_event {.win = w, .maximized = glfw_bool(maximized)}, {});
+      vctx.poll();
     });
 
     glfwSetFramebufferSizeCallback(w, [](GLFWwindow* w, int width, int height) {
@@ -151,6 +154,7 @@ namespace yave::ui {
         glfw_framebuffer_size_event {
           .win = w, .w = u32(width), .h = u32(height)},
         {});
+      vctx.poll();
     });
 
     glfwSetWindowContentScaleCallback(
@@ -159,6 +163,7 @@ namespace yave::ui {
         auto& wm   = vctx.window_manager();
         wm.push_glfw_event(
           glfw_content_scale_event {.win = w, .xs = xscale, .ys = yscale}, {});
+        vctx.poll();
       });
 
     // ------------------------------------------
@@ -174,6 +179,7 @@ namespace yave::ui {
         auto& wm   = vctx.window_manager();
         wm.push_glfw_event(
           glfw_key_event {.win = w, .key = k, .action = a, .mods = m}, {});
+        vctx.poll();
       });
 
     glfwSetCharCallback(w, [](GLFWwindow* w, unsigned int codepoint) {
@@ -181,6 +187,7 @@ namespace yave::ui {
       auto& wm   = vctx.window_manager();
       wm.push_glfw_event(
         glfw_char_event {.win = w, .codepoint = codepoint}, {});
+      vctx.poll();
     });
 
     glfwSetMouseButtonCallback(
@@ -194,6 +201,7 @@ namespace yave::ui {
         wm.push_glfw_event(
           glfw_button_event {.win = w, .button = b, .action = a, .mods = m},
           {});
+        vctx.poll();
       });
 
     glfwSetCursorPosCallback(w, [](GLFWwindow* w, double xpos, double ypos) {
@@ -201,6 +209,7 @@ namespace yave::ui {
       auto& wm   = vctx.window_manager();
       wm.push_glfw_event(
         glfw_cursor_pos_event {.win = w, .xpos = xpos, .ypos = ypos}, {});
+      vctx.poll();
     });
 
     glfwSetCursorEnterCallback(w, [](GLFWwindow* w, int entered) {
@@ -208,6 +217,7 @@ namespace yave::ui {
       auto& wm   = vctx.window_manager();
       wm.push_glfw_event(
         glfw_cursor_enter_event {.win = w, .entered = glfw_bool(entered)}, {});
+      vctx.poll();
     });
 
     glfwSetScrollCallback(w, [](GLFWwindow* w, double xoffset, double yoffset) {
@@ -216,6 +226,7 @@ namespace yave::ui {
       wm.push_glfw_event(
         glfw_scroll_event {.win = w, .xoffset = xoffset, .yoffset = yoffset},
         {});
+      vctx.poll();
     });
 
     glfwSetDropCallback(
@@ -229,6 +240,7 @@ namespace yave::ui {
         auto& wm   = vctx.window_manager();
         wm.push_glfw_event(
           glfw_path_drop_event {.win = w, .paths = std::move(ps)}, {});
+        vctx.poll();
       });
 
     return w;
