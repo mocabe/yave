@@ -3,6 +3,9 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
+#include <optional>
+#include <chrono>
+
 #include <yave/ui/vulkan_pipelines.hpp>
 #include <yave/ui/vulkan_surface.hpp>
 #include <yave/ui/vulkan_shaders.hpp>

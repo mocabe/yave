@@ -109,22 +109,22 @@ namespace yave::ui {
     static auto descriptor_set_to_draw_tex(vk::DescriptorSet set) -> draw_tex;
 
   public:
-    auto image_sampler() const
+    auto image_sampler() const -> vk::Sampler
     {
       return m_image_sampler.get();
     }
 
-    auto descriptor_set_layout() const
+    auto descriptor_set_layout() const -> vk::DescriptorSetLayout
     {
       return m_descriptor_set_layout.get();
     }
 
-    auto descriptor_pool() const
+    auto descriptor_pool() const -> vk::DescriptorPool
     {
       return m_descriptor_pool.get();
     }
 
-    auto pipeline_cache() const
+    auto pipeline_cache() const -> vk::PipelineCache
     {
       return m_pipeline_cache.get();
     }

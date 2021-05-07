@@ -25,19 +25,19 @@ namespace yave::ui {
     render_buffer(render_buffer&&)      = delete;
 
     /// size
-    auto size() const
+    auto size() const -> vk::DeviceSize
     {
       return m_size;
     }
 
     /// capacity
-    auto capacity() const
+    auto capacity() const -> vk::DeviceSize
     {
       return m_capacity;
     }
 
     /// Get buffer handle
-    auto buffer() const
+    auto buffer() const -> vk::Buffer
     {
       return m_buffer.buffer();
     }
