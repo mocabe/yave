@@ -12,7 +12,6 @@ add_library(yave-ui
   layout_scope.cpp
   render_context.cpp
   render_scope.cpp
-  main_context.cpp
   data_context.cpp
   view_context.cpp
   glfw_context.cpp

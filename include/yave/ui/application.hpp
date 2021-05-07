@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <yave/ui/main_context.hpp>
 #include <yave/ui/view_context.hpp>
 #include <yave/ui/data_context.hpp>
 
@@ -14,16 +13,14 @@ namespace yave::ui {
   /// application context
   class application
   {
-    main_context m_mctx;
     data_context m_dctx;
     view_context m_vctx;
 
   public:
     /// init application
     application()
-      : m_mctx {}
-      , m_dctx {}
-      , m_vctx {m_mctx, m_dctx}
+      : m_dctx {}
+      , m_vctx {m_dctx}
     {
     }
 
@@ -31,8 +28,7 @@ namespace yave::ui {
     void run()
     {
       m_vctx.post([&](auto& ctx) { init(ctx); });
-      m_mctx.post([&](auto&) { m_vctx.run(); });
-      m_mctx.run();
+      m_vctx.run();
     }
 
   public:

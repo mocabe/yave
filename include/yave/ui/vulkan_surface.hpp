@@ -48,8 +48,8 @@ namespace yave::ui {
     vulkan_surface(render_context& rctx, native_window& win);
     ~vulkan_surface() noexcept;
 
-    /// Set clear color
-    void set_clear_color(float r, float g, float b, float a);
+    /// Set clear color in sRGB colorspace
+    void set_clear_color(float r, float g, float b);
 
     auto swapchain_extent() const
     {
@@ -68,6 +68,9 @@ namespace yave::ui {
     /// Rebuild resources related to frame buffer.
     /// \returns false when failed to create swapchain.
     bool rebuild();
+
+    /// block until frame resources for next frame become usable
+    void wait_next_frame();
 
     /// begin new frame
     /// \returns false when swapchain is not usable.

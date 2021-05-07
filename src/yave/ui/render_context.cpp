@@ -9,7 +9,6 @@
 #include <yave/ui/viewport.hpp>
 #include <yave/ui/root.hpp>
 #include <yave/ui/viewport_renderer.hpp>
-#include <yave/ui/main_context.hpp>
 #include <yave/ui/native_window.hpp>
 #include <yave/ui/vulkan_device.hpp>
 #include <yave/ui/vulkan_surface.hpp>
@@ -127,9 +126,12 @@ namespace yave::ui {
   window_render_data::window_render_data()           = default;
   window_render_data::~window_render_data() noexcept = default;
 
-  render_context::render_context(main_context& mctx, layout_context& lctx)
+  render_context::render_context(
+    vulkan_context& vulkan,
+    glfw_context& glfw,
+    layout_context& lctx)
     : m_lctx {lctx}
-    , m_device {mctx.vulkan_ctx(), mctx.glfw_ctx()}
+    , m_device {vulkan, glfw}
     , m_allocator {m_device}
   {
     // clang-format off
@@ -166,8 +168,14 @@ namespace yave::ui {
     vp.render(render_scope(*this, m_lctx, vp, result));
     assert(result.has_value());
     // render
+    auto& vctx = vp.window_manager().view_ctx();
     assert(vp.window_render_data({}).renderer);
-    vp.window_render_data({}).renderer->render(std::move(*result));
+    vp.window_render_data({}).renderer->render(std::move(*result), vctx);
+  }
+
+  bool render_context::do_render_ready(const viewport& vp)
+  {
+    return vp.window_render_data({}).renderer->can_render();
   }
 
   bool render_context::do_render_required(const window& w)
@@ -184,9 +192,11 @@ namespace yave::ui {
     auto& root = wm.root();
 
     // re-render invalidated viewports
-    for (auto&& vp : root.viewports())
-      if (do_render_required(vp))
+    for (auto&& vp : root.viewports()) {
+      if (do_render_ready(vp) && do_render_required(vp)) {
         do_render_viewport(vp);
+      }
+    }
   }
 
   auto render_context::do_render_child_window(

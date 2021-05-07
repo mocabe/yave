@@ -99,7 +99,7 @@ namespace yave::ui {
       register_window_impl(w);
 
       if (w.is_visible())
-        m_event_dispatcher.process_show_event(w);
+        m_event_dispatcher.send_show_event(w);
     }
 
     // recursively unregister windows
@@ -121,7 +121,7 @@ namespace yave::ui {
       assert(w.is_registered());
 
       if (w.is_visible())
-        m_event_dispatcher.process_hide_event(w);
+        m_event_dispatcher.send_hide_event(w);
 
       m_self.signals.on_unregister(w);
       unregister_window_impl(w);
@@ -152,13 +152,13 @@ namespace yave::ui {
     void show_window(window& w)
     {
       assert(w.is_registered());
-      m_event_dispatcher.process_show_event(w);
+      m_event_dispatcher.send_show_event(w);
     }
 
     void hide_window(window& w)
     {
       assert(w.is_registered());
-      m_event_dispatcher.process_hide_event(w);
+      m_event_dispatcher.send_hide_event(w);
     }
 
     auto find_window(wid id) const -> window*
@@ -218,29 +218,9 @@ namespace yave::ui {
     }
 
   public:
-    void push_pos_event(GLFWwindow* win, u32 x, u32 y)
+    void push_glfw_event(glfw_event&& e)
     {
-      m_event_dispatcher.push_pos_event(win, x, y);
-    }
-
-    void push_size_event(GLFWwindow* win, u32 w, u32 h)
-    {
-      m_event_dispatcher.push_size_event(win, w, h);
-    }
-
-    void push_close_event(GLFWwindow* win)
-    {
-      m_event_dispatcher.push_close_event(win);
-    }
-
-    void push_refresh_event(GLFWwindow* win)
-    {
-      m_event_dispatcher.push_refresh_event(win);
-    }
-
-    void push_focus_event(GLFWwindow* win, bool focused)
-    {
-      m_event_dispatcher.push_focus_event(win, focused);
+      m_event_dispatcher.push_glfw_event(std::move(e));
     }
 
     bool has_pending_events()
@@ -251,26 +231,6 @@ namespace yave::ui {
     void dispatch_pending_events()
     {
       m_event_dispatcher.dispatch_pending_events();
-    }
-
-    void push_fb_size_event(GLFWwindow* win, u32 w, u32 h)
-    {
-      m_event_dispatcher.push_fb_size_event(win, w, h);
-    }
-
-    void push_content_scale_event(GLFWwindow* win, f32 xs, f32 ys)
-    {
-      m_event_dispatcher.push_content_scale_event(win, xs, ys);
-    }
-
-    void push_maximize_event(GLFWwindow* win, bool maximized)
-    {
-      m_event_dispatcher.push_maximize_event(win, maximized);
-    }
-
-    void push_minimize_event(GLFWwindow* win, bool minimized)
-    {
-      m_event_dispatcher.push_minimize_event(win, minimized);
     }
   };
 
@@ -284,6 +244,11 @@ namespace yave::ui {
   auto window_manager::view_ctx() -> view_context&
   {
     return m_pimpl->view_ctx();
+  }
+
+  void window_manager::push_glfw_event(glfw_event e, passkey<glfw_context>)
+  {
+    m_pimpl->push_glfw_event(std::move(e));
   }
 
   bool window_manager::has_pending_events(passkey<view_context>) const
@@ -361,48 +326,4 @@ namespace yave::ui {
     m_pimpl->hide_window(w);
   }
 
-  void window_manager::push_pos_event(GLFWwindow* win, u32 x, u32 y)
-  {
-    m_pimpl->push_pos_event(win, x, y);
-  }
-
-  void window_manager::push_size_event(GLFWwindow* win, u32 w, u32 h)
-  {
-    m_pimpl->push_size_event(win, w, h);
-  }
-
-  void window_manager::push_fb_size_event(GLFWwindow* win, u32 w, u32 h)
-  {
-    m_pimpl->push_fb_size_event(win, w, h);
-  }
-
-  void window_manager::push_content_scale_event(GLFWwindow* win, f32 xs, f32 ys)
-  {
-    m_pimpl->push_content_scale_event(win, xs, ys);
-  }
-
-  void window_manager::push_close_event(GLFWwindow* win)
-  {
-    m_pimpl->push_close_event(win);
-  }
-
-  void window_manager::push_refresh_event(GLFWwindow* win)
-  {
-    m_pimpl->push_refresh_event(win);
-  }
-
-  void window_manager::push_focus_event(GLFWwindow* win, bool focused)
-  {
-    m_pimpl->push_focus_event(win, focused);
-  }
-
-  void window_manager::push_maximize_event(GLFWwindow* win, bool maximized)
-  {
-    m_pimpl->push_maximize_event(win, maximized);
-  }
-
-  void window_manager::push_minimize_event(GLFWwindow* win, bool minimized)
-  {
-    m_pimpl->push_minimize_event(win, minimized);
-  }
 } // namespace yave::ui

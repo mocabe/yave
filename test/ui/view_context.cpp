@@ -17,9 +17,8 @@ using namespace yave::ui;
 
 TEST_CASE("vctx")
 {
-  main_context mctx;
   data_context dctx;
-  view_context vctx(mctx, dctx);
+  view_context vctx(dctx);
 
   SECTION("")
   {
@@ -48,8 +47,7 @@ TEST_CASE("vctx")
       });
     }
 
-    mctx.post([&](auto&) { vctx.run(); });
-    mctx.run();
+    vctx.run();
 
     REQUIRE(i == 1);
   }
@@ -61,8 +59,7 @@ TEST_CASE("vctx")
     vctx.post([&](auto&) { i *= 2; });
     vctx.post_delay([&](auto&) { vctx.exit(); });
 
-    mctx.post([&](auto&) { vctx.run(); });
-    mctx.run();
+    vctx.run();
 
     REQUIRE(i == 2);
   }
@@ -74,8 +71,7 @@ TEST_CASE("vctx")
     vctx.post([&](auto&) { i *= 2; });
     vctx.post_delay([&](auto&) { vctx.exit(); });
 
-    mctx.post([&](auto&) { vctx.run(); });
-    mctx.run();
+    vctx.run();
 
     REQUIRE(i == 1);
   }

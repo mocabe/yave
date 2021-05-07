@@ -12,6 +12,7 @@
 #include <queue>
 #include <array>
 #include <optional>
+#include <condition_variable>
 
 namespace yave::ui {
 
@@ -19,17 +20,24 @@ namespace yave::ui {
   class view_command_queue
   {
     view_context& m_vctx;
-    std::mutex cmd_mtx;
+
+    mutable std::mutex cmd_mtx;
     std::condition_variable cmd_cond;
+
     std::array<std::queue<view_command>, 2> cmd_queues;
     size_t front_queue_idx = 0;
 
-    auto lock_queues()
+    auto lock_queues() const
     {
       return std::unique_lock(cmd_mtx);
     }
 
     auto& cmd_queue()
+    {
+      return cmd_queues[front_queue_idx];
+    }
+
+    auto& cmd_queue() const
     {
       return cmd_queues[front_queue_idx];
     }
@@ -118,6 +126,13 @@ namespace yave::ui {
     {
       auto lck = lock_queues();
       cmd_cond.wait(lck, [&] { return !cmd_queue().empty(); });
+    }
+
+    /// Empty?
+    bool empty() const
+    {
+      auto lck = lock_queues();
+      return cmd_queue().empty();
     }
   };
 

@@ -15,18 +15,13 @@
 
 namespace yave::ui {
 
-  class main_context;
   class view_context;
 
   /// GLFW context
   /// TODO: move this into yave::glfw namespace
   class glfw_context
   {
-    main_context& m_mctx;
-    // main thread ID
-    std::thread::id m_tid = {};
-
-    void ensure_on_main();
+    view_context& m_vctx;
 
     struct window_data
     {
@@ -36,15 +31,17 @@ namespace yave::ui {
     static auto get_window_data(GLFWwindow* w) -> window_data&;
 
   public:
-    glfw_context(main_context&);
+    glfw_context(view_context&);
 
     ~glfw_context() noexcept;
 
-    auto main_ctx() -> main_context&;
+    auto view_ctx() -> view_context&;
 
     void wake();
 
     void wait();
+
+    void poll();
 
     // These functions should only be called from main thread.
     auto create_window(std::u8string_view title, ui::size size) -> GLFWwindow*;

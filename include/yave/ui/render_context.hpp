@@ -22,7 +22,6 @@ namespace yave::ui {
   class view_context;
   class viewport;
   class viewport_renderer;
-  class main_context;
   class vulkan_device;
   class layout_context;
   class render_scope;
@@ -53,6 +52,7 @@ namespace yave::ui {
     std::unique_ptr<ui::texture> m_default_tex;
     vk::UniqueDescriptorSet m_default_tex_descriptor_set;
 
+    bool do_render_ready(const viewport&);
     bool do_render_required(const window&);
     void do_render_viewport(viewport&);
 
@@ -62,7 +62,10 @@ namespace yave::ui {
       render_layer&& rl) -> render_layer;
 
   public:
-    render_context(main_context& mctx, layout_context& lctx);
+    render_context(
+      vulkan_context& vulkan,
+      glfw_context& glfw,
+      layout_context& lctx);
 
     ~render_context() noexcept;
 

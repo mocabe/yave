@@ -4,7 +4,6 @@
 //
 
 #include <yave/ui/glfw_window.hpp>
-#include <yave/ui/main_context.hpp>
 
 namespace yave::ui {
 
@@ -13,62 +12,53 @@ namespace yave::ui {
     std::u8string name,
     ui::size size)
     : m_glfw {glfw}
-    , m_mctx {glfw.main_ctx()}
     , m_name {std::move(name)}
   {
-    m_mctx
-      .sync_post([&](auto&) {
-        auto& glfw      = m_mctx.glfw_ctx();
-        m_win           = glfw.create_window(m_name, size);
-        m_size          = glfw.window_size(m_win);
-        m_pos           = glfw.window_pos(m_win);
-        m_content_scale = glfw.window_content_scale(m_win);
-      })
-      .wait();
+    m_win           = m_glfw.create_window(m_name, size);
+    m_size          = m_glfw.window_size(m_win);
+    m_pos           = m_glfw.window_pos(m_win);
+    m_content_scale = m_glfw.window_content_scale(m_win);
   }
 
   glfw_window::~glfw_window() noexcept
   {
-    m_mctx.sync_post([&](auto&) { m_mctx.glfw_ctx().destroy_window(m_win); })
-      .wait();
+    m_glfw.destroy_window(m_win);
   }
 
   void glfw_window::set_name(std::u8string name)
   {
+    m_glfw.rename_window(m_win, name);
     m_name = std::move(name);
-    m_mctx.post([&](auto&) { m_mctx.glfw_ctx().rename_window(m_win, m_name); });
   }
 
   void glfw_window::set_size(ui::size size)
   {
-    m_mctx.post([&](auto&) { m_mctx.glfw_ctx().resize_window(m_win, size); });
+    m_glfw.resize_window(m_win, size);
   }
 
   void glfw_window::set_min_size(ui::size size)
   {
-    m_mctx.post(
-      [&](auto&) { m_mctx.glfw_ctx().set_window_min_size(m_win, size); });
+    m_glfw.set_window_min_size(m_win, size);
   }
 
   void glfw_window::set_max_size(ui::size size)
   {
-    m_mctx.post(
-      [&](auto&) { m_mctx.glfw_ctx().set_window_max_size(m_win, size); });
+    m_glfw.set_window_max_size(m_win, size);
   }
 
   void glfw_window::set_pos(ui::vec pos)
   {
-    m_mctx.post([&](auto&) { m_mctx.glfw_ctx().move_window(m_win, pos); });
+    m_glfw.move_window(m_win, pos);
   }
 
   void glfw_window::show()
   {
-    m_mctx.post([&](auto&) { m_mctx.glfw_ctx().show_window(m_win); });
+    m_glfw.show_window(m_win);
   }
 
   void glfw_window::hide()
   {
-    m_mctx.post([&](auto&) { m_mctx.glfw_ctx().hide_window(m_win); });
+    m_glfw.hide_window(m_win);
   }
 
 } // namespace yave::ui

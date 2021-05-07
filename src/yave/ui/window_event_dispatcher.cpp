@@ -22,80 +22,13 @@ YAVE_DECL_LOCAL_LOGGER(ui::window_event_dispatcher)
 
 namespace yave::ui {
 
-  namespace {
-
-    struct pos_event_data
-    {
-      GLFWwindow* win;
-      u32 x, y;
-    };
-
-    struct size_event_data
-    {
-      GLFWwindow* win;
-      u32 w, h;
-    };
-
-    struct close_event_data
-    {
-      GLFWwindow* win;
-    };
-
-    struct refresh_event_data
-    {
-      GLFWwindow* win;
-    };
-
-    struct fb_size_event_data
-    {
-      GLFWwindow* win;
-      u32 w, h;
-    };
-
-    struct content_scale_event_data
-    {
-      GLFWwindow* win;
-      f32 xs, ys;
-    };
-
-    struct focus_event_data
-    {
-      GLFWwindow* win;
-      bool focused;
-    };
-
-    struct maximize_event_data
-    {
-      GLFWwindow* win;
-      bool maximized;
-    };
-
-    struct minimize_event_data
-    {
-      GLFWwindow* win;
-      bool minimized;
-    };
-
-    using event_data = std::variant<
-      pos_event_data,
-      size_event_data,
-      close_event_data,
-      refresh_event_data,
-      fb_size_event_data,
-      content_scale_event_data,
-      focus_event_data,
-      maximize_event_data,
-      minimize_event_data>;
-
-  } // namespace
-
   class window_event_dispatcher::impl
   {
     window_manager& m_wm;
     view_context& m_vctx;
 
     // event queue
-    std::queue<event_data> m_queue;
+    std::queue<glfw_event> m_queue;
     // focused window
     window* m_focused = nullptr;
 
@@ -112,9 +45,9 @@ namespace yave::ui {
     }
 
     // push window event data
-    void push_window_event(event_data data)
+    void push_window_event(glfw_event&& e)
     {
-      m_queue.push(data);
+      m_queue.push(std::move(e));
     }
 
     // process window event data
@@ -192,7 +125,7 @@ namespace yave::ui {
 
   public:
     // send events::show
-    void process_show_event(window& w)
+    void send_show_event(window& w)
     {
       if (!w.is_visible()) {
         process_visibility_event<events::show>(w);
@@ -201,13 +134,14 @@ namespace yave::ui {
     }
 
     // send events::hide
-    void process_hide_event(window& w)
+    void send_hide_event(window& w)
     {
       if (w.is_visible()) {
         process_visibility_event<events::hide>(w);
         w.set_visible(false, {});
       }
     }
+
     bool has_focused_window() const
     {
       return m_focused != nullptr;
@@ -230,7 +164,7 @@ namespace yave::ui {
     }
 
   private:
-    void process(const pos_event_data& data)
+    void process(const glfw_pos_event& data)
     {
       log_info("pos event: {},{}", data.x, data.y);
       if (auto native = find_native_from_handle(data.win)) {
@@ -238,7 +172,7 @@ namespace yave::ui {
       }
     }
 
-    void process(const size_event_data& data)
+    void process(const glfw_size_event& data)
     {
       log_info("size event: {},{}", data.w, data.h);
       if (auto native = find_native_from_handle(data.win)) {
@@ -246,7 +180,7 @@ namespace yave::ui {
       }
     }
 
-    void process(const close_event_data& data)
+    void process(const glfw_close_event& data)
     {
       log_info("close event");
       if (auto native = find_native_from_handle(data.win)) {
@@ -266,7 +200,7 @@ namespace yave::ui {
       }
     }
 
-    void process(const refresh_event_data& data)
+    void process(const glfw_refresh_event& data)
     {
       log_info("refresh event");
       if (auto native = find_native_from_handle(data.win)) {
@@ -274,15 +208,15 @@ namespace yave::ui {
       }
     }
 
-    void process(const fb_size_event_data& data)
+    void process(const glfw_framebuffer_size_event& data)
     {
       log_info("fb size event");
       if (auto native = find_native_from_handle(data.win)) {
-        native->update_fb_size(data.w, data.h, {});
+        native->update_framebuffer_size(data.w, data.h, {});
       }
     }
 
-    void process(const content_scale_event_data& data)
+    void process(const glfw_content_scale_event& data)
     {
       log_info("content scale event");
       if (auto native = find_native_from_handle(data.win)) {
@@ -290,7 +224,7 @@ namespace yave::ui {
       }
     }
 
-    void process(const focus_event_data& data)
+    void process(const glfw_focus_event& data)
     {
       log_info("focus event: {}", data.focused);
       if (auto native = find_native_from_handle(data.win)) {
@@ -298,7 +232,7 @@ namespace yave::ui {
       }
     }
 
-    void process(const maximize_event_data& data)
+    void process(const glfw_maximize_event& data)
     {
       log_info("maximize event: {}", data.maximized);
       if (auto native = find_native_from_handle(data.win)) {
@@ -306,12 +240,61 @@ namespace yave::ui {
       }
     }
 
-    void process(const minimize_event_data& data)
+    void process(const glfw_minimize_event& data)
     {
       log_info("minimize event: {}", data.minimized);
       if (auto native = find_native_from_handle(data.win)) {
         native->update_minimize(data.minimized, {});
       }
+    }
+
+    void process(const glfw_cursor_enter_event& data)
+    {
+      log_info("cursor enter event (not implemented yet): {}", data.entered);
+    }
+
+    void process(const glfw_cursor_pos_event& data)
+    {
+      log_info(
+        "cursor pos event (not implemented yet): {}, {}", data.xpos, data.ypos);
+    }
+
+    void process(const glfw_button_event& data)
+    {
+      log_info(
+        "mouse button event (not implemented yet): b={}, a={}, m={}",
+        (u32)data.button,
+        (u32)data.action,
+        (u32)data.mods);
+    }
+
+    void process(const glfw_key_event& data)
+    {
+      log_info(
+        "key event (not implemented yet): k={}, a={}, m={}",
+        (u32)data.key,
+        (u32)data.action,
+        (u32)data.mods);
+    }
+
+    void process(const glfw_char_event& data)
+    {
+      log_info("char event (not impelented yet): c={}", data.codepoint);
+    }
+
+    void process(const glfw_scroll_event& data)
+    {
+      log_info(
+        "scroll event (not implemented yet): {}, {}",
+        data.xoffset,
+        data.yoffset);
+    }
+
+    void process(const glfw_path_drop_event& data)
+    {
+      log_info("path drop event (not implemented yet):");
+      for (auto&& path : data.paths)
+        log_info(" {}", (const char*)path.c_str());
     }
   };
 
@@ -329,78 +312,24 @@ namespace yave::ui {
     return m_pimpl->has_pending_events();
   }
 
+  void window_event_dispatcher::push_glfw_event(glfw_event event)
+  {
+    m_pimpl->push_window_event(std::move(event));
+  }
+
   void window_event_dispatcher::dispatch_pending_events()
   {
     m_pimpl->dispatch_pending_events();
   }
 
-  void window_event_dispatcher::process_show_event(window& w)
+  void window_event_dispatcher::send_show_event(window& w)
   {
-    m_pimpl->process_show_event(w);
+    m_pimpl->send_show_event(w);
   }
 
-  void window_event_dispatcher::process_hide_event(window& w)
+  void window_event_dispatcher::send_hide_event(window& w)
   {
-    m_pimpl->process_hide_event(w);
-  }
-
-  void window_event_dispatcher::push_pos_event(GLFWwindow* win, u32 x, u32 y)
-  {
-    m_pimpl->push_window_event(pos_event_data {.win = win, .x = x, .y = y});
-  }
-
-  void window_event_dispatcher::push_size_event(GLFWwindow* win, u32 w, u32 h)
-  {
-    m_pimpl->push_window_event(size_event_data {.win = win, .w = w, .h = h});
-  }
-
-  void window_event_dispatcher::push_close_event(GLFWwindow* win)
-  {
-    m_pimpl->push_window_event(close_event_data {.win = win});
-  }
-
-  void window_event_dispatcher::push_refresh_event(GLFWwindow* win)
-  {
-    m_pimpl->push_window_event(refresh_event_data {.win = win});
-  }
-
-  void window_event_dispatcher::push_focus_event(GLFWwindow* win, bool focused)
-  {
-    m_pimpl->push_window_event(
-      focus_event_data {.win = win, .focused = focused});
-  }
-
-  void window_event_dispatcher::push_fb_size_event(
-    GLFWwindow* win,
-    u32 w,
-    u32 h)
-  {
-    m_pimpl->push_window_event(fb_size_event_data {.win = win, .w = w, .h = h});
-  }
-
-  void window_event_dispatcher::push_content_scale_event(
-    GLFWwindow* win,
-    f32 xs,
-    f32 ys)
-  {
-    m_pimpl->push_window_event(
-      content_scale_event_data {.win = win, .xs = xs, .ys = ys});
-  }
-
-  void window_event_dispatcher::push_maximize_event(
-    GLFWwindow* win,
-    bool maximized)
-  {
-    m_pimpl->push_window_event(
-      maximize_event_data {.win = win, .maximized = maximized});
-  }
-
-  void window_event_dispatcher::push_minimize_event(
-    GLFWwindow* win,
-    bool minimized)
-  {
-    m_pimpl->push_window_event(
-      minimize_event_data {.win = win, .minimized = minimized});
+    m_pimpl->send_hide_event(w);
   }
 
 } // namespace yave::ui

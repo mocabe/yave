@@ -15,6 +15,8 @@
 #include <yave/ui/draw_list.hpp>
 #include <yave/ui/render_layer.hpp>
 #include <yave/ui/vulkan_pipelines.hpp>
+#include <yave/ui/window_manager.hpp>
+#include <yave/ui/view_context.hpp>
 
 namespace {
 
@@ -112,18 +114,67 @@ namespace yave::ui {
     , m_rctx {rctx}
     , m_surface {rctx, vp.native_window()}
   {
-    m_surface.set_clear_color(0.2, 0.2, 0.2, 1.f);
+    m_surface.set_clear_color(0.2, 0.2, 0.2);
     m_pipeline_draw = std::make_unique<vulkan_pipeline_draw>(rctx, m_surface);
   }
 
   viewport_renderer::~viewport_renderer() noexcept
   {
+    terminate_fence_thread();
     m_rctx.vulkan_device().device().waitIdle();
   }
 
-  void viewport_renderer::render(render_layer&& rl)
+  auto viewport_renderer::lock_surface() -> std::unique_lock<std::mutex>
+  {
+    return std::unique_lock(m_fence_mtx);
+  }
+
+  void viewport_renderer::init_fence_thread(view_context& vctx)
+  {
+    assert(!m_fence_thread.joinable());
+    m_fence_thread = std::thread([&] {
+      while (true) {
+        auto lck = lock_surface();
+        m_fence_cond.wait(lck, [&] { return m_fence_notify || m_fence_exit; });
+
+        if (m_fence_exit)
+          break;
+
+        // wait next frame
+        m_surface.wait_next_frame();
+        // store can_render flag
+        m_can_render.store(true, std::memory_order_release);
+        // wake view context
+        vctx.wake();
+        // reset flag
+        m_fence_notify = false;
+      }
+    });
+  }
+
+  void viewport_renderer::terminate_fence_thread()
+  {
+    {
+      auto lck     = lock_surface();
+      m_fence_exit = true;
+      m_fence_cond.notify_one();
+    }
+    m_fence_thread.join();
+  }
+
+  bool viewport_renderer::can_render()
+  {
+    return m_can_render.load(std::memory_order_acquire);
+  }
+
+  void viewport_renderer::render(render_layer&& rl, view_context& vctx)
   {
     const auto& lists = rl.draw_lists({});
+
+    auto lck = lock_surface();
+
+    if (!m_fence_thread.joinable())
+      init_fence_thread(vctx);
 
     if (m_surface.begin_frame()) {
 
@@ -158,6 +209,13 @@ namespace yave::ui {
         m_surface.end_record();
       }
       m_surface.end_frame();
+    }
+
+    // wait next frame on fence thread
+    {
+      m_can_render.store(false, std::memory_order_release);
+      m_fence_notify = true;
+      m_fence_cond.notify_one();
     }
   }
 

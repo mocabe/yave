@@ -15,8 +15,6 @@ namespace yave::ui {
   class glfw_window
   {
     glfw_context& m_glfw;
-    // main
-    main_context& m_mctx;
     // window handle
     GLFWwindow* m_win;
     // window title
@@ -63,7 +61,7 @@ namespace yave::ui {
       return m_win;
     }
 
-    auto& fb_size() const
+    auto& framebuffer_size() const
     {
       return m_fb_size;
     }
@@ -112,7 +110,7 @@ namespace yave::ui {
       m_size = ui::size(w, h);
     }
 
-    void update_fb_size(u32 w, u32 h, passkey<native_window>)
+    void update_framebuffer_size(u32 w, u32 h, passkey<native_window>)
     {
       m_fb_size = ui::size(w, h);
     }

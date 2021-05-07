@@ -6,7 +6,6 @@
 #include <yave/ui/native_window.hpp>
 #include <yave/ui/window_events.hpp>
 #include <yave/ui/view_context.hpp>
-#include <yave/ui/main_context.hpp>
 #include <yave/ui/glfw_context.hpp>
 #include <yave/ui/glfw_window.hpp>
 #include <yave/ui/viewport.hpp>
@@ -20,7 +19,7 @@ namespace yave::ui {
 
   public:
     impl(view_context& vctx, std::u8string name, ui::size size)
-      : m_win {vctx.main_ctx().glfw_ctx(), std::move(name), size}
+      : m_win {vctx.glfw_ctx(), std::move(name), size}
     {
     }
 
@@ -49,9 +48,9 @@ namespace yave::ui {
       return m_win.pos();
     }
 
-    auto fb_size() const -> ui::size
+    auto framebuffer_size() const -> ui::size
     {
-      return m_win.fb_size();
+      return m_win.framebuffer_size();
     }
 
     auto content_scale() const -> ui::vec
@@ -59,9 +58,9 @@ namespace yave::ui {
       return m_win.content_scale();
     }
 
-    auto fb_scale() const -> ui::vec
+    auto framebuffer_scale() const -> ui::vec
     {
-      return fb_size().vec() / size().vec();
+      return framebuffer_size().vec() / size().vec();
     }
 
     bool focused() const
@@ -104,9 +103,9 @@ namespace yave::ui {
       m_win.update_size(w, h, {});
     }
 
-    void update_fb_size(u32 w, u32 h)
+    void update_framebuffer_size(u32 w, u32 h)
     {
-      m_win.update_fb_size(w, h, {});
+      m_win.update_framebuffer_size(w, h, {});
     }
 
     void update_content_scale(f32 xs, f32 ys)
@@ -159,7 +158,7 @@ namespace yave::ui {
     std::u8string name,
     ui::size size,
     passkey<ui::viewport>&&)
-    : m_pimpl {std::make_unique<impl>(vctx, name, size)}
+    : m_pimpl {std::make_unique<impl>(vctx, std::move(name), size)}
   {
   }
 
@@ -190,9 +189,9 @@ namespace yave::ui {
     return m_pimpl->pos();
   }
 
-  auto native_window::fb_size() const -> ui::size
+  auto native_window::framebuffer_size() const -> ui::size
   {
-    return m_pimpl->fb_size();
+    return m_pimpl->framebuffer_size();
   }
 
   auto native_window::content_scale() const -> ui::vec
@@ -200,9 +199,9 @@ namespace yave::ui {
     return m_pimpl->content_scale();
   }
 
-  auto native_window::fb_scale() const -> ui::vec
+  auto native_window::framebuffer_scale() const -> ui::vec
   {
-    return m_pimpl->fb_scale();
+    return m_pimpl->framebuffer_scale();
   }
 
   bool native_window::focused() const
@@ -248,12 +247,12 @@ namespace yave::ui {
     m_pimpl->update_size(w, h);
   }
 
-  void native_window::update_fb_size(
+  void native_window::update_framebuffer_size(
     u32 w,
     u32 h,
     passkey<window_event_dispatcher>)
   {
-    m_pimpl->update_fb_size(w, h);
+    m_pimpl->update_framebuffer_size(w, h);
   }
 
   void native_window::update_content_scale(

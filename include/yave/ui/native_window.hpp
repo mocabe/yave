@@ -51,11 +51,11 @@ namespace yave::ui {
     /// winow pos
     auto pos() const -> ui::vec;
     /// framebuffer size
-    auto fb_size() const -> ui::size;
+    auto framebuffer_size() const -> ui::size;
     /// content scaling
     auto content_scale() const -> ui::vec;
     /// framebuffer scale
-    auto fb_scale() const -> ui::vec;
+    auto framebuffer_scale() const -> ui::vec;
     /// focus
     bool focused() const;
     /// maximize
@@ -75,7 +75,7 @@ namespace yave::ui {
     // update pos/size on event
     void update_pos(u32 x, u32 y, passkey<window_event_dispatcher>);
     void update_size(u32 w, u32 h, passkey<window_event_dispatcher>);
-    void update_fb_size(u32 w, u32 h, passkey<window_event_dispatcher>);
+    void update_framebuffer_size(u32 w, u32 h, passkey<window_event_dispatcher>);
     void update_content_scale(f32 xs, f32 ys, passkey<window_event_dispatcher>);
     void update_focus(bool focused, passkey<window_event_dispatcher>);
     void update_maximize(bool maximized, passkey<window_event_dispatcher>);

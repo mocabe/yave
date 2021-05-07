@@ -7,8 +7,8 @@
 
 #include <yave/ui/window.hpp>
 #include <yave/ui/signal.hpp>
+#include <yave/ui/glfw_events.hpp>
 
-#include <GLFW/glfw3.h>
 #include <memory>
 
 namespace yave::ui {
@@ -52,6 +52,8 @@ namespace yave::ui {
     auto view_ctx() -> view_context&;
 
   public:
+    /// push event
+    void push_glfw_event(glfw_event e, passkey<glfw_context>);
     /// number of pending events
     bool has_pending_events(passkey<view_context>) const;
     /// process all pending events
@@ -88,16 +90,6 @@ namespace yave::ui {
     void unregister_window(window&, passkey<window>);
     void show_window(window&, passkey<window>);
     void hide_window(window&, passkey<window>);
-
-  public:
-    void push_pos_event(GLFWwindow* win, u32 x, u32 y);
-    void push_size_event(GLFWwindow* win, u32 w, u32 h);
-    void push_close_event(GLFWwindow* win);
-    void push_refresh_event(GLFWwindow* win);
-    void push_focus_event(GLFWwindow* win, bool focused);
-    void push_fb_size_event(GLFWwindow* win, u32 w, u32 h);
-    void push_content_scale_event(GLFWwindow* win, f32 xs, f32 ys);
-    void push_maximize_event(GLFWwindow* win, bool maximized);
-    void push_minimize_event(GLFWwindow* win, bool minimized);
   };
+
 } // namespace yave::ui

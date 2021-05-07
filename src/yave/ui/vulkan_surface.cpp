@@ -356,7 +356,7 @@ namespace yave::ui {
 
     m_surface = createWindowSurface(m_win.handle(), device.instance());
 
-    auto fbSize = m_win.fb_size();
+    auto fbSize = m_win.framebuffer_size();
 
     m_swapchain = createSwapchain(
       m_surface.get(),
@@ -415,9 +415,10 @@ namespace yave::ui {
     m_rctx.vulkan_device().wait_idle();
   }
 
-  void vulkan_surface::set_clear_color(float r, float g, float b, float a)
+  void vulkan_surface::set_clear_color(float r, float g, float b)
   {
-    m_clear_color.setFloat32({r, g, b, a});
+    // alpha should be 1.0 for 
+    m_clear_color.setFloat32({r, g, b, 1.f});
   }
 
   bool vulkan_surface::rebuild_required() const
@@ -425,7 +426,7 @@ namespace yave::ui {
     if (!m_swapchain)
       return true;
 
-    auto wSize = m_win.fb_size();
+    auto wSize = m_win.framebuffer_size();
     auto wExtent =
       vk::Extent2D {static_cast<u32>(wSize.w), static_cast<u32>(wSize.h)};
     return m_swapchain_extent != wExtent;
@@ -454,7 +455,7 @@ namespace yave::ui {
     /* create new swapchain resources */
 
     // load extent to get accurate value at this point
-    auto fbSize = m_win.fb_size();
+    auto fbSize = m_win.framebuffer_size();
     auto fbExtent =
       vk::Extent2D(static_cast<u32>(fbSize.w), static_cast<u32>(fbSize.h));
 
@@ -507,12 +508,28 @@ namespace yave::ui {
     return true;
   }
 
+  void vulkan_surface::wait_next_frame()
+  {
+    auto device = m_rctx.vulkan_device().device();
+    {
+      // wait in-flight fence
+      auto err = device.waitForFences(
+        m_in_flight_fences[m_frame_index].get(),
+        VK_TRUE,
+        std::numeric_limits<uint64_t>::max());
+
+      if (err != vk::Result::eSuccess)
+        throw std::runtime_error(
+          "Failed to wait for in-flight fence: " + vk::to_string(err));
+    }
+  }
+
   bool vulkan_surface::begin_frame()
   {
-    // set next frame index
-    m_frame_index = (m_frame_index + 1) % m_swapchain_image_count;
-
     auto device = m_rctx.vulkan_device().device();
+
+    // make sure we can render next frame
+    wait_next_frame();
 
     {
       // acquire next image, get next image_index.
@@ -561,23 +578,11 @@ namespace yave::ui {
           "Failed to acquire image: " + vk::to_string(err));
     }
 
-    {
-      // wait in-flight fence. this should happen after acquiring next image
-      // because rebuilding frame buffers may reset all fences to signaled
-      // state.
+    // Reset in-flight fence. This should happen after acquiring next image
+    // because rebuilding frame buffers may reset all fences to signaled
+    // state. You cannot submit commands with signaled fence in Vulkan.
+    device.resetFences(m_in_flight_fences[m_frame_index].get());
 
-      auto err = device.waitForFences(
-        m_in_flight_fences[m_frame_index].get(),
-        VK_TRUE,
-        std::numeric_limits<uint64_t>::max());
-
-      if (err != vk::Result::eSuccess)
-        throw std::runtime_error(
-          "Failed to wait for in-flight fence: " + vk::to_string(err));
-
-      // reset fence
-      device.resetFences(m_in_flight_fences[m_frame_index].get());
-    }
     return true;
   }
 
@@ -611,6 +616,11 @@ namespace yave::ui {
       if (err != vk::Result::eSuccess)
         throw std::runtime_error(
           "Failed to submit command buffer: " + vk::to_string(err));
+    }
+
+    /* advance frame index */
+    {
+      m_frame_index = (m_frame_index + 1) % m_swapchain_image_count;
     }
 
     /* present result */

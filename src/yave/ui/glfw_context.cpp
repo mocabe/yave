@@ -9,27 +9,29 @@
 
 YAVE_DECL_LOCAL_LOGGER(ui::glfw_context)
 
-namespace yave::ui {
+namespace {
 
-  void glfw_context::ensure_on_main()
+  bool glfw_bool(int b)
   {
-    assert(m_tid == std::this_thread::get_id());
+    return b == GLFW_TRUE;
   }
 
-  glfw_context::glfw_context(main_context& mctx)
-    : m_mctx {mctx}
+} // namespace
+
+namespace yave::ui {
+
+  glfw_context::glfw_context(view_context& mctx)
+    : m_vctx {mctx}
   {
     glfwSetErrorCallback([](int ec, const char* msg) {
       log_error("GLFW Error({}): {}", ec, msg);
     });
 
-    if (!glfwInit())
+    if (glfwInit() != GLFW_TRUE)
       throw std::runtime_error("Failed to initialize GLFW");
 
-    if (!glfwVulkanSupported())
+    if (glfwVulkanSupported() != GLFW_TRUE)
       throw std::runtime_error("Vulkan is not available");
-
-    m_tid = std::this_thread::get_id();
   }
 
   glfw_context::~glfw_context() noexcept
@@ -37,9 +39,9 @@ namespace yave::ui {
     glfwTerminate();
   }
 
-  auto glfw_context::main_ctx() -> main_context&
+  auto glfw_context::view_ctx() -> view_context&
   {
-    return m_mctx;
+    return m_vctx;
   }
 
   void glfw_context::wake()
@@ -50,6 +52,11 @@ namespace yave::ui {
   void glfw_context::wait()
   {
     glfwWaitEvents();
+  }
+
+  void glfw_context::poll()
+  {
+    glfwPollEvents();
   }
 
   auto glfw_context::get_window_data(GLFWwindow* w) -> window_data&
@@ -65,8 +72,6 @@ namespace yave::ui {
   auto glfw_context::create_window(std::u8string_view u8title, ui::size size)
     -> GLFWwindow*
   {
-    ensure_on_main();
-
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
@@ -83,49 +88,77 @@ namespace yave::ui {
       throw std::runtime_error("Failed to create new window");
     }
 
-    glfwSetWindowUserPointer(
-      w, new window_data {.view_ctx = m_mctx.view_ctx()});
+    glfwSetWindowUserPointer(w, new window_data {.view_ctx = m_vctx});
 
     // ------------------------------------------
     // Window Callbacks
 
     glfwSetWindowPosCallback(w, [](GLFWwindow* w, int xpos, int ypos) {
-      get_window_data(w).view_ctx.post_window_pos_event(w, xpos, ypos);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(
+        glfw_pos_event {.win = w, .x = u32(xpos), .y = u32(ypos)}, {});
+      // Windows: handle modal event loop
+      vctx.poll();
     });
 
     glfwSetWindowSizeCallback(w, [](GLFWwindow* w, int width, int height) {
-      get_window_data(w).view_ctx.post_window_size_event(w, width, height);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(
+        glfw_size_event {.win = w, .w = u32(width), .h = u32(height)}, {});
+      /// Windows: handle modal event loop
+      vctx.poll();
     });
 
     glfwSetWindowCloseCallback(w, [](GLFWwindow* w) {
-      get_window_data(w).view_ctx.post_window_close_event(w);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(glfw_close_event {.win = w}, {});
     });
 
     glfwSetWindowRefreshCallback(w, [](GLFWwindow* w) {
-      get_window_data(w).view_ctx.post_window_refresh_event(w);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(glfw_refresh_event {.win = w}, {});
     });
 
     glfwSetWindowFocusCallback(w, [](GLFWwindow* w, int focused) {
-      get_window_data(w).view_ctx.post_window_focus_event(w, focused);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(
+        glfw_focus_event {.win = w, .focused = glfw_bool(focused)}, {});
     });
 
     glfwSetWindowIconifyCallback(w, [](GLFWwindow* w, int iconified) {
-      get_window_data(w).view_ctx.post_window_minimize_event(w, iconified);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(
+        glfw_minimize_event {.win = w, .minimized = glfw_bool(iconified)}, {});
     });
 
     glfwSetWindowMaximizeCallback(w, [](GLFWwindow* w, int maximized) {
-      get_window_data(w).view_ctx.post_window_maximize_event(w, maximized);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(
+        glfw_maximize_event {.win = w, .maximized = glfw_bool(maximized)}, {});
     });
 
     glfwSetFramebufferSizeCallback(w, [](GLFWwindow* w, int width, int height) {
-      get_window_data(w).view_ctx.post_window_framebuffer_size_event(
-        w, width, height);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(
+        glfw_framebuffer_size_event {
+          .win = w, .w = u32(width), .h = u32(height)},
+        {});
     });
 
     glfwSetWindowContentScaleCallback(
       w, [](GLFWwindow* w, float xscale, float yscale) {
-        get_window_data(w).view_ctx.post_window_content_scale_event(
-          w, xscale, yscale);
+        auto& vctx = get_window_data(w).view_ctx;
+        auto& wm   = vctx.window_manager();
+        wm.push_glfw_event(
+          glfw_content_scale_event {.win = w, .xs = xscale, .ys = yscale}, {});
       });
 
     // ------------------------------------------
@@ -136,31 +169,53 @@ namespace yave::ui {
         auto k = static_cast<ui::key>(key);
         auto a = static_cast<ui::key_action>(action);
         auto m = static_cast<ui::key_modifier_flags>(mods);
-        get_window_data(w).view_ctx.post_key_event(w, k, a, m);
+
+        auto& vctx = get_window_data(w).view_ctx;
+        auto& wm   = vctx.window_manager();
+        wm.push_glfw_event(
+          glfw_key_event {.win = w, .key = k, .action = a, .mods = m}, {});
       });
 
     glfwSetCharCallback(w, [](GLFWwindow* w, unsigned int codepoint) {
-      get_window_data(w).view_ctx.post_char_event(w, codepoint);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(
+        glfw_char_event {.win = w, .codepoint = codepoint}, {});
     });
 
     glfwSetMouseButtonCallback(
       w, [](GLFWwindow* w, int button, int action, int mods) {
-        auto k = static_cast<ui::mouse_button>(button);
+        auto b = static_cast<ui::mouse_button>(button);
         auto a = static_cast<ui::mouse_button_action>(action);
         auto m = static_cast<ui::key_modifier_flags>(mods);
-        get_window_data(w).view_ctx.post_mouse_event(w, k, a, m);
+
+        auto& vctx = get_window_data(w).view_ctx;
+        auto& wm   = vctx.window_manager();
+        wm.push_glfw_event(
+          glfw_button_event {.win = w, .button = b, .action = a, .mods = m},
+          {});
       });
 
     glfwSetCursorPosCallback(w, [](GLFWwindow* w, double xpos, double ypos) {
-      get_window_data(w).view_ctx.post_cursor_pos_event(w, xpos, ypos);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(
+        glfw_cursor_pos_event {.win = w, .xpos = xpos, .ypos = ypos}, {});
     });
 
     glfwSetCursorEnterCallback(w, [](GLFWwindow* w, int entered) {
-      get_window_data(w).view_ctx.post_cursor_enter_event(w, entered);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(
+        glfw_cursor_enter_event {.win = w, .entered = glfw_bool(entered)}, {});
     });
 
     glfwSetScrollCallback(w, [](GLFWwindow* w, double xoffset, double yoffset) {
-      get_window_data(w).view_ctx.post_scroll_event(w, xoffset, yoffset);
+      auto& vctx = get_window_data(w).view_ctx;
+      auto& wm   = vctx.window_manager();
+      wm.push_glfw_event(
+        glfw_scroll_event {.win = w, .xoffset = xoffset, .yoffset = yoffset},
+        {});
     });
 
     glfwSetDropCallback(
@@ -169,7 +224,11 @@ namespace yave::ui {
         for (auto i = 0; i < path_count; ++i) {
           ps.emplace_back((const char8_t*)paths[i]);
         }
-        get_window_data(w).view_ctx.post_path_drop_event(w, std::move(ps));
+
+        auto& vctx = get_window_data(w).view_ctx;
+        auto& wm   = vctx.window_manager();
+        wm.push_glfw_event(
+          glfw_path_drop_event {.win = w, .paths = std::move(ps)}, {});
       });
 
     return w;
@@ -177,7 +236,6 @@ namespace yave::ui {
 
   void glfw_context::destroy_window(GLFWwindow* w)
   {
-    ensure_on_main();
     assert(w);
 
     // delete user data
@@ -190,37 +248,31 @@ namespace yave::ui {
 
   void glfw_context::show_window(GLFWwindow* w)
   {
-    ensure_on_main();
     glfwShowWindow(w);
   }
 
   void glfw_context::hide_window(GLFWwindow* w)
   {
-    ensure_on_main();
     glfwHideWindow(w);
   }
 
   void glfw_context::rename_window(GLFWwindow* w, std::u8string_view name)
   {
-    ensure_on_main();
     glfwSetWindowTitle(w, (const char*)name.data());
   }
 
   void glfw_context::resize_window(GLFWwindow* w, ui::size size)
   {
-    ensure_on_main();
     glfwSetWindowSize(w, static_cast<int>(size.w), static_cast<int>(size.h));
   }
 
   void glfw_context::move_window(GLFWwindow* w, ui::vec pos)
   {
-    ensure_on_main();
     glfwSetWindowPos(w, static_cast<int>(pos.x), static_cast<int>(pos.y));
   }
 
   auto glfw_context::window_size(GLFWwindow* win) -> ui::size
   {
-    ensure_on_main();
     int w, h;
     glfwGetWindowSize(win, &w, &h);
     return ui::size(w, h);
@@ -228,7 +280,6 @@ namespace yave::ui {
 
   auto glfw_context::window_pos(GLFWwindow* win) -> ui::vec
   {
-    ensure_on_main();
     int x, y;
     glfwGetWindowPos(win, &x, &y);
     return ui::vec(x, y);
@@ -236,7 +287,6 @@ namespace yave::ui {
 
   auto glfw_context::window_content_scale(GLFWwindow* win) -> ui::vec
   {
-    ensure_on_main();
     float xs, ys;
     glfwGetWindowContentScale(win, &xs, &ys);
     return ui::vec(xs, ys);
@@ -244,19 +294,16 @@ namespace yave::ui {
 
   void glfw_context::focus_window(GLFWwindow* win)
   {
-    ensure_on_main();
     glfwFocusWindow(win);
   }
 
   void glfw_context::request_window_attention(GLFWwindow* win)
   {
-    ensure_on_main();
     glfwRequestWindowAttention(win);
   }
 
   void glfw_context::set_window_max_size(GLFWwindow* win, ui::size size)
   {
-    ensure_on_main();
     glfwSetWindowSizeLimits(
       win,
       GLFW_DONT_CARE,
@@ -267,7 +314,6 @@ namespace yave::ui {
 
   void glfw_context::set_window_min_size(GLFWwindow* win, ui::size size)
   {
-    ensure_on_main();
     glfwSetWindowSizeLimits(
       win,
       static_cast<int>(size.w),
@@ -275,4 +321,4 @@ namespace yave::ui {
       GLFW_DONT_CARE,
       GLFW_DONT_CARE);
   }
-}
+} // namespace yave::ui
