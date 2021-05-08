@@ -167,8 +167,7 @@ jobs:
       VCPKG_BINARY_SOURCES: files,$(Build.SourcesDirectory)/external/vcpkg/archives,readwrite
 
   - script: |
-      cat $(Build.SourcesDirectory)/build/vcpkg-manifest-install-out.log
-      cat $(Build.SourcesDirectory)/build/vcpkg-manifest-install-err.log
+      cat $(Build.SourcesDirectory)/build/vcpkg-manifest-install.log
     displayName: 'Show vcpkg logs'
     condition: always()
 
