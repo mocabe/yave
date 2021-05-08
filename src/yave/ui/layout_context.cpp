@@ -39,7 +39,7 @@ namespace yave::ui {
     // TODO: Use more fancy algorithm for this
     void do_layout_search(const window& w)
     {
-      if (w.is_invalidated()) {
+      if (w.invalidated()) {
         do_layout_impl(w);
         return;
       }
@@ -74,7 +74,7 @@ namespace yave::ui {
       auto& root = static_cast<const window&>(wm.root());
 
       // init root
-      if (root.is_invalidated()) {
+      if (root.invalidated()) {
         auto& data = root.window_layout_data({});
         auto inf   = std::numeric_limits<f32>::infinity();
         data.geom.set_offset({0, 0});

@@ -31,7 +31,7 @@ namespace yave::ui {
 
   auto root::add_viewport(std::u8string name, ui::size size) -> ui::viewport&
   {
-    assert(is_registered());
+    assert(registered());
 
     auto v = ui::make_unique<ui::viewport>(
       m_wm,
@@ -46,7 +46,7 @@ namespace yave::ui {
 
   void root::remove_viewport(const ui::viewport& v)
   {
-    assert(is_registered());
+    assert(registered());
     remove_child(v);
 
     if (children().empty())

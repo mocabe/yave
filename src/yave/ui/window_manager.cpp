@@ -72,7 +72,7 @@ namespace yave::ui {
     // recursively register windows
     void register_window_impl(window& w)
     {
-      assert(!w.is_registered());
+      assert(!w.registered());
 
       // register
       w.set_registered(true, m_self, {});
@@ -88,24 +88,24 @@ namespace yave::ui {
 
     void register_window(window& w)
     {
-      assert(!w.is_registered());
+      assert(!w.registered());
 
       if (w.has_parent()) {
         auto& p = w.parent();
-        assert(p.is_registered());
+        assert(p.registered());
       }
 
       m_self.signals.on_register(w);
       register_window_impl(w);
 
-      if (w.is_visible())
+      if (w.visible())
         m_event_dispatcher.send_show_event(w);
     }
 
     // recursively unregister windows
     void unregister_window_impl(window& w)
     {
-      assert(w.is_registered());
+      assert(w.registered());
 
       // unregister
       m_wmap.erase(w.id());
@@ -118,9 +118,9 @@ namespace yave::ui {
 
     void unregister_window(window& w)
     {
-      assert(w.is_registered());
+      assert(w.registered());
 
-      if (w.is_visible())
+      if (w.visible())
         m_event_dispatcher.send_hide_event(w);
 
       m_self.signals.on_unregister(w);
@@ -130,9 +130,9 @@ namespace yave::ui {
     // mark window as invalidated
     void invalidate_window(window& w)
     {
-      assert(w.is_registered());
+      assert(w.registered());
 
-      if (!w.is_invalidated()) {
+      if (!w.invalidated()) {
         m_self.signals.on_invalidate(w);
         w.set_invalidated(true, {});
         m_dmap.emplace(w.id(), &w);
@@ -151,13 +151,13 @@ namespace yave::ui {
 
     void show_window(window& w)
     {
-      assert(w.is_registered());
+      assert(w.registered());
       m_event_dispatcher.send_show_event(w);
     }
 
     void hide_window(window& w)
     {
-      assert(w.is_registered());
+      assert(w.registered());
       m_event_dispatcher.send_hide_event(w);
     }
 
@@ -170,7 +170,7 @@ namespace yave::ui {
 
     auto find_viewport(const window& w) const -> viewport*
     {
-      if (!w.is_registered() || w.id() == root().id())
+      if (!w.registered() || w.id() == root().id())
         return nullptr;
 
       if (!w.has_parent())
@@ -196,7 +196,7 @@ namespace yave::ui {
   public:
     bool is_child(const window& c, const window& p) const
     {
-      if (!c.is_registered() || !p.is_registered())
+      if (!c.registered() || !p.registered())
         return false;
 
       const window* w = &c;

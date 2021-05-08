@@ -180,7 +180,7 @@ namespace yave::ui {
 
   bool render_context::do_render_required(const window& w)
   {
-    if (w.is_invalidated())
+    if (w.invalidated())
       return true;
 
     return std::ranges::any_of(

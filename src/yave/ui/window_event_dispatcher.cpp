@@ -109,7 +109,7 @@ namespace yave::ui {
     {
       auto notify_children = [&](auto&& self, window& w, Event& e) -> void {
         // not visible
-        if (!w.is_visible())
+        if (!w.visible())
           return;
 
         // reset and dispatch
@@ -122,7 +122,7 @@ namespace yave::ui {
       };
 
       // dispatch on target window
-      assert(w.is_registered());
+      assert(w.registered());
       auto e = std::make_unique<Event>(w);
       dispatch_over_window(w, *e);
 
@@ -136,7 +136,7 @@ namespace yave::ui {
     // send events::show
     void send_show_event(window& w)
     {
-      if (!w.is_visible()) {
+      if (!w.visible()) {
         process_visibility_event<events::show>(w);
         w.set_visible(true, {});
       }
@@ -145,7 +145,7 @@ namespace yave::ui {
     // send events::hide
     void send_hide_event(window& w)
     {
-      if (w.is_visible()) {
+      if (w.visible()) {
         process_visibility_event<events::hide>(w);
         w.set_visible(false, {});
       }

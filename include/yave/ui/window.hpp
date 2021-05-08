@@ -91,14 +91,14 @@ namespace yave::ui {
   public:
     /// Registered to window manager?
     /// e.g. window is currently attached to root window tree?
-    bool is_registered() const;
+    bool registered() const;
 
   public:
     /// Mark this window as invalidated.
     /// Invalidated windows will be queued into next layout stage.
     void invalidate();
     /// Invalidated?
-    bool is_invalidated() const;
+    bool invalidated() const;
 
   public:
     /// Show this window
@@ -106,14 +106,15 @@ namespace yave::ui {
     /// Hide this window
     void hide();
     /// Visible?
-    bool is_visible() const;
+    bool visible() const;
+
 
   public:
     /// get window manager
-    /// \requres is_registered()
+    /// \requres registered()
     auto window_manager() -> ui::window_manager&;
     /// get window manager
-    /// \requres is_registered()
+    /// \requres registered()
     auto window_manager() const -> const ui::window_manager&;
 
   protected:

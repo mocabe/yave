@@ -34,7 +34,7 @@ namespace yave::ui {
 
   window::~window() noexcept
   {
-    if (is_registered())
+    if (registered())
       m_wm->unregister_window(*this, {});
   }
 
@@ -74,7 +74,7 @@ namespace yave::ui {
     return *m_rdata;
   }
 
-  bool window::is_registered() const
+  bool window::registered() const
   {
     assert(m_registered == (bool)m_wm);
     return m_registered;
@@ -82,20 +82,20 @@ namespace yave::ui {
 
   void window::invalidate()
   {
-    if (is_registered())
+    if (registered())
       m_wm->invalidate_window(*this, {});
     else
       log_warning("invalidate() on inactive window");
   }
 
-  bool window::is_invalidated() const
+  bool window::invalidated() const
   {
     return m_invalidated;
   }
 
   void window::show()
   {
-    if (is_registered())
+    if (registered())
       m_wm->show_window(*this, {});
     else
       log_warning("window::show() for inactive window");
@@ -103,20 +103,20 @@ namespace yave::ui {
 
   void window::hide()
   {
-    if (is_registered())
+    if (registered())
       m_wm->hide_window(*this, {});
     else
       log_warning("window::hide() for inactive window");
   }
 
-  bool window::is_visible() const
+  bool window::visible() const
   {
     return m_visible;
   }
 
   auto window::window_manager() -> ui::window_manager&
   {
-    if (!is_registered())
+    if (!registered())
       throw std::runtime_error(
         "called window::window_manager() on unregistered window");
 
@@ -125,7 +125,7 @@ namespace yave::ui {
 
   auto window::window_manager() const -> const ui::window_manager&
   {
-    if (!is_registered())
+    if (!registered())
       throw std::runtime_error(
         "called window::window_manager() on unregistered window");
 
@@ -145,7 +145,7 @@ namespace yave::ui {
     ws.insert(std::next(ws.begin(), idx), std::move(win));
     ptr->m_parent = this;
 
-    if (is_registered())
+    if (registered())
       m_wm->register_window(*ptr, {});
 
     return *ptr;
@@ -164,7 +164,7 @@ namespace yave::ui {
     ws.erase(it);
     ret->m_parent = nullptr;
 
-    if (is_registered())
+    if (registered())
       m_wm->unregister_window(*ret, {});
 
     return ret;
