@@ -19,6 +19,8 @@ namespace yave::ui {
   template <class...>
   class slot;
 
+  struct trackable;
+
   /// Lifetime tracker
   class tracker
   {
@@ -56,13 +58,29 @@ namespace yave::ui {
     /// \retval true Success.
     /// \retval false Tracked object has been destroyed.
     template <class F>
-    bool try_lock(F&& f)
+    auto lock_with(F&& f) -> tracker&
     {
-      if (auto sp = m_weak.lock()) {
+      if (auto sp = m_weak.lock())
         std::forward<F>(f)();
-        return true;
+      return *this;
       }
-      return false;
+
+    /// Monadic operator
+    template <class F>
+    auto and_then(F&& f) -> tracker&
+    {
+      if (!expired())
+        std::forward<F>(f)();
+      return *this;
+    }
+
+    /// Monadic operator
+    template <class F>
+    auto or_else(F&& f) -> tracker&
+    {
+      if (expired())
+        std::forward<F>(f)();
+      return *this;
     }
 
   private:
@@ -75,7 +93,7 @@ namespace yave::ui {
       return m_weak;
     }
 
-    std::weak_ptr<const void> m_weak;
+    std::weak_ptr<const trackable> m_weak;
   };
 
   /// Call try_lock on multiple trackers.
@@ -83,15 +101,13 @@ namespace yave::ui {
   /// \retval false Tracked object has been destroyed.
   template <class F, class Head, class... Tail>
     requires std::same_as<std::decay_t<Head>, tracker>
-  bool try_lock(F&& f, Head&& h, Tail&&... t)
+  void lock_with(F&& f, Head&& h, Tail&&... t)
   {
     if constexpr (sizeof...(t) == 0) {
-      return h.try_lock(std::forward<F>(f));
+      h.lock_with(std::forward<F>(f));
     } else {
-      bool ret = false;
-      h.try_lock(
-        [&] { ret = try_lock(std::forward<F>(f), std::forward<Tail>(t)...); });
-      return ret;
+      h.lock_with(
+        [&] { lock_with(std::forward<F>(f), std::forward<Tail>(t)...); });
     }
   }
 

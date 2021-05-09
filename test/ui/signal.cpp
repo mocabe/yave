@@ -83,7 +83,7 @@ TEST_CASE("signal")
     REQUIRE(i == 42);
   }
 
-  SECTION("try_lock")
+  SECTION("lock_with")
   {
     struct foo : trackable, enable_tracker_from_this<foo>
     {
@@ -101,24 +101,24 @@ TEST_CASE("signal")
     SECTION("")
     {
       bool test = false;
-      REQUIRE(t.try_lock([&] { test = true; }));
+      t.lock_with([&] { test = true; });
       REQUIRE(test);
 
       test = false;
       p    = nullptr;
-      REQUIRE(!t.try_lock([&] { test = true; }));
+      t.lock_with([&] { test = true; });
       REQUIRE(!test);
     }
 
     SECTION("")
     {
       bool test = false;
-      REQUIRE(try_lock([&] { test = true; }, t));
+      lock_with([&] { test = true; }, t);
       REQUIRE(test);
 
       test = false;
       p    = nullptr;
-      REQUIRE(!t.try_lock([&] { test = true; }));
+      t.lock_with([&] { test = true; });
       REQUIRE(!test);
     }
 
@@ -129,9 +129,9 @@ TEST_CASE("signal")
       p      = nullptr;
 
       bool test = false;
-      REQUIRE(!try_lock([&] { test = true; }, t, s));
+      lock_with([&] { test = true; }, t, s);
       REQUIRE(!test);
-      REQUIRE(!try_lock([&] { test = true; }, s, t));
+      lock_with([&] { test = true; }, s, t);
       REQUIRE(!test);
     }
   }
