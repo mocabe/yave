@@ -109,35 +109,32 @@ namespace {
 
 namespace yave::ui {
 
-  viewport_renderer::viewport_renderer(viewport& vp, render_context& rctx)
-    : m_vp {vp}
-    , m_rctx {rctx}
-    , m_surface {rctx, vp.native_window()}
+  viewport_renderer::render_thread::render_thread(
+    render_context& rctx,
+    native_window& nw)
+    : m_rctx {rctx}
+    , m_surface {rctx, nw}
   {
     m_surface.set_clear_color(0.2, 0.2, 0.2);
     m_pipeline_draw = std::make_unique<vulkan_pipeline_draw>(rctx, m_surface);
   }
 
-  viewport_renderer::~viewport_renderer() noexcept
+  bool viewport_renderer::render_thread::is_running() const
   {
-    terminate_fence_thread();
-    m_rctx.vulkan_device().device().waitIdle();
+    return m_thread.joinable();
   }
 
-  auto viewport_renderer::lock_surface() -> std::unique_lock<std::mutex>
+  void viewport_renderer::render_thread::init(view_context& vctx)
   {
-    return std::unique_lock(m_fence_mtx);
-  }
+    if (is_running())
+      return;
 
-  void viewport_renderer::init_fence_thread(view_context& vctx)
-  {
-    assert(!m_fence_thread.joinable());
-    m_fence_thread = std::thread([&] {
+    m_thread = std::thread([&] {
       while (true) {
-        auto lck = lock_surface();
-        m_fence_cond.wait(lck, [&] { return m_fence_notify || m_fence_exit; });
+        auto lck = std::unique_lock(m_mtx);
+        m_cond.wait(lck, [&] { return m_notify || m_exit; });
 
-        if (m_fence_exit)
+        if (m_exit)
           break;
 
         // wait next frame
@@ -147,34 +144,32 @@ namespace yave::ui {
         // wake view context
         vctx.wake();
         // reset flag
-        m_fence_notify = false;
+        m_notify = false;
       }
     });
   }
 
-  void viewport_renderer::terminate_fence_thread()
+  void viewport_renderer::render_thread::terminate() noexcept
   {
+    if (!is_running())
+      return;
+
     {
-      auto lck     = lock_surface();
-      m_fence_exit = true;
-      m_fence_cond.notify_one();
+      auto lck = std::unique_lock(m_mtx);
+      m_exit   = true;
+      m_cond.notify_one();
     }
-    m_fence_thread.join();
+    m_thread.join();
   }
 
-  bool viewport_renderer::can_render()
+  bool viewport_renderer::render_thread::can_render() const
   {
     return m_can_render.load(std::memory_order_acquire);
   }
 
-  void viewport_renderer::render(render_layer&& rl, view_context& vctx)
+  void viewport_renderer::render_thread::render(const render_layer& rl)
   {
-    const auto& lists = rl.draw_lists({});
-
-    auto lck = lock_surface();
-
-    if (!m_fence_thread.joinable())
-      init_fence_thread(vctx);
+    auto lck = std::unique_lock(m_mtx);
 
     if (m_surface.begin_frame()) {
 
@@ -195,6 +190,8 @@ namespace yave::ui {
         auto& vtx_buff = *m_vtx_buffers[m_surface.frame_index()];
         auto& idx_buff = *m_idx_buffers[m_surface.frame_index()];
 
+        const auto& lists = rl.draw_lists({});
+
         prepareDrawData(vtx_buff, idx_buff, lists);
 
         auto&& extent   = m_surface.swapchain_extent();
@@ -211,12 +208,33 @@ namespace yave::ui {
       m_surface.end_frame();
     }
 
-    // wait next frame on fence thread
-    {
-      m_can_render.store(false, std::memory_order_release);
-      m_fence_notify = true;
-      m_fence_cond.notify_one();
-    }
+    m_can_render.store(false, std::memory_order_release);
+    m_notify = true;
+    m_cond.notify_one();
+  }
+
+  viewport_renderer::viewport_renderer(viewport& vp, render_context& rctx)
+    : m_vp {vp}
+    , m_rctx {rctx}
+    , m_render_thread {rctx, vp.native_window()}
+  {
+  }
+
+  viewport_renderer::~viewport_renderer() noexcept
+  {
+    m_render_thread.terminate();
+    m_rctx.vulkan_device().device().waitIdle();
+  }
+
+  bool viewport_renderer::can_render()
+  {
+    return m_render_thread.can_render();
+  }
+
+  void viewport_renderer::render(render_layer&& rl, view_context& vctx)
+  {
+    m_render_thread.init(vctx);
+    m_render_thread.render(rl);
   }
 
 } // namespace yave::ui

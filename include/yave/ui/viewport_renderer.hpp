@@ -29,42 +29,44 @@ namespace yave::ui {
     viewport& m_vp;
     render_context& m_rctx;
 
-    // surface resources
-    vulkan_surface m_surface;
+    class render_thread
+    {
+    public:
+      render_thread(render_context& rctx, native_window& nw);
+      bool is_running() const;
+      void init(view_context& vtx);
+      void terminate() noexcept;
+      bool can_render() const;
+      void render(const render_layer& rl);
 
-    // surface fence thread
-    std::thread m_fence_thread;
-    // surface fence mutex
-    std::mutex m_fence_mtx;
-    // surfece fence condition variable
-    std::condition_variable m_fence_cond;
-    // surface fence thread notify flag
-    bool m_fence_notify = false;
-    // surface fence thread exit flag
-    bool m_fence_exit = false;
+    private:
+      // context
+      render_context& m_rctx;
+      // rendering thread
+      std::thread m_thread;
+      // render mutex
+      std::mutex m_mtx;
+      // render condition variable
+      std::condition_variable m_cond;
+      // render thread notify flag
+      bool m_notify = false;
+      // renedr thread exit flag
+      bool m_exit = false;
+      // can render next frame?
+      std::atomic<bool> m_can_render = true;
+      // surface to render
+      vulkan_surface m_surface;
+      // buffers (for each in-flight frame)
+      std::vector<std::unique_ptr<render_buffer>> m_vtx_buffers;
+      std::vector<std::unique_ptr<render_buffer>> m_idx_buffers;
+      // rendering pipelines
+      std::unique_ptr<vulkan_pipeline_draw> m_pipeline_draw;
 
-    // can render next frame?
-    std::atomic<bool> m_can_render = true;
-
-    // rendering pipelines
-    std::unique_ptr<vulkan_pipeline_draw> m_pipeline_draw;
-
-    // buffers (for each in-flight frame)
-    std::vector<std::unique_ptr<render_buffer>> m_vtx_buffers;
-    std::vector<std::unique_ptr<render_buffer>> m_idx_buffers;
-
-    auto lock_surface() -> std::unique_lock<std::mutex>;
-    void init_fence_thread(view_context& vctx);
-    void terminate_fence_thread();
+    } m_render_thread;
 
   public:
     viewport_renderer(viewport& vp, render_context& rctx);
     ~viewport_renderer() noexcept;
-
-    auto& surface()
-    {
-      return m_surface;
-    }
 
   public:
     /// can render next frame without blocking?
