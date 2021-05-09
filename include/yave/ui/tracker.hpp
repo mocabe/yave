@@ -121,8 +121,9 @@ namespace yave::ui {
 
   /// Helper class to enable creating tracker from tihs pointer
   template <class Derived>
-  struct enable_tracker_from_this : std::enable_shared_from_this<Derived>
+  class enable_tracker_from_this : std::enable_shared_from_this<Derived>
   {
+  protected:
     auto tracker_from_this() const -> tracker
     {
       return tracker(shared(this->shared_from_this()));
