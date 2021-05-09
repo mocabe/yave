@@ -55,7 +55,7 @@ namespace yave::ui {
     /// Has child?
     bool has_child() const;
     /// Set child window
-    void set_child(ui::unique<window> c);
+    auto set_child(ui::unique<window> c) -> window&;
     /// Get child window (if exists)
     auto get_child() -> window&;
     /// Remove child window

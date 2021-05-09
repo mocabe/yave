@@ -68,14 +68,18 @@ namespace yave::ui {
     log_info("new layout: {}, {}", native.size().w, native.size().h);
 
     // use tight constraits for window size
-    for (auto&& c : children())
-      ctx.enter_child(c, {native.size()});
+    for (auto&& c : children()) {
+      if (c.visible())
+        ctx.enter_child(c, {native.size()});
+    }
   }
 
   void viewport::render(render_scope ctx) const
   {
-    for (auto&& c : children())
-      ctx.enter_child(c);
+    for (auto&& c : children()) {
+      if (c.visible())
+        ctx.enter_child(c);
+    }
   }
 
   bool viewport::has_child() const
@@ -83,13 +87,10 @@ namespace yave::ui {
     return !children().empty();
   }
 
-  void viewport::set_child(unique<window> c)
+  auto viewport::set_child(unique<window> c) -> window&
   {
-    if (!c)
-      return;
-
     remove_child();
-    window::add_child(0, std::move(c));
+    return window::add_child(0, std::move(c));
   }
 
   auto viewport::get_child() -> window&
