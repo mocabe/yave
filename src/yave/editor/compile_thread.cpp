@@ -13,6 +13,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <condition_variable>
 
 YAVE_DECL_LOCAL_LOGGER(compile_thread)
 
