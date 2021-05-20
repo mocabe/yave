@@ -15,6 +15,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <condition_variable>
 
 YAVE_DECL_LOCAL_LOGGER(execute_thread);
 

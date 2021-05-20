@@ -5,8 +5,6 @@
 
 #define GLFW_INCLUDE_VULKAN
 
-#include <chrono> // XXX
-
 #include <yave/lib/vulkan/window_context.hpp>
 #include <yave/support/log.hpp>
 

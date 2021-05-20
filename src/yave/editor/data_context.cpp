@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <typeinfo>
 #include <typeindex>
+#include <condition_variable>
 
 YAVE_DECL_LOCAL_LOGGER(data_context)
 
