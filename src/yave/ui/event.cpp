@@ -32,7 +32,7 @@ namespace yave::ui {
 
   void event::set_target(window& w)
   {
-    m_accepted = &w;
+    m_target = &w;
   }
 
   void event::set_phase(event_phase p)
