@@ -236,10 +236,10 @@ namespace yave::ui {
     }
 
     template <class F>
-    auto lock(F&& f) -> weak_ref&
+    auto lock_with(F&& f) -> weak_ref&
     {
       if (auto ref = get())
-        m_tracker.lock([&] { std::forward<F>(f)(*ref); });
+        m_tracker.lock_with([&] { std::forward<F>(f)(*ref); });
       return *this;
     }
   };
