@@ -135,4 +135,80 @@ TEST_CASE("signal")
       REQUIRE(!test);
     }
   }
+
+  SECTION("weak_ref")
+  {
+    struct foo : trackable, enable_tracker_from_this<foo>
+    {
+      auto get_tracker() const -> tracker
+      {
+        return tracker_from_this();
+      }
+    };
+
+    auto p = make_unique<foo>();
+    auto t = p->get_tracker();
+
+    weak_ref ref(*p);
+    REQUIRE(!ref.expired());
+    REQUIRE(ref.get());
+
+    SECTION("apply")
+    {
+      bool test = false;
+      ref.apply([&](auto&) { test = true; });
+      REQUIRE(test);
+
+      p = nullptr;
+      ref.apply([&](auto) { test = false; });
+      REQUIRE(test);
+      REQUIRE(ref.expired());
+      REQUIRE(!ref.get());
+    }
+
+    SECTION("copy")
+    {
+      auto ref2 = ref;
+      REQUIRE(!ref.expired());
+      REQUIRE(!ref2.expired());
+      REQUIRE(ref.get());
+      REQUIRE(ref2.get());
+
+      p = nullptr;
+      REQUIRE(ref.expired());
+      REQUIRE(ref2.expired());
+      REQUIRE(!ref.get());
+      REQUIRE(!ref2.get());
+    }
+
+    SECTION("move")
+    {
+      auto ref2 = std::move(ref);
+      REQUIRE(ref.expired());
+      REQUIRE(!ref.get());
+      REQUIRE(!ref2.expired());
+      REQUIRE(ref2.get());
+    }
+
+    SECTION("monadic")
+    {
+      bool test = false;
+
+      ref //
+        .and_then([&](auto& q) {
+          test = true;
+          REQUIRE(p.get() == &q);
+        })
+        .or_else([&]() { test = false; });
+
+      REQUIRE(test);
+
+      ref //
+        .and_then([&](auto&) { p = nullptr; })
+        .or_else([&]() { test = false; })
+        .and_then([&](auto&) { test = true; });
+
+      REQUIRE(!test);
+    }
+  }
 }
