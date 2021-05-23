@@ -13,7 +13,7 @@
 namespace yave::ui::controllers {
 
   /// Key event controller
-  class key : public controller
+  class key final : public controllerT<key>
   {
   public:
     key(event_phase phase);
@@ -36,10 +36,10 @@ namespace yave::ui::controllers {
       signal<const events::key_press&, view_context&> on_key_press;
       signal<const events::key_release&, view_context&> on_key_release;
       signal<const events::key_char&, view_context&> on_key_char;
-      signal<view_context&> on_focusing;
-      signal<view_context&> on_blurring;
-      signal<view_context&> on_focus;
-      signal<view_context&> on_blur;
+      signal<const events::focusing&, view_context&> on_focusing;
+      signal<const events::blurring&, view_context&> on_blurring;
+      signal<const events::focus&, view_context&> on_focus;
+      signal<const events::blur&, view_context&> on_blur;
     } signals;
   };
 
