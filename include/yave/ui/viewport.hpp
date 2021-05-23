@@ -20,7 +20,7 @@ namespace yave::ui {
   class render_context;
 
   /// Toplevel surface
-  class viewport final : public generic_window<viewport>
+  class viewport final : public windowT<viewport>
   {
     // ref to layout context
     ui::layout_context& m_lctx;

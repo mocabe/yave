@@ -8,7 +8,7 @@
 namespace yave::ui::controllers {
 
   window::window()
-    : generic_controller<window>(event_phase::bubble)
+    : controllerT<window>(event_phase::bubble)
   {
   }
 

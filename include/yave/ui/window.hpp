@@ -229,6 +229,6 @@ namespace yave::ui {
   };
 
   template <class Derived>
-  using generic_window = generic_trackable<Derived, window>;
+  using windowT = generic_trackable<Derived, window>;
 
 } // namespace yave::ui

@@ -59,6 +59,6 @@ namespace yave::ui {
   };
 
   template <class Derived>
-  using generic_controller = generic_trackable<Derived, controller>;
+  using controllerT = generic_trackable<Derived, controller>;
 
 } // namespace yave::ui

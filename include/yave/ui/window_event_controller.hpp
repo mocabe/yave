@@ -11,7 +11,7 @@
 
 namespace yave::ui::controllers {
 
-  class window final : public generic_controller<window>
+  class window final : public controllerT<window>
   {
   public:
     window();
