@@ -140,8 +140,8 @@ namespace yave::ui {
     menu          = GLFW_KEY_MENU,
   };
 
-  /// key modifier
-  enum class key_modifier_flags : int
+  /// key modifier flags
+  enum class key_modifiers : int
   {
     none      = 0,
     shift     = GLFW_MOD_SHIFT,
@@ -185,7 +185,7 @@ namespace yave::ui {
     class key_press final : public key_event
     {
       ui::key_action m_action;
-      ui::key_modifier_flags m_mods;
+      ui::key_modifiers m_mods;
 
     public:
       key_press(
@@ -193,31 +193,19 @@ namespace yave::ui {
         event_phase phase,
         ui::key key,
         ui::key_action action,
-        ui::key_modifier_flags mods)
-        : key_event(target, phase, key)
-        , m_action {action}
-        , m_mods {mods}
-      {
-      }
+        ui::key_modifiers mods);
 
-      auto& key() const
-      {
-        return m_key;
-      }
-
-      auto& modifiers() const
-      {
-        return m_mods;
-      }
-
-      /// auto repeat
-      bool is_repeat() const
-      {
-        return m_action == ui::key_action::repeat;
-      }
+      /// get key
+      auto key() const -> ui::key;
+      /// get modifier flags
+      auto modifiers() const -> ui::key_modifiers;
+      /// get action
+      auto action() const -> ui::key_action;
+      /// auto repeat?
+      bool is_repeat() const;
 
       // test modifiers
-      bool test_modifiers(ui::key_modifier_flags mods) const;
+      bool test_modifiers(ui::key_modifiers mods) const;
       bool shift() const;
       bool control() const;
       bool alt() const;
@@ -229,15 +217,10 @@ namespace yave::ui {
     class key_release final : public key_event
     {
     public:
-      key_release(const window& target, event_phase phase, ui::key key)
-        : key_event(target, phase, key)
-      {
-      }
+      key_release(const window& target, event_phase phase, ui::key key);
 
-      auto& key() const
-      {
-        return m_key;
-      }
+      /// get key
+      auto key() const -> ui::key;
     };
 
     class key_char final : public key_event
@@ -245,20 +228,14 @@ namespace yave::ui {
       std::u8string m_str;
 
     public:
-      key_char(const window& target, event_phase phase, std::u8string str)
-        : key_event(target, phase, key::unknown)
-        , m_str {str}
-      {
-      }
+      key_char(const window& target, event_phase phase, std::u8string str);
 
-      auto& chars() const
-      {
-        return m_str;
-      }
+      /// get chars
+      auto chars() const -> std::u8string_view;
     };
 
   } // namespace events
 
 } // namespace yave::ui
 
-YAVE_DECL_ENUM_FLAG(yave::ui::key_modifier_flags)
+YAVE_DECL_ENUM_FLAG(yave::ui::key_modifiers)

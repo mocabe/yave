@@ -72,7 +72,7 @@ namespace yave::ui {
     GLFWwindow* win;
     ui::key key;
     ui::key_action action;
-    ui::key_modifier_flags mods;
+    ui::key_modifiers mods;
   };
 
   struct glfw_char_event
@@ -86,7 +86,7 @@ namespace yave::ui {
     GLFWwindow* win;
     ui::mouse_button button;
     ui::mouse_button_action action;
-    ui::key_modifier_flags mods;
+    ui::key_modifiers mods;
   };
 
   struct glfw_cursor_pos_event

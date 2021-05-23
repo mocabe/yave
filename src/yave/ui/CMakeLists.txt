@@ -29,6 +29,9 @@ add_library(yave-ui
   render_layer.cpp
   window_events.cpp
   window_event_controller.cpp
+  key_events.cpp
+  focus_events.cpp
+  key_event_controller.cpp
 )
 
 add_library(yave::ui ALIAS yave-ui)

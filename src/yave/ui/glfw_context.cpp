@@ -173,7 +173,7 @@ namespace yave::ui {
       w, [](GLFWwindow* w, int key, int /*scancode*/, int action, int mods) {
         auto k = static_cast<ui::key>(key);
         auto a = static_cast<ui::key_action>(action);
-        auto m = static_cast<ui::key_modifier_flags>(mods);
+        auto m = static_cast<ui::key_modifiers>(mods);
 
         auto& vctx = get_window_data(w).view_ctx;
         auto& wm   = vctx.window_manager();
@@ -194,7 +194,7 @@ namespace yave::ui {
       w, [](GLFWwindow* w, int button, int action, int mods) {
         auto b = static_cast<ui::mouse_button>(button);
         auto a = static_cast<ui::mouse_button_action>(action);
-        auto m = static_cast<ui::key_modifier_flags>(mods);
+        auto m = static_cast<ui::key_modifiers>(mods);
 
         auto& vctx = get_window_data(w).view_ctx;
         auto& wm   = vctx.window_manager();
