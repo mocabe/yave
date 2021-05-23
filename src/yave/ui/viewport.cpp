@@ -8,7 +8,7 @@
 #include <yave/ui/window_manager.hpp>
 #include <yave/ui/layout_context.hpp>
 #include <yave/ui/render_context.hpp>
-#include <yave/ui/window_events.hpp>
+#include <yave/ui/window_event_controller.hpp>
 
 #include <yave/support/log.hpp>
 
@@ -38,11 +38,11 @@ namespace yave::ui {
     m_lctx.init_viewport(*this, {});
     m_rctx.init_viewport(*this, {});
 
-    // init close controller
+    // init window controller
     {
-      auto closeController = ui::make_unique<controllers::close>();
-      m_close_controller   = closeController.get();
-      add_controller(std::move(closeController));
+      auto c              = ui::make_unique<controllers::window>();
+      m_window_controller = c.get();
+      add_controller(std::move(c));
     }
   }
 

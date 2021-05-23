@@ -10,7 +10,7 @@
 namespace yave::ui {
 
   namespace controllers {
-    class close;
+    class window;
   }
 
   class root;
@@ -29,7 +29,7 @@ namespace yave::ui {
     // native window handler
     std::unique_ptr<ui::native_window> m_nw;
     // close controller
-    controllers::close* m_close_controller;
+    controllers::window* m_window_controller;
 
   public:
     viewport(
@@ -60,12 +60,6 @@ namespace yave::ui {
     auto get_child() -> window&;
     /// Remove child window
     void remove_child();
-
-  public:
-    auto& close_controller()
-    {
-      return *m_close_controller;
-    }
   };
 
 } // namespace yave::ui

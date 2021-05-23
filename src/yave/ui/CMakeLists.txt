@@ -27,6 +27,8 @@ add_library(yave-ui
   viewport_renderer.cpp
   draw_list.cpp
   render_layer.cpp
+  window_events.cpp
+  window_event_controller.cpp
 )
 
 add_library(yave::ui ALIAS yave-ui)

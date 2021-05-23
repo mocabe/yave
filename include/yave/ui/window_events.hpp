@@ -23,25 +23,11 @@ namespace yave::ui {
     class window_event : public event
     {
     public:
-      window_event(window& target, event_phase phase)
-        : event(target, phase)
-      {
-      }
+      window_event(window& target, event_phase phase);
 
-      void set_target(window& w, passkey<window_event_dispatcher>)
-      {
-        event::set_target(w);
-      }
-
-      void set_phase(event_phase p, passkey<window_event_dispatcher>)
-      {
-        event::set_phase(p);
-      }
-
-      void set_accepted(bool b, passkey<window_event_dispatcher>)
-      {
-        event::set_accepted(b);
-      }
+      void set_target(window& w, passkey<window_event_dispatcher>);
+      void set_phase(event_phase p, passkey<window_event_dispatcher>);
+      void set_accepted(bool b, passkey<window_event_dispatcher>);
     };
 
     /// Window show event
@@ -49,10 +35,7 @@ namespace yave::ui {
     class show : public window_event
     {
     public:
-      show(window& target)
-        : window_event(target, event_phase::bubble)
-      {
-      }
+      show(window& target);
     };
 
     /// Window hide event
@@ -60,10 +43,7 @@ namespace yave::ui {
     class hide : public window_event
     {
     public:
-      hide(window& target)
-        : window_event(target, event_phase::bubble)
-      {
-      }
+      hide(window& target);
     };
 
     /// Window close event
@@ -71,73 +51,9 @@ namespace yave::ui {
     class close : public window_event
     {
     public:
-      close(window& target)
-        : window_event(target, event_phase::bubble)
-      {
-      }
+      close(window& target);
     };
 
   } // namespace events
-
-  namespace controllers {
-
-    /// Window visibility
-    class visibility final : public generic_controller<visibility>
-    {
-    public:
-      visibility()
-        : generic_controller<visibility>(event_phase::bubble)
-      {
-      }
-
-      bool event(ui::event& e, view_context& vctx) override
-      {
-        if (e.phase() == phase()) {
-          /*  */ if (auto s = typeid_cast_if<events::show>(&e)) {
-            assert(&s->target() == &window());
-            s->accept();
-            on_show(vctx);
-          } else if (auto h = typeid_cast_if<events::hide>(&e)) {
-            assert(&h->target() == &window());
-            h->accept();
-            on_hide(vctx);
-          }
-        }
-        return false;
-      }
-
-      /// signaled before window become visible
-      signal<view_context&> on_show;
-      /// signaled before window become invisible
-      signal<view_context&> on_hide;
-    };
-
-    /// Viewport close
-    class close final : public generic_controller<close>
-    {
-    public:
-      close()
-        : generic_controller<close>(event_phase::bubble)
-      {
-      }
-
-      bool event(ui::event& e, view_context& vctx) override
-      {
-        if (e.phase() == phase()) {
-          if (auto closeEvent = typeid_cast_if<events::close>(&e)) {
-            assert(&closeEvent->target() == &window());
-            closeEvent->accept();
-            // slots can intercept and ignore close event
-            on_close(*closeEvent, vctx);
-          }
-        }
-        return false;
-      }
-
-      /// signaled before viewport close
-      signal<events::close&, view_context&> on_close;
-    };
-
-  } // namespace controllers
 
 } // namespace yave::ui
