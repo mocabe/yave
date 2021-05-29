@@ -193,7 +193,7 @@ namespace yave::ui {
     glfwSetMouseButtonCallback(
       w, [](GLFWwindow* w, int button, int action, int mods) {
         auto b = static_cast<ui::mouse_button>(button);
-        auto a = static_cast<ui::mouse_button_action>(action);
+        auto a = static_cast<ui::button_action>(action);
         auto m = static_cast<ui::key_modifiers>(mods);
 
         auto& vctx = get_window_data(w).view_ctx;

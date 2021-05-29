@@ -30,14 +30,14 @@ namespace yave::ui {
   };
 
   /// mouse button state
-  enum class mouse_button_state
+  enum class button_state
   {
     up   = GLFW_RELEASE,
     down = GLFW_PRESS,
   };
 
   /// raw mouse button event
-  enum class mouse_button_action
+  enum class button_action
   {
     release = GLFW_RELEASE,
     press   = GLFW_PRESS,
@@ -52,24 +52,13 @@ namespace yave::ui {
         const window& target,
         event_phase phase,
         mouse_button button,
-        vec pos)
-        : event(target, phase)
-        , m_button {button}
-        , m_pos {pos}
-      {
-      }
+        vec pos);
 
       /// position of mouse in window coordinate
-      auto& pos() const
-      {
-        return m_pos;
-      }
+      auto pos() const -> vec;
 
       /// event source button
-      auto& button() const
-      {
-        return m_button;
-      }
+      auto button() const -> mouse_button;
 
     protected:
       mouse_button m_button;
@@ -85,10 +74,7 @@ namespace yave::ui {
         const window& target,
         event_phase phase,
         mouse_button button,
-        vec pos)
-        : mouse_event(target, phase, button, pos)
-      {
-      }
+        vec pos);
     };
 
     /// double click event
@@ -100,10 +86,7 @@ namespace yave::ui {
         const window& target,
         event_phase phase,
         mouse_button button,
-        vec pos)
-        : mouse_event(target, phase, button, pos)
-      {
-      }
+        vec pos);
     };
 
     /// mouse press event
@@ -115,10 +98,7 @@ namespace yave::ui {
         const window& target,
         event_phase phase,
         mouse_button button,
-        vec pos)
-        : mouse_event(target, phase, button, pos)
-      {
-      }
+        vec pos);
     };
 
     /// mouse release event
@@ -130,10 +110,7 @@ namespace yave::ui {
         const window& target,
         event_phase phase,
         mouse_button button,
-        vec pos)
-        : mouse_event(target, phase, button, pos)
-      {
-      }
+        vec pos);
     };
 
     /// mouse repeat event
@@ -145,10 +122,7 @@ namespace yave::ui {
         const window& target,
         event_phase phase,
         mouse_button button,
-        vec pos)
-        : mouse_event(target, phase, button, pos)
-      {
-      }
+        vec pos);
     };
 
     /// mouse moves over viewport
@@ -158,16 +132,10 @@ namespace yave::ui {
       vec m_delta;
 
     public:
-      mouse_move(const window& target, event_phase phase, vec pos, vec delta)
-        : mouse_event(target, phase, mouse_button(), pos)
-        , m_delta {delta}
-      {
-      }
+      mouse_move(const window& target, event_phase phase, vec pos, vec delta);
 
-      auto& delta() const
-      {
-        return m_delta;
-      }
+      /// delta
+      auto delta() const -> vec;
     };
 
     /// mouse move into window or its child
@@ -175,10 +143,7 @@ namespace yave::ui {
     class mouse_over final : public mouse_event
     {
     public:
-      mouse_over(const window& target, event_phase phase, vec pos)
-        : mouse_event(target, phase, mouse_button(), pos)
-      {
-      }
+      mouse_over(const window& target, event_phase phase, vec pos);
     };
 
     /// mouse move out from window or its child
@@ -186,10 +151,7 @@ namespace yave::ui {
     class mouse_out final : public mouse_event
     {
     public:
-      mouse_out(const window& target, event_phase phase, vec pos)
-        : mouse_event(target, phase, mouse_button(), pos)
-      {
-      }
+      mouse_out(const window& target, event_phase phase, vec pos);
     };
 
     /// mosue move into region of window
@@ -197,10 +159,7 @@ namespace yave::ui {
     class mouse_enter final : public mouse_event
     {
     public:
-      mouse_enter(const window& target, event_phase phase, vec pos)
-        : mouse_event(target, phase, mouse_button(), pos)
-      {
-      }
+      mouse_enter(const window& target, event_phase phase, vec pos);
     };
 
     /// mosue move out from region of window
@@ -208,10 +167,7 @@ namespace yave::ui {
     class mouse_leave final : public mouse_event
     {
     public:
-      mouse_leave(const window& target, event_phase phase, vec pos)
-        : mouse_event(target, phase, mouse_button(), pos)
-      {
-      }
+      mouse_leave(const window& target, event_phase phase, vec pos);
     };
 
   } // namespace events

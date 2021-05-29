@@ -85,7 +85,7 @@ namespace yave::ui {
   {
     GLFWwindow* win;
     ui::mouse_button button;
-    ui::mouse_button_action action;
+    ui::button_action action;
     ui::key_modifiers mods;
   };
 
