@@ -79,21 +79,21 @@ namespace yave::ui {
     }
 
     template <class T>
-    auto dynamic_cast_r() const
+    auto& dynamic_cast_r() const
     {
       if constexpr (std::is_final_v<T>)
         return typeid_cast<const T>(*as_derived());
       else
-        return dynamic_cast<const T>(*as_derived());
+        return dynamic_cast<const T&>(*as_derived());
     }
 
     template <class T>
-    auto dynamic_cast_r()
+    auto& dynamic_cast_r()
     {
       if constexpr (std::is_final_v<T>)
         return typeid_cast<T>(*as_derived());
       else
-        return dynamic_cast<T>(*as_derived());
+        return dynamic_cast<T&>(*as_derived());
     }
   };
 } // namespace yave::ui
