@@ -30,7 +30,6 @@ namespace yave::ui {
   bool window_event_controller::event(events::show& e, view_context& vctx)
   {
     assert(&e.target() == &controller::window());
-    e.accept();
     signals.on_show(e, vctx);
     return true;
   }
@@ -38,7 +37,6 @@ namespace yave::ui {
   bool window_event_controller::event(events::hide& e, view_context& vctx)
   {
     assert(&e.target() == &controller::window());
-    e.accept();
     signals.on_hide(e, vctx);
     return true;
   }

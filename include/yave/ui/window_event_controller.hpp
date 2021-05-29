@@ -24,9 +24,9 @@ namespace yave::ui {
 
     struct _signals
     {
-      signal<const events::show&, view_context&> on_show;
-      signal<const events::hide&, view_context&> on_hide;
-      signal<const events::close&, view_context&> on_close;
+      signal<events::show&, view_context&> on_show;
+      signal<events::hide&, view_context&> on_hide;
+      signal<events::close&, view_context&> on_close;
     } signals;
   };
 

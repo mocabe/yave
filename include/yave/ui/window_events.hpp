@@ -24,26 +24,40 @@ namespace yave::ui {
     {
     public:
       window_event(window& target, event_phase phase);
-
-      void set_target(window& w, passkey<window_event_dispatcher>);
-      void set_phase(event_phase p, passkey<window_event_dispatcher>);
-      void set_accepted(bool b, passkey<window_event_dispatcher>);
     };
 
     /// Window show event
     /// \note This event will not bubble.
     class show : public window_event
     {
+      using event::set_accepted;
+      using event::accept;
+      using event::ignore;
+      using event::accepted;
+
     public:
       show(window& target);
+
+      void set_target(window& w, passkey<window_event_dispatcher>);
+      void set_phase(event_phase p, passkey<window_event_dispatcher>);
+      void set_accepted(bool b, passkey<window_event_dispatcher>);
     };
 
     /// Window hide event
     /// \note This event will not bubble.
     class hide : public window_event
     {
+      using event::set_accepted;
+      using event::accept;
+      using event::ignore;
+      using event::accepted;
+
     public:
       hide(window& target);
+
+      void set_target(window& w, passkey<window_event_dispatcher>);
+      void set_phase(event_phase p, passkey<window_event_dispatcher>);
+      void set_accepted(bool b, passkey<window_event_dispatcher>);
     };
 
     /// Window close event
