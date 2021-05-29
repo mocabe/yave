@@ -75,17 +75,31 @@ namespace yave::ui {
     /// \param p2 relative to cursor pos
     /// \param width should be positive
     /// \param color color of line
-    void draw_line(
-      const vec& p1,
-      const vec& p2,
-      const f32& width,
-      const color& col);
+    void draw_line(vec p1, vec p2, f32 width, color col);
 
     /// Draw rectangle polyline.
     /// \param rect relative to cursor pos
     /// \param width should be positive
     /// \param col color of rectangle
-    void draw_rect(const rect& rect, const f32& width, const color& col);
+    void draw_rect(rect rect, f32 width, color col);
+
+    /// Fill rectangle polygon.
+    /// \param rect relative to cursor pos
+    /// \param col color of rectangle
+    void fill_rect(rect rect, color col);
+
+    /// Draw raounded rectangle polyline.
+    /// \param rect relative to cursor pos
+    /// \param width should be positive
+    /// \param radius radius of rounding
+    /// \param col color of rectangle
+    void draw_rounded_rect(rect rect, f32 width, f32 radius, color col);
+
+    /// Fill rounded rectangle polygon.
+    /// \param rect relative to cursor pos
+    /// \param radius radius of rounding
+    /// \param col color of rectangle
+    void fill_rounded_rect(rect rect, f32 radius, color col);
 
   public:
     auto draw_lists(passkey<viewport_renderer>) const -> const ui::draw_lists&;

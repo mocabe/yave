@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <yave/ui/dynamic_cast.hpp>
+
 #include <memory>
 #include <typeinfo>
 
@@ -24,7 +26,7 @@ namespace yave::ui {
   };
 
   /// base class of window events.
-  class event
+  class event : public enable_dynamic_cast<event>
   {
     /// target window
     const window* m_target;
@@ -60,57 +62,6 @@ namespace yave::ui {
     void accept();
     /// ignore event
     void ignore();
-
-  public:
-    /// dynamic type check
-    template <std::derived_from<event> T>
-    bool is() const
-    {
-      if constexpr (std::is_final_v<T>)
-        return typeid_cast<const T>(this);
-      else
-        return dynamic_cast<const T*>(this);
-    }
-
-    /// dynamic cast
-    template <std::derived_from<event> T>
-    auto as() const -> const T&
-    {
-      if constexpr (std::is_final_v<T>)
-        return typeid_cast<const T>(*this);
-      else
-        return dynamic_cast<const T>(*this);
-    }
-
-    /// dynamic cast
-    template <std::derived_from<event> T>
-    auto as() -> T&
-    {
-      if constexpr (std::is_final_v<T>)
-        return typeid_cast<T>(*this);
-      else
-        return dynamic_cast<T>(*this);
-    }
-
-    /// dynamic cast to get pointer
-    template <std::derived_from<event> T>
-    auto get_as() const -> const T*
-    {
-      if constexpr (std::is_final_v<T>)
-        return typeid_cast<const T>(this);
-      else
-        return dynamic_cast<const T*>(this);
-    }
-
-    /// dynamic cast to get pointer
-    template <std::derived_from<event> T>
-    auto get_as() -> T*
-    {
-      if constexpr (std::is_final_v<T>)
-        return typeid_cast<T>(this);
-      else
-        return dynamic_cast<T*>(this);
-    }
   };
 
 } // namespace yave::ui

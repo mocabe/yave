@@ -139,10 +139,10 @@ namespace yave::ui {
   }
 
   void render_layer::draw_line(
-    const vec& p1,
-    const vec& p2,
-    const f32& width,
-    const color& col)
+    const vec p1,
+    const vec p2,
+    const f32 width,
+    const color col)
   {
     auto& list = priv::current_draw_list(*this);
     auto clip  = clip_rect();
@@ -157,9 +157,9 @@ namespace yave::ui {
   }
 
   void render_layer::draw_rect(
-    const rect& rect,
-    const f32& width,
-    const color& col)
+    const rect rect,
+    const f32 width,
+    const color col)
   {
     auto& list = priv::current_draw_list(*this);
     auto clip  = clip_rect();
@@ -171,6 +171,64 @@ namespace yave::ui {
       to_vec2(m_cursor_pos + p1),
       to_vec2(m_cursor_pos + p2),
       std::max(0.f, width),
+      to_vec4(col),
+      to_draw_scissor(clip),
+      m_rctx.default_texture());
+  }
+
+  void render_layer::fill_rect(const rect rect, const color col)
+  {
+    auto& list = priv::current_draw_list(*this);
+    auto clip  = clip_rect();
+
+    auto p1 = rect.pos();
+    auto p2 = p1 + rect.size().vec();
+
+    list.fill_rect(
+      to_vec2(m_cursor_pos + p1),
+      to_vec2(m_cursor_pos + p2),
+      to_vec4(col),
+      to_draw_scissor(clip),
+      m_rctx.default_texture());
+  }
+
+  void render_layer::draw_rounded_rect(
+    const rect rect,
+    const f32 width,
+    const f32 radius,
+    const color col)
+  {
+    auto& list = priv::current_draw_list(*this);
+    auto clip  = clip_rect();
+
+    auto p1 = rect.pos();
+    auto p2 = p1 + rect.size().vec();
+
+    list.draw_rounded_rect(
+      to_vec2(m_cursor_pos + p1),
+      to_vec2(m_cursor_pos + p2),
+      std::max(0.f, width),
+      std::max(0.f, radius),
+      to_vec4(col),
+      to_draw_scissor(clip),
+      m_rctx.default_texture());
+  }
+
+  void render_layer::fill_rounded_rect(
+    const rect rect,
+    const f32 radius,
+    const color col)
+  {
+    auto& list = priv::current_draw_list(*this);
+    auto clip  = clip_rect();
+
+    auto p1 = rect.pos();
+    auto p2 = p1 + rect.size().vec();
+
+    list.fill_rounded_rect(
+      to_vec2(m_cursor_pos + p1),
+      to_vec2(m_cursor_pos + p2),
+      std::max(0.f, radius),
       to_vec4(col),
       to_draw_scissor(clip),
       m_rctx.default_texture());

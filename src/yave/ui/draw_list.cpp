@@ -291,8 +291,6 @@ namespace {
     glm::vec2 p2,
     f32 r)
   {
-    p1 += 0.5f;
-    p2 -= 0.5f;
     auto pi = std::numbers::pi_v<f32>;
     _add_arc_points(ps, {p2.x - r, p1.y + r}, r, 0, pi / 2);
     _add_arc_points(ps, {p2.x - r, p2.y - r}, r, pi / 2, pi);
@@ -366,9 +364,7 @@ namespace yave::ui {
     const draw_scissor& scissor,
     const draw_tex& tex)
   {
-    auto q1 = p1 + 0.5f;
-    auto q2 = p2 - 0.5f;
-    auto ps = std::array {q1, glm::vec2(q2.x, q1.y), q2, glm::vec2(q1.x, q2.y)};
+    auto ps = std::array {p1, glm::vec2(p2.x, p1.y), p2, glm::vec2(p1.x, p2.y)};
     _fill_convex_polygon(*this, ps, col, scissor, tex);
   }
 
@@ -381,8 +377,10 @@ namespace yave::ui {
     const draw_scissor& scissor,
     const draw_tex& tex)
   {
+    auto q1 = p1 + 0.5f;
+    auto q2 = p2 - 0.5f;
     std::vector<glm::vec2> ps;
-    _add_rounded_rect_points(ps, p1, p2, radius);
+    _add_rounded_rect_points(ps, q1, q2, radius);
     _draw_polyline(*this, ps, width, polyline_flags::closed, col, scissor, tex);
   }
 
