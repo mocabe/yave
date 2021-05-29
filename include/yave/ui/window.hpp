@@ -118,26 +118,34 @@ namespace yave::ui {
     auto window_manager() const -> const ui::window_manager&;
 
   protected:
-    /// utility function to add new window
-    /// \param idx position of insertion. will be clamped to [0, size].
+    /// add new window
+    /// \param index position of insertion. will be clamped to [0, size].
     /// \param win window to insert
-    auto add_child(size_t idx, ui::unique<window> win) -> window&;
-    /// utility function to detach child window
+    auto add_child(u64 index, ui::unique<window> w) -> window&;
+    /// detach child window
     auto detach_child(const window& w) -> ui::unique<window>;
-    /// utility function to remove child window
+    /// remove child window
     void remove_child(const window& w);
-    /// utility function to move child window
+    /// move child window into specific index
+    void move_child(const window& w, u64 index);
+    /// move child window into first child window
     void move_child_front(const window& w);
-    /// utility function to move child window
+    /// move child window into last child window
     void move_child_back(const window& w);
 
   protected:
     /// add event controller
-    auto add_controller(ui::unique<controller> l) -> controller&;
+    auto add_controller(ui::unique<controller> c) -> controller&;
     /// detach event controller
-    auto detach_controller(const controller& l) -> ui::unique<controller>;
+    auto detach_controller(const controller& c) -> ui::unique<controller>;
     /// remove event controller
-    void remove_controller(const controller& l);
+    void remove_controller(const controller& c);
+    /// move controller
+    void move_controller(const controller& c, u64 index);
+    /// move controller
+    void move_controller_front(const controller& c);
+    /// move controller
+    void move_controller_back(const controller& c);
 
   public:
     /// Process layout calculation.

@@ -132,17 +132,17 @@ namespace yave::ui {
     return *m_wm;
   }
 
-  auto window::add_child(size_t idx, unique<window> win) -> window&
+  auto window::add_child(u64 idx, unique<window> w) -> window&
   {
-    if (!win || win->has_parent())
+    if (!w || w->has_parent())
       throw std::invalid_argument("window::add_child(): invalid window");
 
     auto& ws = m_children;
 
     idx = std::clamp(idx, size_t(0), ws.size());
 
-    auto ptr = win.get();
-    ws.insert(std::next(ws.begin(), idx), std::move(win));
+    auto ptr = w.get();
+    ws.insert(std::next(ws.begin(), idx), std::move(w));
     ptr->m_parent = this;
 
     if (registered())
@@ -173,6 +173,22 @@ namespace yave::ui {
   void window::remove_child(const window& w)
   {
     (void)detach_child(w);
+  }
+
+  void window::move_child(const window& w, u64 index)
+  {
+    if (index >= m_children.size())
+      return;
+
+    auto& ws = m_children;
+    auto idx = static_cast<decltype(ws.begin())::difference_type>(index);
+    auto it = std::ranges::find_if(ws, [&](auto&& x) { return x.get() == &w; });
+    auto to = std::next(ws.begin(), idx);
+
+    if (std::distance(ws.begin(), it) >= idx)
+      std::rotate(to, it, std::next(it));
+    else
+      std::rotate(it, std::next(it), std::next(to));
   }
 
   void window::move_child_front(const window& w)
@@ -223,6 +239,43 @@ namespace yave::ui {
   void window::remove_controller(const controller& l)
   {
     (void)detach_controller(l);
+  }
+
+  void window::move_controller(const controller& c, u64 index)
+  {
+    if (index >= m_controllers.size())
+      return;
+
+    auto& cs = m_controllers;
+
+    auto idx = static_cast<decltype(cs.begin())::difference_type>(index);
+    auto it = std::ranges::find_if(cs, [&](auto&& x) { return x.get() == &c; });
+    auto to = std::next(cs.begin(), idx);
+
+    if (std::distance(cs.begin(), it) >= idx)
+      std::rotate(to, it, std::next(it));
+    else
+      std::rotate(it, std::next(it), std::next(to));
+  }
+
+  void window::move_controller_back(const controller& c)
+  {
+    auto& cs = m_controllers;
+
+    auto it = std::ranges::find_if(cs, [&](auto&& x) { return x.get() == &c; });
+
+    if (it != cs.end())
+      std::rotate(it, std::next(it), cs.end());
+  }
+
+  void window::move_controller_front(const controller& c)
+  {
+    auto& cs = m_controllers;
+
+    auto it = std::ranges::find_if(cs, [&](auto&& x) { return x.get() == &c; });
+
+    if (it != cs.end())
+      std::rotate(cs.begin(), it, std::next(it));
   }
 
 } // namespace yave::ui
