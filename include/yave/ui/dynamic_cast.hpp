@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <yave/ui/typeid_cast.hpp>
+
 #include <concepts>
 
 namespace yave::ui {
