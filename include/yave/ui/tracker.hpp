@@ -137,9 +137,6 @@ namespace yave::ui {
 
     auto get_tracker() const -> tracker override
     {
-      static_assert(
-        std::is_final_v<Derived>,
-        "generic_trackable should be used for final classes");
       return this->tracker_from_this();
     }
   };
