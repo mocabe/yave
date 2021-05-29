@@ -5,14 +5,14 @@
 
 #include <yave/ui/key_event_controller.hpp>
 
-namespace yave::ui::controllers {
+namespace yave::ui {
 
-  key::key(event_phase phase)
-    : controllerT<key>(phase)
+  key_event_controller::key_event_controller(event_phase phase)
+    : controllerT<key_event_controller>(phase)
   {
   }
 
-  bool key::event(ui::event& e, view_context& vctx)
+  bool key_event_controller::event(ui::event& e, view_context& vctx)
   {
     if (e.phase() == phase()) {
       // Keyboard events
@@ -39,53 +39,53 @@ namespace yave::ui::controllers {
     return false;
   }
 
-  bool key::event(events::key_press& e, view_context& vctx)
+  bool key_event_controller::event(events::key_press& e, view_context& vctx)
   {
     e.accept();
     signals.on_key_press(e, vctx);
     return true;
   }
 
-  bool key::event(events::key_release& e, view_context& vctx)
+  bool key_event_controller::event(events::key_release& e, view_context& vctx)
   {
     e.accept();
     signals.on_key_release(e, vctx);
     return true;
   }
 
-  bool key::event(events::key_char& e, view_context& vctx)
+  bool key_event_controller::event(events::key_char& e, view_context& vctx)
   {
     e.accept();
     signals.on_key_char(e, vctx);
     return true;
   }
 
-  bool key::event(events::focusing& e, view_context& vctx)
+  bool key_event_controller::event(events::focusing& e, view_context& vctx)
   {
     e.accept();
     signals.on_focusing(e, vctx);
     return true;
   }
 
-  bool key::event(events::blurring& e, view_context& vctx)
+  bool key_event_controller::event(events::blurring& e, view_context& vctx)
   {
     e.accept();
     signals.on_blurring(e, vctx);
     return true;
   }
 
-  bool key::event(events::focus& e, view_context& vctx)
+  bool key_event_controller::event(events::focus& e, view_context& vctx)
   {
     e.accept();
     signals.on_focus(e, vctx);
     return true;
   }
 
-  bool key::event(events::blur& e, view_context& vctx)
+  bool key_event_controller::event(events::blur& e, view_context& vctx)
   {
     e.accept();
     signals.on_blur(e, vctx);
     return true;
   }
 
-} // namespace yave::ui::controllers
+} // namespace yave::ui

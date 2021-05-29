@@ -5,50 +5,49 @@
 
 #include <yave/ui/window_event_controller.hpp>
 
-namespace yave::ui::controllers {
+namespace yave::ui {
 
-  window::window()
-    : controllerT<window>(event_phase::bubble)
+  window_event_controller::window_event_controller()
+    : controllerT<window_event_controller>(event_phase::bubble)
   {
   }
 
-  bool window::event(ui::event& e, view_context& vctx)
+  bool window_event_controller::event(ui::event& e, view_context& vctx)
   {
     if (e.phase() == phase()) {
       if (e.is<events::window_event>()) {
-        /*  */ if (auto w = e.get_as<events::show>()) {
+        if (auto w = e.get_as<events::show>())
           return event(*w, vctx);
-        } else if (auto w = e.get_as<events::hide>()) {
+        if (auto w = e.get_as<events::hide>())
           return event(*w, vctx);
-        } else if (auto w = e.get_as<events::close>()) {
+        if (auto w = e.get_as<events::close>())
           return event(*w, vctx);
-        }
       }
     }
     return false;
   }
 
-  bool window::event(events::show& e, view_context& vctx)
+  bool window_event_controller::event(events::show& e, view_context& vctx)
   {
     assert(&e.target() == &controller::window());
     e.accept();
-    signals.on_show(vctx);
+    signals.on_show(e, vctx);
     return true;
   }
 
-  bool window::event(events::hide& e, view_context& vctx)
+  bool window_event_controller::event(events::hide& e, view_context& vctx)
   {
     assert(&e.target() == &controller::window());
     e.accept();
-    signals.on_show(vctx);
+    signals.on_hide(e, vctx);
     return true;
   }
 
-  bool window::event(events::close& e, view_context& vctx)
+  bool window_event_controller::event(events::close& e, view_context& vctx)
   {
     assert(&e.target() == &controller::window());
     e.accept();
-    signals.on_close(vctx);
+    signals.on_close(e, vctx);
     return true;
   }
-}
+} // namespace yave::ui

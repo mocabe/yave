@@ -10,13 +10,13 @@
 #include <yave/ui/controller.hpp>
 #include <yave/ui/typeid_cast.hpp>
 
-namespace yave::ui::controllers {
+namespace yave::ui {
 
   /// Key event controller
-  class key final : public controllerT<key>
+  class key_event_controller : public controllerT<key_event_controller>
   {
   public:
-    key(event_phase phase);
+    key_event_controller(event_phase phase);
 
     /// Set event phase
     using controller::set_phase;
@@ -43,4 +43,4 @@ namespace yave::ui::controllers {
     } signals;
   };
 
-} // namespace yave::ui::controllers
+} // namespace yave::ui

@@ -40,7 +40,7 @@ namespace yave::ui {
 
     // init window controller
     {
-      auto c              = ui::make_unique<controllers::window>();
+      auto c              = ui::make_unique<window_event_controller>();
       m_window_controller = c.get();
       add_controller(std::move(c));
     }

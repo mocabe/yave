@@ -9,12 +9,12 @@
 #include <yave/ui/controller.hpp>
 #include <yave/ui/signal.hpp>
 
-namespace yave::ui::controllers {
+namespace yave::ui {
 
-  class window final : public controllerT<window>
+  class window_event_controller : public controllerT<window_event_controller>
   {
   public:
-    window();
+    window_event_controller();
 
     bool event(ui::event& e, view_context& vctx) override;
 
@@ -24,9 +24,9 @@ namespace yave::ui::controllers {
 
     struct _signals
     {
-      signal<view_context&> on_show;
-      signal<view_context&> on_hide;
-      signal<view_context&> on_close;
+      signal<const events::show&, view_context&> on_show;
+      signal<const events::hide&, view_context&> on_hide;
+      signal<const events::close&, view_context&> on_close;
     } signals;
   };
 

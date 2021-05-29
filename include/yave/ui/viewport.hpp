@@ -9,15 +9,12 @@
 
 namespace yave::ui {
 
-  namespace controllers {
-    class window;
-  }
-
   class root;
   class native_window;
   class window_manager;
   class layout_context;
   class render_context;
+  class window_event_controller;
 
   /// Toplevel surface
   class viewport final : public windowT<viewport>
@@ -29,7 +26,7 @@ namespace yave::ui {
     // native window handler
     std::unique_ptr<ui::native_window> m_nw;
     // close controller
-    controllers::window* m_window_controller;
+    window_event_controller* m_window_controller;
 
   public:
     viewport(
