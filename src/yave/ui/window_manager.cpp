@@ -161,6 +161,18 @@ namespace yave::ui {
       m_event_dispatcher.send_hide_event(w);
     }
 
+    void focus_window(window& w)
+    {
+      assert(w.registered());
+      m_event_dispatcher.send_focus_event(w);
+    }
+
+    void blur_window(window& w)
+    {
+      assert(w.registered());
+      m_event_dispatcher.send_blur_event(w);
+    }
+
     auto find_window(wid id) const -> window*
     {
       if (auto it = m_wmap.find(id); it != m_wmap.end())
@@ -324,6 +336,16 @@ namespace yave::ui {
   void window_manager::hide_window(window& w, passkey<window>)
   {
     m_pimpl->hide_window(w);
+  }
+
+  void window_manager::focus_window(window& w, passkey<window>)
+  {
+    m_pimpl->focus_window(w);
+  }
+
+  void window_manager::blur_window(window& w, passkey<window>)
+  {
+    m_pimpl->blur_window(w);
   }
 
 } // namespace yave::ui

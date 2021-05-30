@@ -90,6 +90,8 @@ namespace yave::ui {
     void unregister_window(window&, passkey<window>);
     void show_window(window&, passkey<window>);
     void hide_window(window&, passkey<window>);
+    void focus_window(window&, passkey<window>);
+    void blur_window(window&, passkey<window>);
   };
 
 } // namespace yave::ui

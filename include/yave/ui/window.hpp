@@ -69,6 +69,10 @@ namespace yave::ui {
     /// visible?
     /// \note will not be applied recursively
     bool m_visible : 1 = false;
+    /// focused?
+    bool m_focused : 1 = false;
+    /// can take focus?
+    bool m_focusable : 1 = false;
 
   public:
     /// ctor
@@ -81,6 +85,7 @@ namespace yave::ui {
     void set_registered(bool, ui::window_manager&, passkey<ui::window_manager>);
     void set_invalidated(bool, passkey<ui::window_manager>);
     void set_visible(bool, passkey<ui::window_event_dispatcher>);
+    void set_focused(bool, passkey<ui::window_event_dispatcher>);
 
   public:
     auto window_layout_data(passkey<layout_context>) const
@@ -108,6 +113,17 @@ namespace yave::ui {
     /// Visible?
     bool visible() const;
 
+  public:
+    /// Has keyboard focus?
+    bool focused() const;
+    /// Grab keyboard focus
+    void focus();
+    /// Release keyboard focus
+    void blur();
+    /// Can it get any more keyboard focus?
+    bool focusable() const;
+    /// Set focusable flag
+    void set_focusable(bool b);
 
   public:
     /// get window manager

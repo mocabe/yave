@@ -6,6 +6,7 @@
 #include <yave/ui/window_event_dispatcher.hpp>
 #include <yave/ui/window_manager.hpp>
 #include <yave/ui/window_events.hpp>
+#include <yave/ui/focus_events.hpp>
 #include <yave/ui/root.hpp>
 #include <yave/ui/viewport.hpp>
 #include <yave/ui/native_window.hpp>
@@ -63,7 +64,6 @@ namespace yave::ui {
     // process window event data
     void dispatch_pending_events()
     {
-      log_info("----- [[dispatch_pending_events]] -----");
       while (auto event = pop_window_event()) {
         std::visit([&](auto& e) { process(e); }, *event);
       }
@@ -76,19 +76,67 @@ namespace yave::ui {
       using namespace ranges;
       using namespace ranges::views;
 
-      auto cs = std::vector<std::pair<tracker, controller&>>();
-      cs.reserve(w.controllers().size());
+      auto cs = w.controllers()
+                | ranges::views::transform([](auto&& c) { return weak_ref(c); })
+                | ranges::to_vector;
 
-      for (auto&& c : w.controllers()) {
-        cs.emplace_back(c.get_tracker(), c);
-      }
-
-      for (auto&& [wp, c] : cs) {
-        if (!wp.expired()) {
-          if (c.event(e, m_vctx) || e.accepted())
-          break;
+      for (auto&& c : cs) {
+        if (!c.expired()) {
+          if (c.get()->event(e, m_vctx) || e.accepted())
+            break;
+        }
       }
     }
+
+    bool dispatch_capture_phase_impl(window& w, event& e)
+    {
+      assert(e.phase() == event_phase::capture);
+
+      if (!w.has_parent())
+        return false;
+
+      const auto t = w.get_tracker();
+
+      if (dispatch_capture_phase_impl(w.parent(), e))
+        return true;
+
+      if (t.expired())
+        return false;
+
+      dispatch_over_window(w, e);
+      return e.accepted();
+    }
+
+    bool dispatch_bubble_phase_impl(window& w, event& e)
+    {
+      assert(e.phase() == event_phase::bubble);
+
+      if (!w.has_parent())
+        return false;
+
+      const auto t = w.get_tracker();
+
+      dispatch_over_window(w, e);
+
+      if (e.accepted())
+        return true;
+
+      if (t.expired())
+        return false;
+
+      return dispatch_bubble_phase_impl(w.parent(), e);
+    }
+
+    /// dispatch capture phase
+    bool dispatch_capture_phase(window& w, event& e)
+    {
+      return dispatch_capture_phase_impl(w, e);
+    }
+
+    /// dispatch bubble phase
+    bool dispatch_bubble_phase(window& w, event& e)
+    {
+      return dispatch_bubble_phase_impl(w, e);
     }
 
     // find native window
@@ -149,6 +197,86 @@ namespace yave::ui {
         process_visibility_event<events::hide>(w);
         w.set_visible(false, {});
       }
+    }
+
+  public:
+    void send_blurring_event(window& w, focus_reason reason)
+    {
+      w.get_tracker()
+        .and_then([&] {
+          auto e = events::blurring(w, event_phase::capture, reason);
+          dispatch_capture_phase(w, e);
+        })
+        .and_then([&] {
+          auto e = events::blurring(w, event_phase::bubble, reason);
+          dispatch_bubble_phase(w, e);
+        });
+    }
+
+    void send_focusing_event(window& w, focus_reason reason)
+    {
+      w.get_tracker()
+        .and_then([&] {
+          auto e = events::focusing(w, event_phase::capture, reason);
+          dispatch_capture_phase(w, e);
+        })
+        .and_then([&] {
+          auto e = events::focusing(w, event_phase::bubble, reason);
+          dispatch_bubble_phase(w, e);
+        });
+    }
+
+    void dispatch_blur_event(window& w, focus_reason reason)
+    {
+      auto e = events::blur(w, reason);
+      dispatch_over_window(w, e);
+    }
+
+    void dispatch_focus_event(window& w, focus_reason reason)
+    {
+      auto e = events::focus(w, reason);
+      dispatch_over_window(w, e);
+    }
+
+    void send_focus_event(window& w)
+    {
+      if (!w.focusable())
+        return;
+
+      const auto r = focus_reason::other;
+
+      w.get_tracker()
+        .and_then([&] {
+          if (has_focused_window()) {
+            send_blur_event(focused_window());
+            assert(!has_focused_window());
+          }
+        })
+        .and_then([&] { send_focusing_event(w, r); })
+        .and_then([&] {
+          set_focused_window(w);
+          w.set_focused(true, {});
+          dispatch_focus_event(w, r);
+        });
+    }
+
+    void send_blur_event(window& w)
+    {
+      if (!has_focused_window())
+        return;
+
+      const auto r = focus_reason::other;
+      auto& prev   = focused_window();
+
+      w.get_tracker()
+        .and_then([&] {
+          send_blurring_event(prev, r);
+          clear_focused_window();
+        })
+        .and_then([&] {
+          prev.set_focused(false, {});
+          dispatch_blur_event(prev, r);
+        });
     }
 
     bool has_focused_window() const
@@ -339,6 +467,16 @@ namespace yave::ui {
   void window_event_dispatcher::send_hide_event(window& w)
   {
     m_pimpl->send_hide_event(w);
+  }
+
+  void window_event_dispatcher::send_focus_event(window& w)
+  {
+    m_pimpl->send_focus_event(w);
+  }
+
+  void window_event_dispatcher::send_blur_event(window& w)
+  {
+    m_pimpl->send_blur_event(w);
   }
 
 } // namespace yave::ui

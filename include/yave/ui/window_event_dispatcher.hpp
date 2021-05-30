@@ -42,6 +42,10 @@ namespace yave::ui {
     void send_show_event(window& w);
     /// Send hide event
     void send_hide_event(window& w);
+    /// Send focus event
+    void send_focus_event(window& w);
+    /// Send blur event
+    void send_blur_event(window& w);
   };
 
 } // namespace yave::ui

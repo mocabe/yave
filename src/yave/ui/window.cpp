@@ -62,6 +62,11 @@ namespace yave::ui {
     m_visible = b;
   }
 
+  void window::set_focused(bool b, passkey<ui::window_event_dispatcher>)
+  {
+    m_focused = b;
+  }
+
   auto window::window_layout_data(passkey<layout_context>) const
     -> ui::window_layout_data&
   {
@@ -112,6 +117,37 @@ namespace yave::ui {
   bool window::visible() const
   {
     return m_visible;
+  }
+
+  bool window::focused() const
+  {
+    return m_focused;
+  }
+
+  void window::focus()
+  {
+    if (registered())
+      m_wm->focus_window(*this, {});
+    else
+      log_warning("window::focus() for inactive window");
+  }
+
+  void window::blur()
+  {
+    if (registered())
+      m_wm->blur_window(*this, {});
+    else
+      log_warning("window::blur() for inactive window");
+  }
+
+  bool window::focusable() const
+  {
+    return m_focusable;
+  }
+
+  void window::set_focusable(bool b)
+  {
+    m_focusable = b;
   }
 
   auto window::window_manager() -> ui::window_manager&
