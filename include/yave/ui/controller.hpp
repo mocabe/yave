@@ -39,7 +39,7 @@ namespace yave::ui {
     /// \param dctx data context ref
     /// \returns `true` to skip rest of event listeners registered to the
     /// window. This value will be ignored when event was accepted.
-    virtual bool event(ui::event& e, view_context& vctx) = 0;
+    virtual bool event(ui::event& e) = 0;
 
     // for window
     void set_window(ui::window&, passkey<ui::window>);

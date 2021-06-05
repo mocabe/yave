@@ -12,40 +12,40 @@ namespace yave::ui {
   {
   }
 
-  bool window_event_controller::event(ui::event& e, view_context& vctx)
+  bool window_event_controller::event(ui::event& e)
   {
     if (e.phase() == phase()) {
       if (e.is<events::window_event>()) {
         if (auto w = e.get_as<events::show>())
-          return event(*w, vctx);
+          return event(*w);
         if (auto w = e.get_as<events::hide>())
-          return event(*w, vctx);
+          return event(*w);
         if (auto w = e.get_as<events::close>())
-          return event(*w, vctx);
+          return event(*w);
       }
     }
     return false;
   }
 
-  bool window_event_controller::event(events::show& e, view_context& vctx)
+  bool window_event_controller::event(events::show& e)
   {
     assert(&e.target() == &controller::window());
-    signals.on_show(e, vctx);
+    signals.on_show(e);
     return true;
   }
 
-  bool window_event_controller::event(events::hide& e, view_context& vctx)
+  bool window_event_controller::event(events::hide& e)
   {
     assert(&e.target() == &controller::window());
-    signals.on_hide(e, vctx);
+    signals.on_hide(e);
     return true;
   }
 
-  bool window_event_controller::event(events::close& e, view_context& vctx)
+  bool window_event_controller::event(events::close& e)
   {
     assert(&e.target() == &controller::window());
     e.accept();
-    signals.on_close(e, vctx);
+    signals.on_close(e);
     return true;
   }
 } // namespace yave::ui

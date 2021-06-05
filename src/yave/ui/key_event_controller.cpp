@@ -12,79 +12,77 @@ namespace yave::ui {
   {
   }
 
-  bool key_event_controller::event(ui::event& e, view_context& vctx)
+  bool key_event_controller::event(ui::event& e)
   {
     if (e.phase() == phase()) {
       // Keyboard events
       if (e.is<events::key_event>()) {
         if (auto k = e.get_as<events::key_press>())
-          return event(*k, vctx);
+          return event(*k);
         if (auto k = e.get_as<events::key_release>())
-          return event(*k, vctx);
+          return event(*k);
         if (auto k = e.get_as<events::key_char>())
-          return event(*k, vctx);
+          return event(*k);
       }
       // Keyboard focus events
       if (e.is<events::focus_event>()) {
         if (auto f = e.get_as<events::focusing>())
-          return event(*f, vctx);
+          return event(*f);
         if (auto f = e.get_as<events::blurring>())
-          return event(*f, vctx);
+          return event(*f);
         if (auto f = e.get_as<events::focus>())
-          return event(*f, vctx);
+          return event(*f);
         if (auto f = e.get_as<events::blur>())
-          return event(*f, vctx);
+          return event(*f);
       }
     }
     return false;
   }
 
-  bool key_event_controller::event(events::key_press& e, view_context& vctx)
+  bool key_event_controller::event(events::key_press& e)
   {
     e.accept();
-    signals.on_key_press(e, vctx);
+    signals.on_key_press(e);
     return true;
   }
 
-  bool key_event_controller::event(events::key_release& e, view_context& vctx)
+  bool key_event_controller::event(events::key_release& e)
   {
     e.accept();
-    signals.on_key_release(e, vctx);
+    signals.on_key_release(e);
     return true;
   }
 
-  bool key_event_controller::event(events::key_char& e, view_context& vctx)
+  bool key_event_controller::event(events::key_char& e)
   {
     e.accept();
-    signals.on_key_char(e, vctx);
+    signals.on_key_char(e);
     return true;
   }
 
-  bool key_event_controller::event(events::focusing& e, view_context& vctx)
+  bool key_event_controller::event(events::focusing& e)
   {
     e.accept();
-    signals.on_focusing(e, vctx);
+    signals.on_focusing(e);
     return true;
   }
 
-  bool key_event_controller::event(events::blurring& e, view_context& vctx)
+  bool key_event_controller::event(events::blurring& e)
   {
     e.accept();
-    signals.on_blurring(e, vctx);
+    signals.on_blurring(e);
     return true;
   }
 
-  bool key_event_controller::event(events::focus& e, view_context& vctx)
+  bool key_event_controller::event(events::focus& e)
   {
-    e.accept();
-    signals.on_focus(e, vctx);
+    signals.on_focus(e);
     return true;
   }
 
-  bool key_event_controller::event(events::blur& e, view_context& vctx)
+  bool key_event_controller::event(events::blur& e)
   {
-    e.accept();
-    signals.on_blur(e, vctx);
+    signals.on_blur(e);
     return true;
   }
 

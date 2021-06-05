@@ -48,6 +48,11 @@ namespace yave::ui {
     /// \note This event does not bubble.
     class focus final : public focus_event
     {
+      using event::set_accepted;
+      using event::accept;
+      using event::ignore;
+      using event::accepted;
+
     public:
       focus(const window& target, focus_reason reason);
     };
@@ -56,6 +61,11 @@ namespace yave::ui {
     /// \note This event does not bubble.
     class blur final : public focus_event
     {
+      using event::set_accepted;
+      using event::accept;
+      using event::ignore;
+      using event::accepted;
+
     public:
       blur(const window& target, focus_reason reason);
     };

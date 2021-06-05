@@ -82,7 +82,7 @@ namespace yave::ui {
 
       for (auto&& c : cs) {
         if (!c.expired()) {
-          if (c.get()->event(e, m_vctx) || e.accepted())
+          if (c.get()->event(e) || e.accepted())
             break;
         }
       }

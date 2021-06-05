@@ -12,108 +12,100 @@ namespace yave::ui {
   {
   }
 
-  bool mouse_event_controller::event(ui::event& e, view_context& vctx)
+  bool mouse_event_controller::event(ui::event& e)
   {
     if (e.phase() == phase()) {
       if (e.is<events::mouse_event>()) {
         if (auto m = e.get_as<events::mouse_click>())
-          return event(*m, vctx);
+          return event(*m);
         if (auto m = e.get_as<events::mouse_double_click>())
-          return event(*m, vctx);
+          return event(*m);
         if (auto m = e.get_as<events::mouse_press>())
-          return event(*m, vctx);
+          return event(*m);
         if (auto m = e.get_as<events::mouse_release>())
-          return event(*m, vctx);
+          return event(*m);
         if (auto m = e.get_as<events::mouse_repeat>())
-          return event(*m, vctx);
+          return event(*m);
         if (auto m = e.get_as<events::mouse_move>())
-          return event(*m, vctx);
+          return event(*m);
         if (auto m = e.get_as<events::mouse_over>())
-          return event(*m, vctx);
+          return event(*m);
         if (auto m = e.get_as<events::mouse_out>())
-          return event(*m, vctx);
+          return event(*m);
         if (auto m = e.get_as<events::mouse_enter>())
-          return event(*m, vctx);
+          return event(*m);
         if (auto m = e.get_as<events::mouse_leave>())
-          return event(*m, vctx);
+          return event(*m);
       }
     }
     return false;
   }
 
-  bool mouse_event_controller::event(events::mouse_click& e, view_context& vctx)
+  bool mouse_event_controller::event(events::mouse_click& e)
   {
     e.accept();
-    signals.on_mouse_click(e, vctx);
+    signals.on_mouse_click(e);
     return true;
   }
 
-  bool mouse_event_controller::event(
-    events::mouse_double_click& e,
-    view_context& vctx)
+  bool mouse_event_controller::event(events::mouse_double_click& e)
   {
     e.accept();
-    signals.on_mouse_double_click(e, vctx);
+    signals.on_mouse_double_click(e);
     return true;
   }
 
-  bool mouse_event_controller::event(events::mouse_press& e, view_context& vctx)
+  bool mouse_event_controller::event(events::mouse_press& e)
   {
     e.accept();
-    signals.on_mouse_press(e, vctx);
+    signals.on_mouse_press(e);
     return true;
   }
 
-  bool mouse_event_controller::event(
-    events::mouse_release& e,
-    view_context& vctx)
+  bool mouse_event_controller::event(events::mouse_release& e)
   {
     e.accept();
-    signals.on_mouse_release(e, vctx);
+    signals.on_mouse_release(e);
     return true;
   }
 
-  bool mouse_event_controller::event(
-    events::mouse_repeat& e,
-    view_context& vctx)
+  bool mouse_event_controller::event(events::mouse_repeat& e)
   {
     e.accept();
-    signals.on_mouse_repeat(e, vctx);
+    signals.on_mouse_repeat(e);
     return true;
   }
 
-  bool mouse_event_controller::event(events::mouse_move& e, view_context& vctx)
+  bool mouse_event_controller::event(events::mouse_move& e)
   {
     e.accept();
-    signals.on_mouse_move(e, vctx);
+    signals.on_mouse_move(e);
     return true;
   }
 
-  bool mouse_event_controller::event(events::mouse_over& e, view_context& vctx)
+  bool mouse_event_controller::event(events::mouse_over& e)
   {
     e.accept();
-    signals.on_mouse_over(e, vctx);
+    signals.on_mouse_over(e);
     return true;
   }
 
-  bool mouse_event_controller::event(events::mouse_out& e, view_context& vctx)
+  bool mouse_event_controller::event(events::mouse_out& e)
   {
     e.accept();
-    signals.on_mouse_out(e, vctx);
+    signals.on_mouse_out(e);
     return true;
   }
 
-  bool mouse_event_controller::event(events::mouse_enter& e, view_context& vctx)
+  bool mouse_event_controller::event(events::mouse_enter& e)
   {
-    e.accept();
-    signals.on_mouse_enter(e, vctx);
+    signals.on_mouse_enter(e);
     return true;
   }
 
-  bool mouse_event_controller::event(events::mouse_leave& e, view_context& vctx)
+  bool mouse_event_controller::event(events::mouse_leave& e)
   {
-    e.accept();
-    signals.on_mouse_leave(e, vctx);
+    signals.on_mouse_leave(e);
     return true;
   }
 

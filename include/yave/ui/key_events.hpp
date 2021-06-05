@@ -172,16 +172,13 @@ namespace yave::ui {
     class key_event : public event
     {
     protected:
-      key_event(const window& target, event_phase phase, ui::key key)
-        : event(target, phase)
-        , m_key {key}
-      {
-      }
+      key_event(const window& target, event_phase phase, ui::key key);
 
     protected:
       ui::key m_key;
     };
 
+    // propagate = yes
     class key_press final : public key_event
     {
       ui::key_action m_action;
@@ -214,6 +211,7 @@ namespace yave::ui {
       bool num_lock() const;
     };
 
+    // propagete = yes
     class key_release final : public key_event
     {
     public:
@@ -223,6 +221,7 @@ namespace yave::ui {
       auto key() const -> ui::key;
     };
 
+    // propagate = yes
     class key_char final : public key_event
     {
       std::u8string m_str;

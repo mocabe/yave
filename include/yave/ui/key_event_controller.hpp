@@ -21,25 +21,25 @@ namespace yave::ui {
     /// Set event phase
     using controller::set_phase;
 
-    bool event(ui::event& e, view_context& vctx) override;
+    bool event(ui::event& e) override;
 
-    virtual bool event(events::key_press& e, view_context& vctx);
-    virtual bool event(events::key_release& e, view_context& vctx);
-    virtual bool event(events::key_char& e, view_context& vctx);
-    virtual bool event(events::focusing& e, view_context& vctx);
-    virtual bool event(events::blurring& e, view_context& vctx);
-    virtual bool event(events::focus& e, view_context& vctx);
-    virtual bool event(events::blur& e, view_context& vctx);
+    virtual bool event(events::key_press& e);
+    virtual bool event(events::key_release& e);
+    virtual bool event(events::key_char& e);
+    virtual bool event(events::focusing& e);
+    virtual bool event(events::blurring& e);
+    virtual bool event(events::focus& e);
+    virtual bool event(events::blur& e);
 
     struct _signals
     {
-      signal<const events::key_press&, view_context&> on_key_press;
-      signal<const events::key_release&, view_context&> on_key_release;
-      signal<const events::key_char&, view_context&> on_key_char;
-      signal<const events::focusing&, view_context&> on_focusing;
-      signal<const events::blurring&, view_context&> on_blurring;
-      signal<const events::focus&, view_context&> on_focus;
-      signal<const events::blur&, view_context&> on_blur;
+      signal<const events::key_press&> on_key_press;
+      signal<const events::key_release&> on_key_release;
+      signal<const events::key_char&> on_key_char;
+      signal<const events::focusing&> on_focusing;
+      signal<const events::blurring&> on_blurring;
+      signal<const events::focus&> on_focus;
+      signal<const events::blur&> on_blur;
     } signals;
   };
 

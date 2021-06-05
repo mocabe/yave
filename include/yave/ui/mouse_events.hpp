@@ -158,6 +158,11 @@ namespace yave::ui {
     /// \note propagate: no
     class mouse_enter final : public mouse_event
     {
+      using event::set_accepted;
+      using event::accept;
+      using event::ignore;
+      using event::accepted;
+
     public:
       mouse_enter(const window& target, event_phase phase, vec pos);
     };
@@ -166,6 +171,11 @@ namespace yave::ui {
     /// \note propagate: no
     class mouse_leave final : public mouse_event
     {
+      using event::set_accepted;
+      using event::accept;
+      using event::ignore;
+      using event::accepted;
+
     public:
       mouse_leave(const window& target, event_phase phase, vec pos);
     };

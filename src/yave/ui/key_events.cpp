@@ -7,6 +7,12 @@
 
 namespace yave::ui::events {
 
+  key_event::key_event(const window& target, event_phase phase, ui::key key)
+    : event(target, phase)
+    , m_key {key}
+  {
+  }
+
   key_press::key_press(
     const window& target,
     event_phase phase,
