@@ -65,8 +65,9 @@ if(NOT (CMAKE_CXX_COMPILER_ID MATCHES MSVC|Clang|GNU))
 endif()
 
 # ------------------------------------------
-# Export compile command database
+# CMake global settings
 
+set(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ------------------------------------------

@@ -1,14 +1,12 @@
 # yave::lib::shape
 
-add_library(yave-lib-shape 
+yave_add_library(yave-lib-shape 
   path.cpp
   shape.cpp
   circle.cpp
   rect.cpp
   draw.cpp
 )
-
-add_library(yave::lib::shape ALIAS yave-lib-shape)
 
 target_link_libraries(yave-lib-shape PRIVATE yave::config)
 target_link_libraries(yave-lib-shape PRIVATE yave::lib::mat)

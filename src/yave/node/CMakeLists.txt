@@ -1,8 +1,6 @@
 add_subdirectory(core)
 
 # yave::node
+yave_add_interface_library(yave-node)
 
-add_library(yave-node INTERFACE)
-add_library(yave::node ALIAS yave-node)
-
-target_link_libraries(yave-node INTERFACE yave-node-core)
+target_link_libraries(yave-node INTERFACE yave::node::core)

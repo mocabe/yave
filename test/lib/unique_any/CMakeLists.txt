@@ -1,1 +1,1 @@
-YAVE_Test(unique_any unique_any)
+ yave_add_test(unique_any unique_any)

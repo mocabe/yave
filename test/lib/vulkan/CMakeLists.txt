@@ -1,1 +1,1 @@
-YAVE_Test(vulkan_context vulkan yave::lib::vulkan)
+ yave_add_test(vulkan_context vulkan yave::lib::vulkan)

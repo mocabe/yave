@@ -1,8 +1,7 @@
 # yave::lib::glfw
 
-add_library(yave-lib-glfw glfw_context.cpp)
-add_library(yave::lib::glfw ALIAS yave-lib-glfw)
-
+yave_add_library(yave-lib-glfw glfw_context.cpp)
+ 
 target_link_libraries(yave-lib-glfw PRIVATE yave::config)
 target_link_libraries(yave-lib-glfw PRIVATE yave::support::log)
 target_link_libraries(yave-lib-glfw PRIVATE vulkan)

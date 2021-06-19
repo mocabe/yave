@@ -1,2 +1,2 @@
-YAVE_Test(compiler compiler yave::compiler yave::node yave::module::std yave::support::log)
-YAVE_Test(type compiler yave::compiler)
+ yave_add_test(compiler compiler yave::compiler yave::node yave::module::std yave::support::log)
+ yave_add_test(type compiler yave::compiler)

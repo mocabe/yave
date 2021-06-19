@@ -16,6 +16,7 @@ target_include_directories(imgui PUBLIC
   ${YAVE_EXTERNAL_DIR}/imgui/misc/cpp
 )
 
+set_target_properties(imgui PROPERTIES FOLDER "imgui")
 target_link_libraries(imgui PRIVATE freetype)
 
 add_library(imgui-glfw-vulkan 
@@ -32,6 +33,8 @@ target_link_libraries(imgui-glfw-vulkan PUBLIC
   ${Vulkan_LIBRARIES}
 )
 target_compile_definitions(imgui-glfw-vulkan PUBLIC IMGUI_VULKAN_DEBUG_REPORT)
+set_target_properties(imgui-glfw-vulkan PROPERTIES FOLDER "imgui")
 
 add_executable(imgui_demo ${YAVE_EXTERNAL_DIR}/imgui/examples/example_glfw_vulkan/main.cpp)
 target_link_libraries(imgui_demo imgui-glfw-vulkan)
+set_target_properties(imgui_demo PROPERTIES FOLDER "imgui")
