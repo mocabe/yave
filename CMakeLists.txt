@@ -14,7 +14,7 @@ set(YAVE_TOOL_DIR ${YAVE_DIR}/tools)
 # ------------------------------------------
 # Build type
 
-if(NOT (CMAKE_BUILD_TYPE MATCHES Debug|Release|RelWithDebInfo|MinSizeRel))
+if((NOT (CMAKE_CXX_COMPILER_ID MATCHES MSVC)) AND (NOT (CMAKE_BUILD_TYPE MATCHES Debug|Release|RelWithDebInfo|MinSizeRel)))
   message(FATAL_ERROR "Invalid build type!")
 endif()
 
