@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
+#include <yave/core/config.hpp>
 #include <yave/module/module.hpp>
 #include <yave/support/error.hpp>
 

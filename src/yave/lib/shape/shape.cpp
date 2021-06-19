@@ -7,6 +7,8 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include <stdexcept>
+
 namespace yave {
 
   shape::shape(std::vector<path> pths, std::vector<shape_cmd> cmds)

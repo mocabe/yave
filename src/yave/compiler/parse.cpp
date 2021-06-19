@@ -7,6 +7,7 @@
 #include <yave/compiler/message.hpp>
 #include <yave/support/log.hpp>
 #include <yave/node/core/properties.hpp>
+#include <yave/core/fix_lambda.hpp>
 
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view.hpp>

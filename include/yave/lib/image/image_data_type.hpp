@@ -5,7 +5,9 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
+#include <yave/core/config.hpp>
+
+#include <string>
 
 namespace yave {
 

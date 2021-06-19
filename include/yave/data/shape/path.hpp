@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
+#include <yave/core/config.hpp>
 #include <yave/data/vector/vector.hpp>
 #include <yave/data/vec/vec.hpp>
 

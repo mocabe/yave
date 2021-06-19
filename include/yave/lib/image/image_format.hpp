@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
+#include <yave/core/config.hpp>
 
 #include <yave/lib/image/image_color_type.hpp>
 #include <yave/lib/image/image_data_type.hpp>

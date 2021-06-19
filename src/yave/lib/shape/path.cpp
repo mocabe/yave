@@ -6,6 +6,8 @@
 #include <yave/lib/shape/path.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 
+#include <stdexcept>
+
 namespace yave {
 
   namespace {

@@ -7,7 +7,7 @@
 
 #include <yave/rts/dynamic_typing.hpp>
 #include <yave/node/core/structured_node_graph.hpp>
-#include <yave/config/fix.hpp>
+#include <yave/core/fix_lambda.hpp>
 
 #include <map>
 

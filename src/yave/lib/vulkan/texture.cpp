@@ -64,18 +64,18 @@ namespace yave::vulkan {
       auto stc = single_time_command(device, cmdQueue, cmdPool);
       auto cmd = stc.command_buffer();
 
+#if defined(YAVE_DEBUG)
       // set (0,1,0,1) for debug
-      if constexpr (is_debug) {
-        image_layout_undefined_to_transfer_dst(cmd, image.get());
-        if constexpr (is_debug)
-          cmd.clearColorImage(
-            image.get(),
-            vk::ImageLayout::eTransferDstOptimal,
-            vk::ClearColorValue(std::array {0.f, 1.f, 0.f, 1.f}),
-            range);
-        image_layout_transfer_dst_to_shader_read(cmd, image.get());
-      } else
-        image_layout_undefined_to_shader_read(cmd, image.get());
+      image_layout_undefined_to_transfer_dst(cmd, image.get());
+      cmd.clearColorImage(
+        image.get(),
+        vk::ImageLayout::eTransferDstOptimal,
+        vk::ClearColorValue(std::array {0.f, 1.f, 0.f, 1.f}),
+        range);
+      image_layout_transfer_dst_to_shader_read(cmd, image.get());
+#else
+      image_layout_undefined_to_shader_read(cmd, image.get());
+#endif
     }
 
     return {

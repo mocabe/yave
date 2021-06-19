@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
+#include <yave/core/config.hpp>
 #include <yave/lib/image/image_format.hpp>
 #include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>

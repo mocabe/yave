@@ -5,10 +5,10 @@
 
 #pragma once
 
+#include <yave/core/config.hpp>
+
 #include <atomic>
 #include <mutex>
-
-#include <yave/config/intrin.hpp>
 
 namespace yave {
 
