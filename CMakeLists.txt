@@ -94,7 +94,7 @@ endif()
 
 # Common compiler flags
 set(YAVE_COMPILE_FLAGS
-  $<$<CXX_COMPILER_ID:MSVC>:/W4 /Zi /EHsc /permissive- /w34716 /d2FH4 /Zc:__cplusplus>
+  $<$<CXX_COMPILER_ID:MSVC>:/W4 /Zi /EHsc /permissive- /w34716 /d2FH4 /Zc:__cplusplus /MP>
   $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -g -pedantic -Wshadow>
   $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -g -pedantic -Wshadow-compatible-local>
 )
