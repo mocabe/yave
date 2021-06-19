@@ -21,7 +21,7 @@ jobs:
         sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.2.154-bionic.list https://packages.lunarg.com/vulkan/1.2.154/lunarg-vulkan-1.2.154-bionic.list
         sudo apt-get update
     - name: install_packages
-      value: sudo apt-get install g++-10 clang++-11 ninja-build vulkan-sdk libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev
+      value: sudo apt-get install g++-11 clang++-12 ninja-build vulkan-sdk libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev
     - name: setup_vulkan_sdk_win
       value: |
         dir /b C:\VulkanSDK\* > tmp    
@@ -36,8 +36,8 @@ jobs:
         BuildType: Debug
         CMakeArgs: 
           -GNinja 
-          -DCMAKE_C_COMPILER=gcc-10
-          -DCMAKE_CXX_COMPILER=g++-10
+          -DCMAKE_C_COMPILER=gcc-11
+          -DCMAKE_CXX_COMPILER=g++-11
         BeforeBuild: |
           $(setup_packages)
           $(install_packages)
@@ -47,8 +47,8 @@ jobs:
         BuildType: Release
         CMakeArgs: 
           -GNinja 
-          -DCMAKE_C_COMPILER=gcc-10
-          -DCMAKE_CXX_COMPILER=g++-10
+          -DCMAKE_C_COMPILER=gcc-11
+          -DCMAKE_CXX_COMPILER=g++-11
         BeforeBuild: |
           $(setup_packages)
           $(install_packages)
@@ -58,8 +58,8 @@ jobs:
         BuildType: Debug
         CMakeArgs: 
           -GNinja 
-          -DCMAKE_C_COMPILER=clang-11
-          -DCMAKE_CXX_COMPILER=clang++-11
+          -DCMAKE_C_COMPILER=clang-12
+          -DCMAKE_CXX_COMPILER=clang++-12
         BeforeBuild: |
           $(setup_packages)
           $(install_packages)
@@ -69,8 +69,8 @@ jobs:
         BuildType: Debug
         CMakeArgs: 
           -GNinja 
-          -DCMAKE_C_COMPILER=clang-11
-          -DCMAKE_CXX_COMPILER=clang++-11
+          -DCMAKE_C_COMPILER=clang-12
+          -DCMAKE_CXX_COMPILER=clang++-12
           -DYAVE_ADDRESS_SANITIZER=ON
         BeforeBuild: |
           $(setup_packages)
@@ -81,8 +81,8 @@ jobs:
         BuildType: Debug
         CMakeArgs: 
           -GNinja 
-          -DCMAKE_C_COMPILER=clang-11
-          -DCMAKE_CXX_COMPILER=clang++-11
+          -DCMAKE_C_COMPILER=clang-12
+          -DCMAKE_CXX_COMPILER=clang++-12
           -DYAVE_THREAD_SANITIZER=ON
         BeforeBuild: |
           $(setup_packages)
@@ -93,8 +93,8 @@ jobs:
         BuildType: Release
         CMakeArgs: 
           -GNinja 
-          -DCMAKE_C_COMPILER=clang-11
-          -DCMAKE_CXX_COMPILER=clang++-11
+          -DCMAKE_C_COMPILER=clang-12
+          -DCMAKE_CXX_COMPILER=clang++-12
         BeforeBuild: |
           $(setup_packages)
           $(install_packages)
@@ -104,8 +104,8 @@ jobs:
         BuildType: Release
         CMakeArgs: 
           -GNinja 
-          -DCMAKE_C_COMPILER=clang-11
-          -DCMAKE_CXX_COMPILER=clang++-11
+          -DCMAKE_C_COMPILER=clang-12
+          -DCMAKE_CXX_COMPILER=clang++-12
           -DYAVE_ADDRESS_SANITIZER=ON
         BeforeBuild: |
           $(setup_packages)
@@ -116,8 +116,8 @@ jobs:
         BuildType: Release
         CMakeArgs: 
           -GNinja 
-          -DCMAKE_C_COMPILER=clang-11
-          -DCMAKE_CXX_COMPILER=clang++-11
+          -DCMAKE_C_COMPILER=clang-12
+          -DCMAKE_CXX_COMPILER=clang++-12
           -DYAVE_THREAD_SANITIZER=ON
         BeforeBuild: |
           $(setup_packages)
