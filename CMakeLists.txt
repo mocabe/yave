@@ -13,8 +13,8 @@ set(YAVE_TOOL_DIR ${YAVE_DIR}/tools)
 # ------------------------------------------
 # Build type
 
-if (NOT CMAKE_BUILD_TYPE) 
-  set(CMAKE_BUILD_TYPE "Debug")
+if(NOT (CMAKE_BUILD_TYPE MATCHES Debug|Release|RelWithDebInfo|MinSizeRel))
+  message(FATAL_ERROR "Invalid build type!")
 endif()
 
 set(BUILD_SHARED_LIBS OFF)
