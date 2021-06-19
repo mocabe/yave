@@ -1,1 +1,1 @@
-YAVE_Test(path filesystem yave::lib::filesystem)
+ yave_add_test(path filesystem yave::lib::filesystem)

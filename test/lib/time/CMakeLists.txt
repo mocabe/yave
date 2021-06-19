@@ -1,1 +1,1 @@
-YAVE_Test(time time)
+ yave_add_test(time time)

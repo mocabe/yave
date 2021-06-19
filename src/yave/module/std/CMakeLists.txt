@@ -1,6 +1,6 @@
 # yave::module::std
 
-add_library(yave-module-std
+yave_add_library(yave-module-std
   color/color.cpp
   vec/vec.cpp
   mat/mat.cpp
@@ -32,8 +32,6 @@ add_library(yave-module-std
   module.cpp
   module_loader.cpp
 )
-
-add_library(yave::module::std ALIAS yave-module-std)
 
 target_link_libraries(yave-module-std PUBLIC yave::config)
 target_link_libraries(yave-module-std PUBLIC yave::node::core)

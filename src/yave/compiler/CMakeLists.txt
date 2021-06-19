@@ -1,6 +1,6 @@
 # yave::compiler
 
-add_library(yave-compiler
+yave_add_library(yave-compiler
   pipeline.cpp
   message.cpp
   executable.cpp
@@ -12,8 +12,6 @@ add_library(yave-compiler
   verify.cpp
   optimize.cpp
 )
-
-add_library(yave::compiler ALIAS yave-compiler)
 
 target_link_libraries(yave-compiler PUBLIC yave::config)
 target_link_libraries(yave-compiler PRIVATE yave::node)

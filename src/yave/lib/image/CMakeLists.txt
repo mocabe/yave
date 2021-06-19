@@ -1,11 +1,10 @@
 # yave::lib::image
 
-add_library(yave-lib-image 
+yave_add_library(yave-lib-image 
   image.cpp
   image_view.cpp
   image_format.cpp
 )
-add_library(yave::lib::image ALIAS yave-lib-image)
 
 target_link_libraries(yave-lib-image PUBLIC yave::config)
 target_link_libraries(yave-lib-image PRIVATE yave::support::log)

@@ -1,0 +1,1 @@
+Checks: bugprone-*,modernize-*,performance-*,readability-*,-readability-redundant-access-specifiers,-modernize-use-nodiscard,-readability-braces-around-statements,-readability-qualified-auto,-modernize-use-trailing-return-type

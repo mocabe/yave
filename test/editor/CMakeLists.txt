@@ -1,1 +1,1 @@
-YAVE_Test(data_context editor yave::editor)
+ yave_add_test(data_context editor yave::editor)

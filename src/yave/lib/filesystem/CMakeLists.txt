@@ -1,8 +1,5 @@
 # yave::lib::filsystem
-
-add_library(yave-lib-filesystem INTERFACE)
-
-add_library(yave::lib::filesystem ALIAS yave-lib-filesystem)
+yave_add_interface_library(yave-lib-filesystem)
 
 if(YAVE_COMPILER_GNU OR YAVE_COMPILER_LLVM)
   # <experimental/filesystem>

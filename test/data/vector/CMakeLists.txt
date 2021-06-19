@@ -1,1 +1,1 @@
-YAVE_Test(vector vector)
+ yave_add_test(vector vector)
