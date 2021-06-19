@@ -1,6 +1,6 @@
 # yave::editor
 
-add_library(yave-editor
+yave_add_library(yave-editor
   data_command.cpp
   data_context.cpp
   view_command.cpp
@@ -11,8 +11,6 @@ add_library(yave-editor
   editor_data.cpp
   serialize.cpp
 )
-
-add_library(yave::editor ALIAS yave-editor)
 
 target_link_libraries(yave-editor PUBLIC yave::config)
 target_link_libraries(yave-editor PUBLIC yave::node::core)

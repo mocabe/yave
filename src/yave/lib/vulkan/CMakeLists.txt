@@ -1,6 +1,6 @@
 # yave::lib::vulkan
 
-add_library(yave-lib-vulkan 
+yave_add_library(yave-lib-vulkan 
   vulkan_context.cpp 
   shader.cpp
   staging.cpp
@@ -13,8 +13,6 @@ add_library(yave-lib-vulkan
   offscreen_render_pass.cpp
   offscreen_compositor.cpp
 )
-
-add_library(yave::lib::vulkan ALIAS yave-lib-vulkan)
 
 target_link_libraries(yave-lib-vulkan PRIVATE yave::config)
 target_link_libraries(yave-lib-vulkan PRIVATE yave::support::log)

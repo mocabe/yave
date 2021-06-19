@@ -1,6 +1,6 @@
 # yave::node::core
 
-add_library(yave-node-core 
+yave_add_library(yave-node-core 
   node_info.cpp
   socket_info.cpp
   connection_info.cpp
@@ -17,8 +17,6 @@ add_library(yave-node-core
   properties.cpp
   serialize.cpp
 )
-
-add_library(yave::node::core ALIAS yave-node-core)
 
 target_link_libraries(yave-node-core PUBLIC yave::config)
 target_link_libraries(yave-node-core PRIVATE yave::support::log)

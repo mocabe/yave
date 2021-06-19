@@ -1,6 +1,6 @@
 # yave-imgui
 
-add_executable(yave-imgui 
+set(SOURCES 
   application.cpp
   root_window.cpp
   node_window.cpp
@@ -14,9 +14,18 @@ add_executable(yave-imgui
   data_commands.cpp
   layout.cpp
   main.cpp
-)
+) 
+
+yave_glob_include_files(_include_files)
+
+source_group("src" FILES ${SOURCES})
+source_group("include" FILES ${_include_files})
+
+set(SOURCES ${SOURCES} ${_include_files})
+add_executable(yave-imgui ${SOURCES})
 
 set_target_properties(yave-imgui PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set_target_properties(yave-imgui PROPERTIES FOLDER "yave-imgui")
 
 target_link_libraries(yave-imgui PRIVATE yave::config)
 target_link_libraries(yave-imgui PRIVATE yave::lib::imgui)

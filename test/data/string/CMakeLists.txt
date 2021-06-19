@@ -1,1 +1,1 @@
-YAVE_Test(string string)
+ yave_add_test(string string)
