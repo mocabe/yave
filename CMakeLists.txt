@@ -52,27 +52,22 @@ project(yave CXX)
 option(YAVE_BUILD_TESTS "Build tests" ON)
 option(YAVE_ADDRESS_SANITIZER "Enable address sanitizer" OFF)
 option(YAVE_THREAD_SANITIZER "Enable thread sanitizer" OFF)
+option(YAVE_UB_SANITIZER "Enable undefined behaviour sanitizer" OFF)
+option(YAVE_MEMORY_SANITIZER "Enable meomry sanitizer" OFF)
 
 # ------------------------------------------
 # Compilers
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  message(STATUS "Detected compiler: LLVM Clang")
-  set(YAVE_COMPILER_LLVM true)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  message(STATUS "Detected compiler: GNU GCC")
-  set(YAVE_COMPILER_GNU true)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  message(STATU "Detected compiler: Intel ICC")
-  set(YAVE_COMPILER_INTEL true)
-elseif(MSVC)
-  message(STATUS "Detected compiler: Microsoft MSVC")
-  set(YAVE_COMPILER_MSVC true)
-else()
-  message(WARNING "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}, Version: ${CMAKE_CXX_COMPILER_VERSION}")
+
+if(NOT (CMAKE_CXX_COMPILER_ID MATCHES MSVC|Clang|GNU))
+  message(FATAL_ERROR "Unsupported compiler!")
 endif()
 
-message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+# ------------------------------------------
+# Export compile command database
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ------------------------------------------
 # Default C++ standard
@@ -87,48 +82,50 @@ include(${YAVE_EXTERNAL_DIR}/external.cmake)
 # ------------------------------------------
 # Compiler Flags
 
-if(YAVE_COMPILER_MSVC)
+if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   # Remove /RTC1 from default set of compile flags.
   STRING (REGEX REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-  set(YAVE_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4 /Zc:__cplusplus)
-  set(YAVE_LINK_FLAGS )
-else()
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES Clang|GNU)
+  # Use -O2
   STRING (REGEX REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-  set(YAVE_COMPILE_FLAGS -Wall -Wextra -g -pedantic)
-  set(YAVE_LINK_FLAGS )
 endif()
 
-if(YAVE_COMPILER_LLVM)
-  set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -Wshadow)
-  set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -latomic)
-  if(${CMAKE_MAKE_PROGRAM} MATCHES "ninja" )
-    set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fcolor-diagnostics)
-  endif()
-  if(UNIX AND (NOT CYGWIN))
-    if(YAVE_ADDRESS_SANITIZER)
-      set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=address)
-      set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=address)
-    elseif(YAVE_THREAD_SANITIZER)
-      set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=thread)
-      set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=thread)
-    endif()
-  endif()
+# Common compiler flags
+set(YAVE_COMPILE_FLAGS
+  $<$<CXX_COMPILER_ID:MSVC>:/W4 /Zi /EHsc /permissive- /w34716 /d2FH4 /Zc:__cplusplus>
+  $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -g -pedantic -Wshadow>
+  $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -g -pedantic -Wshadow-compatible-local>
+)
+
+# Common linker flags
+set(YAVE_LINK_FLAGS
+  $<$<CXX_COMPILER_ID:Clang>:-latomic>
+)
+
+# Sanitizer options
+if(YAVE_ADDRESS_SANITIZER)
+  set(YAVE_SANITIZER_STRING "address")
+elseif(YAVE_THREAD_SANITIZER)
+  set(YAVE_SANITIZER_STRING "thread")
+elseif(YAVE_UB_SANITIZER)
+  set(YAVE_SANITIZER_STRING "undefined")
+elseif(YAVE_MEMORY_SANITIZER)
+  set(YAVE_SANITIZER_STRING "memory")
 endif()
 
-if(YAVE_COMPILER_GNU)
-  set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -Wshadow-compatible-local)
-  if(${CMAKE_MAKE_PROGRAM} MATCHES "ninja")
-    set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fdiagnostics-color=always)
-  endif()
-  if(UNIX AND (NOT CYGWIN))
-    if(YAVE_ADDRESS_SANITIZER)
-      set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=address -fuse-ld=gold)
-      set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=address -fuse-ld=gold)
-    elseif(YAVE_THREAD_SANITIZER)
-      set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=thread -fuse-ld=gold)
-      set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=thread -fuse-ld=gold)
-    endif()
-  endif()
+# Apply sanitizer options
+if(YAVE_SANITIZER_STRING AND (CMAKE_CXX_COMPILER_ID MATCHES Clang|GNU))
+  set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} -fsanitize=${YAVE_SANITIZER_STRING} -fno-omit-frame-pointer)
+  set(YAVE_LINK_FLAGS ${YAVE_LINK_FLAGS} -fsanitize=${YAVE_SANITIZER_STRING})
+endif()
+
+# for Ninja
+if(${CMAKE_MAKE_PROGRAM} MATCHES "ninja" )
+  set(YAVE_COMPILE_FLAGS ${YAVE_COMPILE_FLAGS} 
+    $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics> 
+    $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>)
 endif()
 
 # ------------------------------------------
