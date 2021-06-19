@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.20)
+cmake_policy(VERSION 2.30)
 
 # ------------------------------------------
 # Directories
