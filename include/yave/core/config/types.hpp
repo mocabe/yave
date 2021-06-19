@@ -36,4 +36,11 @@ namespace yave {
   static_assert(std::numeric_limits<float>::is_iec559);
   static_assert(std::numeric_limits<double>::is_iec559);
 
+  // cstddef
+  using nullptr_t = std::nullptr_t;
+  using size_t = std::size_t;
+  using ptrdiff_t = std::ptrdiff_t;
+  using max_align_t = std::max_align_t;
+  using byte = std::byte;
+
 } // namespace yave
