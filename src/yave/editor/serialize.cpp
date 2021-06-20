@@ -5,7 +5,7 @@
 
 #include <yave/editor/serialize.hpp>
 #include <yave/node/core/serialize.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 #include <cereal/archives/json.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>

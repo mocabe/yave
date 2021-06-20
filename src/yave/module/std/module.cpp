@@ -38,7 +38,7 @@
 #include <yave/module/std/animation/animation.hpp>
 
 #include <yave/lib/vulkan/offscreen_compositor.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 #include <yave/core/id.hpp>
 
 #include <optional>

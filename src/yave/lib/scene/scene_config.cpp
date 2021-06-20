@@ -4,7 +4,7 @@
 //
 
 #include <yave/lib/scene/scene_config.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 YAVE_DECL_LOCAL_LOGGER(scene_config)
 

@@ -7,7 +7,7 @@
 #include <yave/lib/imgui/imgui_context.hpp>
 #include <yave/lib/imgui/shader.hpp>
 #include <yave/lib/vulkan/texture.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>

@@ -10,7 +10,7 @@
 
 #include <yave-imgui/data_commands.hpp>
 
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 #include <imgui_internal.h>
 #include <imgui_stdlib.h>
 

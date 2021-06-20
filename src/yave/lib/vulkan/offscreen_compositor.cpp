@@ -9,7 +9,7 @@
 #include <yave/lib/vulkan/texture.hpp>
 #include <yave/lib/vulkan/render_buffer.hpp>
 #include <yave/lib/image/blend_operation.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 
 namespace {

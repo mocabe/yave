@@ -5,7 +5,7 @@
 
 #include <yave/editor/view_context.hpp>
 
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 #include <queue>
 #include <chrono>

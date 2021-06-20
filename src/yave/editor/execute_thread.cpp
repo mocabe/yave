@@ -10,7 +10,7 @@
 #include <yave/rts/to_string.hpp>
 #include <yave/lib/image/image.hpp>
 
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 #include <thread>
 #include <mutex>

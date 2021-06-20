@@ -12,10 +12,9 @@ yave_add_library(yave-editor
   serialize.cpp
 )
 
-target_link_libraries(yave-editor PUBLIC yave::config)
+target_link_libraries(yave-editor PRIVATE yave::core)
 target_link_libraries(yave-editor PUBLIC yave::node::core)
 target_link_libraries(yave-editor PUBLIC yave::compiler)
 target_link_libraries(yave-editor PUBLIC yave::lib::scene)
-target_link_libraries(yave-editor PRIVATE yave::support::log)
 target_link_libraries(yave-editor PRIVATE yave::support::error)
 target_link_libraries(yave-editor PRIVATE cereal)

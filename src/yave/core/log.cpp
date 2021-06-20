@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 #include <spdlog/sinks/sink.h>
 #include <spdlog/sinks/stdout_sinks.h>

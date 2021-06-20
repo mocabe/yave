@@ -6,8 +6,7 @@ yave_add_library(yave-lib-image
   image_format.cpp
 )
 
-target_link_libraries(yave-lib-image PUBLIC yave::config)
-target_link_libraries(yave-lib-image PRIVATE yave::support::log)
+target_link_libraries(yave-lib-image PRIVATE yave::core)
 target_link_libraries(yave-lib-image PRIVATE Boost::filesystem)
 target_link_libraries(yave-lib-image PRIVATE fmt::fmt)
 

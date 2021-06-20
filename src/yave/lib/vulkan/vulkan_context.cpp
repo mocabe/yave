@@ -6,7 +6,7 @@
 #define GLFW_INCLUDE_VULKAN
 
 #include <yave/lib/vulkan/vulkan_context.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 YAVE_DECL_LOCAL_LOGGER(vulkan)
 

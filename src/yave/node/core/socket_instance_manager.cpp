@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/core/socket_instance_manager.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 YAVE_DECL_LOCAL_LOGGER(socket_instance_manager)
 

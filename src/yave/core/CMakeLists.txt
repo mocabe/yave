@@ -2,10 +2,13 @@
 
 yave_add_library(yave-core 
   uuid.cpp
+  id.cpp
+  log.cpp
 )
  
-target_link_libraries(yave-core PRIVATE yave::config)
+target_link_libraries(yave-core PUBLIC yave::config)
 target_link_libraries(yave-core PRIVATE Boost::random)
+target_link_libraries(yave-core PUBLIC spdlog::spdlog)
 
 if(WIN32)
   # <uuid>: BCryptGenRandom, etc.

@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/core/node_declaration_store.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 #include <variant>
 #include <list>

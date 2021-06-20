@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/core/node_definition_store.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 YAVE_DECL_LOCAL_LOGGER(node_definition_store)
 

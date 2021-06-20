@@ -8,9 +8,7 @@
 #include <yave/obj/primitive/primitive.hpp>
 #include <yave/obj/primitive/property.hpp>
 #include <yave/rts/value_cast.hpp>
-
-#include <yave/support/log.hpp>
-
+#include <yave/core/log.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;
