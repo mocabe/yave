@@ -5,16 +5,17 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
+#include <yave/core/config.hpp>
+#include <yave/lib/image/blend_operation.hpp>
+#include <yave/lib/image/image_format.hpp>
 
 // https://github.com/KhronosGroup/Vulkan-Hpp/pull/431
 #if defined(YAVE_OS_WINDOWS)
+#  define NOMINMAX
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
 #endif
 
-#include <yave/lib/image/blend_operation.hpp>
-#include <yave/lib/image/image_format.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace yave::vulkan {

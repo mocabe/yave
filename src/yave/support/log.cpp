@@ -4,7 +4,6 @@
 //
 
 #include <yave/support/log.hpp>
-#include <yave/config/unreachable.hpp>
 
 #include <spdlog/sinks/sink.h>
 #include <spdlog/sinks/stdout_sinks.h>

@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <cassert>
+
 // unreachable
 #if !defined(unreachable)
 #  if defined(__GNUC__)

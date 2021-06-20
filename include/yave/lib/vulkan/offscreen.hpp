@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
+#include <yave/core/config.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
 #include <yave/lib/vulkan/staging.hpp>
 #include <yave/lib/vulkan/texture.hpp>

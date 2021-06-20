@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/config/config.hpp>
+#include <yave/core/config.hpp>
 #include <yave/lib/string/string.hpp>
 #include <yave/lib/vector/vector.hpp>
 #include <yave/obj/scene/scene_config.hpp>

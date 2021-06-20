@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/rts/meta_type.hpp>
+#include <yave/core/type_traits.hpp>
 
 namespace yave {
 

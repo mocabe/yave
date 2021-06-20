@@ -8,6 +8,7 @@
 #include <yave/rts/meta_type.hpp>
 #include <yave/rts/meta_tuple.hpp>
 #include <yave/rts/types.hpp>
+#include <yave/core/type_traits.hpp>
 
 namespace yave {
 

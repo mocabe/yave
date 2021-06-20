@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/config/config.hpp>
+#include <yave/core/config.hpp>
 #include <yave/lib/imgui/imgui_context.hpp>
 #include <yave/lib/imgui/shader.hpp>
 #include <yave/lib/vulkan/texture.hpp>

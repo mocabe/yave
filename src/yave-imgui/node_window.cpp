@@ -8,6 +8,7 @@
 #include <yave/editor/editor_data.hpp>
 #include <yave/editor/data_command.hpp>
 #include <yave/support/log.hpp>
+#include <yave/core/fix_lambda.hpp>
 
 #include <range/v3/view.hpp>
 #include <imgui_internal.h>

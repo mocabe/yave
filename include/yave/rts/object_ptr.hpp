@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <yave/core/type_traits.hpp>
 #include <yave/rts/object.hpp>
 #include <yave/rts/object_ptr_storage.hpp>
 

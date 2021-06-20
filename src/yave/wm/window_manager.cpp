@@ -7,6 +7,7 @@
 #include <yave/wm/root_window.hpp>
 
 #include <yave/support/log.hpp>
+#include <yave/core/fix_lambda.hpp>
 
 #include <map>
 #include <algorithm>

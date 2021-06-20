@@ -5,14 +5,6 @@
 
 #pragma once
 
-#include <cassert>
-
-namespace yave {
-
-#if defined(NDEBUG)
-  constexpr bool is_debug = false;
-#else
-  constexpr bool is_debug = true;
+#if !defined(NDEBUG)
+  #define YAVE_DEBUG 1
 #endif
-
-}

@@ -495,7 +495,7 @@ namespace yave {
     (void)term;
     (void)gen;
     (void)enable_assert;
-    static_assert(false_v<Term, Gen, Assert>, "Invalid term");
+    static_assert(false_v<Term, Gen>, "Invalid term");
   }
 
   template <class T1, class T2, class Gen, bool Assert>
