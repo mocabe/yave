@@ -10,7 +10,7 @@
 #include <yave/rts/kind_gen.hpp>
 #include <yave/core/type_traits.hpp>
 
-#include <yave/support/offset_of_member.hpp>
+#include <yave/core/offset_of.hpp>
 
 #include <array>
 #include <cstring>
@@ -187,9 +187,9 @@ namespace yave {
     uint64_t index;
   };
 
-  static_assert(offset_of_member(&type_value_storage::con) == 0);
-  static_assert(offset_of_member(&type_value_storage::ap) == 0);
-  static_assert(offset_of_member(&type_value_storage::var) == 0);
+  static_assert(offset_of(&type_value_storage::con) == 0);
+  static_assert(offset_of(&type_value_storage::ap) == 0);
+  static_assert(offset_of(&type_value_storage::var) == 0);
 
   /// Base class for TypeValue
   class type_value : type_value_storage
