@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/support/id.hpp>
+#include <yave/core/id.hpp>
 
 #include <boost/random/random_device.hpp>
 #include <boost/random/mersenne_twister.hpp>
@@ -14,47 +14,21 @@
 
 namespace yave {
 
-  bool operator<(const uid& lhs, const uid& rhs) noexcept
-  {
-    return lhs.data < rhs.data;
-  }
+  namespace detail {
 
-  bool operator>(const uid& lhs, const uid& rhs) noexcept
-  {
-    return lhs.data > rhs.data;
-  }
+    uint64_t tagged_id_random()
+    {
+      static_assert(std::is_same_v<uint64_t, std::uint_fast64_t>);
+      boost::random::random_device seed_gen;
+      boost::random::mt19937_64 engine(seed_gen());
+      return engine();
+    }
 
-  bool operator<=(const uid& lhs, const uid& rhs) noexcept
-  {
-    return lhs.data <= rhs.data;
-  }
+    std::string tagged_id_to_string(uint64_t id)
+    {
+      return fmt::format("{:0>16x}", id);
+    }
 
-  bool operator>=(const uid& lhs, const uid& rhs) noexcept
-  {
-    return lhs.data >= rhs.data;
-  }
-
-  bool operator==(const uid& lhs, const uid& rhs) noexcept
-  {
-    return lhs.data == rhs.data;
-  }
-
-  bool operator!=(const uid& lhs, const uid& rhs) noexcept
-  {
-    return lhs.data != rhs.data;
-  }
-
-  std::string to_string(const uid& id)
-  {
-    return fmt::format("{:0>16x}", id.data);
-  }
-
-  uid uid::random_generate()
-  {
-    static_assert(std::is_same_v<uint64_t, std::uint_fast64_t>);
-    boost::random::random_device seed_gen;
-    boost::random::mt19937_64 engine(seed_gen());
-    return uid {engine()};
-  }
+  } // namespace detail
 
 } // namespace yave

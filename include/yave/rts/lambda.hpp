@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/rts/box.hpp>
-#include <yave/support/id.hpp>
+#include <yave/core/id.hpp>
 
 namespace yave {
 
