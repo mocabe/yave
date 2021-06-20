@@ -7,7 +7,7 @@
 
 #include <yave/core/config.hpp>
 #include <yave/lib/image/image_format.hpp>
-#include <yave/support/uuid.hpp>
+#include <yave/core/uuid.hpp>
 
 namespace yave::data {
 
