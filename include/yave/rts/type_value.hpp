@@ -8,6 +8,7 @@
 #include <yave/rts/object_ptr.hpp>
 #include <yave/rts/id_util.hpp>
 #include <yave/rts/kind_gen.hpp>
+#include <yave/core/type_traits.hpp>
 
 #include <yave/support/offset_of_member.hpp>
 
@@ -277,7 +278,7 @@ namespace yave {
       auto&& ref = std::forward<T>(v).var;
       return ref;
     } else {
-      static_assert(false_v<Idx>, "Invalid index of type value union");
+      static_assert(false_v<T>, "Invalid index of type value union");
     }
   }
 

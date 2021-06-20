@@ -12,15 +12,21 @@ namespace yave {
   // ------------------------------------------
   // false_v
 
+  template <class...>
+  struct make_false
+  {
+    static constexpr bool value = false;
+  };
+
   /// always returns false
   template <class... Ts>
-  static constexpr bool false_v = false;
+  static constexpr bool false_v = make_false<Ts...>::value;
 
   // ------------------------------------------
   // is_complete_v
 
   /// detect complete type
-  template <class T, auto _x = []{}> 
+  template <class T, auto _x = []() -> void {}>
   concept is_complete_v = requires { sizeof(T); _x; };
 
   // ------------------------------------------

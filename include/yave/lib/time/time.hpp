@@ -6,6 +6,7 @@
 #pragma once
 
 #include <yave/core/config.hpp>
+#include <yave/core/type_traits.hpp>
 #include <yave/lib/time/bounded_int.hpp>
 
 #include <chrono>
