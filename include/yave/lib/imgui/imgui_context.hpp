@@ -8,7 +8,7 @@
 #include <yave/lib/vulkan/vulkan_context.hpp>
 #include <yave/lib/vulkan/window_context.hpp>
 #include <yave/lib/vulkan/texture.hpp>
-#include <yave/support/enum_flag.hpp>
+#include <yave/core/enum_flag.hpp>
 
 #include <imgui.h>
 #include <imgui_freetype.h> // use freetype for font rendering
