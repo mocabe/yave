@@ -14,10 +14,6 @@ set(YAVE_TOOL_DIR ${YAVE_DIR}/tools)
 # ------------------------------------------
 # Build type
 
-if((NOT (CMAKE_CXX_COMPILER_ID MATCHES MSVC)) AND (NOT (CMAKE_BUILD_TYPE MATCHES Debug|Release|RelWithDebInfo|MinSizeRel)))
-  message(FATAL_ERROR "Invalid build type!")
-endif()
-
 set(BUILD_SHARED_LIBS OFF)
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
@@ -45,6 +41,10 @@ set(CMAKE_TOOLCHAIN_FILE ${VCPKG_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake CA
 # Project
 
 project(yave CXX)
+
+if((NOT (CMAKE_CXX_COMPILER_ID MATCHES MSVC)) AND (NOT (CMAKE_BUILD_TYPE MATCHES Debug|Release|RelWithDebInfo|MinSizeRel)))
+  message(FATAL_ERROR "Invalid build type!")
+endif()
 
 # ------------------------------------------
 # Options
