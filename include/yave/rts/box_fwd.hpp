@@ -193,7 +193,7 @@ namespace yave {
     struct info_table_initializer
     {
       // check m_value's offset
-      static_assert(offset_of_member(&Box::m_value) == sizeof(Object));
+      static_assert(offset_of(&Box::m_value) == sizeof(Object));
 
       /// get info table pointer
       static constexpr auto get_info_table() -> const object_info_table *

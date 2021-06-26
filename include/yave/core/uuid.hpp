@@ -7,23 +7,24 @@
 
 #include <string>
 #include <stdexcept>
+#include <array>
 
 namespace yave {
 
   /// 128bit UUID
   struct uuid
   {
-    unsigned char data[16] = {0};
+    std::array<char, 16> data = {0};
 
     /// Generate random UUID.
     [[nodiscard]] static uuid random_generate();
 
     /// Generate UUID from string
-    [[nodiscard]] static uuid from_string(const std::string& str);
+    [[nodiscard]] static uuid from_string(std::string_view str);
 
-    /// Generate UUID from constexpr string
+    /// Generate UUID from constexpr char array
     /// ex) 707186a4-f043-4a08-8223-e03fe9c1b0ea\0
-    [[nodiscard]] static constexpr uuid from_string(const char (&str)[37]);
+    [[nodiscard]] static consteval uuid from_char_array(const char (&str)[37]);
   };
 
   [[nodiscard]] bool operator<(const uuid& lhs, const uuid& rhs) noexcept;
@@ -36,9 +37,8 @@ namespace yave {
   /// Convert UUID to string
   [[nodiscard]] std::string to_string(const uuid& id);
 
-  constexpr uuid uuid::from_string(char const (&str)[37])
+  consteval uuid uuid::from_char_array(char const (&str)[37])
   {
-
     char hex[32] {};
     size_t hex_idx = 0;
 
@@ -70,7 +70,7 @@ namespace yave {
     }
 
     if (fail)
-      throw std::runtime_error("Could not parse UUID string");
+      throw;
 
     uuid ret {};
 

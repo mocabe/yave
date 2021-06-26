@@ -14,8 +14,7 @@ yave_add_library(yave-lib-vulkan
   offscreen_compositor.cpp
 )
 
-target_link_libraries(yave-lib-vulkan PRIVATE yave::config)
-target_link_libraries(yave-lib-vulkan PRIVATE yave::support::log)
+target_link_libraries(yave-lib-vulkan PRIVATE yave::core)
 target_link_libraries(yave-lib-vulkan PUBLIC yave::lib::image)
 target_link_libraries(yave-lib-vulkan PUBLIC yave::lib::glfw)
 target_link_libraries(yave-lib-vulkan PUBLIC vulkan)

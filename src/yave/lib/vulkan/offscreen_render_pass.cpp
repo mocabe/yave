@@ -6,7 +6,7 @@
 #include <yave/lib/vulkan/offscreen_render_pass.hpp>
 #include <yave/lib/vulkan/offscreen.hpp>
 #include <yave/lib/vulkan/vulkan_util.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 YAVE_DECL_LOCAL_LOGGER(composition_pass)
 

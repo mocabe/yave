@@ -11,7 +11,6 @@ namespace yave::modules::_std {
   {
   public:
     vulkan::vulkan_context& vulkan_ctx;
-    error_list errs;
     std::shared_ptr<module> mdl;
 
   public:
@@ -22,8 +21,6 @@ namespace yave::modules::_std {
 
     bool load(const std::vector<std::string>& modules)
     {
-      errs.clear();
-
       if (
         std::find(modules.begin(), modules.end(), module_name) == modules.end())
         return false;
@@ -48,11 +45,6 @@ namespace yave::modules::_std {
 
       return {};
     }
-
-    auto& last_errors()
-    {
-      return errs;
-    }
   };
 
   module_loader::module_loader(vulkan::vulkan_context& vulkan_ctx)
@@ -75,10 +67,5 @@ namespace yave::modules::_std {
   auto module_loader::get() const -> std::vector<std::shared_ptr<yave::module>>
   {
     return m_pimpl->get();
-  }
-
-  auto module_loader::last_errors() const -> error_list
-  {
-    return m_pimpl->last_errors().clone();
   }
 }

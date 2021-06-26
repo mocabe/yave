@@ -18,8 +18,6 @@
 #include <yave/rts/eval.hpp>
 
 #include <yave/obj/string/string.hpp>
-#include <yave/support/offset_of_member.hpp>
-
 namespace yave {
 
   namespace detail {

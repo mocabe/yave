@@ -5,12 +5,12 @@
 
 #include <yave/compiler/compile.hpp>
 #include <yave/compiler/message.hpp>
-#include <yave/support/log.hpp>
 #include <yave/signal/function.hpp>
 #include <yave/module/std/num/num.hpp>
 #include <yave/module/std/logic/bool.hpp>
 #include <yave/module/std/list/list.hpp>
 #include <yave/module/std/logic/if.hpp>
+#include <yave/core/log.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;

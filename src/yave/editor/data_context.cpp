@@ -6,8 +6,8 @@
 #include <yave/editor/data_context.hpp>
 #include <yave/editor/data_command.hpp>
 #include <yave/editor/editor_data.hpp>
-#include <yave/support/log.hpp>
-#include <yave/support/overloaded.hpp>
+#include <yave/core/log.hpp>
+#include <yave/core/overloaded.hpp>
 
 #include <functional>
 #include <chrono>

@@ -9,7 +9,7 @@
 #include <yave/lib/shape/shape.hpp>
 #include <yave/obj/shape/path.hpp>
 
-#include <yave/support/overloaded.hpp>
+#include <yave/core/overloaded.hpp>
 
 namespace yave::data {
 

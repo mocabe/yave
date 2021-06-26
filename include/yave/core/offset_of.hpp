@@ -12,7 +12,7 @@ namespace yave {
   namespace detail {
 
     template <typename T1, typename T2>
-    struct offset_of_member_impl
+    struct offset_of_impl
     {
       union U
       {
@@ -43,17 +43,16 @@ namespace yave {
     };
 
     template <class T1, class T2>
-    typename offset_of_member_impl<T1, T2>::U
-      offset_of_member_impl<T1, T2>::u {};
+    typename offset_of_impl<T1, T2>::U offset_of_impl<T1, T2>::u {};
 
   } // namespace detail
 
   /// Get offset of member at compile time.
   /// i.e. constexpr offsetof.
   template <class T1, class T2>
-  [[nodiscard]] constexpr size_t offset_of_member(T1 T2::*member)
+  [[nodiscard]] consteval size_t offset_of(T1 T2::*member)
   {
-    return detail::offset_of_member_impl<T1, T2>::get(member);
+    return detail::offset_of_impl<T1, T2>::get(member);
   }
 
 } // namespace yave

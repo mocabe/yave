@@ -6,7 +6,7 @@
 #include <yave/node/core/node_declaration.hpp>
 #include <yave/node/core/structured_node_graph.hpp>
 #include <yave/node/core/properties.hpp>
-#include <yave/support/overloaded.hpp>
+#include <yave/core/overloaded.hpp>
 
 #include <regex>
 #include <string_view>

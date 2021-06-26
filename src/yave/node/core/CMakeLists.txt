@@ -18,8 +18,6 @@ yave_add_library(yave-node-core
   serialize.cpp
 )
 
-target_link_libraries(yave-node-core PUBLIC yave::config)
-target_link_libraries(yave-node-core PRIVATE yave::support::log)
-target_link_libraries(yave-node-core PRIVATE yave::support::id)
+target_link_libraries(yave-node-core PRIVATE yave::core)
 target_link_libraries(yave-node-core PUBLIC glm::glm)
 target_link_libraries(yave-node-core PRIVATE cereal)

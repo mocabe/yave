@@ -5,7 +5,7 @@
 
 #include <yave/compiler/compile.hpp>
 #include <yave/compiler/message.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 #include <yave/node/core/properties.hpp>
 #include <yave/core/fix_lambda.hpp>
 

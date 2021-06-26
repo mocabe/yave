@@ -7,7 +7,7 @@
 
 #include <SPIRV/GlslangToSpv.h>
 #include <StandAlone/ResourceLimits.h>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 YAVE_DECL_LOCAL_LOGGER(glslang)
 

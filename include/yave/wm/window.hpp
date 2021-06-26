@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <yave/support/id.hpp>
+#include <yave/core/id.hpp>
 
 #include <glm/glm.hpp>
 #include <vector>

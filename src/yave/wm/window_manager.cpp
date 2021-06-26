@@ -6,7 +6,7 @@
 #include <yave/wm/window_manager.hpp>
 #include <yave/wm/root_window.hpp>
 
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 #include <yave/core/fix_lambda.hpp>
 
 #include <map>

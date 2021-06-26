@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/core/config.hpp>
-#include <yave/lib/unique_any/unique_any.hpp>
+#include <yave/core/unique_any.hpp>
 
 #include <string>
 #include <memory>

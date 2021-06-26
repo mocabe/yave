@@ -4,7 +4,7 @@
 //
 
 #include <yave/node/core/serialize.hpp>
-#include <yave/support/overloaded.hpp>
+#include <yave/core/overloaded.hpp>
 #include <yave/core/fix_lambda.hpp>
 
 #include <map>

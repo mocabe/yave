@@ -6,8 +6,8 @@
 #include <yave/data/frame_buffer/frame_buffer_manager.hpp>
 #include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
 #include <yave/lib/vulkan/offscreen_context.hpp>
-#include <yave/support/id.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/id.hpp>
+#include <yave/core/log.hpp>
 
 #include <boost/gil.hpp>
 #include <map>

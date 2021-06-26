@@ -14,8 +14,8 @@
 #include <range/v3/view.hpp>
 
 #include <yave/lib/util/variant_mixin.hpp>
-#include <yave/support/log.hpp>
-#include <yave/support/overloaded.hpp>
+#include <yave/core/log.hpp>
+#include <yave/core/overloaded.hpp>
 #include <yave/rts/box.hpp>
 
 #include <string_view>

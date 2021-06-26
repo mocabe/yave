@@ -4,7 +4,7 @@
 //
 
 #include <yave/compiler/pipeline.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 #include <map>
 

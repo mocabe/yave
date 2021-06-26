@@ -11,7 +11,6 @@
 #include <yave/rts/id_util.hpp>
 #include <yave/rts/kind_gen.hpp>
 
-#include <yave/support/offset_of_member.hpp>
 
 #include <cstring>
 #include <string>

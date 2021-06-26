@@ -6,7 +6,7 @@
 #pragma once
 
 #include <yave/core/config.hpp>
-#include <yave/support/uuid.hpp>
+#include <yave/core/uuid.hpp>
 
 namespace yave {
 
@@ -18,7 +18,7 @@ namespace yave {
 
     /// backend id
     constexpr uuid module_id =
-      uuid::from_string("baf89c49-49eb-4381-9b8d-d85b44553090");
+      uuid::from_char_array("baf89c49-49eb-4381-9b8d-d85b44553090");
 
     constexpr auto module_name = "std";
 

@@ -4,7 +4,7 @@
 //
 
 #include <yave/lib/shape/draw.hpp>
-#include <yave/support/overloaded.hpp>
+#include <yave/core/overloaded.hpp>
 
 #include <blend2d.h>
 

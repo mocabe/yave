@@ -5,7 +5,7 @@
 
 #include <yave/node/core/node_graph.hpp>
 #include <yave/rts/unit.hpp>
-#include <yave/support/log.hpp>
+#include <yave/core/log.hpp>
 
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view.hpp>

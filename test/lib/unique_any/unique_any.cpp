@@ -3,7 +3,7 @@
 // Distributed under LGPLv3 License. See LICENSE for more details.
 //
 
-#include <yave/lib/unique_any/unique_any.hpp>
+#include <yave/core/unique_any.hpp>
 #include <catch2/catch.hpp>
 
 using namespace yave;

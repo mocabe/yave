@@ -7,6 +7,7 @@
 
 #include <yave/rts/box.hpp>
 #include <yave/rts/apply.hpp>
+#include <yave/core/offset_of.hpp>
 
 namespace yave {
 
@@ -77,7 +78,7 @@ namespace yave {
     {
       using arg_type = typename decltype(Closure1::spine)::value_type;
       // offset to first element of argument buffer
-      constexpr uint64_t arg_offset = offset_of_member(&Closure1::spine);
+      constexpr uint64_t arg_offset = offset_of(&Closure1::spine);
       static_assert(arg_offset % sizeof(arg_type) == 0);
       // manually calc offset to avoid UB
       return ((arg_type*)this)[arg_offset / sizeof(arg_type) + n];
@@ -127,8 +128,8 @@ namespace yave {
     template <uint64_t Arg>
     [[nodiscard]] auto nth_arg() const noexcept
     {
-      static_assert(offset_of_member(&Closure<>::arity) == sizeof(Object));
-      static_assert(offset_of_member(&ClosureN::spine) == sizeof(Closure<>));
+      static_assert(offset_of(&Closure<>::arity) == sizeof(Object));
+      static_assert(offset_of(&ClosureN::spine) == sizeof(Closure<>));
       static_assert(Arg < N, "Invalid index of argument");
 
       auto& app     = spine[N - Arg - 1];
