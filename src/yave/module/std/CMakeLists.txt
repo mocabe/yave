@@ -35,7 +35,6 @@ yave_add_library(yave-module-std
 
 target_link_libraries(yave-module-std PRIVATE yave::core)
 target_link_libraries(yave-module-std PUBLIC yave::node::core)
-target_link_libraries(yave-module-std PRIVATE yave::support::error)
 target_link_libraries(yave-module-std PRIVATE yave::data::frame_buffer)
 target_link_libraries(yave-module-std PRIVATE yave::data::node)
 target_link_libraries(yave-module-std PRIVATE yave::lib::scene)

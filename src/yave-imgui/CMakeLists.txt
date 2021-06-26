@@ -29,7 +29,6 @@ set_target_properties(yave-imgui PROPERTIES FOLDER "yave-imgui")
 
 target_link_libraries(yave-imgui PRIVATE yave::core)
 target_link_libraries(yave-imgui PRIVATE yave::lib::imgui)
-target_link_libraries(yave-imgui PRIVATE yave::support)
 target_link_libraries(yave-imgui PRIVATE yave::node)
 target_link_libraries(yave-imgui PRIVATE yave::data::node)
 target_link_libraries(yave-imgui PRIVATE yave::module::std)

@@ -7,7 +7,6 @@
 
 #include <yave/core/config.hpp>
 #include <yave/module/module.hpp>
-#include <yave/support/error.hpp>
 
 namespace yave {
 
@@ -20,9 +19,7 @@ namespace yave {
   public:
     /// Load modules.
     /// When one or more modules specified in argument are not found, returns
-    /// false. Moudles found are still loaded and can be accessed from get().
-    /// When this function retuend false, last_errors() will return error info
-    /// for last module loads.
+    /// false. Modules found are still loaded and can be accessed from get().
     virtual bool load(const std::vector<std::string>& modules) = 0;
     /// Unloads specific module from this loader. This function affects next
     /// get(). This function will not call deinit() on modules.
@@ -31,7 +28,5 @@ namespace yave {
     /// Modules are usually managed in shared_ptr, so will not be actually
     /// unloaded until all references are dead.
     virtual auto get() const -> std::vector<std::shared_ptr<module>> = 0;
-    /// Get last errors
-    virtual auto last_errors() const -> error_list = 0;
   };
 } // namespace yave

@@ -20,7 +20,6 @@ namespace yave::modules::_std {
     bool load(const std::vector<std::string>& modules) override;
     void unload(const std::vector<std::string>& modules) override;
     auto get() const -> std::vector<std::shared_ptr<yave::module>> override;
-    auto last_errors() const -> error_list override;
 
   private:
     class impl;

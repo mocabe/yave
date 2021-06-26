@@ -1,1 +1,0 @@
- yave_add_test(error support yave::config yave::support::error)
