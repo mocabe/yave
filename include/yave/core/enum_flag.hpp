@@ -39,7 +39,7 @@ namespace yave {
   template <
     class Flag,
     std::enable_if_t<is_enum_flag_v<Flag>, std::nullptr_t> = nullptr>
-  constexpr Flag operator|(Flag lhs, Flag rhs)
+  [[nodiscard]] constexpr Flag operator|(Flag lhs, Flag rhs)
   {
     return static_cast<Flag>(to_underlying_type(lhs) | to_underlying_type(rhs));
   }
@@ -58,7 +58,7 @@ namespace yave {
   template <
     class Flag,
     std::enable_if_t<is_enum_flag_v<Flag>, std::nullptr_t> = nullptr>
-  constexpr Flag operator&(Flag lhs, Flag rhs)
+  [[nodiscard]] constexpr Flag operator&(Flag lhs, Flag rhs)
   {
     return static_cast<Flag>(to_underlying_type(lhs) & to_underlying_type(rhs));
   }
@@ -77,7 +77,7 @@ namespace yave {
   template <
     class Flag,
     std::enable_if_t<is_enum_flag_v<Flag>, std::nullptr_t> = nullptr>
-  constexpr Flag operator^(Flag lhs, Flag rhs)
+  [[nodiscard]] constexpr Flag operator^(Flag lhs, Flag rhs)
   {
     return static_cast<Flag>(to_underlying_type(lhs) ^ to_underlying_type(rhs));
   }
@@ -96,7 +96,7 @@ namespace yave {
   template <
     class Flag,
     std::enable_if_t<is_enum_flag_v<Flag>, std::nullptr_t> = nullptr>
-  constexpr Flag operator~(Flag flag)
+  [[nodiscard]] constexpr Flag operator~(Flag flag)
   {
     return static_cast<Flag>(~(to_underlying_type(flag)));
   }
@@ -106,7 +106,7 @@ namespace yave {
   template <
     class Flag,
     std::enable_if_t<is_enum_flag_v<Flag>, std::nullptr_t> = nullptr>
-  constexpr bool operator!(Flag flag)
+  [[nodiscard]] constexpr bool operator!(Flag flag)
   {
     return !(to_underlying_type(flag));
   }

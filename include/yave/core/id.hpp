@@ -34,7 +34,7 @@ namespace yave {
     [[nodiscard]] static tagged_id random_generate();
 
     /// Comparison
-    auto operator<=>(const tagged_id&) const = default;
+    [[nodiscard]] auto operator<=>(const tagged_id&) const = default;
   };
 
   template <class T>
