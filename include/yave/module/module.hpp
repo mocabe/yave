@@ -9,7 +9,7 @@
 #include <yave/node/core/node_declaration.hpp>
 #include <yave/node/core/node_definition.hpp>
 #include <yave/obj/scene/scene_config.hpp>
-#include <yave/core/id.hpp>
+#include <yave/core/uid.hpp>
 #include <yave/core/uuid.hpp>
 
 #include <memory>

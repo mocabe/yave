@@ -12,7 +12,7 @@
 #include <yave/node/core/node_declaration.hpp>
 #include <yave/node/core/node_definition.hpp>
 #include <yave/rts/box.hpp>
-#include <yave/support/id.hpp>
+#include <yave/support/uid.hpp>
 
 #include <yave/module/ext/external_module_node_definition.hpp>
 #include <yave/module/ext/external_module_node_declaration.hpp>

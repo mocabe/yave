@@ -2,7 +2,7 @@
 
 yave_add_library(yave-core 
   uuid.cpp
-  id.cpp
+  uid.cpp
   log.cpp
 )
  

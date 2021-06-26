@@ -12,7 +12,7 @@
 #include <yave/lib/vulkan/texture.hpp>
 #include <yave/lib/vulkan/offscreen_context.hpp>
 
-#include <yave/core/id.hpp>
+#include <yave/core/uid.hpp>
 #include <yave/core/uuid.hpp>
 
 #include <vector>

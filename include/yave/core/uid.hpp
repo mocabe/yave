@@ -14,16 +14,16 @@ namespace yave {
   namespace detail {
 
     /// random generator
-    uint64_t tagged_id_random();
+    uint64_t uid_random();
 
     /// id to_string
-    std::string tagged_id_to_string(uint64_t id);
+    std::string uid_to_string(uint64_t id);
 
   } // namespace detail
 
   /// Tagged ID type
   template <class T>
-  struct tagged_id
+  struct uidT
   {
     uint64_t data = 0;
 
@@ -31,26 +31,26 @@ namespace yave {
     using tag_type = T;
 
     /// Generate random id.
-    [[nodiscard]] static tagged_id random_generate();
+    [[nodiscard]] static uidT random_generate();
 
     /// Comparison
-    [[nodiscard]] auto operator<=>(const tagged_id&) const = default;
+    [[nodiscard]] auto operator<=>(const uidT&) const = default;
   };
 
   template <class T>
-  tagged_id<T> tagged_id<T>::random_generate()
+  uidT<T> uidT<T>::random_generate()
   {
-    return {detail::tagged_id_random()};
+    return {detail::uid_random()};
   }
 
   /// Convert ID to string
   template <class T>
-  [[nodiscard]] std::string to_string(const tagged_id<T>& id)
+  [[nodiscard]] std::string to_string(const uidT<T>& id)
   {
-    return detail::tagged_id_to_string(id.data);
+    return detail::uid_to_string(id.data);
   }
 
   /// Unique ID for object/nodes (64bit)
-  using uid = tagged_id<void>;
+  using uid = uidT<void>;
 
 } // namespace yave

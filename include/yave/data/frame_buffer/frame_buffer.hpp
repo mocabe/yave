@@ -8,7 +8,7 @@
 #include <yave/core/config.hpp>
 #include <yave/lib/image/image_view.hpp>
 #include <yave/obj/frame_buffer/frame_buffer_pool.hpp>
-#include <yave/core/id.hpp>
+#include <yave/core/uid.hpp>
 
 namespace yave::data {
 

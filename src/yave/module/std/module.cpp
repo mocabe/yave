@@ -39,7 +39,7 @@
 
 #include <yave/lib/vulkan/offscreen_compositor.hpp>
 #include <yave/core/log.hpp>
-#include <yave/core/id.hpp>
+#include <yave/core/uid.hpp>
 
 #include <optional>
 
