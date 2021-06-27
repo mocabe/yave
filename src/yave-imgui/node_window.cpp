@@ -305,14 +305,18 @@ namespace yave::editor::imgui {
           if (ng.output_sockets(ng.get_group_input(current_group)).empty()) {
             if (ImGui::Selectable("New Input")) {
               dctx.cmd(std::make_unique<dcmd_sadd>(
-                ng.get_group_input(current_group), socket_type::output, 0));
+                ng.get_group_input(current_group),
+                structured_socket_type::output,
+                0));
             }
           }
 
           if (ng.input_sockets(ng.get_group_output(current_group)).empty()) {
             if (ImGui::Selectable("New Output")) {
               dctx.cmd(std::make_unique<dcmd_sadd>(
-                ng.get_group_output(current_group), socket_type::input, 0));
+                ng.get_group_output(current_group),
+                structured_socket_type::input,
+                0));
             }
           }
         }

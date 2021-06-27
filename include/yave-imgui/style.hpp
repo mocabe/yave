@@ -6,7 +6,6 @@
 #pragma once
 
 #include <yave/lib/imgui/extension.hpp>
-#include <yave/node/core/socket_property.hpp>
 
 #include <algorithm>
 
