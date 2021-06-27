@@ -161,7 +161,7 @@ namespace yave {
       return obj;
     }
 
-    /// evaluete apply graph
+    /// evaluate apply graph
     inline auto eval_spine(const object_ptr<const Object>& obj)
       -> object_ptr<const Object>
     {
@@ -217,7 +217,7 @@ namespace yave {
           // Handle lambda application
           // TODO: optimization
           if (auto lam = value_cast_if<Lambda>(bottom)) {
-            // arg vartebrae
+            // arg vertebrae
             auto& vert = _get_storage(*stack.back());
             // instantiate
             auto& lam_storage = _get_storage(*lam);
