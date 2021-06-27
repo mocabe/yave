@@ -85,7 +85,7 @@ namespace yave::editor::imgui {
           dctx.cmd(make_data_command([=](data_context& ctx) {
             auto lck = ctx.get_data<editor_data>();
             lck.ref().executor_data().set_loop_range(
-              time::seconds(fmin_input), time::seconds(fmax_input));
+              media::time::seconds(fmin_input), media::time::seconds(fmax_input));
           }));
       }
     }

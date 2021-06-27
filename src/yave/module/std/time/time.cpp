@@ -68,7 +68,7 @@ namespace yave {
     {
       auto code() const -> return_type
       {
-        return make_object<FrameTime>(yave::time::seconds(*eval_arg<0>()));
+        return make_object<FrameTime>(yave::media::time::seconds(*eval_arg<0>()));
       }
     };
   } // namespace modules::_std::time

@@ -7,7 +7,7 @@
 
 #include <yave/editor/data_context.hpp>
 #include <yave/editor/view_context.hpp>
-#include <yave/lib/time/time.hpp>
+#include <yave/media/time.hpp>
 #include <yave/lib/image/image_format.hpp>
 
 namespace yave::editor::imgui {
@@ -26,9 +26,9 @@ namespace yave::editor::imgui {
       const editor::view_context& vctx) const override;
 
   private:
-    time m_arg_time;
-    time m_arg_time_min;
-    time m_arg_time_max;
+    media::time m_arg_time;
+    media::time m_arg_time_min;
+    media::time m_arg_time_max;
     bool m_continuous;
 
     uint32_t m_width, m_height;

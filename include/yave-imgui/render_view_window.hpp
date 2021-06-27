@@ -10,7 +10,7 @@
 #include <yave/editor/view_context.hpp>
 #include <yave/lib/imgui/imgui_context.hpp>
 #include <yave/lib/image/image_format.hpp>
-#include <yave/lib/time/time.hpp>
+#include <yave/media/time.hpp>
 #include <yave/lib/image/image.hpp>
 
 namespace yave::editor {
@@ -34,8 +34,8 @@ namespace yave::editor {
     float tex_scale   = 1.f;
 
     // for execution
-    yave::time arg_time                                 = {};
-    yave::time last_arg_time                            = {};
+    media::time arg_time                                = {};
+    media::time last_arg_time                           = {};
     std::shared_ptr<const yave::image> last_result      = {};
     std::chrono::steady_clock::time_point last_exec_bgn = {};
     std::chrono::steady_clock::time_point last_exec_end = {};
@@ -45,8 +45,8 @@ namespace yave::editor {
     uint32_t current_fps;
     bool continuous_execution = false;
     bool loop_execution       = false;
-    yave::time loop_time_min  = yave::time::zero();
-    yave::time loop_time_max  = yave::time::max();
+    media::time loop_time_min = media::time::zero();
+    media::time loop_time_max = media::time::max();
 
   public:
     render_view_window(yave::imgui::imgui_context& imctx);
@@ -55,7 +55,7 @@ namespace yave::editor {
   public:
     void set_continuous_execution(bool b);
     void set_loop_execution(bool b);
-    void set_loop_execution_range(time min, time max);
+    void set_loop_execution_range(media::time min, media::time max);
 
   public:
     void update(editor::data_context& data_ctx, editor::view_context& view_ctx)

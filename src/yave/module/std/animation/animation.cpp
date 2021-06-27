@@ -179,7 +179,7 @@ namespace yave {
     {
       object_ptr<const FrameTime> m_len;
 
-      ConstLen(time len)
+      ConstLen(media::time len)
         : m_len {make_object<FrameTime>(len)}
       {
       }
@@ -211,9 +211,9 @@ namespace yave {
     // helper: delay signal time
     struct Delay : SignalFunction<Delay, X, X>
     {
-      time m_delay;
+      media::time m_delay;
 
-      Delay(time delay)
+      Delay(media::time delay)
         : m_delay {delay}
       {
       }
@@ -277,13 +277,13 @@ namespace yave {
         auto l = eval(v->length() << arg_demand());
 
         // zero length
-        if (*l == time::zero())
+        if (*l == media::time::zero())
           return b;
 
         auto t = arg_time();
 
         // out of range
-        if (*t < time::zero() || *l < *t)
+        if (*t < media::time::zero() || *l < *t)
           return b;
 
         // nothing
@@ -304,7 +304,7 @@ namespace yave {
 
         // check length
         auto l = eval(a->length() << arg_demand());
-        if (*t < time::zero() || *l < *t)
+        if (*t < media::time::zero() || *l < *t)
           throw std::runtime_error("Animation out of range");
 
         // check value
@@ -355,9 +355,9 @@ namespace yave {
       struct Thunk : SignalFunction<Thunk, SMaybe<X>, SMaybe<X>, SMaybe<X>>
       {
         // length of first animation
-        time m_len;
+        media::time m_len;
 
-        Thunk(time len)
+        Thunk(media::time len)
           : m_len {len}
         {
         }
@@ -440,9 +440,9 @@ namespace yave {
       // remapper
       struct Thunk : SignalFunction<Thunk, SMaybe<X>, SMaybe<X>>
       {
-        time m_old, m_new;
+        media::time m_old, m_new;
 
-        Thunk(time o, time n)
+        Thunk(media::time o, media::time n)
           : m_old {o}
           , m_new {n}
         {
@@ -450,7 +450,7 @@ namespace yave {
 
         auto code() const -> return_type
         {
-          if (m_new == time::zero())
+          if (m_new == media::time::zero())
             return arg<0>();
 
           auto r = m_old.seconds() / m_new.seconds();
@@ -491,9 +491,9 @@ namespace yave {
     {
       struct Thunk : SignalFunction<Thunk, SMaybe<X>, SMaybe<X>>
       {
-        time m_old_len, m_new_len;
+        media::time m_old_len, m_new_len;
 
-        Thunk(time old_len, time new_len)
+        Thunk(media::time old_len, media::time new_len)
           : m_old_len {old_len}
           , m_new_len {new_len}
         {
@@ -517,8 +517,8 @@ namespace yave {
         auto old_len = *eval(a->length() << arg_demand());
         auto new_len = *eval_arg<1>();
 
-        if (new_len < time::zero())
-          new_len = time::zero();
+        if (new_len < media::time::zero())
+          new_len = media::time::zero();
 
         return make_object<Anim<X>>(
           make_object<Thunk>(old_len, new_len) << a->value(),

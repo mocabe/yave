@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include <yave/lib/time/time.hpp>
+#include <yave/media/time.hpp>
 
 namespace yave::data {
 
   /// Data type to represent frame time to render.
-  using frame_time = yave::time;
+  using frame_time = yave::media::time;
 
 } // namespace yave

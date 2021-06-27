@@ -40,7 +40,7 @@ namespace yave::compiler {
     return m_type;
   }
 
-  auto executable::execute(const time& time) -> object_ptr<const Object>
+  auto executable::execute(const media::time& time) -> object_ptr<const Object>
   {
     return eval(
       m_obj << make_object<FrameDemand>(make_object<FrameTime>(time)));

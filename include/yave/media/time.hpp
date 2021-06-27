@@ -7,11 +7,11 @@
 
 #include <yave/core/config.hpp>
 #include <yave/core/type_traits.hpp>
-#include <yave/lib/time/bounded_int.hpp>
+#include <yave/media/bounded_int.hpp>
 
 #include <chrono>
 
-namespace yave {
+namespace yave::media {
 
   /// Represents time point in audio/video/etc.
   /// time contains single integer value which can represent most of multimedia

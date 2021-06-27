@@ -9,7 +9,7 @@
 #include <yave/lib/imgui/extension.hpp>
 #include <yave/node/core/structured_node_graph.hpp>
 #include <yave/obj/node/argument.hpp>
-#include <yave/lib/time/time.hpp>
+#include <yave/media/time.hpp>
 
 #include <filesystem>
 
@@ -33,8 +33,8 @@ namespace yave::editor::imgui {
   /// notify execute
   struct dcmd_notify_execute : data_command
   {
-    std::optional<time> m_time;
-    dcmd_notify_execute(std::optional<time> time = std::nullopt);
+    std::optional<media::time> m_time;
+    dcmd_notify_execute(std::optional<media::time> time = std::nullopt);
     void exec(data_context& ctx) override;
     void undo(data_context& ctx) override;
     auto type() const -> data_command_type override;
