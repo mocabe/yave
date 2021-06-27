@@ -63,7 +63,7 @@ namespace yave::editor {
     }
 
   public:
-    static auto exec_frame_output(compiler::executable&& exe, yave::time t)
+    static auto exec_frame_output(compiler::executable&& exe, media::time t)
       -> std::shared_ptr<const image>
     {
       try {
@@ -135,7 +135,7 @@ namespace yave::editor {
               auto run_bgn = steady_clock::now();
 
               // time argument
-              auto arg_time = yave::time();
+              auto arg_time = media::time();
               // end of continuous exec time window
               auto end_limit = steady_clock::time_point();
 
@@ -159,10 +159,10 @@ namespace yave::editor {
 
                     // advance arg time
                     auto fps = scene.frame_rate();
-                    auto dt  = time::seconds(1) / fps;
+                    auto dt  = media::time::seconds(1) / fps;
                     arg_time += dt;
 
-                    assert(time::is_compatible_rate(fps));
+                    assert(media::time::is_compatible_rate(fps));
 
                     // set wait time for next run
                     end_limit =
@@ -279,14 +279,14 @@ namespace yave::editor {
   class execute_thread_data::impl
   {
   public:
-    yave::time arg_time;
-    yave::time loop_range_min;
-    yave::time loop_range_max;
+    media::time arg_time;
+    media::time loop_range_min;
+    media::time loop_range_max;
     bool continuous_execution = false;
     bool loop_execution       = false;
 
     std::shared_ptr<const yave::image> last_image;
-    yave::time last_arg_time;
+    media::time last_arg_time;
     std::chrono::milliseconds last_compute_time;
     std::chrono::steady_clock::time_point last_begin_time;
     std::chrono::steady_clock::time_point last_end_time;
@@ -302,14 +302,14 @@ namespace yave::editor {
 
   execute_thread_data::~execute_thread_data() noexcept = default;
 
-  auto execute_thread_data::arg_time() const -> yave::time
+  auto execute_thread_data::arg_time() const -> media::time
   {
     return m_pimpl->arg_time;
   }
 
-  void execute_thread_data::set_arg_time(yave::time t)
+  void execute_thread_data::set_arg_time(media::time t)
   {
-    if (time::zero() <= t) {
+    if (media::time::zero() <= t) {
       m_pimpl->arg_time = t;
     }
   }
@@ -324,19 +324,19 @@ namespace yave::editor {
     m_pimpl->continuous_execution = b;
   }
 
-  auto execute_thread_data::loop_range_min() const -> yave::time
+  auto execute_thread_data::loop_range_min() const -> media::time
   {
     return m_pimpl->loop_range_min;
   }
 
-  auto execute_thread_data::loop_range_max() const -> yave::time
+  auto execute_thread_data::loop_range_max() const -> media::time
   {
     return m_pimpl->loop_range_max;
   }
 
-  void execute_thread_data::set_loop_range(yave::time min, yave::time max)
+  void execute_thread_data::set_loop_range(media::time min, media::time max)
   {
-    if (time::zero() <= min && min <= max) {
+    if (media::time::zero() <= min && min <= max) {
       m_pimpl->loop_range_min = min;
       m_pimpl->loop_range_max = max;
     }
@@ -352,7 +352,7 @@ namespace yave::editor {
     m_pimpl->loop_execution = b;
   }
 
-  auto execute_thread_data::last_arg_time() const -> yave::time
+  auto execute_thread_data::last_arg_time() const -> media::time
   {
     return m_pimpl->last_arg_time;
   }

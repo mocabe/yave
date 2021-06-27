@@ -5,9 +5,9 @@
 
 #include <catch2/catch.hpp>
 
-#include <yave/lib/time/time.hpp>
+#include <yave/media/time.hpp>
 
-using namespace yave;
+using namespace yave::media;
 
 TEST_CASE("time")
 {
@@ -75,7 +75,7 @@ TEST_CASE("time")
 
   SECTION("overflow")
   {
-    constexpr yave::time t {};
+    constexpr yave::media::time t {};
     constexpr auto one = time::unit(1);
 
     STATIC_REQUIRE(t.count() == 0);
@@ -137,10 +137,10 @@ TEST_CASE("time")
 
   SECTION("chrono conv")
   {
-    constexpr auto mil = yave::time(std::chrono::milliseconds(1));
-    constexpr auto sec = yave::time(std::chrono::seconds(1));
-    constexpr auto min = yave::time(std::chrono::minutes(1));
-    constexpr auto hor = yave::time(std::chrono::hours(1));
+    constexpr auto mil = yave::media::time(std::chrono::milliseconds(1));
+    constexpr auto sec = yave::media::time(std::chrono::seconds(1));
+    constexpr auto min = yave::media::time(std::chrono::minutes(1));
+    constexpr auto hor = yave::media::time(std::chrono::hours(1));
 
     STATIC_REQUIRE(mil.milliseconds() == std::chrono::milliseconds(1));
     STATIC_REQUIRE(sec.seconds() == std::chrono::seconds(1));
@@ -151,11 +151,11 @@ TEST_CASE("time")
   SECTION("static conv")
   {
     STATIC_REQUIRE(
-      yave::time::milliseconds(1.0).duration() == std::chrono::milliseconds(1));
+      yave::media::time::milliseconds(1.0).duration() == std::chrono::milliseconds(1));
     STATIC_REQUIRE(
-      yave::time::seconds(1.0).duration() == std::chrono::seconds(1));
+      yave::media::time::seconds(1.0).duration() == std::chrono::seconds(1));
     STATIC_REQUIRE(
-      yave::time::minutes(1.0).duration() == std::chrono::minutes(1));
-    STATIC_REQUIRE(yave::time::hours(1.0).duration() == std::chrono::hours(1));
+      yave::media::time::minutes(1.0).duration() == std::chrono::minutes(1));
+    STATIC_REQUIRE(yave::media::time::hours(1.0).duration() == std::chrono::hours(1));
   }
 }

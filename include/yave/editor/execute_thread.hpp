@@ -7,7 +7,7 @@
 
 #include <yave/editor/data_context.hpp>
 #include <yave/obj/frame_buffer/frame_buffer.hpp>
-#include <yave/lib/time/time.hpp>
+#include <yave/media/time.hpp>
 #include <yave/lib/image/image.hpp>
 
 #include <memory>
@@ -69,9 +69,9 @@ namespace yave::editor {
     ~execute_thread_data() noexcept;
 
     /// get current argument time
-    auto arg_time() const -> yave::time;
+    auto arg_time() const -> media::time;
     /// set current argument time
-    void set_arg_time(yave::time t);
+    void set_arg_time(media::time t);
 
     /// is continuous execution enabled?
     bool continuous_execution() const;
@@ -79,11 +79,11 @@ namespace yave::editor {
     void set_continuous_execution(bool b);
 
     /// get loop range
-    auto loop_range_min() const -> yave::time;
+    auto loop_range_min() const -> media::time;
     /// get loop range
-    auto loop_range_max() const -> yave::time;
+    auto loop_range_max() const -> media::time;
     /// set loop range
-    void set_loop_range(yave::time min, yave::time max);
+    void set_loop_range(media::time min, media::time max);
 
     /// is loop execution enabled?
     bool loop_execution() const;
@@ -91,7 +91,7 @@ namespace yave::editor {
     void set_loop_execution(bool b);
 
     /// get time argument to execute.
-    auto last_arg_time() const -> yave::time;
+    auto last_arg_time() const -> media::time;
 
     /// get result of last execution
     auto last_result_image() const -> std::shared_ptr<const image>;
@@ -108,7 +108,7 @@ namespace yave::editor {
     friend class execute_thread;
     struct result_data
     {
-      time arg_time;
+      media::time arg_time;
       std::shared_ptr<const yave::image> image;
       std::chrono::milliseconds compute_time;
       std::chrono::steady_clock::time_point begin_time;

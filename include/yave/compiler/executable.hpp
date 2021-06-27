@@ -34,7 +34,7 @@ namespace yave::compiler {
     [[nodiscard]] auto type() const -> const object_ptr<const Type>&;
 
     /// Execute.
-    [[nodiscard]] auto execute(const time& time) -> object_ptr<const Object>;
+    [[nodiscard]] auto execute(const media::time& time) -> object_ptr<const Object>;
 
     /// Clone.
     [[nodiscard]] auto clone() const -> executable;

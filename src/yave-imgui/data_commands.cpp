@@ -35,7 +35,7 @@ namespace yave::editor::imgui {
   // ------------------------------------------
   // dcmd_notify_execute
 
-  dcmd_notify_execute::dcmd_notify_execute(std::optional<time> time)
+  dcmd_notify_execute::dcmd_notify_execute(std::optional<media::time> time)
     : m_time {time}
   {
   }

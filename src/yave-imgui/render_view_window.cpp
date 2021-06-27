@@ -45,7 +45,7 @@ namespace yave::editor {
     loop_execution = b;
   }
 
-  void render_view_window::set_loop_execution_range(time min, time max)
+  void render_view_window::set_loop_execution_range(media::time min, media::time max)
   {
     loop_time_min = min;
     loop_time_max = max;
@@ -178,7 +178,7 @@ namespace yave::editor {
       // render new frame
       if (farg_time_input != farg_time) {
         data_ctx.cmd(std::make_unique<imgui::dcmd_notify_execute>(
-          time::seconds(farg_time_input)));
+          media::time::seconds(farg_time_input)));
       }
 
       view_ctx.cmd(make_window_view_command(*this, [=](auto& w) {

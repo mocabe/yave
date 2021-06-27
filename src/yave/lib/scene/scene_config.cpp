@@ -40,7 +40,7 @@ namespace yave {
       throw std::invalid_argument("Invalid frame rate");
     }
 
-    if (!time::is_compatible_rate(frame_rate)) {
+    if (!media::time::is_compatible_rate(frame_rate)) {
       log_warning(
         "Specified frame rate is not compatible with internal time resolution. "
         "This may cause innaccurate time mapping.");

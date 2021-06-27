@@ -6,13 +6,16 @@
 #pragma once
 
 #include <limits>
+#include <concepts>
 
-namespace yave {
+namespace yave::media {
 
   /// Non-overflowing signed integer value.
   template <class IntegerT>
   class bounded_int
   {
+    static_assert(std::signed_integral<IntegerT>);
+
   public:
     using value_type = IntegerT;
 
