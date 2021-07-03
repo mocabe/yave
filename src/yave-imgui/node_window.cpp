@@ -404,7 +404,7 @@ namespace yave::editor::imgui {
           make_window_view_command(*this, [](auto& w) { w.clear_selected(); }));
       }
 
-      // Ctrol + U = move to upper group
+      // Ctrl + U = move to upper group
       if (
         ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) && //
         ImGui::IsKeyPressed(GLFW_KEY_U)) {
@@ -424,6 +424,18 @@ namespace yave::editor::imgui {
             w.set_group(ng.get_parent_group(g));
           }));
       }
+
+      // Ctrl + Z = undo
+      if (
+        ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) && //
+        ImGui::IsKeyPressed(GLFW_KEY_Z))
+        dctx.undo();
+
+      // Ctrl + R = redo
+      if (
+        ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) && //
+        ImGui::IsKeyPressed(GLFW_KEY_R))
+        dctx.redo();
     }
   }
 
