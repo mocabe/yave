@@ -9,17 +9,20 @@
     "boost-filesystem",
     "boost-dll",
     "boost-gil",
+    "boost-signals2",
     "spdlog",
     "fmt",
     "glm",
     "glfw3",
     "freetype",
+    "harfbuzz",
     "libpng",
     "libjpeg-turbo",
     "tiff",
     "range-v3",
     "tl-optional",
     "catch2",
-    "blend2d"
+    "blend2d",
+    "vulkan-memory-allocator"
   ]
 }
