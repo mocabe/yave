@@ -172,8 +172,8 @@ namespace {
     colAttachments[0].srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
     colAttachments[0].dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
     colAttachments[0].colorBlendOp        = vk::BlendOp::eAdd;
-    colAttachments[0].srcAlphaBlendFactor = vk::BlendFactor::eSrcAlpha;
-    colAttachments[0].dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+    colAttachments[0].srcAlphaBlendFactor = vk::BlendFactor::eOne;
+    colAttachments[0].dstAlphaBlendFactor = vk::BlendFactor::eZero;
     colAttachments[0].alphaBlendOp        = vk::BlendOp::eAdd;
 
     vk::PipelineColorBlendStateCreateInfo colorBlendStateInfo;
@@ -302,7 +302,7 @@ namespace {
     {
       vk::ImageCreateInfo info;
       info.imageType   = vk::ImageType::e2D;
-      info.format      = vk::Format::eR8G8B8A8Unorm;
+      info.format      = vk::Format::eR8G8B8A8Srgb;
       info.extent      = imageExtent;
       info.mipLevels   = 1;
       info.arrayLayers = 1;
@@ -341,7 +341,7 @@ namespace {
       vk::ImageViewCreateInfo info;
       info.image            = image.get();
       info.viewType         = vk::ImageViewType::e2D;
-      info.format           = vk::Format::eR8G8B8A8Unorm;
+      info.format           = vk::Format::eR8G8B8A8Srgb;
       info.subresourceRange = subresourceRange;
       imageView             = device.createImageViewUnique(info);
     }

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 # ------------------------------------------
 # Directories
 
@@ -77,6 +79,7 @@ message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 # Default C++ standard
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ------------------------------------------
 # External
@@ -89,11 +92,11 @@ include(${YAVE_EXTERNAL_DIR}/external.cmake)
 if(YAVE_COMPILER_MSVC)
   # Remove /RTC1 from default set of compile flags.
   STRING (REGEX REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-  set(YAVE_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4 /Zc:__cplusplus)
+  set(YAVE_COMPILE_FLAGS /W4 /Zi /EHsc /permissive- /w34716 /d2FH4 /Zc:__cplusplus /utf-8 /MP)
   set(YAVE_LINK_FLAGS )
 else()
   STRING (REGEX REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-  set(YAVE_COMPILE_FLAGS -Wall -Wextra -g -pedantic)
+  set(YAVE_COMPILE_FLAGS -Wall -Wextra -g -pedantic -Wno-c++98-​compat -Wno-c++98-compat-pedantic)
   set(YAVE_LINK_FLAGS )
 endif()
 

@@ -13,7 +13,7 @@
 namespace yave::ui {
 
   /// Box layout constraints
-  struct box_constraints
+  struct size_constraints
   {
   private:
     static constexpr auto inf = std::numeric_limits<f64>::infinity();
@@ -31,16 +31,16 @@ namespace yave::ui {
     }
 
   public:
-    box_constraints() = default;
+    size_constraints() = default;
 
-    box_constraints(ui::size sz)
+    size_constraints(ui::size sz)
       : m_min {sz}
       , m_max {sz}
     {
       validate();
     }
 
-    box_constraints(ui::size min, ui::size max)
+    size_constraints(ui::size min, ui::size max)
       : m_min {min}
       , m_max {max}
     {

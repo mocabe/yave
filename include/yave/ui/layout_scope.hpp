@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include <yave/ui/box_constraints.hpp>
 #include <yave/ui/window_geometry.hpp>
+#include <yave/ui/size_constraints.hpp>
+#include <yave/ui/layout_constraints.hpp>
 
 namespace yave::ui {
 
@@ -18,14 +19,14 @@ namespace yave::ui {
   {
     layout_context& m_ctx;
     const ui::window& m_win;
-    box_constraints m_constr;
+    size_constraints m_constr;
 
     friend class layout_context;
 
     layout_scope(
       layout_context& ctx,
       const ui::window& win,
-      const box_constraints& c);
+      const size_constraints& c);
 
   public:
     ~layout_scope() noexcept          = default;
@@ -41,17 +42,20 @@ namespace yave::ui {
     auto window() const -> const ui::window&;
 
     /// Current constraints
-    auto constraints() const -> const box_constraints&;
+    auto constraints() const -> const ui::size_constraints&;
 
     /// Enter child window scope
-    auto enter_child(const ui::window& w, const box_constraints& c) -> ui::size;
+    auto enter_child(const ui::window& w, const size_constraints& c) -> size;
 
     /// Set new size
-    void set_size(ui::size new_size);
-    void set_size(const ui::window& w, ui::size new_size);
+    void set_size(const size& s);
+    void set_size(const ui::window& w, size s);
     /// Set offset (optional, parent can ignore)
-    void set_offset(ui::vec new_offset);
-    void set_offset(const ui::window& w, ui::vec new_offset);
+    void set_offset(const ui::vec& o);
+    void set_offset(const ui::window& w, vec o);
+    /// Set new constraints
+    void set_anchor(const ui::layout_constraints& c);
+    void set_anchor(const ui::window& w, const ui::layout_constraints& c);
   };
 
 } // namespace yave::ui

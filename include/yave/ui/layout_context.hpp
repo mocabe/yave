@@ -10,6 +10,7 @@
 #include <yave/ui/vec.hpp>
 #include <yave/ui/box_constraints.hpp>
 #include <yave/ui/window_geometry.hpp>
+#include <yave/ui/layout_constraints.hpp>
 #include <yave/ui/passkey.hpp>
 
 #include <memory>
@@ -63,6 +64,10 @@ namespace yave::ui {
     auto get_offset(const window&) const -> ui::vec;
     /// Set offset of window
     void set_offset(const window&, ui::vec, passkey<layout_scope>);
+
+    /// Get window's layout property
+    auto get_constraints() const -> ui::layout_constraints;
+    void set_constraints(const layout_constraints& c);
   };
 
 } // namespace yave::ui

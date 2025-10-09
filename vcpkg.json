@@ -10,6 +10,7 @@
     "boost-dll",
     "boost-gil",
     "boost-signals2",
+    "boost-safe-numerics",
     "spdlog",
     "fmt",
     "glm",

@@ -90,13 +90,31 @@ TEST_CASE("vctx")
 
   SECTION("app")
   {
+    struct my_window final : windowT<my_window>
+    {
+      void layout(layout_scope ctx) const override
+      {
+        return ctx.set_size(ctx.constraints().max());
+      }
+
+      void render(render_scope ctx) const override
+      {
+        auto& layer = ctx.get_layer();
+        layer.draw_rect(ctx.window_size(), 5, color {.g = 1.0, .a = 1.0});
+      }
+    };
+
     struct TestApp : application
     {
       void init(view_context& vctx) override
       {
         auto& wm = vctx.window_manager();
         auto& vp = wm.root().add_viewport(u8"テスト", size(500, 500));
+
+        vp.get_tracker();
         vp.native_window().show();
+
+        vp.set_child(make_unique<my_window>()).show();
       }
     };
 
